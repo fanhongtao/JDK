@@ -91,8 +91,9 @@ of any of this software is governed by the terms of the license below:
 */
 
 
-%% The following software may be included in this product:  Xalan J2; Use of any of this
-software is governed by the terms of the license below:
+%% The following software may be included in this product: Xalan 2.7.0
+& Xerces 2.7.1; Use of any of this software is governed by the terms of 
+the license below:
 
                                 Apache License
                            Version 2.0, January 2004
@@ -275,27 +276,6 @@ under the License is distributed on an "AS IS" BASIS,WITHOUT WARRANTIES OR
 CONDITIONS OF ANY KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations under the License.
 
-%% The following software may be included in this product:  NSIS 1.0j; Use of
-any of this software is governed by the terms of the license below:  
-Copyright (C) 1999-2000 Nullsoft, Inc.
-
-This software is provided 'as-is', without any express or implied warranty.  In
-no event will the authors be held liable for any damages arising from the use of
-this software.  Permission is granted to anyone to use this software for any
-purpose, including commercial applications, and to alter it and redistribute it
-freely, subject to the following restrictions:
-
-1.  The origin of this software must not be misrepresented; you must not claim
-that you wrote the original software.  If you use this software in a product, an
-acknowledgment in the product documentation would be appreciated but is not
-required.
-
-2.  Altered source versions must be plainly marked as such, and must not be
-misrepresented as being the original software.
-
-3.  This notice may not be removed or altered from any source distribution.
-Justin Frankel justin@nullsoft.com"
-
 %% Some Portions licensed from IBM are available at: 
 http://www.ibm.com/software/globalization/icu/
 
@@ -404,194 +384,6 @@ under the Open Source Definition.  Please see our Copyright FAQ for common
 questions about using materials from our site, including specific terms and
 conditions for packages like libwww, Amaya, and Jigsaw.  Other questions about
 this notice can be directed to site-policy@w3.org.
-
-%% The following software may be included in this product:  Xalan, Xerces; Use
-of any of this software is governed by the terms of the license below:  /*
-
- * The Apache Software License, Version 1.1
- *
- *
- * Copyright (c) 1999-2003 The Apache Software Foundation.  All rights  
- * reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.  
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
- *       "This product includes software developed by the
- *        Apache Software Foundation (http://www.apache.org/)."
- *    Alternately, this acknowledgment may appear in the software itself,
- *    if and wherever such third-party acknowledgments normally appear.
- *
- * 4. The names "Xerces" and "Apache Software Foundation" must
- *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
- *    permission, please contact apache@apache.org.
- *
- * 5. Products derived from this software may not be called "Apache",
- *    nor may "Apache" appear in their name, without prior written
- *    permission of the Apache Software Foundation.
- *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * ====================================================================
- *
- * This software consists of voluntary contributions made by many
- * individuals on behalf of the Apache Software Foundation and was
- * originally based on software copyright (c) 1999, International
- * Business Machines, Inc., http://www.ibm.com.  For more
- * information on the Apache Software Foundation, please see http://www.apache.org
- * 
-
-%% The following software may be included in this product:  W3C XML Conformance
-Test Suites v.  20020606; Use of any of this software is governed by the terms
-of the license below:
-
-W3C SOFTWARE NOTICE AND LICENSE
-
-Copyright 1994-2002 World Wide Web Consortium, (Massachusetts Institute of
-Technology, Institut National de Recherche en Informatique et en
-Automatique,Keio University).  All Rights Reserved.
-http://www.w3.org/Consortium/Legal/
-
-This W3C work (including software, documents, or other related items) is being
-provided by the copyright holders under the following license.  By
-obtaining,using and/or copying this work, you (the licensee) agree that you have
-read,understood, and will comply with the following terms and conditions:
-
-Permission to use, copy, modify, and distribute this software and its
-documentation, with or without modification, for any purpose and without fee
-orroyalty is hereby granted, provided that you include the following on ALL
-copiesof the software and documentation or portions thereof, including
-modifications,that you make:
-
-1.  The full text of this NOTICE in a location viewable to users of the
-redistributed or derivative work.
-
-2.  Any pre-existing intellectual property disclaimers, notices, or terms and
-conditions.  If none exist, a short notice of the following form (hypertext is
-preferred, text is permitted) should be used within the body of any
-redistributed or derivative code:  "Copyright [$date-of-software] World Wide Web
-Consortium, (Massachusetts Institute of Technology, Institut National
-deRecherche en Informatique et en Automatique, Keio University).  All Rights
-Reserved.  http://www.w3.org/Consortium/Legal/"
-
-3.  Notice of any changes or modifications to the W3C files, including the date
-changes were made.  (We recommend you provide URIs to the location from which
-the code is derived.)
-
-THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS
-MAKENO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-LIMITEDTO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE
-OR THATTHE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD
-PARTYPATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL
-ORCONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
-
-The name and trademarks of copyright holders may NOT be used in advertising or
-publicity pertaining to the software without specific, written prior permission.
-Title to copyright in this software and any associated documentation will at all
-times remain with copyright holders.
-
-____________________________________
-
-This formulation of W3C's notice and license became active on August 14 1998
-soas to improve compatibility with GPL.  This version ensures that W3C software
-licensing terms are no more restrictive than GPL and consequently W3C software
-may be distributed in GPL packages.  See the older formulation for the policy
-prior to this date.  Please see our Copyright FAQ for common questions about
-using materials from our site, including specific terms and conditions for
-packages like libwww, Amaya, and Jigsaw.  Other questions about this notice can
-be directed to site-policy@w3.org.
-
-%% The following software may be included in this product:  W3C XML Schema Test
-Collection v.  1.16.2; Use of any of this software is governed by the terms of
-the license below:  W3C DOCUMENT NOTICE AND LICENSE
-
-Copyright 1994-2002 World Wide Web Consortium, (Massachusetts Institute of
-Technology, Institut National de Recherche en Informatique et en
-Automatique,Keio University).  All Rights Reserved.
-http://www.w3.org/Consortium/Legal/
-
-Public documents on the W3C site are provided by the copyright holders under the
-following license.  The software or Document Type Definitions (DTDs) associated
-with W3C specifications are governed by the Software Notice.  By using and/or
-copying this document, or the W3C document from which this statement is
-linked,you (the licensee) agree that you have read, understood, and will comply
-with the following terms and conditions:
-
-Permission to use, copy, and distribute the contents of this document, or theW3C
-document from which this statement is linked, in any medium for any purpose and
-without fee or royalty is hereby granted, provided that you include the
-following on ALL copies of the document, or portions thereof, that you use:
-
-1. A link or URL to the original W3C document.
- 
-2.  The pre-existing copyright notice of the original author, or if it doesn't
-exist, a notice of the form:  "Copyright [$date-of-document] World Wide
-WebConsortium, (Massachusetts Institute of Technology, Institut National
-deRecherche en Informatique et en Automatique, Keio University).  All Rights
-Reserved.  http://www.w3.org/Consortium/Legal/" (Hypertext is preferred, but
-atextual representation is permitted.)
-
-3. If it exists, the STATUS of the W3C document.
-
-When space permits, inclusion of the full text of this NOTICE should be
-provided.  We request that authorship attribution be provided in any
-software,documents, or other items or products that you create pursuant to the
-implementation of the contents of this document, or any portion thereof.
-
-No right to create modifications or derivatives of W3C documents is granted
-pursuant to this license.  However, if additional requirements (documented in
-the Copyright FAQ) are satisfied, the right to create modifications or
-derivatives is sometimes granted by the W3C to individuals complying with those
-requirements.  THIS DOCUMENT IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO
-REPRESENTATIONSOR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
-WARRANTIES OFMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
-NON-INFRINGEMENT, OR TITLE;THAT THE CONTENTS OF THE DOCUMENT ARE SUITABLE FOR
-ANY PURPOSE; NOR THAT THEIMPLEMENTATION OF SUCH CONTENTS WILL NOT INFRINGE ANY
-THIRD PARTY PATENTS,COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
-
-COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL
-ORCONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE DOCUMENT OR THE
-PERFORMANCEOR IMPLEMENTATION OF THE CONTENTS THEREOF.
-
-The name and trademarks of copyright holders may NOT be used in advertising or
-publicity pertaining to this document or its contents without specific, written
-prior permission.  Title to copyright in this document will at all times remain
-with copyright holders.
-
-----------------------------------------------------------------------------
-
-This formulation of W3C's notice and license became active on April 05 1999 soas
-to account for the treatment of DTDs, schema's and bindings.  See the older
-formulation for the policy prior to this date.  Please see our Copyright FAQ for
-common questions about using materials from our site, including specific terms
-and conditions for packages like libwww, Amaya, and Jigsaw.  Other questions
-about this notice can be directed to site-policy@w3.org.  webmaster (last
-updated by reagle on 1999/04/99.)
-
 
 %% The following software may be included in this product:  Mesa 3-D graphics
 library v.  5; Use of any of this software is governed by the terms of the
@@ -924,8 +716,6 @@ OF THEPOSSIBILITY OF SUCH DAMAGE.
 This software consists of voluntary contributions made by many individuals on
 behalf of the Apache Software Foundation.  For more information on the Apache
 Software Foundation, please see http://www.apache.org.  /
-
-
 
 %% The following software may be included in this product:  Regexp, Regular
 Expression Package v.  1.2; Use of any of this software is governed by the terms
@@ -1372,33 +1162,6 @@ TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Copyright 2001-2005 (C) MetaStuff, Ltd.  All Rights Reserved.
-
-%% The following software may be included in this product:  Retroweaver; Use of
-any of this software is governed by the terms of the license below:
-
-Copyright (c) February 2004, Toby Reyelts All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this list
-of conditions and the following disclaimer.  Redistributions in binary form must
-reproduce the above copyright notice, this list of conditions and the following
-disclaimer in the documentation and/or other materials provided with the
-distribution.  Neither the name of Toby Reyelts nor the names of his
-contributors may be used to endorse or promote products derived from this
-software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICTLIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 %% The following software may be included in this product:  stripper; Use of any
 of this software is governed by the terms of the license below:
@@ -2110,38 +1873,6 @@ OF SUCH DAMAGE.
 
 ====================================================================
 This license is based on the Apache Software License, version 1.1
-
-
-%% The following software may be included in this product:  Jing; Use of any of
-this software is governed by the terms of the license below:  Jing Copying
-Conditions
-
-Copyright (c) 2001-2003 Thai Open Source Software Center Ltd All rights
-reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification,are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright 
-      notice,this list of conditions and the following disclaimer in the 
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Thai Open Source Software Center Ltd nor the 
-      names of its contributors may be used to endorse or promote products 
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-ANDANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIEDWARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-AREDISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR
-ANYDIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES;LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-AND ONANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-THISSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 %% The following software may be included in this product:  RelaxNGCC; Use of
 any of this software is governed by the terms of the license below:
@@ -3480,3 +3211,5 @@ Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 You should have received a copy of the Common Public License along with this
 library.
+
+

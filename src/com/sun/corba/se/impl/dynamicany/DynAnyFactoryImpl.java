@@ -1,7 +1,5 @@
 /*
- * @(#)DynAnyFactoryImpl.java	1.10 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -64,6 +62,6 @@ public class DynAnyFactoryImpl
     private String[] __ids = { "IDL:omg.org/DynamicAny/DynAnyFactory:1.0" };
 
     public String[] _ids() {
-        return __ids;
+        return (String[])__ids.clone();
     }
 }

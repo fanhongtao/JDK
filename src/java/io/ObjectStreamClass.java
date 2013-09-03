@@ -1,7 +1,5 @@
 /*
- * %W% %E%
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -713,7 +711,6 @@ public class ObjectStreamClass implements Serializable {
 	    InvalidClassException ice = 
 		new InvalidClassException(deserializeEx.classname,
 					  deserializeEx.getMessage());
-	    ice.initCause(deserializeEx);
 	    throw ice;
 	}
     }
@@ -728,7 +725,6 @@ public class ObjectStreamClass implements Serializable {
 	    InvalidClassException ice = 
 		new InvalidClassException(serializeEx.classname,
 					  serializeEx.getMessage());
-	    ice.initCause(serializeEx);
 	    throw ice;
 	}
     }
@@ -745,7 +741,6 @@ public class ObjectStreamClass implements Serializable {
 	    InvalidClassException ice = 
 		new InvalidClassException(defaultSerializeEx.classname,
 					  defaultSerializeEx.getMessage());
-	    ice.initCause(defaultSerializeEx);
 	    throw ice;
 	}
     }
