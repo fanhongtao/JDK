@@ -1,7 +1,5 @@
 /*
- * @(#)WindowsRootPaneUI.java	1.19 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +10,9 @@ import java.awt.Container;
 import java.awt.Event;
 import java.awt.KeyEventPostProcessor;
 import java.awt.Window;
+import java.awt.Toolkit;
+
+import sun.awt.SunToolkit;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -43,7 +44,7 @@ import javax.swing.plaf.basic.ComboPopup;
  * Windows implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.19 03/23/10
+ * @version %I% %G%
  * @author Mark Davidson
  * @since 1.4
  */
@@ -108,7 +109,15 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
                 }
                 JMenu menu = mbar != null ? mbar.getMenu(0) : null;
 
-                if (menu != null) {
+		// Skip menu activation if the KeyEvent originated before
+		// the latest window deactivation.
+		boolean skip = false;
+		Toolkit tk = Toolkit.getDefaultToolkit();
+		if (tk instanceof SunToolkit) {
+		    skip = ev.getWhen() <= ((SunToolkit)tk).getDeactivationTime(winAncestor);
+		}
+
+                if (menu != null && !skip) {
                     MenuElement[] path = new MenuElement[2];
                     path[0] = mbar;
                     path[1] = menu;

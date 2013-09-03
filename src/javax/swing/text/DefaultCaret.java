@@ -1,7 +1,5 @@
 /*
- * @(#)DefaultCaret.java	1.150 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
@@ -85,7 +83,7 @@ import sun.swing.SwingUtilities2;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.150 03/23/10
+ * @version %I% %G%
  * @see     Caret
  */
 public class DefaultCaret extends Rectangle implements Caret, FocusListener, MouseListener, MouseMotionListener {
@@ -1483,9 +1481,14 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 
         if (caretWidth > -1) {
             return caretWidth;
+        } else {
+            Object property = UIManager.get("Caret.width");
+            if (property instanceof Integer) {
+                return ((Integer) property).intValue();
+            } else {
+                return 1;
+            }
         }
-
-        return 1;
     }
 
     // --- serialization ---------------------------------------------

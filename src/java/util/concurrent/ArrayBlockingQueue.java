@@ -1,7 +1,5 @@
 /*
- * @(#)ArrayBlockingQueue.java	1.15 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -684,73 +682,49 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Iterator for ArrayBlockingQueue
+     * Iterator for ArrayBlockingQueue. To maintain weak consistency
+     * with respect to puts and takes, we (1) read ahead one slot, so
+     * as to not report hasNext true but then not have an element to
+     * return (2) ensure that each array slot is traversed at most
+     * once (by tracking "remaining" elements); (3) skip over null
+     * slots, which can occur if takes race ahead of iterators.
+     * However, for circular array-based queues, we cannot rely on any
+     * well established definition of what it means to be weakly
+     * consistent with respect to interior removes since these may
+     * require slot overwrites in the process of sliding elements to
+     * cover gaps. So we settle for resiliency, operating on
+     * established apparent nexts, which may miss that some elements
+     * that have moved between calls to next.
      */
     private class Itr implements Iterator<E> {
-        /**
-         * Index of element to be returned by next,
-         * or a negative number if no such.
-         */
-        private int nextIndex;
-
-        /**
-         * nextItem holds on to item fields because once we claim
-         * that an element exists in hasNext(), we must return it in
-         * the following next() call even if it was in the process of
-         * being removed when hasNext() was called.
-         */
-        private E nextItem;
-
-        /**
-         * Index of element returned by most recent call to next.
-         * Reset to -1 if this element is deleted by a call to remove.
-         */
-        private int lastRet;
+        private int remaining; // Number of elements yet to be returned
+        private int nextIndex; // Index of element to be returned by next
+        private E nextItem;    // Element to be returned by next call to next
+        private E lastItem;    // Element returned by last call to next
+        private int lastRet;   // Index of last element returned, or -1 if none
 
         Itr() {
             lastRet = -1;
-            if (count == 0)
-                nextIndex = -1;
-            else {
-                nextIndex = takeIndex;
-                nextItem = items[takeIndex];
-            }
+            if ((remaining = count) > 0)
+                nextItem = items[nextIndex = takeIndex];
         }
 
         public boolean hasNext() {
-            /*
-             * No sync. We can return true by mistake here
-             * only if this iterator passed across threads,
-             * which we don't support anyway.
-             */
-            return nextIndex >= 0;
-        }
-
-        /**
-         * Checks whether nextIndex is valid; if so setting nextItem.
-         * Stops iterator when either hits putIndex or sees null item.
-         */
-        private void checkNext() {
-            if (nextIndex == putIndex) {
-                nextIndex = -1;
-                nextItem = null;
-            } else {
-                nextItem = items[nextIndex];
-                if (nextItem == null)
-                    nextIndex = -1;
-            }
+            return remaining > 0;
         }
 
         public E next() {
+            if (remaining <= 0)
+                throw new NoSuchElementException();
             final ReentrantLock lock = ArrayBlockingQueue.this.lock;
             lock.lock();
             try {
-                if (nextIndex < 0)
-                    throw new NoSuchElementException();
                 lastRet = nextIndex;
-                E x = nextItem;
-                nextIndex = inc(nextIndex);
-                checkNext();
+                E x = lastItem = nextItem;
+                while (--remaining > 0) {
+                    if ((nextItem = items[nextIndex = inc(nextIndex)]) != null)
+                        break;
+                }
                 return x;
             } finally {
                 lock.unlock();
@@ -765,12 +739,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 if (i == -1)
                     throw new IllegalStateException();
                 lastRet = -1;
-
-                int ti = takeIndex;
-                removeAt(i);
-                // back up cursor (reset to front if was first element)
-                nextIndex = (i == ti) ? takeIndex : i;
-                checkNext();
+                if (lastItem == items[i])
+                    removeAt(i); // only remove if item still at index
             } finally {
                 lock.unlock();
             }

@@ -1,7 +1,5 @@
 /*
- * @(#)DeflaterOutputStream.java	1.37 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -18,7 +16,7 @@ import java.io.IOException;
  * types of compression filters, such as GZIPOutputStream.
  *
  * @see		Deflater
- * @version 	1.37, 03/23/10
+ * @version 	%I%, %G%
  * @author 	David Connelly
  */
 public
@@ -108,17 +106,13 @@ class DeflaterOutputStream extends FilterOutputStream {
 	} else if (len == 0) {
 	    return;
 	}
-	if (!def.finished()) {
-            // Deflate no more than stride bytes at a time.  This avoids
-            // excess copying in deflateBytes (see Deflater.c)
-            int stride = buf.length;
-            for (int i = 0; i < len; i+= stride) {
-                def.setInput(b, off + i, Math.min(stride, len - i));
-                while (!def.needsInput()) {
-                    deflate();
-                }
+        if (!def.finished()) {
+            def.setInput(b, off, len);
+            while (!def.needsInput()) {
+                deflate();
             }
-	}
+        }
+
     }
 
     /**

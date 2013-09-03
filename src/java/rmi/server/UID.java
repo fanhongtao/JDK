@@ -1,7 +1,5 @@
 /*
- * @(#)UID.java	1.25 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -48,7 +46,6 @@ import java.security.SecureRandom;
  *
  * @author	Ann Wollrath
  * @author	Peter Jones
- * @version	1.25, 10/03/23
  * @since	JDK1.1
  */
 public final class UID implements Serializable {
@@ -101,15 +98,17 @@ public final class UID implements Serializable {
 		boolean done = false;
 		while (!done) {
 		    long now = System.currentTimeMillis();
-		    if (now <= lastTime) {
+		    if (now == lastTime) {
 			// wait for time to change
 			try {
-			    Thread.currentThread().sleep(1);
+			    Thread.sleep(1);
 			} catch (InterruptedException e) {
 			    interrupted = true;
 			}
 		    } else {
-			lastTime = now;
+                        // If system time has gone backwards increase
+                        // original by 1ms to maintain uniqueness
+                        lastTime = (now < lastTime) ? lastTime+1 : now;
 			lastCount = Short.MIN_VALUE;
 			done = true;
 		    }

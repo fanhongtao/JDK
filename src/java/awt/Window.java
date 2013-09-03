@@ -1,7 +1,5 @@
 /*
- * @(#)Window.java	1.274 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -38,6 +36,7 @@ import javax.accessibility.*;
 import sun.awt.AWTAccessor;
 import sun.awt.AppContext;
 import sun.awt.CausedFocusEvent;
+import sun.awt.TimedWindowEvent;
 import sun.awt.SunToolkit;
 import sun.awt.util.IdentityArrayList;
 import sun.java2d.pipe.Region;
@@ -2474,6 +2473,11 @@ public class Window extends Container implements Accessible {
 	if (e.getID() == ComponentEvent.COMPONENT_RESIZED) {
 	    invalidate();
 	    validate();
+	} else if (e.getID() == WindowEvent.WINDOW_LOST_FOCUS) {
+	    Toolkit tk = Toolkit.getDefaultToolkit();
+	    if (tk instanceof SunToolkit && e instanceof TimedWindowEvent) {
+		((SunToolkit)tk).setDeactivationTime(this, ((TimedWindowEvent)e).getWhen());
+	    }
 	}
 	super.dispatchEventImpl(e);
     }

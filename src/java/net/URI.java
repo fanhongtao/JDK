@@ -1,7 +1,6 @@
 /*
- * @(#)URI.java	1.49 10/03/23
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -436,7 +435,7 @@ import java.lang.NullPointerException;	// for javadoc
  * opening a connection to the specified resource.
  *
  *
- * @version 1.49, 10/03/23
+ * @version %I%, %E%
  * @author Mark Reinhold
  * @since 1.4
  *
@@ -1696,6 +1695,8 @@ public final class URI
 		    i++;
 		    continue;
 		}
+                if (d != '%')
+                    return false;
 		i++;
 		if (toLower(s.charAt(i)) != toLower(t.charAt(i)))
 		    return false;

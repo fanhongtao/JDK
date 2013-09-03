@@ -1,7 +1,5 @@
 /*
- * @(#)KeyboardFocusManager.java	1.74 07/03/15
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -2477,7 +2475,7 @@ public abstract class KeyboardFocusManager
             if (acceptDuplicates || heavyweight != currentNativeFocusOwner) {
                 getCurrentKeyboardFocusManager
                     (SunToolkit.targetToAppContext(heavyweight)).
-                    enqueueKeyEvents(time, heavyweight);
+                    enqueueKeyEvents(Toolkit.getEventQueue().getMostRecentKeyEventTime(), heavyweight);
                 heavyweightRequests.add
                     (new HeavyweightFocusRequest(heavyweight, heavyweight,
                                                  false, CausedFocusEvent.Cause.MOUSE_EVENT));

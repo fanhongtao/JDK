@@ -1,7 +1,5 @@
 /*
- * %W% %E%
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -656,6 +654,9 @@ public class WindowsLookAndFeel extends BasicLookAndFeel
                             "SPACE", "pressed",
                    "released SPACE", "released"
                  }),
+
+            "Caret.width",
+                 new DesktopProperty("win.caret.width", null),
 
 	    "CheckBox.font", ControlFont,
             "CheckBox.interiorBackground", WindowBackgroundColor,

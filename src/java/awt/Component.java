@@ -1,7 +1,6 @@
 /*
- * %W% %E%
  *
- * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -4498,7 +4497,9 @@ public abstract class Component implements ImageObserver, MenuContainer,
         /*
          * 0. Set timestamp and modifiers of current event.
          */
-        EventQueue.setCurrentEventAndMostRecentTime(e);
+        if(!(e instanceof KeyEvent)) { 
+            EventQueue.setCurrentEventAndMostRecentTime(e);
+        }
 
         /*
          * 1. Pre-dispatchers. Do any necessary retargeting/reordering here
@@ -7434,7 +7435,15 @@ public abstract class Component implements ImageObserver, MenuContainer,
         }
 
         // Focus this Component
-        long time = EventQueue.getMostRecentEventTime();
+        long time = 0;
+        if (EventQueue.isDispatchThread()) {
+            time = Toolkit.getEventQueue().getMostRecentKeyEventTime();
+        } else {
+            // A focus request made from outside EDT should not be associated with any event
+            // and so its time stamp is simply set to the current time.
+            time = System.currentTimeMillis();
+        }
+
         boolean success = peer.requestFocus
             (this, temporary, focusedWindowChangeAllowed, time, cause);
         if (!success) {

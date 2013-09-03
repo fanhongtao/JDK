@@ -1,7 +1,5 @@
 /*
- * @(#)Container.java	1.304 10/04/27
- *
- * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -63,7 +61,7 @@ import sun.java2d.pipe.Region;
  * <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
  * for more information.
  *
- * @version 	1.304, 04/27/10
+ * @version 	%I%, %G%
  * @author 	Arthur van Hoff
  * @author 	Sami Shaio
  * @see       #add(java.awt.Component, int)
@@ -2663,7 +2661,7 @@ public class Container extends Component {
 
         // keep the KeyEvents from being dispatched
         // until the focus has been transfered
-        long time = Toolkit.getEventQueue().getMostRecentEventTime();
+	long time = Toolkit.getEventQueue().getMostRecentKeyEventTime();
         Component predictedFocusOwner = (Component.isInstanceOf(this, "javax.swing.JInternalFrame")) ? ((javax.swing.JInternalFrame)(this)).getMostRecentFocusOwner() : null;
         if (predictedFocusOwner != null) {
             KeyboardFocusManager.getCurrentKeyboardFocusManager().

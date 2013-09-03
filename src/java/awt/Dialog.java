@@ -1,7 +1,5 @@
 /*
- * @(#)Dialog.java	1.134 10/03/23
- *
- * Copyright (c) 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -76,7 +74,7 @@ import sun.awt.util.IdentityArrayList;
  * @see WindowEvent
  * @see Window#addWindowListener
  *
- * @version	1.134, 03/23/10
+ * @version	%I%, %G%
  * @author	Sami Shaio
  * @author	Arthur van Hoff
  * @since       JDK1.0
@@ -907,7 +905,7 @@ public class Dialog extends Window {
                     isEnabled() && !isModalBlocked()) {
                     // keep the KeyEvents from being dispatched
                     // until the focus has been transfered
-                    time.set(Toolkit.getEventQueue().getMostRecentEventTimeEx());
+                    time.set(Toolkit.getEventQueue().getMostRecentKeyEventTime()); 
                     KeyboardFocusManager.getCurrentKeyboardFocusManager().
                         enqueueKeyEvents(time.get(), toFocus);
                 }

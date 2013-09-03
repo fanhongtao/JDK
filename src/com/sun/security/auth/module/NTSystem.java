@@ -1,7 +1,5 @@
 /*
- * @(#)NTSystem.java	1.12 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -13,11 +11,11 @@ import javax.security.auth.login.LoginException;
  * <p> This class implementation retrieves and makes available NT
  * security information for the current user.
  * 
- * @version 1.12, 03/23/10
  */
 public class NTSystem {
     
     private native void getCurrent(boolean debug);
+    private native long getImpersonationToken0();
     
     private String userName;
     private String domain;
@@ -117,10 +115,13 @@ public class NTSystem {
      *
      * @return an impersonation token for the current NT user.
      */
-    public long getImpersonationToken() {
+    public synchronized long getImpersonationToken() {
+        if (impersonationToken == 0) {
+            impersonationToken = getImpersonationToken0();
+        }
         return impersonationToken;
     }
-    
+
     private void loadNative() {
 	System.loadLibrary("jaas_nt");
     }

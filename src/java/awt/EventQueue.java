@@ -1,7 +1,6 @@
 /*
- * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -137,6 +136,11 @@ public class EventQueue {
      * The time stamp of the last dispatched InputEvent or ActionEvent.
      */
     private long mostRecentEventTime = System.currentTimeMillis();
+
+    /*
+     * The time stamp of the last KeyEvent .
+     */
+    private long  mostRecentKeyEventTime = System.currentTimeMillis();
 
     /**
      * The modifiers field of the current event, if the current event is an
@@ -698,6 +702,7 @@ public class EventQueue {
         return mostRecentEventTime;
     }
 
+
     /**
      * Returns the the event currently being dispatched by the
      * <code>EventQueue</code> associated with the calling thread. This is
@@ -948,6 +953,10 @@ public class EventQueue {
         }
     }
 
+    synchronized long getMostRecentKeyEventTime() {
+        return mostRecentKeyEventTime;
+    }
+
     static void setCurrentEventAndMostRecentTime(AWTEvent e) {
         Toolkit.getEventQueue().setCurrentEventAndMostRecentTimeImpl(e);
     }
@@ -971,7 +980,10 @@ public class EventQueue {
         if (e instanceof InputEvent) {
             InputEvent ie = (InputEvent)e;
             mostRecentEventTime2 = ie.getWhen(); 
-        } else if (e instanceof InputMethodEvent) {
+	    if (e instanceof KeyEvent) {
+                mostRecentKeyEventTime = ie.getWhen();
+            }            
+     } else if (e instanceof InputMethodEvent) {
             InputMethodEvent ime = (InputMethodEvent)e;
             mostRecentEventTime2 = ime.getWhen(); 
         } else if (e instanceof ActionEvent) {
