@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2011 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012 Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1520,8 +1520,7 @@ public class SimpleDateFormat extends DateFormat {
 	    // determine the local time. (6645292)
 	    int dstAmount = (nameIndex >= 3) ? tz.getDSTSavings() : 0;
 	    if (!(useSameName || (nameIndex >= 3 && dstAmount == 0))) {
-		calendar.set(Calendar.ZONE_OFFSET, tz.getRawOffset());
-		calendar.set(Calendar.DST_OFFSET, dstAmount);
+                calendar.set(Calendar.DST_OFFSET, dstAmount);
 	    }
 	    return (start + zoneNames[nameIndex].length());
 	}

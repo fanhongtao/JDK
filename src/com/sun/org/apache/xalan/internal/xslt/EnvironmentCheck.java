@@ -18,6 +18,8 @@
  */
 package com.sun.org.apache.xalan.internal.xslt;
 
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -790,8 +792,7 @@ public class EnvironmentCheck
       final String JAXP1_CLASS = "javax.xml.parsers.DocumentBuilder";
       final String JAXP11_METHOD = "getDOMImplementation";
 
-      clazz = ObjectFactory.findProviderClass(
-        JAXP1_CLASS, ObjectFactory.findClassLoader(), true);
+      clazz = ObjectFactory.findProviderClass(JAXP1_CLASS, true);
 
       Method method = clazz.getMethod(JAXP11_METHOD, noArgs);
 
@@ -837,8 +838,7 @@ public class EnvironmentCheck
       final String XALAN1_VERSION_CLASS =
         "com.sun.org.apache.xalan.internal.xslt.XSLProcessorVersion";
 
-      Class clazz = ObjectFactory.findProviderClass(
-        XALAN1_VERSION_CLASS, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(XALAN1_VERSION_CLASS, true);
 
       // Found Xalan-J 1.x, grab it's version fields
       StringBuffer buf = new StringBuffer();
@@ -870,8 +870,7 @@ public class EnvironmentCheck
       final String XALAN2_VERSION_CLASS =
         "com.sun.org.apache.xalan.internal.processor.XSLProcessorVersion";
 
-      Class clazz = ObjectFactory.findProviderClass(
-        XALAN2_VERSION_CLASS, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(XALAN2_VERSION_CLASS, true);
 
       // Found Xalan-J 2.x, grab it's version fields
       StringBuffer buf = new StringBuffer();
@@ -892,8 +891,7 @@ public class EnvironmentCheck
       final String XALAN2_2_VERSION_METHOD = "getVersion";
       final Class noArgs[] = new Class[0];
 
-      Class clazz = ObjectFactory.findProviderClass(
-        XALAN2_2_VERSION_CLASS, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(XALAN2_2_VERSION_CLASS, true);
 
       Method method = clazz.getMethod(XALAN2_2_VERSION_METHOD, noArgs);
       Object returnValue = method.invoke(null, new Object[0]);
@@ -925,8 +923,7 @@ public class EnvironmentCheck
     {
       final String XERCES1_VERSION_CLASS = "com.sun.org.apache.xerces.internal.framework.Version";
 
-      Class clazz = ObjectFactory.findProviderClass(
-        XERCES1_VERSION_CLASS, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(XERCES1_VERSION_CLASS, true);
 
       // Found Xerces-J 1.x, grab it's version fields
       Field f = clazz.getField("fVersion");
@@ -944,8 +941,7 @@ public class EnvironmentCheck
     {
       final String XERCES2_VERSION_CLASS = "com.sun.org.apache.xerces.internal.impl.Version";
 
-      Class clazz = ObjectFactory.findProviderClass(
-        XERCES2_VERSION_CLASS, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(XERCES2_VERSION_CLASS, true);
 
       // Found Xerces-J 2.x, grab it's version fields
       Field f = clazz.getField("fVersion");
@@ -962,8 +958,7 @@ public class EnvironmentCheck
     {
       final String CRIMSON_CLASS = "org.apache.crimson.parser.Parser2";
 
-      Class clazz = ObjectFactory.findProviderClass(
-        CRIMSON_CLASS, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(CRIMSON_CLASS, true);
 
       //@todo determine specific crimson version
       h.put(VERSION + "crimson", CLASS_PRESENT);
@@ -991,8 +986,7 @@ public class EnvironmentCheck
       final String ANT_VERSION_METHOD = "getAntVersion"; // noArgs
       final Class noArgs[] = new Class[0];
 
-      Class clazz = ObjectFactory.findProviderClass(
-        ANT_VERSION_CLASS, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(ANT_VERSION_CLASS, true);
 
       Method method = clazz.getMethod(ANT_VERSION_METHOD, noArgs);
       Object returnValue = method.invoke(null, new Object[0]);
@@ -1031,8 +1025,7 @@ public class EnvironmentCheck
 
     try
     {
-      Class clazz = ObjectFactory.findProviderClass(
-        DOM_LEVEL2_CLASS, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(DOM_LEVEL2_CLASS, true);
 
       Method method = clazz.getMethod(DOM_LEVEL2_METHOD, twoStringArgs);
 
@@ -1044,8 +1037,7 @@ public class EnvironmentCheck
       {
         // Check for the working draft version, which is 
         //  commonly found, but won't work anymore
-        clazz = ObjectFactory.findProviderClass(
-          DOM_LEVEL2WD_CLASS, ObjectFactory.findClassLoader(), true);
+        clazz = ObjectFactory.findProviderClass(DOM_LEVEL2WD_CLASS, true);
 
         method = clazz.getMethod(DOM_LEVEL2WD_METHOD, twoStringArgs);
 
@@ -1057,8 +1049,7 @@ public class EnvironmentCheck
         try
         {
           // Check for the final draft version as well
-          clazz = ObjectFactory.findProviderClass(
-            DOM_LEVEL2FD_CLASS, ObjectFactory.findClassLoader(), true);
+          clazz = ObjectFactory.findProviderClass(DOM_LEVEL2FD_CLASS, true);
 
           method = clazz.getMethod(DOM_LEVEL2FD_METHOD, twoStringArgs);
 
@@ -1112,8 +1103,7 @@ public class EnvironmentCheck
     {
       // This method was only added in the final SAX 2.0 release; 
       //  see changes.html "Changes from SAX 2.0beta2 to SAX 2.0prerelease"
-      Class clazz = ObjectFactory.findProviderClass(
-        SAX_VERSION2BETA_CLASSNF, ObjectFactory.findClassLoader(), true);
+      Class clazz = ObjectFactory.findProviderClass(SAX_VERSION2BETA_CLASSNF, true);
 
       Method method = clazz.getMethod(SAX_VERSION2BETA_METHODNF, attributesArg);
 
@@ -1130,8 +1120,7 @@ public class EnvironmentCheck
             
       try
       {
-        Class clazz = ObjectFactory.findProviderClass(
-          SAX_VERSION2_CLASS, ObjectFactory.findClassLoader(), true);
+        Class clazz = ObjectFactory.findProviderClass(SAX_VERSION2_CLASS, true);
 
         Method method = clazz.getMethod(SAX_VERSION2_METHOD, oneStringArg);
 
@@ -1149,8 +1138,7 @@ public class EnvironmentCheck
           
         try
         {
-          Class clazz = ObjectFactory.findProviderClass(
-            SAX_VERSION1_CLASS, ObjectFactory.findClassLoader(), true);
+          Class clazz = ObjectFactory.findProviderClass(SAX_VERSION1_CLASS, true);
 
           Method method = clazz.getMethod(SAX_VERSION1_METHOD, oneStringArg);
 

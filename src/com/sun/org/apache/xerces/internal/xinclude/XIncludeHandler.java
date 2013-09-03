@@ -62,6 +62,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
 import com.sun.org.apache.xerces.internal.xpointer.XPointerHandler;
 import com.sun.org.apache.xerces.internal.xpointer.XPointerProcessor;
+import com.sun.org.apache.xerces.internal.utils.ObjectFactory;
 
 /**
  * <p>
@@ -1566,7 +1567,6 @@ public class XIncludeHandler
                 fChildConfig =
                     (XMLParserConfiguration)ObjectFactory.newInstance(
                         parserName,
-                        ObjectFactory.findClassLoader(),
                         true);
 
                 // use the same symbol table, error reporter, entity resolver, security manager and buffer size.

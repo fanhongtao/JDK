@@ -214,6 +214,8 @@ public class XMLSchemaValidator
     protected static final String JAXP_SCHEMA_LANGUAGE =
         Constants.JAXP_PROPERTY_PREFIX + Constants.SCHEMA_LANGUAGE;
 
+    protected static final String USE_SERVICE_MECHANISM = Constants.ORACLE_FEATURE_SERVICE_MECHANISM;
+
     // recognized features and properties
 
     /** Recognized features. */
@@ -229,7 +231,9 @@ public class XMLSchemaValidator
             GENERATE_SYNTHETIC_ANNOTATIONS,
             VALIDATE_ANNOTATIONS,
             HONOUR_ALL_SCHEMALOCATIONS,
-            USE_GRAMMAR_POOL_ONLY};
+            USE_GRAMMAR_POOL_ONLY,
+            USE_SERVICE_MECHANISM
+    };
 
     /** Feature defaults. */
     private static final Boolean[] FEATURE_DEFAULTS = { null,
@@ -248,7 +252,9 @@ public class XMLSchemaValidator
         null,
         null,
         null,
-        null};
+        null,
+        Boolean.TRUE
+    };
 
     /** Recognized properties. */
     private static final String[] RECOGNIZED_PROPERTIES =

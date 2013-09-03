@@ -680,8 +680,7 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
         endElement(qName);
     }
 
-    public void addUniqueAttribute(String qName, String value, int flags)
-        throws SAXException
+    public void addAttribute(String qName, String value)
     {
        // "prefix:localpart" or "localpart"
        int colonpos = qName.indexOf(":");
@@ -696,6 +695,13 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
 
        addAttribute(uri, localName, qName, "CDATA", value);
     }
+
+    public void addUniqueAttribute(String qName, String value, int flags)
+        throws SAXException
+    {
+        addAttribute(qName, value);
+    }
+
 
     public void addAttribute(String uri, String localName, String qname,
             String type, String value)

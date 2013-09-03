@@ -19,6 +19,7 @@
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
 
+import com.sun.org.apache.xalan.internal.utils.FactoryImpl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
@@ -101,6 +102,7 @@ public abstract class AbstractTranslet implements Translet {
     // This is the name of the index used for ID attributes
     private final static String ID_INDEX_NAME = "##id";
 
+    private boolean _useServicesMechanism;
     
     /************************************************************************
      * Debugging
@@ -734,6 +736,19 @@ public abstract class AbstractTranslet implements Translet {
     public void setTemplates(Templates templates) {
     	_templates = templates;
     }    
+    /**
+     * Return the state of the services mechanism feature.
+     */
+    public boolean useServicesMechnism() {
+        return _useServicesMechanism;
+    }
+
+    /**
+     * Set the state of the services mechanism feature.
+     */
+    public void setServicesMechnism(boolean flag) {
+        _useServicesMechanism = flag;
+    }
     
     /************************************************************************
      * DOMImplementation caching for basis library
@@ -744,8 +759,8 @@ public abstract class AbstractTranslet implements Translet {
         throws ParserConfigurationException 
     {
         if (_domImplementation == null) {
-            _domImplementation = DocumentBuilderFactory.newInstance()
-                .newDocumentBuilder().getDOMImplementation();
+            DocumentBuilderFactory dbf = FactoryImpl.getDOMFactory(_useServicesMechanism);
+            _domImplementation = dbf.newDocumentBuilder().getDOMImplementation();
         }
         return _domImplementation.createDocument(uri, qname, null);
     }

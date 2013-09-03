@@ -91,7 +91,7 @@ public class TemplatesHandlerImpl
 	_tfactory = tfactory;
 
         // Instantiate XSLTC and get reference to parser object
-        XSLTC xsltc = new XSLTC();
+        XSLTC xsltc = new XSLTC(tfactory.useServicesMechnism());
         if (tfactory.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING))
             xsltc.setSecureProcessing(true);
        

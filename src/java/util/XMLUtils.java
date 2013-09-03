@@ -1,7 +1,5 @@
 /*
- * @(#)XMLUtils.java	1.7 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +19,6 @@ import javax.xml.transform.stream.*;
  * code outside of Properties helps reduce the number of classes loaded
  * when Properties is loaded.
  *
- * @version 1.9, 01/23/03
  * @author  Michael McCloskey
  * @since   1.3
  */
@@ -58,7 +55,7 @@ class XMLUtils {
         } catch (SAXException saxe) {
             throw new InvalidPropertiesFormatException(saxe);
         }
-        Element propertiesElement = (Element)doc.getChildNodes().item(1);
+        Element propertiesElement = doc.getDocumentElement();
         String xmlVersion = propertiesElement.getAttribute("version");
         if (xmlVersion.compareTo(EXTERNAL_XML_VERSION) > 0)
             throw new InvalidPropertiesFormatException(

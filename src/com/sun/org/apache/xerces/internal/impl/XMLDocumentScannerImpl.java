@@ -19,10 +19,9 @@
  */
 
 /*
- * $Id: XMLDocumentScannerImpl.java,v 1.9 2007/05/09 15:23:31 ndw Exp $
- * @(#)XMLDocumentScannerImpl.java	1.19 09/02/24
+ * $Id: XMLDocumentScannerImpl.java,v 1.15 2009/08/20 06:04:39 joehw Exp $
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, 2012, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -979,7 +978,6 @@ public class XMLDocumentScannerImpl
                             //return fDisallowDoctype ? next() : dtdEvent;
                         }
                         
-                        /** xxx:check this part again
                         if(fSeenDoctypeDecl){
                             Entity entity = fEntityScanner.getCurrentEntity();
                             if(entity instanceof Entity.ScannedEntity){
@@ -987,7 +985,6 @@ public class XMLDocumentScannerImpl
                             }
                             fReadingDTD = false;
                         }
-                         */
                         
                         // handle external subset
                         if (fDoctypeSystemId != null) {

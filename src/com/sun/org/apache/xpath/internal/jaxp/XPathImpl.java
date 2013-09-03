@@ -30,9 +30,9 @@ import com.sun.org.apache.xpath.internal.*;
 import com.sun.org.apache.xpath.internal.objects.XObject;
 import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
 import com.sun.org.apache.xalan.internal.res.XSLMessages;
+import com.sun.org.apache.xalan.internal.utils.FactoryImpl;
 
 import org.w3c.dom.Node;
-import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.traversal.NodeIterator;
 
@@ -49,7 +49,7 @@ import java.io.IOException;
  * of an XPath expression.
  *
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.8 $
  * @author  Ramesh Mandava
  */
 public class XPathImpl implements javax.xml.xpath.XPath {
@@ -65,6 +65,7 @@ public class XPathImpl implements javax.xml.xpath.XPath {
     // Secure Processing Feature is set on XPathFactory then the invocation of
     // extensions function need to throw XPathFunctionException
     private boolean featureSecureProcessing = false; 
+    private boolean useServiceMechanism = true;
 
     XPathImpl( XPathVariableResolver vr, XPathFunctionResolver fr ) {
         this.origVariableResolver = this.variableResolver = vr;
@@ -72,10 +73,11 @@ public class XPathImpl implements javax.xml.xpath.XPath {
     }
 
     XPathImpl( XPathVariableResolver vr, XPathFunctionResolver fr, 
-            boolean featureSecureProcessing ) {
+            boolean featureSecureProcessing, boolean useServiceMechanism ) {
         this.origVariableResolver = this.variableResolver = vr;
         this.origFunctionResolver = this.functionResolver = fr;
         this.featureSecureProcessing = featureSecureProcessing;
+        this.useServiceMechanism = useServiceMechanism;
     }
 
     /**
@@ -153,7 +155,7 @@ public class XPathImpl implements javax.xml.xpath.XPath {
 
     private static Document d = null;
     
-    private static DocumentBuilder getParser() {
+    private DocumentBuilder getParser() {
         try {
             // we'd really like to cache those DocumentBuilders, but we can't because:
             // 1. thread safety. parsers are not thread-safe, so at least
@@ -166,7 +168,7 @@ public class XPathImpl implements javax.xml.xpath.XPath {
             //
             // so we really have to create a fresh DocumentBuilder every time we need one
             // - KK
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbf = FactoryImpl.getDOMFactory(useServiceMechanism);
             dbf.setNamespaceAware( true );
             dbf.setValidating( false );
             return dbf.newDocumentBuilder();
@@ -176,18 +178,7 @@ public class XPathImpl implements javax.xml.xpath.XPath {
         }
     }
 
-    private static Document getDummyDocument( ) {
-        // we don't need synchronization here; even if two threads
-        // enter this code at the same time, we just waste a little time
-        if(d==null) {
-            DOMImplementation dim = getParser().getDOMImplementation();
-            d = dim.createDocument("http://java.sun.com/jaxp/xpath",
-                "dummyroot", null);
-        }
-        return d;
-    }
 
-    
     private XObject eval(String expression, Object contextItem)
         throws javax.xml.transform.TransformerException {
         com.sun.org.apache.xpath.internal.XPath xpath = new com.sun.org.apache.xpath.internal.XPath( expression,
@@ -396,7 +387,7 @@ public class XPathImpl implements javax.xml.xpath.XPath {
             // Can have errorListener
             XPathExpressionImpl ximpl = new XPathExpressionImpl (xpath,
                     prefixResolver, functionResolver, variableResolver,
-                    featureSecureProcessing );
+                    featureSecureProcessing, useServiceMechanism );
             return ximpl;
         } catch ( javax.xml.transform.TransformerException te ) {
             throw new XPathExpressionException ( te ) ;

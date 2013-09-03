@@ -74,7 +74,7 @@ public final class Compile {
 	    final GetOpt getopt = new GetOpt(args, "o:d:j:p:uxhsinv");
 	    if (args.length < 1) printUsage();
 
-	    final XSLTC xsltc = new XSLTC();
+	    final XSLTC xsltc = new XSLTC(true);
 	    xsltc.init();
 
 	    int c;

@@ -99,10 +99,7 @@ public class SAXParser
      * grammar pool.
      */
     public SAXParser(SymbolTable symbolTable, XMLGrammarPool grammarPool) {
-        super((XMLParserConfiguration)ObjectFactory.createObject(
-            "com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration",
-            "com.sun.org.apache.xerces.internal.parsers.XIncludeAwareParserConfiguration"
-            ));
+        super(new XIncludeAwareParserConfiguration());
 
         // set features
         fConfiguration.addRecognizedFeatures(RECOGNIZED_FEATURES);

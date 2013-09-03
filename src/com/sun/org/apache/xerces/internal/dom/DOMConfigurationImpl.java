@@ -49,6 +49,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLEntityResolver;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLErrorHandler;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
+import com.sun.org.apache.xerces.internal.utils.ObjectFactory;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.ls.LSResourceResolver;
 
@@ -61,7 +62,7 @@ import org.w3c.dom.ls.LSResourceResolver;
  *
  * @author Elena Litani, IBM
  * @author Neeraj Bajaj, Sun Microsystems.
- * @version $Id: DOMConfigurationImpl.java,v 1.2.6.1 2005/08/30 13:08:25 sunithareddy Exp $
+ * @version $Id: DOMConfigurationImpl.java,v 1.6 2007/07/19 04:38:19 ofung Exp $
  */
 public class DOMConfigurationImpl extends ParserConfigurationSettings
     implements XMLParserConfiguration, DOMConfiguration {
@@ -305,8 +306,7 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
             MessageFormatter xmft = null;
             try {
                xmft = (MessageFormatter)(
-                    ObjectFactory.newInstance("com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter",
-                    ObjectFactory.findClassLoader(), true));
+                    ObjectFactory.newInstance("com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter", true));
             } catch (Exception exception){
             }
 

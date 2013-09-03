@@ -27,6 +27,8 @@ import org.w3c.dom.UserDataHandler;
 import com.sun.org.apache.xerces.internal.util.XMLChar;
 import com.sun.org.apache.xerces.internal.util.XML11Char;
 import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
+import com.sun.org.apache.xerces.internal.utils.ObjectFactory;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -254,8 +256,7 @@ extends ParentNode implements Document  {
         super(null);
         ownerDocument = this;
         allowGrammarAccess = grammarAccess;
-        SecuritySupport ss = SecuritySupport.getInstance();
-        String systemProp = ss.getSystemProperty(Constants.SUN_DOM_PROPERTY_PREFIX+Constants.SUN_DOM_ANCESTOR_CHECCK);
+        String systemProp = SecuritySupport.getSystemProperty(Constants.SUN_DOM_PROPERTY_PREFIX+Constants.SUN_DOM_ANCESTOR_CHECCK);
         if (systemProp != null) {
             if (systemProp.equalsIgnoreCase("false")) {
                 ancestorChecking = false;
@@ -512,9 +513,8 @@ extends ParentNode implements Document  {
             }
             
             try {
-                Class xpathClass = ObjectFactory.findProviderClass(
-                    "com.sun.org.apache.xpath.internal.domapi.XPathEvaluatorImpl",
-                    ObjectFactory.findClassLoader(), true);
+                Class xpathClass = ObjectFactory.findProviderClass (
+                        "com.sun.org.apache.xpath.internal.domapi.XPathEvaluatorImpl", true);
                 Constructor xpathClassConstr = 
                     xpathClass.getConstructor(new Class[] { Document.class });
                 

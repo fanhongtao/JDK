@@ -1,4 +1,42 @@
 /*
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+ * 
+ * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
+ * 
+ * The contents of this file are subject to the terms of either the GNU
+ * General Public License Version 2 only ("GPL") or the Common Development
+ * and Distribution License("CDDL") (collectively, the "License").  You
+ * may not use this file except in compliance with the License. You can obtain
+ * a copy of the License at https://glassfish.dev.java.net/public/CDDL+GPL.html
+ * or glassfish/bootstrap/legal/LICENSE.txt.  See the License for the specific
+ * language governing permissions and limitations under the License.
+ * 
+ * When distributing the software, include this License Header Notice in each
+ * file and include the License file at glassfish/bootstrap/legal/LICENSE.txt.
+ * Sun designates this particular file as subject to the "Classpath" exception
+ * as provided by Sun in the GPL Version 2 section of the License file that
+ * accompanied this code.  If applicable, add the following below the License
+ * Header, with the fields enclosed by brackets [] replaced by your own
+ * identifying information: "Portions Copyrighted [year]
+ * [name of copyright owner]"
+ * 
+ * Contributor(s):
+ * 
+ * If you wish your version of this file to be governed by only the CDDL or
+ * only the GPL Version 2, indicate your decision by adding "[Contributor]
+ * elects to include this software in this distribution under the [CDDL or GPL
+ * Version 2] license."  If you don't indicate a single choice of license, a
+ * recipient has the option to distribute your version of this file under
+ * either the CDDL, the GPL Version 2 or to extend the choice of license to
+ * its licensees as provided above.  However, if you add GPL Version 2 code
+ * and therefore, elected the GPL Version 2 license, then the option applies
+ * only if the new code is made subject to such option by the copyright
+ * holder.
+ *
+ *
+ * This file incorporates work covered by the following copyright and
+ * permission notice:
+ * 
  * Copyright 2001-2005 The Apache Software Foundation.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +52,7 @@
  * limitations under the License.
  */
 
-package com.sun.org.apache.xml.internal.serialize;
+package com.sun.org.apache.xerces.internal.utils;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -37,9 +75,9 @@ import java.io.InputStreamReader;
  * when bundled as part of the JDK.
  * <p>
  *
- * @version $Id: ObjectFactory.java,v 1.3 2005/09/26 12:49:55 sunithareddy Exp $
+ * @version $Id: ObjectFactory.java,v 1.6 2010/04/23 01:44:34 joehw Exp $
  */
-final class ObjectFactory {
+public final class ObjectFactory {
 
     //
     // Constants
@@ -49,8 +87,8 @@ final class ObjectFactory {
     private static final String DEFAULT_PROPERTIES_FILENAME = "xerces.properties";
 
     /** Set to true for debugging */
-    private static final boolean DEBUG = false;
-    
+    private static final boolean DEBUG = isDebugEnabled();
+
     /**
      * Default columns per line.
      */
@@ -92,7 +130,7 @@ final class ObjectFactory {
      *
      * @exception ObjectFactory.ConfigurationError
      */
-    static Object createObject(String factoryId, String fallbackClassName)
+    public static Object createObject(String factoryId, String fallbackClassName)
         throws ConfigurationError {
         return createObject(factoryId, null, fallbackClassName);
     } // createObject(String,String):Object
@@ -119,20 +157,19 @@ final class ObjectFactory {
      *
      * @exception ObjectFactory.ConfigurationError
      */
-    static Object createObject(String factoryId,
+    public static Object createObject(String factoryId,
                                       String propertiesFilename,
                                       String fallbackClassName)
         throws ConfigurationError
     {
         if (DEBUG) debugPrintln("debug is on");
 
-        SecuritySupport ss = SecuritySupport.getInstance();
         ClassLoader cl = findClassLoader();
 
         // Use the system property first
         try {
-            String systemProp = ss.getSystemProperty(factoryId);
-            if (systemProp != null) {
+            String systemProp = SecuritySupport.getSystemProperty(factoryId);
+            if (systemProp != null && systemProp.length() > 0) {
                 if (DEBUG) debugPrintln("found system property, value=" + systemProp);
                 return newInstance(systemProp, cl, true);
             }
@@ -144,118 +181,6 @@ final class ObjectFactory {
         // always use fallback class to avoid the expense of constantly
         // "stat"ing a non-existent "xerces.properties" and jar SPI entry
         // see CR 6400863: Expensive creating of SAX parser in Mustang
-        if (true) {
-            if (fallbackClassName == null) {
-                throw new ConfigurationError(
-                    "Provider for " + factoryId + " cannot be found", null);
-            }
-
-            if (DEBUG) debugPrintln("using fallback, value=" + fallbackClassName);
-            return newInstance(fallbackClassName, cl, true);
-        }
-        
-        // Try to read from propertiesFilename, or $java.home/lib/xerces.properties
-        String factoryClassName = null;
-        // no properties file name specified; use $JAVA_HOME/lib/xerces.properties:
-        if (propertiesFilename == null) {
-            File propertiesFile = null;
-            boolean propertiesFileExists = false;
-            try {
-                String javah = ss.getSystemProperty("java.home");
-                propertiesFilename = javah + File.separator +
-                    "lib" + File.separator + DEFAULT_PROPERTIES_FILENAME;
-                propertiesFile = new File(propertiesFilename);
-                propertiesFileExists = ss.getFileExists(propertiesFile);
-            } catch (SecurityException e) {
-                // try again...
-                fLastModified = -1;
-                fXercesProperties = null;
-            }
-            
-            synchronized (ObjectFactory.class) {
-                boolean loadProperties = false;
-                FileInputStream fis = null;
-                try {
-                    // file existed last time
-                    if(fLastModified >= 0) {
-                        if(propertiesFileExists &&
-                                (fLastModified < (fLastModified = ss.getLastModified(propertiesFile)))) {
-                            loadProperties = true;
-                        } else {
-                            // file has stopped existing...
-                            if(!propertiesFileExists) {
-                                fLastModified = -1;
-                                fXercesProperties = null;
-                            } // else, file wasn't modified!
-                        }
-                    } else {
-                        // file has started to exist:
-                        if(propertiesFileExists) {
-                            loadProperties = true;
-                            fLastModified = ss.getLastModified(propertiesFile);
-                        } // else, nothing's changed
-                    }
-                    if(loadProperties) {
-                        // must never have attempted to read xerces.properties before (or it's outdeated)
-                        fXercesProperties = new Properties();
-                        fis = ss.getFileInputStream(propertiesFile);
-                        fXercesProperties.load(fis);
-                    }
-                } catch (Exception x) {
-                    fXercesProperties = null;
-                    fLastModified = -1;
-                    // assert(x instanceof FileNotFoundException
-                    //        || x instanceof SecurityException)
-                    // In both cases, ignore and continue w/ next location
-                }
-                finally {
-                    // try to close the input stream if one was opened.
-                    if (fis != null) {
-                        try {
-                            fis.close();
-                        }
-                        // Ignore the exception.
-                        catch (IOException exc) {}
-                    }
-                }
-            }
-            if(fXercesProperties != null) {
-                factoryClassName = fXercesProperties.getProperty(factoryId);
-            }
-        } else {
-            FileInputStream fis = null;
-            try {
-                fis = ss.getFileInputStream(new File(propertiesFilename));
-                Properties props = new Properties();
-                props.load(fis);
-                factoryClassName = props.getProperty(factoryId);
-            } catch (Exception x) {
-                // assert(x instanceof FileNotFoundException
-                //        || x instanceof SecurityException)
-                // In both cases, ignore and continue w/ next location
-            }
-            finally {
-                // try to close the input stream if one was opened.
-                if (fis != null) {
-                    try {
-                        fis.close();
-                    }
-                    // Ignore the exception.
-                    catch (IOException exc) {}
-                }
-            }
-        }
-        if (factoryClassName != null) {
-            if (DEBUG) debugPrintln("found in " + propertiesFilename + ", value=" + factoryClassName);
-            return newInstance(factoryClassName, cl, true);
-        }
-
-        // Try Jar Service Provider Mechanism
-        Object provider = findJarServiceProvider(factoryId);
-        if (provider != null) {
-            return provider;
-        }
-
         if (fallbackClassName == null) {
             throw new ConfigurationError(
                 "Provider for " + factoryId + " cannot be found", null);
@@ -263,16 +188,28 @@ final class ObjectFactory {
 
         if (DEBUG) debugPrintln("using fallback, value=" + fallbackClassName);
         return newInstance(fallbackClassName, cl, true);
+
     } // createObject(String,String,String):Object
 
     //
     // Private static methods
     //
 
+    /** Returns true if debug has been enabled. */
+    private static boolean isDebugEnabled() {
+        try {
+            String val = SecuritySupport.getSystemProperty("xerces.debug");
+            // Allow simply setting the prop to turn on debug
+            return (val != null && (!"false".equals(val)));
+        }
+        catch (SecurityException se) {}
+        return false;
+    } // isDebugEnabled()
+
     /** Prints a message to standard error if debugging is enabled. */
     private static void debugPrintln(String msg) {
         if (DEBUG) {
-            System.err.println("JAXP: " + msg);
+            System.err.println("XERCES: " + msg);
         }
     } // debugPrintln(String)
 
@@ -280,15 +217,17 @@ final class ObjectFactory {
      * Figure out which ClassLoader to use.  For JDK 1.2 and later use
      * the context ClassLoader.
      */
-    static ClassLoader findClassLoader()
+    public static ClassLoader findClassLoader()
         throws ConfigurationError
     {
-        SecuritySupport ss = SecuritySupport.getInstance();
-
+        if (System.getSecurityManager()!=null) {
+            //this will ensure bootclassloader is used
+            return null;
+        }
         // Figure out which ClassLoader to use for loading the provider
         // class.  If there is a Context ClassLoader then use it.
-        ClassLoader context = ss.getContextClassLoader();
-        ClassLoader system = ss.getSystemClassLoader();
+        ClassLoader context = SecuritySupport.getContextClassLoader();
+        ClassLoader system = SecuritySupport.getSystemClassLoader();
 
         ClassLoader chain = system;
         while (true) {
@@ -313,7 +252,7 @@ final class ObjectFactory {
                     if (chain == null) {
                         break;
                     }
-                    chain = ss.getParentClassLoader(chain);
+                    chain = SecuritySupport.getParentClassLoader(chain);
                 }
 
                 // Assert: Current ClassLoader not in chain of
@@ -328,7 +267,7 @@ final class ObjectFactory {
 
             // Check for any extension ClassLoaders in chain up to
             // boot ClassLoader
-            chain = ss.getParentClassLoader(chain);
+            chain = SecuritySupport.getParentClassLoader(chain);
         };
 
         // Assert: Context ClassLoader not in chain of
@@ -337,9 +276,24 @@ final class ObjectFactory {
     } // findClassLoader():ClassLoader
 
     /**
+     * Create an instance of a class using the same classloader for the ObjectFactory by default
+     * or bootclassloader when Security Manager is in place
+     */
+    public static Object newInstance(String className, boolean doFallback)
+        throws ConfigurationError
+    {
+        if (System.getSecurityManager()!=null) {
+            return newInstance(className, null, doFallback);
+        } else {
+            return newInstance(className,
+                findClassLoader (), doFallback);
+        }
+    }
+
+    /**
      * Create an instance of a class using the specified ClassLoader
      */
-    static Object newInstance(String className, ClassLoader cl,
+    public static Object newInstance(String className, ClassLoader cl,
                                       boolean doFallback)
         throws ConfigurationError
     {
@@ -361,9 +315,23 @@ final class ObjectFactory {
     }
 
     /**
+     * Find a Class using the same classloader for the ObjectFactory by default
+     * or bootclassloader when Security Manager is in place
+     */
+    public static Class findProviderClass(String className, boolean doFallback)
+        throws ClassNotFoundException, ConfigurationError
+    {
+        if (System.getSecurityManager()!=null) {
+            return Class.forName(className);
+        } else {
+            return findProviderClass (className,
+                findClassLoader (), doFallback);
+        }
+    }
+    /**
      * Find a Class using the specified ClassLoader
      */
-    static Class findProviderClass(String className, ClassLoader cl,
+    public static Class findProviderClass(String className, ClassLoader cl,
                                       boolean doFallback)
         throws ClassNotFoundException, ConfigurationError
     {
@@ -378,15 +346,7 @@ final class ObjectFactory {
         }
         Class providerClass;
         if (cl == null) {
-            // XXX Use the bootstrap ClassLoader.  There is no way to
-            // load a class using the bootstrap ClassLoader that works
-            // in both JDK 1.1 and Java 2.  However, this should still
-            // work b/c the following should be true:
-            //
-            // (cl == null) iff current ClassLoader == null
-            //
-            // Thus Class.forName(String) will use the current
-            // ClassLoader which will be the bootstrap ClassLoader.
+            //use the bootstrap ClassLoader.
             providerClass = Class.forName(className);
         } else {
             try {
@@ -420,21 +380,20 @@ final class ObjectFactory {
     private static Object findJarServiceProvider(String factoryId)
         throws ConfigurationError
     {
-        SecuritySupport ss = SecuritySupport.getInstance();
         String serviceId = "META-INF/services/" + factoryId;
         InputStream is = null;
 
         // First try the Context ClassLoader
         ClassLoader cl = findClassLoader();
 
-        is = ss.getResourceAsStream(cl, serviceId);
+        is = SecuritySupport.getResourceAsStream(cl, serviceId);
 
         // If no provider found then try the current ClassLoader
         if (is == null) {
             ClassLoader current = ObjectFactory.class.getClassLoader();
             if (cl != current) {
                 cl = current;
-                is = ss.getResourceAsStream(cl, serviceId);
+                is = SecuritySupport.getResourceAsStream(cl, serviceId);
             }
         }
 
@@ -502,49 +461,5 @@ final class ObjectFactory {
         // No provider found
         return null;
     }
-
-    //
-    // Classes
-    //
-
-    /**
-     * A configuration error.
-     */
-    static final class ConfigurationError
-        extends Error {
-
-        /** Serialization version. */
-        static final long serialVersionUID = 937647395548533254L;
-        
-        //
-        // Data
-        //
-
-        /** Exception. */
-        private Exception exception;
-
-        //
-        // Constructors
-        //
-
-        /**
-         * Construct a new instance with the specified detail string and
-         * exception.
-         */
-        ConfigurationError(String msg, Exception x) {
-            super(msg);
-            this.exception = x;
-        } // <init>(String,Exception)
-
-        //
-        // methods
-        //
-
-        /** Returns the exception associated to this error. */
-        Exception getException() {
-            return exception;
-        } // getException():Exception
-
-    } // class ConfigurationError
 
 } // class ObjectFactory

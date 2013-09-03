@@ -18,6 +18,8 @@
  */
 package com.sun.org.apache.xml.internal.utils;
 
+import com.sun.org.apache.xalan.internal.utils.FactoryImpl;
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 import java.util.Hashtable;
 
 import javax.xml.parsers.FactoryConfigurationError;
@@ -56,6 +58,7 @@ public class XMLReaderManager {
      */
     private Hashtable m_inUse;
 
+    private boolean m_useServicesMechanism = true;
     /**
      * Hidden constructor
      */
@@ -65,10 +68,10 @@ public class XMLReaderManager {
     /**
      * Retrieves the singleton reader manager
      */
-    public static XMLReaderManager getInstance() {
+    public static XMLReaderManager getInstance(boolean useServicesMechanism) {
+        m_singletonManager.setServicesMechnism(useServicesMechanism);
         return m_singletonManager;
     }
-
     /**
      * Retrieves a cached XMLReader for this thread, or creates a new
      * XMLReader, if the existing reader is in use.  When the caller no
@@ -94,7 +97,7 @@ public class XMLReaderManager {
         // instance of the class set in the 'org.xml.sax.driver' property
         reader = (XMLReader) m_readers.get();
         boolean threadHasReader = (reader != null);
-        String factory = SecuritySupport.getInstance().getSystemProperty(property);
+        String factory = SecuritySupport.getSystemProperty(property);
         if (threadHasReader && m_inUse.get(reader) != Boolean.TRUE &&
                 ( factory == null || reader.getClass().getName().equals(factory))) {
             m_inUse.put(reader, Boolean.TRUE);
@@ -112,7 +115,7 @@ public class XMLReaderManager {
                         // If unable to create an instance, let's try to use
                         // the XMLReader from JAXP
                         if (m_parserFactory == null) {
-                            m_parserFactory = SAXParserFactory.newInstance();
+                            m_parserFactory = FactoryImpl.getSAXFactory(m_useServicesMechanism);
                             m_parserFactory.setNamespaceAware(true);
                         }
 
@@ -160,4 +163,18 @@ public class XMLReaderManager {
             m_inUse.remove(reader);
         }
     }
+    /**
+     * Return the state of the services mechanism feature.
+     */
+    public boolean useServicesMechnism() {
+        return m_useServicesMechanism;
+    }
+
+    /**
+     * Set the state of the services mechanism feature.
+     */
+    public void setServicesMechnism(boolean flag) {
+        m_useServicesMechanism = flag;
+    }
+
 }

@@ -22,6 +22,7 @@ import java.util.Vector;
 
 import com.sun.org.apache.xml.internal.res.XMLErrorResources;
 import com.sun.org.apache.xml.internal.res.XMLMessages;
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 
 
 /**
@@ -60,8 +61,7 @@ public class ObjectPool implements java.io.Serializable
   {
     try
     {
-      objectType = ObjectFactory.findProviderClass(
-        className, ObjectFactory.findClassLoader(), true);
+      objectType = ObjectFactory.findProviderClass(className, true);
     }
     catch(ClassNotFoundException cnfe)
     {

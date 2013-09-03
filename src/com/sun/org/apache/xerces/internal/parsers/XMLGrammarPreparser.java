@@ -33,6 +33,7 @@ import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLEntityResolver;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLErrorHandler;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
+import com.sun.org.apache.xerces.internal.utils.ObjectFactory;
 
 /**
  * <p> This class provides an easy way for a user to preparse grammars
@@ -44,7 +45,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: XMLGrammarPreparser.java,v 1.2.6.1 2005/09/08 04:03:52 sunithareddy Exp $
+ * @version $Id: XMLGrammarPreparser.java,v 1.4 2007/07/19 04:38:55 ofung Exp $
  */
 public class XMLGrammarPreparser {
 
@@ -152,8 +153,7 @@ public class XMLGrammarPreparser {
                 // got one; just instantiate it...
                 String loaderName = (String)KNOWN_LOADERS.get(grammarType);
                 try {
-                    ClassLoader cl = ObjectFactory.findClassLoader();
-                    XMLGrammarLoader gl = (XMLGrammarLoader)(ObjectFactory.newInstance(loaderName, cl, true));
+                    XMLGrammarLoader gl = (XMLGrammarLoader)(ObjectFactory.newInstance(loaderName, true));
                     fLoaders.put(grammarType, gl);
                 } catch (Exception e) {
                     return false;

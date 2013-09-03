@@ -36,6 +36,7 @@ import com.sun.org.apache.xml.internal.serializer.utils.MsgKey;
 import com.sun.org.apache.xml.internal.serializer.utils.SystemIDResolver;
 import com.sun.org.apache.xml.internal.serializer.utils.Utils;
 import com.sun.org.apache.xml.internal.serializer.utils.WrappedRuntimeException;
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 
 /**
  * This class provides services that tell if a character should have

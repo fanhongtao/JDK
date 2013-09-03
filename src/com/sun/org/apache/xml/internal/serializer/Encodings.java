@@ -33,6 +33,7 @@ import java.util.StringTokenizer;
 import java.security.PrivilegedAction;
 import java.security.AccessController;
 
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 
 /**
  * Provides information about encodings. Depends on the Java runtime
@@ -40,7 +41,7 @@ import java.security.AccessController;
  * to override encoding names and provide the last printable character
  * for each encoding.
  *
- * @version $Revision: 1.3 $ $Date: 2005/09/28 13:49:04 $
+ * @version $Revision: 1.8 $ $Date: 2007/10/12 04:14:45 $
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  */
 
@@ -324,9 +325,7 @@ public final class Encodings extends Object
             }
 
             if (is == null) {
-                SecuritySupport ss = SecuritySupport.getInstance();
-                is = ss.getResourceAsStream(ObjectFactory.findClassLoader(),
-                                            ENCODINGS_FILE);
+                is = SecuritySupport.getResourceAsStream(ENCODINGS_FILE);
             }
 
             Properties props = new Properties();

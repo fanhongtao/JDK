@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /*
- * $Id: Step.java,v 1.6 2006/06/06 22:34:34 spericas Exp $
+ * $Id: Step.java,v 1.10 2007/03/30 18:19:42 spericas Exp $
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler;
@@ -416,7 +416,7 @@ final class Step extends RelativeLocationPath {
 	    else if (predicate.isNthDescendant()) {
 		il.append(methodGen.loadDOM());
 		// il.append(new ICONST(NodeTest.ELEMENT));
-		il.append(new ICONST(predicate.getPosType()));
+		il.append(new PUSH(cpg, predicate.getPosType()));
 		predicate.translate(classGen, methodGen);
 		il.append(new ICONST(0));
 		idx = cpg.addInterfaceMethodref(DOM_INTF,

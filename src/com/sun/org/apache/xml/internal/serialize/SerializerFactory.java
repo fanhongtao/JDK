@@ -17,7 +17,7 @@
 
 package com.sun.org.apache.xml.internal.serialize;
 
-
+import com.sun.org.apache.xerces.internal.utils.ObjectFactory;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.io.UnsupportedEncodingException;
@@ -27,7 +27,7 @@ import java.util.StringTokenizer;
 /**
  *
  *
- * @version $Revision: 1.2.6.1 $ $Date: 2005/09/09 07:26:17 $
+ * @version $Revision: 1.4 $ $Date: 2007/07/19 04:39:19 $
  * @author <a href="mailto:Scott_Boag/CAM/Lotus@lotus.com">Scott Boag</a>
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  */

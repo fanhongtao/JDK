@@ -20,7 +20,7 @@
 
 /*
  * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)SchemaFactoryFinder.java	1.19 10/04/05
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  */
@@ -169,7 +169,7 @@ class SchemaFactoryFinder  {
             String r = ss.getSystemProperty(propertyName);
             if(r!=null) {
                 debugPrintln("The value is '"+r+"'");
-                sf = createInstance(r);
+                sf = createInstance(r, true);
                 if(sf!=null)    return sf;
             } else
                 debugPrintln("The property is undefined.");
@@ -204,7 +204,7 @@ class SchemaFactoryFinder  {
             debugPrintln("found " + factoryClassName + " in $java.home/jaxp.properties"); 
 
             if (factoryClassName != null) {
-                sf = createInstance(factoryClassName);
+                sf = createInstance(factoryClassName, true);
                 if(sf != null){
                     return sf;
                 }
@@ -257,7 +257,7 @@ class SchemaFactoryFinder  {
         // platform default
         if(schemaLanguage.equals("http://www.w3.org/2001/XMLSchema")) {
             debugPrintln("attempting to use the platform default XML Schema validator");
-            return createInstance("com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory");
+            return createInstance("com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory", true);
         }
         
         debugPrintln("all things were tried, but none was found. bailing out.");
@@ -297,21 +297,30 @@ class SchemaFactoryFinder  {
      *      if it fails. Error messages will be printed by this method. 
      */
     SchemaFactory createInstance( String className ) {
+        return createInstance( className, false );
+    }
+
+    SchemaFactory createInstance( String className, boolean useServicesMechanism ) {
         SchemaFactory schemaFactory = null;
-		
+
         debugPrintln("createInstance(" + className + ")");
 
-        // get Class from className		
+        // get Class from className
         Class clazz = createClass(className);
         if (clazz == null) {
                 debugPrintln("failed to getClass(" + className + ")");
-                return null;	
+                return null;
         }
         debugPrintln("loaded " + className + " from " + which(clazz));
 
         // instantiate Class as a SchemaFactory
         try {
-                schemaFactory = (SchemaFactory) clazz.newInstance();
+            if (!useServicesMechanism) {
+                schemaFactory = (SchemaFactory) newInstanceNoServiceLoader(clazz);
+            }
+                if (schemaFactory == null) {
+                    schemaFactory = (SchemaFactory) clazz.newInstance();
+                }
         } catch (ClassCastException classCastException) {
                 debugPrintln("could not instantiate " + clazz.getName());
                 if (debug) {
@@ -333,6 +342,29 @@ class SchemaFactoryFinder  {
         }
 
         return schemaFactory;
+    }
+    /**
+     * Try to construct using newTransformerFactoryNoServiceLoader
+     *   method if available.
+     */
+    private static Object newInstanceNoServiceLoader(
+         Class<?> providerClass
+    ) {
+        // Retain maximum compatibility if no security manager.
+        if (System.getSecurityManager() == null) {
+            return null;
+        }
+        try {
+            Method creationMethod =
+                providerClass.getDeclaredMethod(
+                    "newXMLSchemaFactoryNoServiceLoader"
+                );
+                return creationMethod.invoke(null, null);
+            } catch (NoSuchMethodException exc) {
+                return null;
+            } catch (Exception exc) {
+                return null;
+        }
     }
     
     /** Iterator that lazily computes one value and returns it. */

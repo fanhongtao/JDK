@@ -131,7 +131,10 @@ XSLoader, DOMConfiguration {
     
     protected static final String PARSER_SETTINGS = 
         Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;   
-    
+
+    protected static final String USE_SERVICE_MECHANISM = Constants.ORACLE_FEATURE_SERVICE_MECHANISM;
+
+
     // recognized features:
     private static final String[] RECOGNIZED_FEATURES = {
         SCHEMA_FULL_CHECKING,
@@ -142,7 +145,8 @@ XSLoader, DOMConfiguration {
         DISALLOW_DOCTYPE,
         GENERATE_SYNTHETIC_ANNOTATIONS,
         VALIDATE_ANNOTATIONS,
-        HONOUR_ALL_SCHEMALOCATIONS
+        HONOUR_ALL_SCHEMALOCATIONS,
+        USE_SERVICE_MECHANISM
     };
     
     // property identifiers
@@ -1126,7 +1130,8 @@ XSLoader, DOMConfiguration {
                 name.equals(ALLOW_JAVA_ENCODINGS) ||
                 name.equals(STANDARD_URI_CONFORMANT_FEATURE) ||
                 name.equals(GENERATE_SYNTHETIC_ANNOTATIONS) ||
-                name.equals(HONOUR_ALL_SCHEMALOCATIONS)) {
+                name.equals(HONOUR_ALL_SCHEMALOCATIONS) ||
+                name.equals(USE_SERVICE_MECHANISM)) {
                 return true;
                 
             }
@@ -1202,6 +1207,7 @@ XSLoader, DOMConfiguration {
             v.add(VALIDATE_ANNOTATIONS);
             v.add(GENERATE_SYNTHETIC_ANNOTATIONS);
             v.add(HONOUR_ALL_SCHEMALOCATIONS);
+            v.add(USE_SERVICE_MECHANISM);
             fRecognizedParameters = new DOMStringListImpl(v);      	
         }
         return fRecognizedParameters;

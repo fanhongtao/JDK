@@ -20,7 +20,7 @@
 
 /*
  * $Id: FactoryFinder.java,v 1.5.2.1 2006/12/04 18:45:41 spericas Exp $
- * @(#)FactoryFinder.java	1.19 10/04/05
+ * %W% %E%
  *
  * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.lang.reflect.Method;
 
 /**
  * <p>Implements pluggable Datatypes.</p>
@@ -142,9 +143,20 @@ class FactoryFinder {
     static Object newInstance(String className, ClassLoader cl, boolean doFallback)
         throws ConfigurationError
     {
+        return newInstance(className, cl, doFallback, false);
+    }
+    static Object newInstance(String className, ClassLoader cl, boolean doFallback, boolean useServicesMechanism)
+        throws ConfigurationError
+    {
         try {
             Class providerClass = getProviderClass(className, cl, doFallback);                        
-            Object instance = providerClass.newInstance();
+            Object instance = null;
+            if (!useServicesMechanism) {
+                instance = newInstanceNoServiceLoader(providerClass);
+            }
+            if (instance == null) {
+                instance = providerClass.newInstance();
+            }
             if (debug) {    // Extra check to avoid computing cl strings
                 dPrint("created new instance of " + providerClass +
                        " using ClassLoader: " + cl);
@@ -161,7 +173,29 @@ class FactoryFinder {
                 x);
         }
     }
-    
+    /**
+     * Try to construct using newTransformerFactoryNoServiceLoader
+     *   method if available.
+     */
+    private static Object newInstanceNoServiceLoader(
+         Class<?> providerClass
+    ) {
+        // Retain maximum compatibility if no security manager.
+        if (System.getSecurityManager() == null) {
+            return null;
+        }
+        try {
+            Method creationMethod =
+                providerClass.getDeclaredMethod(
+                    "newTransformerFactoryNoServiceLoader"
+                );
+                return creationMethod.invoke(null, null);
+            } catch (NoSuchMethodException exc) {
+                return null;
+            } catch (Exception exc) {
+                return null;
+        }
+    }
     /**
      * Finds the implementation Class object in the specified order.  Main
      * entry point.

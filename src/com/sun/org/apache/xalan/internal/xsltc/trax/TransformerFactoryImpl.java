@@ -45,6 +45,7 @@ import javax.xml.transform.Templates;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
@@ -60,12 +61,14 @@ import javax.xml.transform.stax.*;
 import com.sun.org.apache.xml.internal.utils.StylesheetPIHandler;
 import com.sun.org.apache.xml.internal.utils.StopParseException;
 
+import com.sun.org.apache.xalan.internal.XalanConstants;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.Constants;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.SourceLoader;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.XSLTC;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
 import com.sun.org.apache.xalan.internal.xsltc.dom.XSLTCDTMManager;
-
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
+import com.sun.org.apache.xalan.internal.utils.FactoryImpl;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLFilter;
@@ -206,10 +209,26 @@ public class TransformerFactoryImpl
     private boolean _isSecureProcessing = false;
 
     /**
+     * Indicates whether implementation parts should use
+     *   service loader (or similar).
+     * Note the default value (false) is the safe option..
+     */
+    private boolean _useServicesMechanism;
+
+    /**
      * javax.xml.transform.sax.TransformerFactory implementation.
      */
     public TransformerFactoryImpl() {
-        m_DTMManagerClass = XSLTCDTMManager.getDTMManagerClass();
+        this(true);
+    }
+
+    public static TransformerFactory newTransformerFactoryNoServiceLoader() {
+        return new TransformerFactoryImpl(false);
+    }
+
+    private TransformerFactoryImpl(boolean useServicesMechanism) {
+        this.m_DTMManagerClass = XSLTCDTMManager.getDTMManagerClass(useServicesMechanism);
+        this._useServicesMechanism = useServicesMechanism;
     }
 
     /**
@@ -405,6 +424,11 @@ public class TransformerFactoryImpl
 	    // all done processing feature
 	    return;
 	}
+        else if (name.equals(XalanConstants.ORACLE_FEATURE_SERVICE_MECHANISM)) {
+            //in secure mode, let _useServicesMechanism be determined by the constructor
+            if (System.getSecurityManager() == null) 
+                _useServicesMechanism = value;
+        }
 	else {	
 	    // unknown feature
             ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_UNSUPPORTED_FEATURE, name);
@@ -433,7 +457,8 @@ public class TransformerFactoryImpl
 	    StreamSource.FEATURE,
 	    StreamResult.FEATURE,
 	    SAXTransformerFactory.FEATURE,
-	    SAXTransformerFactory.FEATURE_XMLFILTER
+	    SAXTransformerFactory.FEATURE_XMLFILTER,
+            XalanConstants.ORACLE_FEATURE_SERVICE_MECHANISM
 	};
 
 	// feature name cannot be null
@@ -455,6 +480,12 @@ public class TransformerFactoryImpl
 
 	// Feature not supported
 	return false;
+    }
+    /**
+     * Return the state of the services mechanism feature.
+     */
+    public boolean useServicesMechnism() {
+        return _useServicesMechanism;
     }
 
     /**
@@ -528,7 +559,7 @@ public class TransformerFactoryImpl
                 isource = SAXSource.sourceToInputSource(source);
                 baseId = isource.getSystemId();
 
-                SAXParserFactory factory = SAXParserFactory.newInstance();
+                SAXParserFactory factory = FactoryImpl.getSAXFactory(_useServicesMechanism);
                 factory.setNamespaceAware(true);
                 
                 if (_isSecureProcessing) {
@@ -687,8 +718,7 @@ public class TransformerFactoryImpl
 	        transletName = _packageName + "." + transletName;
 	        
 	    try {
-                final Class clazz = ObjectFactory.findProviderClass(
-                    transletName, ObjectFactory.findClassLoader(), true);
+                final Class clazz = ObjectFactory.findProviderClass(transletName, true);
 	        resetTransientAttributes();
 	            
 	        return new TemplatesImpl(new Class[]{clazz}, transletName, null, _indentNumber, this);
@@ -738,7 +768,7 @@ public class TransformerFactoryImpl
 	}
 	
 	// Create and initialize a stylesheet compiler
-	final XSLTC xsltc = new XSLTC();
+        final XSLTC xsltc = new XSLTC(_useServicesMechanism);
 	if (_debug) xsltc.setDebug(true);
 	if (_enableInlining) xsltc.setTemplateInlining(true);
 	if (_isSecureProcessing) xsltc.setSecureProcessing(true);

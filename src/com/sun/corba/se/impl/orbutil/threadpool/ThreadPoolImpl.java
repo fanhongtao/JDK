@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -249,8 +249,8 @@ public class ThreadPoolImpl implements ThreadPool
      * or notify waiting threads on the queue for available work
      */
     void notifyForAvailableWork(WorkQueue aWorkQueue) {
-	synchronized (workQueue) {
-	    if (availableWorkerThreads == 0) {
+	synchronized (aWorkQueue) {
+	    if (availableWorkerThreads < aWorkQueue.workItemsInQueue() ) {
 		createWorkerThread();
 	    } else {
 		aWorkQueue.notify();

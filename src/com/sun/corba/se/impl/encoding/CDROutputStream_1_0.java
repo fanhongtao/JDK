@@ -1,7 +1,5 @@
 /*
- * @(#)CDROutputStream_1_0.java	1.115 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -1886,27 +1884,19 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
 
         if (getByteBufferWithInfo() != null && getByteBuffer() != null)
         {
-            int bbHash = System.identityHashCode(bbwi.byteBuffer);
             MessageMediator messageMediator = parent.getMessageMediator();
             if (messageMediator != null)
             {
-                CDRInputObject inputObj = 
+                CDRInputObject inputObj =
                                (CDRInputObject)messageMediator.getInputObject();
                 if (inputObj != null)
                 {
-                    ByteBuffer inputBb = inputObj.getByteBuffer();
-
-                    int iBbHash = 0;
-                    if (inputBb != null)
+                    if (inputObj.isSharing(getByteBuffer()))
                     {
-                        iBbHash = System.identityHashCode(inputBb);
-                        if (bbHash == iBbHash)  // shared?
-                        {
-                            // Set InputStream's ByteBuffer and bbwi to null
-                            // so its ByteBuffer cannot be released to the pool
-                            inputObj.setByteBuffer(null);
-                            inputObj.setByteBufferWithInfo(null);
-                        }
+                        // Set InputStream's ByteBuffer and bbwi to null
+                        // so its ByteBuffer cannot be released to the pool
+                        inputObj.setByteBuffer(null);
+                        inputObj.setByteBufferWithInfo(null);
                     }
                 }
             }
@@ -1928,4 +1918,5 @@ public class CDROutputStream_1_0 extends CDROutputStreamBase
              bbwi = null;
         }
     }
+
 }

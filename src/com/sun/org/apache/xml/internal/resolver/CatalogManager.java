@@ -194,6 +194,12 @@ public class CatalogManager {
 
   /** Current catalog class name. */
   private String catalogClassName = null;
+    /**
+     * Indicates whether implementation parts should use
+     *   service loader (or similar).
+     * Note the default value (false) is the safe option..
+     */
+    private boolean useServicesMechanism;
 
   /** The manager's debug object. Used for printing debugging messages.
    *
@@ -204,26 +210,26 @@ public class CatalogManager {
 
   /** Constructor. */
   public CatalogManager() {
-    debug = new Debug();
-    // Note that we don't setDebug() here; we do that lazily. Either the
-    // user will set it explicitly, or we'll do it automagically if they
-    // read from the propertyFile for some other reason. That way, there's
-    // no attempt to read from the file before the caller has had a chance
-    // to avoid it.
+    init();
   }
 
   /** Constructor that specifies an explicit property file. */
   public CatalogManager(String propertyFile) {
     this.propertyFile = propertyFile;
+    init();
+  }
 
+  private void init() {
     debug = new Debug();
     // Note that we don't setDebug() here; we do that lazily. Either the
     // user will set it explicitly, or we'll do it automagically if they
     // read from the propertyFile for some other reason. That way, there's
     // no attempt to read from the file before the caller has had a chance
     // to avoid it.
+    if (System.getSecurityManager() == null) {
+        useServicesMechanism = true;
+    }
   }
-
   /** Set the bootstrap resolver.*/
   public void setBootstrapResolver(BootstrapResolver resolver) {
     bResolver = resolver;
@@ -770,6 +776,9 @@ public class CatalogManager {
     return oasisXMLCatalogPI.booleanValue();
   }
 
+  public boolean useServicesMechanism() {
+      return useServicesMechanism;
+  }
   /**
    * Set the XML Catalog PI setting
    */

@@ -20,9 +20,8 @@
 
 /*
  * $Id: XMLEntityManager.java,v 1.13 2007/03/16 16:13:11 spericas Exp $
- * @(#)XMLEntityManager.java	1.24 09/04/17
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, 2012, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -48,9 +47,7 @@ import com.sun.xml.internal.stream.StaxXMLInputSource;
 import com.sun.xml.internal.stream.XMLEntityStorage;
 import java.io.*;
 import java.io.BufferedReader;
-import java.net.URL;
 import java.util.*;
-import com.sun.org.apache.xerces.internal.util.AugmentationsImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,6 +58,7 @@ import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URISyntaxException;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
@@ -647,7 +645,7 @@ protected static final String PARSER_SETTINGS =
         if (reader == null) {
             stream = xmlInputSource.getByteStream();
             if (stream == null) {
-                URL location = new URL(expandedSystemId); 
+                URL location = new URL(escapeNonUSAscii(expandedSystemId));
                 URLConnection connect = location.openConnection();
                 if (!(connect instanceof HttpURLConnection)) {
                     stream = connect.getInputStream();
@@ -2075,7 +2073,16 @@ protected static final String PARSER_SETTINGS =
             return expandSystemIdStrictOff(systemId, baseSystemId);
         }
         catch (URI.MalformedURIException e) {
-            // continue on...
+            /** Xerces URI rejects unicode, try java.net.URI
+             * this is not ideal solution, but it covers known cases which either
+             * Xerces URI or java.net.URI can handle alone
+             * will file bug against java.net.URI
+             */
+            try {
+                return expandSystemIdStrictOff1(systemId, baseSystemId);
+            } catch (URISyntaxException ex) {
+                // continue on...
+            }
         }
 
         // check for bad parameters id
@@ -2151,7 +2158,7 @@ protected static final String PARSER_SETTINGS =
 
         // absolutize the system identifier using the base URI
         systemURI.absolutize(baseURI);
-
+         
         // return the string rep of the new uri (an absolute one)
         return systemURI.toString();
 
@@ -2178,16 +2185,13 @@ protected static final String PARSER_SETTINGS =
     private static String expandSystemIdStrictOff(String systemId, String baseSystemId)
         throws URI.MalformedURIException {
 
-        systemId = escapeNonUSAscii(systemId);
-        baseSystemId = escapeNonUSAscii(baseSystemId);
-
         URI systemURI = new URI(systemId, true);
         // If it's already an absolute one, return it
         if (systemURI.isAbsoluteURI()) {
             if (systemURI.getScheme().length() > 1) {
                 return systemId;
             }
-            /** 
+            /**
              * If the scheme's length is only one character,
              * it's likely that this was intended as a file
              * path. Fixing this up in expandSystemId to
@@ -2211,6 +2215,47 @@ protected static final String PARSER_SETTINGS =
 
         // absolutize the system identifier using the base URI
         systemURI.absolutize(baseURI);
+
+        // return the string rep of the new uri (an absolute one)
+        return systemURI.toString();
+
+        // if any exception is thrown, it'll get thrown to the caller.
+
+    } // expandSystemIdStrictOff(String,String):String
+
+    private static String expandSystemIdStrictOff1(String systemId, String baseSystemId)
+        throws URISyntaxException, URI.MalformedURIException {
+
+        java.net.URI systemURI = new java.net.URI(systemId);
+        // If it's already an absolute one, return it
+        if (systemURI.isAbsolute()) {
+            if (systemURI.getScheme().length() > 1) {
+                return systemId;
+            }
+            /** 
+             * If the scheme's length is only one character,
+             * it's likely that this was intended as a file
+             * path. Fixing this up in expandSystemId to
+             * maintain backwards compatibility.
+             */
+            throw new URISyntaxException(systemId, "the scheme's length is only one character");
+        }
+
+        // If there isn't a base URI, use the working directory
+        URI baseURI = null;
+        if (baseSystemId == null || baseSystemId.length() == 0) {
+            baseURI = getUserDir();
+        }
+        else {
+            baseURI = new URI(baseSystemId, true);
+            if (!baseURI.isAbsoluteURI()) {
+                // assume "base" is also a relative uri
+                baseURI.absolutize(getUserDir());
+            }
+        }
+
+        // absolutize the system identifier using the base URI
+        systemURI = (new java.net.URI(baseURI.toString())).resolve(systemURI);
         
         // return the string rep of the new uri (an absolute one)
         return systemURI.toString();

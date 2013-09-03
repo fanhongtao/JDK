@@ -1,7 +1,7 @@
 /*
  * %W% %E%
  *
- * Copyright (c) 1996, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -23,7 +23,7 @@ import java.util.EventListener;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.WeakHashMap;
-import sun.awt.AppContext;
+import com.sun.beans.AppContext;
 import sun.reflect.misc.ReflectUtil;
 
 /**

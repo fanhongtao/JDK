@@ -49,6 +49,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ObjectType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ReferenceType;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 
 /**
  * @author Jacek Ambroziak
@@ -351,8 +352,7 @@ class FunctionCall extends Expression {
 		else {
 		    if (_className != null && _className.length() > 0) {
 		    	try {
-                            _clazz = ObjectFactory.findProviderClass(
-                                _className, ObjectFactory.findClassLoader(), true);
+                            _clazz = ObjectFactory.findProviderClass(_className, true);
 		            _namespace_format = NAMESPACE_FORMAT_CLASS;
 		    	}
 		    	catch (ClassNotFoundException e) {
@@ -878,8 +878,7 @@ class FunctionCall extends Expression {
 	    final int nArgs = _arguments.size();
 	    try {
 	      if (_clazz == null) {
-                _clazz = ObjectFactory.findProviderClass(
-                  _className, ObjectFactory.findClassLoader(), true);
+                _clazz = ObjectFactory.findProviderClass(_className, true);
 
 		if (_clazz == null) {
 		  final ErrorMsg msg =
@@ -925,8 +924,7 @@ class FunctionCall extends Expression {
         final int nArgs = _arguments.size();
         try {
           if (_clazz == null) {
-            _clazz = ObjectFactory.findProviderClass(
-              _className, ObjectFactory.findClassLoader(), true);
+            _clazz = ObjectFactory.findProviderClass(_className, true);
 
             if (_clazz == null) {
               final ErrorMsg msg = new ErrorMsg(ErrorMsg.CLASS_NOT_FOUND_ERR, _className);

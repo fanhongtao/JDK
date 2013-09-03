@@ -19,10 +19,9 @@ package com.sun.org.apache.xerces.internal.parsers;
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.dv.DTDDVFactory;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
-import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
 
 /**
- * @version $Id: XMLGrammarParser.java,v 1.2.6.1 2005/09/08 03:59:36 sunithareddy Exp $
+ * @version $Id: XMLGrammarParser.java,v 1.4 2007/07/19 04:38:55 ofung Exp $
  */
 public abstract class XMLGrammarParser
     extends XMLParser {
@@ -44,10 +43,7 @@ public abstract class XMLGrammarParser
      * @param symbolTable
      */
     protected XMLGrammarParser(SymbolTable symbolTable) {
-        super((XMLParserConfiguration)ObjectFactory.createObject(
-            "com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration",
-            "com.sun.org.apache.xerces.internal.parsers.XIncludeAwareParserConfiguration"
-            ));
+        super(new XIncludeAwareParserConfiguration());
         fConfiguration.setProperty(Constants.XERCES_PROPERTY_PREFIX+Constants.SYMBOL_TABLE_PROPERTY, symbolTable);
     }
 
