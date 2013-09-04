@@ -11,7 +11,6 @@ import java.awt.event.WindowEvent;
 
 import java.awt.peer.KeyboardFocusManagerPeer;
 import java.awt.peer.LightweightPeer;
-import java.awt.peer.WindowPeer;
 import java.beans.*;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.*;
@@ -21,7 +20,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.ListIterator;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.WeakHashMap;
@@ -31,6 +29,7 @@ import sun.awt.DebugHelper;
 import sun.awt.HeadlessToolkit;
 import sun.awt.SunToolkit;
 import sun.awt.CausedFocusEvent;
+import sun.awt.AWTAccessor;
 
 /**
  * The KeyboardFocusManager is responsible for managing the active and focused
@@ -89,6 +88,27 @@ public abstract class KeyboardFocusManager
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
+        AWTAccessor.setKeyboardFocusManagerAccessor(
+            new AWTAccessor.KeyboardFocusManagerAccessor() {
+                public int shouldNativelyFocusHeavyweight(Component heavyweight,
+                                                   Component descendant,
+                                                   boolean temporary,
+                                                   boolean focusedWindowChangeAllowed,
+                                                   long time,
+                                                   CausedFocusEvent.Cause cause)
+                {
+                    return KeyboardFocusManager.shouldNativelyFocusHeavyweight(
+                        heavyweight, descendant, temporary, focusedWindowChangeAllowed, time, cause);
+                }
+                public void setMostRecentFocusOwner(Window window, Component component) {
+                    KeyboardFocusManager.setMostRecentFocusOwner(window, component);
+                }
+
+                public void removeLastFocusRequest(Component heavyweight) {
+                    KeyboardFocusManager.removeLastFocusRequest(heavyweight);
+                }
+            }
+        );
     }
 
     transient KeyboardFocusManagerPeer peer;

@@ -3522,6 +3522,14 @@ public class Window extends Container implements Accessible {
             public void setLWRequestStatus(Window changed, boolean status) {
                 changed.syncLWRequests = status;
             }
+
+            public boolean isTrayIconWindow(Window window) {
+                return window.isTrayIconWindow;
+            }
+
+            public void setTrayIconWindow(Window window, boolean state) {
+                window.isTrayIconWindow = state;
+            }
         });        
     }
 

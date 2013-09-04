@@ -895,6 +895,13 @@ public abstract class Component implements ImageObserver, MenuContainer,
                     return comp.getAccessControlContext();
                 }
 
+                public boolean requestFocusInWindow(Component comp, CausedFocusEvent.Cause cause) {
+                    return comp.requestFocusInWindow(cause);
+                }
+
+                public void requestFocus(Component comp, CausedFocusEvent.Cause cause) {
+                    comp.requestFocus(cause);
+                }
             });
     }
 

@@ -1,5 +1,5 @@
 /*
- * @(#)Menu.java	1.79 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,7 @@ import java.util.Enumeration;
 import java.awt.peer.MenuPeer;
 import java.awt.event.KeyEvent;
 import javax.accessibility.*;
+import sun.awt.AWTAccessor;
 
 /**
  * A <code>Menu</code> object is a pull-down menu component
@@ -31,7 +32,7 @@ import javax.accessibility.*;
  * (an instance of <code>Menu</code>), or a check box (an instance of
  * <code>CheckboxMenuItem</code>).
  *
- * @version 1.79, 03/23/10
+ * @version %I%, %G%
  * @author Sami Shaio
  * @see     java.awt.MenuItem
  * @see     java.awt.CheckboxMenuItem
@@ -45,6 +46,13 @@ public class Menu extends MenuItem implements MenuContainer, Accessible {
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
+        
+        AWTAccessor.setMenuAccessor(
+            new AWTAccessor.MenuAccessor() {
+                public Vector getItems(Menu menu) {
+                    return menu.items;
+                }
+            });
     }
 
     /**

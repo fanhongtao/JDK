@@ -1,19 +1,14 @@
 /*
- * @(#)Cursor.java	1.48 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
 
-import java.awt.AWTException;
-import java.awt.Point;
-import java.awt.Toolkit;
-
 import java.io.File;
 import java.io.FileInputStream;
 
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -21,12 +16,13 @@ import java.util.StringTokenizer;
 import java.security.AccessController;
 
 import sun.awt.DebugHelper;
+import sun.awt.AWTAccessor;
 
 /**
  * A class to encapsulate the bitmap representation of the mouse cursor.
  *
  * @see Component#setCursor
- * @version 	1.48, 03/23/10
+ * @version 	%I%, %G%
  * @author 	Amy Fowler
  */
 public class Cursor implements java.io.Serializable {
@@ -177,6 +173,21 @@ public class Cursor implements java.io.Serializable {
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
+
+        AWTAccessor.setCursorAccessor(
+            new AWTAccessor.CursorAccessor() {
+                public long getPData(Cursor cursor) {
+                    return cursor.pData;
+                }
+
+                public void setPData(Cursor cursor, long pData) {
+                    cursor.pData = pData;
+                }
+
+                public int getType(Cursor cursor) {
+                    return cursor.type;
+                }
+            });
     }
 
     /**

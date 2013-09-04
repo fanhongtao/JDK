@@ -251,11 +251,19 @@ public abstract class AWTEvent extends EventObject {
                 public void setPosted(AWTEvent ev) {
                     ev.isPosted = true;
                 }
-                
+
                 public AccessControlContext getAccessControlContext(AWTEvent ev) {
                     return ev.getAccessControlContext();
                 }
-            });
+
+                public byte[] getBData(AWTEvent ev) {
+                    return ev.bdata;
+                }
+
+                public void setBData(AWTEvent ev, byte[] bdata) {
+                    ev.bdata = bdata;
+                }
+        });
     }
 
     private static synchronized Field get_InputEvent_CanAccessSystemClipboard() { 

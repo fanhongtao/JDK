@@ -1,5 +1,5 @@
 /*
- * @(#)KeyEvent.java	1.82 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,6 +13,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import sun.awt.AWTAccessor;
 
 /**
  * An event which indicates that a keystroke occurred in a component.
@@ -114,7 +115,7 @@ import java.io.ObjectInputStream;
  * @author Carl Quinn
  * @author Amy Fowler
  * @author Norbert Lindenberg
- * @version 1.82 03/23/10
+ * @version %I% %G%
  *
  * @see KeyAdapter
  * @see KeyListener
@@ -887,6 +888,18 @@ public class KeyEvent extends InputEvent {
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
+
+        AWTAccessor.setKeyEventAccessor(
+            new AWTAccessor.KeyEventAccessor() {
+                public void setRawCode(KeyEvent ev, long rawCode) {
+                    ev.rawCode = rawCode;
+                }
+
+                public void setPrimaryLevelUnicode(KeyEvent ev,
+                                                   long primaryLevelUnicode) {
+                    ev.primaryLevelUnicode = primaryLevelUnicode;
+                }
+            });
     }
 
     /**

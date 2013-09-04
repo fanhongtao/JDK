@@ -11,7 +11,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.peer.ComponentPeer;
 import java.awt.peer.LightweightPeer;
-import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.Iterator;
@@ -22,6 +21,7 @@ import java.util.logging.*;
 
 import sun.awt.AppContext;
 import sun.awt.SunToolkit;
+import sun.awt.AWTAccessor;
 import sun.awt.CausedFocusEvent;
 
 /**
@@ -58,6 +58,16 @@ public class DefaultKeyboardFocusManager extends KeyboardFocusManager {
     private LinkedList enqueuedKeyEvents = new LinkedList(),
         typeAheadMarkers = new LinkedList();
     private boolean consumeNextKeyTyped;
+
+    static {
+        AWTAccessor.setDefaultKeyboardFocusManagerAccessor(
+            new AWTAccessor.DefaultKeyboardFocusManagerAccessor() {
+                public void consumeNextKeyTyped(DefaultKeyboardFocusManager dkfm,
+                                                KeyEvent e) {
+                    dkfm.consumeNextKeyTyped(e);
+                }
+            });
+    }
 
     private static class TypeAheadMarker {
         long after;

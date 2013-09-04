@@ -1,5 +1,5 @@
 /*
- * @(#)PopupMenu.java	1.35 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,6 +10,7 @@ package java.awt;
 import java.awt.peer.PopupMenuPeer;
 import javax.accessibility.*;
 
+import sun.awt.AWTAccessor;
 
 /**
  * A class that implements a menu which can be dynamically popped up
@@ -21,7 +22,7 @@ import javax.accessibility.*;
  * (e.g., you add it to a <code>MenuBar</code>), then you <b>cannot</b>
  * call <code>show</code> on that <code>PopupMenu</code>.
  *
- * @version	1.35 03/23/10
+ * @version	%I% %G%
  * @author 	Amy Fowler
  */
 public class PopupMenu extends Menu {
@@ -30,6 +31,15 @@ public class PopupMenu extends Menu {
     static int nameCounter = 0;
 
     transient boolean isTrayIconPopup = false;
+
+    static {
+        AWTAccessor.setPopupMenuAccessor(
+            new AWTAccessor.PopupMenuAccessor() {
+                public boolean isTrayIconPopup(PopupMenu popupMenu) {
+                    return popupMenu.isTrayIconPopup;
+                }
+            });
+    }
 
     /*
      * JDK 1.1 serialVersionUID

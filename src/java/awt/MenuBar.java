@@ -1,5 +1,5 @@
 /*
- * @(#)MenuBar.java	1.73 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Vector;
 import java.util.Enumeration;
+import sun.awt.AWTAccessor;
 import java.awt.peer.MenuBarPeer;
 import java.awt.event.KeyEvent;
 import javax.accessibility.*;
@@ -40,7 +41,7 @@ import javax.accessibility.*;
  * that retrieve information about the shortcuts a given
  * menu bar is managing.
  *
- * @version 1.73, 03/23/10
+ * @version %I%, %G%
  * @author Sami Shaio
  * @see        java.awt.Frame
  * @see        java.awt.Frame#setMenuBar(java.awt.MenuBar)
@@ -57,6 +58,16 @@ public class MenuBar extends MenuComponent implements MenuContainer, Accessible 
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
+        AWTAccessor.setMenuBarAccessor(
+            new AWTAccessor.MenuBarAccessor() {
+                public Menu getHelpMenu(MenuBar menuBar) {
+                    return menuBar.helpMenu;
+                }
+
+                public Vector getMenus(MenuBar menuBar) {
+                    return menuBar.menus;
+                }
+            });
     }
 
     /**

@@ -15,10 +15,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.PaintEvent;
 import java.awt.event.WindowEvent;
-import java.awt.ActiveEvent;
 import java.awt.peer.ComponentPeer;
-import java.awt.peer.LightweightPeer;
-import java.awt.TrayIcon;
 import java.util.EmptyStackException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
@@ -26,12 +23,12 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import sun.awt.PeerEvent;
 import sun.awt.SunToolkit;
+import sun.awt.AWTAccessor;
 import sun.awt.DebugHelper;
 import sun.awt.AWTAutoShutdown;
 import sun.awt.AppContext;
 
 import java.security.AccessControlContext;
-import java.security.ProtectionDomain;
 
 import sun.misc.SharedSecrets;
 import sun.misc.JavaSecurityAccess;
@@ -155,6 +152,29 @@ public class EventQueue {
     private int waitForID;
 
     private final String name = "AWT-EventQueue-" + nextThreadNum();
+
+    static {
+        AWTAccessor.setEventQueueAccessor(
+            new AWTAccessor.EventQueueAccessor() {
+                public Thread getDispatchThread(EventQueue eventQueue) {
+                    return eventQueue.dispatchThread;
+                }
+                public EventQueue getNextQueue(EventQueue eventQueue) {
+                    return eventQueue.nextQueue;
+                }
+                public void removeSourceEvents(EventQueue eventQueue,
+                                               Object source,
+                                               boolean removeAllEvents) {
+                    eventQueue.removeSourceEvents(source, removeAllEvents);
+                }
+                public boolean noEvents(EventQueue eventQueue) {
+                    return eventQueue.noEvents();
+                }
+                public void wakeup(EventQueue eventQueue, boolean isShutdown) {
+                    eventQueue.wakeup(isShutdown);
+                }
+            });
+    }
 
     public EventQueue() {
         for (int i = 0; i < NUM_PRIORITIES; i++) {

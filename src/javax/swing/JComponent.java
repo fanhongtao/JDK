@@ -1,5 +1,5 @@
 /*
- * @(#)JComponent.java	2.290 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -149,7 +149,7 @@ import sun.swing.UIClientPropertyKey;
  * @see #setToolTipText
  * @see #setAutoscrolls
  *
- * @version 2.290, 03/23/10
+ * @version %I%, %G%
  * @author Hans Muller
  * @author Arnaud Weber
  */
@@ -364,6 +364,14 @@ public abstract class JComponent extends Container implements Serializable,
      * AA text hints.
      */
     transient private Object aaTextInfo;
+
+    static {
+       AWTAccessor.setJComponentAccessor(new AWTAccessor.JComponentAccessor() {
+                public Object getTRANSFER_HANDLER_KEY() {
+                    return JComponent.TRANSFER_HANDLER_KEY;
+                }
+            });
+    }
 
     static Graphics safelyGetGraphics(Component c) {
         return safelyGetGraphics(c, SwingUtilities.getRoot(c));

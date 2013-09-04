@@ -1,5 +1,5 @@
 /*
- * @(#)MenuItem.java	1.95 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -13,7 +13,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.IOException;
 import javax.accessibility.*;
-
+import sun.awt.AWTAccessor;
 
 /**
  * All items in a menu must belong to the class
@@ -48,7 +48,7 @@ import javax.accessibility.*;
  * does not send any event to the frame until one of its subitems is
  * selected.
  *
- * @version 1.95, 03/23/10
+ * @version %I%, %G%
  * @author Sami Shaio
  */
 public class MenuItem extends MenuComponent implements Accessible {
@@ -59,6 +59,29 @@ public class MenuItem extends MenuComponent implements Accessible {
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
+
+        AWTAccessor.setMenuItemAccessor(
+            new AWTAccessor.MenuItemAccessor() {
+                public boolean isEnabled(MenuItem item) {
+                    return item.enabled;
+                }
+
+                public String getLabel(MenuItem item) {
+                    return item.label;
+                }
+
+                public MenuShortcut getShortcut(MenuItem item) {
+                    return item.shortcut;
+                }
+
+                public String getActionCommandImpl(MenuItem item) {
+                    return item.getActionCommandImpl();
+                }
+
+                public boolean isItemEnabled(MenuItem item) {
+                    return item.isItemEnabled();
+                }
+            });
     }
 
     /**

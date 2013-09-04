@@ -131,6 +131,12 @@ public abstract class MenuComponent implements java.io.Serializable {
                                           AppContext appContext) {
                     menuComp.appContext = appContext;
                 }
+                public MenuContainer getParent(MenuComponent menuComp) {
+                    return menuComp.parent;
+                }
+                public Font getFont_NoClientCode(MenuComponent menuComp) {
+                    return menuComp.getFont_NoClientCode();
+                }
             });
     }
 
