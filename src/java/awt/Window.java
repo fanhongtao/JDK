@@ -1,7 +1,8 @@
 /*
- * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
+
 package java.awt;
 
 import java.applet.Applet;
@@ -164,6 +165,7 @@ public class Window extends Container implements Accessible {
     static boolean systemSyncLWRequests = false;
     boolean     syncLWRequests = false;
     transient boolean beforeFirstShow = true;
+    private transient boolean disposing = false;
 
     static final int OPENED = 0x01;
 
@@ -988,36 +990,41 @@ public class Window extends Container implements Accessible {
     void doDispose() {
     class DisposeAction implements Runnable {
         public void run() {
-            // Check if this window is the fullscreen window for the
-            // device. Exit the fullscreen mode prior to disposing
-            // of the window if that's the case.
-            GraphicsDevice gd = getGraphicsConfiguration().getDevice();
-            if (gd.getFullScreenWindow() == Window.this) {
-                gd.setFullScreenWindow(null);
-            }
-            
-	    Object[] ownedWindowArray;
-            synchronized(ownedWindowList) {
-		ownedWindowArray = new Object[ownedWindowList.size()];
-		ownedWindowList.copyInto(ownedWindowArray);
-	    }
-	    for (int i = 0; i < ownedWindowArray.length; i++) {
-		Window child = (Window) (((WeakReference)
-			       (ownedWindowArray[i])).get());
-		if (child != null) {
-		    child.disposeImpl();
-		}
-	    }
-            hide();
-            beforeFirstShow = true;
-            removeNotify();
-            synchronized (inputContextLock) {
-                if (inputContext != null) {
-                    inputContext.dispose();
-                    inputContext = null;
+            disposing = true;
+            try {
+                // Check if this window is the fullscreen window for the
+                // device. Exit the fullscreen mode prior to disposing
+                // of the window if that's the case.
+                GraphicsDevice gd = getGraphicsConfiguration().getDevice();
+                if (gd.getFullScreenWindow() == Window.this) {
+                    gd.setFullScreenWindow(null);
                 }
+            
+	        Object[] ownedWindowArray;
+                synchronized(ownedWindowList) {
+		    ownedWindowArray = new Object[ownedWindowList.size()];
+		    ownedWindowList.copyInto(ownedWindowArray);
+	        }
+	        for (int i = 0; i < ownedWindowArray.length; i++) {
+		    Window child = (Window) (((WeakReference)
+		    	           (ownedWindowArray[i])).get());
+		    if (child != null) {
+		        child.disposeImpl();
+		    }
+	        }
+                hide();
+                beforeFirstShow = true;
+                removeNotify();
+                synchronized (inputContextLock) {
+                    if (inputContext != null) {
+                        inputContext.dispose();
+                        inputContext = null;
+                    }
+                }
+                clearCurrentFocusCycleRootOnHide();
+            } finally {
+                disposing = false;
             }
-            clearCurrentFocusCycleRootOnHide();
         }
     }
         DisposeAction action = new DisposeAction();
@@ -2501,6 +2508,10 @@ public class Window extends Container implements Accessible {
     */
     public boolean isShowing() {
 	return visible;
+    }
+
+    boolean isDisposing() {
+        return disposing;
     }
 
     /**

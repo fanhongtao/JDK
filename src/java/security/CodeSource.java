@@ -1,7 +1,5 @@
 /*
- * @(#)CodeSource.java	1.42 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -23,7 +21,7 @@ import java.security.cert.*;
  * encapsulate not only the location (URL) but also the certificate chains 
  * that were used to verify signed code originating from that location.
  *
- * @version 	1.42, 03/23/10
+ * @version 	%I%, %G%
  * @author Li Gong
  * @author Roland Schemers
  */
@@ -354,41 +352,17 @@ public class CodeSource implements java.io.Serializable {
      */
     private boolean matchLocation(CodeSource that)
 	{
-	    if (location == null) {
+	    if (location == null)
 		return true;
-	    }
 
 	    if ((that == null) || (that.location == null))
 		return false;
 
-	    if (location.equals(that.location))
-		return true;
+            if (location.equals(that.location))
+                return true;
 
-	    if (!location.getProtocol().equals(that.location.getProtocol()))
+	    if (!location.getProtocol().equalsIgnoreCase(that.location.getProtocol()))
 		return false;
-
-	    String thisHost = location.getHost();
-	    String thatHost = that.location.getHost();
-
-	    if (thisHost != null) {
-		if (("".equals(thisHost) || "localhost".equals(thisHost)) &&
-		    ("".equals(thatHost) || "localhost".equals(thatHost))) {
-		    // ok
-		} else if (!thisHost.equals(thatHost)) {
-		    if (thatHost == null) {
-			return false;
-		    }
-		    if (this.sp == null) {
-			this.sp = new SocketPermission(thisHost, "resolve");
-		    }
-		    if (that.sp == null) {
-			that.sp = new SocketPermission(thatHost, "resolve");
-		    }
-		    if (!this.sp.implies(that.sp)) {
-			return false;
-		    }
-		}
-	    }
 
 	    if (location.getPort() != -1) {
 		if (location.getPort() != that.location.getPort())
@@ -426,11 +400,35 @@ public class CodeSource implements java.io.Serializable {
 		}
 	    }
 
-	    if (location.getRef() == null)
-		return true;
-	    else 
-		return location.getRef().equals(that.location.getRef());
-	}
+            if (location.getRef() != null) {
+                if (!location.getRef().equals(that.location.getRef()))
+                    return false;
+            }
+
+            String thisHost = location.getHost();
+            String thatHost = that.location.getHost();
+            if (thisHost != null) {
+                if (("".equals(thisHost) || "localhost".equals(thisHost)) &&
+                    ("".equals(thatHost) || "localhost".equals(thatHost))) {
+                    // ok
+                } else if (!thisHost.equals(thatHost)) {
+                    if (thatHost == null) {
+                        return false;
+                    }
+                    if (this.sp == null) {
+                        this.sp = new SocketPermission(thisHost, "resolve");
+                    }
+                    if (that.sp == null) {
+                        that.sp = new SocketPermission(thatHost, "resolve");
+                    }
+                    if (!this.sp.implies(that.sp)) {
+                        return false;
+                    }
+                }
+            }
+            // everything appears to match up
+            return true;
+        }
 
     /**
      * Returns a string describing this CodeSource, telling its

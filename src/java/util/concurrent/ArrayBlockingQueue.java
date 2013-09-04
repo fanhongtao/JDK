@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2004, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -81,6 +81,13 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      */
     final int inc(int i) {
         return (++i == items.length)? 0 : i;
+    }
+
+    /**
+     * Circularly decrement i.
+     */
+    final int dec(int i) {
+        return ((i == 0) ? items.length : i) - 1;
     }
 
     /**
@@ -739,8 +746,15 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 if (i == -1)
                     throw new IllegalStateException();
                 lastRet = -1;
-                if (lastItem == items[i])
-                    removeAt(i); // only remove if item still at index
+                E x = lastItem;
+                lastItem = null;
+                // only remove if item still at index
+                if (x == items[i]) {
+                    boolean removingHead = (i == takeIndex);
+                    removeAt(i);
+                    if (!removingHead)
+                        nextIndex = dec(nextIndex);
+                }
             } finally {
                 lock.unlock();
             }

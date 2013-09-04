@@ -1,7 +1,5 @@
 /*
- * @(#)Parser.java	1.49 10/04/21
- *
- * Copyright (c) 2006,2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -56,7 +54,7 @@ import sun.misc.MessageUtils;
  * @see DTD
  * @see TagElement
  * @see SimpleAttributeSet
- * @version 1.49, 04/21/10
+ * @version %I%, %G%
  * @author Arthur van Hoff
  * @author Sunita Mani
  */
@@ -1981,8 +1979,6 @@ class Parser implements DTDConstants {
             if (i == SCRIPT_END_TAG.length) {
                 
                 /*  '</script>' tag detected */
-                /* Here, ch == '>' */
-                ch = readCh();
                 /* Here, ch == the first character after </script> */
                 return;
             } else {
@@ -2055,6 +2051,8 @@ class Parser implements DTDConstants {
                 handleComment(str.toCharArray());
                 endTag(false);
                 lastBlockStartPos = currentPosition;
+
+                continue;
             } else {
                 switch (c) {
                   case '<':

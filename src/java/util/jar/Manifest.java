@@ -1,7 +1,5 @@
 /*
- * @(#)Manifest.java	1.51 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -25,7 +23,7 @@ import java.util.Iterator;
  * Manifest format specification</a>.
  *
  * @author  David Connelly
- * @version 1.51, 03/23/10
+ * @version %I%, %G%
  * @see	    Attributes
  * @since   1.2
  */
@@ -383,6 +381,8 @@ public class Manifest implements Cloneable {
 	public byte peek() throws IOException {
 	    if (pos == count)
 		fill();
+            if (pos == count)
+                return -1; // nothing left in buffer
 	    return buf[pos];
 	}
 
@@ -422,7 +422,7 @@ public class Manifest implements Cloneable {
 	    int n = in.read(buf, 0, buf.length);
 	    if (n > 0) {
 		count = n;
-	    }
+            }
 	}
     }
 }

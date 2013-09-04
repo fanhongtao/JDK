@@ -1,8 +1,8 @@
 /*
- *
- * Copyright (c) 2008, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
+
 package java.awt;
 
 import java.io.PrintStream;
@@ -9994,11 +9994,12 @@ public abstract class Component implements ImageObserver, MenuContainer,
         }
         Window window = getContainingWindow();
         if (window != null) {
-            if (!window.hasHeavyweightDescendants() || !window.hasLightweightDescendants()) {
+            if (!window.hasHeavyweightDescendants() || !window.hasLightweightDescendants() || window.isDisposing()) {
                 if (mixingLog.isLoggable(Level.FINE)) {
                     mixingLog.fine("containing window = " + window +
                             "; has h/w descendants = " + window.hasHeavyweightDescendants() +
-                            "; has l/w descendants = " + window.hasLightweightDescendants());
+                            "; has l/w descendants = " + window.hasLightweightDescendants() +
+                            "; disposing = " + window.isDisposing());
                 }
                 return false;
             }
