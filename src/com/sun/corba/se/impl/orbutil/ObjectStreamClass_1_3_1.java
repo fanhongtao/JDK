@@ -1,7 +1,5 @@
 /*
- * @(#)ObjectStreamClass_1_3_1.java	1.8 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -1104,8 +1102,8 @@ public class ObjectStreamClass_1_3_1 implements java.io.Serializable {
     private boolean hasExternalizableBlockData;
     Method writeObjectMethod;
     Method readObjectMethod;
-    private Method writeReplaceObjectMethod;
-    private Method readResolveObjectMethod;
+    private transient Method writeReplaceObjectMethod;
+    private transient Method readResolveObjectMethod;
 
     /*
      * ObjectStreamClass_1_3_1 that this one was built from.

@@ -1,5 +1,5 @@
 /*
- * @(#)TextComponent.java	1.91 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -35,7 +35,7 @@ import java.awt.im.InputMethodRequests;
  * is the target of editing operations. It is also referred
  * to as the <em>selected text</em>.
  *
- * @version	1.91, 03/23/10
+ * @version	%I%, %G%
  * @author 	Sami Shaio
  * @author 	Arthur van Hoff
  * @since       JDK1.0
@@ -90,12 +90,6 @@ public class TextComponent extends Component implements Accessible {
     // the background color of non-editable TextComponents.
     boolean backgroundSetByClientCode = false;
 
-    /**
-     * True if this <code>TextComponent</code> has access
-     * to the System clipboard.
-     */
-    transient private boolean canAccessClipboard;
-
     transient protected TextListener textListener;
 
     /*
@@ -120,7 +114,6 @@ public class TextComponent extends Component implements Accessible {
         GraphicsEnvironment.checkHeadless();
 	this.text = (text != null) ? text : "";
 	setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-	checkSystemClipboardAccess();
     }
 
     private void enableInputMethodsIfNecessary() {
@@ -711,17 +704,14 @@ public class TextComponent extends Component implements Accessible {
     /**
      * Assigns a valid value to the canAccessClipboard instance variable.
      */
-    private void checkSystemClipboardAccess() {
-        canAccessClipboard = true;
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    try {
-	        sm.checkSystemClipboardAccess();
-	    }
-	    catch (SecurityException e) {
-	        canAccessClipboard = false;
-	    }
-	}
+    private boolean canAccessClipboard() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm == null) return true;
+        try {
+            sm.checkSystemClipboardAccess();
+            return true;
+        } catch (SecurityException e) {}
+        return false;
     }
 
     /*
@@ -804,7 +794,6 @@ public class TextComponent extends Component implements Accessible {
             }
         }
 	enableInputMethodsIfNecessary();
-	checkSystemClipboardAccess();
     }
 
 

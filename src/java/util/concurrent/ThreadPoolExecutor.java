@@ -1,7 +1,5 @@
 /*
- * @(#)ThreadPoolExecutor.java	1.22 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -670,12 +668,23 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     private Thread addThread(Runnable firstTask) {
         Worker w = new Worker(firstTask);
         Thread t = threadFactory.newThread(w);
+        boolean workerStarted = false;
         if (t != null) {
+            if (t.isAlive()) // precheck that t is startable
+                throw new IllegalThreadStateException();
             w.thread = t;
             workers.add(w);
             int nt = ++poolSize;
             if (nt > largestPoolSize)
                 largestPoolSize = nt;
+            try {
+                t.start();
+                workerStarted = true;
+            }
+            finally {
+                if (!workerStarted)
+                    workers.remove(w);
+            }
         }
         return t;
     }
@@ -698,10 +707,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         } finally {
             mainLock.unlock();
         }
-        if (t == null)
-            return false;
-        t.start();
-        return true;
+        return t != null;
     }
 
     /**
@@ -722,10 +728,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         } finally {
             mainLock.unlock();
         }
-        if (t == null)
-            return false;
-        t.start();
-        return true;
+        return t != null;
     }
 
     /**
@@ -756,8 +759,6 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         }
         if (reject)
             reject(command);
-        else if (t != null)
-            t.start();
     }
 
     /**
@@ -825,6 +826,13 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          */
         Thread thread;
 
+        /**
+         * Records that the thread assigned to this worker has actually
+         * executed our run() method. Such threads are the only ones
+         * that will be interrupted.
+         */
+        volatile boolean hasRun = false;
+
         Worker(Runnable firstTask) {
             this.firstTask = firstTask;
         }
@@ -840,8 +848,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             final ReentrantLock runLock = this.runLock;
             if (runLock.tryLock()) {
                 try {
-		    if (thread != Thread.currentThread())
-			thread.interrupt();
+                    if (hasRun && thread != Thread.currentThread())
+                        thread.interrupt();
                 } finally {
                     runLock.unlock();
                 }
@@ -852,7 +860,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          * Interrupts thread even if running a task.
          */
         void interruptNow() {
-            thread.interrupt();
+            if (hasRun)
+                thread.interrupt();
         }
 
         /**
@@ -863,15 +872,15 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             runLock.lock();
             try {
                 /*
-                 * Ensure that unless pool is stopping, this thread
-                 * does not have its interrupt set. This requires a
-                 * double-check of state in case the interrupt was
+                 * If pool is stopping ensure thread is interrupted;
+                 * if not, ensure thread is not interrupted. This requires
+                 * a double-check of state in case the interrupt was
                  * cleared concurrently with a shutdownNow -- if so,
                  * the interrupt is re-enabled.
                  */
-                if (runState < STOP &&
-                    Thread.interrupted() &&
-                    runState >= STOP)
+                if ((runState >= STOP ||
+                    (Thread.interrupted() && runState >= STOP)) &&
+                    hasRun)
                     thread.interrupt();
                 /*
                  * Track execution state to ensure that afterExecute
@@ -902,6 +911,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          */
         public void run() {
             try {
+                hasRun = true;
                 Runnable task = firstTask;
                 firstTask = null;
                 while (task != null || (task = getTask()) != null) {
@@ -1032,9 +1042,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             int state = runState;
             if (state < STOP && !workQueue.isEmpty()) {
                 state = RUNNING; // disable termination check below
-                Thread t = addThread(null);
-                if (t != null)
-                    t.start();
+                addThread(null);
             }
             if (state == STOP || state == SHUTDOWN) {
                 runState = TERMINATED;
@@ -1337,9 +1345,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 int n = workQueue.size(); // don't add more threads than tasks
                 while (extra++ < 0 && n-- > 0 && poolSize < corePoolSize) {
                     Thread t = addThread(null);
-                    if (t != null)
-                        t.start();
-                    else
+                    if (t == null)
                         break;
                 }
             }

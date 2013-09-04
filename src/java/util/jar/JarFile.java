@@ -1,5 +1,5 @@
 /*
- * @(#)JarFile.java	1.70 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, 2009, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,6 +16,7 @@ import java.security.CodeSigner;
 import java.security.CodeSource;
 import java.security.cert.Certificate;
 import java.security.AccessController;
+import sun.misc.IOUtils;
 import sun.security.action.GetPropertyAction;
 import sun.security.util.ManifestEntryVerifier;
 import sun.misc.SharedSecrets;
@@ -33,7 +34,7 @@ import sun.misc.SharedSecrets;
  * thrown.
  *
  * @author  David Connelly
- * @version 1.70, 03/23/10
+ * @version %I%, %G%
  * @see	    Manifest
  * @see     java.util.zip.ZipFile
  * @see     java.util.jar.JarEntry
@@ -311,6 +312,9 @@ class JarFile extends ZipFile {
 	    if (names != null) {
 		for (int i = 0; i < names.length; i++) {
 		    JarEntry e = getJarEntry(names[i]);
+                    if (e == null) {
+                        throw new JarException("corrupted jar file");
+                    }
 		    if (!e.isDirectory()) {
 			if (mev == null) {
 			    mev = new ManifestEntryVerifier
@@ -330,7 +334,11 @@ class JarFile extends ZipFile {
 	    // treat the jar file as being unsigned
 	    jv = null;
             verify = false;
-	}
+            if (JarVerifier.debug != null) {
+                JarVerifier.debug.println("jarfile parsing error!");
+                ex.printStackTrace();
+            }
+        }
 
 	// if after initializing the verifier we have nothing
 	// signed, we null it out.
@@ -357,9 +365,8 @@ class JarFile extends ZipFile {
      * META-INF files.
      */
     private byte[] getBytes(ZipEntry ze) throws IOException {
-	byte[] b = new byte[(int)ze.getSize()];
-	DataInputStream is = new DataInputStream(super.getInputStream(ze));
-	is.readFully(b, 0, b.length);
+        InputStream is = super.getInputStream(ze);
+        byte[] b = IOUtils.readFully(is, (int)ze.getSize(), true);
 	is.close();
 	return b;
     }
@@ -461,12 +468,7 @@ class JarFile extends ZipFile {
         if (!isKnownToNotHaveClassPathAttribute()) {
             JarEntry manEntry = getManEntry();
             if (manEntry != null) {
-                byte[] b = new byte[(int)manEntry.getSize()];
-                DataInputStream dis = new DataInputStream(
-                                                          super.getInputStream(manEntry));
-                dis.readFully(b, 0, b.length);
-                dis.close();
- 
+                byte[] b = getBytes(manEntry);
                 int last = b.length - src.length;
                 int i = 0;
                 next:       

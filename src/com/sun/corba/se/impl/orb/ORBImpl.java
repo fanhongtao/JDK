@@ -1,6 +1,5 @@
-/* %W% %E%
- *
- * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
+/*
+ * Copyright (c) 2002, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -821,7 +820,7 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
         // backward compatability 4365188
         CodeBase cb;
 
-        ValueHandler vh = ORBUtility.createValueHandler(this);
+        ValueHandler vh = ORBUtility.createValueHandler();
 
         cb = (CodeBase)vh.getRunTimeCodeBase();
 	return ORBUtility.connectAndGetIOR( this, cb ) ;

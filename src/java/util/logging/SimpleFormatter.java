@@ -1,5 +1,5 @@
 /*
- * @(#)SimpleFormatter.java	1.16 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -16,7 +16,7 @@ import java.util.Date;
  * Print a brief summary of the LogRecord in a human readable
  * format.  The summary will typically be 1 or 2 lines.
  *
- * @version 1.16, 03/23/10
+ * @version %I%, %G%
  * @since 1.4
  */
 
@@ -61,7 +61,7 @@ public class SimpleFormatter extends Formatter {
 	}
 	sb.append(lineSeparator);
 	String message = formatMessage(record);
-	sb.append(record.getLevel().getLocalizedName());
+	sb.append(record.getLevel().getLocalizedLevelName());
 	sb.append(": ");
 	sb.append(message);
 	sb.append(lineSeparator);

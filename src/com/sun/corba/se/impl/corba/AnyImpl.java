@@ -1,7 +1,5 @@
 /*
- * @(#)AnyImpl.java	1.67 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -1202,7 +1200,7 @@ public class AnyImpl extends Any
 	// See bug 4391648 for more info about the tcORB in this
 	// case.
 	RepositoryIdStrings repStrs 
-	    = RepositoryIdFactory.getRepIdStringsFactory(tcORB);
+	    = RepositoryIdFactory.getRepIdStringsFactory();
 
 
 	// Assertion: c instanceof Serializable?
@@ -1235,7 +1233,7 @@ public class AnyImpl extends Any
 	// Anything else
 	// We know that this is a TypeCodeImpl since it is our ORB
 	classTC = (TypeCodeImpl)ValueUtility.createTypeCodeForClass(
-	    tcORB, c, ORBUtility.createValueHandler(tcORB));
+	    tcORB, c, ORBUtility.createValueHandler());
 	// Intruct classTC to store its buffer
 	classTC.setCaching(true);
 	// Update the cache

@@ -1,11 +1,8 @@
 /*
- * @(#)ServerMain.java	1.21 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
- * @(#)ServerMain.java	1.21 10/03/23
  *
  * Copyright (c) 1993, 1997, Oracle and/or its affiliates. All rights reserved. 901 San Antonio Road,
  * Palo Alto, California, 94303, U.S.A.  All Rights Reserved.
@@ -320,9 +317,9 @@ class ServerCallback extends
     com.sun.corba.se.spi.activation._ServerImplBase
 {
     private ORB orb;
-    private Method installMethod ;
-    private Method uninstallMethod ;
-    private Method shutdownMethod ;
+    private transient Method installMethod ;
+    private transient Method uninstallMethod ;
+    private transient Method shutdownMethod ;
     private Object methodArgs[] ;
 
     ServerCallback(ORB orb, Method installMethod, Method uninstallMethod,

@@ -1,5 +1,5 @@
 /*
- * @(#)ValueUtility.java	1.31 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -76,6 +76,15 @@ public class ValueUtility {
 	null,       // tk_native       31
         null,       // tk_abstract_interface 32
     };
+
+    static {
+        SharedSecrets.setJavaCorbaAccess
+                (new JavaCorbaAccess() {
+            public ValueHandlerImpl newValueHandlerImpl() {
+                return ValueHandlerImpl.getInstance();
+            }
+        });
+    }
 
     public static String getSignature(ValueMember member)
 	throws ClassNotFoundException {

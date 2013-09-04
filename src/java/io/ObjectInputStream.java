@@ -1,7 +1,5 @@
 /*
- * %W% %E%
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1730,6 +1728,12 @@ public class ObjectInputStream
 
 	ObjectStreamClass desc = readClassDesc(false);
 	desc.checkDeserialize();
+
+        Class<?> cl = desc.forClass();
+        if (cl == String.class || cl == Class.class
+                || cl == ObjectStreamClass.class) {
+            throw new InvalidClassException("invalid class descriptor");
+        }
 
 	Object obj;
 	try {

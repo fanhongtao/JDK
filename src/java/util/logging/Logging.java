@@ -1,6 +1,4 @@
 /*
- * @(#)Logging.java	1.10 10/03/23
- *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -16,16 +14,16 @@ import java.util.ArrayList;
  *
  * The <tt>LoggingMXBean</tt> interface provides a standard
  * method for management access to the individual
- * java.util.Logger objects available at runtime.
+ * {@code Logger} objects available at runtime.
  * 
  * @author Ron Mann
  * @author Mandy Chung
- * @version 1.10, 03/23/10
+ * @version %I%, %G%
  * @since 1.5
  *
  * @see javax.management
- * @see java.util.Logger
- * @see java.util.LogManager
+ * @see Logger
+ * @see LogManager
  */
 class Logging implements LoggingMXBean {
 
@@ -58,7 +56,7 @@ class Logging implements LoggingMXBean {
         if (level == null) {
             return EMPTY_STRING;
         } else {
-            return level.getName();
+            return level.getLevelName();
         }
     }
 
@@ -76,8 +74,11 @@ class Logging implements LoggingMXBean {
  
         Level level = null; 
         if (levelName != null) {
-            // parse will throw IAE if logLevel is invalid 
-            level = Level.parse(levelName);
+            // parse will throw IAE if logLevel is invalid
+            level = Level.findLevel(levelName);
+            if (level == null) {
+                throw new IllegalArgumentException("Unknown level \"" + levelName + "\"");
+            }
         }
 
         logger.setLevel(level);

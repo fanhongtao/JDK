@@ -1,7 +1,7 @@
 /*
- * @(#)ORB.java	1.60 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -80,6 +80,7 @@ import com.sun.corba.se.impl.logging.OMGSystemException ;
 import com.sun.corba.se.impl.presentation.rmi.PresentationManagerImpl ;
 
 import com.sun.corba.se.impl.orbutil.ORBClassLoader ;
+import sun.awt.AppContext;
 
 public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     implements Broker, TypeCodeFactory
@@ -155,14 +156,7 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
 
     protected MonitoringManager monitoringManager;
 
-    // There is only one instance of the PresentationManager
-    // that is shared between all ORBs.  This is necessary
-    // because RMI-IIOP requires the PresentationManager in
-    // places where no ORB is available, so the PresentationManager
-    // must be global.  It is initialized here as well.
-    protected static PresentationManager globalPM = null ;
-
-    static {
+    private static PresentationManager setupPresentationManager() {
 	staticWrapper = ORBUtilSystemException.get( 
 	    CORBALogDomains.RPC_PRESENTATION ) ;
 
@@ -202,10 +196,11 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
 		}
 	    ) ;
 
-	globalPM = new PresentationManagerImpl( useDynamicStub ) ;
-	globalPM.setStubFactoryFactory( false, 
-	    PresentationDefaults.getStaticStubFactoryFactory() ) ;
-	globalPM.setStubFactoryFactory( true, dynamicStubFactoryFactory ) ; 
+        PresentationManager pm = new PresentationManagerImpl( useDynamicStub ) ;
+        pm.setStubFactoryFactory( false,
+            PresentationDefaults.getStaticStubFactoryFactory() ) ;
+        pm.setStubFactoryFactory( true, dynamicStubFactoryFactory ) ; 
+        return pm;
     }
 
     public void destroy() {
@@ -216,11 +211,19 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
         byteBufferPool = null ;
     }
 
-    /** Get the single instance of the PresentationManager
+    /**
+     * Returns the Presentation Manager for the current thread group, using the ThreadGroup-specific 
+     * AppContext to hold it. Creates and records one if needed.
      */
     public static PresentationManager getPresentationManager() 
     {
-	return globalPM ;
+        AppContext ac = AppContext.getAppContext();
+        PresentationManager pm = (PresentationManager) ac.get(PresentationManager.class);
+        if (pm == null) {
+            pm = setupPresentationManager();
+            ac.put(PresentationManager.class, pm);
+        }
+        return pm;
     }
 
     /** Get the appropriate StubFactoryFactory.  This 
@@ -230,8 +233,9 @@ public abstract class ORB extends com.sun.corba.se.org.omg.CORBA.ORB
     public static PresentationManager.StubFactoryFactory 
 	getStubFactoryFactory()
     {
-	boolean useDynamicStubs = globalPM.useDynamicStubs() ;
-	return globalPM.getStubFactoryFactory( useDynamicStubs ) ;
+        PresentationManager gPM = getPresentationManager();
+        boolean useDynamicStubs = gPM.useDynamicStubs() ;
+        return gPM.getStubFactoryFactory( useDynamicStubs ) ;
     }
 
     protected ORB()

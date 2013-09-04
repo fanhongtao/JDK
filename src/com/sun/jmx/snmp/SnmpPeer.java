@@ -1,12 +1,6 @@
 /*
- * @(#)file      SnmpPeer.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   3.45
- * @(#)date      10/07/17
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1998, 2012 Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
  */
 // Copyright (c) 1995-96 by Cisco Systems, Inc.
 
@@ -345,7 +339,9 @@ public class SnmpPeer implements Serializable {
      */
     @Override
     public String toString() {
-        return "Peer/Port : " + getDevName() + "/" + getDestPort() ;
+        // For security and performance reasons we don't call getHostName here
+        // Use getDevName() explicitly when necessary.
+        return "Peer/Port : " + getDestAddr().getHostAddress() + "/" + getDestPort() ;
     }
 
     /**

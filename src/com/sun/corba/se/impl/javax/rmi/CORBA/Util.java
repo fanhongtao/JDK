@@ -1,6 +1,4 @@
 /*
- * %W% %E%
- *
  * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
@@ -86,6 +84,7 @@ import com.sun.corba.se.spi.copyobject.ReflectiveCopyException ;
 import com.sun.corba.se.spi.copyobject.CopierManager ;
 import com.sun.corba.se.spi.copyobject.ObjectCopierFactory ;
 import com.sun.corba.se.spi.copyobject.ObjectCopier ;
+import com.sun.corba.se.impl.io.SharedSecrets;
 import com.sun.corba.se.impl.io.ValueHandlerImpl;
 import com.sun.corba.se.impl.orbutil.ORBConstants;
 import com.sun.corba.se.impl.orbutil.ORBUtility;
@@ -109,7 +108,8 @@ public class Util implements javax.rmi.CORBA.UtilDelegate
     // Maps targets to ties.
     private static IdentityHashtable exportedServants = new IdentityHashtable();
 
-    private static ValueHandlerImpl valueHandlerSingleton = new ValueHandlerImpl();
+    private static final ValueHandlerImpl valueHandlerSingleton =
+                           SharedSecrets.getJavaCorbaAccess().newValueHandlerImpl();
 
     private UtilSystemException utilWrapper = UtilSystemException.get( 
                                                   CORBALogDomains.RPC_ENCODING);

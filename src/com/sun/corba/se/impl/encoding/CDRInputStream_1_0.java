@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -251,8 +251,8 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
 
     private final void createRepositoryIdHandlers()
     {
-	repIdUtil = RepositoryIdFactory.getRepIdUtility(orb);
-	repIdStrs = RepositoryIdFactory.getRepIdStringsFactory(orb);
+	repIdUtil = RepositoryIdFactory.getRepIdUtility();
+	repIdStrs = RepositoryIdFactory.getRepIdStringsFactory();
     }
 
     public GIOPVersion getGIOPVersion() {
@@ -1027,7 +1027,7 @@ public class CDRInputStream_1_0 extends CDRInputStreamBase
 
                 try {
                     if (valueHandler == null)
-                        valueHandler = ORBUtility.createValueHandler(orb);
+                        valueHandler = ORBUtility.createValueHandler();
 
                     value = valueHandler.readValue(parent,
                                                    indirection,
