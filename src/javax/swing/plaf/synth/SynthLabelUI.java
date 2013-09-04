@@ -1,5 +1,5 @@
 /*
- * @(#)SynthLabelUI.java	1.21 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -30,7 +30,7 @@ import sun.swing.plaf.synth.SynthUI;
 /**
  * Synth's LabelUI.
  *
- * @version 1.21, 03/23/10
+ * @version %I%, %G%
  * @author Scott Violet
  */
 class SynthLabelUI extends BasicLabelUI implements SynthUI {
@@ -77,9 +77,9 @@ class SynthLabelUI extends BasicLabelUI implements SynthUI {
 
     private int getComponentState(JComponent c) {
         int state = SynthLookAndFeel.getComponentState(c);
-        if (SynthLookAndFeel.selectedUI == this &&
+        if (SynthLookAndFeel.getSelectedUI() == this &&
                         state == SynthConstants.ENABLED) {
-            state = SynthLookAndFeel.selectedUIState | SynthConstants.ENABLED;
+            state = SynthLookAndFeel.getSelectedUIState() | SynthConstants.ENABLED;
         }
         return state;
     }

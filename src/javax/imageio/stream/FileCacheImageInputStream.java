@@ -1,5 +1,5 @@
 /*
- * @(#)FileCacheImageInputStream.java	1.34 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -82,7 +82,7 @@ public class FileCacheImageInputStream extends ImageInputStreamImpl {
         }
         this.stream = stream;
         this.cacheFile =
-            File.createTempFile("imageio", ".tmp", cacheDir);
+            sun.misc.IOUtils.createTempFile("imageio", ".tmp", cacheDir);
         this.cache = new RandomAccessFile(cacheFile, "rw");
 
         this.closeAction = StreamCloser.createCloseAction(this);

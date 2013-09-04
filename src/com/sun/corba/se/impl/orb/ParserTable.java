@@ -1,7 +1,7 @@
 /*
- * @(#)ParserTable.java	1.52 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -88,7 +88,9 @@ public class ParserTable {
 
     public ParserData[] getParserData() 
     {
-	return parserData ;
+        ParserData[] parserArray = new ParserData[parserData.length];
+        System.arraycopy(parserData, 0, parserArray, 0, parserData.length);
+        return parserArray;
     }
 
     private ParserTable() {

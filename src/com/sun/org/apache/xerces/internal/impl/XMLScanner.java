@@ -22,7 +22,7 @@
  * $Id: XMLScanner.java,v 1.6 2006/06/06 06:28:41 sunithareddy Exp $
  * @(#)XMLScanner.java	1.20 09/06/18
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -441,6 +441,16 @@ public abstract class XMLScanner
         
         boolean dataFoundForTarget = false;
         boolean sawSpace = fEntityScanner.skipSpaces();
+        // since pseudoattributes are *not* attributes,
+        // their quotes don't need to be preserved in external parameter entities.
+        // the XMLEntityScanner#scanLiteral method will continue to
+        // emit -1 in such cases when it finds a quote; this is
+        // fine for other methods that parse scanned entities,
+        // but not for the scanning of pseudoattributes.  So,
+        // temporarily, we must mark the current entity as not being "literal"
+        Entity.ScannedEntity currEnt = fEntityManager.getCurrentEntity();
+        boolean currLiteral = currEnt.literal;
+        currEnt.literal = false;
         while (fEntityScanner.peekChar() != '?') {
             dataFoundForTarget = true;
             String name = scanPseudoAttribute(scanningTextDecl, fString);
@@ -538,6 +548,9 @@ public abstract class XMLScanner
             }
             sawSpace = fEntityScanner.skipSpaces();
         }
+        // restore original literal value
+        if(currLiteral) 
+            currEnt.literal = true;
         // REVISIT: should we remove this error reporting?
         if (scanningTextDecl && state != STATE_DONE) {
             reportFatalError("MorePseudoAttributes", null);

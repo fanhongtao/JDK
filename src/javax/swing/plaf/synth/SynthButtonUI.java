@@ -1,5 +1,5 @@
 /*
- * @(#)SynthButtonUI.java	1.30 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -25,7 +25,7 @@ import sun.swing.plaf.synth.DefaultSynthStyle;
 /**
  * Synth's ButtonUI implementation.
  *
- * @version 1.30, 03/23/10
+ * @version %I%, %G%
  * @author Scott Violet
  */
 class SynthButtonUI extends BasicButtonUI implements
@@ -118,8 +118,8 @@ class SynthButtonUI extends BasicButtonUI implements
         if (!c.isEnabled()) {
             state = DISABLED;
         }
-        if (SynthLookAndFeel.selectedUI == this) {
-            return SynthLookAndFeel.selectedUIState | SynthConstants.ENABLED;
+        if (SynthLookAndFeel.getSelectedUI() == this) {
+            return SynthLookAndFeel.getSelectedUIState() | SynthConstants.ENABLED;
         }
         AbstractButton button = (AbstractButton) c;
         ButtonModel model = button.getModel();

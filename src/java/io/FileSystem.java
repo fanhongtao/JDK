@@ -1,5 +1,5 @@
 /*
- * @(#)FileSystem.java	1.19 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -139,8 +139,12 @@ abstract class FileSystem {
      * <code>true</code> if the file was created and <code>false</code> if a
      * file or directory with the given pathname already exists.  Throw an
      * IOException if an I/O error occurs.
+     * <p>
+     * The resulting file may have more restrictive access permission
+     * on some platforms, if restrictive is true.
      */
-    public abstract boolean createFileExclusively(String pathname)
+    public abstract boolean createFileExclusively(String pathname,
+                                                  boolean restrictive)
 	throws IOException;
 
     /**

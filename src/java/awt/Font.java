@@ -1,5 +1,5 @@
 /*
- * @(#)Font.java	1.240 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -787,7 +787,7 @@ public class Font implements java.io.Serializable
         File f = null;
         boolean hasPerm = false;
         try {
-            f = File.createTempFile("+~JT", ".tmp", null);
+            f = sun.misc.IOUtils.createTempFile("+~JT", ".tmp", null);
             f.delete();
             f = null;
             hasPerm = true;
@@ -838,7 +838,7 @@ public class Font implements java.io.Serializable
             final File tFile = AccessController.doPrivileged(
                 new PrivilegedExceptionAction<File>() {
                     public File run() throws IOException {
-                        return File.createTempFile("+~JF", ".tmp", null);
+                        return sun.misc.IOUtils.createTempFile("+~JF", ".tmp", null);
                     }
                 }
             );

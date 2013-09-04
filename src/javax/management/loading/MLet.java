@@ -1,5 +1,5 @@
 /*
- * @(#)MLet.java	1.93 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -1130,7 +1130,7 @@ public class MLet extends java.net.URLClassLoader
 	     if (is != null) {
 		 File directory = new File(libraryDirectory);
 		 directory.mkdirs();
-		 File file = File.createTempFile(libname + ".", null, directory);
+                 File file = sun.misc.IOUtils.createTempFile(libname + ".", null, directory);
 		 file.deleteOnExit();
 		 FileOutputStream fileOutput = new FileOutputStream(file);
 		 int c;

@@ -1,7 +1,7 @@
 /*
- * @(#)CORBALogDomains.java	1.4 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -40,7 +40,7 @@ public abstract class CORBALogDomains {
     private CORBALogDomains() {}
 
     // Top level log domain for CORBA
-    public static String TOP_LEVEL_DOMAIN  = "javax.enterprise.resource.corba";
+    public static final String TOP_LEVEL_DOMAIN  = "javax.enterprise.resource.corba";
 
     public static final String RPC		= "rpc" ;
 
