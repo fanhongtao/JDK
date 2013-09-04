@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2008, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.awt;
@@ -829,6 +829,9 @@ public class Dialog extends Window {
      */
     public void setModalityType(ModalityType type) {
         if (type == null) {
+            type = Dialog.ModalityType.MODELESS;
+        }
+        if (!Toolkit.getDefaultToolkit().isModalityTypeSupported(type)) {
             type = Dialog.ModalityType.MODELESS;
         }
         if (modalityType == type) {

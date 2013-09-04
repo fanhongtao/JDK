@@ -1,7 +1,5 @@
 /*
- * @(#)SocketOrChannelConnectionImpl.java	1.97 10/03/23
- * 
- * Copyright (c) 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2009, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -1504,7 +1502,7 @@ public class SocketOrChannelConnectionImpl
 	    // connection and give them the SystemException;
 
 	    responseWaitingRoom.signalExceptionToAllWaiters(systemException);
-
+        } finally { 
 	    if (contactInfo != null) {
 		((OutboundConnectionCache)getConnectionCache()).remove(contactInfo);
 	    } else if (acceptor != null) {
@@ -1525,7 +1523,6 @@ public class SocketOrChannelConnectionImpl
 
 	    writeUnlock();
 
-	} finally {
 	    if (orb.transportDebugFlag) {
 		dprint(".purgeCalls<-: " 
 		       + minor_code + "/" + die + "/" + lockHeld

@@ -1,7 +1,5 @@
 /*
- * @(#)JViewport.java	1.123 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -9,7 +7,6 @@ package javax.swing;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.VolatileImage;
 import java.awt.peer.ComponentPeer;
 import java.applet.Applet;
 import javax.swing.plaf.ViewportUI;
@@ -79,7 +76,7 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.123 03/23/10
+ * @version %I% %G%
  * @author Hans Muller
  * @author Philip Milne
  * @see JScrollPane
@@ -246,6 +243,14 @@ public class JViewport extends JComponent implements Accessible
      * Whether or not a valid view has been installed.
      */
     private boolean hasHadValidView;
+
+    /**
+     * When view is changed we have to synchronize scrollbar values
+     * with viewport (see the BasicScrollPaneUI#syncScrollPaneWithViewport method).
+     * This flag allows to invoke that method while ScrollPaneLayout#layoutContainer
+     * is running.
+     */
+    private boolean viewChanged;
 
     /** Creates a <code>JViewport</code>. */
     public JViewport() {
@@ -852,7 +857,9 @@ public class JViewport extends JComponent implements Accessible
             backingStoreImage = null;
         }
         super.reshape(x, y, w, h);
-	if (sizeChanged) {
+        if (sizeChanged || viewChanged) {
+            viewChanged = false;
+
 	    fireStateChanged();
 	}
     }
@@ -992,6 +999,8 @@ public class JViewport extends JComponent implements Accessible
         else if (view != null) {
             hasHadValidView = true;
         }
+
+        viewChanged = true;
 
 	revalidate();
 	repaint();

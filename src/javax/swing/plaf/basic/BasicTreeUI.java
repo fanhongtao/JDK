@@ -1,7 +1,5 @@
 /*
- * @(#)BasicTreeUI.java	1.200 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -33,7 +31,7 @@ import sun.swing.UIAction;
  * The basic L&F for a hierarchical data structure.
  * <p>
  *
- * @version 1.200 03/23/10
+ * @version %I% %G%
  * @author Scott Violet
  * @author Shannon Hickey (drag and drop)
  */
@@ -1870,20 +1868,22 @@ public class BasicTreeUI extends TreeUI
 	    else {
 		Rectangle   beginRect = getPathBounds(tree, getPathForRow
 						      (tree, beginRow));
-		Rectangle   visRect = tree.getVisibleRect();
-		Rectangle   testRect = beginRect;
-		int         beginY = beginRect.y;
-		int         maxY = beginY + visRect.height;
+            if (beginRect != null) {
+                Rectangle   visRect = tree.getVisibleRect();
+                Rectangle   testRect = beginRect;
+                int         beginY = beginRect.y;
+                int         maxY = beginY + visRect.height;
 
-		for(int counter = beginRow + 1; counter <= endRow; counter++) {
-		    testRect = getPathBounds(tree,
-					     getPathForRow(tree, counter));
-		    if((testRect.y + testRect.height) > maxY)
-			counter = endRow;
-		}
-		tree.scrollRectToVisible(new Rectangle(visRect.x, beginY, 1,
-						  testRect.y + testRect.height-
-						  beginY));
+                for(int counter = beginRow + 1; counter <= endRow; counter++) {
+                    testRect = getPathBounds(tree,
+                                 getPathForRow(tree, counter));
+                    if((testRect.y + testRect.height) > maxY)
+                    counter = endRow;
+                }
+                tree.scrollRectToVisible(new Rectangle(visRect.x, beginY, 1,
+                                  testRect.y + testRect.height-
+                                  beginY));
+            }
 	    }
 	}
     }
@@ -3418,6 +3418,10 @@ public class BasicTreeUI extends TreeUI
             }
 
             Rectangle bounds = getPathBounds(tree, path);
+            if (bounds == null) {
+                return false;
+            }
+
             if (y > (bounds.y + bounds.height)) {
                 return false;
             }

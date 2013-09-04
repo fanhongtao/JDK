@@ -1484,11 +1484,11 @@ public class Window extends Container implements Accessible {
         if (exclusionType == null) {
             exclusionType = Dialog.ModalExclusionType.NO_EXCLUDE;
         }
-        if (modalExclusionType == exclusionType) {
-            return;
-        }
         if (!Toolkit.getDefaultToolkit().isModalExclusionTypeSupported(exclusionType)) {
             exclusionType = Dialog.ModalExclusionType.NO_EXCLUDE;
+        }
+        if (modalExclusionType == exclusionType) {
+            return;
         }
         if (exclusionType == Dialog.ModalExclusionType.TOOLKIT_EXCLUDE) {
             SecurityManager sm = System.getSecurityManager();
