@@ -184,7 +184,7 @@ public abstract class CanonicalizerBase extends CanonicalizerSpi {
     	this._excludeNode = excludeNode;
         try {
          NameSpaceSymbTable ns=new NameSpaceSymbTable();
-         if (rootNode instanceof Element) {
+         if (rootNode != null && rootNode.getNodeType() == Node.ELEMENT_NODE) {
          	//Fills the nssymbtable with the definitions of the parent of the root subnode
          	getParentNameSpaces((Element)rootNode,ns);
          }         
@@ -303,7 +303,7 @@ public abstract class CanonicalizerBase extends CanonicalizerSpi {
     				return;
     			sibling=parentNode.getNextSibling();
     			parentNode=parentNode.getParentNode();   
-    			if (!(parentNode instanceof Element)) {
+    			if (parentNode != null && parentNode.getNodeType() != Node.ELEMENT_NODE) {
     				parentNode=null;
     			}    			
     		}      
@@ -506,7 +506,7 @@ public abstract class CanonicalizerBase extends CanonicalizerSpi {
 				return;
 			sibling=parentNode.getNextSibling();
 			parentNode=parentNode.getParentNode();   
-			if (!(parentNode instanceof Element)) {
+			if (parentNode !=null && parentNode.getNodeType() != Node.ELEMENT_NODE) {
 				parentNode=null;
 			}    			
 		}      
@@ -538,18 +538,14 @@ public abstract class CanonicalizerBase extends CanonicalizerSpi {
    	final static void getParentNameSpaces(Element el,NameSpaceSymbTable ns)  {
    		List parents=new ArrayList();
    		Node n1=el.getParentNode();
-   		if (!(n1 instanceof Element)) {
+   		if (n1 == null || n1.getNodeType() != Node.ELEMENT_NODE) {
    			return;
    		}
    		//Obtain all the parents of the elemnt
-   		Element parent=(Element) el.getParentNode();
-   		while (parent!=null) {
-   			parents.add(parent);
-   			Node n=parent.getParentNode();
-   			if (!(n instanceof Element )) {
-   				break;
-   			}
-   			parent=(Element)n;
+                Node parent = n1;
+                while (parent!=null && parent.getNodeType() == Node.ELEMENT_NODE) {
+                        parents.add((Element)parent);
+                        parent = parent.getParentNode();
    		}
    		//Visit them in reverse order.
    		ListIterator it=parents.listIterator(parents.size());

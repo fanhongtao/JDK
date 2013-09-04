@@ -1,5 +1,5 @@
 /*
- * @(#)FilePermission.java	1.81 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -70,7 +70,7 @@ import sun.security.util.SecurityConstants;
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.81 10/03/23
+ * @version %I% %E%
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -382,7 +382,7 @@ public final class FilePermission extends Permission implements Serializable {
      */
 
     public int hashCode() {
-	return this.cpath.hashCode();
+	return 0;
     }
 
     /**
@@ -649,7 +649,7 @@ public final class FilePermission extends Permission implements Serializable {
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
  *
- * @version 1.81 03/23/10
+ * @version %I% %G%
  *
  * @author Marianne Mueller
  * @author Roland Schemers

@@ -1,12 +1,6 @@
 /*
- * @(#)file      SnmpOid.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.24
- * @(#)date      10/07/17
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
  */
 // Copyright (c) 1995-96 by Cisco Systems, Inc.
 
@@ -18,12 +12,15 @@ package com.sun.jmx.snmp;
 import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
 
+// sun imports
+import sun.awt.AppContext;
+
 /**
  * Represents an SNMP Object Identifier (OID).
  *
  * <p><b>This API is a Sun Microsystems internal API  and is subject 
  * to change without notice.</b></p>
- * @version     4.24     03/23/10
+ * @version     %I%     %G%
  * @author      Sun Microsystems, Inc
  * @author      Cisco Systems, Inc.
  */
@@ -506,6 +503,7 @@ public class SnmpOid extends SnmpValue {
 	    return handleLong(s, index);
 	} catch(NumberFormatException e) {}
     
+        SnmpOidTable meta = getSnmpOidTable();
 	// if we are here, it means we have something to resolve..
 	//
 	if (meta == null)
@@ -537,7 +535,7 @@ public class SnmpOid extends SnmpValue {
      * @return The MIB table.
      */
     public static SnmpOidTable getSnmpOidTable() {
-	return meta;
+        return (SnmpOidTable) AppContext.getAppContext().get(SnmpOid.class);
     }
     
     /**
@@ -547,7 +545,11 @@ public class SnmpOid extends SnmpValue {
      * @param db The MIB table to use.
      */
     public static void setSnmpOidTable(SnmpOidTable db) {
-	meta = db;
+        if (db == null) {
+            AppContext.getAppContext().remove(SnmpOid.class);
+        } else {
+            AppContext.getAppContext().put(SnmpOid.class, db);
+        }
     }
 
     /**
@@ -575,7 +577,6 @@ public class SnmpOid extends SnmpValue {
 	} 
 	return result ; 
     } 
-
 
     /**
      * Checks if there is enough space in the components
@@ -633,12 +634,6 @@ public class SnmpOid extends SnmpValue {
      */
     final static String  name = "Object Identifier";
   
-    /**
-     * Reference to a mib table. If no mib table is available,
-     * the class will not be able to resolve names contained in the Object Identifier.
-     */
-     private static SnmpOidTable meta= null;
-
     /**
      * Ensure serialization compatibility with version 4.1 FCS
      *

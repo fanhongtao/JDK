@@ -1,5 +1,5 @@
 /*
- * @(#)ServiceLoader.java	1.11 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -157,7 +157,7 @@ import java.util.NoSuchElementException;
  *         The type of the service to be loaded by this loader
  *
  * @author Mark Reinhold
- * @version 1.11, 10/03/23
+ * @version %I%, %E%
  * @since 1.6
  */
 
@@ -341,14 +341,21 @@ public final class ServiceLoader<S>
 	    }
 	    String cn = nextName;
 	    nextName = null;
+            Class<?> c = null;
 	    try {
-		S p = service.cast(Class.forName(cn, true, loader)
-				   .newInstance());
-		providers.put(cn, p);
-		return p;
+		c = Class.forName(cn, false, loader);
 	    } catch (ClassNotFoundException x) {
 		fail(service,
 		     "Provider " + cn + " not found");
+            }
+            if (!service.isAssignableFrom(c)) {
+                fail(service,
+                     "Provider " + cn  + " not a subtype");
+            }
+            try {
+                S p = service.cast(c.newInstance());
+                providers.put(cn, p);
+                return p;
 	    } catch (Throwable x) {
 		fail(service,
 		     "Provider " + cn + " could not be instantiated: " + x,

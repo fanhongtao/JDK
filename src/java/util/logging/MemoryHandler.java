@@ -1,7 +1,5 @@
 /*
- * @(#)MemoryHandler.java	1.27 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -51,7 +49,7 @@ package java.util.logging;
  *	  (no default).
  * </ul>
  *
- * @version 1.27, 03/23/10
+ * @version %I%, %G%
  * @since 1.4
  */
 
@@ -221,7 +219,7 @@ public class MemoryHandler extends Handler {
 	    throw new NullPointerException();
 	}
 	LogManager manager = LogManager.getLogManager();
-        checkAccess();
+        checkPermission();
 	pushLevel = newLevel;
     }
 

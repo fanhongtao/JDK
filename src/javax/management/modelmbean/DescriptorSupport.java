@@ -1,8 +1,8 @@
 /*
- * @(#)file      DescriptorSupport.java
- * @(#)author    IBM Corp.
- * @(#)version   1.69
- * @(#)lastedit      10/03/23
+ * %Z%file      %M%
+ * %Z%author    IBM Corp.
+ * %Z%version   %I%
+ * %Z%lastedit      %E%
  */
 /*
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
@@ -1160,10 +1160,9 @@ public class DescriptorSupport
 	final String className = s.substring(1, slash);
 	final Constructor constr;
 	try {
+	    ReflectUtil.checkPackageAccess(className);
 	    final ClassLoader contextClassLoader =
 		Thread.currentThread().getContextClassLoader();
-            if (contextClassLoader == null)
-		ReflectUtil.checkPackageAccess(className);
             final Class c =
 		Class.forName(className, false, contextClassLoader);
 	    constr = c.getConstructor(new Class[] {String.class});

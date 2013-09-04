@@ -1,7 +1,5 @@
 /*
- * @(#)Executors.java	1.15 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -495,20 +493,21 @@ public class Executors {
         public T call() throws Exception {
             AccessController.doPrivileged(new PrivilegedAction<T>() {
                     public T run() {
-                        ClassLoader savedcl = null;
                         Thread t = Thread.currentThread();
                         try {
                             ClassLoader cl = t.getContextClassLoader();
-                            if (ccl != cl) {
+                            if (ccl == cl) {
+                                result = task.call();
+                            } else {
                                 t.setContextClassLoader(ccl);
-                                savedcl = cl;
+                                try {
+                                    result = task.call();
+                                } finally {
+                                    t.setContextClassLoader(cl);
+                                }
                             }
-                            result = task.call();
                         } catch (Exception ex) {
                             exception = ex;
-                        } finally {
-                            if (savedcl != null)
-                                t.setContextClassLoader(savedcl);
                         }
                         return null;
                     }

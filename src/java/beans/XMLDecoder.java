@@ -1,7 +1,7 @@
 /*
- * @(#)XMLDecoder.java	1.33 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.beans;
@@ -13,6 +13,10 @@ import java.io.IOException;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import org.xml.sax.SAXException;
 
@@ -45,10 +49,11 @@ import javax.xml.parsers.SAXParser;
  *
  * @since 1.4
  * 
- * @version 1.33 03/23/10
+ * @version %I% %G%
  * @author Philip Milne
  */
 public class XMLDecoder { 
+    private final AccessControlContext acc = AccessController.getContext();
     private InputStream in; 
     private Object owner; 
     private ExceptionListener exceptionListener; 
@@ -231,25 +236,33 @@ public class XMLDecoder {
      */
     private ObjectHandler getHandler() {
         if ( handler == null ) {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            try {
-                SAXParser parser = factory.newSAXParser();
-                handler = new ObjectHandler( this, getClassLoader() );
-                parser.parse( in, handler );
+            if ((this.acc == null) && (null != System.getSecurityManager())) {
+                throw new SecurityException("AccessControlContext is not set");
             }
-            catch ( ParserConfigurationException e ) {
-                getExceptionListener().exceptionThrown( e );
-            }
-            catch ( SAXException se ) {
-                Exception e = se.getException();
-                if ( e == null ) {
-                    e = se;
+            handler = AccessController.doPrivileged(new PrivilegedAction<ObjectHandler>() {
+                public ObjectHandler run() {
+                    ObjectHandler handler = new ObjectHandler(XMLDecoder.this, getClassLoader());
+                    SAXParserFactory factory = SAXParserFactory.newInstance();
+                    try {
+                        SAXParser parser = factory.newSAXParser();
+                        parser.parse( in, handler );
+                    }
+                    catch ( ParserConfigurationException e ) {
+                        getExceptionListener().exceptionThrown( e );
+                    }
+                    catch ( SAXException se ) {
+                        Exception e = se.getException();
+                        if ( e == null ) {
+                            e = se;
+                        }
+                        getExceptionListener().exceptionThrown( e );
+                    }
+                    catch ( IOException ioe ) {
+                        getExceptionListener().exceptionThrown( ioe );
+                    }
+                    return handler;
                 }
-                getExceptionListener().exceptionThrown( e );
-            }
-            catch ( IOException ioe ) {
-                getExceptionListener().exceptionThrown( ioe );
-            }
+            }, this.acc);
         }
         return handler;
     }

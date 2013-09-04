@@ -1,7 +1,5 @@
 /*
- * @(#)FileHandler.java	1.37 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -96,7 +94,7 @@ import java.security.*;
  * Note that the use of unique ids to avoid conflicts is only guaranteed
  * to work reliably when using a local disk file system.
  *
- * @version 1.37, 03/23/10
+ * @version %I%, %G%
  * @since 1.4
  */
 
@@ -203,7 +201,7 @@ public class FileHandler extends StreamHandler {
      * @exception  NullPointerException if pattern property is an empty String.
      */
     public FileHandler() throws IOException, SecurityException {
-	checkAccess();
+	checkPermission();
 	configure();
 	openFiles();
     }
@@ -229,7 +227,7 @@ public class FileHandler extends StreamHandler {
 	if (pattern.length() < 1 ) {
 	    throw new IllegalArgumentException();   
 	}
-	checkAccess();
+	checkPermission();
 	configure();
 	this.pattern = pattern;
 	this.limit = 0;
@@ -261,7 +259,7 @@ public class FileHandler extends StreamHandler {
 	if (pattern.length() < 1 ) {
 	    throw new IllegalArgumentException();   
 	}
-	checkAccess();
+	checkPermission();
 	configure();
 	this.pattern = pattern;
 	this.limit = 0;
@@ -298,7 +296,7 @@ public class FileHandler extends StreamHandler {
 	if (limit < 0 || count < 1 || pattern.length() < 1) {
 	    throw new IllegalArgumentException();
 	}
-	checkAccess();
+	checkPermission();
 	configure();
 	this.pattern = pattern;
 	this.limit = limit;
@@ -337,7 +335,7 @@ public class FileHandler extends StreamHandler {
 	if (limit < 0 || count < 1 || pattern.length() < 1) {
 	    throw new IllegalArgumentException();
 	}
-	checkAccess();
+	checkPermission();
 	configure();
 	this.pattern = pattern;
 	this.limit = limit;
@@ -350,7 +348,7 @@ public class FileHandler extends StreamHandler {
     // configured instance variables.
     private void openFiles() throws IOException {
         LogManager manager = LogManager.getLogManager();
-	manager.checkAccess();
+	manager.checkPermission();
 	if (count < 1) {
 	   throw new IllegalArgumentException("file count = " + count);
 	}

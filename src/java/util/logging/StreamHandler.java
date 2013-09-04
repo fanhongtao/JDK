@@ -1,7 +1,5 @@
 /*
- * @(#)StreamHandler.java	1.20 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -37,7 +35,7 @@ import java.io.*;
  *	  the default platform encoding).
  * </ul>
  *
- * @version 1.20, 03/23/10
+ * @version %I%, %G%
  * @since 1.4
  */
 
@@ -232,7 +230,7 @@ public class StreamHandler extends Handler {
     }
 
     private synchronized void flushAndClose() throws SecurityException {
-        checkAccess();
+        checkPermission();
 	if (writer != null) {
 	    try {
 	        if (!doneHeader) {

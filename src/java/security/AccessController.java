@@ -1,7 +1,5 @@
 /*
- * @(#)AccessController.java	1.60 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
  
@@ -222,7 +220,7 @@ import sun.security.util.Debug;
  * 
  * @see AccessControlContext
  *
- * @version 1.60 10/03/23
+ * @version %I% %E%
  * @author Li Gong 
  * @author Roland Schemers
  */
@@ -283,11 +281,11 @@ public final class AccessController {
      */
     public static <T> T doPrivilegedWithCombiner(PrivilegedAction<T> action) {
 
-	DomainCombiner dc = null;
 	AccessControlContext acc = getStackAccessControlContext();
-	if (acc == null || (dc = acc.getAssignedCombiner()) == null) {
-	    return AccessController.doPrivileged(action);
-	}
+        if (acc == null) {
+            return AccessController.doPrivileged(action);
+        }
+        DomainCombiner dc = acc.getAssignedCombiner();
 	return AccessController.doPrivileged(action, preserveCombiner(dc));
     }
 
@@ -379,11 +377,11 @@ public final class AccessController {
     public static <T> T doPrivilegedWithCombiner
 	(PrivilegedExceptionAction<T> action) throws PrivilegedActionException {
 
-	DomainCombiner dc = null;
 	AccessControlContext acc = getStackAccessControlContext();
-	if (acc == null || (dc = acc.getAssignedCombiner()) == null) {
-	    return AccessController.doPrivileged(action);
-	}
+        if (acc == null) {
+            return AccessController.doPrivileged(action);
+        }
+        DomainCombiner dc = acc.getAssignedCombiner();
 	return AccessController.doPrivileged(action, preserveCombiner(dc));
     }
 
@@ -410,7 +408,12 @@ public final class AccessController {
 	// perform 'combine' on the caller of doPrivileged,
 	// even if the caller is from the bootclasspath
 	ProtectionDomain[] pds = new ProtectionDomain[] {callerPd};
-	return new AccessControlContext(combiner.combine(pds, null), combiner);
+        if (combiner == null) {
+            return new AccessControlContext(pds);
+        } else {
+            return new AccessControlContext(combiner.combine(pds, null),
+                                            combiner);
+        }
     }
 
 

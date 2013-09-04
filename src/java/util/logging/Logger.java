@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -246,13 +246,13 @@ public class Logger {
 	this.manager = manager;
     }
 
-    private void checkAccess() throws SecurityException {
+    private void checkPermission() throws SecurityException {
 	if (!anonymous) {
 	    if (manager == null) {
                 // Complete initialization of the global Logger.
 	        manager = LogManager.getLogManager();
             }
-	    manager.checkAccess();
+	    manager.checkPermission();
 	}
     }
 
@@ -434,7 +434,7 @@ public class Logger {
      *             the caller does not have LoggingPermission("control").
      */
     public void setFilter(Filter newFilter) throws SecurityException {
-	checkAccess();
+	checkPermission();
 	filter = newFilter;
     }
 
@@ -1125,7 +1125,7 @@ public class Logger {
      *             the caller does not have LoggingPermission("control").
      */
     public void setLevel(Level newLevel) throws SecurityException {
-	checkAccess();
+	checkPermission();
 	synchronized (treeLock) {
 	    levelObject = newLevel;
 	    updateEffectiveLevel();
@@ -1180,7 +1180,7 @@ public class Logger {
     public synchronized void addHandler(Handler handler) throws SecurityException {
 	// Check for null handler
 	handler.getClass();
-	checkAccess();
+	checkPermission();
 	if (handlers == null) {
 	    handlers = new ArrayList();
 	}
@@ -1197,7 +1197,7 @@ public class Logger {
      *             the caller does not have LoggingPermission("control").
      */
     public synchronized void removeHandler(Handler handler) throws SecurityException {
-	checkAccess();
+	checkPermission();
 	if (handler == null) {
 	    return;
 	}
@@ -1233,7 +1233,7 @@ public class Logger {
      *             the caller does not have LoggingPermission("control").
      */
     public synchronized void setUseParentHandlers(boolean useParentHandlers) {
-	checkAccess();
+	checkPermission();
 	this.useParentHandlers = useParentHandlers;
     }
 
@@ -1370,7 +1370,7 @@ public class Logger {
 	if (parent == null) {
 	    throw new NullPointerException();
   	}
-	manager.checkAccess();
+	manager.checkPermission();
 	doSetParent(parent);
     }
 

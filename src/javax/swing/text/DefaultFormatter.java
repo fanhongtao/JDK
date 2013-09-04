@@ -1,10 +1,12 @@
 /*
- * @(#)DefaultFormatter.java	1.15 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package javax.swing.text;
+
+import sun.reflect.misc.ConstructorUtil;
 
 import java.io.Serializable;
 import java.lang.reflect.*;
@@ -36,7 +38,7 @@ import javax.swing.text.*;
  *
  * @see javax.swing.JFormattedTextField.AbstractFormatter
  *
- * @version 1.15 03/23/10
+ * @version %I% %G%
  * @since 1.4
  */
 public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
@@ -228,7 +230,7 @@ public class DefaultFormatter extends JFormattedTextField.AbstractFormatter
             Constructor cons;
 
             try {
-                cons = vc.getConstructor(new Class[] { String.class });
+                cons = ConstructorUtil.getConstructor(vc, new Class[]{String.class});
 
             } catch (NoSuchMethodException nsme) {
                 cons = null;
