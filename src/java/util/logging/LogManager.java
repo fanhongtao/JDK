@@ -339,7 +339,10 @@ public class LogManager {
                         context = userContext;
                     } else {
                         context = new LoggerContext();
-                        context.addLocalLogger(manager.rootLogger);
+                        // during initialization, rootLogger is null when
+                        // instantiating itself RootLogger
+                        if (manager.rootLogger != null)
+                            context.addLocalLogger(manager.rootLogger);
                     }
                     javaAwtAccess.put(ecx, LoggerContext.class, context);
                 }
@@ -399,7 +402,40 @@ public class LogManager {
     }
 
     Logger demandSystemLogger(String name, String resourceBundleName) {
-        return systemContext.demandLogger(name, resourceBundleName);
+        // Add a system logger in the system context's namespace
+        final Logger sysLogger = systemContext.demandLogger(name, resourceBundleName);
+
+        // Add the system logger to the LogManager's namespace if not exist
+        // so that there is only one single logger of the given name.
+        // System loggers are visible to applications unless a logger of
+        // the same name has been added.
+        Logger logger;
+        do {
+            // First attempt to call addLogger instead of getLogger
+            // This would avoid potential bug in custom LogManager.getLogger
+            // implementation that adds a logger if not exists
+            if (addLogger(sysLogger)) {
+                // successfully added the new system logger
+                logger = sysLogger;
+            } else {
+                logger = getLogger(name);
+            }
+        } while (logger == null);
+
+        // LogManager will set the sysLogger's handlers via LogManager.addLogger method.
+        if (logger != sysLogger && sysLogger.getHandlers().length == 0) {
+            // if logger already exists but handlers not set
+           final Logger l = logger;
+            AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                public Void run() {
+                    for (Handler hdl : l.getHandlers()) {
+                        sysLogger.addHandler(hdl);
+                    }
+                    return null;
+                }
+            });
+        }
+        return sysLogger;
     }
 
     // LoggerContext maintains the logger namespace per context.
@@ -606,22 +642,7 @@ public class LogManager {
                     }
                 } while (result == null);
             }
-            // Add the system logger to the LogManager's namespace if not exists
-            // The LogManager will set its handlers via the LogManager.addLogger method.
-            if (!manager.addLogger(result) && result.getHandlers().length == 0) {
-                // if logger already exists but handlers not set
-                final Logger l = manager.getLogger(name);
-                final Logger logger = result;
-                AccessController.doPrivileged(new PrivilegedAction<Void>() {
-                    public Void run() {
-                        for (Handler hdl : l.getHandlers()) {
-                            logger.addHandler(hdl);
-                        }
-                        return null;
-                    }
-                });
-            }
-          return result;
+            return result;
         }
     }
 

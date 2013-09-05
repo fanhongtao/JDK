@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanSupport.java	1.7 10/03/23
+ * %W% %E%
  * 
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -49,6 +49,7 @@ import javax.management.openmbean.OpenMBeanOperationInfoSupport;
 import javax.management.openmbean.OpenMBeanParameterInfo;
 import javax.management.openmbean.OpenMBeanParameterInfoSupport;
 import javax.management.openmbean.OpenType;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * Base class for MBeans.  There is one instance of this class for
@@ -142,6 +143,7 @@ public abstract class MBeanSupport<M>
 		" is not an instance of " + mbeanInterface.getName();
 	    throw new NotCompliantMBeanException(msg);
 	}
+        ReflectUtil.checkPackageAccess(mbeanInterface);
 	this.resource = resource;
         MBeanIntrospector introspector = getMBeanIntrospector();
         this.perInterface = introspector.getPerInterface(mbeanInterface);

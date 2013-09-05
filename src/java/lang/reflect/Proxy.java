@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -586,7 +586,7 @@ public class Proxy implements java.io.Serializable {
 	    }
 
             if (proxyPkg == null) {
-                // if no non-public proxy interfaces, use sun.proxy package
+                // if no non-public proxy interfaces, use com.sun.proxy package
                 proxyPkg = ReflectUtil.PROXY_PACKAGE + ".";
 	    }
 

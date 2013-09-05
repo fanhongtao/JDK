@@ -60,7 +60,7 @@ public class ResolvingXMLFilter extends XMLFilterImpl {
   public static boolean suppressExplanation = false;
 
   /** The manager for the underlying resolver. */
-  private CatalogManager catalogManager = CatalogManager.getStaticManager();
+  CatalogManager catalogManager = CatalogManager.getStaticManager();
 
   /** The underlying catalog resolver. */
   private CatalogResolver catalogResolver = null;

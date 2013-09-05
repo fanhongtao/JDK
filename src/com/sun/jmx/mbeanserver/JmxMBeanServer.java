@@ -1,5 +1,5 @@
 /*
- * @(#)JmxMBeanServer.java	1.76 10/03/23
+ * %W% %E%
  * 
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -53,6 +53,7 @@ import javax.management.AttributeList;
 import javax.management.RuntimeOperationsException;
 import javax.management.MBeanServer; 
 import javax.management.MBeanServerDelegate; 
+import javax.management.MBeanServerPermission;
 import javax.management.loading.ClassLoaderRepository;
 
 import com.sun.jmx.interceptor.DefaultMBeanServerInterceptor;
@@ -1373,6 +1374,8 @@ public final class JmxMBeanServer
 					     MBeanServer outer, 
 					     MBeanServerDelegate delegate,
 					     boolean interceptors) {
+        checkNewMBeanServerPermission();
+        
         // This constructor happens to disregard the value of the interceptors
         // flag - that is, it always uses the default value - false.
         // This is admitedly a bug, but we chose not to fix it for now
@@ -1456,6 +1459,14 @@ public final class JmxMBeanServer
 						  actions);
 	    sm.checkPermission(perm);
 	}
+    }
+
+    private static void checkNewMBeanServerPermission() {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            Permission perm = new MBeanServerPermission("newMBeanServer");
+            sm.checkPermission(perm);
+        }
     }
 
     // TRACES & DEBUG

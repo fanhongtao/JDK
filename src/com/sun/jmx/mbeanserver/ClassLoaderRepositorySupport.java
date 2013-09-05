@@ -1,5 +1,5 @@
 /*
- * @(#)ClassLoaderRepositorySupport.java	1.28 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -19,6 +19,7 @@ import java.util.Map;
 import javax.management.ObjectName;
 import javax.management.loading.ClassLoaderRepository;
 import javax.management.loading.PrivateClassLoader;
+import sun.reflect.misc.ReflectUtil;
 
 import com.sun.jmx.trace.Trace;
 
@@ -177,6 +178,7 @@ final class ClassLoaderRepositorySupport
 			    final ClassLoader without,
 			    final ClassLoader stop)
 	    throws ClassNotFoundException {
+        ReflectUtil.checkPackageAccess(className);
 	final int size = list.length;
         for(int i=0; i<size; i++) {
 	    try {

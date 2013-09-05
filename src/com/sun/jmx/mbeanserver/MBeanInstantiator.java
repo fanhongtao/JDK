@@ -1,5 +1,5 @@
 /*
- * @(#)MBeanInstantiator.java	1.41 10/03/23
+ * %W% %E%
  * 
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -10,12 +10,14 @@ package com.sun.jmx.mbeanserver;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.security.Permission;
 import java.util.Map;
 
 import javax.management.*; 
 
 
 import com.sun.jmx.trace.Trace;
+import sun.reflect.misc.ConstructorUtil;
 import sun.reflect.misc.ReflectUtil;
 
 /**
@@ -28,7 +30,6 @@ import sun.reflect.misc.ReflectUtil;
  * @since.unbundled JMX RI 1.2
  */
 public class MBeanInstantiator {
-
     private final ModifiableClassLoaderRepository clr; 
     //    private MetaData meta = null;
 
@@ -63,6 +64,7 @@ public class MBeanInstantiator {
                              "Exception occurred during object instantiation");
 	}
 
+        ReflectUtil.checkPackageAccess(className);
 	try {
 	    if (clr == null) throw new ClassNotFoundException(className);
 	    theClass = clr.loadClass(className);
@@ -138,6 +140,7 @@ public class MBeanInstantiator {
 		    continue;
 		}
 
+                ReflectUtil.checkPackageAccess(signature[i]);
 		// Ok we do not have a primitive type ! We need to build 
 		// the signature of the method
 		//
@@ -171,6 +174,9 @@ public class MBeanInstantiator {
      */
     public Object instantiate(Class theClass) 
 	throws ReflectionException, MBeanException {
+
+        checkMBeanPermission(theClass, null, null, "instantiate");
+
         Object moi = null;
 
 
@@ -226,6 +232,9 @@ public class MBeanInstantiator {
     public Object instantiate(Class theClass, Object params[],
 			      String signature[], ClassLoader loader)
         throws ReflectionException, MBeanException {
+
+        checkMBeanPermission(theClass, null, null, "instantiate");
+
         // Instantiate the new object
 
 	// ------------------------------
@@ -375,6 +384,8 @@ public class MBeanInstantiator {
             throw new  RuntimeOperationsException(new 
 	     IllegalArgumentException(), "Null className passed in parameter");
         }       
+
+        ReflectUtil.checkPackageAccess(className);
         Class theClass = null;
         if (loaderName == null) {
             // Load the class using the agent class loader
@@ -588,13 +599,13 @@ public class MBeanInstantiator {
      **/
     static Class loadClass(String className, ClassLoader loader) 
         throws ReflectionException {
-   
         Class theClass = null;
 	if (className == null) {
 	    throw new RuntimeOperationsException(new 
 		IllegalArgumentException("The class name cannot be null"), 
                               "Exception occurred during object instantiation");
 	} 
+	ReflectUtil.checkPackageAccess(className);
 	try {
 	    if (loader == null) 
 		loader = MBeanInstantiator.class.getClassLoader();
@@ -645,6 +656,7 @@ public class MBeanInstantiator {
 		// We need to load the class through the class 
 		// loader of the target object.
 		// 
+                ReflectUtil.checkPackageAccess(signature[i]);
 		tab[i] = Class.forName(signature[i], false, aLoader);
 	    }
 	} catch (ClassNotFoundException e) {
@@ -660,9 +672,23 @@ public class MBeanInstantiator {
     
     private Constructor<?> findConstructor(Class<?> c, Class<?>[] params) {
         try {
-            return c.getConstructor(params);
+            return ConstructorUtil.getConstructor(c, params);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    private static void checkMBeanPermission(Class<?> clazz,
+                                             String member,
+                                             ObjectName objectName,
+                                             String actions) {
+        SecurityManager sm = System.getSecurityManager();
+        if (clazz != null && sm != null) {
+            Permission perm = new MBeanPermission(clazz.getName(),
+                                                  member,
+                                                  objectName,
+                                                  actions);
+            sm.checkPermission(perm);
         }
     }
 
