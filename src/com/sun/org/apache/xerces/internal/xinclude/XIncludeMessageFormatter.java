@@ -16,11 +16,11 @@
 
 package com.sun.org.apache.xerces.internal.xinclude;
 
+import com.sun.org.apache.xerces.internal.util.MessageFormatter;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.PropertyResourceBundle;
-import com.sun.org.apache.xerces.internal.util.MessageFormatter;
 
 // TODO: fix error messages in XIncludeMessages.properties
 /**
@@ -28,7 +28,7 @@ import com.sun.org.apache.xerces.internal.util.MessageFormatter;
  * 
  * @author Peter McCracken, IBM
  * 
- * @version $Id: XIncludeMessageFormatter.java,v 1.3 2005/09/26 13:03:03 sunithareddy Exp $
+ * @version $Id: XIncludeMessageFormatter.java,v 1.5 2007/07/19 04:39:02 ofung Exp $
  */
 public class XIncludeMessageFormatter implements MessageFormatter {
     
@@ -58,12 +58,12 @@ public class XIncludeMessageFormatter implements MessageFormatter {
         
         if (fResourceBundle == null || locale != fLocale) {
             if (locale != null) {
-                fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XIncludeMessages", locale);
+                fResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XIncludeMessages", locale);
                 // memorize the most-recent locale
                 fLocale = locale;
             }
             if (fResourceBundle == null)
-                fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XIncludeMessages");
+                fResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XIncludeMessages");
         }
         
         String msg = fResourceBundle.getString(key);

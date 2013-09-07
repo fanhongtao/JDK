@@ -18,6 +18,7 @@
  */
 package com.sun.org.apache.xml.internal.serializer;
 
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -447,7 +448,7 @@ public final class OutputPropertiesFactory
             String value = null;
             try
             {
-                value = System.getProperty(key);
+                value = SecuritySupport.getSystemProperty(key);
             }
             catch (SecurityException se)
             {
@@ -460,7 +461,7 @@ public final class OutputPropertiesFactory
             String newValue = null;
             try
             {
-                newValue = System.getProperty(newKey);
+                newValue = SecuritySupport.getSystemProperty(newKey);
             }
             catch (SecurityException se)
             {

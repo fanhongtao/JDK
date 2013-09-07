@@ -16,12 +16,11 @@
 
 package com.sun.org.apache.xerces.internal.impl.msg;
 
+import com.sun.org.apache.xerces.internal.util.MessageFormatter;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.PropertyResourceBundle;
-
-import com.sun.org.apache.xerces.internal.util.MessageFormatter;
 
 /**
  * XMLMessageFormatter provides error messages for the XML 1.0 Recommendation and for 
@@ -30,7 +29,7 @@ import com.sun.org.apache.xerces.internal.util.MessageFormatter;
  * @xerces.internal
  *
  * @author Eric Ye, IBM
- * @version $Id: XMLMessageFormatter.java,v 1.2.6.1 2005/09/09 07:06:50 neerajbj Exp $
+ * @version $Id: XMLMessageFormatter.java,v 1.4 2007/07/19 04:38:37 ofung Exp $
  *
  */
 public class XMLMessageFormatter implements MessageFormatter {
@@ -68,12 +67,12 @@ public class XMLMessageFormatter implements MessageFormatter {
         
         if (fResourceBundle == null || locale != fLocale) {
             if (locale != null) {
-                fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages", locale);
+                fResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages", locale);
                 // memorize the most-recent locale
                 fLocale = locale;
             }
             if (fResourceBundle == null)
-                fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages");
+                fResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages");
         }
         
         // format message

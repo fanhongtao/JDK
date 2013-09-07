@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -2054,7 +2054,7 @@ public class Window extends Container implements Accessible {
                 WindowPeer peer = (WindowPeer)this.peer;
                 synchronized(getTreeLock()) {
                     if (peer != null) {
-                        peer.setAlwaysOnTop(alwaysOnTop);
+                        peer.updateAlwaysOnTopState();
                     }
                 }
             }

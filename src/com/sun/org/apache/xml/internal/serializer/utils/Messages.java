@@ -18,6 +18,7 @@
  */
 package com.sun.org.apache.xml.internal.serializer.utils;
 
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 import java.util.ListResourceBundle;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -147,16 +148,6 @@ public final class Messages
     }
 
     /**
-     * Get the ListResourceBundle being used by this Messages instance which was
-     * previously set by a call to loadResourceBundle(className)
-     * @xsl.usage internal
-     */
-    private ListResourceBundle getResourceBundle()
-    {
-        return m_resourceBundle;
-    }
-
-    /**
      * Creates a message from the specified key and replacement
      * arguments, localized to the given locale.
      *
@@ -170,7 +161,7 @@ public final class Messages
     public final String createMessage(String msgKey, Object args[])
     {
         if (m_resourceBundle == null)
-            m_resourceBundle = loadResourceBundle(m_resourceBundleName);
+            m_resourceBundle = SecuritySupport.getResourceBundle(m_resourceBundleName);
 
         if (m_resourceBundle != null)
         {
@@ -289,76 +280,4 @@ public final class Messages
         return fmsg;
     }
 
-    /**
-     * Return a named ResourceBundle for a particular locale.  This method mimics the behavior
-     * of ResourceBundle.getBundle().
-     * 
-     * @param className the name of the class that implements ListResourceBundle,
-     * without language suffix.
-     * @return the ResourceBundle
-     * @throws MissingResourceException
-     * @xsl.usage internal
-     */
-    private ListResourceBundle loadResourceBundle(String resourceBundle)
-        throws MissingResourceException
-    {
-        m_resourceBundleName = resourceBundle;
-        Locale locale = getLocale();
-
-        ListResourceBundle lrb;
-
-        try
-        {
-
-            ResourceBundle rb =
-                ResourceBundle.getBundle(m_resourceBundleName, locale);
-            lrb = (ListResourceBundle) rb;
-        }
-        catch (MissingResourceException e)
-        {
-            try // try to fall back to en_US if we can't load
-                {
-
-                // Since we can't find the localized property file,
-                // fall back to en_US.
-                lrb =
-                    (ListResourceBundle) ResourceBundle.getBundle(
-                        m_resourceBundleName,
-                        new Locale("en", "US"));
-            }
-            catch (MissingResourceException e2)
-            {
-
-                // Now we are really in trouble.
-                // very bad, definitely very bad...not going to get very far
-                throw new MissingResourceException(
-                    "Could not load any resource bundles." + m_resourceBundleName,
-                    m_resourceBundleName,
-                    "");
-            }
-        }
-        m_resourceBundle = lrb;
-        return lrb;
-    }
-
-    /**
-     * Return the resource file suffic for the indicated locale
-     * For most locales, this will be based the language code.  However
-     * for Chinese, we do distinguish between Taiwan and PRC
-     *
-     * @param locale the locale
-     * @return an String suffix which can be appended to a resource name
-     * @xsl.usage internal
-     */
-    private static String getResourceSuffix(Locale locale)
-    {
-
-        String suffix = "_" + locale.getLanguage();
-        String country = locale.getCountry();
-
-        if (country.equals("TW"))
-            suffix += "_" + country;
-
-        return suffix;
-    }
 }

@@ -69,6 +69,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
 import com.sun.org.apache.xalan.internal.xsltc.dom.XSLTCDTMManager;
 import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 import com.sun.org.apache.xalan.internal.utils.FactoryImpl;
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.XMLFilter;
@@ -854,8 +855,14 @@ public class TransformerFactoryImpl
 	// Check that the transformation went well before returning
     if (bytecodes == null) {
         
-        ErrorMsg err = new ErrorMsg(ErrorMsg.JAXP_COMPILE_ERR);
-        TransformerConfigurationException exc =  new TransformerConfigurationException(err.toString());
+        Vector errs = xsltc.getErrors();
+        ErrorMsg err = null;
+        if (errs != null) {
+            err = (ErrorMsg)errs.get(errs.size()-1);
+        } else {
+            err = new ErrorMsg(ErrorMsg.JAXP_COMPILE_ERR);
+        }
+        TransformerConfigurationException exc =  new TransformerConfigurationException(err.toString(), err.getCause());
         
         // Pass compiler errors to the error listener
         if (_errorListener != null) {
@@ -1202,7 +1209,7 @@ public class TransformerFactoryImpl
     	// Find the parent directory of the translet.
     	String transletParentDir = transletFile.getParent();
     	if (transletParentDir == null)
-    	    transletParentDir = System.getProperty("user.dir");
+    	    transletParentDir = SecuritySupport.getSystemProperty("user.dir");
     	  
     	File transletParentFile = new File(transletParentDir);
     	

@@ -47,8 +47,9 @@ import java.lang.reflect.Method;
  * @author Santiago.PericasGeertsen@sun.com
  */
 class FactoryFinder {
-    
-    /**
+    private static final String DEFAULT_PACKAGE = "com.sun.org.apache.xalan.internal.";
+
+/**
      * Internal debug flag.
      */
     private static boolean debug = false;
@@ -102,6 +103,13 @@ class FactoryFinder {
     static private Class getProviderClass(String className, ClassLoader cl,
             boolean doFallback) throws ClassNotFoundException 
     {
+        // make sure we have access to restricted packages
+        if (System.getSecurityManager() != null) {
+            if (className != null && className.startsWith(DEFAULT_PACKAGE)) {
+                return Class.forName(className, true, FactoryFinder.class.getClassLoader());
+            }
+        }
+
         try {
             if (cl == null) {
                 cl = ss.getContextClassLoader();

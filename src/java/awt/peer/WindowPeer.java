@@ -1,7 +1,7 @@
 /*
- * @(#)WindowPeer.java	1.28 10/03/23
+ * %W% %E%
  *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -21,7 +21,7 @@ import java.awt.image.BufferedImage;
 public interface WindowPeer extends ContainerPeer {
     void toFront();
     void toBack();
-    void setAlwaysOnTop(boolean alwaysOnTop);
+    void updateAlwaysOnTopState();
     void updateFocusableWindowState();
     boolean requestWindowFocus();
     void setModalBlocked(Dialog blocker, boolean blocked);

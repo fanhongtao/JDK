@@ -16,10 +16,11 @@
 
 
 package com.sun.org.apache.xerces.internal.dom;
+
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.PropertyResourceBundle;
 
 /**
  * Used to format DOM error messages, using the system locale.
@@ -27,7 +28,7 @@ import java.util.PropertyResourceBundle;
  * @xerces.internal
  *
  * @author Sandy Gao, IBM
- * @version $Id: DOMMessageFormatter.java,v 1.2.6.1 2005/08/30 13:23:29 sunithareddy Exp $
+ * @version $Id: DOMMessageFormatter.java,v 1.4 2007/07/19 04:38:19 ofung Exp $
  */
 public class DOMMessageFormatter {
     public static final String DOM_DOMAIN = "http://www.w3.org/dom/DOMTR";
@@ -119,13 +120,13 @@ public class DOMMessageFormatter {
      */
     public static void init(){
         if (locale != null) {
-            domResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.DOMMessages", locale);
-            serResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSerializerMessages", locale);
-            xmlResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages", locale);
+            domResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.DOMMessages", locale);
+            serResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSerializerMessages", locale);
+            xmlResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages", locale);
         }else{
-            domResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.DOMMessages");
-            serResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSerializerMessages");
-            xmlResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages");
+            domResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.DOMMessages");
+            serResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSerializerMessages");
+            xmlResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages");
         }
     }
     

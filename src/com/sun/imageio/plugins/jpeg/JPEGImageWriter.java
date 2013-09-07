@@ -1,7 +1,5 @@
 /*
- * %W% %E%
- *
- * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2006, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -160,8 +158,7 @@ public class JPEGImageWriter extends ImageWriter {
     static {
         java.security.AccessController.doPrivileged(
             new sun.security.action.LoadLibraryAction("jpeg"));
-        initWriterIDs(ImageOutputStream.class, 
-                      JPEGQTable.class, 
+        initWriterIDs(JPEGQTable.class,
                       JPEGHuffmanTable.class);
     }
 
@@ -177,11 +174,13 @@ public class JPEGImageWriter extends ImageWriter {
     public void setOutput(Object output) {
         setThreadLock();
         try {
+            cbLock.check();
+
             super.setOutput(output); // validates output
             resetInternalState();
             ios = (ImageOutputStream) output; // so this will always work
             // Set the native destination
-            setDest(structPointer, ios);
+            setDest(structPointer);
         } finally {
             clearThreadLock();
         }
@@ -336,6 +335,8 @@ public class JPEGImageWriter extends ImageWriter {
                       ImageWriteParam param) throws IOException {
         setThreadLock();
         try {
+            cbLock.check();
+
             writeOnThread(streamMetadata, image, param);
         } finally {
             clearThreadLock();
@@ -1056,13 +1057,18 @@ public class JPEGImageWriter extends ImageWriter {
                              haveMetadata,
                              restartInterval);
 
-        if (aborted) {
-            processWriteAborted();
-        } else {
-            processImageComplete();
-        }
+        cbLock.lock();
+        try {
+            if (aborted) {
+                processWriteAborted();
+            } else {
+                processImageComplete();
+            }
 
-        ios.flush();
+            ios.flush();
+        } finally {
+            cbLock.unlock();
+        }
         currentImage++;  // After a successful write
     }
 
@@ -1070,6 +1076,8 @@ public class JPEGImageWriter extends ImageWriter {
         throws IOException {
         setThreadLock();
         try {
+            cbLock.check();
+
             prepareWriteSequenceOnThread(streamMetadata);
         } finally {
             clearThreadLock();
@@ -1149,6 +1157,8 @@ public class JPEGImageWriter extends ImageWriter {
         throws IOException {
         setThreadLock();
         try {
+            cbLock.check();
+
             if (sequencePrepared == false) {
                 throw new IllegalStateException("sequencePrepared not called!");
             }
@@ -1162,6 +1172,8 @@ public class JPEGImageWriter extends ImageWriter {
     public void endWriteSequence() throws IOException {
         setThreadLock();
         try {
+            cbLock.check();
+
             if (sequencePrepared == false) {
                 throw new IllegalStateException("sequencePrepared not called!");
             }
@@ -1174,6 +1186,10 @@ public class JPEGImageWriter extends ImageWriter {
     public synchronized void abort() {
         setThreadLock();
         try {
+            /**
+             * NB: we do not check the call back lock here, we allow to abort
+             * the reader any time.
+             */
             super.abort();
             abortWrite(structPointer);
         } finally {
@@ -1197,6 +1213,8 @@ public class JPEGImageWriter extends ImageWriter {
     public void reset() {
         setThreadLock();
         try {
+            cbLock.check();
+
             super.reset();
         } finally {
             clearThreadLock();
@@ -1206,6 +1224,8 @@ public class JPEGImageWriter extends ImageWriter {
     public void dispose() {
         setThreadLock();
         try {
+            cbLock.check();
+
             if (structPointer != 0) {
                 disposerRecord.dispose();
                 structPointer = 0;
@@ -1225,13 +1245,18 @@ public class JPEGImageWriter extends ImageWriter {
      * sending warnings to listeners.
      */
     void warningOccurred(int code) {
-        if ((code < 0) || (code > MAX_WARNING)){
-            throw new InternalError("Invalid warning index");
+        cbLock.lock();
+        try {
+            if ((code < 0) || (code > MAX_WARNING)){
+                throw new InternalError("Invalid warning index");
+            }
+            processWarningOccurred
+                (currentImage,
+                 "com.sun.imageio.plugins.jpeg.JPEGImageWriterResources",
+                Integer.toString(code));
+        } finally {
+            cbLock.unlock();
         }
-        processWarningOccurred
-            (currentImage, 
-             "com.sun.imageio.plugins.jpeg.JPEGImageWriterResources",
-             Integer.toString(code));
     }
 
     /**
@@ -1248,21 +1273,41 @@ public class JPEGImageWriter extends ImageWriter {
      * library warnings from being printed to stderr.
      */
     void warningWithMessage(String msg) {
-        processWarningOccurred(currentImage, msg);
+        cbLock.lock();
+        try {
+            processWarningOccurred(currentImage, msg);
+        } finally {
+            cbLock.unlock();
+        }
     }
 
     void thumbnailStarted(int thumbnailIndex) {
-        processThumbnailStarted(currentImage, thumbnailIndex);
+        cbLock.lock();
+        try {
+            processThumbnailStarted(currentImage, thumbnailIndex);
+        } finally {
+            cbLock.unlock();
+        }
     }
 
     // Provide access to protected superclass method
     void thumbnailProgress(float percentageDone) {
-        processThumbnailProgress(percentageDone);
-    }    
+        cbLock.lock();
+        try {
+            processThumbnailProgress(percentageDone);
+        } finally {
+            cbLock.unlock();
+        }
+    }
 
     // Provide access to protected superclass method
     void thumbnailComplete() {
-        processThumbnailComplete();
+        cbLock.lock();
+        try {
+            processThumbnailComplete();
+        } finally {
+            cbLock.unlock();
+        }
     }
 
     ///////// End of Package-access API
@@ -1589,16 +1634,14 @@ public class JPEGImageWriter extends ImageWriter {
     ////////////// Native methods and callbacks
 
     /** Sets up static native structures. */
-    private static native void initWriterIDs(Class iosClass, 
-                                             Class qTableClass,
+    private static native void initWriterIDs(Class qTableClass,
                                              Class huffClass);
 
     /** Sets up per-writer native structure and returns a pointer to it. */
     private native long initJPEGImageWriter();
 
     /** Sets up native structures for output stream */
-    private native void setDest(long structPointer,
-                                ImageOutputStream ios);
+    private native void setDest(long structPointer);
 
     /**
      * Returns <code>true</code> if the write was aborted.
@@ -1723,7 +1766,12 @@ public class JPEGImageWriter extends ImageWriter {
         }
         raster.setRect(sourceLine);
         if ((y > 7) && (y%8 == 0)) {  // Every 8 scanlines
-            processImageProgress((float) y / (float) sourceHeight * 100.0F);
+            cbLock.lock();
+            try {
+                processImageProgress((float) y / (float) sourceHeight * 100.0F);
+            } finally {
+                cbLock.unlock();
+            }
         }
     }
 
@@ -1751,6 +1799,25 @@ public class JPEGImageWriter extends ImageWriter {
         }
     }
     
+    /**
+     * This method is called from native code in order to write encoder
+     * output to the destination.
+     *
+     * We block any attempt to change the writer state during this
+     * method, in order to prevent a corruption of the native encoder
+     * state.
+     */
+    private void writeOutputData(byte[] data, int offset, int len)
+            throws IOException
+    {
+        cbLock.lock();
+        try {
+            ios.write(data, offset, len);
+        } finally {
+            cbLock.unlock();
+        }
+    }
+
     private Thread theThread = null;
     private int theLockCount = 0;
 
@@ -1783,6 +1850,36 @@ public class JPEGImageWriter extends ImageWriter {
         theLockCount --;
         if (theLockCount == 0) {
             theThread = null;
+        }
+    }
+
+    private CallBackLock cbLock = new CallBackLock();
+
+    private static class CallBackLock {
+
+        private State lockState;
+
+        CallBackLock() {
+            lockState = State.Unlocked;
+        }
+
+        void check() {
+            if (lockState != State.Unlocked) {
+                throw new IllegalStateException("Access to the writer is not allowed");
+            }
+        }
+
+        private void lock() {
+            lockState = State.Locked;
+        }
+
+        private void unlock() {
+            lockState = State.Unlocked;
+        }
+
+        private static enum State {
+            Unlocked,
+            Locked
         }
     }
 }

@@ -940,7 +940,12 @@ public class ErrorMessages extends ListResourceBundle {
         "The feature name cannot be null in TransformerFactory.setFeature(String name, boolean value)."},
 
         {ErrorMsg.JAXP_UNSUPPORTED_FEATURE,
-        "Cannot set the feature ''{0}'' on this TransformerFactory."}
+        "Cannot set the feature ''{0}'' on this TransformerFactory."},
+
+        {ErrorMsg.DESERIALIZE_TRANSLET_ERR, "When Java security is enabled, " +
+         		"support for deserializing TemplatesImpl is disabled." +
+         		"This can be overridden by setting the jdk.xml.enableTemplatesImplDeserialization" +
+         		" system property to true."}
 
     };
     }

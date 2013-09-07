@@ -40,7 +40,7 @@
  * limitations under the License.
  */
 
-package com.sun.org.apache.xerces.internal.impl ;
+package com.sun.org.apache.xerces.internal.impl;
 
 import com.sun.xml.internal.stream.StaxEntityResolverWrapper;
 import com.sun.xml.internal.stream.StaxXMLInputSource;
@@ -73,6 +73,7 @@ import com.sun.org.apache.xerces.internal.xni.XMLResourceIdentifier;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.parser.*;
 import com.sun.org.apache.xerces.internal.impl.Constants;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import com.sun.xml.internal.stream.Entity;
 import com.sun.org.apache.xerces.internal.xni.Augmentations;
 
@@ -1832,7 +1833,7 @@ protected static final String PARSER_SETTINGS =
         // get the user.dir property
         String userDir = "";
         try {
-            userDir = System.getProperty("user.dir");
+            userDir = SecuritySupport.getSystemProperty("user.dir");
         }
         catch (SecurityException se) {
         }

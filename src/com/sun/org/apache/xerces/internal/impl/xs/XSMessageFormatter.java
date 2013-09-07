@@ -16,11 +16,11 @@
 
 package com.sun.org.apache.xerces.internal.impl.xs;
 
+import com.sun.org.apache.xerces.internal.util.MessageFormatter;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.PropertyResourceBundle;
-import com.sun.org.apache.xerces.internal.util.MessageFormatter;
 
 
 /**
@@ -30,7 +30,7 @@ import com.sun.org.apache.xerces.internal.util.MessageFormatter;
  * @xerces.internal  
  * 
  * @author Elena Litani, IBM
- * @version $Id: XSMessageFormatter.java,v 1.2.6.1 2005/09/09 07:30:57 sunithareddy Exp $
+ * @version $Id: XSMessageFormatter.java,v 1.4 2007/07/19 04:38:42 ofung Exp $
  */
 public class XSMessageFormatter implements MessageFormatter {
     /**
@@ -63,12 +63,12 @@ public class XSMessageFormatter implements MessageFormatter {
         
         if (fResourceBundle == null || locale != fLocale) {
             if (locale != null) {
-                fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSchemaMessages", locale);
+                fResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSchemaMessages", locale);
                 // memorize the most-recent locale
                 fLocale = locale;
             }
             if (fResourceBundle == null)
-                fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSchemaMessages");
+                fResourceBundle = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSchemaMessages");
         }
         
         String msg = fResourceBundle.getString(key);

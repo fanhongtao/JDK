@@ -1,5 +1,5 @@
 /*
- * @(#)Finalizer.java	1.23 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -20,9 +20,9 @@ final class Finalizer extends FinalReference { /* Package-private; must be in
      */
     static native void invokeFinalizeMethod(Object o) throws Throwable;
 
-    static private ReferenceQueue queue = new ReferenceQueue();
-    static private Finalizer unfinalized = null;
-    static private Object lock = new Object();
+    private static ReferenceQueue queue = new ReferenceQueue();
+    private static Finalizer unfinalized = null;
+    private static final Object lock = new Object();
 
     private Finalizer
         next = null,
@@ -124,7 +124,11 @@ final class Finalizer extends FinalReference { /* Package-private; must be in
     /* Called by Runtime.runFinalization() */
     static void runFinalization() {
 	forkSecondaryFinalizer(new Runnable() {
+            private volatile boolean running;
 	    public void run() {
+                if (running)
+                    return;
+                running = true;
 		for (;;) {
 		    Finalizer f = (Finalizer)queue.poll();
 		    if (f == null) break;
@@ -137,7 +141,11 @@ final class Finalizer extends FinalReference { /* Package-private; must be in
     /* Invoked by java.lang.Shutdown */
     static void runAllFinalizers() {
 	forkSecondaryFinalizer(new Runnable() {
+            private volatile boolean running;
 	    public void run() {
+                if (running)
+                    return;
+                running = true;
 		for (;;) {
 		    Finalizer f;
 		    synchronized (lock) {
@@ -150,10 +158,14 @@ final class Finalizer extends FinalReference { /* Package-private; must be in
     }
 
     private static class FinalizerThread extends Thread {
+        private volatile boolean running;
 	FinalizerThread(ThreadGroup g) {
 	    super(g, "Finalizer");
 	}
 	public void run() {
+            if (running)
+                return;
+            running = true;
 	    for (;;) {
 		try {
 		    Finalizer f = (Finalizer)queue.remove();

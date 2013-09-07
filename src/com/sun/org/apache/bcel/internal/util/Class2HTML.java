@@ -134,7 +134,7 @@ public class Class2HTML implements Constants
     ClassParser parser=null;
     JavaClass   java_class=null;
     String      zip_file = null;
-    char        sep = System.getProperty("file.separator").toCharArray()[0];
+    char        sep = SecuritySupport.getSystemProperty("file.separator").toCharArray()[0];
     String      dir = "." + sep; // Where to store HTML files
 	
     try {

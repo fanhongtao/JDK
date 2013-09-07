@@ -1,26 +1,6 @@
 /*
- * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
  */
 /*
  * $Id: SAAJMetaFactory.java,v 1.4 2006/03/30 00:59:39 ofung Exp $
@@ -50,7 +30,7 @@ package javax.xml.soap;
 public abstract class SAAJMetaFactory {
     static private final String META_FACTORY_CLASS_PROPERTY =
         "javax.xml.soap.MetaFactory";
-    static private final String DEFAULT_META_FACTORY_CLASS =
+    static final String DEFAULT_META_FACTORY_CLASS =
         "com.sun.xml.internal.messaging.saaj.soap.SAAJMetaFactoryImpl";
 
     /**

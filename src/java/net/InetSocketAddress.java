@@ -67,8 +67,8 @@ public class InetSocketAddress
             if (hostname != null)
                 return hostname;
             if (addr != null) {
-                if (addr.hostName != null)
-                    return addr.hostName;
+                if (addr.holder().getHostName() != null)
+                    return addr.holder().getHostName();
                 else
                     return addr.getHostAddress();
             }

@@ -1,5 +1,5 @@
 /*
- * @(#)Inet6AddressImpl.java	1.10 10/03/23 
+ * %W% %E% 
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -63,7 +63,7 @@ class Inet6AddressImpl implements InetAddressImpl {
         if (anyLocalAddress == null) {
             if (InetAddress.preferIPv6Address) {
                 anyLocalAddress = new Inet6Address();
-                anyLocalAddress.hostName = "::";
+                anyLocalAddress.holder().hostName = "::";
             } else {
                 anyLocalAddress = (new Inet4AddressImpl()).anyLocalAddress();
             }

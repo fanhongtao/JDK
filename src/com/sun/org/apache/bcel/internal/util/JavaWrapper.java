@@ -76,7 +76,7 @@ public class JavaWrapper {
   private java.lang.ClassLoader loader;
 
   private static java.lang.ClassLoader getClassLoader() {
-    String s = System.getProperty("bcel.classloader");
+    String s = SecuritySupport.getSystemProperty("bcel.classloader");
 
     if((s == null) || "".equals(s))
       s = "com.sun.org.apache.bcel.internal.util.ClassLoader";

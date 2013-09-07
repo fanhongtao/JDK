@@ -20,7 +20,7 @@
 
 /*
  * $Id: FactoryFinder.java,v 1.5.2.2 2007/01/23 06:25:57 joehw Exp $
- * @(#)FactoryFinder.java	1.14 10/04/05
+ * %W% %E%
  *
  * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
@@ -45,7 +45,8 @@ import java.io.InputStreamReader;
  * @author Santiago.PericasGeertsen@sun.com
  */
 class FactoryFinder {
-    
+    private static final String DEFAULT_PACKAGE = "com.sun.xml.internal.";
+   
     /**
      * Internal debug flag.
      */
@@ -100,6 +101,13 @@ class FactoryFinder {
     static private Class getProviderClass(String className, ClassLoader cl,
             boolean doFallback) throws ClassNotFoundException 
     {
+        // make sure we have access to restricted packages
+        if (System.getSecurityManager() != null) {
+            if (className != null && className.startsWith(DEFAULT_PACKAGE)) {
+                return Class.forName(className, true, FactoryFinder.class.getClassLoader());
+            }
+        }
+
         try {
             if (cl == null) {
                 cl = ss.getContextClassLoader();

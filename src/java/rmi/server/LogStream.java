@@ -1,7 +1,5 @@
 /*
- * @(#)LogStream.java	1.22 10/03/23
- *
- * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package java.rmi.server;
@@ -13,7 +11,7 @@ import java.util.*;
  * <code>LogStream</code> provides a mechanism for logging errors that are
  * of possible interest to those monitoring a system.  
  *
- * @version 1.22, 03/23/10
+ * @version %I%, %G%
  * @author  Ann Wollrath (lots of code stolen from Ken Arnold)
  * @since   JDK1.1
  * @deprecated no replacement
@@ -103,6 +101,13 @@ public class LogStream extends PrintStream {
      */
     @Deprecated
     public static synchronized void setDefaultStream(PrintStream newDefault) {
+        SecurityManager sm = System.getSecurityManager();
+
+        if (sm != null) {
+            sm.checkPermission(
+                new java.util.logging.LoggingPermission("control", null));
+        }
+
 	defaultStream = newDefault;
     }
 

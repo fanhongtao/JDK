@@ -1,5 +1,5 @@
 /*
- * @(#)Inet4AddressImpl.java	1.7 10/03/23
+ * %W% %E%
  *
  * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -22,7 +22,7 @@ class Inet4AddressImpl implements InetAddressImpl {
     public synchronized InetAddress anyLocalAddress() {
         if (anyLocalAddress == null) {
             anyLocalAddress = new Inet4Address(); // {0x00,0x00,0x00,0x00}
-            anyLocalAddress.hostName = "0.0.0.0";
+            anyLocalAddress.holder().hostName = "0.0.0.0";
         }
         return anyLocalAddress;
     }

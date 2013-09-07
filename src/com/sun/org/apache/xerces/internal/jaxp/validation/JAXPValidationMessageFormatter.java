@@ -16,16 +16,16 @@
 
 package com.sun.org.apache.xerces.internal.jaxp.validation;
 
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.PropertyResourceBundle;
 
 /**
  * <p>Used to format JAXP Validation API error messages using a specified locale.</p>
  * 
  * @author Michael Glavassevich, IBM
- * @version $Id: JAXPValidationMessageFormatter.java,v 1.1.4.1 2005/09/05 11:52:09 sunithareddy Exp $
+ * @version $Id: JAXPValidationMessageFormatter.java,v 1.3 2007/07/19 04:38:53 ofung Exp $
  */
 final class JAXPValidationMessageFormatter {
 
@@ -51,11 +51,11 @@ final class JAXPValidationMessageFormatter {
         ResourceBundle resourceBundle = null;
         if (locale != null) {
             resourceBundle = 
-                PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.JAXPValidationMessages", locale);
+                SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.JAXPValidationMessages", locale);
         }
         else {
             resourceBundle = 
-                PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.JAXPValidationMessages");
+                SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.msg.JAXPValidationMessages");
         }
 
         // format message

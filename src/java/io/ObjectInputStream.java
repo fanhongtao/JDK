@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import static java.io.ObjectStreamClass.processQueue;
+import sun.reflect.misc.ReflectUtil;
 
 /**
  * An ObjectInputStream deserializes primitive data and objects previously
@@ -1497,6 +1498,12 @@ public class ObjectInputStream
 		    String.format("invalid type code: %02X", tc));
 	}
     }
+
+    private boolean isCustomSubclass() {
+        // Return true if this class is a custom subclass of ObjectInputStream
+        return getClass().getClassLoader()
+                    != ObjectInputStream.class.getClassLoader();
+    }
     
     /**
      * Reads in and returns class descriptor for a dynamic proxy class.  Sets
@@ -1527,7 +1534,16 @@ public class ObjectInputStream
 	try {
 	    if ((cl = resolveProxyClass(ifaces)) == null) {
 		resolveEx = new ClassNotFoundException("null class");
-	    }
+            } else if (!Proxy.isProxyClass(cl)) {
+                throw new InvalidClassException("Not a proxy");
+            } else {
+                // ReflectUtil.checkProxyPackageAccess makes a test
+                // equivalent to isCustomSubclass so there's no need
+                // to condition this call to isCustomSubclass == true here.
+                ReflectUtil.checkProxyPackageAccess(
+                        getClass().getClassLoader(),
+                        cl.getInterfaces());
+            }
 	} catch (ClassNotFoundException ex) {
 	    resolveEx = ex;
 	}
@@ -1568,9 +1584,12 @@ public class ObjectInputStream
 	Class cl = null;
 	ClassNotFoundException resolveEx = null;
 	bin.setBlockDataMode(true);
+        final boolean checksRequired = isCustomSubclass();
 	try {
 	    if ((cl = resolveClass(readDesc)) == null) {
 		resolveEx = new ClassNotFoundException("null class");
+            } else if (checksRequired) {
+                ReflectUtil.checkPackageAccess(cl);
 	    }
 	} catch (ClassNotFoundException ex) {
 	    resolveEx = ex;

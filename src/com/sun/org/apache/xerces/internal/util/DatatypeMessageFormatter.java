@@ -16,16 +16,16 @@
 
 package com.sun.org.apache.xerces.internal.util;
 
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 /**
  * <p>Used to format JAXP 1.3 Datatype API error messages using a specified locale.</p>
  *
  * @author  Neeraj Bajaj, Sun Microsystems
- * @version $Id: DatatypeMessageFormatter.java,v 1.2.6.1 2005/09/05 07:48:52 neerajbj Exp $
+ * @version $Id: DatatypeMessageFormatter.java,v 1.4 2007/07/19 04:38:58 ofung Exp $
  */
 public class DatatypeMessageFormatter {
     
@@ -53,11 +53,11 @@ public class DatatypeMessageFormatter {
         ResourceBundle resourceBundle = null;
         if (locale != null) {
             resourceBundle = 
-                PropertyResourceBundle.getBundle(BASE_NAME, locale);
+                SecuritySupport.getResourceBundle(BASE_NAME, locale);
         }
         else {
             resourceBundle = 
-                PropertyResourceBundle.getBundle(BASE_NAME);
+                SecuritySupport.getResourceBundle(BASE_NAME);
         }
 
         // format message

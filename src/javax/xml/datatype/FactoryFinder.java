@@ -20,7 +20,7 @@
 
 /*
  * $Id: FactoryFinder.java,v 1.5.2.1 2006/12/04 18:45:39 spericas Exp $
- * @(#)FactoryFinder.java	1.13 10/04/05
+ * %W% %E%
  *
  * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
  */
@@ -46,6 +46,7 @@ import java.net.URL;
  * @author Santiago.PericasGeertsen@sun.com
  */
 class FactoryFinder {
+    private static final String DEFAULT_PACKAGE = "com.sun.org.apache.xerces.internal";
     
     /**
      * Internal debug flag.
@@ -101,6 +102,12 @@ class FactoryFinder {
     static private Class getProviderClass(String className, ClassLoader cl,
             boolean doFallback) throws ClassNotFoundException 
     {
+        // make sure we have access to restricted packages
+        if (System.getSecurityManager() != null) {
+            if (className != null && className.startsWith(DEFAULT_PACKAGE)) {
+                return Class.forName(className, true, FactoryFinder.class.getClassLoader());
+            }            
+        }
         try {
             if (cl == null) {
                 cl = ss.getContextClassLoader();

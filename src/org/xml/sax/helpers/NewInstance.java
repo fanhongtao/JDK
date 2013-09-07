@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
  * @version 2.0.1 (sax2r2)
  */
 class NewInstance {
+    private static final String DEFAULT_PACKAGE = "com.sun.org.apache.xerces.internal";
 
     /**
      * Creates a new instance of the specified class name
@@ -42,8 +43,16 @@ class NewInstance {
         throws ClassNotFoundException, IllegalAccessException,
             InstantiationException
     {
+        // make sure we have access to restricted packages
+        boolean internal = false;
+        if (System.getSecurityManager() != null) {
+            if (className != null && className.startsWith(DEFAULT_PACKAGE)) {
+                internal = true;
+            }
+        }
+
         Class driverClass;
-        if (classLoader == null) {
+        if (classLoader == null || internal) {
             driverClass = Class.forName(className);
         } else {
             driverClass = classLoader.loadClass(className);
@@ -51,29 +60,4 @@ class NewInstance {
         return driverClass.newInstance();
     }
 
-    /**
-     * Figure out which ClassLoader to use.  For JDK 1.2 and later use
-     * the context ClassLoader.
-     */           
-    static ClassLoader getClassLoader ()
-    {
-        Method m = null;
-
-        try {
-            m = Thread.class.getMethod("getContextClassLoader", (Class[]) null);
-        } catch (NoSuchMethodException e) {
-            // Assume that we are running JDK 1.1, use the current ClassLoader
-            return NewInstance.class.getClassLoader();
-        }
-
-        try {
-            return (ClassLoader) m.invoke(Thread.currentThread(), (Object[]) null);
-        } catch (IllegalAccessException e) {
-            // assert(false)
-            throw new UnknownError(e.getMessage());
-        } catch (InvocationTargetException e) {
-            // assert(e.getTargetException() instanceof SecurityException)
-            throw new UnknownError(e.getMessage());
-        }
-    }
 }

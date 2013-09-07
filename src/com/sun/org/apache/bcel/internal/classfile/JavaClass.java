@@ -54,14 +54,14 @@ package com.sun.org.apache.bcel.internal.classfile;
  * <http://www.apache.org/>.
  */
 
-import  com.sun.org.apache.bcel.internal.Constants;
-import  com.sun.org.apache.bcel.internal.util.SyntheticRepository;
-import  com.sun.org.apache.bcel.internal.util.ClassVector;
-import  com.sun.org.apache.bcel.internal.util.ClassQueue;
-import  com.sun.org.apache.bcel.internal.generic.Type;
-
-import  java.io.*;
-import  java.util.StringTokenizer;
+import com.sun.org.apache.bcel.internal.Constants;
+import com.sun.org.apache.bcel.internal.generic.Type;
+import com.sun.org.apache.bcel.internal.util.ClassQueue;
+import com.sun.org.apache.bcel.internal.util.ClassVector;
+import com.sun.org.apache.bcel.internal.util.SecuritySupport;
+import com.sun.org.apache.bcel.internal.util.SyntheticRepository;
+import java.io.*;
+import java.util.StringTokenizer;
 
 /**
  * Represents a Java class, i.e., the data structures, constant pool,
@@ -448,9 +448,9 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
     String debug = null, sep = null;
     
     try {
-      debug = System.getProperty("JavaClass.debug");
+      debug = SecuritySupport.getSystemProperty("JavaClass.debug");
       // Get path separator either / or \ usually
-      sep = System.getProperty("file.separator");
+      sep = SecuritySupport.getSystemProperty("file.separator");
     }
     catch (SecurityException e) {
         // falls through

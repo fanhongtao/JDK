@@ -37,6 +37,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -51,6 +53,7 @@ import java.util.Properties;
  * @since 1.5
  */
 class XPathFactoryFinder  {
+    private static final String DEFAULT_PACKAGE = "com.sun.org.apache.xpath.internal";
 
     private static SecuritySupport ss = new SecuritySupport() ;
     /** debug support code. */
@@ -249,10 +252,17 @@ class XPathFactoryFinder  {
      */
     private Class createClass(String className) {
             Class clazz;
+        // make sure we have access to restricted packages
+        boolean internal = false;
+        if (System.getSecurityManager() != null) {
+            if (className != null && className.startsWith(DEFAULT_PACKAGE)) {
+                internal = true;
+            }            
+        }
 
             // use approprite ClassLoader
             try {
-                    if (classLoader != null) {
+                    if (classLoader != null && !internal) {
                             clazz = classLoader.loadClass(className);
                     } else {
                             clazz = Class.forName(className);
@@ -491,24 +501,28 @@ class XPathFactoryFinder  {
             try {
                 //final Enumeration e = classLoader.getResources(SERVICE_ID);
                 final Enumeration e = ss.getResources(classLoader, SERVICE_ID);
-                if(!e.hasMoreElements()) {
-                    debugPrintln("no "+SERVICE_ID+" file was found");
-                }
-                
-                // wrap it into an Iterator.
-                return new Iterator() {
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
+                return (Iterator)
+                AccessController.doPrivileged(new PrivilegedAction() {
+                    public Object run() {
+                        if(!e.hasMoreElements()) {
+                            debugPrintln("no "+SERVICE_ID+" file was found");
+                        }
+                        // wrap it into an Iterator.
+                        return new Iterator() {
+                            public void remove() {
+                                throw new UnsupportedOperationException();
+                            }
 
-                    public boolean hasNext() {
-                        return e.hasMoreElements();
-                    }
+                            public boolean hasNext() {
+                                return e.hasMoreElements();
+                            }
 
-                    public Object next() {
-                        return e.nextElement();
+                            public Object next() {
+                                return e.nextElement();
+                            }
+                        };
                     }
-                };
+                });
             } catch (IOException e) {
                 debugPrintln("failed to enumerate resources "+SERVICE_ID);
                 if(debug)   e.printStackTrace();

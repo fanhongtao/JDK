@@ -16,6 +16,7 @@
 
 package com.sun.org.apache.xerces.internal.impl.xpath.regex;
 
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -26,7 +27,7 @@ import java.util.Vector;
  * 
  * @xerces.internal
  *
- * @version $Id: RegexParser.java,v 1.2.6.1 2005/09/06 11:46:34 neerajbj Exp $
+ * @version $Id: RegexParser.java,v 1.4 2007/07/19 04:38:41 ofung Exp $
  */
 class RegexParser {
     static final int T_CHAR = 0;
@@ -88,7 +89,12 @@ class RegexParser {
 
     public void setLocale(Locale locale) {
         try {
-            this.resources = ResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message", locale);
+            if (locale != null) {
+                this.resources = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message", locale);
+            }
+            else {
+                this.resources = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message");
+            }
         } catch (MissingResourceException mre) {
             throw new RuntimeException("Installation Problem???  Couldn't load messages: "
                                        +mre.getMessage());

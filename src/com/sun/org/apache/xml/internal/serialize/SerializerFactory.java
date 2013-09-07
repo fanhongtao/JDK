@@ -18,6 +18,7 @@
 package com.sun.org.apache.xml.internal.serialize;
 
 import com.sun.org.apache.xerces.internal.utils.ObjectFactory;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.io.UnsupportedEncodingException;
@@ -60,7 +61,7 @@ public abstract class SerializerFactory
         factory =  new SerializerFactoryImpl( Method.TEXT );
         registerSerializerFactory( factory );
 
-        list = System.getProperty( FactoriesProperty );
+        list = SecuritySupport.getSystemProperty( FactoriesProperty );
         if ( list != null ) {
             token = new StringTokenizer( list, " ;,:" );
             while ( token.hasMoreTokens() ) {

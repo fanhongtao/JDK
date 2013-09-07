@@ -57,6 +57,8 @@
 
 package com.sun.org.apache.xerces.internal.util;
 import com.sun.org.apache.xerces.internal.impl.Constants;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 /**
  * This class is a container for parser settings that relate to 
  * security, or more specifically, it is intended to be used to prevent denial-of-service 
@@ -73,7 +75,7 @@ import com.sun.org.apache.xerces.internal.impl.Constants;
  *
  * @author  Neil Graham, IBM
  *
- * @version $Id: SecurityManager.java,v 1.2 2005/08/16 22:49:14 jeffsuttor Exp $
+ * @version $Id: SecurityManager.java,v 1.4 2007/07/19 04:38:59 ofung Exp $
  */
 public final class SecurityManager {
 
@@ -175,7 +177,7 @@ public final class SecurityManager {
 
 		//TODO:	also read SYSTEM_PROPERTY_ELEMENT_ATTRIBUTE_LIMIT
 		try {
-			String value = System.getProperty(Constants.ENTITY_EXPANSION_LIMIT);
+			String value = getSystemProperty(Constants.ENTITY_EXPANSION_LIMIT);
 			if(value != null && !value.equals("")){
 				entityExpansionLimit = Integer.parseInt(value);
 				if (entityExpansionLimit < 0)
@@ -186,7 +188,7 @@ public final class SecurityManager {
 		}catch(Exception ex){}
 
 		try {
-			String value = System.getProperty(Constants.MAX_OCCUR_LIMIT);
+			String value = getSystemProperty(Constants.MAX_OCCUR_LIMIT);
 			if(value != null && !value.equals("")){
 				maxOccurLimit = Integer.parseInt(value);
 				if (maxOccurLimit < 0)
@@ -197,7 +199,7 @@ public final class SecurityManager {
 		}catch(Exception ex){}
 
 		try {
-			String value = System.getProperty(Constants.SYSTEM_PROPERTY_ELEMENT_ATTRIBUTE_LIMIT);
+			String value = getSystemProperty(Constants.SYSTEM_PROPERTY_ELEMENT_ATTRIBUTE_LIMIT);
 			if(value != null && !value.equals("")){
 				fElementAttributeLimit = Integer.parseInt(value);
 				if ( fElementAttributeLimit < 0)
@@ -209,6 +211,13 @@ public final class SecurityManager {
 		}catch(Exception ex){}
 
 	}
-    
+
+    private String getSystemProperty(final String propName) {
+        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+            public String run() {
+                return System.getProperty(propName);
+            }
+        });
+    }
 } // class SecurityManager
 

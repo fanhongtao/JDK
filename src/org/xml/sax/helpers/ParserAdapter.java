@@ -56,8 +56,8 @@ import org.xml.sax.SAXNotSupportedException;
  */
 public class ParserAdapter implements XMLReader, DocumentHandler
 {
+    private static SecuritySupport ss = new SecuritySupport();
 
-
     ////////////////////////////////////////////////////////////////////
     // Constructors.
     ////////////////////////////////////////////////////////////////////
@@ -78,7 +78,7 @@ public class ParserAdapter implements XMLReader, DocumentHandler
     {
 	super();
 
-	String driver = System.getProperty("org.xml.sax.parser");
+	String driver = ss.getSystemProperty("org.xml.sax.parser");
 
 	try {
 	    setup(ParserFactory.makeParser());
