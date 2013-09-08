@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidParameterSpecException.java	1.16 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.spec;
@@ -14,7 +32,6 @@ import java.security.GeneralSecurityException;
  *
  * @author Jan Luehe
  *
- * @version 1.16, 11/17/05
  *
  * @see java.security.AlgorithmParameters
  * @see AlgorithmParameterSpec
@@ -33,17 +50,17 @@ public class InvalidParameterSpecException extends GeneralSecurityException {
      * exception.
      */
     public InvalidParameterSpecException() {
-	super();
+        super();
     }
 
     /**
      * Constructs an InvalidParameterSpecException with the specified detail
      * message. A detail message is a String that describes this
-     * particular exception.  
+     * particular exception.
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public InvalidParameterSpecException(String msg) {
-	super(msg);
+        super(msg);
     }
 }

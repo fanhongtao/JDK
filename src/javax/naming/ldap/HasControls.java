@@ -1,8 +1,26 @@
 /*
- * @(#)HasControls.java	1.9 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.ldap;
@@ -18,24 +36,23 @@ import javax.naming.NamingException;
   *<blockquote><pre>
   *   NamingEnumeration elts = ectx.search((Name)name, filter, sctls);
   *   while (elts.hasMore()) {
-  *	Object entry = elts.next();
+  *     Object entry = elts.next();
   *
-  *	// Get search result 
-  *	SearchResult res = (SearchResult)entry;
-  *	// do something with it 
+  *     // Get search result
+  *     SearchResult res = (SearchResult)entry;
+  *     // do something with it
   *
-  *	// Get entry controls
-  *  	if (entry instanceof HasControls) {
-  *	    Control[] entryCtls = ((HasControls)entry).getControls();
-  *	    // do something with controls
-  *	}
+  *     // Get entry controls
+  *     if (entry instanceof HasControls) {
+  *         Control[] entryCtls = ((HasControls)entry).getControls();
+  *         // do something with controls
+  *     }
   *   }
   *</pre></blockquote>
-  * 
+  *
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.9 05/11/17
   * @since 1.3
   *
   */

@@ -1,14 +1,32 @@
 /*
- * @(#)IDLTypeHelper.java	1.11 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package org.omg.CORBA;
 
 
 /**
-* The Helper for <tt>IDLType</tt>.  For more information on 
+* The Helper for <tt>IDLType</tt>.  For more information on
 * Helper files, see <a href="doc-files/generatedfiles.html#helper">
 * "Generated Files: Helper Files"</a>.<P>
 * org/omg/CORBA/IDLTypeHelper.java

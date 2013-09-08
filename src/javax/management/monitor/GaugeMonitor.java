@@ -1,12 +1,32 @@
 /*
- * @(#)GaugeMonitor.java	1.80 08/12/16
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.monitor;
 
+import static com.sun.jmx.defaults.JmxProperties.MONITOR_LOGGER;
+import java.util.logging.Level;
 import javax.management.MBeanNotificationInfo;
 import javax.management.ObjectName;
 import static javax.management.monitor.Monitor.NumericalType.*;
@@ -61,8 +81,6 @@ import static javax.management.monitor.MonitorNotification.*;
  * (<CODE>Byte</CODE>, <CODE>Integer</CODE>, <CODE>Short</CODE>,
  * <CODE>Long</CODE>, <CODE>Float</CODE>, <CODE>Double</CODE>).
  *
- * @version     1.80     12/16/08
- * @author      Sun Microsystems, Inc
  *
  * @since 1.5
  */
@@ -183,13 +201,6 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
     private static final int FALLING            = 1;
     private static final int RISING_OR_FALLING  = 2;
 
-    // TRACES & DEBUG
-    //---------------
-
-    String makeDebugTag() {
-        return "GaugeMonitor";
-    }
-
     /*
      * ------------------------------------------
      *  CONSTRUCTORS
@@ -200,7 +211,6 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      * Default constructor.
      */
     public GaugeMonitor() {
-        dbgTag = makeDebugTag();
     }
 
     /*
@@ -214,9 +224,8 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      */
     public synchronized void start() {
         if (isActive()) {
-            if (isTraceOn()) {
-                trace("start", "the monitor is already active");
-            }
+            MONITOR_LOGGER.logp(Level.FINER, GaugeMonitor.class.getName(),
+                    "start", "the monitor is already active");
             return;
         }
         // Reset values.
@@ -248,7 +257,6 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      *
      * @return The derived gauge of the specified object.
      *
-     * @since.unbundled JMX 1.2
      */
     @Override
     public synchronized Number getDerivedGauge(ObjectName object) {
@@ -265,7 +273,6 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
      *
      * @return The derived gauge timestamp of the specified object.
      *
-     * @since.unbundled JMX 1.2
      */
     @Override
     public synchronized long getDerivedGaugeTimeStamp(ObjectName object) {
@@ -632,35 +639,34 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
         Number der;
         switch (o.getType()) {
         case INTEGER:
-            der = new Integer(((Integer)scanGauge).intValue() -
-                              ((Integer)prev).intValue());
+            der = Integer.valueOf(((Integer)scanGauge).intValue() -
+                                  ((Integer)prev).intValue());
             break;
         case BYTE:
-            der = new Byte((byte)(((Byte)scanGauge).byteValue() -
-                                  ((Byte)prev).byteValue()));
+            der = Byte.valueOf((byte)(((Byte)scanGauge).byteValue() -
+                                      ((Byte)prev).byteValue()));
             break;
         case SHORT:
-            der = new Short((short)(((Short)scanGauge).shortValue() -
-                                    ((Short)prev).shortValue()));
+            der = Short.valueOf((short)(((Short)scanGauge).shortValue() -
+                                        ((Short)prev).shortValue()));
             break;
         case LONG:
-            der = new Long(((Long)scanGauge).longValue() -
-                           ((Long)prev).longValue());
+            der = Long.valueOf(((Long)scanGauge).longValue() -
+                               ((Long)prev).longValue());
             break;
         case FLOAT:
-            der = new Float(((Float)scanGauge).floatValue() -
-                            ((Float)prev).floatValue());
+            der = Float.valueOf(((Float)scanGauge).floatValue() -
+                                ((Float)prev).floatValue());
             break;
         case DOUBLE:
-            der = new Double(((Double)scanGauge).doubleValue() -
-                             ((Double)prev).doubleValue());
+            der = Double.valueOf(((Double)scanGauge).doubleValue() -
+                                 ((Double)prev).doubleValue());
             break;
         default:
             // Should never occur...
-            if (isDebugOn()) {
-                debug("setDerivedGaugeWithDifference",
-                      "the threshold type is invalid");
-            }
+            MONITOR_LOGGER.logp(Level.FINEST, GaugeMonitor.class.getName(),
+                    "setDerivedGaugeWithDifference",
+                    "the threshold type is invalid");
             return;
         }
         o.setDerivedGauge(der);
@@ -692,10 +698,9 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
             return (greater.doubleValue() >= less.doubleValue());
         default:
             // Should never occur...
-            if (isDebugOn()) {
-                debug("isFirstGreaterThanLast",
-                      "the threshold type is invalid");
-            }
+            MONITOR_LOGGER.logp(Level.FINEST, GaugeMonitor.class.getName(),
+                    "isFirstGreaterThanLast",
+                    "the threshold type is invalid");
             return false;
         }
     }
@@ -728,10 +733,9 @@ public class GaugeMonitor extends Monitor implements GaugeMonitorMBean {
         }
         else {
             // Should never occur...
-            if (isDebugOn()) {
-                debug("isFirstStrictlyGreaterThanLast",
-                      "the threshold type is invalid");
-            }
+            MONITOR_LOGGER.logp(Level.FINEST, GaugeMonitor.class.getName(),
+                    "isFirstStrictlyGreaterThanLast",
+                    "the threshold type is invalid");
             return false;
         }
     }

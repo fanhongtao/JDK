@@ -1,8 +1,26 @@
 /*
- * @(#)MutableAttributeSet.java	1.18 05/11/17
+ * Copyright (c) 1997, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -15,7 +33,6 @@ import java.util.Enumeration;
  * form:<tt>
  * public XXXAttributeSet(ConstAttributeSet source);</tt>
  *
- * @version 1.18 11/17/05
  */
 public interface MutableAttributeSet extends AttributeSet {
 
@@ -68,14 +85,3 @@ public interface MutableAttributeSet extends AttributeSet {
     public void setResolveParent(AttributeSet parent);
 
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -1,8 +1,26 @@
 /*
- * @(#)SocketAddress.java	1.6 05/11/17
+ * Copyright (c) 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.net;
 
@@ -10,14 +28,14 @@ package java.net;
 /**
  *
  * This class represents a Socket Address with no protocol attachment.
- * As an abstract class, it is meant to be subclassed with a specific, 
+ * As an abstract class, it is meant to be subclassed with a specific,
  * protocol dependent, implementation.
  * <p>
  * It provides an immutable object used by sockets for binding, connecting, or
  * as returned values.
  *
- * @see	java.net.Socket
- * @see	java.net.ServerSocket
+ * @see java.net.Socket
+ * @see java.net.ServerSocket
  * @since 1.4
  */
 public abstract class SocketAddress implements java.io.Serializable {

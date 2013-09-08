@@ -1,8 +1,7 @@
 /*
- * @(#)TraceImplementation.java	1.18 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.jmx.trace;
@@ -12,41 +11,42 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * Example implementation of the {@link TraceDestination} interface. 
+ * Example implementation of the {@link TraceDestination} interface.
  * <br>
- * This implementation sends log records to a file (specified by the value of the 
+ * This implementation sends log records to a file (specified by the value of the
  * <code>com.sun.jmx.trace.file</code> system property) or to the system
- * console if no file is specified. 
+ * console if no file is specified.
  * <br>
  * The log level is specified by the value of system property
  * <code>com.sun.jmx.trace.level</code>, which can be : <code>DEBUG</code>,
  * <code>TRACE</code>, <code>ERROR</code>. If no trace level is specified, the
- * default is <code>ERROR</code>.  
+ * default is <code>ERROR</code>.
  * <br>
  * Note that this implementation does not provide any filtering based on the log
  * types. More precisely, the implementation of method {@link #isSelected} only
- * checks the provided log level.   
+ * checks the provided log level.
  *
  * @since 1.5
  */
+@Deprecated
 public class TraceImplementation implements TraceDestination
 {
   // output stream
   //
   private PrintWriter out;
-  
+
   // log level
   //
   private int level;
 
-  static TraceImplementation newDestination(int level) 
+  static TraceImplementation newDestination(int level)
   {
       try {
-	  final TraceImplementation impl = new TraceImplementation();
-	  impl.level = level;
-	  return impl;
+          final TraceImplementation impl = new TraceImplementation();
+          impl.level = level;
+          return impl;
       } catch (IOException x) {
-	  return null;
+          return null;
       }
   }
 
@@ -116,7 +116,7 @@ public class TraceImplementation implements TraceDestination
       {
         this.level = TraceTags.LEVEL_TRACE;
       }
-      else 
+      else
       {
         this.level = TraceTags.LEVEL_ERROR;
       }
@@ -152,7 +152,7 @@ public class TraceImplementation implements TraceDestination
   {
     if (isSelected(level, type))
     {
-      out.println(((className!=null)?"Class:  " + className:"")+ 
+      out.println(((className!=null)?"Class:  " + className:"")+
                   ((methodName!=null)?"\nMethod: " + methodName:"") +
                   "\n\tlevel:   " + getLevel(level) +
                   "\n\ttype:    " + getType(type) +
@@ -162,7 +162,7 @@ public class TraceImplementation implements TraceDestination
     }
     return false;
   }
-  
+
   /**
    * @see TraceDestination#send(int, int, String, String, Throwable)
    */
@@ -172,18 +172,18 @@ public class TraceImplementation implements TraceDestination
                       String methodName,
                       Throwable exception)
   {
-      final boolean result = send(level, type, className, methodName, 
-				  exception.toString());
-      if (result) 
-	  exception.printStackTrace(out);
-      
+      final boolean result = send(level, type, className, methodName,
+                                  exception.toString());
+      if (result)
+          exception.printStackTrace(out);
+
       return result;
   }
 
   /**
    * Not implemented.
    *
-   * @see TraceDestination#reset 
+   * @see TraceDestination#reset
    **/
   public void reset() throws IOException
   {
@@ -191,13 +191,13 @@ public class TraceImplementation implements TraceDestination
   }
 
   /**
-   * Return the string representation of a trace type, as defined in 
-   * {@link TraceTags} 
+   * Return the string representation of a trace type, as defined in
+   * {@link TraceTags}
    */
   private static String getType(int type) {
-       
+
     switch (type) {
-    
+
     case TraceTags.INFO_MBEANSERVER:
       return "INFO_MBEANSERVER";
 
@@ -224,7 +224,7 @@ public class TraceImplementation implements TraceDestination
 
     case TraceTags.INFO_RELATION:
       return "INFO_RELATION";
-   
+
     case TraceTags.INFO_MODELMBEAN:
       return "INFO_MODELMBEAN";
 
@@ -234,13 +234,13 @@ public class TraceImplementation implements TraceDestination
   }
 
   /**
-   * Return the string representation of a trace level, as defined in 
-   * {@link TraceTags} 
+   * Return the string representation of a trace level, as defined in
+   * {@link TraceTags}
    */
   private static String getLevel(int level) {
-    
+
     switch (level) {
-    
+
     case TraceTags.LEVEL_ERROR:
       return "LEVEL_ERROR";
 

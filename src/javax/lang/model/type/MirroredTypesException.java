@@ -1,18 +1,36 @@
 /*
- * @(#)MirroredTypesException.java	1.4 06/07/31
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.type;
-
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Collections;
-
+import java.io.ObjectInputStream;
+import java.io.IOException;
 import javax.lang.model.element.Element;
 
 
@@ -23,7 +41,6 @@ import javax.lang.model.element.Element;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/07/31
  * @see MirroredTypeException
  * @see Element#getAnnotation(Class)
  * @since 1.6
@@ -32,17 +49,28 @@ public class MirroredTypesException extends RuntimeException {
 
     private static final long serialVersionUID = 269;
 
-    // Should this be non-final for a custum readObject method?
-    private final transient List<? extends TypeMirror> types;	// cannot be serialized
-    
+    transient List<? extends TypeMirror> types; // cannot be serialized
+
+    /*
+     * Trusted constructor to be called by MirroredTypeException.
+     */
+    MirroredTypesException(String message, TypeMirror type) {
+        super(message);
+        List<TypeMirror> tmp = (new ArrayList<TypeMirror>());
+        tmp.add(type);
+        types = Collections.unmodifiableList(tmp);
+    }
+
     /**
      * Constructs a new MirroredTypesException for the specified types.
      *
      * @param types  the types being accessed
      */
     public MirroredTypesException(List<? extends TypeMirror> types) {
-	super("Attempt to access Class objects for TypeMirrors " + types);
-	this.types = Collections.unmodifiableList(types);
+        super("Attempt to access Class objects for TypeMirrors " +
+              (types = // defensive copy
+               new ArrayList<TypeMirror>(types)).toString() );
+        this.types = Collections.unmodifiableList(types);
     }
 
     /**
@@ -53,6 +81,15 @@ public class MirroredTypesException extends RuntimeException {
      * @return the type mirrors in construction order, or {@code null} if unavailable
      */
     public List<? extends TypeMirror> getTypeMirrors() {
-	return types;
+        return types;
+    }
+
+    /**
+     * Explicitly set all transient fields.
+     */
+    private void readObject(ObjectInputStream s)
+        throws IOException, ClassNotFoundException {
+        s.defaultReadObject();
+        types = null;
     }
 }

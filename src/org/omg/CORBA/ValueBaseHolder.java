@@ -1,8 +1,26 @@
 /*
- * @(#)ValueBaseHolder.java	1.13 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -12,7 +30,7 @@ import org.omg.CORBA.portable.InputStream;
 import org.omg.CORBA.portable.OutputStream;
 
 /**
- * The Holder for <tt>ValueBase</tt>.  For more information on 
+ * The Holder for <tt>ValueBase</tt>.  For more information on
  * Holder files, see <a href="doc-files/generatedfiles.html#holder">
  * "Generated Files: Holder Files"</a>.<P>
  * A Holder class for a <code>java.io.Serializable</code>
@@ -33,7 +51,7 @@ import org.omg.CORBA.portable.OutputStream;
 public final class ValueBaseHolder implements Streamable {
 
     /**
-     * The <code>java.io.Serializable</code> value held by this 
+     * The <code>java.io.Serializable</code> value held by this
      * <code>ValueBaseHolder</code> object.
      */
     public java.io.Serializable value;
@@ -54,7 +72,7 @@ public final class ValueBaseHolder implements Streamable {
      *                <code>ValueBaseHolder</code> object
      */
     public ValueBaseHolder(java.io.Serializable initial) {
-	value = initial;
+        value = initial;
     }
 
     /**
@@ -64,7 +82,7 @@ public final class ValueBaseHolder implements Streamable {
      * @param input the InputStream containing CDR formatted data from the wire
      */
     public void _read(InputStream input) {
-	value = ((org.omg.CORBA_2_3.portable.InputStream)input).read_value();
+        value = ((org.omg.CORBA_2_3.portable.InputStream)input).read_value();
     }
 
     /**
@@ -73,17 +91,17 @@ public final class ValueBaseHolder implements Streamable {
      * @param output the OutputStream which will contain the CDR formatted data
      */
     public void _write(OutputStream output) {
-	((org.omg.CORBA_2_3.portable.OutputStream)output).write_value(value);
+        ((org.omg.CORBA_2_3.portable.OutputStream)output).write_value(value);
     }
 
     /**
-     * Returns the <code>TypeCode</code> object 
+     * Returns the <code>TypeCode</code> object
      * corresponding to the value held in the Holder.
      *
      * @return    the TypeCode of the value held in the holder
      */
     public org.omg.CORBA.TypeCode _type() {
-	return ORB.init().get_primitive_tc(TCKind.tk_value);
+        return ORB.init().get_primitive_tc(TCKind.tk_value);
     }
 
 }

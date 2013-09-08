@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -69,7 +73,11 @@ package com.sun.org.apache.xerces.internal.xni;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: QName.java,v 1.2 2005/08/16 22:55:28 jeffsuttor Exp $
+ * Better performance patch for the equals method by Daniel Petersson: refer to jaxp issue 61;
+ * == were used to compare strings
+ * @author Joe Wang, Oracle
+ *
+ * @version $Id: QName.java,v 1.6 2010/03/18 19:32:31 joehw Exp $
  */
 public class QName
 implements Cloneable {
@@ -182,13 +190,17 @@ implements Cloneable {
 
     /** Returns true if the two objects are equal. */
     public boolean equals(Object object) {
-        if (object instanceof QName) {
+        if (object == this) {
+            return true;
+        }
+
+        if (object != null && object instanceof QName) {
             QName qname = (QName)object;
             if (qname.uri != null) {
-                return uri == qname.uri && localpart == qname.localpart;
+                    return qname.localpart.equals(localpart) && qname.uri.equals(uri);
             }
             else if (uri == null) {
-                return rawname == qname.rawname;
+                return rawname.equals(qname.rawname);
             }
             // fall through and return not equal
         }

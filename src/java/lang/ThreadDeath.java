@@ -1,35 +1,51 @@
 /*
- * @(#)ThreadDeath.java	1.16 05/11/17
+ * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 /**
- * An instance of <code>ThreadDeath</code> is thrown in the victim 
- * thread when the <code>stop</code> method with zero arguments in 
- * class <code>Thread</code> is called. 
- * <p>
- * An application should catch instances of this class only if it 
- * must clean up after being terminated asynchronously. If 
- * <code>ThreadDeath</code> is caught by a method, it is important 
- * that it be rethrown so that the thread actually dies. 
- * <p>
- * The top-level error handler does not print out a message if 
- * <code>ThreadDeath</code> is never caught. 
- * <p>
- * The class <code>ThreadDeath</code> is specifically a subclass of 
- * <code>Error</code> rather than <code>Exception</code>, even though 
- * it is a "normal occurrence", because many applications 
- * catch all occurrences of <code>Exception</code> and then discard 
- * the exception. 
+ * An instance of {@code ThreadDeath} is thrown in the victim thread
+ * when the (deprecated) {@link Thread#stop()} method is invoked.
  *
- * @author unascribed
- * @version 1.16, 11/17/05
- * @see     java.lang.Thread#stop()
+ * <p>An application should catch instances of this class only if it
+ * must clean up after being terminated asynchronously.  If
+ * {@code ThreadDeath} is caught by a method, it is important that it
+ * be rethrown so that the thread actually dies.
+ *
+ * <p>The {@linkplain ThreadGroup#uncaughtException top-level error
+ * handler} does not print out a message if {@code ThreadDeath} is
+ * never caught.
+ *
+ * <p>The class {@code ThreadDeath} is specifically a subclass of
+ * {@code Error} rather than {@code Exception}, even though it is a
+ * "normal occurrence", because many applications catch all
+ * occurrences of {@code Exception} and then discard the exception.
+ *
  * @since   JDK1.0
  */
 
-public class ThreadDeath extends Error {}
+public class ThreadDeath extends Error {
+    private static final long serialVersionUID = -4417128565033088268L;
+}

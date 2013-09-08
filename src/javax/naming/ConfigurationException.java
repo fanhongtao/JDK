@@ -1,8 +1,26 @@
 /*
- * @(#)ConfigurationException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -24,7 +42,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
 public class ConfigurationException extends NamingException {
@@ -32,12 +49,12 @@ public class ConfigurationException extends NamingException {
      * Constructs a new instance of ConfigurationException using an
      * explanation. All other fields default to null.
      *
-     * @param	explanation	A possibly null string containing
-     *				additional detail about this exception.
+     * @param   explanation     A possibly null string containing
+     *                          additional detail about this exception.
      * @see java.lang.Throwable#getMessage
      */
     public ConfigurationException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -45,7 +62,7 @@ public class ConfigurationException extends NamingException {
       * all name resolution fields and explanation initialized to null.
       */
     public ConfigurationException() {
-	super();
+        super();
     }
 
     /**

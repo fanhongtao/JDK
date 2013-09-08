@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,15 +25,15 @@ package com.sun.org.apache.xml.internal.utils;
 /**
  * A very simple table that stores a list of int. Very similar API to our
  * IntVector class (same API); different internal storage.
- * 
+ *
  * This version uses an array-of-arrays solution. Read/write access is thus
  * a bit slower than the simple IntVector, and basic storage is a trifle
  * higher due to the top-level array -- but appending is O(1) fast rather
  * than O(N**2) slow, which will swamp those costs in situations where
  * long vectors are being built up.
- * 
+ *
  * Known issues:
- * 
+ *
  * Some methods are private because they haven't yet been tested properly.
  *
  * Retrieval performance is critical, since this is used at the core
@@ -45,13 +49,13 @@ public class SuballocatedIntVector
 
   /** Bitwise addressing (much faster than div/remainder */
   protected int m_SHIFT, m_MASK;
-  
+
   /** The default number of blocks to (over)allocate by */
   protected static final int NUMBLOCKS_DEFAULT = 32;
-  
+
   /** The number of blocks to (over)allocate by */
   protected int m_numblocks = NUMBLOCKS_DEFAULT;
-  
+
   /** Array of arrays of ints          */
   protected int m_map[][];
 
@@ -81,7 +85,7 @@ public class SuballocatedIntVector
 
   /**
    * Construct a IntVector, using the given block size and number
-   * of blocks. For efficiency, we will round the requested size 
+   * of blocks. For efficiency, we will round the requested size
    * off to a power of two.
    *
    * @param blocksize Size of block to allocate
@@ -95,14 +99,14 @@ public class SuballocatedIntVector
     m_blocksize=1<<m_SHIFT;
     m_MASK=m_blocksize-1;
     m_numblocks = numblocks;
-    	
+
     m_map0=new int[m_blocksize];
     m_map = new int[numblocks][];
     m_map[0]=m_map0;
     m_buildCache = m_map0;
     m_buildCacheStartIndex = 0;
   }
-	
+
   /** Construct a IntVector, using the given block size and
    * the default number of blocks (32).
    *
@@ -122,7 +126,7 @@ public class SuballocatedIntVector
   {
     return m_firstFree;
   }
-  
+
   /**
    * Set the length of the list. This will only work to truncate the list, and
    * even then it has not been heavily tested and may not be trustworthy.
@@ -138,7 +142,7 @@ public class SuballocatedIntVector
   /**
    * Append a int onto the vector.
    *
-   * @param value Int to add to the list 
+   * @param value Int to add to the list
    */
   public  void addElement(int value)
   {
@@ -161,14 +165,14 @@ public class SuballocatedIntVector
 
       if(index>=m_map.length)
       {
-	int newsize=index+m_numblocks;
-	int[][] newMap=new int[newsize][];
-	System.arraycopy(m_map, 0, newMap, 0, m_map.length);
-	m_map=newMap;
+        int newsize=index+m_numblocks;
+        int[][] newMap=new int[newsize][];
+        System.arraycopy(m_map, 0, newMap, 0, m_map.length);
+        m_map=newMap;
       }
       int[] block=m_map[index];
       if(null==block)
-	block=m_map[index]=new int[m_blocksize];
+        block=m_map[index]=new int[m_blocksize];
       block[offset]=value;
 
       // Cache the current row of m_map.  Next m_blocksize-1
@@ -183,12 +187,12 @@ public class SuballocatedIntVector
   /**
    * Append several int values onto the vector.
    *
-   * @param value Int to add to the list 
+   * @param value Int to add to the list
    */
   private  void addElements(int value, int numberOfElements)
   {
     if(m_firstFree+numberOfElements<m_blocksize)
-      for (int i = 0; i < numberOfElements; i++) 
+      for (int i = 0; i < numberOfElements; i++)
       {
         m_map0[m_firstFree++]=value;
       }
@@ -219,12 +223,12 @@ public class SuballocatedIntVector
       }
     }
   }
-  
+
   /**
    * Append several slots onto the vector, but do not set the values.
    * Note: "Not Set" means the value is unspecified.
    *
-   * @param numberOfElements Int to add to the list 
+   * @param numberOfElements Int to add to the list
    */
   private  void addElements(int numberOfElements)
   {
@@ -238,7 +242,7 @@ public class SuballocatedIntVector
     }
     m_firstFree=newlen;
   }
-  
+
   /**
    * Inserts the specified node in this vector at the specified index.
    * Each component in this vector with an index greater or equal to
@@ -248,7 +252,7 @@ public class SuballocatedIntVector
    * Insertion may be an EXPENSIVE operation!
    *
    * @param value Int to insert
-   * @param at Index of where to insert 
+   * @param at Index of where to insert
    */
   private  void insertElementAt(int value, int at)
   {
@@ -278,7 +282,7 @@ public class SuballocatedIntVector
       ++m_firstFree;
       int offset=at&m_MASK;
       int push;
-      
+
       // ***** Easier to work down from top?
       while(index<=maxindex)
       {
@@ -342,13 +346,13 @@ public class SuballocatedIntVector
    */
   private  void removeElementAt(int at)
   {
-        // No point in removing elements that "don't exist"...  
+        // No point in removing elements that "don't exist"...
     if(at<m_firstFree)
     {
       int index=at>>>m_SHIFT;
       int maxindex=m_firstFree>>>m_SHIFT;
       int offset=at&m_MASK;
-      
+
       while(index<=maxindex)
       {
         int copylen=m_blocksize-offset-1;
@@ -390,25 +394,25 @@ public class SuballocatedIntVector
     {
       int index=at>>>m_SHIFT;
       int offset=at&m_MASK;
-        
+
       if(index>=m_map.length)
       {
-	int newsize=index+m_numblocks;
-	int[][] newMap=new int[newsize][];
-	System.arraycopy(m_map, 0, newMap, 0, m_map.length);
-	m_map=newMap;
+        int newsize=index+m_numblocks;
+        int[][] newMap=new int[newsize][];
+        System.arraycopy(m_map, 0, newMap, 0, m_map.length);
+        m_map=newMap;
       }
 
       int[] block=m_map[index];
       if(null==block)
-	block=m_map[index]=new int[m_blocksize];
+        block=m_map[index]=new int[m_blocksize];
       block[offset]=value;
     }
 
     if(at>=m_firstFree)
       m_firstFree=at+1;
   }
-  
+
 
   /**
    * Get the nth element. This is often at the innermost loop of an
@@ -467,12 +471,12 @@ public class SuballocatedIntVector
   {
         if(index>=m_firstFree)
                 return -1;
-          
+
     int bindex=index>>>m_SHIFT;
     int boffset=index&m_MASK;
     int maxindex=m_firstFree>>>m_SHIFT;
     int[] block;
-    
+
     for(;bindex<maxindex;++bindex)
     {
       block=m_map[bindex];
@@ -489,7 +493,7 @@ public class SuballocatedIntVector
       if(block[offset]==elem)
         return offset+maxindex*m_blocksize;
 
-    return -1;    
+    return -1;
   }
 
   /**
@@ -533,7 +537,7 @@ public class SuballocatedIntVector
     }
     return -1;
   }
-  
+
   /**
    * Return the internal m_map0 array
    * @return the m_map0 array
@@ -542,14 +546,14 @@ public class SuballocatedIntVector
   {
     return m_map0;
   }
-  
+
   /**
    * Return the m_map double array
-   * @return the internal map of array of arrays 
+   * @return the internal map of array of arrays
    */
   public final int[][] getMap()
   {
     return m_map;
   }
-  
+
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +39,7 @@ public class ChildTestIterator extends BasicTestIterator
     static final long serialVersionUID = -7936835957960705722L;
   /** The traverser to use to navigate over the descendants. */
   transient protected DTMAxisTraverser m_traverser;
-  
+
   /** The extended type ID, not set until setRoot. */
 //  protected int m_extendedTypeID;
 
@@ -54,7 +58,7 @@ public class ChildTestIterator extends BasicTestIterator
   {
     super(compiler, opPos, analysis);
   }
-  
+
   /**
    * Create a ChildTestIterator object.
    *
@@ -75,7 +79,7 @@ public class ChildTestIterator extends BasicTestIterator
    * @return The next node on the axis, or DTM.NULL.
    */
   protected int getNextNode()
-  {                     
+  {
     if(true /* 0 == m_extendedTypeID */)
     {
       m_lastFetched = (DTM.NULL == m_lastFetched)
@@ -86,20 +90,20 @@ public class ChildTestIterator extends BasicTestIterator
 //    {
 //      m_lastFetched = (DTM.NULL == m_lastFetched)
 //                   ? m_traverser.first(m_context, m_extendedTypeID)
-//                   : m_traverser.next(m_context, m_lastFetched, 
+//                   : m_traverser.next(m_context, m_lastFetched,
 //                                      m_extendedTypeID);
 //    }
 
     return m_lastFetched;
   }
 
-  
+
   /**
    *  Get a cloned Iterator that is reset to the beginning
    *  of the query.
-   * 
+   *
    *  @return A cloned NodeIterator set of the start of the query.
-   * 
+   *
    *  @throws CloneNotSupportedException
    */
   public DTMIterator cloneWithReset() throws CloneNotSupportedException
@@ -110,7 +114,7 @@ public class ChildTestIterator extends BasicTestIterator
 
     return clone;
   }
-  
+
 
   /**
    * Initialize the context values for this expression
@@ -123,7 +127,7 @@ public class ChildTestIterator extends BasicTestIterator
   {
     super.setRoot(context, environment);
     m_traverser = m_cdtm.getAxisTraverser(Axis.CHILD);
-    
+
 //    String localName = getLocalName();
 //    String namespace = getNamespace();
 //    int what = m_whatToShow;
@@ -141,13 +145,13 @@ public class ChildTestIterator extends BasicTestIterator
 //      int type = getNodeTypeTest(what);
 //      m_extendedTypeID = m_cdtm.getExpandedTypeID(namespace, localName, type);
 //    }
-    
+
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
@@ -163,11 +167,11 @@ public class ChildTestIterator extends BasicTestIterator
    * exception INVALID_STATE_ERR.
    */
   public void detach()
-  {   
+  {
     if(m_allowDetach)
     {
       m_traverser = null;
-      
+
       // Always call the superclass detach last!
       super.detach();
     }

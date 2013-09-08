@@ -1,14 +1,32 @@
 /*
- * @(#)NamingSecurityException.java	1.9 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
 
 /**
-  * This is the superclass of security-related exceptions 
+  * This is the superclass of security-related exceptions
   * thrown by operations in the Context and DirContext interfaces.
   * The nature of the failure is described by the name of the subclass.
   *<p>
@@ -23,7 +41,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.9 05/11/17
   * @since 1.3
   */
 
@@ -32,11 +49,11 @@ public abstract class NamingSecurityException extends NamingException {
      * Constructs a new instance of NamingSecurityException using the
      * explanation supplied. All other fields default to null.
      *
-     * @param	explanation	Possibly null additional detail about this exception.
+     * @param   explanation     Possibly null additional detail about this exception.
      * @see java.lang.Throwable#getMessage
      */
     public NamingSecurityException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -44,7 +61,7 @@ public abstract class NamingSecurityException extends NamingException {
       * All fields are initialized to null.
       */
     public NamingSecurityException() {
-	super();
+        super();
     }
 
     /**

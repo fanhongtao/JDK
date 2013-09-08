@@ -1,11 +1,25 @@
 /*
- * @(#)file      SnmpStringFixed.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.11
- * @(#)date      06/11/29
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -13,24 +27,22 @@
 package com.sun.jmx.snmp;
 
 
-// @(#)SnmpStringFixed.java 4.11 05/11/17 SMI
 
 // java imports
 //
 import java.lang.Math;
 
 /**
- * Represents an SNMP String defined with a fixed length. 
+ * Represents an SNMP String defined with a fixed length.
  * The class is mainly used when dealing with table indexes for which one of the keys
  * is defined as a <CODE>String</CODE>.
  *
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
- * @version     4.11     11/17/05
- * @author      Sun Microsystems, Inc
  */
 
 public class SnmpStringFixed extends SnmpString {
+    private static final long serialVersionUID = -9120939046874646063L;
 
     // CONSTRUCTORS
     //-------------
@@ -78,7 +90,7 @@ public class SnmpStringFixed extends SnmpString {
             value[i] = 0 ;
         }
     }
-      
+
     /**
      * Constructs a new <CODE>SnmpStringFixed</CODE> from the specified <CODE>Bytes</CODE> array
      * with the specified length.
@@ -99,7 +111,7 @@ public class SnmpStringFixed extends SnmpString {
             value[i] = 0 ;
         }
     }
-      
+
     /**
      * Constructs a new <CODE>SnmpStringFixed</CODE> from the specified <CODE>String</CODE>
      * with the specified length.
@@ -121,7 +133,7 @@ public class SnmpStringFixed extends SnmpString {
             value[i] = 0 ;
         }
     }
-      
+
     // PUBLIC METHODS
     //---------------
     /**
@@ -152,7 +164,7 @@ public class SnmpStringFixed extends SnmpString {
     /**
      * Scans an index OID, skip the string value and returns the position
      * of the next value.
-     * @param l The number of successive array elements to be passed 
+     * @param l The number of successive array elements to be passed
      * in order to get the position of the next value.
      * These elements are passed starting at the <CODE>start</CODE> position.
      * @param index The index array.

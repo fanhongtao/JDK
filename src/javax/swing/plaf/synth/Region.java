@@ -1,8 +1,26 @@
 /*
- * @(#)Region.java	1.36 09/06/17
+ * Copyright (c) 2002, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
@@ -20,8 +38,8 @@ import javax.swing.UIDefaults;
  * by the typesafe enumeration in this class.
  * <p>
  * Regions are typically used as a way to identify the <code>Component</code>s
- * and areas a particular style is to apply to. Synth's file format allows you 
- * to bind styles based on the name of a <code>Region</code>.  
+ * and areas a particular style is to apply to. Synth's file format allows you
+ * to bind styles based on the name of a <code>Region</code>.
  * The name is derived from the field name of the constant:
  * <ol>
  *  <li>Map all characters to lowercase.
@@ -31,7 +49,7 @@ import javax.swing.UIDefaults;
  * </ol>
  * For example, to identify the <code>SPLIT_PANE</code>
  * <code>Region</code> you would use <code>SplitPane</code>.
- * The following shows a custom <code>SynthStyleFactory</code> 
+ * The following shows a custom <code>SynthStyleFactory</code>
  * that returns a specific style for split panes:
  * <pre>
  *    public SynthStyle getStyle(JComponent c, Region id) {
@@ -50,152 +68,152 @@ import javax.swing.UIDefaults;
  * &lt;bind style="splitPaneStyle" type="region" key="SplitPane"/>
  * </pre>
  *
- * @version 1.36, 06/17/09
  * @since 1.5
  * @author Scott Violet
  */
 public class Region {
-    
     private static final Object UI_TO_REGION_MAP_KEY = new Object();
-    private static final Object LOWER_CASE_NAME_MAP_KEY = new Object();   
-    
+    private static final Object LOWER_CASE_NAME_MAP_KEY = new Object();
+
     /**
      * ArrowButton's are special types of buttons that also render a
-     * directional indicator, typically an arrow. ArrowButtons are used by 
+     * directional indicator, typically an arrow. ArrowButtons are used by
      * composite components, for example ScrollBar's contain ArrowButtons.
-     * To bind a style to this <code>Region</code> use the name 
+     * To bind a style to this <code>Region</code> use the name
      * <code>ArrowButton</code>.
      */
     public static final Region ARROW_BUTTON = new Region("ArrowButton", false);
 
     /**
-     * Button region. To bind a style to this <code>Region</code> use the name 
+     * Button region. To bind a style to this <code>Region</code> use the name
      * <code>Button</code>.
      */
     public static final Region BUTTON = new Region("Button", false);
 
     /**
-     * CheckBox region. To bind a style to this <code>Region</code> use the name 
-     * <code>CheckBox</code>. 
+     * CheckBox region. To bind a style to this <code>Region</code> use the name
+     * <code>CheckBox</code>.
      */
     public static final Region CHECK_BOX = new Region("CheckBox", false);
 
     /**
-     * CheckBoxMenuItem region. To bind a style to this <code>Region</code> use 
+     * CheckBoxMenuItem region. To bind a style to this <code>Region</code> use
      * the name <code>CheckBoxMenuItem</code>.
      */
     public static final Region CHECK_BOX_MENU_ITEM = new Region("CheckBoxMenuItem", false);
 
     /**
-     * ColorChooser region. To bind a style to this <code>Region</code> use 
+     * ColorChooser region. To bind a style to this <code>Region</code> use
      * the name <code>ColorChooser</code>.
      */
     public static final Region COLOR_CHOOSER = new Region("ColorChooser", false);
 
     /**
-     * ComboBox region. To bind a style to this <code>Region</code> use 
+     * ComboBox region. To bind a style to this <code>Region</code> use
      * the name <code>ComboBox</code>.
      */
     public static final Region COMBO_BOX = new Region("ComboBox", false);
 
     /**
-     * DesktopPane region. To bind a style to this <code>Region</code> use 
+     * DesktopPane region. To bind a style to this <code>Region</code> use
      * the name <code>DesktopPane</code>.
      */
     public static final Region DESKTOP_PANE = new Region("DesktopPane", false);
+
     /**
-     * DesktopIcon region. To bind a style to this <code>Region</code> use 
+     * DesktopIcon region. To bind a style to this <code>Region</code> use
      * the name <code>DesktopIcon</code>.
      */
     public static final Region DESKTOP_ICON = new Region("DesktopIcon", false);
 
     /**
-     * EditorPane region. To bind a style to this <code>Region</code> use 
+     * EditorPane region. To bind a style to this <code>Region</code> use
      * the name <code>EditorPane</code>.
      */
     public static final Region EDITOR_PANE = new Region("EditorPane", false);
 
     /**
-     * FileChooser region. To bind a style to this <code>Region</code> use 
+     * FileChooser region. To bind a style to this <code>Region</code> use
      * the name <code>FileChooser</code>.
      */
     public static final Region FILE_CHOOSER = new Region("FileChooser", false);
 
     /**
-     * FormattedTextField region. To bind a style to this <code>Region</code> use 
+     * FormattedTextField region. To bind a style to this <code>Region</code> use
      * the name <code>FormattedTextField</code>.
      */
     public static final Region FORMATTED_TEXT_FIELD = new Region("FormattedTextField", false);
 
     /**
-     * InternalFrame region. To bind a style to this <code>Region</code> use 
+     * InternalFrame region. To bind a style to this <code>Region</code> use
      * the name <code>InternalFrame</code>.
      */
     public static final Region INTERNAL_FRAME = new Region("InternalFrame", false);
+
     /**
-     * TitlePane of an InternalFrame. The TitlePane typically 
-     * shows a menu, title, widgets to manipulate the internal frame. 
-     * To bind a style to this <code>Region</code> use the name 
+     * TitlePane of an InternalFrame. The TitlePane typically
+     * shows a menu, title, widgets to manipulate the internal frame.
+     * To bind a style to this <code>Region</code> use the name
      * <code>InternalFrameTitlePane</code>.
      */
     public static final Region INTERNAL_FRAME_TITLE_PANE = new Region("InternalFrameTitlePane", false);
 
     /**
-     * Label region. To bind a style to this <code>Region</code> use the name 
+     * Label region. To bind a style to this <code>Region</code> use the name
      * <code>Label</code>.
      */
     public static final Region LABEL = new Region("Label", false);
 
     /**
-     * List region. To bind a style to this <code>Region</code> use the name 
-     * <code>List</code>. 
+     * List region. To bind a style to this <code>Region</code> use the name
+     * <code>List</code>.
      */
     public static final Region LIST = new Region("List", false);
 
     /**
-     * Menu region. To bind a style to this <code>Region</code> use the name 
+     * Menu region. To bind a style to this <code>Region</code> use the name
      * <code>Menu</code>.
      */
     public static final Region MENU = new Region("Menu", false);
 
     /**
-     * MenuBar region. To bind a style to this <code>Region</code> use the name 
+     * MenuBar region. To bind a style to this <code>Region</code> use the name
      * <code>MenuBar</code>.
      */
     public static final Region MENU_BAR = new Region("MenuBar", false);
 
     /**
-     * MenuItem region. To bind a style to this <code>Region</code> use the name 
+     * MenuItem region. To bind a style to this <code>Region</code> use the name
      * <code>MenuItem</code>.
      */
     public static final Region MENU_ITEM = new Region("MenuItem", false);
 
     /**
-     * Accelerator region of a MenuItem. To bind a style to this 
+     * Accelerator region of a MenuItem. To bind a style to this
      * <code>Region</code> use the name <code>MenuItemAccelerator</code>.
      */
     public static final Region MENU_ITEM_ACCELERATOR = new Region("MenuItemAccelerator", true);
 
     /**
-     * OptionPane region. To bind a style to this <code>Region</code> use 
+     * OptionPane region. To bind a style to this <code>Region</code> use
      * the name <code>OptionPane</code>.
      */
     public static final Region OPTION_PANE = new Region("OptionPane", false);
 
     /**
-     * Panel region. To bind a style to this <code>Region</code> use the name 
+     * Panel region. To bind a style to this <code>Region</code> use the name
      * <code>Panel</code>.
      */
     public static final Region PANEL = new Region("Panel", false);
 
     /**
-     * PasswordField region. To bind a style to this <code>Region</code> use 
+     * PasswordField region. To bind a style to this <code>Region</code> use
      * the name <code>PasswordField</code>.
      */
     public static final Region PASSWORD_FIELD = new Region("PasswordField", false);
 
     /**
-     * PopupMenu region. To bind a style to this <code>Region</code> use 
+     * PopupMenu region. To bind a style to this <code>Region</code> use
      * the name <code>PopupMenu</code>.
      */
     public static final Region POPUP_MENU = new Region("PopupMenu", false);
@@ -225,54 +243,58 @@ public class Region {
     public static final Region RADIO_BUTTON_MENU_ITEM = new Region("RadioButtonMenuItem", false);
 
     /**
-     * RootPane region. To bind a style to this <code>Region</code> use 
+     * RootPane region. To bind a style to this <code>Region</code> use
      * the name <code>RootPane</code>.
      */
     public static final Region ROOT_PANE = new Region("RootPane", false);
 
     /**
-     * ScrollBar region. To bind a style to this <code>Region</code> use 
+     * ScrollBar region. To bind a style to this <code>Region</code> use
      * the name <code>ScrollBar</code>.
      */
     public static final Region SCROLL_BAR = new Region("ScrollBar", false);
+
     /**
-     * Track of the ScrollBar. To bind a style to this <code>Region</code> use 
+     * Track of the ScrollBar. To bind a style to this <code>Region</code> use
      * the name <code>ScrollBarTrack</code>.
      */
     public static final Region SCROLL_BAR_TRACK = new Region("ScrollBarTrack", true);
+
     /**
-     * Thumb of the ScrollBar. The thumb is the region of the ScrollBar 
-     * that gives a graphical depiction of what percentage of the View is 
-     * currently visible. To bind a style to this <code>Region</code> use 
+     * Thumb of the ScrollBar. The thumb is the region of the ScrollBar
+     * that gives a graphical depiction of what percentage of the View is
+     * currently visible. To bind a style to this <code>Region</code> use
      * the name <code>ScrollBarThumb</code>.
      */
     public static final Region SCROLL_BAR_THUMB = new Region("ScrollBarThumb", true);
 
     /**
-     * ScrollPane region. To bind a style to this <code>Region</code> use 
+     * ScrollPane region. To bind a style to this <code>Region</code> use
      * the name <code>ScrollPane</code>.
      */
     public static final Region SCROLL_PANE = new Region("ScrollPane", false);
 
     /**
-     * Separator region. To bind a style to this <code>Region</code> use 
-     * the name <code>Separator</code>. 
+     * Separator region. To bind a style to this <code>Region</code> use
+     * the name <code>Separator</code>.
      */
     public static final Region SEPARATOR = new Region("Separator", false);
 
     /**
-     * Slider region. To bind a style to this <code>Region</code> use 
+     * Slider region. To bind a style to this <code>Region</code> use
      * the name <code>Slider</code>.
      */
     public static final Region SLIDER = new Region("Slider", false);
+
     /**
-     * Track of the Slider. To bind a style to this <code>Region</code> use 
+     * Track of the Slider. To bind a style to this <code>Region</code> use
      * the name <code>SliderTrack</code>.
      */
     public static final Region SLIDER_TRACK = new Region("SliderTrack", true);
+
     /**
-     * Thumb of the Slider. The thumb of the Slider identifies the current 
-     * value. To bind a style to this <code>Region</code> use the name 
+     * Thumb of the Slider. The thumb of the Slider identifies the current
+     * value. To bind a style to this <code>Region</code> use the name
      * <code>SliderThumb</code>.
      */
     public static final Region SLIDER_THUMB = new Region("SliderThumb", true);
@@ -290,115 +312,118 @@ public class Region {
     public static final Region SPLIT_PANE = new Region("SplitPane", false);
 
     /**
-     * Divider of the SplitPane. To bind a style to this <code>Region</code> 
+     * Divider of the SplitPane. To bind a style to this <code>Region</code>
      * use the name <code>SplitPaneDivider</code>.
      */
     public static final Region SPLIT_PANE_DIVIDER = new Region("SplitPaneDivider", true);
 
     /**
-     * TabbedPane region. To bind a style to this <code>Region</code> use 
+     * TabbedPane region. To bind a style to this <code>Region</code> use
      * the name <code>TabbedPane</code>.
      */
     public static final Region TABBED_PANE = new Region("TabbedPane", false);
+
     /**
-     * Region of a TabbedPane for one tab. To bind a style to this 
+     * Region of a TabbedPane for one tab. To bind a style to this
      * <code>Region</code> use the name <code>TabbedPaneTab</code>.
      */
     public static final Region TABBED_PANE_TAB = new Region("TabbedPaneTab", true);
+
     /**
-     * Region of a TabbedPane containing the tabs. To bind a style to this 
+     * Region of a TabbedPane containing the tabs. To bind a style to this
      * <code>Region</code> use the name <code>TabbedPaneTabArea</code>.
      */
     public static final Region TABBED_PANE_TAB_AREA = new Region("TabbedPaneTabArea", true);
+
     /**
-     * Region of a TabbedPane containing the content. To bind a style to this 
+     * Region of a TabbedPane containing the content. To bind a style to this
      * <code>Region</code> use the name <code>TabbedPaneContent</code>.
      */
     public static final Region TABBED_PANE_CONTENT = new Region("TabbedPaneContent", true);
 
     /**
-     * Table region. To bind a style to this <code>Region</code> use 
+     * Table region. To bind a style to this <code>Region</code> use
      * the name <code>Table</code>.
      */
     public static final Region TABLE = new Region("Table", false);
 
     /**
-     * TableHeader region. To bind a style to this <code>Region</code> use 
+     * TableHeader region. To bind a style to this <code>Region</code> use
      * the name <code>TableHeader</code>.
      */
     public static final Region TABLE_HEADER = new Region("TableHeader", false);
+
     /**
-     * TextArea region. To bind a style to this <code>Region</code> use 
+     * TextArea region. To bind a style to this <code>Region</code> use
      * the name <code>TextArea</code>.
      */
     public static final Region TEXT_AREA = new Region("TextArea", false);
 
     /**
-     * TextField region. To bind a style to this <code>Region</code> use 
+     * TextField region. To bind a style to this <code>Region</code> use
      * the name <code>TextField</code>.
      */
     public static final Region TEXT_FIELD = new Region("TextField", false);
 
     /**
-     * TextPane region. To bind a style to this <code>Region</code> use 
+     * TextPane region. To bind a style to this <code>Region</code> use
      * the name <code>TextPane</code>.
      */
     public static final Region TEXT_PANE = new Region("TextPane", false);
 
     /**
-     * ToggleButton region. To bind a style to this <code>Region</code> use 
+     * ToggleButton region. To bind a style to this <code>Region</code> use
      * the name <code>ToggleButton</code>.
      */
     public static final Region TOGGLE_BUTTON = new Region("ToggleButton", false);
 
     /**
-     * ToolBar region. To bind a style to this <code>Region</code> use 
+     * ToolBar region. To bind a style to this <code>Region</code> use
      * the name <code>ToolBar</code>.
      */
     public static final Region TOOL_BAR = new Region("ToolBar", false);
+
     /**
-     * Region of the ToolBar containing the content. To bind a style to this 
+     * Region of the ToolBar containing the content. To bind a style to this
      * <code>Region</code> use the name <code>ToolBarContent</code>.
      */
     public static final Region TOOL_BAR_CONTENT = new Region("ToolBarContent", true);
+
     /**
-     * Region for the Window containing the ToolBar. To bind a style to this 
+     * Region for the Window containing the ToolBar. To bind a style to this
      * <code>Region</code> use the name <code>ToolBarDragWindow</code>.
      */
     public static final Region TOOL_BAR_DRAG_WINDOW = new Region("ToolBarDragWindow", false);
 
     /**
-     * ToolTip region. To bind a style to this <code>Region</code> use 
+     * ToolTip region. To bind a style to this <code>Region</code> use
      * the name <code>ToolTip</code>.
      */
     public static final Region TOOL_TIP = new Region("ToolTip", false);
 
     /**
-     * ToolBar separator region. To bind a style to this <code>Region</code> use 
+     * ToolBar separator region. To bind a style to this <code>Region</code> use
      * the name <code>ToolBarSeparator</code>.
      */
     public static final Region TOOL_BAR_SEPARATOR = new Region("ToolBarSeparator", false);
 
     /**
-     * Tree region. To bind a style to this <code>Region</code> use the name 
+     * Tree region. To bind a style to this <code>Region</code> use the name
      * <code>Tree</code>.
      */
     public static final Region TREE = new Region("Tree", false);
+
     /**
-     * Region of the Tree for one cell. To bind a style to this 
+     * Region of the Tree for one cell. To bind a style to this
      * <code>Region</code> use the name <code>TreeCell</code>.
      */
     public static final Region TREE_CELL = new Region("TreeCell", true);
 
     /**
-     * Viewport region. To bind a style to this <code>Region</code> use 
+     * Viewport region. To bind a style to this <code>Region</code> use
      * the name <code>Viewport</code>.
      */
     public static final Region VIEWPORT = new Region("Viewport", false);
-
-
-    private final String name;
-    private final boolean subregion;
 
     private static Map<String, Region> getUItoRegionMap() {
         AppContext context = AppContext.getAppContext();
@@ -474,6 +499,9 @@ public class Region {
             table.put(key, "javax.swing.plaf.synth.SynthLookAndFeel");
         }
     }
+
+    private final String name;
+    private final boolean subregion;
 
     private Region(String name, boolean subregion) {
         if (name == null) {

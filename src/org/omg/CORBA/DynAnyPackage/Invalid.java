@@ -1,8 +1,26 @@
 /*
- * @(#)Invalid.java	1.14 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -10,7 +28,7 @@ package org.omg.CORBA.DynAnyPackage;
 
 /**
  * Invalid is thrown by dynamic any operations when a bad
- * <code>DynAny</code> or <code>Any</code> is passed as a parameter. 
+ * <code>DynAny</code> or <code>Any</code> is passed as a parameter.
  */
 public final class Invalid
     extends org.omg.CORBA.UserException {
@@ -19,7 +37,7 @@ public final class Invalid
      * Constructs an <code>Invalid</code> object.
      */
     public Invalid() {
-	super();
+        super();
     }
 
     /**
@@ -28,6 +46,6 @@ public final class Invalid
      * regarding the bad parameter passed to a dynamic any operation.
      */
     public Invalid(String reason) {
-	super(reason);
+        super(reason);
     }
 }

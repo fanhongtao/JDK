@@ -1,8 +1,26 @@
 /*
- * @(#)Customizer.java	1.20 05/11/17
+ * Copyright (c) 1996, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
@@ -33,7 +51,7 @@ public interface Customizer {
      * refreshed.
      *
      * @param listener  An object to be invoked when a PropertyChange
-     *		event is fired.
+     *          event is fired.
      */
      void addPropertyChangeListener(PropertyChangeListener listener);
 
@@ -45,4 +63,3 @@ public interface Customizer {
     void removePropertyChangeListener(PropertyChangeListener listener);
 
 }
-

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,9 +42,9 @@ class XPathLexer implements com.sun.java_cup.internal.runtime.Scanner {
 	private final int YY_EOF = 65537;
 	public final int YYEOF = -1;
 
-        int last;
+        int last, beforeLast;
         void initialize() {
-            last = -1;
+            last = beforeLast = -1;
         }
         static boolean isWhitespace(int c) {
             return (c == ' ' || c == '\t' || c == '\r' || c == '\n'  || c == '\f');
@@ -69,10 +73,13 @@ class XPathLexer implements com.sun.java_cup.internal.runtime.Scanner {
         /**
          * If symbol is first token or if it follows any of the operators
          * listed in http://www.w3.org/TR/xpath#exprlex then treat as a 
-         * name instead of a keyword (Jira-1912).
+         * name instead of a keyword (Jira-1912). Look two tokens behind
+         * to desambiguate expressions like "* and *" or "and * and".
          */ 
         Symbol disambiguateOperator(int ss) throws Exception {
             switch (last) {
+            case sym.STAR:
+                if (beforeLast != sym.QNAME) break;
             case -1:    // first token
             case sym.ATSIGN:
             case sym.DCOLON:
@@ -83,7 +90,6 @@ class XPathLexer implements com.sun.java_cup.internal.runtime.Scanner {
             case sym.OR:
             case sym.MOD:
             case sym.DIV:
-            case sym.STAR:
             case sym.SLASH:
             case sym.DSLASH:
             case sym.VBAR:
@@ -100,18 +106,22 @@ class XPathLexer implements com.sun.java_cup.internal.runtime.Scanner {
             return newSymbol(ss);
         }
         Symbol newSymbol(int ss) {
+            beforeLast = last;    
             last = ss;
             return new Symbol(ss);
         }
         Symbol newSymbol(int ss, String value) {
+            beforeLast = last;    
             last = ss;
             return new Symbol(ss, value);
         }
         Symbol newSymbol(int ss, Long value) {
+            beforeLast = last;    
             last = ss;
             return new Symbol(ss, value);
         }
         Symbol newSymbol(int ss, Double value) {
+            beforeLast = last;    
             last = ss;
             return new Symbol(ss, value);
         }

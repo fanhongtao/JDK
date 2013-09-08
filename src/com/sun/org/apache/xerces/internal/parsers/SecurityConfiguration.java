@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +33,7 @@ import com.sun.org.apache.xerces.internal.util.SymbolTable;
  * attack when the document is parsed.
  *
  * In addition to the features and properties recognized by the base
- * parser configuration, this class recognizes these additional 
+ * parser configuration, this class recognizes these additional
  * features and properties:
  * <ul>
  * <li>Properties
@@ -40,7 +44,6 @@ import com.sun.org.apache.xerces.internal.util.SymbolTable;
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: SecurityConfiguration.java,v 1.2.6.1 2005/09/06 13:47:54 sunithareddy Exp $
  */
 public class SecurityConfiguration extends XIncludeAwareParserConfiguration
 {
@@ -61,8 +64,8 @@ public class SecurityConfiguration extends XIncludeAwareParserConfiguration
         this(null, null, null);
     } // <init>()
 
-    /** 
-     * Constructs a parser configuration using the specified symbol table. 
+    /**
+     * Constructs a parser configuration using the specified symbol table.
      *
      * @param symbolTable The symbol table to use.
      */
@@ -74,7 +77,7 @@ public class SecurityConfiguration extends XIncludeAwareParserConfiguration
      * Constructs a parser configuration using the specified symbol table and
      * grammar pool.
      * <p>
-     * <strong>REVISIT:</strong> 
+     * <strong>REVISIT:</strong>
      * Grammar pool will be updated when the new validation engine is
      * implemented.
      *
@@ -90,7 +93,7 @@ public class SecurityConfiguration extends XIncludeAwareParserConfiguration
      * Constructs a parser configuration using the specified symbol table,
      * grammar pool, and parent settings.
      * <p>
-     * <strong>REVISIT:</strong> 
+     * <strong>REVISIT:</strong>
      * Grammar pool will be updated when the new validation engine is
      * implemented.
      *
@@ -102,10 +105,9 @@ public class SecurityConfiguration extends XIncludeAwareParserConfiguration
                                          XMLGrammarPool grammarPool,
                                          XMLComponentManager parentSettings) {
         super(symbolTable, grammarPool, parentSettings);
-        
+
         // create the SecurityManager property:
         setProperty(SECURITY_MANAGER_PROPERTY, new SecurityManager());
     } // <init>(SymbolTable,XMLGrammarPool)
 
 } // class SecurityConfiguration
-

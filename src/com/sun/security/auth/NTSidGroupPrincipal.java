@@ -1,8 +1,26 @@
 /*
- * @(#)NTSidGroupPrincipal.java	1.15 05/11/17
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.security.auth;
@@ -18,12 +36,11 @@ package com.sun.security.auth;
  * on how to achieve this.  Authorization decisions can then be based upon
  * the Principals associated with a <code>Subject</code>.
  *
- * @version 1.15, 11/17/05
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  * @see com.sun.security.auth.NTSid
  */
-public class NTSidGroupPrincipal extends NTSid {  
+public class NTSidGroupPrincipal extends NTSid {
 
     private static final long serialVersionUID = -1373347438636198229L;
 
@@ -49,14 +66,14 @@ public class NTSidGroupPrincipal extends NTSid {
      * @return a string representation of this <code>NTSidGroupPrincipal</code>.
      */
     public String toString() {
-	java.text.MessageFormat form = new java.text.MessageFormat
-		(sun.security.util.ResourcesMgr.getString
-			("NTSidGroupPrincipal: name",
-			"sun.security.util.AuthResources"));
-	Object[] source = {getName()};
-	return form.format(source);
+        java.text.MessageFormat form = new java.text.MessageFormat
+                (sun.security.util.ResourcesMgr.getString
+                        ("NTSidGroupPrincipal.name",
+                        "sun.security.util.AuthResources"));
+        Object[] source = {getName()};
+        return form.format(source);
     }
-    
+
     /**
      * Compares the specified Object with this <code>NTSidGroupPrincipal</code>
      * for equality.  Returns true if the given object is also a
@@ -66,22 +83,22 @@ public class NTSidGroupPrincipal extends NTSid {
      * <p>
      *
      * @param o Object to be compared for equality with this
-     *		<code>NTSidGroupPrincipal</code>.
+     *          <code>NTSidGroupPrincipal</code>.
      *
      * @return true if the specified Object is equal equal to this
-     *		<code>NTSidGroupPrincipal</code>.
+     *          <code>NTSidGroupPrincipal</code>.
      */
     public boolean equals(Object o) {
-	    if (o == null)
-	        return false;
+            if (o == null)
+                return false;
 
         if (this == o)
             return true;
- 
+
         if (!(o instanceof NTSidGroupPrincipal))
             return false;
-            
+
         return super.equals(o);
     }
- 
+
 }

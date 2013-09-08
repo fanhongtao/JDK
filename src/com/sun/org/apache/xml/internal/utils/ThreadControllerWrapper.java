@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,34 +51,34 @@ public class ThreadControllerWrapper
    */
   public static class ThreadController
   {
+
     /**
-      * This class was introduced as a fix for CR 6607339.
-      */
+     * This class was introduced as a fix for CR 6607339.
+     */
     final class SafeThread extends Thread {
-       private volatile boolean ran = false;
-             
-       public SafeThread(Runnable target) {
-          super(target);
-       }
-                 
-       public final void run() {
-           if (Thread.currentThread() != this) {
-               throw new IllegalStateException("The run() method in a"
-                   + " SafeThread cannot be called from another thread.");
-           }
-           synchronized (this) {
-              if (!ran) {
-                  ran = true;
-              }
-              else {
-               throw new IllegalStateException("The run() method in a"
-                   + " SafeThread cannot be called more than once.");
-              }                 
-           }             
-           super.run();
-       }
+         private volatile boolean ran = false;
+         
+         public SafeThread(Runnable target) {
+             super(target);
+         }
+         
+         public final void run() {
+             if (Thread.currentThread() != this) {
+                 throw new IllegalStateException("The run() method in a"
+                     + " SafeThread cannot be called from another thread.");
+             }
+             synchronized (this) {
+                if (!ran) {
+                    ran = true;
+                }
+                else {
+                 throw new IllegalStateException("The run() method in a"
+                     + " SafeThread cannot be called more than once.");
+                 }                 
+             }             
+             super.run();
+         }
     }
- 
 
     /**
      * Will get a thread from the pool, execute the task

@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLStreamReaderImpl.java,v 1.8 2006/06/06 06:28:41 sunithareddy Exp $
- * @(#)XMLStreamReaderImpl.java	1.10 06/07/13
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.org.apache.xerces.internal.impl;
@@ -35,6 +33,7 @@ import com.sun.xml.internal.stream.events.NotationDeclarationImpl;
 import javax.xml.namespace.NamespaceContext;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
 import javax.xml.stream.events.XMLEvent;
@@ -59,6 +58,7 @@ import com.sun.org.apache.xerces.internal.impl.msg.XMLMessageFormatter;
 import com.sun.org.apache.xerces.internal.util.XMLChar;
 import com.sun.org.apache.xerces.internal.util.XMLStringBuffer;
 import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
+import com.sun.org.apache.xerces.internal.util.XMLAttributesImpl;
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.xni.XMLDocumentHandler;
 import com.sun.xml.internal.stream.dtd.DTDGrammarUtil;
@@ -215,6 +215,8 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
             }
         }catch(java.io.IOException ex){
             throw new XMLStreamException(ex);
+        } catch(XNIException ex){ //Issue 56 XNIException not caught
+            throw new XMLStreamException(ex.getMessage(), getLocation(), ex.getException());
         }
     }//setInputSource
     
@@ -318,23 +320,16 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
         return fEntityScanner.getLineNumber() ;
     }//getLineNumber
     
-    /** For START_ELEMENT or END_ELEMENT returns the (local) name of the current element. For ENTITY_REF it returns entity name. For
-     * PROCESSING_INSTRUCTION it returns the target. The current event must be START_ELEMENT or END_ELEMENT, PROCESSING_INSTRUCTION, or
-     * ENTITY_REF, otherwise null is returned.
-     * @return
-     */
     public String getLocalName() {
         if(fEventType == XMLEvent.START_ELEMENT || fEventType == XMLEvent.END_ELEMENT){
             //xxx check whats the value of fCurrentElement
             return fScanner.getElementQName().localpart ;
         }
-        else if(fEventType == XMLEvent.PROCESSING_INSTRUCTION){
-            return fScanner.getPITarget();
-        }
         else if(fEventType == XMLEvent.ENTITY_REFERENCE){
             return fScanner.getEntityName();
         }
-        return null;
+        throw new IllegalStateException("Method getLocalName() cannot be called for " +
+            getEventTypeString(fEventType) + " event.");
     }//getLocalName()
     
     /**
@@ -375,12 +370,14 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
     
     
     /**
-     * @return
-     */
+    * @return the prefix of the current event, or null if the event does 
+    * not have a prefix. For START_ELEMENT and END_ELEMENT, return 
+    * XMLConstants.DEFAULT_NS_PREFIX when no prefix is available.
+    */
     public String getPrefix() {
-        //doesn't take care of Attribute as separte event
         if(fEventType == XMLEvent.START_ELEMENT || fEventType == XMLEvent.END_ELEMENT){
-            return fScanner.getElementQName().prefix ;
+            String prefix = fScanner.getElementQName().prefix;
+            return prefix == null ? XMLConstants.DEFAULT_NS_PREFIX : prefix;
         }
         return null ;
     }//getPrefix()
@@ -462,8 +459,7 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
     
     /** this Funtion returns true if the current event has name */
     public boolean hasName() {
-        if(fEventType == XMLEvent.START_ELEMENT || fEventType == XMLEvent.END_ELEMENT
-        || fEventType == XMLEvent.ENTITY_REFERENCE || fEventType == XMLEvent.PROCESSING_INSTRUCTION) {
+        if(fEventType == XMLEvent.START_ELEMENT || fEventType == XMLEvent.END_ELEMENT) {
             return true;
         }  else {
             return false;
@@ -475,6 +471,8 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public boolean hasNext() throws XMLStreamException {
+        //the scanner returns -1 when it detects a broken stream
+        if (fEventType == -1) return false;
         //we can check in scanners if the scanner state is not set to 
         //terminating, we still have more events.
         return fEventType != XMLEvent.END_DOCUMENT;
@@ -543,7 +541,13 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public int next() throws XMLStreamException {
-
+        if( !hasNext() ) {
+            if (fEventType != -1) {
+                throw new java.util.NoSuchElementException( "END_DOCUMENT reached: no more elements on the stream." );
+            } else { 
+                throw new XMLStreamException( "Error processing input source. The input stream is not complete." ); 
+            }
+        }
         try {
             fEventType = fScanner.next();
 
@@ -800,7 +804,14 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
     public String getAttributeValue(String namespaceURI, String localName) {
         //State should be either START_ELEMENT or ATTRIBUTE
         if( fEventType == XMLEvent.START_ELEMENT || fEventType == XMLEvent.ATTRIBUTE) {
-            return fScanner.getAttributeIterator().getValue(namespaceURI, localName) ;
+            XMLAttributesImpl attributes = fScanner.getAttributeIterator();
+            if (namespaceURI == null) { //sjsxp issue 70
+                return attributes.getValue(attributes.getIndexByLocalName(localName)) ;
+            } else {
+                return fScanner.getAttributeIterator().getValue(
+                        namespaceURI.length() == 0 ? null : namespaceURI, localName) ;
+            }
+            
         } else{
             throw new java.lang.IllegalStateException("Current state is not among the states " 
                      + getEventTypeString(XMLEvent.START_ELEMENT) + " , " 
@@ -856,29 +867,33 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
      */
     public Location getLocation() {
         return new Location() {
-            
+            String _systemId = fEntityScanner.getExpandedSystemId();
+            String _publicId = fEntityScanner.getPublicId();
+            int _offset = fEntityScanner.getCharacterOffset();
+            int _columnNumber = fEntityScanner.getColumnNumber();
+            int _lineNumber = fEntityScanner.getLineNumber(); 
             public String getLocationURI(){
-                return fEntityScanner.getExpandedSystemId();
+                return _systemId;
             }
             
             public int getCharacterOffset(){
-                return fEntityScanner.getCharacterOffset();
+                return _offset;
             }
             
             public int getColumnNumber() {
-                return fEntityScanner.getColumnNumber();
+                return _columnNumber;
             }
             
             public int getLineNumber(){
-                return fEntityScanner.getLineNumber();
+                return _lineNumber;
             }
             
             public String getPublicId(){
-                return fEntityScanner.getPublicId();
+                return _publicId;
             }
             
             public String getSystemId(){
-                return fEntityScanner.getExpandedSystemId();
+                return _systemId;
             }
             
             public String toString(){
@@ -908,7 +923,7 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
         if(fEventType == XMLEvent.START_ELEMENT || fEventType == XMLEvent.END_ELEMENT)
             return convertXNIQNametoJavaxQName(fScanner.getElementQName());
         else
-            throw new java.lang.IllegalArgumentException("Illegal to call getName() "+
+            throw new java.lang.IllegalStateException("Illegal to call getName() "+
             "when event type is "+ getEventTypeString(fEventType) + "."
                      + " Valid states are " + getEventTypeString(XMLEvent.START_ELEMENT) + ", "
                      + getEventTypeString(XMLEvent.END_ELEMENT));
@@ -1244,7 +1259,7 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
     public boolean standaloneSet() {
         //xxx: it requires if the standalone was set in the document ? This is different that if the document
         // is standalone
-        return fScanner.isStandAlone() ;
+        return fScanner.standaloneSet() ;
     }
     
     /**
@@ -1252,6 +1267,7 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public javax.xml.namespace.QName convertXNIQNametoJavaxQName(com.sun.org.apache.xerces.internal.xni.QName qname){
+        if (qname == null) return null;
         //xxx: prefix definition ?
         if(qname.prefix == null){
             return new javax.xml.namespace.QName(qname.uri, qname.localpart) ;
@@ -1271,8 +1287,11 @@ public class XMLStreamReaderImpl implements javax.xml.stream.XMLStreamReader {
      * <a href="http://www.w3.org/2000/xmlns/">http://www.w3.org/2000/xmlns/</a>
      * @return the uri bound to the given prefix or null if it is not bound
      * @param prefix The prefix to lookup, may not be null
+     * @throws IllegalStateException - if the prefix is null
      */
     public String getNamespaceURI(String prefix) {
+        if(prefix == null) throw new java.lang.IllegalArgumentException("prefix cannot be null.") ;
+        
         //first add the string to symbol table.. since internally identity comparisons are done.
         return fScanner.getNamespaceContext().getURI(fSymbolTable.addSymbol(prefix)) ;
     }

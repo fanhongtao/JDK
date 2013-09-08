@@ -1,12 +1,32 @@
 /*
- * @(#)jli_util.c	1.2	06/02/25
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 #include <stdio.h>
 #include <string.h>
+#include <jni.h>
+
 #include "jli_util.h"
 
 /*
@@ -18,8 +38,8 @@ JLI_MemAlloc(size_t size)
 {
     void *p = malloc(size);
     if (p == 0) {
-	perror("malloc");
-	exit(1);
+        perror("malloc");
+        exit(1);
     }
     return p;
 }
@@ -33,8 +53,8 @@ JLI_MemRealloc(void *ptr, size_t size)
 {
     void *p = realloc(ptr, size);
     if (p == 0) {
-	perror("realloc");
-	exit(1);
+        perror("realloc");
+        exit(1);
     }
     return p;
 }
@@ -62,4 +82,40 @@ void
 JLI_MemFree(void *ptr)
 {
     free(ptr);
+}
+
+/*
+ * debug helpers we use
+ */
+static jboolean _launcher_debug = JNI_FALSE;
+
+void
+JLI_TraceLauncher(const char* fmt, ...)
+{
+    va_list vl;
+    if (_launcher_debug != JNI_TRUE) return;
+    va_start(vl, fmt);
+    vprintf(fmt,vl);
+    va_end(vl);
+}
+
+void
+JLI_SetTraceLauncher()
+{
+   if (getenv("_JAVA_LAUNCHER_DEBUG") != 0) {
+        _launcher_debug = JNI_TRUE;
+        JLI_TraceLauncher("----_JAVA_LAUNCHER_DEBUG----\n");
+   }
+}
+
+jboolean
+JLI_IsTraceLauncher()
+{
+   return _launcher_debug;
+}
+
+int
+JLI_StrCCmp(const char *s1, const char* s2)
+{
+   return JLI_StrNCmp(s1, s2, JLI_StrLen(s2));
 }

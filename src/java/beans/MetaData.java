@@ -1,33 +1,62 @@
 /*
- * @(#)MetaData.java	1.51 09/04/29
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2000-2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.beans;
 
+import com.sun.beans.finder.PrimitiveWrapperMap;
+
+import java.awt.AWTKeyStroke;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.font.TextAttribute;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.*;
 
+import javax.swing.Box;
+import javax.swing.JLayeredPane;
 import javax.swing.border.MatteBorder;
 import javax.swing.plaf.ColorUIResource;
 
 import sun.swing.PrintColorUIResource;
+
+import java.util.Objects;
 
 /*
  * Like the <code>Intropector</code>, the <code>MetaData</code> class
@@ -37,7 +66,6 @@ import sun.swing.PrintColorUIResource;
  *
  * @see java.beans.Intropector
  *
- * @version 1.51 04/29/09
  * @author Philip Milne
  * @author Steve Langley
  */
@@ -66,7 +94,7 @@ class EnumPersistenceDelegate extends PersistenceDelegate {
 
     protected Expression instantiate(Object oldInstance, Encoder out) {
         Enum e = (Enum) oldInstance;
-        return new Expression( e, e.getClass(), "valueOf", new Object[]{e.name()} );
+        return new Expression(e, Enum.class, "valueOf", new Object[]{e.getDeclaringClass(), e.name()});
     }
 }
 
@@ -108,7 +136,7 @@ class ArrayPersistenceDelegate extends PersistenceDelegate {
                 Object oldValue = oldGetExp.getValue();
                 Object newValue = newGetExp.getValue();
                 out.writeExpression(oldGetExp);
-                if (!MetaData.equals(newValue, out.get(oldValue))) {
+                if (!Objects.equals(newValue, out.get(oldValue))) {
                     // System.out.println("Not equal: " + newGetExp + " != " + actualGetExp);
                     // invokeStatement(Array.class, "set", new Object[]{oldInstance, index, oldValue}, out);
                     DefaultPersistenceDelegate.invokeStatement(oldInstance, "set", new Object[]{index, oldValue}, out);
@@ -167,6 +195,10 @@ class java_lang_String_PersistenceDelegate extends PersistenceDelegate {
 
 // Classes
 class java_lang_Class_PersistenceDelegate extends PersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        return oldInstance.equals(newInstance);
+    }
+
     protected Expression instantiate(Object oldInstance, Encoder out) {
         Class c = (Class)oldInstance;
         // As of 1.3 it is not possible to call Class.forName("int"),
@@ -174,9 +206,9 @@ class java_lang_Class_PersistenceDelegate extends PersistenceDelegate {
         // This is needed for arrays whose subtype may be primitive.
         if (c.isPrimitive()) {
             Field field = null;
-	    try {
-		field = ReflectionUtils.typeToClass(c).getDeclaredField("TYPE");
-	    } catch (NoSuchFieldException ex) {
+            try {
+                field = PrimitiveWrapperMap.getType(c.getName()).getDeclaredField("TYPE");
+            } catch (NoSuchFieldException ex) {
                 System.err.println("Unknown primitive type: " + c);
             }
             return new Expression(oldInstance, field, "get", new Object[]{null});
@@ -188,13 +220,19 @@ class java_lang_Class_PersistenceDelegate extends PersistenceDelegate {
             return new Expression(oldInstance, String.class, "getClass", new Object[]{});
         }
         else {
-            return new Expression(oldInstance, Class.class, "forName", new Object[]{c.getName()});
+            Expression newInstance = new Expression(oldInstance, Class.class, "forName", new Object[] { c.getName() });
+            newInstance.loader = c.getClassLoader();
+            return newInstance;
         }
     }
 }
 
 // Fields
 class java_lang_reflect_Field_PersistenceDelegate extends PersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        return oldInstance.equals(newInstance);
+    }
+
     protected Expression instantiate(Object oldInstance, Encoder out) {
         Field f = (Field)oldInstance;
         return new Expression(oldInstance,
@@ -206,12 +244,92 @@ class java_lang_reflect_Field_PersistenceDelegate extends PersistenceDelegate {
 
 // Methods
 class java_lang_reflect_Method_PersistenceDelegate extends PersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        return oldInstance.equals(newInstance);
+    }
+
     protected Expression instantiate(Object oldInstance, Encoder out) {
         Method m = (Method)oldInstance;
         return new Expression(oldInstance,
                 m.getDeclaringClass(),
                 "getMethod",
                 new Object[]{m.getName(), m.getParameterTypes()});
+    }
+}
+
+// Dates
+
+/**
+ * The persistence delegate for <CODE>java.util.Date</CODE> classes.
+ * Do not extend DefaultPersistenceDelegate to improve performance and
+ * to avoid problems with <CODE>java.sql.Date</CODE>,
+ * <CODE>java.sql.Time</CODE> and <CODE>java.sql.Timestamp</CODE>.
+ *
+ * @author Sergey A. Malenkov
+ */
+class java_util_Date_PersistenceDelegate extends PersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        if (!super.mutatesTo(oldInstance, newInstance)) {
+            return false;
+        }
+        Date oldDate = (Date)oldInstance;
+        Date newDate = (Date)newInstance;
+
+        return oldDate.getTime() == newDate.getTime();
+    }
+
+    protected Expression instantiate(Object oldInstance, Encoder out) {
+        Date date = (Date)oldInstance;
+        return new Expression(date, date.getClass(), "new", new Object[] {date.getTime()});
+    }
+}
+
+/**
+ * The persistence delegate for <CODE>java.sql.Timestamp</CODE> classes.
+ * It supports nanoseconds.
+ *
+ * @author Sergey A. Malenkov
+ */
+final class java_sql_Timestamp_PersistenceDelegate extends java_util_Date_PersistenceDelegate {
+    private static final Method getNanosMethod = getNanosMethod();
+
+    private static Method getNanosMethod() {
+        try {
+            Class<?> c = Class.forName("java.sql.Timestamp", true, null);
+            return c.getMethod("getNanos");
+        } catch (ClassNotFoundException e) {
+            return null;
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    /**
+     * Invoke Timstamp getNanos.
+     */
+    private static int getNanos(Object obj) {
+        if (getNanosMethod == null)
+            throw new AssertionError("Should not get here");
+        try {
+            return (Integer)getNanosMethod.invoke(obj);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException)
+                throw (RuntimeException)cause;
+            if (cause instanceof Error)
+                throw (Error)cause;
+            throw new AssertionError(e);
+        } catch (IllegalAccessException iae) {
+            throw new AssertionError(iae);
+        }
+    }
+
+    protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
+        // assumes oldInstance and newInstance are Timestamps
+        int nanos = getNanos(oldInstance);
+        if (nanos != getNanos(newInstance)) {
+            out.writeStatement(new Statement(oldInstance, "setNanos", new Object[] {nanos}));
+        }
     }
 }
 
@@ -446,11 +564,49 @@ abstract class java_util_Collections extends PersistenceDelegate {
     }
 }
 
+/**
+ * The persistence delegate for <CODE>java.util.EnumMap</CODE> classes.
+ *
+ * @author Sergey A. Malenkov
+ */
+class java_util_EnumMap_PersistenceDelegate extends PersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        return super.mutatesTo(oldInstance, newInstance) && (getType(oldInstance) == getType(newInstance));
+    }
+
+    protected Expression instantiate(Object oldInstance, Encoder out) {
+        return new Expression(oldInstance, EnumMap.class, "new", new Object[] {getType(oldInstance)});
+    }
+
+    private static Object getType(Object instance) {
+        return MetaData.getPrivateFieldValue(instance, "java.util.EnumMap.keyType");
+    }
+}
+
+/**
+ * The persistence delegate for <CODE>java.util.EnumSet</CODE> classes.
+ *
+ * @author Sergey A. Malenkov
+ */
+class java_util_EnumSet_PersistenceDelegate extends PersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        return super.mutatesTo(oldInstance, newInstance) && (getType(oldInstance) == getType(newInstance));
+    }
+
+    protected Expression instantiate(Object oldInstance, Encoder out) {
+        return new Expression(oldInstance, EnumSet.class, "noneOf", new Object[] {getType(oldInstance)});
+    }
+
+    private static Object getType(Object instance) {
+        return MetaData.getPrivateFieldValue(instance, "java.util.EnumSet.elementType");
+    }
+}
+
 // Collection
 class java_util_Collection_PersistenceDelegate extends DefaultPersistenceDelegate {
     protected void initialize(Class<?> type, Object oldInstance, Object newInstance, Encoder out) {
-	java.util.Collection oldO = (java.util.Collection)oldInstance;
-	java.util.Collection newO = (java.util.Collection)newInstance;
+        java.util.Collection oldO = (java.util.Collection)oldInstance;
+        java.util.Collection newO = (java.util.Collection)newInstance;
 
         if (newO.size() != 0) {
             invokeStatement(oldInstance, "clear", new Object[]{}, out);
@@ -481,7 +637,7 @@ class java_util_List_PersistenceDelegate extends DefaultPersistenceDelegate {
                 Object oldValue = oldGetExp.getValue();
                 Object newValue = newGetExp.getValue();
                 out.writeExpression(oldGetExp);
-                if (!MetaData.equals(newValue, out.get(oldValue))) {
+                if (!Objects.equals(newValue, out.get(oldValue))) {
                     invokeStatement(oldInstance, "set", new Object[]{index, oldValue}, out);
                 }
             }
@@ -505,7 +661,7 @@ class java_util_Map_PersistenceDelegate extends DefaultPersistenceDelegate {
         // Remove the new elements.
         // Do this first otherwise we undo the adding work.
         if (newMap != null) {
-            for ( Object newKey : newMap.keySet() ) {
+            for (Object newKey : newMap.keySet().toArray()) {
                // PENDING: This "key" is not in the right environment.
                 if (!oldMap.containsKey(newKey)) {
                     invokeStatement(oldInstance, "remove", new Object[]{newKey}, out);
@@ -521,7 +677,7 @@ class java_util_Map_PersistenceDelegate extends DefaultPersistenceDelegate {
                 Object oldValue = oldGetExp.getValue();
                 Object newValue = newGetExp.getValue();
                 out.writeExpression(oldGetExp);
-                if (!MetaData.equals(newValue, out.get(oldValue))) {
+                if (!Objects.equals(newValue, out.get(oldValue))) {
                     invokeStatement(oldInstance, "put", new Object[]{oldKey, oldValue}, out);
                 } else if ((newValue == null) && !newMap.containsKey(oldKey)) {
                     // put oldValue(=null?) if oldKey is absent in newMap
@@ -545,56 +701,6 @@ class java_util_Hashtable_PersistenceDelegate extends java_util_Map_PersistenceD
 class java_beans_beancontext_BeanContextSupport_PersistenceDelegate extends java_util_Collection_PersistenceDelegate {}
 
 // AWT
-
-/**
- * The persistence delegate for {@link Dimension}.
- * It is impossible to use {@link DefaultPersistenceDelegate}
- * because all getters have return types that differ from parameter types
- * of the constructor {@link Dimension#Dimension(int, int)}.
- *
- * @author Sergey A. Malenkov
- */
-final class java_awt_Dimension_PersistenceDelegate extends PersistenceDelegate {
-    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
-        return oldInstance.equals(newInstance);
-    }
-
-    protected Expression instantiate(Object oldInstance, Encoder out) {
-        Dimension dimension = (Dimension) oldInstance;
-        Object[] args = new Object[] {
-                dimension.width,
-                dimension.height,
-        };
-        return new Expression(dimension, dimension.getClass(), "new", args);
-    }
-}
-
-/**
- * The persistence delegate for {@link GridBagConstraints}.
- * It is impossible to use {@link DefaultPersistenceDelegate}
- * because this class does not have any properties.
- *
- * @author Sergey A. Malenkov
- */
-final class java_awt_GridBagConstraints_PersistenceDelegate extends PersistenceDelegate {
-    protected Expression instantiate(Object oldInstance, Encoder out) {
-        GridBagConstraints gbc = (GridBagConstraints) oldInstance;
-        Object[] args = new Object[] {
-                gbc.gridx,
-                gbc.gridy,
-                gbc.gridwidth,
-                gbc.gridheight,
-                gbc.weightx,
-                gbc.weighty,
-                gbc.anchor,
-                gbc.fill,
-                gbc.insets,
-                gbc.ipadx,
-                gbc.ipady,
-        };
-        return new Expression(gbc, gbc.getClass(), "new", args);
-    }
-}
 
 /**
  * The persistence delegate for {@link Insets}.
@@ -621,78 +727,147 @@ final class java_awt_Insets_PersistenceDelegate extends PersistenceDelegate {
 }
 
 /**
- * The persistence delegate for {@link Point}.
+ * The persistence delegate for {@link Font}.
  * It is impossible to use {@link DefaultPersistenceDelegate}
- * because all getters have return types that differ from parameter types
- * of the constructor {@link Point#Point(int, int)}.
+ * because size of the font can be float value.
  *
  * @author Sergey A. Malenkov
  */
-final class java_awt_Point_PersistenceDelegate extends PersistenceDelegate {
+final class java_awt_Font_PersistenceDelegate extends PersistenceDelegate {
     protected boolean mutatesTo(Object oldInstance, Object newInstance) {
         return oldInstance.equals(newInstance);
     }
 
     protected Expression instantiate(Object oldInstance, Encoder out) {
-        Point point = (Point) oldInstance;
-        Object[] args = new Object[] {
-                point.x,
-                point.y,
-        };
-        return new Expression(point, point.getClass(), "new", args);
+        Font font = (Font) oldInstance;
+
+        int count = 0;
+        String family = null;
+        int style = Font.PLAIN;
+        int size = 12;
+
+        Map basic = font.getAttributes();
+        Map clone = new HashMap(basic.size());
+        for (Object key : basic.keySet()) {
+            Object value = basic.get(key);
+            if (value != null) {
+                clone.put(key, value);
+            }
+            if (key == TextAttribute.FAMILY) {
+                if (value instanceof String) {
+                    count++;
+                    family = (String) value;
+                }
+            }
+            else if (key == TextAttribute.WEIGHT) {
+                if (TextAttribute.WEIGHT_REGULAR.equals(value)) {
+                    count++;
+                } else if (TextAttribute.WEIGHT_BOLD.equals(value)) {
+                    count++;
+                    style |= Font.BOLD;
+                }
+            }
+            else if (key == TextAttribute.POSTURE) {
+                if (TextAttribute.POSTURE_REGULAR.equals(value)) {
+                    count++;
+                } else if (TextAttribute.POSTURE_OBLIQUE.equals(value)) {
+                    count++;
+                    style |= Font.ITALIC;
+                }
+            } else if (key == TextAttribute.SIZE) {
+                if (value instanceof Number) {
+                    Number number = (Number) value;
+                    size = number.intValue();
+                    if (size == number.floatValue()) {
+                        count++;
+                    }
+                }
+            }
+        }
+        Class type = font.getClass();
+        if (count == clone.size()) {
+            return new Expression(font, type, "new", new Object[]{family, style, size});
+        }
+        if (type == Font.class) {
+            return new Expression(font, type, "getFont", new Object[]{clone});
+        }
+        return new Expression(font, type, "new", new Object[]{Font.getFont(clone)});
     }
 }
 
 /**
- * The persistence delegate for {@link Rectangle}.
+ * The persistence delegate for {@link AWTKeyStroke}.
  * It is impossible to use {@link DefaultPersistenceDelegate}
- * because all getters have return types that differ from parameter types
- * of the constructor {@link Rectangle#Rectangle(int, int, int, int)}.
+ * because this class have no public constructor.
  *
  * @author Sergey A. Malenkov
  */
-final class java_awt_Rectangle_PersistenceDelegate extends PersistenceDelegate {
+final class java_awt_AWTKeyStroke_PersistenceDelegate extends PersistenceDelegate {
     protected boolean mutatesTo(Object oldInstance, Object newInstance) {
         return oldInstance.equals(newInstance);
     }
 
     protected Expression instantiate(Object oldInstance, Encoder out) {
-        Rectangle rectangle = (Rectangle) oldInstance;
-        Object[] args = new Object[] {
-                rectangle.x,
-                rectangle.y,
-                rectangle.width,
-                rectangle.height,
-        };
-        return new Expression(rectangle, rectangle.getClass(), "new", args);
+        AWTKeyStroke key = (AWTKeyStroke) oldInstance;
+
+        char ch = key.getKeyChar();
+        int code = key.getKeyCode();
+        int mask = key.getModifiers();
+        boolean onKeyRelease = key.isOnKeyRelease();
+
+        Object[] args = null;
+        if (ch == KeyEvent.CHAR_UNDEFINED) {
+            args = !onKeyRelease
+                    ? new Object[]{code, mask}
+                    : new Object[]{code, mask, onKeyRelease};
+        } else if (code == KeyEvent.VK_UNDEFINED) {
+            if (!onKeyRelease) {
+                args = (mask == 0)
+                        ? new Object[]{ch}
+                        : new Object[]{ch, mask};
+            } else if (mask == 0) {
+                args = new Object[]{ch, onKeyRelease};
+            }
+        }
+        if (args == null) {
+            throw new IllegalStateException("Unsupported KeyStroke: " + key);
+        }
+        Class type = key.getClass();
+        String name = type.getName();
+        // get short name of the class
+        int index = name.lastIndexOf('.') + 1;
+        if (index > 0) {
+            name = name.substring(index);
+        }
+        return new Expression( key, type, "get" + name, args );
     }
 }
 
 class StaticFieldsPersistenceDelegate extends PersistenceDelegate {
     protected void installFields(Encoder out, Class<?> cls) {
         Field fields[] = cls.getFields();
-        for(int i = 0; i < fields.length; i++) { 
-            Field field = fields[i]; 
-            // Don't install primitives, their identity will not be preserved 
-            // by wrapping. 
-            if (Object.class.isAssignableFrom(field.getType())) { 
-                out.writeExpression(new Expression(field, "get", new Object[]{null})); 
+        for(int i = 0; i < fields.length; i++) {
+            Field field = fields[i];
+            // Don't install primitives, their identity will not be preserved
+            // by wrapping.
+            if (Object.class.isAssignableFrom(field.getType())) {
+                out.writeExpression(new Expression(field, "get", new Object[]{null}));
             }
         }
     }
 
-    protected Expression instantiate(Object oldInstance, Encoder out) { 
-        throw new RuntimeException("Unrecognized instance: " + oldInstance); 
+    protected Expression instantiate(Object oldInstance, Encoder out) {
+        throw new RuntimeException("Unrecognized instance: " + oldInstance);
     }
-    
+
     public void writeObject(Object oldInstance, Encoder out) {
         if (out.getAttribute(this) == null) {
             out.setAttribute(this, Boolean.TRUE);
-            installFields(out, oldInstance.getClass()); 
-	}
+            installFields(out, oldInstance.getClass());
+        }
         super.writeObject(oldInstance, out);
     }
-} 
+}
 
 // SystemColor
 class java_awt_SystemColor_PersistenceDelegate extends StaticFieldsPersistenceDelegate {}
@@ -702,9 +877,13 @@ class java_awt_font_TextAttribute_PersistenceDelegate extends StaticFieldsPersis
 
 // MenuShortcut
 class java_awt_MenuShortcut_PersistenceDelegate extends PersistenceDelegate {
-    protected Expression instantiate(Object oldInstance, Encoder out) { 
-        java.awt.MenuShortcut m = (java.awt.MenuShortcut)oldInstance; 
-        return new Expression(oldInstance, m.getClass(), "new", 
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        return oldInstance.equals(newInstance);
+    }
+
+    protected Expression instantiate(Object oldInstance, Encoder out) {
+        java.awt.MenuShortcut m = (java.awt.MenuShortcut)oldInstance;
+        return new Expression(oldInstance, m.getClass(), "new",
                    new Object[]{new Integer(m.getKey()), Boolean.valueOf(m.usesShiftModifier())});
     }
 }
@@ -720,32 +899,38 @@ class java_awt_Component_PersistenceDelegate extends DefaultPersistenceDelegate 
         // null to defined values after the Windows are made visible -
         // special case them for now.
         if (!(oldInstance instanceof java.awt.Window)) {
-            String[] fieldNames = new String[]{"background", "foreground", "font"};
-            for(int i = 0; i < fieldNames.length; i++) {
-                String name = fieldNames[i];
-                Object oldValue = ReflectionUtils.getPrivateField(oldInstance, java.awt.Component.class, name, out.getExceptionListener());
-                Object newValue = (newInstance == null) ? null : ReflectionUtils.getPrivateField(newInstance, java.awt.Component.class, name, out.getExceptionListener());
-                if (oldValue != null && !oldValue.equals(newValue)) {
-                    invokeStatement(oldInstance, "set" + NameGenerator.capitalize(name), new Object[]{oldValue}, out);
-                }
+            Object oldBackground = c.isBackgroundSet() ? c.getBackground() : null;
+            Object newBackground = c2.isBackgroundSet() ? c2.getBackground() : null;
+            if (!Objects.equals(oldBackground, newBackground)) {
+                invokeStatement(oldInstance, "setBackground", new Object[] { oldBackground }, out);
+            }
+            Object oldForeground = c.isForegroundSet() ? c.getForeground() : null;
+            Object newForeground = c2.isForegroundSet() ? c2.getForeground() : null;
+            if (!Objects.equals(oldForeground, newForeground)) {
+                invokeStatement(oldInstance, "setForeground", new Object[] { oldForeground }, out);
+            }
+            Object oldFont = c.isFontSet() ? c.getFont() : null;
+            Object newFont = c2.isFontSet() ? c2.getFont() : null;
+            if (!Objects.equals(oldFont, newFont)) {
+                invokeStatement(oldInstance, "setFont", new Object[] { oldFont }, out);
             }
         }
 
         // Bounds
         java.awt.Container p = c.getParent();
-        if (p == null || p.getLayout() == null && !(p instanceof javax.swing.JLayeredPane)) { 
+        if (p == null || p.getLayout() == null) {
             // Use the most concise construct.
-            boolean locationCorrect = c.getLocation().equals(c2.getLocation()); 
-            boolean sizeCorrect = c.getSize().equals(c2.getSize()); 
-            if (!locationCorrect && !sizeCorrect) { 
+            boolean locationCorrect = c.getLocation().equals(c2.getLocation());
+            boolean sizeCorrect = c.getSize().equals(c2.getSize());
+            if (!locationCorrect && !sizeCorrect) {
                 invokeStatement(oldInstance, "setBounds", new Object[]{c.getBounds()}, out);
-            } 
-            else if (!locationCorrect) { 
+            }
+            else if (!locationCorrect) {
                 invokeStatement(oldInstance, "setLocation", new Object[]{c.getLocation()}, out);
-            } 
-            else if (!sizeCorrect) { 
+            }
+            else if (!sizeCorrect) {
                 invokeStatement(oldInstance, "setSize", new Object[]{c.getSize()}, out);
-            }             
+            }
         }
     }
 }
@@ -768,11 +953,17 @@ class java_awt_Container_PersistenceDelegate extends DefaultPersistenceDelegate 
                 ? ( BorderLayout )oldC.getLayout()
                 : null;
 
+        JLayeredPane oldLayeredPane = (oldInstance instanceof JLayeredPane)
+                ? (JLayeredPane) oldInstance
+                : null;
+
         // Pending. Assume all the new children are unaltered.
         for(int i = newChildren.length; i < oldChildren.length; i++) {
             Object[] args = ( layout != null )
                     ? new Object[] {oldChildren[i], layout.getConstraints( oldChildren[i] )}
-                    : new Object[] {oldChildren[i]};
+                    : (oldLayeredPane != null)
+                            ? new Object[] {oldChildren[i], oldLayeredPane.getLayer(oldChildren[i]), Integer.valueOf(-1)}
+                            : new Object[] {oldChildren[i]};
 
             invokeStatement(oldInstance, "add", args, out);
         }
@@ -826,32 +1017,36 @@ class java_awt_List_PersistenceDelegate extends DefaultPersistenceDelegate {
         }
     }
 }
-    
+
 
 // LayoutManagers
 
 // BorderLayout
 class java_awt_BorderLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class<?> type, Object oldInstance, 
-			      Object newInstance, Encoder out) {
+    private static final String[] CONSTRAINTS = {
+            BorderLayout.NORTH,
+            BorderLayout.SOUTH,
+            BorderLayout.EAST,
+            BorderLayout.WEST,
+            BorderLayout.CENTER,
+            BorderLayout.PAGE_START,
+            BorderLayout.PAGE_END,
+            BorderLayout.LINE_START,
+            BorderLayout.LINE_END,
+    };
+    @Override
+    protected void initialize(Class<?> type, Object oldInstance,
+                              Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
-        String[] locations = {"north", "south", "east", "west", "center"};
-        String[] names = {java.awt.BorderLayout.NORTH, java.awt.BorderLayout.SOUTH, 
-			  java.awt.BorderLayout.EAST, java.awt.BorderLayout.WEST, 
-			  java.awt.BorderLayout.CENTER};
-        for(int i = 0; i < locations.length; i++) {
-            Object oldC = ReflectionUtils.getPrivateField(oldInstance, 
-							  java.awt.BorderLayout.class, 
-							  locations[i], 
-							  out.getExceptionListener());
-            Object newC = ReflectionUtils.getPrivateField(newInstance, 
-							  java.awt.BorderLayout.class, 
-							  locations[i], 
-							  out.getExceptionListener());
+        BorderLayout oldLayout = (BorderLayout) oldInstance;
+        BorderLayout newLayout = (BorderLayout) newInstance;
+        for (String constraints : CONSTRAINTS) {
+            Object oldC = oldLayout.getLayoutComponent(constraints);
+            Object newC = newLayout.getLayoutComponent(constraints);
             // Pending, assume any existing elements are OK.
             if (oldC != null && newC == null) {
-                invokeStatement(oldInstance, "addLayoutComponent", 
-				new Object[]{oldC, names[i]}, out);
+                invokeStatement(oldInstance, "addLayoutComponent",
+                                new Object[] { oldC, constraints }, out);
             }
         }
     }
@@ -859,13 +1054,13 @@ class java_awt_BorderLayout_PersistenceDelegate extends DefaultPersistenceDelega
 
 // CardLayout
 class java_awt_CardLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class<?> type, Object oldInstance, 
-			      Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance,
+                              Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
-        Hashtable tab = (Hashtable)ReflectionUtils.getPrivateField(oldInstance, 
-								   java.awt.CardLayout.class, 
-								   "tab", 
-								   out.getExceptionListener());
+        Hashtable tab = (Hashtable)ReflectionUtils.getPrivateField(oldInstance,
+                                                                   java.awt.CardLayout.class,
+                                                                   "tab",
+                                                                   out.getExceptionListener());
         if (tab != null) {
             for(Enumeration e = tab.keys(); e.hasMoreElements();) {
                 Object child = e.nextElement();
@@ -878,13 +1073,13 @@ class java_awt_CardLayout_PersistenceDelegate extends DefaultPersistenceDelegate
 
 // GridBagLayout
 class java_awt_GridBagLayout_PersistenceDelegate extends DefaultPersistenceDelegate {
-    protected void initialize(Class<?> type, Object oldInstance, 
-			      Object newInstance, Encoder out) {
+    protected void initialize(Class<?> type, Object oldInstance,
+                              Object newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
-        Hashtable comptable = (Hashtable)ReflectionUtils.getPrivateField(oldInstance, 
-						 java.awt.GridBagLayout.class, 
-						 "comptable", 
-						 out.getExceptionListener());
+        Hashtable comptable = (Hashtable)ReflectionUtils.getPrivateField(oldInstance,
+                                                 java.awt.GridBagLayout.class,
+                                                 "comptable",
+                                                 out.getExceptionListener());
         if (comptable != null) {
             for(Enumeration e = comptable.keys(); e.hasMoreElements();) {
                 Object child = e.nextElement();
@@ -948,15 +1143,15 @@ class javax_swing_DefaultComboBoxModel_PersistenceDelegate extends DefaultPersis
 // DefaultMutableTreeNode
 class javax_swing_tree_DefaultMutableTreeNode_PersistenceDelegate extends DefaultPersistenceDelegate {
     protected void initialize(Class<?> type, Object oldInstance, Object
-			      newInstance, Encoder out) {
+                              newInstance, Encoder out) {
         super.initialize(type, oldInstance, newInstance, out);
         javax.swing.tree.DefaultMutableTreeNode m =
-	    (javax.swing.tree.DefaultMutableTreeNode)oldInstance;
+            (javax.swing.tree.DefaultMutableTreeNode)oldInstance;
         javax.swing.tree.DefaultMutableTreeNode n =
-	    (javax.swing.tree.DefaultMutableTreeNode)newInstance;
+            (javax.swing.tree.DefaultMutableTreeNode)newInstance;
         for (int i = n.getChildCount(); i < m.getChildCount(); i++) {
             invokeStatement(oldInstance, "add", new
-		Object[]{m.getChildAt(i)}, out);
+                Object[]{m.getChildAt(i)}, out);
         }
     }
 }
@@ -986,14 +1181,17 @@ class javax_swing_JTabbedPane_PersistenceDelegate extends DefaultPersistenceDele
 
 // Box
 class javax_swing_Box_PersistenceDelegate extends DefaultPersistenceDelegate {
+    protected boolean mutatesTo(Object oldInstance, Object newInstance) {
+        return super.mutatesTo(oldInstance, newInstance) && getAxis(oldInstance).equals(getAxis(newInstance));
+    }
+
     protected Expression instantiate(Object oldInstance, Encoder out) {
-	javax.swing.BoxLayout lm = (javax.swing.BoxLayout)((javax.swing.Box)oldInstance).getLayout();
-	
-	Object value = ReflectionUtils.getPrivateField(lm, javax.swing.BoxLayout.class, "axis", 
-					   out.getExceptionListener());
-	String method = ((Integer)value).intValue() == javax.swing.BoxLayout.X_AXIS ?
-	    "createHorizontalBox" : "createVerticalBox";
-	return new Expression(oldInstance, oldInstance.getClass(), method, new Object[0]);
+        return new Expression(oldInstance, oldInstance.getClass(), "new", new Object[] {getAxis(oldInstance)});
+    }
+
+    private Integer getAxis(Object object) {
+        Box box = (Box) object;
+        return (Integer) MetaData.getPrivateFieldValue(box.getLayout(), "javax.swing.BoxLayout.axis");
     }
 }
 
@@ -1078,7 +1276,6 @@ final class sun_swing_PrintColorUIResource_PersistenceDelegate extends Persisten
 class MetaData {
     private static final Map<String,Field> fields = Collections.synchronizedMap(new WeakHashMap<String, Field>());
     private static Hashtable internalPersistenceDelegates = new Hashtable();
-    private static Hashtable transientProperties = new Hashtable();
 
     private static PersistenceDelegate nullPersistenceDelegate = new NullPersistenceDelegate();
     private static PersistenceDelegate enumPersistenceDelegate = new EnumPersistenceDelegate();
@@ -1089,76 +1286,6 @@ class MetaData {
 
     static {
 
-// Constructors.
-
-  // util
-
-        registerConstructor("java.util.Date", new String[]{"time"});
-
-  // beans
-
-        registerConstructor("java.beans.Statement", new String[]{"target", "methodName", "arguments"});
-        registerConstructor("java.beans.Expression", new String[]{"target", "methodName", "arguments"});
-        registerConstructor("java.beans.EventHandler", new String[]{"target", "action", "eventPropertyName", "listenerMethodName"});
-
-  // awt
-  
-        registerConstructor("java.awt.Color", new String[]{"red", "green", "blue", "alpha"});
-        registerConstructor("java.awt.Font", new String[]{"name", "style", "size"});
-        registerConstructor("java.awt.Cursor", new String[]{"type"});
-        registerConstructor("java.awt.ScrollPane", new String[]{"scrollbarDisplayPolicy"});
-
-  // swing
-
-        registerConstructor("javax.swing.plaf.FontUIResource", new String[]{"name", "style", "size"});
-        registerConstructor("javax.swing.plaf.ColorUIResource", new String[]{"red", "green", "blue"});
-
-        registerConstructor("javax.swing.tree.DefaultTreeModel", new String[]{"root"});
-        registerConstructor("javax.swing.JTree", new String[]{"model"});
-        registerConstructor("javax.swing.tree.TreePath", new String[]{"path"});
-
-        registerConstructor("javax.swing.OverlayLayout", new String[]{"target"});
-        registerConstructor("javax.swing.BoxLayout", new String[]{"target", "axis"});
-        registerConstructor("javax.swing.Box$Filler", new String[]{"minimumSize", "preferredSize",
-								   "maximumSize"});
-        registerConstructor("javax.swing.DefaultCellEditor", new String[]{"component"});
-
-        /*
-        This is required because the JSplitPane reveals a private layout class
-        called BasicSplitPaneUI$BasicVerticalLayoutManager which changes with
-        the orientation. To avoid the necessity for instantiating it we cause
-        the orientation attribute to get set before the layout manager - that
-        way the layout manager will be changed as a side effect. Unfortunately,
-        the layout property belongs to the superclass and therefore precedes
-        the orientation property. PENDING - we need to allow this kind of
-        modification. For now, put the property in the constructor.
-        */
-        registerConstructor("javax.swing.JSplitPane", new String[]{"orientation"});
-        // Try to synthesize the ImageIcon from its description.
-        registerConstructor("javax.swing.ImageIcon", new String[]{"description"});
-        // JButton's "text" and "actionCommand" properties are related,
-        // use the text as a constructor argument to ensure that it is set first.
-        // This remove the benign, but unnecessary, manipulation of actionCommand
-        // property in the common case.
-        registerConstructor("javax.swing.JButton", new String[]{"text"});
-
-        // borders
-
-        registerConstructor("javax.swing.border.BevelBorder", new String[]{"bevelType", "highlightOuterColor", "highlightInnerColor", "shadowOuterColor", "shadowInnerColor"});
-        registerConstructor("javax.swing.plaf.BorderUIResource$BevelBorderUIResource", new String[]{"bevelType", "highlightOuterColor", "highlightInnerColor", "shadowOuterColor", "shadowInnerColor"});
-        registerConstructor("javax.swing.border.CompoundBorder", new String[]{"outsideBorder", "insideBorder"});
-        registerConstructor("javax.swing.plaf.BorderUIResource$CompoundBorderUIResource", new String[]{"outsideBorder", "insideBorder"});
-        registerConstructor("javax.swing.border.EmptyBorder", new String[]{"borderInsets"});
-        registerConstructor("javax.swing.plaf.BorderUIResource$EmptyBorderUIResource", new String[]{"borderInsets"});
-        registerConstructor("javax.swing.border.EtchedBorder", new String[]{"etchType", "highlightColor", "shadowColor"});
-        registerConstructor("javax.swing.plaf.BorderUIResource$EtchedBorderUIResource", new String[]{"etchType", "highlightColor", "shadowColor"});
-        registerConstructor("javax.swing.border.LineBorder", new String[]{"lineColor", "thickness"});
-        registerConstructor("javax.swing.plaf.BorderUIResource$LineBorderUIResource", new String[]{"lineColor", "thickness"});
-        registerConstructor("javax.swing.border.SoftBevelBorder", new String[]{"bevelType", "highlightOuterColor", "highlightInnerColor", "shadowOuterColor", "shadowInnerColor"});
-        // registerConstructorWithBadEqual("javax.swing.plaf.BorderUIResource$SoftBevelBorderUIResource", new String[]{"bevelType", "highlightOuter", "highlightInner", "shadowOuter", "shadowInner"});
-        registerConstructor("javax.swing.border.TitledBorder", new String[]{"border", "title", "titleJustification", "titlePosition", "titleFont", "titleColor"});
-        registerConstructor("javax.swing.plaf.BorderUIResource$TitledBorderUIResource", new String[]{"border", "title", "titleJustification", "titlePosition", "titleFont", "titleColor"});
-
         internalPersistenceDelegates.put("java.net.URI",
                                          new PrimitivePersistenceDelegate());
 
@@ -1166,113 +1293,19 @@ class MetaData {
         internalPersistenceDelegates.put("javax.swing.plaf.BorderUIResource$MatteBorderUIResource",
                                          new javax_swing_border_MatteBorder_PersistenceDelegate());
 
-// Transient properties
+        // it is possible because FontUIResource is supported by java_awt_Font_PersistenceDelegate
+        internalPersistenceDelegates.put("javax.swing.plaf.FontUIResource",
+                                         new java_awt_Font_PersistenceDelegate());
 
-  // awt
+        // it is possible because KeyStroke is supported by java_awt_AWTKeyStroke_PersistenceDelegate
+        internalPersistenceDelegates.put("javax.swing.KeyStroke",
+                                         new java_awt_AWTKeyStroke_PersistenceDelegate());
 
-    // Infinite graphs.
-        removeProperty("java.awt.geom.RectangularShape", "frame");
-        // removeProperty("java.awt.Rectangle2D", "frame");
-        // removeProperty("java.awt.Rectangle", "frame");
+        internalPersistenceDelegates.put("java.sql.Date", new java_util_Date_PersistenceDelegate());
+        internalPersistenceDelegates.put("java.sql.Time", new java_util_Date_PersistenceDelegate());
 
-        removeProperty("java.awt.Rectangle", "bounds");
-        removeProperty("java.awt.Dimension", "size");
-        removeProperty("java.awt.Point", "location");
-
-        // The color and font properties in Component need special treatment, see above.
-        removeProperty("java.awt.Component", "foreground");
-        removeProperty("java.awt.Component", "background");
-        removeProperty("java.awt.Component", "font");
-
-        // The visible property of Component needs special treatment because of Windows.
-        removeProperty("java.awt.Component", "visible");
-
-        // This property throws an exception if accessed when there is no child. 
-        removeProperty("java.awt.ScrollPane", "scrollPosition"); 
-        
-	// 4917458 this should be removed for XAWT since it may throw
-	// an unsupported exception if there isn't any input methods.
-	// This shouldn't be a problem since these are added behind
-	// the scenes automatically.
-        removeProperty("java.awt.im.InputContext", "compositionEnabled"); 
-
-  // swing
-
-        // The size properties in JComponent need special treatment, see above.
-        removeProperty("javax.swing.JComponent", "minimumSize");
-        removeProperty("javax.swing.JComponent", "preferredSize");
-        removeProperty("javax.swing.JComponent", "maximumSize");
-
-        // These properties have platform specific implementations
-        // and should not appear in archives.
-        removeProperty("javax.swing.ImageIcon", "image");
-        removeProperty("javax.swing.ImageIcon", "imageObserver");
-
-        // This property throws an exception when set in JMenu.
-        // PENDING: Note we must delete the property from
-        // the superclass even though the superclass's
-        // implementation does not throw an error.
-        // This needs some more thought.
-        removeProperty("javax.swing.JMenu", "accelerator");
-        removeProperty("javax.swing.JMenuItem", "accelerator");
-        // This property unconditionally throws a "not implemented" exception.
-        removeProperty("javax.swing.JMenuBar", "helpMenu");
-
-        // The scrollBars in a JScrollPane are dynamic and should not
-        // be archived. The row and columns headers are changed by
-        // components like JTable on "addNotify".
-        removeProperty("javax.swing.JScrollPane", "verticalScrollBar");
-        removeProperty("javax.swing.JScrollPane", "horizontalScrollBar");
-        removeProperty("javax.swing.JScrollPane", "rowHeader");
-        removeProperty("javax.swing.JScrollPane", "columnHeader");
-        
-        removeProperty("javax.swing.JViewport", "extentSize");
-
-        // Renderers need special treatment, since their properties
-        // change during rendering.
-        removeProperty("javax.swing.table.JTableHeader", "defaultRenderer");
-        removeProperty("javax.swing.JList", "cellRenderer");
-
-        removeProperty("javax.swing.JList", "selectedIndices");
-
-        // The lead and anchor selection indexes are best ignored.
-        // Selection is rarely something that should persist from
-        // development to deployment.
-        removeProperty("javax.swing.DefaultListSelectionModel", "leadSelectionIndex");
-        removeProperty("javax.swing.DefaultListSelectionModel", "anchorSelectionIndex");
-
-        // The selection must come after the text itself.
-        removeProperty("javax.swing.JComboBox", "selectedIndex");
-
-        // All selection information should come after the JTabbedPane is built
-        removeProperty("javax.swing.JTabbedPane", "selectedIndex");
-        removeProperty("javax.swing.JTabbedPane", "selectedComponent");
-
-        // PENDING: The "disabledIcon" property is often computed from the icon property.
-        removeProperty("javax.swing.AbstractButton", "disabledIcon");
-	removeProperty("javax.swing.JLabel", "disabledIcon");
-
-        // The caret property throws errors when it it set beyond
-        // the extent of the text. We could just set it after the
-        // text, but this is probably not something we want to archive anyway.
-        removeProperty("javax.swing.text.JTextComponent", "caret");
-        removeProperty("javax.swing.text.JTextComponent", "caretPosition");
-        // The selectionStart must come after the text itself.
-        removeProperty("javax.swing.text.JTextComponent", "selectionStart");
-        removeProperty("javax.swing.text.JTextComponent", "selectionEnd");
-    }
-
-    /*pp*/ static boolean equals(Object o1, Object o2) {
-        return (o1 == null) ? (o2 == null) : o1.equals(o2);
-    }
-
-
-
-    // Entry points for Encoder.
-
-    public synchronized static void setPersistenceDelegate(Class type, 
-					 PersistenceDelegate persistenceDelegate) {
-	setBeanAttribute(type, "persistenceDelegate", persistenceDelegate);
+        internalPersistenceDelegates.put("java.util.JumboEnumSet", new java_util_EnumSet_PersistenceDelegate());
+        internalPersistenceDelegates.put("java.util.RegularEnumSet", new java_util_EnumSet_PersistenceDelegate());
     }
 
     public synchronized static PersistenceDelegate getPersistenceDelegate(Class type) {
@@ -1306,19 +1339,7 @@ class MetaData {
         //     return new DefaultPersistenceDelegate(new String[]{"this$0"});
         // }
 
-	String typeName = type.getName();
-
-	// Check to see if there are properties that have been lazily registered for removal.
-	if (getBeanAttribute(type, "transient_init") == null) {
-	    Vector tp = (Vector)transientProperties.get(typeName);
-	    if (tp != null) {
-		for(int i = 0; i < tp.size(); i++) {
-		    setPropertyAttribute(type, (String)tp.get(i), "transient", Boolean.TRUE);
-		}
-	    }
-	    setBeanAttribute(type, "transient_init", Boolean.TRUE);
-	}
-
+        String typeName = type.getName();
         PersistenceDelegate pd = (PersistenceDelegate)getBeanAttribute(type, "persistenceDelegate");
         if (pd == null) {
             pd = (PersistenceDelegate)internalPersistenceDelegates.get(typeName);
@@ -1328,8 +1349,8 @@ class MetaData {
             internalPersistenceDelegates.put(typeName, defaultPersistenceDelegate);
             try {
                 String name =  type.getName();
-                Class c = Class.forName("java.beans." + name.replace('.', '_') 
-					+ "_PersistenceDelegate");
+                Class c = Class.forName("java.beans." + name.replace('.', '_')
+                                        + "_PersistenceDelegate");
                 pd = (PersistenceDelegate)c.newInstance();
                 internalPersistenceDelegates.put(typeName, pd);
             }
@@ -1351,7 +1372,7 @@ class MetaData {
     private static String[] getConstructorProperties(Class type) {
         String[] names = null;
         int length = 0;
-        for (Constructor constructor : type.getConstructors()) {
+        for (Constructor<?> constructor : type.getConstructors()) {
             String[] value = getAnnotationValue(constructor);
             if ((value != null) && (length < value.length) && isValid(constructor, value)) {
                 names = value;
@@ -1361,14 +1382,14 @@ class MetaData {
         return names;
     }
 
-    private static String[] getAnnotationValue(Constructor constructor) {
+    private static String[] getAnnotationValue(Constructor<?> constructor) {
         ConstructorProperties annotation = constructor.getAnnotation(ConstructorProperties.class);
         return (annotation != null)
                 ? annotation.value()
                 : null;
     }
 
-    private static boolean isValid(Constructor constructor, String[] names) {
+    private static boolean isValid(Constructor<?> constructor, String[] names) {
         Class[] parameters = constructor.getParameterTypes();
         if (names.length != parameters.length) {
             return false;
@@ -1381,64 +1402,12 @@ class MetaData {
         return true;
     }
 
-    // Wrapper for Introspector.getBeanInfo to handle exception handling.
-    // Note: this relys on new 1.4 Introspector semantics which cache the BeanInfos
-    public static BeanInfo getBeanInfo(Class type) {
-	BeanInfo info = null;
-	try {
-	    info = Introspector.getBeanInfo(type);
-	} catch (Throwable e) {
-	    e.printStackTrace();
-	} 
-
-	return info;
-    }
-
-    private static PropertyDescriptor getPropertyDescriptor(Class type, String propertyName) {
-        BeanInfo info = getBeanInfo(type);
-        PropertyDescriptor[] propertyDescriptors = info.getPropertyDescriptors();
-        // System.out.println("Searching for: " + propertyName + " in " + type);
-        for(int i = 0; i < propertyDescriptors.length; i++) {
-            PropertyDescriptor pd  = propertyDescriptors[i];
-            if (propertyName.equals(pd.getName())) {
-                return pd;
-            }
-        }
-        return null;
-    }
-
-    private static void setPropertyAttribute(Class type, String property, String attribute, Object value) {
-        PropertyDescriptor pd = getPropertyDescriptor(type, property);
-        if (pd == null) {
-            System.err.println("Warning: property " + property + " is not defined on " + type);
-            return;
-        }
-        pd.setValue(attribute, value);
-    }
-
-    private static void setBeanAttribute(Class type, String attribute, Object value) {
-        getBeanInfo(type).getBeanDescriptor().setValue(attribute, value);
-    }
-
     private static Object getBeanAttribute(Class type, String attribute) {
-	return getBeanInfo(type).getBeanDescriptor().getValue(attribute);
-    }
-
-    // MetaData registration
-
-    private synchronized static void registerConstructor(String typeName, 
-							 String[] constructor) {
-        internalPersistenceDelegates.put(typeName, 
-					 new DefaultPersistenceDelegate(constructor));
-    }
-
-    private static void removeProperty(String typeName, String property) {
-        Vector tp = (Vector)transientProperties.get(typeName);
-        if (tp == null) {
-            tp = new Vector();
-            transientProperties.put(typeName, tp);
+        try {
+            return Introspector.getBeanInfo(type).getBeanDescriptor().getValue(attribute);
+        } catch (IntrospectionException exception) {
+            return null;
         }
-        tp.add(property);
     }
 
     static Object getPrivateFieldValue(Object instance, String name) {

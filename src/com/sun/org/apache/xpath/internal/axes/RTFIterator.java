@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +24,7 @@
 /**
  * This class implements an RTF Iterator. Currently exists for sole
  * purpose of enabling EXSLT object-type function to return "RTF".
- * 
+ *
   * @xsl.usage advanced
   */
 package com.sun.org.apache.xpath.internal.axes;
@@ -31,11 +35,10 @@ import com.sun.org.apache.xpath.internal.NodeSetDTM;
 public class RTFIterator extends NodeSetDTM {
     static final long serialVersionUID = 7658117366258528996L;
 
-	/**
-	 * Constructor for RTFIterator
-	 */	
-	public RTFIterator(int root, DTMManager manager) {
-		super(root, manager);
-	}
+        /**
+         * Constructor for RTFIterator
+         */
+        public RTFIterator(int root, DTMManager manager) {
+                super(root, manager);
+        }
 }
-

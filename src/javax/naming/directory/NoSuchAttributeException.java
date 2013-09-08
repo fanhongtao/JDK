@@ -1,8 +1,26 @@
 /*
- * @(#)NoSuchAttributeException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.directory;
@@ -18,19 +36,18 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
 
 public class NoSuchAttributeException extends NamingException {
     /**
-     * Constructs a new instance of NoSuchAttributeException using 
-     * an explanation. All other fields are set to null. 
-     * @param	explanation	Additional detail about this exception. Can be null.
+     * Constructs a new instance of NoSuchAttributeException using
+     * an explanation. All other fields are set to null.
+     * @param   explanation     Additional detail about this exception. Can be null.
      * @see java.lang.Throwable#getMessage
      */
     public NoSuchAttributeException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
 
@@ -39,7 +56,7 @@ public class NoSuchAttributeException extends NamingException {
      * All fields are initialized to null.
      */
     public NoSuchAttributeException() {
-	super();
+        super();
     }
 
     /**

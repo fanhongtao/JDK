@@ -1,4 +1,7 @@
-
+/*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 /*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
@@ -27,14 +30,14 @@ import org.w3c.dom.Attr;
  * This Exception is thrown if something related to the
  * {@link com.sun.org.apache.xml.internal.security.utils.resolver.ResourceResolver} goes wrong.
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class ResourceResolverException extends XMLSecurityException {
 
    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+         *
+         */
+        private static final long serialVersionUID = 1L;
    /**
     * Constructor ResourceResolverException
     *
@@ -106,15 +109,15 @@ public class ResourceResolverException extends XMLSecurityException {
    //J-
    Attr _uri = null;
    /**
-    * 
+    *
     * @param uri
     */
    public void setURI(Attr uri) {
       this._uri = uri;
    }
-   
+
    /**
-    * 
+    *
     * @return the uri
     */
    public Attr getURI() {
@@ -122,17 +125,17 @@ public class ResourceResolverException extends XMLSecurityException {
    }
 
    String _BaseURI;
-   
+
    /**
-    * 
+    *
     * @param BaseURI
     */
    public void setBaseURI(String BaseURI) {
       this._BaseURI = BaseURI;
    }
-   
+
    /**
-    * 
+    *
     * @return the basUri
     */
    public String getBaseURI() {

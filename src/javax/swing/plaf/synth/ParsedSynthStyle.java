@@ -1,8 +1,26 @@
 /*
- * @(#)ParsedSynthStyle.java	1.7 05/11/17
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
@@ -14,7 +32,6 @@ import sun.swing.plaf.synth.DefaultSynthStyle;
 /**
  * ParsedSynthStyle are the SynthStyle's that SynthParser creates.
  *
- * @version 1.7, 11/17/05
  * @author Scott Violet
  */
 class ParsedSynthStyle extends DefaultSynthStyle {
@@ -88,7 +105,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
         ParsedSynthStyle pStyle = (ParsedSynthStyle)super.addTo(style);
         pStyle._painters = mergePainterInfo(pStyle._painters, _painters);
         return pStyle;
-    }    
+    }
 
     private SynthPainter getBestPainter(SynthContext context, String method,
                                         int direction) {
@@ -604,7 +621,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintProgressBarBackground(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintProgressBarBackground(SynthContext context, Graphics g,
                                                int x, int y, int w, int h,
                                                int orientation) {
@@ -691,7 +708,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintScrollBarBackground(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintScrollBarBackground(SynthContext context, Graphics g,
                                              int x, int y,
                                              int w, int h, int orientation) {
@@ -707,7 +724,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintScrollBarBorder(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintScrollBarBorder(SynthContext context, Graphics g,
                                          int x, int y, int w, int h,
                                          int orientation) {
@@ -742,7 +759,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintScrollBarTrackBackground(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintScrollBarTrackBackground(SynthContext context,
                                                   Graphics g, int x, int y,
                                                   int w, int h,
@@ -842,7 +859,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintSliderBorder(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintSliderBorder(SynthContext context, Graphics g,
                                       int x, int y, int w, int h,
                                       int orientation) {
@@ -875,7 +892,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintSliderTrackBackground(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintSliderTrackBackground(SynthContext context, Graphics g,
                                                int x, int y, int w, int h,
                                                int orientation) {
@@ -891,7 +908,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintSliderTrackBorder(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintSliderTrackBorder(SynthContext context, Graphics g,
                                            int x, int y, int w, int h,
                                            int orientation) {
@@ -1212,7 +1229,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintToolBarContentBorder(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintToolBarContentBorder(SynthContext context, Graphics g,
                                               int x, int y, int w, int h,
                                               int orientation) {
@@ -1229,7 +1246,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintToolBarDragWindowBackground(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintToolBarDragWindowBackground(SynthContext context,
                                                      Graphics g, int x, int y,
                                                      int w, int h,
@@ -1247,7 +1264,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
                 painter.paintToolBarDragWindowBorder(context, g, x, y, w, h);
             }
         }
-        
+
         public void paintToolBarDragWindowBorder(SynthContext context,
                                                  Graphics g, int x, int y,
                                                  int w, int h,
@@ -1691,7 +1708,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "scrollbarborder", orientation).
                 paintScrollBarBorder(context, g, x, y, w, h, orientation);
         }
-        
+
         public void paintScrollBarThumbBackground(SynthContext context,
                      Graphics g, int x, int y, int w, int h, int direction) {
             getPainter(context, "scrollbarthumbbackground", direction).
@@ -1709,7 +1726,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "scrollbartrackbackground", -1).
                 paintScrollBarTrackBackground(context, g, x, y, w, h);
         }
-        
+
         public void paintScrollBarTrackBackground(SynthContext context,
                      Graphics g, int x, int y, int w, int h, int direction) {
              getPainter(context, "scrollbartrackbackground", direction).
@@ -1775,7 +1792,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "sliderbackground", -1).
                 paintSliderBackground(context, g, x, y, w, h);
         }
-        
+
         public void paintSliderBackground(SynthContext context,
                      Graphics g, int x, int y, int w, int h, int direction) {
             getPainter(context, "sliderbackground", direction).
@@ -1787,7 +1804,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "sliderborder", -1).
                 paintSliderBorder(context, g, x, y, w, h);
         }
-        
+
         public void paintSliderBorder(SynthContext context,
                      Graphics g, int x, int y, int w, int h, int direction) {
             getPainter(context, "sliderborder", direction).
@@ -1811,7 +1828,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "slidertrackbackground", -1).
                 paintSliderTrackBackground(context, g, x, y, w, h);
         }
-        
+
         public void paintSliderTrackBackground(SynthContext context,
                      Graphics g, int x, int y, int w, int h, int direction) {
             getPainter(context, "slidertrackbackground", direction).
@@ -1823,7 +1840,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "slidertrackborder", -1).
                 paintSliderTrackBorder(context, g, x, y, w, h);
         }
-        
+
         public void paintSliderTrackBorder(SynthContext context,
                      Graphics g, int x, int y, int w, int h, int direction) {
             getPainter(context, "slidertrackborder", direction).
@@ -2040,7 +2057,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "toolbarbackground", orientation).
                 paintToolBarBackground(context, g, x, y, w, h, orientation);
         }
-        
+
         public void paintToolBarBorder(SynthContext context,
                      Graphics g, int x, int y, int w, int h) {
             getPainter(context, "toolbarborder", -1).
@@ -2064,7 +2081,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "toolbarcontentbackground", orientation).
                 paintToolBarContentBackground(context, g, x, y, w, h, orientation);
         }
-        
+
         public void paintToolBarContentBorder(SynthContext context,
                      Graphics g, int x, int y, int w, int h) {
             getPainter(context, "toolbarcontentborder", -1).
@@ -2094,7 +2111,7 @@ class ParsedSynthStyle extends DefaultSynthStyle {
             getPainter(context, "toolbardragwindowborder", -1).
                 paintToolBarDragWindowBorder(context, g, x, y, w, h);
         }
-        
+
         public void paintToolBarDragWindowBorder(SynthContext context,
                      Graphics g, int x, int y, int w, int h, int orientation) {
             getPainter(context, "toolbardragwindowborder", orientation).

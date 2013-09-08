@@ -1,4 +1,29 @@
 /*
+ * Copyright (c) 2001, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
   File: ConditionVariable.java
 
   Originally written by Doug Lea and released into the public domain.
@@ -9,7 +34,7 @@
   History:
   Date       Who                What
   11Jun1998  dl               Create public version
-  08dec2001  kmc	      Added support for Reentrant Mutexes
+  08dec2001  kmc              Added support for Reentrant Mutexes
 */
 
 package com.sun.corba.se.impl.orbutil.concurrent;
@@ -34,19 +59,19 @@ import com.sun.corba.se.impl.orbutil.ORBUtility ;
  *   private final CondVar notFull;
  *   private final CondVar notEmpty;
  *   private int count = 0;
- *   private int takePtr = 0;     
+ *   private int takePtr = 0;
  *   private int putPtr = 0;
  *   private final Object[] array;
- * 
- *   public CVBuffer(int capacity) { 
+ *
+ *   public CVBuffer(int capacity) {
  *     array = new Object[capacity];
  *     mutex = new Mutex();
  *     notFull = new CondVar(mutex);
  *     notEmpty = new CondVar(mutex);
  *   }
- * 
+ *
  *   public int capacity() { return array.length; }
- * 
+ *
  *   public void put(Object x) throws InterruptedException {
  *     mutex.acquire();
  *     try {
@@ -62,7 +87,7 @@ import com.sun.corba.se.impl.orbutil.ORBUtility ;
  *       mutex.release();
  *     }
  *   }
- * 
+ *
  *   public Object take() throws InterruptedException {
  *     Object x = null;
  *     mutex.acquire();
@@ -81,7 +106,7 @@ import com.sun.corba.se.impl.orbutil.ORBUtility ;
  *     }
  *     return x;
  *   }
- * 
+ *
  *   public boolean offer(Object x, long msecs) throws InterruptedException {
  *     mutex.acquire();
  *     try {
@@ -100,7 +125,7 @@ import com.sun.corba.se.impl.orbutil.ORBUtility ;
  *       mutex.release();
  *     }
  *   }
- *   
+ *
  *   public Object poll(long msecs) throws InterruptedException {
  *     Object x = null;
  *     mutex.acquire();
@@ -139,115 +164,115 @@ public class CondVar {
 
     private int releaseMutex()
     {
-	int count = 1 ;
+        int count = 1 ;
 
-	if (remutex_!=null) 
-	    count = remutex_.releaseAll() ;
-	else
-	    mutex_.release() ;
+        if (remutex_!=null)
+            count = remutex_.releaseAll() ;
+        else
+            mutex_.release() ;
 
-	return count ;
+        return count ;
     }
 
     private void acquireMutex( int count ) throws InterruptedException
     {
-	if (remutex_!=null)
-	    remutex_.acquireAll( count ) ;
-	else
-	    mutex_.acquire() ;
+        if (remutex_!=null)
+            remutex_.acquireAll( count ) ;
+        else
+            mutex_.acquire() ;
     }
-  
-  /** 
+
+  /**
    * Create a new CondVar that relies on the given mutual
-   * exclusion lock. 
+   * exclusion lock.
    * @param mutex A mutual exclusion lock which must either be non-reentrant,
    * or else be ReentrantMutex.
    * Standard usage is to supply an instance of <code>Mutex</code>,
    * but, for example, a Semaphore initialized to 1 also works.
    * On the other hand, many other Sync implementations would not
-   * work here, so some care is required to supply a sensible 
+   * work here, so some care is required to supply a sensible
    * synchronization object.
    * In normal use, the mutex should be one that is used for <em>all</em>
-   * synchronization of the object using the CondVar. Generally, 
+   * synchronization of the object using the CondVar. Generally,
    * to prevent nested monitor lockouts, this
    * object should not use any native Java synchronized blocks.
    **/
- 
+
   public CondVar(Sync mutex, boolean debug) {
     debug_ = debug ;
     mutex_ = mutex;
     if (mutex instanceof ReentrantMutex)
-	remutex_ = (ReentrantMutex)mutex;
-    else 
-	remutex_ = null;
+        remutex_ = (ReentrantMutex)mutex;
+    else
+        remutex_ = null;
   }
 
   public CondVar( Sync mutex ) {
       this( mutex, false ) ;
   }
 
-  /** 
+  /**
    * Wait for notification. This operation at least momentarily
-   * releases the mutex. The mutex is always held upon return, 
+   * releases the mutex. The mutex is always held upon return,
    * even if interrupted.
    * @exception InterruptedException if the thread was interrupted
    * before or during the wait. However, if the thread is interrupted
-   * after the wait but during mutex re-acquisition, the interruption 
+   * after the wait but during mutex re-acquisition, the interruption
    * is ignored, while still ensuring
    * that the currentThread's interruption state stays true, so can
    * be probed by callers.
    **/
     public void await() throws InterruptedException {
-	int count = 0 ;
-	if (Thread.interrupted()) 
-	    throw new InterruptedException();
+        int count = 0 ;
+        if (Thread.interrupted())
+            throw new InterruptedException();
 
-	try {
-	    if (debug_)
-		ORBUtility.dprintTrace( this, "await enter" ) ;
+        try {
+            if (debug_)
+                ORBUtility.dprintTrace( this, "await enter" ) ;
 
-	    synchronized(this) {
-		count = releaseMutex() ;
-		try {
-		    wait(); 
-		} catch (InterruptedException ex) {
-		    notify();
-		    throw ex;
-		}
-	    }
-	} finally { 
-	    // Must ignore interrupt on re-acquire
-	    boolean interrupted = false;
-	    for (;;) {
-		try {
-		    acquireMutex( count );
-		    break;
-		} catch (InterruptedException ex) {
-		    interrupted = true;
-		}
-	    }
+            synchronized(this) {
+                count = releaseMutex() ;
+                try {
+                    wait();
+                } catch (InterruptedException ex) {
+                    notify();
+                    throw ex;
+                }
+            }
+        } finally {
+            // Must ignore interrupt on re-acquire
+            boolean interrupted = false;
+            for (;;) {
+                try {
+                    acquireMutex( count );
+                    break;
+                } catch (InterruptedException ex) {
+                    interrupted = true;
+                }
+            }
 
-	    if (interrupted) {
-		Thread.currentThread().interrupt();
-	    }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
 
-	    if (debug_)
-		ORBUtility.dprintTrace( this, "await exit" ) ;
-	}
+            if (debug_)
+                ORBUtility.dprintTrace( this, "await exit" ) ;
+        }
     }
 
     /**
-    * Wait for at most msecs for notification. 
+    * Wait for at most msecs for notification.
     * This operation at least momentarily
-    * releases the mutex. The mutex is always held upon return, 
+    * releases the mutex. The mutex is always held upon return,
     * even if interrupted.
-    * @param msecs The time to wait. A value less than or equal to zero 
+    * @param msecs The time to wait. A value less than or equal to zero
     * causes a momentarily release
     * and re-acquire of the mutex, and always returns false.
     * @return false if at least msecs have elapsed
-    * upon resumption; else true. A 
+    * upon resumption; else true. A
     * false return does NOT necessarily imply that the thread was
-    * not notified. For example, it might have been notified 
+    * not notified. For example, it might have been notified
     * after the time elapsed but just before resuming.
     * @exception InterruptedException if the thread was interrupted
     * before or during the wait.
@@ -255,62 +280,62 @@ public class CondVar {
 
     public boolean timedwait(long msecs) throws  InterruptedException {
 
-	if (Thread.interrupted()) 
-	    throw new InterruptedException();
+        if (Thread.interrupted())
+            throw new InterruptedException();
 
-	boolean success = false;
-	int count = 0;
+        boolean success = false;
+        int count = 0;
 
-	try {
-	    if (debug_)
-		ORBUtility.dprintTrace( this, "timedwait enter" ) ;
+        try {
+            if (debug_)
+                ORBUtility.dprintTrace( this, "timedwait enter" ) ;
 
-	    synchronized(this) {
-		count = releaseMutex() ;
-		try {
-		    if (msecs > 0) {
-			long start = System.currentTimeMillis();
-			wait(msecs); 
-			success = System.currentTimeMillis() - start <= msecs;
-		    }
-		} catch (InterruptedException ex) {
-		    notify();
-		    throw ex;
-		}
-	    }
-	} finally {
-	    // Must ignore interrupt on re-acquire
-	    boolean interrupted = false;
-	    for (;;) {
-		try {
-		    acquireMutex( count ) ;
-		    break;
-		} catch (InterruptedException ex) {
-		    interrupted = true;
-		}
-	    }
+            synchronized(this) {
+                count = releaseMutex() ;
+                try {
+                    if (msecs > 0) {
+                        long start = System.currentTimeMillis();
+                        wait(msecs);
+                        success = System.currentTimeMillis() - start <= msecs;
+                    }
+                } catch (InterruptedException ex) {
+                    notify();
+                    throw ex;
+                }
+            }
+        } finally {
+            // Must ignore interrupt on re-acquire
+            boolean interrupted = false;
+            for (;;) {
+                try {
+                    acquireMutex( count ) ;
+                    break;
+                } catch (InterruptedException ex) {
+                    interrupted = true;
+                }
+            }
 
-	    if (interrupted) {
-		Thread.currentThread().interrupt();
-	    }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
 
-	    if (debug_)
-		ORBUtility.dprintTrace( this, "timedwait exit" ) ;
-	}
-	return success;
+            if (debug_)
+                ORBUtility.dprintTrace( this, "timedwait exit" ) ;
+        }
+        return success;
     }
-  
-    /** 
+
+    /**
     * Notify a waiting thread.
     * If one exists, a non-interrupted thread will return
     * normally (i.e., not via InterruptedException) from await or timedwait.
     **/
     public synchronized void signal() {
-	notify();
+        notify();
     }
 
     /** Notify all waiting threads **/
     public synchronized void broadcast() {
-	notifyAll();
+        notifyAll();
     }
 }

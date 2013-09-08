@@ -1,20 +1,39 @@
 /*
- * @(#)OverlayLayout.java	1.29 06/04/10
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
 
 import java.awt.*;
+import java.beans.ConstructorProperties;
 import java.io.Serializable;
 
 /**
  * A layout manager to arrange components over the top
  * of each other.  The requested size of the container
- * will be the largest requested size of the children, 
- * taking alignment needs into consideration.  
+ * will be the largest requested size of the children,
+ * taking alignment needs into consideration.
  *
  * The alignment is based upon what is needed to properly
  * fit the children in the allocation area.  The children
@@ -30,7 +49,6 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.29 04/10/06
  * @author   Timothy Prinzing
  */
 public class OverlayLayout implements LayoutManager2,Serializable {
@@ -42,8 +60,9 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      *
      * @param target  the container to do layout against
      */
+    @ConstructorProperties({"target"})
     public OverlayLayout(Container target) {
-	this.target = target;
+        this.target = target;
     }
 
     /**
@@ -64,11 +83,11 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      * @param target the container
      */
     public void invalidateLayout(Container target) {
-	checkContainer(target);
-	xChildren = null;
-	yChildren = null;
-	xTotal = null;
-	yTotal = null;
+        checkContainer(target);
+        xChildren = null;
+        yChildren = null;
+        xTotal = null;
+        yTotal = null;
     }
 
     /**
@@ -115,14 +134,14 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      * @see #minimumLayoutSize
      */
     public Dimension preferredLayoutSize(Container target) {
-	checkContainer(target);
-	checkRequests();
+        checkContainer(target);
+        checkRequests();
 
-	Dimension size = new Dimension(xTotal.preferred, yTotal.preferred);
-	Insets insets = target.getInsets();
-	size.width += insets.left + insets.right;
-	size.height += insets.top + insets.bottom;
-	return size;
+        Dimension size = new Dimension(xTotal.preferred, yTotal.preferred);
+        Insets insets = target.getInsets();
+        size.width += insets.left + insets.right;
+        size.height += insets.top + insets.bottom;
+        return size;
     }
 
     /**
@@ -130,19 +149,19 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      * contained in the specified target container.  Recomputes the layout
      * if it has been invalidated, and factors in the current inset setting.
      *
-     * @param target the component which needs to be laid out 
+     * @param target the component which needs to be laid out
      * @return a Dimension object containing the minimum dimensions
      * @see #preferredLayoutSize
      */
     public Dimension minimumLayoutSize(Container target) {
-	checkContainer(target);
-	checkRequests();
+        checkContainer(target);
+        checkRequests();
 
-	Dimension size = new Dimension(xTotal.minimum, yTotal.minimum);
-	Insets insets = target.getInsets();
-	size.width += insets.left + insets.right;
-	size.height += insets.top + insets.bottom;
-	return size;
+        Dimension size = new Dimension(xTotal.minimum, yTotal.minimum);
+        Insets insets = target.getInsets();
+        size.width += insets.left + insets.right;
+        size.height += insets.top + insets.bottom;
+        return size;
     }
 
     /**
@@ -151,20 +170,20 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      * layout if it has been invalidated, and factors in the inset setting
      * returned by <code>getInset</code>.
      *
-     * @param target the component that needs to be laid out 
+     * @param target the component that needs to be laid out
      * @return a <code>Dimension</code> object containing the maximum
      *         dimensions
      * @see #preferredLayoutSize
      */
     public Dimension maximumLayoutSize(Container target) {
-	checkContainer(target);
-	checkRequests();
+        checkContainer(target);
+        checkRequests();
 
-	Dimension size = new Dimension(xTotal.maximum, yTotal.maximum);
-	Insets insets = target.getInsets();
-	size.width += insets.left + insets.right;
-	size.height += insets.top + insets.bottom;
-	return size;
+        Dimension size = new Dimension(xTotal.maximum, yTotal.maximum);
+        Insets insets = target.getInsets();
+        size.width += insets.left + insets.right;
+        size.height += insets.top + insets.bottom;
+        return size;
     }
 
     /**
@@ -174,9 +193,9 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      * @return the alignment >= 0.0f && <= 1.0f
      */
     public float getLayoutAlignmentX(Container target) {
-	checkContainer(target);
-	checkRequests();
-	return xTotal.alignment;
+        checkContainer(target);
+        checkRequests();
+        return xTotal.alignment;
     }
 
     /**
@@ -186,9 +205,9 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      * @return the alignment >= 0.0f && <= 1.0f
      */
     public float getLayoutAlignmentY(Container target) {
-	checkContainer(target);
-	checkRequests();
-	return yTotal.alignment;
+        checkContainer(target);
+        checkRequests();
+        return yTotal.alignment;
     }
 
     /**
@@ -200,71 +219,70 @@ public class OverlayLayout implements LayoutManager2,Serializable {
      *                      constructor
      */
     public void layoutContainer(Container target) {
-	checkContainer(target);
-	checkRequests();
-	
-	int nChildren = target.getComponentCount();
-	int[] xOffsets = new int[nChildren];
-	int[] xSpans = new int[nChildren];
-	int[] yOffsets = new int[nChildren];
-	int[] ySpans = new int[nChildren];
+        checkContainer(target);
+        checkRequests();
 
-	// determine the child placements
-	Dimension alloc = target.getSize();
-	Insets in = target.getInsets();
-	alloc.width -= in.left + in.right;
-	alloc.height -= in.top + in.bottom;
-	SizeRequirements.calculateAlignedPositions(alloc.width, xTotal, 
-						   xChildren, xOffsets,
-						   xSpans);
-	SizeRequirements.calculateAlignedPositions(alloc.height, yTotal,
-						   yChildren, yOffsets,
-						   ySpans);
+        int nChildren = target.getComponentCount();
+        int[] xOffsets = new int[nChildren];
+        int[] xSpans = new int[nChildren];
+        int[] yOffsets = new int[nChildren];
+        int[] ySpans = new int[nChildren];
 
-	// flush changes to the container
-	for (int i = 0; i < nChildren; i++) {
-	    Component c = target.getComponent(i);
-	    c.setBounds(in.left + xOffsets[i], in.top + yOffsets[i],
-			xSpans[i], ySpans[i]);
-	}
+        // determine the child placements
+        Dimension alloc = target.getSize();
+        Insets in = target.getInsets();
+        alloc.width -= in.left + in.right;
+        alloc.height -= in.top + in.bottom;
+        SizeRequirements.calculateAlignedPositions(alloc.width, xTotal,
+                                                   xChildren, xOffsets,
+                                                   xSpans);
+        SizeRequirements.calculateAlignedPositions(alloc.height, yTotal,
+                                                   yChildren, yOffsets,
+                                                   ySpans);
+
+        // flush changes to the container
+        for (int i = 0; i < nChildren; i++) {
+            Component c = target.getComponent(i);
+            c.setBounds(in.left + xOffsets[i], in.top + yOffsets[i],
+                        xSpans[i], ySpans[i]);
+        }
     }
 
     void checkContainer(Container target) {
-	if (this.target != target) {
-	    throw new AWTError("OverlayLayout can't be shared");
-	}
+        if (this.target != target) {
+            throw new AWTError("OverlayLayout can't be shared");
+        }
     }
-    
+
     void checkRequests() {
-	if (xChildren == null || yChildren == null) {
-	    // The requests have been invalidated... recalculate
-	    // the request information.
-	    int n = target.getComponentCount();
-	    xChildren = new SizeRequirements[n];
-	    yChildren = new SizeRequirements[n];
-	    for (int i = 0; i < n; i++) {
-		Component c = target.getComponent(i);
-		Dimension min = c.getMinimumSize();
-		Dimension typ = c.getPreferredSize();
-		Dimension max = c.getMaximumSize();
-		xChildren[i] = new SizeRequirements(min.width, typ.width, 
-						    max.width, 
-						    c.getAlignmentX());
-		yChildren[i] = new SizeRequirements(min.height, typ.height, 
-						    max.height, 
-						    c.getAlignmentY());
-	    }
-	    
-	    xTotal = SizeRequirements.getAlignedSizeRequirements(xChildren);
-	    yTotal = SizeRequirements.getAlignedSizeRequirements(yChildren);
-	}
+        if (xChildren == null || yChildren == null) {
+            // The requests have been invalidated... recalculate
+            // the request information.
+            int n = target.getComponentCount();
+            xChildren = new SizeRequirements[n];
+            yChildren = new SizeRequirements[n];
+            for (int i = 0; i < n; i++) {
+                Component c = target.getComponent(i);
+                Dimension min = c.getMinimumSize();
+                Dimension typ = c.getPreferredSize();
+                Dimension max = c.getMaximumSize();
+                xChildren[i] = new SizeRequirements(min.width, typ.width,
+                                                    max.width,
+                                                    c.getAlignmentX());
+                yChildren[i] = new SizeRequirements(min.height, typ.height,
+                                                    max.height,
+                                                    c.getAlignmentY());
+            }
+
+            xTotal = SizeRequirements.getAlignedSizeRequirements(xChildren);
+            yTotal = SizeRequirements.getAlignedSizeRequirements(yChildren);
+        }
     }
-	    
+
     private Container target;
     private SizeRequirements[] xChildren;
     private SizeRequirements[] yChildren;
     private SizeRequirements xTotal;
     private SizeRequirements yTotal;
-    
-}
 
+}

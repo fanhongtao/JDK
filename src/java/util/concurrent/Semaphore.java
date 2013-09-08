@@ -1,8 +1,36 @@
 /*
- * @(#)Semaphore.java	1.13 06/03/30
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -163,8 +191,11 @@ public class Semaphore implements java.io.Serializable {
 
         protected final boolean tryReleaseShared(int releases) {
             for (;;) {
-                int p = getState();
-                if (compareAndSetState(p, p + releases))
+                int current = getState();
+                int next = current + releases;
+                if (next < current) // overflow
+                    throw new Error("Maximum permit count exceeded");
+                if (compareAndSetState(current, next))
                     return true;
             }
         }
@@ -173,6 +204,8 @@ public class Semaphore implements java.io.Serializable {
             for (;;) {
                 int current = getState();
                 int next = current - reductions;
+                if (next > current) // underflow
+                    throw new Error("Permit count underflow");
                 if (compareAndSetState(current, next))
                     return;
             }
@@ -190,7 +223,7 @@ public class Semaphore implements java.io.Serializable {
     /**
      * NonFair version
      */
-    final static class NonfairSync extends Sync {
+    static final class NonfairSync extends Sync {
         private static final long serialVersionUID = -2694183684443567898L;
 
         NonfairSync(int permits) {
@@ -205,7 +238,7 @@ public class Semaphore implements java.io.Serializable {
     /**
      * Fair version
      */
-    final static class FairSync extends Sync {
+    static final class FairSync extends Sync {
         private static final long serialVersionUID = 2014338818796000944L;
 
         FairSync(int permits) {
@@ -213,10 +246,8 @@ public class Semaphore implements java.io.Serializable {
         }
 
         protected int tryAcquireShared(int acquires) {
-            Thread current = Thread.currentThread();
             for (;;) {
-                Thread first = getFirstQueuedThread();
-                if (first != null && first != current)
+                if (hasQueuedPredecessors())
                     return -1;
                 int available = getState();
                 int remaining = available - acquires;
@@ -251,7 +282,7 @@ public class Semaphore implements java.io.Serializable {
      *        else {@code false}
      */
     public Semaphore(int permits, boolean fair) {
-        sync = (fair)? new FairSync(permits) : new NonfairSync(permits);
+        sync = fair ? new FairSync(permits) : new NonfairSync(permits);
     }
 
     /**
@@ -615,7 +646,7 @@ public class Semaphore implements java.io.Serializable {
      * @throws IllegalArgumentException if {@code reduction} is negative
      */
     protected void reducePermits(int reduction) {
-	if (reduction < 0) throw new IllegalArgumentException();
+        if (reduction < 0) throw new IllegalArgumentException();
         sync.reducePermits(reduction);
     }
 

@@ -1,8 +1,26 @@
 /*
- * @(#)PortUnreachableException.java	1.5 05/11/17
+ * Copyright (c) 2001, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -15,18 +33,19 @@ package java.net;
  */
 
 public class PortUnreachableException extends SocketException {
+    private static final long serialVersionUID = 8462541992376507323L;
 
     /**
-     * Constructs a new <code>PortUnreachableException</code> with a 
+     * Constructs a new <code>PortUnreachableException</code> with a
      * detail message.
      * @param msg the detail message
      */
     public PortUnreachableException(String msg) {
-	super(msg);
+        super(msg);
     }
 
     /**
-     * Construct a new <code>PortUnreachableException</code> with no 
+     * Construct a new <code>PortUnreachableException</code> with no
      * detailed message.
      */
     public PortUnreachableException() {}

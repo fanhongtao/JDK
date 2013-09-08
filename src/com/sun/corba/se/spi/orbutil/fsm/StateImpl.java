@@ -1,8 +1,26 @@
 /*
- * @(#)StateImpl.java	1.10 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.orbutil.fsm ;
@@ -25,14 +43,14 @@ public class StateImpl extends NameBase implements State {
     private State defaultNextState ;
     private Map inputToGuardedActions ;
 
-    public StateImpl( String name ) 
-    { 
-	super( name ) ; 
-	defaultAction = null ;
-	inputToGuardedActions = new HashMap() ;
-    } 
+    public StateImpl( String name )
+    {
+        super( name ) ;
+        defaultAction = null ;
+        inputToGuardedActions = new HashMap() ;
+    }
 
-    public void preAction( FSM fsm ) 
+    public void preAction( FSM fsm )
     {
     }
 
@@ -44,38 +62,37 @@ public class StateImpl extends NameBase implements State {
 
     public State getDefaultNextState()
     {
-	return defaultNextState ;
+        return defaultNextState ;
     }
 
     public void setDefaultNextState( State defaultNextState )
     {
-	this.defaultNextState = defaultNextState ;
+        this.defaultNextState = defaultNextState ;
     }
 
     public Action getDefaultAction()
     {
-	return defaultAction ;
+        return defaultAction ;
     }
 
     public void setDefaultAction( Action defaultAction )
     {
-	this.defaultAction = defaultAction ;
+        this.defaultAction = defaultAction ;
     }
 
     public void addGuardedAction( Input in, GuardedAction ga )
     {
-	Set gas = (Set)inputToGuardedActions.get( in ) ;
-	if (gas == null) {
-	    gas = new HashSet() ;
-	    inputToGuardedActions.put( in, gas ) ;
-	}
+        Set gas = (Set)inputToGuardedActions.get( in ) ;
+        if (gas == null) {
+            gas = new HashSet() ;
+            inputToGuardedActions.put( in, gas ) ;
+        }
 
-	gas.add( ga ) ;
+        gas.add( ga ) ;
     }
 
     public Set getGuardedActions( Input in )
     {
-	return (Set)inputToGuardedActions.get( in ) ;
+        return (Set)inputToGuardedActions.get( in ) ;
     }
 }
-

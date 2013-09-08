@@ -1,8 +1,26 @@
 /*
- * @(#)ScriptException.java	1.2 05/11/17 14:24:14
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTAIL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.script;
@@ -14,15 +32,14 @@ package javax.script;
  * filenames if this information is available.
  *
  * @author Mike Grogan
- * @version 1.0
  * @since 1.6
  */
 public class ScriptException extends Exception {
-    
+
     private String fileName;
     private int lineNumber;
     private int columnNumber;
-    
+
     /**
      * Creates a <code>ScriptException</code> with a String to be used in its message.
      * Filename, and line and column numbers are unspecified.
@@ -35,7 +52,7 @@ public class ScriptException extends Exception {
         lineNumber = -1;
         columnNumber = -1;
     }
-    
+
     /**
      * Creates a <code>ScriptException</code> wrapping an <code>Exception</code> thrown by an underlying
      * interpreter.  Line and column numbers and filename are unspecified.
@@ -48,7 +65,7 @@ public class ScriptException extends Exception {
         lineNumber = -1;
         columnNumber = -1;
     }
-    
+
     /**
      * Creates a <code>ScriptException</code> with message, filename and linenumber to
      * be used in error messages.
@@ -67,7 +84,7 @@ public class ScriptException extends Exception {
         this.lineNumber = lineNumber;
         this.columnNumber = -1;
     }
-    
+
     /**
      * <code>ScriptException</code> constructor specifying message, filename, line number
      * and column number.
@@ -85,7 +102,7 @@ public class ScriptException extends Exception {
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
     }
-    
+
     /**
      * Returns a message containing the String passed to a constructor as well as
      * line and column numbers and filename if any of these are known.
@@ -98,15 +115,15 @@ public class ScriptException extends Exception {
             if (lineNumber != -1) {
                 ret += " at line number " + lineNumber;
             }
-            
+
             if (columnNumber != -1) {
                 ret += " at column number " + columnNumber;
             }
         }
-        
+
         return ret;
     }
-    
+
     /**
      * Get the line number on which an error occurred.
      * @return The line number.  Returns -1 if a line number is unavailable.
@@ -114,7 +131,7 @@ public class ScriptException extends Exception {
     public int getLineNumber() {
         return lineNumber;
     }
-    
+
     /**
      * Get the column number on which an error occurred.
      * @return The column number.  Returns -1 if a column number is unavailable.
@@ -122,7 +139,7 @@ public class ScriptException extends Exception {
     public int getColumnNumber() {
         return columnNumber;
     }
-    
+
     /**
      * Get the source of the script causing the error.
      * @return The file name of the script or some other string describing the script

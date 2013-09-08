@@ -1,8 +1,26 @@
 /*
- * @(#)GTKColorChooserPanel.java	1.10 05/11/17
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.java.swing.plaf.gtk;
 
@@ -18,7 +36,6 @@ import javax.swing.plaf.*;
  * A color chooser panel mimicking that of GTK's: a color wheel showing
  * hue and a triangle that varies saturation and brightness.
  *
- * @version 1.10, 11/17/05
  * @author Scott Violet
  */
 class GTKColorChooserPanel extends AbstractColorChooserPanel implements
@@ -54,22 +71,22 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
      */
     // PENDING: remove this when a variant of this is added to awt.
     static void compositeRequestFocus(Component component, boolean direction) {
- 	if (component instanceof Container) {
- 	    Container container = (Container)component;
- 	    if (container.isFocusCycleRoot()) {
- 		FocusTraversalPolicy policy = container.
+        if (component instanceof Container) {
+            Container container = (Container)component;
+            if (container.isFocusCycleRoot()) {
+                FocusTraversalPolicy policy = container.
                                               getFocusTraversalPolicy();
- 		Component comp = policy.getDefaultComponent(container);
- 		if (comp!=null) {
- 		    comp.requestFocus();
- 		    return;
- 		}
- 	    }
- 	    Container rootAncestor = container.getFocusCycleRootAncestor();
- 	    if (rootAncestor!=null) {
- 		FocusTraversalPolicy policy = rootAncestor.
+                Component comp = policy.getDefaultComponent(container);
+                if (comp!=null) {
+                    comp.requestFocus();
+                    return;
+                }
+            }
+            Container rootAncestor = container.getFocusCycleRootAncestor();
+            if (rootAncestor!=null) {
+                FocusTraversalPolicy policy = rootAncestor.
                                                   getFocusTraversalPolicy();
- 		Component comp;
+                Component comp;
 
                 if (direction) {
                     comp = policy.getComponentAfter(rootAncestor, container);
@@ -78,12 +95,12 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
                     comp = policy.getComponentBefore(rootAncestor, container);
                 }
                 if (comp != null) {
- 		    comp.requestFocus();
- 		    return;
- 		}
- 	    }
- 	}
- 	component.requestFocus();
+                    comp.requestFocus();
+                    return;
+                }
+            }
+        }
+        component.requestFocus();
     }
 
 
@@ -311,7 +328,7 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
         setHSB(hue, saturation, brightness);
         if (update) {
             settingColor = true;
-            hueSpinner.setValue(new Integer((int)(hue * 360)));
+            hueSpinner.setValue(Integer.valueOf((int)(hue * 360)));
             settingColor = false;
         }
     }
@@ -359,8 +376,8 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
         setHSB(hue, s, b);
         if (update) {
             settingColor = true;
-            saturationSpinner.setValue(new Integer((int)(s * 255)));
-            valueSpinner.setValue(new Integer((int)(b * 255)));
+            saturationSpinner.setValue(Integer.valueOf((int)(s * 255)));
+            valueSpinner.setValue(Integer.valueOf((int)(b * 255)));
             settingColor = false;
         }
     }
@@ -374,9 +391,9 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
         setColor(color, false, true, true);
 
         settingColor = true;
-        hueSpinner.setValue(new Integer((int)(hue * 360)));
-        saturationSpinner.setValue(new Integer((int)(saturation * 255)));
-        valueSpinner.setValue(new Integer((int)(brightness * 255)));
+        hueSpinner.setValue(Integer.valueOf((int)(hue * 360)));
+        saturationSpinner.setValue(Integer.valueOf((int)(saturation * 255)));
+        valueSpinner.setValue(Integer.valueOf((int)(brightness * 255)));
         settingColor = false;
     }
 
@@ -392,13 +409,13 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
         setColor(color, false, false, true);
 
         settingColor = true;
-        redSpinner.setValue(new Integer(color.getRed()));
-        greenSpinner.setValue(new Integer(color.getGreen()));
-        blueSpinner.setValue(new Integer(color.getBlue()));
+        redSpinner.setValue(Integer.valueOf(color.getRed()));
+        greenSpinner.setValue(Integer.valueOf(color.getGreen()));
+        blueSpinner.setValue(Integer.valueOf(color.getBlue()));
         settingColor = false;
     }
 
-    
+
     /**
      * Rests the color.
      *
@@ -425,7 +442,10 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
         }
 
         if (updateModel) {
-            getColorSelectionModel().setSelectedColor(color);
+            ColorSelectionModel model = getColorSelectionModel();
+            if (model != null) {
+                model.setSelectedColor(color);
+            }
         }
 
         triangle.setColor(hue, saturation, brightness);
@@ -437,13 +457,13 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
         colorNameTF.setText("#" + hexString.substring(1));
 
         if (updateSpinners) {
-            redSpinner.setValue(new Integer(color.getRed()));
-            greenSpinner.setValue(new Integer(color.getGreen()));
-            blueSpinner.setValue(new Integer(color.getBlue()));
+            redSpinner.setValue(Integer.valueOf(color.getRed()));
+            greenSpinner.setValue(Integer.valueOf(color.getGreen()));
+            blueSpinner.setValue(Integer.valueOf(color.getBlue()));
 
-            hueSpinner.setValue(new Integer((int)(hue * 360)));
-            saturationSpinner.setValue(new Integer((int)(saturation * 255)));
-            valueSpinner.setValue(new Integer((int)(brightness * 255)));
+            hueSpinner.setValue(Integer.valueOf((int)(hue * 360)));
+            saturationSpinner.setValue(Integer.valueOf((int)(saturation * 255)));
+            valueSpinner.setValue(Integer.valueOf((int)(brightness * 255)));
         }
         settingColor = false;
     }
@@ -584,7 +604,7 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
                 map.put("down", new ColorAction("down", 1));
                 map.put("focusNext", new ColorAction("focusNext", 4));
                 map.put("focusLast", new ColorAction("focusLast", 5));
-		UIManager.getLookAndFeelDefaults().put(
+                UIManager.getLookAndFeelDefaults().put(
                              "GTKColorChooserPanel.actionMap", map);
             }
             SwingUtilities.replaceUIActionMap(this, map);
@@ -779,9 +799,9 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
             Graphics g = triangleImage.getGraphics();
             g.setColor(new Color(0, 0, 0, 0));
             g.fillRect(0, 0, a, a);
-            g.translate((int)(a / 2), 0);
+            g.translate(a / 2, 0);
             paintTriangle(g, triangleSize, getColor());
-            g.translate((int)(-a / 2), 0);
+            g.translate(-a / 2, 0);
             g.dispose();
 
             g = wheelImage.getGraphics();
@@ -877,7 +897,7 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
                 return false;
             }
             // Rotate to origin and and verify x is valid.
-            int triangleSize = (int)innerR * 3 / 2;
+            int triangleSize = innerR * 3 / 2;
             double x1 = Math.cos(angle) * x - Math.sin(angle) * y;
             double y1 = Math.sin(angle) * x + Math.cos(angle) * y;
             if (x1 < -(innerR / 2)) {
@@ -940,7 +960,7 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
          */
         private void setSaturationAndBrightness(float s, float b) {
             int innerR = getTriangleCircumscribedRadius();
-            int triangleSize = (int)innerR * 3 / 2;
+            int triangleSize = innerR * 3 / 2;
             double x = b * triangleSize;
             double maxY = x * Math.tan(Math.toRadians(30.0));
             double y = 2 * maxY * s - maxY;
@@ -955,7 +975,7 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
             setSaturationAndBrightness(s, b, newCircleX, newCircleY);
         }
 
-            
+
         /**
          * Sets the saturation and brightness.
          */
@@ -1136,7 +1156,7 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
          * @param x X location to get color for
          * @param y Y location to get color for
          * @param rad Radius from center of color wheel
-         * @param integer with red, green and blue components
+         * @return integer with red, green and blue components
          */
         private int colorWheelLocationToRGB(int x, int y, double rad) {
             double angle = Math.acos((double)x / rad);
@@ -1145,12 +1165,12 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
             if (angle < PI_3) {
                 if (y < 0) {
                     // FFFF00 - FF0000
-                    rgb = 0xFF0000 | (int)Math.min(255, 
+                    rgb = 0xFF0000 | Math.min(255,
                                            (int)(255 * angle / PI_3)) << 8;
                 }
                 else {
                     // FF0000 - FF00FF
-                    rgb = 0xFF0000 | (int)Math.min(255, 
+                    rgb = 0xFF0000 | Math.min(255,
                                            (int)(255 * angle / PI_3));
                 }
             }
@@ -1158,12 +1178,12 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
                 angle -= PI_3;
                 if (y < 0) {
                     // 00FF00 - FFFF00
-                    rgb = 0x00FF00 | (int)Math.max(0, 255 -
+                    rgb = 0x00FF00 | Math.max(0, 255 -
                                            (int)(255 * angle / PI_3)) << 16;
                 }
                 else {
                     // FF00FF - 0000FF
-                    rgb = 0x0000FF | (int)Math.max(0, 255 -
+                    rgb = 0x0000FF | Math.max(0, 255 -
                                            (int)(255 * angle / PI_3)) << 16;
                 }
             }
@@ -1171,12 +1191,12 @@ class GTKColorChooserPanel extends AbstractColorChooserPanel implements
                 angle -= 2 * PI_3;
                 if (y < 0) {
                     // 00FFFF - 00FF00
-                    rgb = 0x00FF00 | (int)Math.min(255,
+                    rgb = 0x00FF00 | Math.min(255,
                                            (int)(255 * angle / PI_3));
                 }
                 else {
                     // 0000FF - 00FFFF
-                    rgb = 0x0000FF | (int)Math.min(255, 
+                    rgb = 0x0000FF | Math.min(255,
                                            (int)(255 * angle / PI_3)) << 8;
                 }
             }

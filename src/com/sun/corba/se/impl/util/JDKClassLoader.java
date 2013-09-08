@@ -1,16 +1,32 @@
 /*
- * @(#)JDKClassLoader.java	1.24 05/11/17
+ * Copyright (c) 1999, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.util;
@@ -32,17 +48,17 @@ class JDKClassLoader {
     private static final JDKClassLoaderCache classCache
         = new JDKClassLoaderCache();
 
-    private static final Bridge bridge = 
-	(Bridge)AccessController.doPrivileged(
-	    new PrivilegedAction() {
-		public Object run() {
-		    return Bridge.get() ;
-		}
-	    } 
-	) ;
+    private static final Bridge bridge =
+        (Bridge)AccessController.doPrivileged(
+            new PrivilegedAction() {
+                public Object run() {
+                    return Bridge.get() ;
+                }
+            }
+        ) ;
 
     static Class loadClass(Class aClass, String className)
-	throws ClassNotFoundException {
+        throws ClassNotFoundException {
 
         // Maintain the same error semantics as Class.forName()
         if (className == null) {
@@ -88,7 +104,7 @@ class JDKClassLoader {
             }
         }
     }
-	
+
     /**
      * Private cache implementation specific to JDKClassLoader.
      */
@@ -107,7 +123,7 @@ class JDKClassLoader {
         // A key currently consists of the class name as well as
         // the latest user defined class loader, so it's fairly
         // expensive to create.
-        public final Object createKey(String className, ClassLoader latestLoader) {          
+        public final Object createKey(String className, ClassLoader latestLoader) {
             return new CacheKey(className, latestLoader);
         }
 
@@ -132,7 +148,7 @@ class JDKClassLoader {
         {
             String className;
             ClassLoader loader;
-        
+
             public CacheKey(String className, ClassLoader loader) {
                 this.className = className;
                 this.loader = loader;
@@ -166,7 +182,7 @@ class JDKClassLoader {
                     // loading.
                     return (className.equals(other.className) &&
                             loader == other.loader);
-                    
+
                 } catch (ClassCastException cce) {
                     return false;
                 }

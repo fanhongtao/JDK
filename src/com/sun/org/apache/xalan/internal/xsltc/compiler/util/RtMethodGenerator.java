@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,29 +42,29 @@ public final class RtMethodGenerator extends MethodGenerator {
     private final Instruction _aloadHandler;
 
     public RtMethodGenerator(int access_flags, Type return_type,
-			     Type[] arg_types, String[] arg_names,
-			     String method_name, String class_name,
-			     InstructionList il, ConstantPoolGen cp) {
-	super(access_flags, return_type, arg_types, arg_names, method_name, 
-	      class_name, il, cp);
-	
-	_astoreHandler = new ASTORE(HANDLER_INDEX);
-	_aloadHandler  = new ALOAD(HANDLER_INDEX);
+                             Type[] arg_types, String[] arg_names,
+                             String method_name, String class_name,
+                             InstructionList il, ConstantPoolGen cp) {
+        super(access_flags, return_type, arg_types, arg_names, method_name,
+              class_name, il, cp);
+
+        _astoreHandler = new ASTORE(HANDLER_INDEX);
+        _aloadHandler  = new ALOAD(HANDLER_INDEX);
     }
 
     public int getIteratorIndex() {
-	return INVALID_INDEX;		// not available
+        return INVALID_INDEX;           // not available
     }
-    
+
     public final Instruction storeHandler() {
-	return _astoreHandler;
+        return _astoreHandler;
     }
 
     public final Instruction loadHandler() {
-	return _aloadHandler;
+        return _aloadHandler;
     }
 
     public int getLocalIndex(String name) {
-	return INVALID_INDEX;		// not available
+        return INVALID_INDEX;           // not available
     }
 }

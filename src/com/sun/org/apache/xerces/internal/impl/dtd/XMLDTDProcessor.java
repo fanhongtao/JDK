@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  
+ * Copyright (c) 1999-2002 The Apache Software Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -57,11 +61,12 @@
 
 package com.sun.org.apache.xerces.internal.impl.dtd;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
@@ -108,7 +113,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDSource;
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: XMLDTDProcessor.java,v 1.1.2.1 2005/08/01 03:36:41 jeffsuttor Exp $
+ * @version $Id: XMLDTDProcessor.java,v 1.5 2010-11-01 04:39:42 joehw Exp $
  */
 public class XMLDTDProcessor
         implements XMLComponent, XMLDTDFilter, XMLDTDContentModelFilter {
@@ -131,11 +136,15 @@ public class XMLDTDProcessor
         Constants.XERCES_FEATURE_PREFIX + Constants.NOTIFY_CHAR_REFS_FEATURE;
 
     /** Feature identifier: warn on duplicate attdef */
-    protected static final String WARN_ON_DUPLICATE_ATTDEF = 
-        Constants.XERCES_FEATURE_PREFIX +Constants.WARN_ON_DUPLICATE_ATTDEF_FEATURE; 
-        
-	protected static final String PARSER_SETTINGS = 
-			Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
+    protected static final String WARN_ON_DUPLICATE_ATTDEF =
+        Constants.XERCES_FEATURE_PREFIX +Constants.WARN_ON_DUPLICATE_ATTDEF_FEATURE;
+
+    /** Feature identifier: warn on undeclared element referenced in content model. */
+    protected static final String WARN_ON_UNDECLARED_ELEMDEF =
+        Constants.XERCES_FEATURE_PREFIX + Constants.WARN_ON_UNDECLARED_ELEMDEF_FEATURE;
+
+	protected static final String PARSER_SETTINGS =
+        Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
 
     // property identifiers
 
@@ -161,6 +170,7 @@ public class XMLDTDProcessor
     private static final String[] RECOGNIZED_FEATURES = {
         VALIDATION,
         WARN_ON_DUPLICATE_ATTDEF,
+        WARN_ON_UNDECLARED_ELEMDEF,
         NOTIFY_CHAR_REFS,
     };
 
@@ -168,14 +178,15 @@ public class XMLDTDProcessor
     private static final Boolean[] FEATURE_DEFAULTS = {
         null,
         Boolean.FALSE,
+        Boolean.FALSE,
         null,
     };
 
     /** Recognized properties. */
     private static final String[] RECOGNIZED_PROPERTIES = {
-        SYMBOL_TABLE,       
+        SYMBOL_TABLE,
         ERROR_REPORTER,
-        GRAMMAR_POOL,       
+        GRAMMAR_POOL,
         DTD_VALIDATOR,
     };
 
@@ -189,7 +200,7 @@ public class XMLDTDProcessor
 
     // debugging
 
-    //        
+    //
     // Data
     //
 
@@ -203,7 +214,10 @@ public class XMLDTDProcessor
 
     /** warn on duplicate attribute definition, this feature works only when validation is true */
     protected boolean fWarnDuplicateAttdef;
-        
+
+    /** warn on undeclared element referenced in content model, this feature only works when valiation is true */
+    protected boolean fWarnOnUndeclaredElemdef;
+
     // properties
 
     /** Symbol table. */
@@ -263,31 +277,31 @@ public class XMLDTDProcessor
     // temporary variables
 
     /** Temporary entity declaration. */
-    private XMLEntityDecl fEntityDecl = new XMLEntityDecl();
+    private final XMLEntityDecl fEntityDecl = new XMLEntityDecl();
 
     /** Notation declaration hash. */
-    private Hashtable fNDataDeclNotations = new Hashtable();
+    private final HashMap fNDataDeclNotations = new HashMap();
 
     /** DTD element declaration name. */
     private String fDTDElementDeclName = null;
 
     /** Mixed element type "hash". */
-    private Vector fMixedElementTypes = new Vector();
+    private final ArrayList fMixedElementTypes = new ArrayList();
 
     /** Element declarations in DTD. */
-    private Vector fDTDElementDecls = new Vector();
+    private final ArrayList fDTDElementDecls = new ArrayList();
 
     // to check for duplicate ID or ANNOTATION attribute declare in
     // ATTLIST, and misc VCs
 
     /** ID attribute names. */
-    private Hashtable fTableOfIDAttributeNames;
+    private HashMap fTableOfIDAttributeNames;
 
     /** NOTATION attribute names. */
-    private Hashtable fTableOfNOTATIONAttributeNames;
+    private HashMap fTableOfNOTATIONAttributeNames;
 
     /** NOTATION enumeration values. */
-    private Hashtable fNotationEnumVals;
+    private HashMap fNotationEnumVals;
 
     //
     // Constructors
@@ -308,24 +322,19 @@ public class XMLDTDProcessor
      * Resets the component. The component can query the component manager
      * about any features and properties that affect the operation of the
      * component.
-     * 
+     *
      * @param componentManager The component manager.
      *
      * @throws SAXException Thrown by component on finitialization error.
      *                      For example, if a feature or property is
      *                      required for the operation of the component, the
-     *                      component manager may throw a 
+     *                      component manager may throw a
      *                      SAXNotRecognizedException or a
      *                      SAXNotSupportedException.
      */
     public void reset(XMLComponentManager componentManager) throws XMLConfigurationException {
-       
-        boolean parser_settings;
-        try {
-            parser_settings = componentManager.getFeature(PARSER_SETTINGS);
-        } catch (XMLConfigurationException e) {
-            parser_settings = true;
-        }
+
+        boolean parser_settings = componentManager.getFeature(PARSER_SETTINGS, true);
 
         if (!parser_settings) {
             // parser settings have not been changed
@@ -334,28 +343,17 @@ public class XMLDTDProcessor
         }
 
         // sax features
-        try {
-            fValidation = componentManager.getFeature(VALIDATION);
-        } catch (XMLConfigurationException e) {
-            fValidation = false;
-        }
-        try {
-            fDTDValidation =
+        fValidation = componentManager.getFeature(VALIDATION, false);
+
+        fDTDValidation =
                 !(componentManager
                     .getFeature(
-                        Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_VALIDATION_FEATURE));
-        } catch (XMLConfigurationException e) {
-            // must be in a schema-less configuration!
-            fDTDValidation = true;
-        }
+                        Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_VALIDATION_FEATURE, false));
 
         // Xerces features
 
-        try {
-            fWarnDuplicateAttdef = componentManager.getFeature(WARN_ON_DUPLICATE_ATTDEF);
-        } catch (XMLConfigurationException e) {
-            fWarnDuplicateAttdef = false;
-        }
+        fWarnDuplicateAttdef = componentManager.getFeature(WARN_ON_DUPLICATE_ATTDEF, false);
+        fWarnOnUndeclaredElemdef = componentManager.getFeature(WARN_ON_UNDECLARED_ELEMDEF, false);
 
         // get needed components
         fErrorReporter =
@@ -364,15 +362,11 @@ public class XMLDTDProcessor
         fSymbolTable =
             (SymbolTable) componentManager.getProperty(
                 Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY);
+
+        fGrammarPool = (XMLGrammarPool) componentManager.getProperty(GRAMMAR_POOL, null);
+
         try {
-            fGrammarPool = (XMLGrammarPool) componentManager.getProperty(GRAMMAR_POOL);
-        } catch (XMLConfigurationException e) {
-            fGrammarPool = null;
-        }
-        try {
-            fValidator = (XMLDTDValidator) componentManager.getProperty(DTD_VALIDATOR);
-        } catch (XMLConfigurationException e) {
-            fValidator = null;
+            fValidator = (XMLDTDValidator) componentManager.getProperty(DTD_VALIDATOR, null);
         } catch (ClassCastException e) {
             fValidator = null;
         }
@@ -398,12 +392,12 @@ public class XMLDTDProcessor
         if (fValidation) {
 
             if (fNotationEnumVals == null) {
-                fNotationEnumVals = new Hashtable();
+                fNotationEnumVals = new HashMap();
             }
             fNotationEnumVals.clear();
 
-            fTableOfIDAttributeNames = new Hashtable();
-            fTableOfNOTATIONAttributeNames = new Hashtable();
+            fTableOfIDAttributeNames = new HashMap();
+            fTableOfNOTATIONAttributeNames = new HashMap();
         }
 
     }
@@ -418,11 +412,11 @@ public class XMLDTDProcessor
 
     /**
      * Sets the state of a feature. This method is called by the component
-     * manager any time after reset when a feature changes state. 
+     * manager any time after reset when a feature changes state.
      * <p>
      * <strong>Note:</strong> Components should silently ignore features
      * that do not affect the operation of the component.
-     * 
+     *
      * @param featureId The feature identifier.
      * @param state     The state of the feature.
      *
@@ -446,11 +440,11 @@ public class XMLDTDProcessor
 
     /**
      * Sets the value of a property. This method is called by the component
-     * manager any time after reset when a property changes value. 
+     * manager any time after reset when a property changes value.
      * <p>
      * <strong>Note:</strong> Components should silently ignore properties
      * that do not affect the operation of the component.
-     * 
+     *
      * @param propertyId The property identifier.
      * @param value      The value of the property.
      *
@@ -463,7 +457,7 @@ public class XMLDTDProcessor
             throws XMLConfigurationException {
     } // setProperty(String,Object)
 
-    /** 
+    /**
      * Returns the default state for a feature, or null if this
      * component does not want to report a default value for this
      * feature.
@@ -481,10 +475,10 @@ public class XMLDTDProcessor
         return null;
     } // getFeatureDefault(String):Boolean
 
-    /** 
+    /**
      * Returns the default state for a property, or null if this
      * component does not want to report a default value for this
-     * property. 
+     * property.
      *
      * @param propertyId The property identifier.
      *
@@ -505,7 +499,7 @@ public class XMLDTDProcessor
 
     /**
      * Sets the DTD handler.
-     * 
+     *
      * @param dtdHandler The DTD handler.
      */
     public void setDTDHandler(XMLDTDHandler dtdHandler) {
@@ -514,7 +508,7 @@ public class XMLDTDProcessor
 
     /**
      * Returns the DTD handler.
-     * 
+     *
      * @return The DTD handler.
      */
     public XMLDTDHandler getDTDHandler() {
@@ -527,7 +521,7 @@ public class XMLDTDProcessor
 
     /**
      * Sets the DTD content model handler.
-     * 
+     *
      * @param dtdContentModelHandler The DTD content model handler.
      */
     public void setDTDContentModelHandler(XMLDTDContentModelHandler dtdContentModelHandler) {
@@ -536,7 +530,7 @@ public class XMLDTDProcessor
 
     /**
      * Gets the DTD content model handler.
-     * 
+     *
      * @return dtdContentModelHandler The DTD content model handler.
      */
     public XMLDTDContentModelHandler getDTDContentModelHandler() {
@@ -555,9 +549,9 @@ public class XMLDTDProcessor
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void startExternalSubset(XMLResourceIdentifier identifier, 
+    public void startExternalSubset(XMLResourceIdentifier identifier,
                                     Augmentations augs) throws XNIException {
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.startExternalSubset(identifier, augs);
         if(fDTDHandler != null){
             fDTDHandler.startExternalSubset(identifier, augs);
@@ -573,17 +567,17 @@ public class XMLDTDProcessor
      * @throws XNIException Thrown by handler to signal an error.
      */
     public void endExternalSubset(Augmentations augs) throws XNIException {
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.endExternalSubset(augs);
         if(fDTDHandler != null){
             fDTDHandler.endExternalSubset(augs);
         }
     }
 
-    /** 
-     * Check standalone entity reference. 
+    /**
+     * Check standalone entity reference.
      * Made static to make common between the validator and loader.
-     * 
+     *
      * @param name
      *@param grammar    grammar to which entity belongs
      * @param tempEntityDecl    empty entity declaration to put results in
@@ -607,7 +601,7 @@ public class XMLDTDProcessor
 
     /**
      * A comment.
-     * 
+     *
      * @param text The text in the comment.
      * @param augs   Additional information that may include infoset augmentations
      *
@@ -616,7 +610,7 @@ public class XMLDTDProcessor
     public void comment(XMLString text, Augmentations augs) throws XNIException {
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.comment(text, augs);
         if (fDTDHandler != null) {
             fDTDHandler.comment(text, augs);
@@ -635,9 +629,9 @@ public class XMLDTDProcessor
      * element attributes but are <strong>not</strong> parsed or presented
      * to the application as anything other than text. The application is
      * responsible for parsing the data.
-     * 
+     *
      * @param target The target.
-     * @param data   The data or null if none specified.     
+     * @param data   The data or null if none specified.
      * @param augs   Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
@@ -646,7 +640,7 @@ public class XMLDTDProcessor
     throws XNIException {
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.processingInstruction(target, data, augs);
         if (fDTDHandler != null) {
             fDTDHandler.processingInstruction(target, data, augs);
@@ -661,9 +655,9 @@ public class XMLDTDProcessor
      * The start of the DTD.
      *
      * @param locator  The document locator, or null if the document
-     *                 location cannot be reported during the parsing of 
+     *                 location cannot be reported during the parsing of
      *                 the document DTD. However, it is <em>strongly</em>
-     *                 recommended that a locator be supplied that can 
+     *                 recommended that a locator be supplied that can
      *                 at least report the base system identifier of the
      *                 DTD.
      * @param augs Additional information that may include infoset
@@ -676,7 +670,7 @@ public class XMLDTDProcessor
 
         // initialize state
         fNDataDeclNotations.clear();
-        fDTDElementDecls.removeAllElements();
+        fDTDElementDecls.clear();
 
         // the grammar bucket's DTDGrammar will now be the
         // one we want, whether we're constructing it or not.
@@ -720,7 +714,7 @@ public class XMLDTDProcessor
      * <p>
      * <strong>Note:</strong> This method is only called for external
      * parameter entities referenced in the DTD.
-     * 
+     *
      * @param version  The XML version, or null if not specified.
      * @param encoding The IANA encoding name of the entity.
      * @param augs Additional information that may include infoset
@@ -741,7 +735,7 @@ public class XMLDTDProcessor
     /**
      * This method notifies of the start of a parameter entity. The parameter
      * entity name start with a '%' character.
-     * 
+     *
      * @param name     The name of the parameter entity.
      * @param identifier The resource identifier.
      * @param encoding The auto-detected IANA encoding name of the entity
@@ -753,7 +747,7 @@ public class XMLDTDProcessor
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void startParameterEntity(String name, 
+    public void startParameterEntity(String name,
                                      XMLResourceIdentifier identifier,
                                      String encoding,
                                      Augmentations augs) throws XNIException {
@@ -773,7 +767,7 @@ public class XMLDTDProcessor
     /**
      * This method notifies the end of a parameter entity. Parameter entity
      * names begin with a '%' character.
-     * 
+     *
      * @param name The name of the parameter entity.
      * @param augs Additional information that may include infoset
      *                      augmentations.
@@ -788,11 +782,11 @@ public class XMLDTDProcessor
         if (fDTDHandler != null) {
             fDTDHandler.endParameterEntity(name, augs);
         }
-    } 
+    }
 
     /**
      * An element declaration.
-     * 
+     *
      * @param name         The name of the element.
      * @param contentModel The element content model.
      * @param augs Additional information that may include infoset
@@ -812,7 +806,7 @@ public class XMLDTDProcessor
                                            XMLErrorReporter.SEVERITY_ERROR);
             }
             else {
-                fDTDElementDecls.addElement(name);
+                fDTDElementDecls.add(name);
             }
         }
 
@@ -827,7 +821,7 @@ public class XMLDTDProcessor
 
     /**
      * The start of an attribute list.
-     * 
+     *
      * @param elementName The name of the element that this attribute
      *                    list is associated with.
      * @param augs Additional information that may include infoset
@@ -835,7 +829,7 @@ public class XMLDTDProcessor
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void startAttlist(String elementName, Augmentations augs) 
+    public void startAttlist(String elementName, Augmentations augs)
         throws XNIException {
 
         // call handlers
@@ -849,13 +843,13 @@ public class XMLDTDProcessor
 
     /**
      * An attribute declaration.
-     * 
+     *
      * @param elementName   The name of the element that this attribute
      *                      is associated with.
      * @param attributeName The name of the attribute.
      * @param type          The attribute type. This value will be one of
      *                      the following: "CDATA", "ENTITY", "ENTITIES",
-     *                      "ENUMERATION", "ID", "IDREF", "IDREFS", 
+     *                      "ENUMERATION", "ID", "IDREF", "IDREFS",
      *                      "NMTOKEN", "NMTOKENS", or "NOTATION".
      * @param enumeration   If the type has the value "ENUMERATION" or
      *                      "NOTATION", this array holds the allowed attribute
@@ -865,15 +859,15 @@ public class XMLDTDProcessor
      *                      "#REQUIRED", or null.
      * @param defaultValue  The attribute default value, or null if no
      *                      default value is specified.
-     * @param nonNormalizedDefaultValue  The attribute default value with no normalization 
+     * @param nonNormalizedDefaultValue  The attribute default value with no normalization
      *                      performed, or null if no default value is specified.
      * @param augs Additional information that may include infoset
      *                      augmentations.
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void attributeDecl(String elementName, String attributeName, 
-                              String type, String[] enumeration, 
+    public void attributeDecl(String elementName, String attributeName,
+                              String type, String[] enumeration,
                               String defaultType, XMLString defaultValue,
                               XMLString nonNormalizedDefaultValue, Augmentations augs) throws XNIException {
 
@@ -882,9 +876,9 @@ public class XMLDTDProcessor
         }
 
         if (fValidation) {
-        
+
                 boolean	duplicateAttributeDef = false ;
-                                        
+
                 //Get Grammar index to grammar array
                 DTDGrammar grammar = (fDTDGrammar != null? fDTDGrammar:fGrammarBucket.getActiveGrammar());
                 int elementIndex       = grammar.getElementDeclIndex( elementName);
@@ -908,7 +902,7 @@ public class XMLDTDProcessor
             //        default for ID it should be of type #IMPLIED or #REQUIRED
             if (type == XMLSymbols.fIDSymbol) {
                 if (defaultValue != null && defaultValue.length != 0) {
-                    if (defaultType == null || 
+                    if (defaultType == null ||
                         !(defaultType == XMLSymbols.fIMPLIEDSymbol ||
                           defaultType == XMLSymbols.fREQUIREDSymbol)) {
                         fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
@@ -924,13 +918,13 @@ public class XMLDTDProcessor
                 else {
                         //we should not report an error, when there is duplicate attribute definition for given element type
                         //according to XML 1.0 spec, When more than one definition is provided for the same attribute of a given
-                        //element type, the first declaration is binding and later declaration are *ignored*. So processor should 
-                        //ignore the second declarations, however an application would be warned of the duplicate attribute defintion 
+                        //element type, the first declaration is binding and later declaration are *ignored*. So processor should
+                        //ignore the second declarations, however an application would be warned of the duplicate attribute defintion
                         // if http://apache.org/xml/features/validation/warn-on-duplicate-attdef feature is set to true,
-                        // one typical case where this could be a  problem, when any XML file  
-                        // provide the ID type information through internal subset so that it is available to the parser which read 
-                        //only internal subset. Now that attribute declaration(ID Type) can again be part of external parsed entity 
-                        //referenced. At that time if parser doesn't make this distinction it will throw an error for VC One ID per 
+                        // one typical case where this could be a  problem, when any XML file
+                        // provide the ID type information through internal subset so that it is available to the parser which read
+                        //only internal subset. Now that attribute declaration(ID Type) can again be part of external parsed entity
+                        //referenced. At that time if parser doesn't make this distinction it will throw an error for VC One ID per
                         //Element Type, which (second defintion) actually should be ignored. Application behavior may differ on the
                         //basis of error or warning thrown. - nb.
 
@@ -961,13 +955,13 @@ public class XMLDTDProcessor
                 else {
                         //we should not report an error, when there is duplicate attribute definition for given element type
                         //according to XML 1.0 spec, When more than one definition is provided for the same attribute of a given
-                        //element type, the first declaration is binding and later declaration are *ignored*. So processor should 
-                        //ignore the second declarations, however an application would be warned of the duplicate attribute defintion 
-                        // if http://apache.org/xml/features/validation/warn-on-duplicate-attdef feature is set to true, Application behavior may differ on the basis of error or 
+                        //element type, the first declaration is binding and later declaration are *ignored*. So processor should
+                        //ignore the second declarations, however an application would be warned of the duplicate attribute definition
+                        // if http://apache.org/xml/features/validation/warn-on-duplicate-attdef feature is set to true, Application behavior may differ on the basis of error or
                         //warning thrown. - nb.
 
                         if(!duplicateAttributeDef){
-                
+
                                 String previousNOTATIONAttributeName = (String) fTableOfNOTATIONAttributeNames.get( elementName );
                                 fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "MSG_MORE_THAN_ONE_NOTATION_ATTRIBUTE",
@@ -976,11 +970,11 @@ public class XMLDTDProcessor
                          }
                 }
             }
-            
+
             // VC: No Duplicate Tokens
             // XML 1.0 SE Errata - E2
             if (type == XMLSymbols.fENUMERATIONSymbol || type == XMLSymbols.fNOTATIONSymbol) {
-                outer: 
+                outer:
                     for (int i = 0; i < enumeration.length; ++i) {
                         for (int j = i + 1; j < enumeration.length; ++j) {
                             if (enumeration[i].equals(enumeration[j])) {
@@ -988,8 +982,8 @@ public class XMLDTDProcessor
                                 // but additional overhead would be incurred tracking unique tokens
                                 // that have already been encountered. -- mrglavas
                                 fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
-                                               type == XMLSymbols.fENUMERATIONSymbol 
-                                                   ? "MSG_DISTINCT_TOKENS_IN_ENUMERATION" 
+                                               type == XMLSymbols.fENUMERATIONSymbol
+                                                   ? "MSG_DISTINCT_TOKENS_IN_ENUMERATION"
                                                    : "MSG_DISTINCT_NOTATION_IN_ENUMERATION",
                                                new Object[]{ elementName, enumeration[i], attributeName },
                                                XMLErrorReporter.SEVERITY_ERROR);
@@ -1001,7 +995,7 @@ public class XMLDTDProcessor
 
             // VC: Attribute Default Legal
             boolean ok = true;
-            if (defaultValue != null && 
+            if (defaultValue != null &&
                 (defaultType == null ||
                  (defaultType != null && defaultType == XMLSymbols.fFIXEDSymbol))) {
 
@@ -1074,13 +1068,13 @@ public class XMLDTDProcessor
         }
 
         // call handlers
-        if(fDTDGrammar != null) 
-            fDTDGrammar.attributeDecl(elementName, attributeName, 
+        if(fDTDGrammar != null)
+            fDTDGrammar.attributeDecl(elementName, attributeName,
                                   type, enumeration,
                                   defaultType, defaultValue, nonNormalizedDefaultValue, augs);
         if (fDTDHandler != null) {
-            fDTDHandler.attributeDecl(elementName, attributeName, 
-                                      type, enumeration, 
+            fDTDHandler.attributeDecl(elementName, attributeName,
+                                      type, enumeration,
                                       defaultType, defaultValue, nonNormalizedDefaultValue, augs);
         }
 
@@ -1097,7 +1091,7 @@ public class XMLDTDProcessor
     public void endAttlist(Augmentations augs) throws XNIException {
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.endAttlist(augs);
         if (fDTDHandler != null) {
             fDTDHandler.endAttlist(augs);
@@ -1107,13 +1101,13 @@ public class XMLDTDProcessor
 
     /**
      * An internal entity declaration.
-     * 
+     *
      * @param name The name of the entity. Parameter entity names start with
-     *             '%', whereas the name of a general entity is just the 
+     *             '%', whereas the name of a general entity is just the
      *             entity name.
      * @param text The value of the entity.
      * @param nonNormalizedText The non-normalized value of the entity. This
-     *             value contains the same sequence of characters that was in 
+     *             value contains the same sequence of characters that was in
      *             the internal entity declaration, without any entity
      *             references expanded.
      * @param augs Additional information that may include infoset
@@ -1138,7 +1132,7 @@ public class XMLDTDProcessor
         //its a new entity and hasn't been declared.
         if(index == -1){
             //store internal entity declaration in grammar
-            if(fDTDGrammar != null) 
+            if(fDTDGrammar != null)
                 fDTDGrammar.internalEntityDecl(name, text, nonNormalizedText, augs);
             // call handlers
             if (fDTDHandler != null) {
@@ -1151,11 +1145,11 @@ public class XMLDTDProcessor
 
     /**
      * An external entity declaration.
-     * 
+     *
      * @param name     The name of the entity. Parameter entity names start
      *                 with '%', whereas the name of a general entity is just
      *                 the entity name.
-     * @param identifier    An object containing all location information 
+     * @param identifier    An object containing all location information
      *                      pertinent to this external entity.
      * @param augs Additional information that may include infoset
      *                      augmentations.
@@ -1178,7 +1172,7 @@ public class XMLDTDProcessor
         //its a new entity and hasn't been declared.
         if(index == -1){
             //store external entity declaration in grammar
-            if(fDTDGrammar != null) 
+            if(fDTDGrammar != null)
                 fDTDGrammar.externalEntityDecl(name, identifier, augs);
             // call handlers
             if (fDTDHandler != null) {
@@ -1190,9 +1184,9 @@ public class XMLDTDProcessor
 
     /**
      * An unparsed entity declaration.
-     * 
+     *
      * @param name     The name of the entity.
-     * @param identifier    An object containing all location information 
+     * @param identifier    An object containing all location information
      *                      pertinent to this entity.
      * @param notation The name of the notation.
      * @param augs Additional information that may include infoset
@@ -1201,7 +1195,7 @@ public class XMLDTDProcessor
      * @throws XNIException Thrown by handler to signal an error.
      */
     public void unparsedEntityDecl(String name, XMLResourceIdentifier identifier,
-                                   String notation, 
+                                   String notation,
                                    Augmentations augs) throws XNIException {
 
         // VC: Notation declared,  in the production of NDataDecl
@@ -1210,7 +1204,7 @@ public class XMLDTDProcessor
         }
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.unparsedEntityDecl(name, identifier, notation, augs);
         if (fDTDHandler != null) {
             fDTDHandler.unparsedEntityDecl(name, identifier, notation, augs);
@@ -1220,9 +1214,9 @@ public class XMLDTDProcessor
 
     /**
      * A notation declaration
-     * 
+     *
      * @param name     The name of the notation.
-     * @param identifier    An object containing all location information 
+     * @param identifier    An object containing all location information
      *                      pertinent to this notation.
      * @param augs Additional information that may include infoset
      *                      augmentations.
@@ -1242,9 +1236,9 @@ public class XMLDTDProcessor
                                            XMLErrorReporter.SEVERITY_ERROR);
             }
         }
-        
+
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.notationDecl(name, identifier, augs);
         if (fDTDHandler != null) {
             fDTDHandler.notationDecl(name, identifier, augs);
@@ -1254,7 +1248,7 @@ public class XMLDTDProcessor
 
     /**
      * The start of a conditional section.
-     * 
+     *
      * @param type The type of the conditional section. This value will
      *             either be CONDITIONAL_INCLUDE or CONDITIONAL_IGNORE.
      * @param augs Additional information that may include infoset
@@ -1271,7 +1265,7 @@ public class XMLDTDProcessor
         fInDTDIgnore = type == XMLDTDHandler.CONDITIONAL_IGNORE;
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.startConditional(type, augs);
         if (fDTDHandler != null) {
             fDTDHandler.startConditional(type, augs);
@@ -1293,7 +1287,7 @@ public class XMLDTDProcessor
         fInDTDIgnore = false;
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.endConditional(augs);
         if (fDTDHandler != null) {
             fDTDHandler.endConditional(augs);
@@ -1318,16 +1312,16 @@ public class XMLDTDProcessor
             if(fGrammarPool != null)
                 fGrammarPool.cacheGrammars(XMLGrammarDescription.XML_DTD, new Grammar[] {fDTDGrammar});
         }
-        // check VC: Notation declared,  in the production of NDataDecl
         if (fValidation) {
             DTDGrammar grammar = (fDTDGrammar != null? fDTDGrammar: fGrammarBucket.getActiveGrammar());
 
             // VC : Notation Declared. for external entity declaration [Production 76].
-            Enumeration entities = fNDataDeclNotations.keys();
-            while (entities.hasMoreElements()) {
-                String entity = (String) entities.nextElement();
-                String notation = (String) fNDataDeclNotations.get(entity);
+            Iterator entities = fNDataDeclNotations.entrySet().iterator();
+            while (entities.hasNext()) {
+                Map.Entry entry = (Map.Entry) entities.next();
+                String notation = (String) entry.getValue();
                 if (grammar.getNotationDeclIndex(notation) == -1) {
+                    String entity = (String) entry.getKey();
                     fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "MSG_NOTATION_NOT_DECLARED_FOR_UNPARSED_ENTITYDECL",
                                                new Object[]{entity, notation},
@@ -1337,26 +1331,28 @@ public class XMLDTDProcessor
 
             // VC: Notation Attributes:
             //     all notation names in the (attribute) declaration must be declared.
-            Enumeration notationVals = fNotationEnumVals.keys();
-            while (notationVals.hasMoreElements()) {
-                String notation = (String) notationVals.nextElement();
-                String attributeName = (String) fNotationEnumVals.get(notation);
+            Iterator notationVals = fNotationEnumVals.entrySet().iterator();
+            while (notationVals.hasNext()) {
+                Map.Entry entry = (Map.Entry) notationVals.next();
+                String notation = (String) entry.getKey();
                 if (grammar.getNotationDeclIndex(notation) == -1) {
+                    String attributeName = (String) entry.getValue();
                     fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "MSG_NOTATION_NOT_DECLARED_FOR_NOTATIONTYPE_ATTRIBUTE",
                                                new Object[]{attributeName, notation},
                                                XMLErrorReporter.SEVERITY_ERROR);
                 }
             }
-            
+
             // VC: No Notation on Empty Element
             // An attribute of type NOTATION must not be declared on an element declared EMPTY.
-            Enumeration elementsWithNotations = fTableOfNOTATIONAttributeNames.keys();
-            while (elementsWithNotations.hasMoreElements()) {
-                String elementName = (String) elementsWithNotations.nextElement();
+            Iterator elementsWithNotations = fTableOfNOTATIONAttributeNames.entrySet().iterator();
+            while (elementsWithNotations.hasNext()) {
+                Map.Entry entry = (Map.Entry) elementsWithNotations.next();
+                String elementName = (String) entry.getKey();
                 int elementIndex = grammar.getElementDeclIndex(elementName);
                 if (grammar.getContentSpecType(elementIndex) == XMLElementDecl.TYPE_EMPTY) {
-                    String attributeName = (String) fTableOfNOTATIONAttributeNames.get(elementName);
+                    String attributeName = (String) entry.getValue();
                     fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "NoNotationOnEmptyElement",
                                                new Object[]{elementName, attributeName},
@@ -1364,8 +1360,14 @@ public class XMLDTDProcessor
                 }
             }
 
-            fTableOfIDAttributeNames = null;//should be safe to release these references
+            // should be safe to release these references
+            fTableOfIDAttributeNames = null;
             fTableOfNOTATIONAttributeNames = null;
+
+            // check whether each element referenced in a content model is declared
+            if (fWarnOnUndeclaredElemdef) {
+                checkDeclaredElements(grammar);
+            }
         }
 
         // call handlers
@@ -1404,23 +1406,23 @@ public class XMLDTDProcessor
      * The start of a content model. Depending on the type of the content
      * model, specific methods may be called between the call to the
      * startContentModel method and the call to the endContentModel method.
-     * 
+     *
      * @param elementName The name of the element.
      * @param augs Additional information that may include infoset
      *                      augmentations.
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void startContentModel(String elementName, Augmentations augs) 
+    public void startContentModel(String elementName, Augmentations augs)
         throws XNIException {
 
         if (fValidation) {
             fDTDElementDeclName = elementName;
-            fMixedElementTypes.removeAllElements();
+            fMixedElementTypes.clear();
         }
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.startContentModel(elementName, augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.startContentModel(elementName, augs);
@@ -1428,8 +1430,8 @@ public class XMLDTDProcessor
 
     } // startContentModel(String)
 
-    /** 
-     * A content model of ANY. 
+    /**
+     * A content model of ANY.
      *
      * @param augs Additional information that may include infoset
      *                      augmentations.
@@ -1440,7 +1442,7 @@ public class XMLDTDProcessor
      * @see #startGroup
      */
     public void any(Augmentations augs) throws XNIException {
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.any(augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.any(augs);
@@ -1459,7 +1461,7 @@ public class XMLDTDProcessor
      * @see #startGroup
      */
     public void empty(Augmentations augs) throws XNIException {
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.empty(augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.empty(augs);
@@ -1484,7 +1486,7 @@ public class XMLDTDProcessor
 
         fMixed = false;
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.startGroup(augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.startGroup(augs);
@@ -1499,14 +1501,14 @@ public class XMLDTDProcessor
      *
      * @param augs Additional information that may include infoset
      *                      augmentations.
-     *     
+     *
      * @throws XNIException Thrown by handler to signal an error.
      *
      * @see #startGroup
      */
     public void pcdata(Augmentations augs) {
         fMixed = true;
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.pcdata(augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.pcdata(augs);
@@ -1515,7 +1517,7 @@ public class XMLDTDProcessor
 
     /**
      * A referenced element in a mixed or children content model.
-     * 
+     *
      * @param elementName The name of the referenced element.
      * @param augs Additional information that may include infoset
      *                      augmentations.
@@ -1533,12 +1535,12 @@ public class XMLDTDProcessor
                                            XMLErrorReporter.SEVERITY_ERROR);
             }
             else {
-                fMixedElementTypes.addElement(elementName);
+                fMixedElementTypes.add(elementName);
             }
         }
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.element(elementName, augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.element(elementName, augs);
@@ -1549,7 +1551,7 @@ public class XMLDTDProcessor
     /**
      * The separator between choices or sequences of a mixed or children
      * content model.
-     * 
+     *
      * @param separator The type of children separator.
      * @param augs Additional information that may include infoset
      *                      augmentations.
@@ -1559,11 +1561,11 @@ public class XMLDTDProcessor
      * @see #SEPARATOR_CHOICE
      * @see #SEPARATOR_SEQUENCE
      */
-    public void separator(short separator, Augmentations augs) 
+    public void separator(short separator, Augmentations augs)
         throws XNIException {
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.separator(separator, augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.separator(separator, augs);
@@ -1574,7 +1576,7 @@ public class XMLDTDProcessor
     /**
      * The occurrence count for a child in a children content model or
      * for the mixed content model group.
-     * 
+     *
      * @param occurrence The occurrence count for the last element
      *                   or group.
      * @param augs Additional information that may include infoset
@@ -1586,11 +1588,11 @@ public class XMLDTDProcessor
      * @see #OCCURS_ZERO_OR_MORE
      * @see #OCCURS_ONE_OR_MORE
      */
-    public void occurrence(short occurrence, Augmentations augs) 
+    public void occurrence(short occurrence, Augmentations augs)
         throws XNIException {
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.occurrence(occurrence, augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.occurrence(occurrence, augs);
@@ -1609,7 +1611,7 @@ public class XMLDTDProcessor
     public void endGroup(Augmentations augs) throws XNIException {
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.endGroup(augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.endGroup(augs);
@@ -1628,7 +1630,7 @@ public class XMLDTDProcessor
     public void endContentModel(Augmentations augs) throws XNIException {
 
         // call handlers
-        if(fDTDGrammar != null) 
+        if(fDTDGrammar != null)
             fDTDGrammar.endContentModel(augs);
         if (fDTDContentModelHandler != null) {
             fDTDContentModelHandler.endContentModel(augs);
@@ -1648,8 +1650,6 @@ public class XMLDTDProcessor
      * @return Whether the value was changed or not.
      */
     private boolean normalizeDefaultAttrValue(XMLString value) {
-
-        int oldLength = value.length;
 
         boolean skipSpace = true; // skip leading spaces
         int current = value.offset;
@@ -1686,12 +1686,67 @@ public class XMLDTDProcessor
         return false;
     }
 
-    
     protected boolean isValidNmtoken(String nmtoken) {
         return XMLChar.isValidNmtoken(nmtoken);
     } // isValidNmtoken(String):  boolean
-    
+
     protected boolean isValidName(String name) {
         return XMLChar.isValidName(name);
     } // isValidName(String):  boolean
+
+    /**
+     * Checks that all elements referenced in content models have
+     * been declared. This method calls out to the error handler
+     * to indicate warnings.
+     */
+    private void checkDeclaredElements(DTDGrammar grammar) {
+        int elementIndex = grammar.getFirstElementDeclIndex();
+        XMLContentSpec contentSpec = new XMLContentSpec();
+        while (elementIndex >= 0) {
+            int type = grammar.getContentSpecType(elementIndex);
+            if (type == XMLElementDecl.TYPE_CHILDREN || type == XMLElementDecl.TYPE_MIXED) {
+                checkDeclaredElements(grammar,
+                        elementIndex,
+                        grammar.getContentSpecIndex(elementIndex),
+                        contentSpec);
+            }
+            elementIndex = grammar.getNextElementDeclIndex(elementIndex);
+        }
+    }
+
+    /**
+     * Does a recursive (if necessary) check on the specified element's
+     * content spec to make sure that all children refer to declared
+     * elements.
+     */
+    private void checkDeclaredElements(DTDGrammar grammar, int elementIndex,
+            int contentSpecIndex, XMLContentSpec contentSpec) {
+        grammar.getContentSpec(contentSpecIndex, contentSpec);
+        if (contentSpec.type == XMLContentSpec.CONTENTSPECNODE_LEAF) {
+            String value = (String) contentSpec.value;
+            if (value != null && grammar.getElementDeclIndex(value) == -1) {
+                fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
+                        "UndeclaredElementInContentSpec",
+                        new Object[]{grammar.getElementDeclName(elementIndex).rawname, value},
+                        XMLErrorReporter.SEVERITY_WARNING);
+            }
+        }
+        // It's not a leaf, so we have to recurse its left and maybe right
+        // nodes. Save both values before we recurse and trash the node.
+        else if ((contentSpec.type == XMLContentSpec.CONTENTSPECNODE_CHOICE)
+                || (contentSpec.type == XMLContentSpec.CONTENTSPECNODE_SEQ)) {
+            final int leftNode = ((int[])contentSpec.value)[0];
+            final int rightNode = ((int[])contentSpec.otherValue)[0];
+            //  Recurse on both children.
+            checkDeclaredElements(grammar, elementIndex, leftNode, contentSpec);
+            checkDeclaredElements(grammar, elementIndex, rightNode, contentSpec);
+        }
+        else if (contentSpec.type == XMLContentSpec.CONTENTSPECNODE_ZERO_OR_MORE
+                || contentSpec.type == XMLContentSpec.CONTENTSPECNODE_ZERO_OR_ONE
+                || contentSpec.type == XMLContentSpec.CONTENTSPECNODE_ONE_OR_MORE) {
+            final int leftNode = ((int[])contentSpec.value)[0];
+            checkDeclaredElements(grammar, elementIndex, leftNode, contentSpec);
+        }
+    }
+
 } // class XMLDTDProcessor

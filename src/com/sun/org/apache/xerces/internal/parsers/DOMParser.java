@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +27,7 @@ import com.sun.org.apache.xerces.internal.util.EntityResolverWrapper;
 import com.sun.org.apache.xerces.internal.util.EntityResolver2Wrapper;
 import com.sun.org.apache.xerces.internal.util.ErrorHandlerWrapper;
 import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
@@ -51,7 +56,7 @@ import org.xml.sax.helpers.LocatorImpl;
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: DOMParser.java,v 1.2.6.1 2005/09/06 13:06:37 sunithareddy Exp $
+ * @version $Id: DOMParser.java,v 1.7 2010-11-01 04:40:09 joehw Exp $
  */
 public class DOMParser
     extends AbstractDOMParser {
@@ -66,6 +71,14 @@ public class DOMParser
     protected static final String USE_ENTITY_RESOLVER2 =
         Constants.SAX_FEATURE_PREFIX + Constants.USE_ENTITY_RESOLVER2_FEATURE;
 
+    protected static final String REPORT_WHITESPACE =
+            Constants.SUN_SCHEMA_FEATURE_PREFIX + Constants.SUN_REPORT_IGNORED_ELEMENT_CONTENT_WHITESPACE;
+
+    // recognized features:
+    private static final String[] RECOGNIZED_FEATURES = {
+        REPORT_WHITESPACE
+    };
+    
     // properties
 
     /** Property identifier: symbol table. */
@@ -135,6 +148,8 @@ public class DOMParser
         if (grammarPool != null) {
             fConfiguration.setProperty(XMLGRAMMAR_POOL, grammarPool);
         }
+
+        fConfiguration.addRecognizedFeatures(RECOGNIZED_FEATURES);
 
     } // <init>(SymbolTable,XMLGrammarPool)
 
@@ -434,7 +449,7 @@ public class DOMParser
         }
         catch (XMLConfigurationException e) {
             String identifier = e.getIdentifier();
-            if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+            if (e.getType() == Status.NOT_RECOGNIZED) {
                 throw new SAXNotRecognizedException(
                     SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
                     "feature-not-recognized", new Object [] {identifier}));
@@ -483,7 +498,7 @@ public class DOMParser
         }
         catch (XMLConfigurationException e) {
             String identifier = e.getIdentifier();
-            if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+            if (e.getType() == Status.NOT_RECOGNIZED) {
                 throw new SAXNotRecognizedException(
                     SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
                     "feature-not-recognized", new Object [] {identifier}));
@@ -520,7 +535,7 @@ public class DOMParser
         }
         catch (XMLConfigurationException e) {
             String identifier = e.getIdentifier();
-            if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+            if (e.getType() == Status.NOT_RECOGNIZED) {
                 throw new SAXNotRecognizedException(
                     SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
                     "property-not-recognized", new Object [] {identifier}));
@@ -571,7 +586,7 @@ public class DOMParser
         }
         catch (XMLConfigurationException e) {
             String identifier = e.getIdentifier();
-            if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+            if (e.getType() == Status.NOT_RECOGNIZED) {
                 throw new SAXNotRecognizedException(
                     SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
                     "property-not-recognized", new Object [] {identifier}));

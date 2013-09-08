@@ -1,14 +1,29 @@
 /*
- * @(#)PrivateClassLoader.java	1.13 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.loading;
-
-import javax.management.MBeanServer; // for Javadoc
-import javax.management.ObjectName;  // for Javadoc
 
 /**
  * Marker interface indicating that a ClassLoader should not be added
@@ -18,6 +33,5 @@ import javax.management.ObjectName;  // for Javadoc
  * interface.
  *
  * @since 1.5
- * @since.unbundled JMX 1.2
  */
 public interface PrivateClassLoader {}

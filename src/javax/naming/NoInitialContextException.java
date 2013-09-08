@@ -1,8 +1,26 @@
 /*
- * @(#)NoInitialContextException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -24,7 +42,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   *
   * @see InitialContext
   * @see javax.naming.directory.InitialDirContext
@@ -38,17 +55,17 @@ public class NoInitialContextException extends NamingException {
       * All fields are initialized to null.
       */
     public NoInitialContextException() {
-	super();
+        super();
     }
 
     /**
       * Constructs an instance of NoInitialContextException with an
       * explanation. All other fields are initialized to null.
-      * @param	explanation	Possibly null additional detail about this exception.
+      * @param  explanation     Possibly null additional detail about this exception.
       * @see java.lang.Throwable#getMessage
       */
     public NoInitialContextException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**

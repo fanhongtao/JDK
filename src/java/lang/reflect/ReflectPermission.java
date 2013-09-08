@@ -1,8 +1,26 @@
 /*
- * @(#)ReflectPermission.java	1.23 06/04/21
+ * Copyright (c) 1997, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.reflect;
@@ -10,7 +28,7 @@ package java.lang.reflect;
 /**
  * The Permission class for reflective operations.  A
  * ReflectPermission is a <em>named permission</em> and has no
- * actions.  The only name currently defined is <tt>suppressAccessChecks</tt>,
+ * actions.  The only name currently defined is {@code suppressAccessChecks},
  * which allows suppressing the standard Java language access checks
  * -- for public, default (package) access, protected, and private
  * members -- performed by reflected objects at their point of use.
@@ -58,11 +76,11 @@ class ReflectPermission extends java.security.BasicPermission {
      *
      * @param name the name of the ReflectPermission
      *
-     * @throws NullPointerException if <code>name</code> is <code>null</code>.
-     * @throws IllegalArgumentException if <code>name</code> is empty.
+     * @throws NullPointerException if {@code name} is {@code null}.
+     * @throws IllegalArgumentException if {@code name} is empty.
      */
     public ReflectPermission(String name) {
-	super(name);
+        super(name);
     }
 
     /**
@@ -73,11 +91,11 @@ class ReflectPermission extends java.security.BasicPermission {
      *
      * @param actions should be null
      *
-     * @throws NullPointerException if <code>name</code> is <code>null</code>.
-     * @throws IllegalArgumentException if <code>name</code> is empty.
+     * @throws NullPointerException if {@code name} is {@code null}.
+     * @throws IllegalArgumentException if {@code name} is empty.
      */
     public ReflectPermission(String name, String actions) {
-	super(name, actions);
+        super(name, actions);
     }
 
 }

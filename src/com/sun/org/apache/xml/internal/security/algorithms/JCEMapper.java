@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,19 +35,19 @@ import org.w3c.dom.Element;
 /**
  * This class maps algorithm identifier URIs to JAVA JCE class names.
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class JCEMapper {
 
    /** {@link java.util.logging} logging facility */
-    static java.util.logging.Logger log = 
+    static java.util.logging.Logger log =
         java.util.logging.Logger.getLogger(JCEMapper.class.getName());
 
 
-   
-   private static Map uriToJCEName = new HashMap();
-   
-   private static Map algorithmsMap = new HashMap();
+
+   private static Map uriToJCEName;
+
+   private static Map algorithmsMap;
 
    private static String providerName = null;
    /**
@@ -59,6 +63,8 @@ public class JCEMapper {
 
    static void loadAlgorithms( Element algorithmsEl) {
        Element[] algorithms = XMLUtils.selectNodes(algorithmsEl.getFirstChild(),Init.CONF_NS,"Algorithm");
+       uriToJCEName = new HashMap( algorithms.length * 2);
+       algorithmsMap = new HashMap( algorithms.length * 2);
        for (int i = 0 ;i < algorithms.length ;i ++) {
            Element el = algorithms[i];
            String id = el.getAttribute("URI");
@@ -66,10 +72,11 @@ public class JCEMapper {
            uriToJCEName.put(id, jceName);
            algorithmsMap.put(id, new Algorithm(el));
        }
+
    }
 
    static Algorithm getAlgorithmMapping(String algoURI) {
-   	   return ((Algorithm)algorithmsMap.get(algoURI));
+           return ((Algorithm)algorithmsMap.get(algoURI));
    }
 
    /**
@@ -80,8 +87,8 @@ public class JCEMapper {
     *
     */
    public static String translateURItoJCEID(String AlgorithmURI) {
-      if (true)
-          if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Request for URI " + AlgorithmURI);
+      if (log.isLoggable(java.util.logging.Level.FINE))
+          log.log(java.util.logging.Level.FINE, "Request for URI " + AlgorithmURI);
 
       String jceName = (String) uriToJCEName.get(AlgorithmURI);
       return jceName;
@@ -96,8 +103,8 @@ public class JCEMapper {
     *
     */
    public static String getAlgorithmClassFromURI(String AlgorithmURI) {
-       if (true)
-           if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Request for URI " + AlgorithmURI);
+       if (log.isLoggable(java.util.logging.Level.FINE))
+           log.log(java.util.logging.Level.FINE, "Request for URI " + AlgorithmURI);
 
        return ((Algorithm) algorithmsMap.get(AlgorithmURI)).algorithmClass;
    }
@@ -127,33 +134,33 @@ public class JCEMapper {
 
    /**
     * Gets the default Provider for obtaining the security algorithms
-    * @return the default providerId.  
+    * @return the default providerId.
     */
    public static String getProviderId() {
-   		return providerName;
+                return providerName;
    }
-   
+
    /**
     * Sets the default Provider for obtaining the security algorithms
-    * @param provider the default providerId.  
+    * @param provider the default providerId.
     */
    public static void setProviderId(String provider) {
-   		providerName=provider;
+                providerName=provider;
    }
-   
+
    /**
     * Represents the Algorithm xml element
-    */   
+    */
    public static class Algorithm {
-   	    String algorithmClass;
-   	    String keyLength;
+            String algorithmClass;
+            String keyLength;
             String requiredKey;
         /**
          * Gets data from element
          * @param el
          */
         public Algorithm(Element el) {
-        	algorithmClass=el.getAttribute("AlgorithmClass");
+                algorithmClass=el.getAttribute("AlgorithmClass");
             keyLength=el.getAttribute("KeyLength");
             requiredKey=el.getAttribute("RequiredKey");
         }

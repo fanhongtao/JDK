@@ -1,12 +1,32 @@
 /*
- * @(#)SynthGraphicsUtils.java	1.19 05/11/30
+ * Copyright (c) 2002, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
 import sun.swing.SwingUtilities2;
+import sun.swing.MenuItemLayoutHelper;
+
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicHTML;
@@ -16,7 +36,6 @@ import sun.swing.plaf.synth.*;
 /**
  * Wrapper for primitive graphics calls.
  *
- * @version 1.19, 11/30/05
  * @since 1.5
  * @author Scott Violet
  */
@@ -57,7 +76,7 @@ public class SynthGraphicsUtils {
                          Graphics g, int x1, int y1, int x2, int y2) {
         g.drawLine(x1, y1, x2, y2);
     }
-    
+
     /**
      * Draws a line between the two end points.
      * <p>This implementation supports only one line style key,
@@ -176,12 +195,12 @@ public class SynthGraphicsUtils {
         Dimension size = getPreferredSize(ss, font, text, icon, hAlign,
                                           vAlign, hTextPosition, vTextPosition,
                                           iconTextGap, mnemonicIndex);
-	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+        View v = (View) c.getClientProperty(BasicHTML.propertyKey);
 
-	if (v != null) {
-	    size.width -= v.getPreferredSpan(View.X_AXIS) -
+        if (v != null) {
+            size.width -= v.getPreferredSpan(View.X_AXIS) -
                           v.getMinimumSpan(View.X_AXIS);
-	}
+        }
         return size;
     }
 
@@ -207,12 +226,12 @@ public class SynthGraphicsUtils {
         Dimension size = getPreferredSize(ss, font, text, icon, hAlign,
                                           vAlign, hTextPosition, vTextPosition,
                                           iconTextGap, mnemonicIndex);
-	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+        View v = (View) c.getClientProperty(BasicHTML.propertyKey);
 
-	if (v != null) {
-	    size.width += v.getMaximumSpan(View.X_AXIS) -
+        if (v != null) {
+            size.width += v.getMaximumSpan(View.X_AXIS) -
                           v.getPreferredSpan(View.X_AXIS);
-	}
+        }
         return size;
     }
 
@@ -257,7 +276,7 @@ public class SynthGraphicsUtils {
             return new Dimension(dx, dy);
         }
         else if ((text == null) || ((icon != null) && (font == null))) {
-            return new Dimension(SynthIcon.getIconWidth(icon, ss) + dx, 
+            return new Dimension(SynthIcon.getIconWidth(icon, ss) + dx,
                                  SynthIcon.getIconHeight(icon, ss) + dy);
         }
         else {
@@ -316,21 +335,10 @@ public class SynthGraphicsUtils {
                           int x, int y, int mnemonicIndex) {
         if (text != null) {
             JComponent c = ss.getComponent();
-            SynthStyle style = ss.getStyle();
             FontMetrics fm = SwingUtilities2.getFontMetrics(c, g);
-
             y += fm.getAscent();
-            SwingUtilities2.drawString(c, g, text, x, y);
-            if (mnemonicIndex >= 0 && mnemonicIndex < text.length()) {
-                int underlineX = x + SwingUtilities2.stringWidth(
-                             c, fm, text.substring(0, mnemonicIndex));
-                int underlineY = y;
-                int underlineWidth = fm.charWidth(text.charAt(mnemonicIndex));
-                int underlineHeight = 1;
-
-                g.fillRect(underlineX, underlineY + fm.getDescent() - 1,
-                           underlineWidth, underlineHeight);
-            }
+            SwingUtilities2.drawStringUnderlineCharAt(c, g, text,
+                                                      mnemonicIndex, x, y);
         }
     }
 
@@ -370,14 +378,20 @@ public class SynthGraphicsUtils {
         paintIconR.x = paintIconR.y = paintIconR.width = paintIconR.height = 0;
         paintTextR.x = paintTextR.y = paintTextR.width = paintTextR.height = 0;
 
-        String clippedText = 
+        String clippedText =
             layoutText(ss, fm, text, icon, hAlign, vAlign,
                    hTextPosition, vTextPosition, paintViewR, paintIconR,
                    paintTextR, iconTextGap);
 
         if (icon != null) {
             Color color = g.getColor();
-            paintIconR.x += textOffset;
+
+            if (ss.getStyle().getBoolean(ss, "TableHeader.alignSorterArrow", false) &&
+                "TableHeader.renderer".equals(c.getName())) {
+                paintIconR.x = paintViewR.width - paintIconR.width;
+            } else {
+                paintIconR.x += textOffset;
+            }
             paintIconR.y += textOffset;
             SynthIcon.paintIcon(icon, ss, g, paintIconR.x, paintIconR.y,
                                 paintIconR.width, paintIconR.height);
@@ -385,26 +399,217 @@ public class SynthGraphicsUtils {
         }
 
         if (text != null) {
-	    View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+            View v = (View) c.getClientProperty(BasicHTML.propertyKey);
 
-	    if (v != null) {
-		v.paint(g, paintTextR);
-	    } else {
+            if (v != null) {
+                v.paint(g, paintTextR);
+            } else {
                 paintTextR.x += textOffset;
                 paintTextR.y += textOffset;
 
                 paintText(ss, g, clippedText, paintTextR, mnemonicIndex);
-	    }
+            }
         }
     }
 
+
+     /**
+      * A quick note about how preferred sizes are calculated... Generally
+      * speaking, SynthPopupMenuUI will run through the list of its children
+      * (from top to bottom) and ask each for its preferred size.  Each menu
+      * item will add up the max width of each element (icons, text,
+      * accelerator spacing, accelerator text or arrow icon) encountered thus
+      * far, so by the time all menu items have been calculated, we will
+      * know the maximum (preferred) menu item size for that popup menu.
+      * Later when it comes time to paint each menu item, we can use those
+      * same accumulated max element sizes in order to layout the item.
+      */
+    static Dimension getPreferredMenuItemSize(SynthContext context,
+           SynthContext accContext, JComponent c,
+           Icon checkIcon, Icon arrowIcon, int defaultTextIconGap,
+           String acceleratorDelimiter, boolean useCheckAndArrow,
+           String propertyPrefix) {
+
+         JMenuItem mi = (JMenuItem) c;
+         SynthMenuItemLayoutHelper lh = new SynthMenuItemLayoutHelper(
+                 context, accContext, mi, checkIcon, arrowIcon,
+                 MenuItemLayoutHelper.createMaxRect(), defaultTextIconGap,
+                 acceleratorDelimiter, SynthLookAndFeel.isLeftToRight(mi),
+                 useCheckAndArrow, propertyPrefix);
+
+         Dimension result = new Dimension();
+
+         // Calculate the result width
+         int gap = lh.getGap();
+         result.width = 0;
+         MenuItemLayoutHelper.addMaxWidth(lh.getCheckSize(), gap, result);
+         MenuItemLayoutHelper.addMaxWidth(lh.getLabelSize(), gap, result);
+         MenuItemLayoutHelper.addWidth(lh.getMaxAccOrArrowWidth(), 5 * gap, result);
+         // The last gap is unnecessary
+         result.width -= gap;
+
+         // Calculate the result height
+         result.height = MenuItemLayoutHelper.max(lh.getCheckSize().getHeight(),
+                 lh.getLabelSize().getHeight(), lh.getAccSize().getHeight(),
+                 lh.getArrowSize().getHeight());
+
+         // Take into account menu item insets
+         Insets insets = lh.getMenuItem().getInsets();
+         if (insets != null) {
+             result.width += insets.left + insets.right;
+             result.height += insets.top + insets.bottom;
+         }
+
+         // if the width is even, bump it up one. This is critical
+         // for the focus dash lhne to draw properly
+         if (result.width % 2 == 0) {
+             result.width++;
+         }
+
+         // if the height is even, bump it up one. This is critical
+         // for the text to center properly
+         if (result.height % 2 == 0) {
+             result.height++;
+         }
+
+         return result;
+     }
+
+    static void applyInsets(Rectangle rect, Insets insets, boolean leftToRight) {
+        if (insets != null) {
+            rect.x += (leftToRight ? insets.left : insets.right);
+            rect.y += insets.top;
+            rect.width -= (leftToRight ? insets.right : insets.left) + rect.x;
+            rect.height -= (insets.bottom + rect.y);
+        }
+    }
+
+    static void paint(SynthContext context, SynthContext accContext, Graphics g,
+               Icon checkIcon, Icon arrowIcon, String acceleratorDelimiter,
+               int defaultTextIconGap, String propertyPrefix) {
+        JMenuItem mi = (JMenuItem) context.getComponent();
+        SynthStyle style = context.getStyle();
+        g.setFont(style.getFont(context));
+
+        Rectangle viewRect = new Rectangle(0, 0, mi.getWidth(), mi.getHeight());
+        boolean leftToRight = SynthLookAndFeel.isLeftToRight(mi);
+        applyInsets(viewRect, mi.getInsets(), leftToRight);
+
+        SynthMenuItemLayoutHelper lh = new SynthMenuItemLayoutHelper(
+                context, accContext, mi, checkIcon, arrowIcon, viewRect,
+                defaultTextIconGap, acceleratorDelimiter, leftToRight,
+                MenuItemLayoutHelper.useCheckAndArrow(mi), propertyPrefix);
+        MenuItemLayoutHelper.LayoutResult lr = lh.layoutMenuItem();
+
+        paintMenuItem(g, lh, lr);
+    }
+
+    static void paintMenuItem(Graphics g, SynthMenuItemLayoutHelper lh,
+                              MenuItemLayoutHelper.LayoutResult lr) {
+        // Save original graphics font and color
+        Font holdf = g.getFont();
+        Color holdc = g.getColor();
+
+        paintCheckIcon(g, lh, lr);
+        paintIcon(g, lh, lr);
+        paintText(g, lh, lr);
+        paintAccText(g, lh, lr);
+        paintArrowIcon(g, lh, lr);
+
+        // Restore original graphics font and color
+        g.setColor(holdc);
+        g.setFont(holdf);
+    }
+
+    static void paintBackground(Graphics g, SynthMenuItemLayoutHelper lh) {
+        paintBackground(lh.getContext(), g, lh.getMenuItem());
+    }
+
+    static void paintBackground(SynthContext context, Graphics g, JComponent c) {
+        context.getPainter().paintMenuItemBackground(context, g, 0, 0,
+                c.getWidth(), c.getHeight());
+    }
+
+    static void paintIcon(Graphics g, SynthMenuItemLayoutHelper lh,
+                          MenuItemLayoutHelper.LayoutResult lr) {
+        if (lh.getIcon() != null) {
+            Icon icon;
+            JMenuItem mi = lh.getMenuItem();
+            ButtonModel model = mi.getModel();
+            if (!model.isEnabled()) {
+                icon = mi.getDisabledIcon();
+            } else if (model.isPressed() && model.isArmed()) {
+                icon = mi.getPressedIcon();
+                if (icon == null) {
+                    // Use default icon
+                    icon = mi.getIcon();
+                }
+            } else {
+                icon = mi.getIcon();
+            }
+
+            if (icon != null) {
+                Rectangle iconRect = lr.getIconRect();
+                SynthIcon.paintIcon(icon, lh.getContext(), g, iconRect.x,
+                        iconRect.y, iconRect.width, iconRect.height);
+            }
+        }
+    }
+
+    static void paintCheckIcon(Graphics g, SynthMenuItemLayoutHelper lh,
+                               MenuItemLayoutHelper.LayoutResult lr) {
+        if (lh.getCheckIcon() != null) {
+            Rectangle checkRect = lr.getCheckRect();
+            SynthIcon.paintIcon(lh.getCheckIcon(), lh.getContext(), g,
+                    checkRect.x, checkRect.y, checkRect.width, checkRect.height);
+        }
+    }
+
+    static void paintAccText(Graphics g, SynthMenuItemLayoutHelper lh,
+                             MenuItemLayoutHelper.LayoutResult lr) {
+        String accText = lh.getAccText();
+        if (accText != null && !accText.equals("")) {
+            g.setColor(lh.getAccStyle().getColor(lh.getAccContext(),
+                    ColorType.TEXT_FOREGROUND));
+            g.setFont(lh.getAccStyle().getFont(lh.getAccContext()));
+            lh.getAccGraphicsUtils().paintText(lh.getAccContext(), g, accText,
+                    lr.getAccRect().x, lr.getAccRect().y, -1);
+        }
+    }
+
+    static void paintText(Graphics g, SynthMenuItemLayoutHelper lh,
+                          MenuItemLayoutHelper.LayoutResult lr) {
+        if (!lh.getText().equals("")) {
+            if (lh.getHtmlView() != null) {
+                // Text is HTML
+                lh.getHtmlView().paint(g, lr.getTextRect());
+            } else {
+                // Text isn't HTML
+                g.setColor(lh.getStyle().getColor(
+                        lh.getContext(), ColorType.TEXT_FOREGROUND));
+                g.setFont(lh.getStyle().getFont(lh.getContext()));
+                lh.getGraphicsUtils().paintText(lh.getContext(), g, lh.getText(),
+                        lr.getTextRect().x, lr.getTextRect().y,
+                        lh.getMenuItem().getDisplayedMnemonicIndex());
+            }
+        }
+    }
+
+    static void paintArrowIcon(Graphics g, SynthMenuItemLayoutHelper lh,
+                               MenuItemLayoutHelper.LayoutResult lr) {
+        if (lh.getArrowIcon() != null) {
+            Rectangle arrowRect = lr.getArrowRect();
+            SynthIcon.paintIcon(lh.getArrowIcon(), lh.getContext(), g,
+                    arrowRect.x, arrowRect.y, arrowRect.width, arrowRect.height);
+        }
+    }
 
     /**
      * Wraps a SynthIcon around the Icon interface, forwarding calls to
      * the SynthIcon with a given SynthContext.
      */
     private static class SynthIconWrapper implements Icon {
-        private static final java.util.List CACHE = new java.util.ArrayList(1);
+        private static final java.util.List<SynthIconWrapper> CACHE = new java.util.ArrayList<SynthIconWrapper>(1);
 
         private SynthIcon synthIcon;
         private SynthContext context;
@@ -413,8 +618,7 @@ public class SynthGraphicsUtils {
             synchronized(CACHE) {
                 int size = CACHE.size();
                 if (size > 0) {
-                    SynthIconWrapper wrapper = (SynthIconWrapper)CACHE.remove(
-                                               size - 1);
+                    SynthIconWrapper wrapper = CACHE.remove(size - 1);
                     wrapper.reset(icon, context);
                     return wrapper;
                 }

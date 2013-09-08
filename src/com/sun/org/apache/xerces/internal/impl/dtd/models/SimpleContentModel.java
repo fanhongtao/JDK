@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -62,7 +66,6 @@ import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
 
 /**
- * @version $Id: SimpleContentModel.java,v 1.1.2.1 2005/08/01 03:34:26 jeffsuttor Exp $
  * SimpleContentModel is a derivative of the abstract content model base
  * class that handles a small set of simple content models that are just
  * way overkill to give the DFA treatment.
@@ -81,10 +84,9 @@ import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
  * operation with two elements. These are very simple and can be checked
  * in a simple way without a DFA and without the overhead of setting up a
  * DFA for such a simple check.
- * 
+ *
  * @xerces.internal
- * 
- * @version $Id: SimpleContentModel.java,v 1.1.2.1 2005/08/01 03:34:26 jeffsuttor Exp $
+ *
  */
 public class SimpleContentModel
     implements ContentModelValidator {
@@ -128,7 +130,7 @@ public class SimpleContentModel
 
     /* this is the EquivClassComparator object */
     //private EquivClassComparator comparator = null;
-    
+
 
     //
     // Constructors
@@ -165,12 +167,12 @@ public class SimpleContentModel
 
     /**
      * Check that the specified content is valid according to this
-     * content model. This method can also be called to do 'what if' 
+     * content model. This method can also be called to do 'what if'
      * testing of content models just to see if they would be valid.
      * <p>
-     * A value of -1 in the children array indicates a PCDATA node. All other 
+     * A value of -1 in the children array indicates a PCDATA node. All other
      * indexes will be positive and represent child elements. The count can be
-     * zero, since some elements have the EMPTY content model and that must be 
+     * zero, since some elements have the EMPTY content model and that must be
      * confirmed.
      *
      * @param children The children of this element.  Each integer is an index within

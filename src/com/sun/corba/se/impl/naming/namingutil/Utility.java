@@ -1,8 +1,26 @@
 /*
- * @(#)Utility.java	1.7 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.naming.namingutil;
@@ -22,9 +40,9 @@ import com.sun.corba.se.spi.logging.CORBALogDomains;
  */
 class Utility {
     private static NamingSystemException wrapper =
-	NamingSystemException.get( CORBALogDomains.NAMING ) ;
+        NamingSystemException.get( CORBALogDomains.NAMING ) ;
 
-    /** 
+    /**
      * cleanEscapes removes URL escapes as per IETF 2386 RFP.
      */
     static String cleanEscapes( String stringToDecode ) {
@@ -47,9 +65,9 @@ class Utility {
         return theStringWithoutEscape.toString();
     }
 
-    /** 
+    /**
      *  Converts an Ascii Character into Hexadecimal digit
-     *  NOTE: THIS METHOD IS DUPLICATED TO DELIVER NAMING AS A SEPARATE 
+     *  NOTE: THIS METHOD IS DUPLICATED TO DELIVER NAMING AS A SEPARATE
      *  COMPONENT TO RI.
      **/
     static int hexOf( char x )
@@ -77,9 +95,9 @@ class Utility {
      **/
     static void validateGIOPVersion( IIOPEndpointInfo endpointInfo ) {
         if ((endpointInfo.getMajor() > NamingConstants.MAJORNUMBER_SUPPORTED) ||
-	    (endpointInfo.getMinor() > NamingConstants.MINORNUMBERMAX ) )
+            (endpointInfo.getMinor() > NamingConstants.MINORNUMBERMAX ) )
         {
-	    throw wrapper.insBadAddress() ;
+            throw wrapper.insBadAddress() ;
         }
     }
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,15 +44,15 @@ public interface DTMWSFilter
   public static final short INHERIT = 3;
 
   /**
-   * Test whether whitespace-only text nodes are visible in the logical 
+   * Test whether whitespace-only text nodes are visible in the logical
    * view of <code>DTM</code>. Normally, this function
-   * will be called by the implementation of <code>DTM</code>; 
+   * will be called by the implementation of <code>DTM</code>;
    * it is not normally called directly from
    * user code.
-   * 
+   *
    * @param elementHandle int Handle of the element.
    * @return one of NOTSTRIP, STRIP, or INHERIT.
    */
   public short getShouldStripSpace(int elementHandle, DTM dtm);
-  
+
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)DynEnumImpl.java	1.9 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.dynamicany;
@@ -44,7 +62,7 @@ public class DynEnumImpl extends DynAnyBasicImpl implements DynEnum
         // The any doesn't have to be initialized. We have a default value in this case.
         try {
             currentEnumeratorIndex = any.extract_long();
-        } catch (BAD_OPERATION e) { 
+        } catch (BAD_OPERATION e) {
             // _REVISIT_: Fix Me
             currentEnumeratorIndex = 0;
             any.type(any.type());
@@ -100,7 +118,7 @@ public class DynEnumImpl extends DynAnyBasicImpl implements DynEnum
 
     // Returns always 0 for DynEnum
     public int component_count() {
-	return 0;
+        return 0;
     }
 
     // Calling current_component on a DynAny that cannot have components,
@@ -109,7 +127,7 @@ public class DynEnumImpl extends DynAnyBasicImpl implements DynEnum
         throws org.omg.DynamicAny.DynAnyPackage.TypeMismatch
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         throw new TypeMismatch();
     }
@@ -121,9 +139,9 @@ public class DynEnumImpl extends DynAnyBasicImpl implements DynEnum
     // Returns the value of the DynEnum as an IDL identifier.
     public String get_as_string () {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
-	return memberName(currentEnumeratorIndex);
+        return memberName(currentEnumeratorIndex);
     }
 
     // Sets the value of the DynEnum to the enumerated value
@@ -134,13 +152,13 @@ public class DynEnumImpl extends DynAnyBasicImpl implements DynEnum
         throws org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
-	int newIndex = computeCurrentEnumeratorIndex(value);
+        int newIndex = computeCurrentEnumeratorIndex(value);
         if (newIndex == NO_INDEX) {
             throw new InvalidValue();
         }
-	currentEnumeratorIndex = newIndex;
+        currentEnumeratorIndex = newIndex;
         any.insert_long(newIndex);
     }
 
@@ -149,9 +167,9 @@ public class DynEnumImpl extends DynAnyBasicImpl implements DynEnum
     // as they appear from left to right in the corresponding IDL definition.
     public int get_as_ulong () {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
-	return currentEnumeratorIndex;
+        return currentEnumeratorIndex;
     }
 
     // Sets the value of the DynEnum as the enumerated values ordinal value.
@@ -161,12 +179,12 @@ public class DynEnumImpl extends DynAnyBasicImpl implements DynEnum
         throws org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if (value < 0 || value >= memberCount()) {
             throw new InvalidValue();
         }
-	currentEnumeratorIndex = value;
+        currentEnumeratorIndex = value;
         any.insert_long(value);
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)DefaultFormatterFactory.java	1.10 06/04/07
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -52,7 +70,6 @@ import javax.swing.JFormattedTextField;
  *
  * @see javax.swing.JFormattedTextField
  *
- * @version 1.10 04/07/06
  * @since 1.4
  */
 public class DefaultFormatterFactory extends JFormattedTextField.AbstractFormatterFactory implements Serializable {
@@ -188,7 +205,7 @@ public class DefaultFormatterFactory extends JFormattedTextField.AbstractFormatt
     /**
      * Sets the <code>JFormattedTextField.AbstractFormatter</code> to use if
      * the <code>JFormattedTextField</code> is not being edited and either
-     * the value is not-null, or the value is null and a null formatter has 
+     * the value is not-null, or the value is null and a null formatter has
      * has not been specified.
      *
      * @param atf JFormattedTextField.AbstractFormatter to use when the
@@ -201,7 +218,7 @@ public class DefaultFormatterFactory extends JFormattedTextField.AbstractFormatt
     /**
      * Returns the <code>JFormattedTextField.AbstractFormatter</code> to use
      * if the <code>JFormattedTextField</code> is not being edited and either
-     * the value is not-null, or the value is null and a null formatter has 
+     * the value is not-null, or the value is null and a null formatter has
      * has not been specified.
      *
      * @return JFormattedTextField.AbstractFormatter to use when the
@@ -214,7 +231,7 @@ public class DefaultFormatterFactory extends JFormattedTextField.AbstractFormatt
     /**
      * Sets the <code>JFormattedTextField.AbstractFormatter</code> to use if
      * the <code>JFormattedTextField</code> is being edited and either
-     * the value is not-null, or the value is null and a null formatter has 
+     * the value is not-null, or the value is null and a null formatter has
      * has not been specified.
      *
      * @param atf JFormattedTextField.AbstractFormatter to use when the
@@ -227,7 +244,7 @@ public class DefaultFormatterFactory extends JFormattedTextField.AbstractFormatt
     /**
      * Returns the <code>JFormattedTextField.AbstractFormatter</code> to use
      * if the <code>JFormattedTextField</code> is being edited and either
-     * the value is not-null, or the value is null and a null formatter has 
+     * the value is not-null, or the value is null and a null formatter has
      * has not been specified.
      *
      * @return JFormattedTextField.AbstractFormatter to use when the

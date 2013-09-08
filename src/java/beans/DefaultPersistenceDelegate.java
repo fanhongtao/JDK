@@ -1,13 +1,32 @@
 /*
- * @(#)DefaultPersistenceDelegate.java	1.22 08/05/16
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.beans;
 
 import java.util.*;
 import java.lang.reflect.*;
+import java.util.Objects;
 import sun.reflect.misc.*;
 
 
@@ -17,7 +36,7 @@ import sun.reflect.misc.*;
  * is the delegate used by default for classes about
  * which no information is available. The <code>DefaultPersistenceDelegate</code>
  * provides, version resilient, public API-based persistence for
- * classes that follow the JavaBeans conventions without any class specific
+ * classes that follow the JavaBeans&trade; conventions without any class specific
  * configuration.
  * <p>
  * The key assumptions are that the class has a nullary constructor
@@ -35,7 +54,6 @@ import sun.reflect.misc.*;
  *
  * @since 1.4
  *
- * @version 1.22 05/16/08
  * @author Philip Milne
  */
 
@@ -129,6 +147,8 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
      * @param  out The code output stream.
      * @return An expression whose value is <code>oldInstance</code>.
      *
+     * @throws NullPointerException if {@code out} is {@code null}
+     *
      * @see #DefaultPersistenceDelegate(String[])
      */
     protected Expression instantiate(Object oldInstance, Encoder out) {
@@ -147,79 +167,41 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
         return new Expression(oldInstance, oldInstance.getClass(), "new", constructorArgs);
     }
 
-    private Method findMethod(Class type, String property) throws IntrospectionException {
+    private Method findMethod(Class type, String property) {
         if (property == null) {
             throw new IllegalArgumentException("Property name is null");
         }
-        BeanInfo info = Introspector.getBeanInfo(type);
-        for (PropertyDescriptor pd : info.getPropertyDescriptors()) {
-            if (property.equals(pd.getName())) {
-                Method method = pd.getReadMethod();
-                if (method != null) {
-                    return method;
-                }
-                throw new IllegalStateException("Could not find getter for the property " + property);
-            }
+        PropertyDescriptor pd = getPropertyDescriptor(type, property);
+        if (pd == null) {
+            throw new IllegalStateException("Could not find property by the name " + property);
         }
-        throw new IllegalStateException("Could not find property by the name " + property);
-    }
-
-    // This is a workaround for a bug in the introspector.
-    // PropertyDescriptors are not shared amongst subclasses.
-    private boolean isTransient(Class type, PropertyDescriptor pd) {
-        if (type == null) {
-            return false;
+        Method method = pd.getReadMethod();
+        if (method == null) {
+            throw new IllegalStateException("Could not find getter for the property " + property);
         }
-        // This code was mistakenly deleted - it may be fine and
-        // is more efficient than the code below. This should
-        // all disappear anyway when property descriptors are shared
-        // by the introspector.
-        /*
-        Method getter = pd.getReadMethod();
-        Class declaringClass = getter.getDeclaringClass();
-        if (declaringClass == type) {
-            return Boolean.TRUE.equals(pd.getValue("transient"));
-        }
-        */
-        String pName = pd.getName();
-        BeanInfo info = MetaData.getBeanInfo(type);
-        PropertyDescriptor[] propertyDescriptors = info.getPropertyDescriptors();
-        for (int i = 0; i < propertyDescriptors.length; ++i ) {
-            PropertyDescriptor pd2 = propertyDescriptors[i];
-            if (pName.equals(pd2.getName())) {
-                Object value = pd2.getValue("transient");
-                if (value != null) {
-                    return Boolean.TRUE.equals(value);
-                }
-            }
-        }
-        return isTransient(type.getSuperclass(), pd);
-    }
-
-    private static boolean equals(Object o1, Object o2) {
-        return (o1 == null) ? (o2 == null) : o1.equals(o2);
+        return method;
     }
 
     private void doProperty(Class type, PropertyDescriptor pd, Object oldInstance, Object newInstance, Encoder out) throws Exception {
         Method getter = pd.getReadMethod();
         Method setter = pd.getWriteMethod();
 
-        if (getter != null && setter != null && !isTransient(type, pd)) {
+        if (getter != null && setter != null) {
             Expression oldGetExp = new Expression(oldInstance, getter.getName(), new Object[]{});
             Expression newGetExp = new Expression(newInstance, getter.getName(), new Object[]{});
             Object oldValue = oldGetExp.getValue();
             Object newValue = newGetExp.getValue();
-            out.writeExpression(oldGetExp); 
-            if (!equals(newValue, out.get(oldValue))) { 
-                // Search for a static constant with this value; 
-                Object e = (Object[])pd.getValue("enumerationValues"); 
-                if (e instanceof Object[] && Array.getLength(e) % 3 == 0) { 
-                    Object[] a = (Object[])e; 
-                    for(int i = 0; i < a.length; i = i + 3) { 
-                        try { 
-                           Field f = type.getField((String)a[i]); 
-                           if (f.get(null).equals(oldValue)) { 
-                               out.remove(oldValue); 
+            out.writeExpression(oldGetExp);
+            if (!Objects.equals(newValue, out.get(oldValue))) {
+                // Search for a static constant with this value;
+                Object e = (Object[])pd.getValue("enumerationValues");
+                if (e instanceof Object[] && Array.getLength(e) % 3 == 0) {
+                    Object[] a = (Object[])e;
+                    for(int i = 0; i < a.length; i = i + 3) {
+                        try {
+                           Field f = type.getField((String)a[i]);
+                           if (f.get(null).equals(oldValue)) {
+                               out.remove(oldValue);
                                out.writeExpression(new Expression(oldValue, f, "get", new Object[]{null}));
                            }
                         }
@@ -237,14 +219,38 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
 
     // Write out the properties of this instance.
     private void initBean(Class type, Object oldInstance, Object newInstance, Encoder out) {
-        // System.out.println("initBean: " + oldInstance);
-        BeanInfo info = MetaData.getBeanInfo(type);
-
-        // Properties
-        PropertyDescriptor[] propertyDescriptors = info.getPropertyDescriptors();
-        for (int i = 0; i < propertyDescriptors.length; ++i ) {
+        for (Field field : type.getFields()) {
+            int mod = field.getModifiers();
+            if (Modifier.isFinal(mod) || Modifier.isStatic(mod) || Modifier.isTransient(mod)) {
+                continue;
+            }
             try {
-                doProperty(type, propertyDescriptors[i], oldInstance, newInstance, out);
+                Expression oldGetExp = new Expression(field, "get", new Object[] { oldInstance });
+                Expression newGetExp = new Expression(field, "get", new Object[] { newInstance });
+                Object oldValue = oldGetExp.getValue();
+                Object newValue = newGetExp.getValue();
+                out.writeExpression(oldGetExp);
+                if (!Objects.equals(newValue, out.get(oldValue))) {
+                    out.writeStatement(new Statement(field, "set", new Object[] { oldInstance, oldValue }));
+                }
+            }
+            catch (Exception exception) {
+                out.getExceptionListener().exceptionThrown(exception);
+            }
+        }
+        BeanInfo info;
+        try {
+            info = Introspector.getBeanInfo(type);
+        } catch (IntrospectionException exception) {
+            return;
+        }
+        // Properties
+        for (PropertyDescriptor d : info.getPropertyDescriptors()) {
+            if (d.isTransient()) {
+                continue;
+            }
+            try {
+                doProperty(type, d, oldInstance, newInstance, out);
             }
             catch (Exception e) {
                 out.getExceptionListener().exceptionThrown(e);
@@ -262,13 +268,13 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
         TableModelListener (the JTable itself in this case) to the supplied
         table model.
 
-        We do not need to explictly add these listeners to the model in an 
-        archive as they will be added automatically by, in the above case, 
-        the JTable's "setModel" method. In some cases, we must specifically 
+        We do not need to explictly add these listeners to the model in an
+        archive as they will be added automatically by, in the above case,
+        the JTable's "setModel" method. In some cases, we must specifically
         avoid trying to do this since the listener may be an inner class
-	that cannot be instantiated using public API. 
-	
-	No general mechanism currently
+        that cannot be instantiated using public API.
+
+        No general mechanism currently
         exists for differentiating between these kind of listeners and
         those which were added explicitly by the user. A mechanism must
         be created to provide a general means to differentiate these
@@ -278,9 +284,10 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
         if (!java.awt.Component.class.isAssignableFrom(type)) {
             return; // Just handle the listeners of Components for now.
         }
-        EventSetDescriptor[] eventSetDescriptors = info.getEventSetDescriptors();
-        for (int e = 0; e < eventSetDescriptors.length; e++) {
-            EventSetDescriptor d = eventSetDescriptors[e];
+        for (EventSetDescriptor d : info.getEventSetDescriptors()) {
+            if (d.isTransient()) {
+                continue;
+            }
             Class listenerType = d.getListenerType();
 
 
@@ -309,7 +316,7 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
                 oldL = (EventListener[])MethodUtil.invoke(m, oldInstance, new Object[]{});
                 newL = (EventListener[])MethodUtil.invoke(m, newInstance, new Object[]{});
             }
-            catch (Throwable e2) {
+            catch (Exception e2) {
                 try {
                     Method m = type.getMethod("getListeners", new Class[]{Class.class});
                     oldL = (EventListener[])MethodUtil.invoke(m, oldInstance, new Object[]{listenerType});
@@ -324,17 +331,13 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
             // Eventually, this may need to do true differencing.
             String addListenerMethodName = d.getAddListenerMethod().getName();
             for (int i = newL.length; i < oldL.length; i++) {
-                // The BufferStrategyPaintManager adds BufferInfo as a WindowsListener automatically
-                if (oldL[i].getClass().getName().equals("javax.swing.BufferStrategyPaintManager$BufferInfo")) {
-                    continue;
-                }
                 // System.out.println("Adding listener: " + addListenerMethodName + oldL[i]);
                 invokeStatement(oldInstance, addListenerMethodName, new Object[]{oldL[i]}, out);
             }
 
             String removeListenerMethodName = d.getRemoveListenerMethod().getName();
             for (int i = oldL.length; i < newL.length; i++) {
-                invokeStatement(oldInstance, removeListenerMethodName, new Object[]{oldL[i]}, out);
+                invokeStatement(oldInstance, removeListenerMethodName, new Object[]{newL[i]}, out);
             }
         }
     }
@@ -382,17 +385,30 @@ public class DefaultPersistenceDelegate extends PersistenceDelegate {
      * @param newInstance The instance that is to be modified.
      * @param out The stream to which any initialization statements should be written.
      *
+     * @throws NullPointerException if {@code out} is {@code null}
+     *
      * @see java.beans.Introspector#getBeanInfo
      * @see java.beans.PropertyDescriptor
      */
     protected void initialize(Class<?> type,
-			      Object oldInstance, Object newInstance,
-			      Encoder out)
+                              Object oldInstance, Object newInstance,
+                              Encoder out)
     {
         // System.out.println("DefulatPD:initialize" + type);
         super.initialize(type, oldInstance, newInstance, out);
         if (oldInstance.getClass() == type) { // !type.isInterface()) {
             initBean(type, oldInstance, newInstance, out);
         }
+    }
+
+    private static PropertyDescriptor getPropertyDescriptor(Class type, String property) {
+        try {
+            for (PropertyDescriptor pd : Introspector.getBeanInfo(type).getPropertyDescriptors()) {
+                if (property.equals(pd.getName()))
+                    return pd;
+            }
+        } catch (IntrospectionException exception) {
+        }
+        return null;
     }
 }

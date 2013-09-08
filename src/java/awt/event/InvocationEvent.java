@@ -1,8 +1,26 @@
 /*
- * @(#)InvocationEvent.java	1.21 06/04/07
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -21,17 +39,20 @@ import java.awt.AWTEvent;
  * can use this fact to write replacement functions for <code>invokeLater
  * </code> and <code>invokeAndWait</code> without writing special-case code
  * in any <code>AWTEventListener</code> objects.
+ * <p>
+ * An unspecified behavior will be caused if the {@code id} parameter
+ * of any particular {@code InvocationEvent} instance is not
+ * in the range from {@code INVOCATION_FIRST} to {@code INVOCATION_LAST}.
  *
- * @author	Fred Ecks
- * @author	David Mendenhall
- * @version	1.21, 04/07/06
+ * @author      Fred Ecks
+ * @author      David Mendenhall
  *
- * @see		java.awt.ActiveEvent
- * @see		java.awt.EventQueue#invokeLater
- * @see		java.awt.EventQueue#invokeAndWait
- * @see		AWTEventListener
+ * @see         java.awt.ActiveEvent
+ * @see         java.awt.EventQueue#invokeLater
+ * @see         java.awt.EventQueue#invokeAndWait
+ * @see         AWTEventListener
  *
- * @since 	1.2
+ * @since       1.2
  */
 public class InvocationEvent extends AWTEvent implements ActiveEvent {
 
@@ -57,9 +78,20 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
 
     /**
      * The (potentially null) Object whose notifyAll() method will be called
-     * immediately after the Runnable.run() method returns.
+     * immediately after the Runnable.run() method has returned or thrown an exception.
+     *
+     * @see #isDispatched
      */
     protected Object notifier;
+
+    /**
+     * Indicates whether the <code>run()</code> method of the <code>runnable</code>
+     * was executed or not.
+     *
+     * @see #isDispatched
+     * @since 1.7
+     */
+    private volatile boolean dispatched = false;
 
     /**
      * Set to true if dispatch() catches Throwable and stores it in the
@@ -106,12 +138,13 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * <p> This method throws an <code>IllegalArgumentException</code>
      * if <code>source</code> is <code>null</code>.
      *
-     * @param source	the <code>Object</code> that originated the event
-     * @param runnable	the <code>Runnable</code> whose <code>run</code>
+     * @param source    The <code>Object</code> that originated the event
+     * @param runnable  The <code>Runnable</code> whose <code>run</code>
      *                  method will be executed
      * @throws IllegalArgumentException if <code>source</code> is null
      *
-     * @see     #InvocationEvent(Object, Runnable, Object, boolean)
+     * @see #getSource()
+     * @see #InvocationEvent(Object, Runnable, Object, boolean)
      */
     public InvocationEvent(Object source, Runnable runnable) {
         this(source, runnable, null, false);
@@ -122,7 +155,7 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * source which will execute the runnable's <code>run</code>
      * method when dispatched.  If notifier is non-<code>null</code>,
      * <code>notifyAll()</code> will be called on it
-     * immediately after <code>run</code> returns.
+     * immediately after <code>run</code> has returned or thrown an exception.
      * <p>An invocation of the form <tt>InvocationEvent(source,
      * runnable, notifier, catchThrowables)</tt>
      * behaves in exactly the same way as the invocation of
@@ -130,15 +163,16 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      * <p>This method throws an <code>IllegalArgumentException</code>
      * if <code>source</code> is <code>null</code>.
      *
-     * @param source		the <code>Object</code> that originated
+     * @param source            The <code>Object</code> that originated
      *                          the event
-     * @param runnable		the <code>Runnable</code> whose
+     * @param runnable          The <code>Runnable</code> whose
      *                          <code>run</code> method will be
      *                          executed
-     * @param notifier		the Object whose <code>notifyAll</code>
+     * @param notifier          The {@code Object} whose <code>notifyAll</code>
      *                          method will be called after
-     *                          <code>Runnable.run</code> has returned
-     * @param catchThrowables	specifies whether <code>dispatch</code>
+     *                          <code>Runnable.run</code> has returned or
+     *                          thrown an exception
+     * @param catchThrowables   Specifies whether <code>dispatch</code>
      *                          should catch Throwable when executing
      *                          the <code>Runnable</code>'s <code>run</code>
      *                          method, or should instead propagate those
@@ -146,99 +180,110 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      *                          dispatch loop
      * @throws IllegalArgumentException if <code>source</code> is null
      *
+     * @see #getSource()
      * @see     #InvocationEvent(Object, int, Runnable, Object, boolean)
      */
     public InvocationEvent(Object source, Runnable runnable, Object notifier,
                            boolean catchThrowables) {
-	this(source, INVOCATION_DEFAULT, runnable, notifier, catchThrowables);
+        this(source, INVOCATION_DEFAULT, runnable, notifier, catchThrowables);
     }
 
     /**
      * Constructs an <code>InvocationEvent</code> with the specified
      * source and ID which will execute the runnable's <code>run</code>
      * method when dispatched.  If notifier is non-<code>null</code>,
-     * <code>notifyAll</code> will be called on it 
-     * immediately after <code>run</code> returns.
-     * <p>Note that passing in an invalid <code>id</code> results in
-     * unspecified behavior. This method throws an
+     * <code>notifyAll</code> will be called on it immediately after
+     * <code>run</code> has returned or thrown an exception.
+     * <p>This method throws an
      * <code>IllegalArgumentException</code> if <code>source</code>
      * is <code>null</code>.
      *
-     * @param source		the <code>Object</code> that originated
+     * @param source            The <code>Object</code> that originated
      *                          the event
-     * @param id		the ID for the event
-     * @param runnable		the <code>Runnable</code> whose
+     * @param id     An integer indicating the type of event.
+     *                     For information on allowable values, see
+     *                     the class description for {@link InvocationEvent}
+     * @param runnable          The <code>Runnable</code> whose
      *                          <code>run</code> method will be executed
-     * @param notifier		the <code>Object</code> whose <code>notifyAll</code>
+     * @param notifier          The <code>Object</code> whose <code>notifyAll</code>
      *                          method will be called after
-     *                          <code>Runnable.run</code> has returned
-     * @param catchThrowables	specifies whether <code>dispatch</code>
+     *                          <code>Runnable.run</code> has returned or
+     *                          thrown an exception
+     * @param catchThrowables   Specifies whether <code>dispatch</code>
      *                          should catch Throwable when executing the
      *                          <code>Runnable</code>'s <code>run</code>
      *                          method, or should instead propagate those
      *                          Throwables to the EventDispatchThread's
      *                          dispatch loop
      * @throws IllegalArgumentException if <code>source</code> is null
+     * @see #getSource()
+     * @see #getID()
      */
-    protected InvocationEvent(Object source, int id, Runnable runnable, 
+    protected InvocationEvent(Object source, int id, Runnable runnable,
                               Object notifier, boolean catchThrowables) {
         super(source, id);
-	this.runnable = runnable;
-	this.notifier = notifier;
-	this.catchExceptions = catchThrowables;
+        this.runnable = runnable;
+        this.notifier = notifier;
+        this.catchExceptions = catchThrowables;
         this.when = System.currentTimeMillis();
     }
 
     /**
      * Executes the Runnable's <code>run()</code> method and notifies the
-     * notifier (if any) when <code>run()</code> returns.
+     * notifier (if any) when <code>run()</code> has returned or thrown an exception.
+     *
+     * @see #isDispatched
      */
     public void dispatch() {
-	if (catchExceptions) {
-	    try {
-		runnable.run();
-	    } 
-	    catch (Throwable t) {
-                if (t instanceof Exception) {
-                    exception = (Exception) t;
+        try {
+            if (catchExceptions) {
+                try {
+                    runnable.run();
                 }
-                throwable = t;
-	    }
-	}
-	else {
-	    runnable.run();
-	}
+                catch (Throwable t) {
+                    if (t instanceof Exception) {
+                        exception = (Exception) t;
+                    }
+                    throwable = t;
+                }
+            }
+            else {
+                runnable.run();
+            }
+        } finally {
+            dispatched = true;
 
-	if (notifier != null) {
-	    synchronized (notifier) {
-		notifier.notifyAll();
-	    }
-	}
+            if (notifier != null) {
+                synchronized (notifier) {
+                    notifier.notifyAll();
+                }
+            }
+        }
     }
 
     /**
      * Returns any Exception caught while executing the Runnable's <code>run()
      * </code> method.
      *
-     * @return	A reference to the Exception if one was thrown; null if no
-     *		Exception was thrown or if this InvocationEvent does not
-     *		catch exceptions
+     * @return  A reference to the Exception if one was thrown; null if no
+     *          Exception was thrown or if this InvocationEvent does not
+     *          catch exceptions
      */
     public Exception getException() {
-	return (catchExceptions) ? exception : null;
+        return (catchExceptions) ? exception : null;
     }
 
     /**
      * Returns any Throwable caught while executing the Runnable's <code>run()
      * </code> method.
      *
-     * @return	A reference to the Throwable if one was thrown; null if no
-     *		Throwable was thrown or if this InvocationEvent does not
-     *		catch Throwables
+     * @return  A reference to the Throwable if one was thrown; null if no
+     *          Throwable was thrown or if this InvocationEvent does not
+     *          catch Throwables
      * @since 1.5
      */
     public Throwable getThrowable() {
-	return (catchExceptions) ? throwable : null;
+        return (catchExceptions) ? throwable : null;
     }
 
     /**
@@ -252,6 +297,40 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
     }
 
     /**
+     * Returns {@code true} if the event is dispatched or any exception is
+     * thrown while dispatching, {@code false} otherwise. The method should
+     * be called by a waiting thread that calls the {@code notifier.wait()} method.
+     * Since spurious wakeups are possible (as explained in {@link Object#wait()}),
+     * this method should be used in a waiting loop to ensure that the event
+     * got dispatched:
+     * <pre>
+     *     while (!event.isDispatched()) {
+     *         notifier.wait();
+     *     }
+     * </pre>
+     * If the waiting thread wakes up without dispatching the event,
+     * the {@code isDispatched()} method returns {@code false}, and
+     * the {@code while} loop executes once more, thus, causing
+     * the awakened thread to revert to the waiting mode.
+     * <p>
+     * If the {@code notifier.notifyAll()} happens before the waiting thread
+     * enters the {@code notifier.wait()} method, the {@code while} loop ensures
+     * that the waiting thread will not enter the {@code notifier.wait()} method.
+     * Otherwise, there is no guarantee that the waiting thread will ever be woken
+     * from the wait.
+     *
+     * @return {@code true} if the event has been dispatched, or any exception
+     * has been thrown while dispatching, {@code false} otherwise
+     * @see #dispatch
+     * @see #notifier
+     * @see #catchExceptions
+     * @since 1.7
+     */
+    public boolean isDispatched() {
+        return dispatched;
+    }
+
+    /**
      * Returns a parameter string identifying this event.
      * This method is useful for event-logging and for debugging.
      *
@@ -259,14 +338,14 @@ public class InvocationEvent extends AWTEvent implements ActiveEvent {
      */
     public String paramString() {
         String typeStr;
-	switch(id) {
+        switch(id) {
             case INVOCATION_DEFAULT:
-	        typeStr = "INVOCATION_DEFAULT";
-		break;
+                typeStr = "INVOCATION_DEFAULT";
+                break;
             default:
-	        typeStr = "unknown type";
-	}
-	return typeStr + ",runnable=" + runnable + ",notifier=" + notifier +
-	    ",catchExceptions=" + catchExceptions + ",when=" + when;
+                typeStr = "unknown type";
+        }
+        return typeStr + ",runnable=" + runnable + ",notifier=" + notifier +
+            ",catchExceptions=" + catchExceptions + ",when=" + when;
     }
 }

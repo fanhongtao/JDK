@@ -1,11 +1,25 @@
 /*
- * @(#)file      GroupImpl.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.10
- * @(#)date      06/11/29
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -20,28 +34,27 @@ import java.io.Serializable;
 import java.net.UnknownHostException;
 
 
-import java.security.Principal; 
-import java.security.acl.Group; 
+import java.security.Principal;
+import java.security.acl.Group;
 
 
 /**
- * This class is used to represent a subnet mask (a group of hosts 
- * matching the same 
+ * This class is used to represent a subnet mask (a group of hosts
+ * matching the same
  * IP mask).
- * 
- * @version     4.10     11/17/05
- * @author      Sun Microsystems, Inc
+ *
  */
 
 class GroupImpl extends PrincipalImpl implements Group, Serializable {
-  
+  private static final long serialVersionUID = -7777387035032541168L;
+
   /**
    * Constructs an empty group.
    * @exception UnknownHostException Not implemented
    */
   public GroupImpl () throws UnknownHostException {
   }
-  
+
   /**
    * Constructs a group using the specified subnet mask.
    *
@@ -49,65 +62,65 @@ class GroupImpl extends PrincipalImpl implements Group, Serializable {
    * @exception UnknownHostException if the subnet mask cann't be built.
    */
   public GroupImpl (String mask) throws UnknownHostException {
-	super(mask);
+        super(mask);
   }
-  
+
     /**
-     * Adds the specified member to the group. 
+     * Adds the specified member to the group.
      *
-     * @param p the principal to add to this group. 
-     * @return true if the member was successfully added, false if the 
-     *     principal was already a member. 
+     * @param p the principal to add to this group.
+     * @return true if the member was successfully added, false if the
+     *     principal was already a member.
      */
     public boolean addMember(Principal p) {
-	// we don't need to add members because the ip address is a 
-	// subnet mask 
-	return true;	
+        // we don't need to add members because the ip address is a
+        // subnet mask
+        return true;
     }
 
   public int hashCode() {
-	return super.hashCode();	
+        return super.hashCode();
   }
-  
+
   /**
    * Compares this group to the specified object. Returns true if the object
    * passed in matches the group represented.
    *
    * @param p the object to compare with.
-   * @return true if the object passed in matches the subnet mask, 
+   * @return true if the object passed in matches the subnet mask,
    *   false otherwise.
    */
   public boolean equals (Object p) {
-	if (p instanceof PrincipalImpl || p instanceof GroupImpl){
-	  if ((super.hashCode() & p.hashCode()) == p.hashCode()) return true;
-	  else return false;
-	} else {
-	  return false;
-	}
+        if (p instanceof PrincipalImpl || p instanceof GroupImpl){
+          if ((super.hashCode() & p.hashCode()) == p.hashCode()) return true;
+          else return false;
+        } else {
+          return false;
+        }
   }
-  
+
   /**
    * Returns true if the passed principal is a member of the group.
    *
    * @param p the principal whose membership is to be checked.
-   * @return true if the principal is a member of this group, false otherwise. 
+   * @return true if the principal is a member of this group, false otherwise.
    */
   public boolean isMember(Principal p) {
-	if ((p.hashCode() & super.hashCode()) == p.hashCode()) return true;
-	else return false;
+        if ((p.hashCode() & super.hashCode()) == p.hashCode()) return true;
+        else return false;
   }
-  
+
   /**
    * Returns an enumeration which contains the subnet mask.
    *
    * @return an enumeration which contains the subnet mask.
    */
-  public Enumeration members(){
-	Vector v = new Vector(1);
-	v.addElement(this);
-	return v.elements();
+  public Enumeration<? extends Principal> members(){
+        Vector<Principal> v = new Vector<Principal>(1);
+        v.addElement(this);
+        return v.elements();
   }
-  
+
   /**
    * Removes the specified member from the group. (Not implemented)
    *
@@ -115,17 +128,15 @@ class GroupImpl extends PrincipalImpl implements Group, Serializable {
    * @return allways return true.
    */
   public boolean removeMember(Principal p) {
-	return true;
+        return true;
   }
-  
+
   /**
    * Prints a string representation of this group.
    *
    * @return  a string representation of this group.
    */
   public String toString() {
-	return ("GroupImpl :"+super.getAddress().toString());
+        return ("GroupImpl :"+super.getAddress().toString());
   }
 }
-
-

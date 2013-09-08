@@ -1,43 +1,62 @@
 /*
- * @(#)PropertyChangeListenerProxy.java	1.5 05/11/17
+ * Copyright (c) 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
 
+import java.util.EventListenerProxy;
+
 /**
- * A class which extends the <code>EventListenerProxy</code> specifically 
- * for adding a named <code>PropertyChangeListener</code>. Instances of
- * this class can be added as <code>PropertyChangeListener</code> to
- * an object. 
+ * A class which extends the {@code EventListenerProxy}
+ * specifically for adding a {@code PropertyChangeListener}
+ * with a "bound" property.
+ * Instances of this class can be added
+ * as {@code PropertyChangeListener}s to a bean
+ * which supports firing property change events.
  * <p>
- * If the object has a <code>getPropertyChangeListeners()</code>
- * method then the array returned could be a mixture of 
- * <code>PropertyChangeListener</code> and
- * <code>PropertyChangeListenerProxy</code> objects.
- * 
+ * If the object has a {@code getPropertyChangeListeners} method
+ * then the array returned could be a mixture of {@code PropertyChangeListener}
+ * and {@code PropertyChangeListenerProxy} objects.
+ *
  * @see java.util.EventListenerProxy
+ * @see PropertyChangeSupport#getPropertyChangeListeners
  * @since 1.4
  */
-public class PropertyChangeListenerProxy extends java.util.EventListenerProxy
+public class PropertyChangeListenerProxy
+        extends EventListenerProxy<PropertyChangeListener>
         implements PropertyChangeListener {
 
-    private String propertyName;
+    private final String propertyName;
 
     /**
-     * Constructor which binds the PropertyChangeListener to a specific
-     * property.
-     * 
-     * @param listener The listener object
-     * @param propertyName The name of the property to listen on.
-     */ 
-    public PropertyChangeListenerProxy(String propertyName, 
-            PropertyChangeListener listener) {
-        // XXX - msd NOTE: I changed the order of the arguments so that it's
-        // similar to PropertyChangeSupport.addPropertyChangeListener(String,
-        // PropertyChangeListener);
+     * Constructor which binds the {@code PropertyChangeListener}
+     * to a specific property.
+     *
+     * @param propertyName  the name of the property to listen on
+     * @param listener      the listener object
+     */
+    public PropertyChangeListenerProxy(String propertyName, PropertyChangeListener listener) {
         super(listener);
         this.propertyName = propertyName;
     }
@@ -45,17 +64,18 @@ public class PropertyChangeListenerProxy extends java.util.EventListenerProxy
     /**
      * Forwards the property change event to the listener delegate.
      *
-     * @param evt the property change event
+     * @param event  the property change event
      */
-    public void propertyChange(PropertyChangeEvent evt) {
-        ((PropertyChangeListener)getListener()).propertyChange(evt);
+    public void propertyChange(PropertyChangeEvent event) {
+        getListener().propertyChange(event);
     }
 
     /**
-     * Returns the name of the named property associated with the
-     * listener.
+     * Returns the name of the named property associated with the listener.
+     *
+     * @return the name of the named property associated with the listener
      */
     public String getPropertyName() {
-        return propertyName;
+        return this.propertyName;
     }
 }

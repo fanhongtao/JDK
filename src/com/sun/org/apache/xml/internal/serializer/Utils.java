@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,10 +43,10 @@ class Utils
     }
     /**
      * Load the class by name.
-     * 
+     *
      * This implementation, for performance reasons,
      * caches all classes loaded by name and
-     * returns the cached Class object if it can previously 
+     * returns the cached Class object if it can previously
      * loaded classes that were load by name.  If not previously loaded
      * an attempt is made to load with Class.forName(classname)
      * @param classname the name of the class to be loaded
@@ -63,7 +67,7 @@ class Utils
             c = Class.forName(classname);
             // if the class is not found we will have thrown a
             // ClassNotFoundException on the statement above
-            
+
             // if we get here c is not null
             CacheHolder.cache.put(classname, c);
         }

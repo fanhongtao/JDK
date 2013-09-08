@@ -1,10 +1,29 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * @(#)IIOPOutputStream_1_3_1.java	1.6 05/11/17
  */
 package com.sun.corba.se.impl.orbutil;
 
@@ -24,7 +43,7 @@ public class IIOPOutputStream_1_3_1 extends com.sun.corba.se.impl.io.IIOPOutputS
     private ObjectOutputStream.PutField putFields_1_3_1;
 
     public IIOPOutputStream_1_3_1()
-    	throws java.io.IOException {
+        throws java.io.IOException {
         super();
     }
 
@@ -33,16 +52,15 @@ public class IIOPOutputStream_1_3_1 extends com.sun.corba.se.impl.io.IIOPOutputS
      * actually sent a Hashtable.
      */
     public ObjectOutputStream.PutField putFields()
-	throws IOException {
+        throws IOException {
 
-	putFields_1_3_1 = new LegacyHookPutFields();
-	return putFields_1_3_1;
+        putFields_1_3_1 = new LegacyHookPutFields();
+        return putFields_1_3_1;
     }
 
     public void writeFields()
-	throws IOException {
+        throws IOException {
 
-	putFields_1_3_1.write(this);
+        putFields_1_3_1.write(this);
     }
 }
-

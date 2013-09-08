@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +32,7 @@ import org.xml.sax.helpers.LocatorImpl;
 
 /**
  * Class SAXSourceLocator extends org.xml.sax.helpers.LocatorImpl
- * for the purpose of implementing the SourceLocator interface, 
+ * for the purpose of implementing the SourceLocator interface,
  * and thus can be both a SourceLocator and a SAX Locator.
  */
 public class SAXSourceLocator extends LocatorImpl
@@ -60,7 +64,7 @@ public class SAXSourceLocator extends LocatorImpl
     this.setPublicId(locator.getPublicId());
     this.setSystemId(locator.getSystemId());
   }
-  
+
   /**
    * Constructor SAXSourceLocator
    *
@@ -76,7 +80,7 @@ public class SAXSourceLocator extends LocatorImpl
     this.setSystemId(locator.getSystemId());
   }
 
-  
+
   /**
    * Constructor SAXSourceLocator
    *
@@ -90,7 +94,7 @@ public class SAXSourceLocator extends LocatorImpl
     this.setPublicId( spe.getPublicId() );
     this.setSystemId( spe.getSystemId() );
   }
-  
+
   /**
    * Return the public identifier for the current document event.
    *
@@ -125,7 +129,7 @@ public class SAXSourceLocator extends LocatorImpl
   {
     return (null == m_locator) ? super.getSystemId() : m_locator.getSystemId();
   }
-  
+
   /**
    * Return the line number where the current document event ends.
    *

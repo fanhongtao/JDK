@@ -1,8 +1,26 @@
 /*
- * @(#)DragGestureEvent.java	1.24 05/11/17
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -27,21 +45,29 @@ import java.util.Iterator;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
 
 /**
- * A <code>DragGestureEvent</code> is passed 
- * to <code>DragGestureListener</code>'s  
+ * A <code>DragGestureEvent</code> is passed
+ * to <code>DragGestureListener</code>'s
  * dragGestureRecognized() method
- * when a particular <code>DragGestureRecognizer</code> detects that a 
- * platform dependent drag initiating gesture has occurred 
+ * when a particular <code>DragGestureRecognizer</code> detects that a
+ * platform dependent drag initiating gesture has occurred
  * on the <code>Component</code> that it is tracking.
- * 
- * @version 1.24
+ *
+ * The {@code action} field of any {@code DragGestureEvent} instance should take one of the following
+ * values:
+ * <ul>
+ * <li> {@code DnDConstants.ACTION_COPY}
+ * <li> {@code DnDConstants.ACTION_MOVE}
+ * <li> {@code DnDConstants.ACTION_LINK}
+ * </ul>
+ * Assigning the value different from listed above will cause an unspecified behavior.
+ *
  * @see java.awt.dnd.DragGestureRecognizer
  * @see java.awt.dnd.DragGestureListener
  * @see java.awt.dnd.DragSource
+ * @see java.awt.dnd.DnDConstants
  */
 
 public class DragGestureEvent extends EventObject {
@@ -49,45 +75,50 @@ public class DragGestureEvent extends EventObject {
     private static final long serialVersionUID = 9080172649166731306L;
 
     /**
-     * Construct a <code>DragGestureEvent</code> given the
-     * <code>DragGestureRecognizer</code> firing this event, 
-     * an <code>int</code> representing
-     * the user's preferred action, a <code>Point</code> 
-     * indicating the origin of the drag, and a <code>List</code> 
-     * of events that comprise the gesture.
+     * Constructs a <code>DragGestureEvent</code> object given by the
+     * <code>DragGestureRecognizer</code> instance firing this event,
+     * an {@code act} parameter representing
+     * the user's preferred action, an {@code ori} parameter
+     * indicating the origin of the drag, and a {@code List} of
+     * events that comprise the gesture({@code evs} parameter).
      * <P>
      * @param dgr The <code>DragGestureRecognizer</code> firing this event
-     * @param act The the user's preferred action
+     * @param act The user's preferred action.
+     *            For information on allowable values, see
+     *            the class description for {@link DragGestureEvent}
      * @param ori The origin of the drag
      * @param evs The <code>List</code> of events that comprise the gesture
      * <P>
-     * @throws <code>IllegalArgumentException</code> if 
-     * input parameters are null
+     * @throws IllegalArgumentException if any parameter equals {@code null}
+     * @throws IllegalArgumentException if the act parameter does not comply with
+     *                                  the values given in the class
+     *                                  description for {@link DragGestureEvent}
+     * @see java.awt.dnd.DnDConstants
      */
 
     public DragGestureEvent(DragGestureRecognizer dgr, int act, Point ori,
-			    List<? extends InputEvent> evs)
+                            List<? extends InputEvent> evs)
     {
-	super(dgr);
+        super(dgr);
 
-	if ((component = dgr.getComponent()) == null)
-	    throw new IllegalArgumentException("null component");
-	if ((dragSource = dgr.getDragSource()) == null)
-	    throw new IllegalArgumentException("null DragSource");
+        if ((component = dgr.getComponent()) == null)
+            throw new IllegalArgumentException("null component");
+        if ((dragSource = dgr.getDragSource()) == null)
+            throw new IllegalArgumentException("null DragSource");
 
-	if (evs == null || evs.isEmpty())
-	    throw new IllegalArgumentException("null or empty list of events");
+        if (evs == null || evs.isEmpty())
+            throw new IllegalArgumentException("null or empty list of events");
 
-	if (act != DnDConstants.ACTION_COPY &&
-	    act != DnDConstants.ACTION_MOVE &&
-	    act != DnDConstants.ACTION_LINK)
-	    throw new IllegalArgumentException("bad action");
+        if (act != DnDConstants.ACTION_COPY &&
+            act != DnDConstants.ACTION_MOVE &&
+            act != DnDConstants.ACTION_LINK)
+            throw new IllegalArgumentException("bad action");
 
-	if (ori == null) throw new IllegalArgumentException("null origin");
+        if (ori == null) throw new IllegalArgumentException("null origin");
 
-	events     = evs;
-	action     = act;
-	origin     = ori;
+        events     = evs;
+        action     = act;
+        origin     = ori;
     }
 
     /**
@@ -97,11 +128,11 @@ public class DragGestureEvent extends EventObject {
      */
 
     public DragGestureRecognizer getSourceAsDragGestureRecognizer() {
-	return (DragGestureRecognizer)getSource();
+        return (DragGestureRecognizer)getSource();
     }
 
     /**
-     * Returns the <code>Component</code> associated 
+     * Returns the <code>Component</code> associated
      * with this <code>DragGestureEvent</code>.
      * <P>
      * @return the Component
@@ -125,7 +156,7 @@ public class DragGestureEvent extends EventObject {
      */
 
     public Point getDragOrigin() {
-	return origin;
+        return origin;
     }
 
     /**
@@ -138,7 +169,7 @@ public class DragGestureEvent extends EventObject {
     public Iterator<InputEvent> iterator() { return events.iterator(); }
 
     /**
-     * Returns an <code>Object</code> array of the 
+     * Returns an <code>Object</code> array of the
      * events comprising the drag gesture.
      * <P>
      * @return an array of the events comprising the gesture
@@ -157,7 +188,7 @@ public class DragGestureEvent extends EventObject {
     public Object[] toArray(Object[] array) { return events.toArray(array); }
 
     /**
-     * Returns an <code>int</code> representing the 
+     * Returns an <code>int</code> representing the
      * action selected by the user.
      * <P>
      * @return the action selected by the user
@@ -166,13 +197,13 @@ public class DragGestureEvent extends EventObject {
     public int getDragAction() { return action; }
 
     /**
-     * Returns the initial event that triggered the gesture. 
+     * Returns the initial event that triggered the gesture.
      * <P>
      * @return the first "triggering" event in the sequence of the gesture
      */
 
     public InputEvent getTriggerEvent() {
-	return getSourceAsDragGestureRecognizer().getTriggerEvent();
+        return getSourceAsDragGestureRecognizer().getTriggerEvent();
     }
 
     /**
@@ -183,68 +214,81 @@ public class DragGestureEvent extends EventObject {
      * If a <code>null</code> <code>Cursor</code> is specified no exception will
      * be thrown and default drag cursors will be used instead.
      * <br>
-     * If a <code>null</code> <code>Transferable</code> is specified 
+     * If a <code>null</code> <code>Transferable</code> is specified
      * <code>NullPointerException</code> will be thrown.
-     * 
-     * @param dragCursor   The <code>Cursor</code> for this drag operation 
+     * @param dragCursor     The initial {@code Cursor} for this drag operation
+     *                       or {@code null} for the default cursor handling;
+     *                       see
+     *                       <a href="DragSourceContext.html#defaultCursor">DragSourceContext</a>
+     *                       for more details on the cursor handling mechanism
+     *                       during drag and drop
      * @param transferable The <code>Transferable</code> representing the source
      *                     data for this drag operation.
      *
-     * @throws <code>InvalidDnDOperationException</code> if the Drag and Drop
-     *         system is unable to initiate a drag operation, or if the user 
+     * @throws InvalidDnDOperationException if the Drag and Drop
+     *         system is unable to initiate a drag operation, or if the user
      *         attempts to start a drag while an existing drag operation is
-     *         still executing. 
-     * @throws <code>NullPointerException</code> if the
-     *         <code>Transferable</code> is <code>null</code>.
+     *         still executing.
+     * @throws NullPointerException if the {@code Transferable} is {@code null}
      * @since 1.4
      */
-    public void startDrag(Cursor dragCursor, Transferable transferable) 
+    public void startDrag(Cursor dragCursor, Transferable transferable)
       throws InvalidDnDOperationException {
         dragSource.startDrag(this, dragCursor, transferable, null);
     }
 
     /**
-     * Starts the drag given the initial <code>Cursor</code> to display, 
-     * the <code>Transferable</code> object, 
+     * Starts the drag given the initial <code>Cursor</code> to display,
+     * the <code>Transferable</code> object,
      * and the <code>DragSourceListener</code> to use.
      * <P>
-     * @param dragCursor   The initial drag Cursor
+     * @param dragCursor     The initial {@code Cursor} for this drag operation
+     *                       or {@code null} for the default cursor handling;
+     *                       see
+     *                       <a href="DragSourceContext.html#defaultCursor">DragSourceContext</a>
+     *                       for more details on the cursor handling mechanism
+     *                       during drag and drop
      * @param transferable The source's Transferable
-     * @param dsl	   The source's DragSourceListener
+     * @param dsl          The source's DragSourceListener
      * <P>
-     * @throws <code>InvalidDnDOperationException</code> if 
+     * @throws InvalidDnDOperationException if
      * the Drag and Drop system is unable to
-     * initiate a drag operation, or if the user 
+     * initiate a drag operation, or if the user
      * attempts to start a drag while an existing
      * drag operation is still executing.
      */
 
     public void startDrag(Cursor dragCursor, Transferable transferable, DragSourceListener dsl) throws InvalidDnDOperationException {
-	dragSource.startDrag(this, dragCursor, transferable, dsl);
+        dragSource.startDrag(this, dragCursor, transferable, dsl);
     }
 
     /**
      * Start the drag given the initial <code>Cursor</code> to display,
-     * a drag <code>Image</code>, the offset of 
-     * the <code>Image</code>, 
-     * the <code>Transferable</code> object, and 
+     * a drag <code>Image</code>, the offset of
+     * the <code>Image</code>,
+     * the <code>Transferable</code> object, and
      * the <code>DragSourceListener</code> to use.
      * <P>
-     * @param dragCursor   The initial drag Cursor
+     * @param dragCursor     The initial {@code Cursor} for this drag operation
+     *                       or {@code null} for the default cursor handling;
+     *                       see
+     *                       <a href="DragSourceContext.html#defaultCursor">DragSourceContext</a>
+     *                       for more details on the cursor handling mechanism
+     *                       during drag and drop
      * @param dragImage    The source's dragImage
      * @param imageOffset  The dragImage's offset
      * @param transferable The source's Transferable
-     * @param dsl	   The source's DragSourceListener
+     * @param dsl          The source's DragSourceListener
      * <P>
-     * @throws <code>InvalidDnDOperationException</code> if 
+     * @throws InvalidDnDOperationException if
      * the Drag and Drop system is unable to
-     * initiate a drag operation, or if the user 
+     * initiate a drag operation, or if the user
      * attempts to start a drag while an existing
      * drag operation is still executing.
      */
 
     public void startDrag(Cursor dragCursor, Image dragImage, Point imageOffset, Transferable transferable, DragSourceListener dsl) throws InvalidDnDOperationException {
-	dragSource.startDrag(this,  dragCursor, dragImage, imageOffset, transferable, dsl);
+        dragSource.startDrag(this,  dragCursor, dragImage, imageOffset, transferable, dsl);
     }
 
     /**
@@ -336,5 +380,5 @@ public class DragGestureEvent extends EventObject {
      *
      * @serial
      */
-    private int	       action;
+    private int        action;
 }

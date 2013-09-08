@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,230 +87,205 @@ public class XPATHErrorResources_de extends ListResourceBundle
  *  11) QName is an XML term meaning "qualified name".
  */
 
-  /** Field MAX_CODE          */
-  public static final int MAX_CODE = 108;  // this is needed to keep track of the number of messages
-
-  /** Field MAX_WARNING          */
-  public static final int MAX_WARNING = 11;  // this is needed to keep track of the number of warnings
-
-  /** Field MAX_OTHERS          */
-  public static final int MAX_OTHERS = 20;
-
-  /** Field MAX_MESSAGES          */
-  public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
-
-
-  /*
+  /* 
    * static variables
    */
   public static final String ERROR0000 = "ERROR0000";
-  public static final String ER_CURRENT_NOT_ALLOWED_IN_MATCH =
-         "ER_CURRENT_NOT_ALLOWED_IN_MATCH";
-  public static final String ER_CURRENT_TAKES_NO_ARGS =
-         "ER_CURRENT_TAKES_NO_ARGS";
+  public static final String ER_CURRENT_NOT_ALLOWED_IN_MATCH = 
+	 "ER_CURRENT_NOT_ALLOWED_IN_MATCH";
+  public static final String ER_CURRENT_TAKES_NO_ARGS = 
+	 "ER_CURRENT_TAKES_NO_ARGS";
   public static final String ER_DOCUMENT_REPLACED = "ER_DOCUMENT_REPLACED";
-  public static final String ER_CONTEXT_HAS_NO_OWNERDOC =
-         "ER_CONTEXT_HAS_NO_OWNERDOC";
-  public static final String ER_LOCALNAME_HAS_TOO_MANY_ARGS =
-         "ER_LOCALNAME_HAS_TOO_MANY_ARGS";
-  public static final String ER_NAMESPACEURI_HAS_TOO_MANY_ARGS =
-         "ER_NAMESPACEURI_HAS_TOO_MANY_ARGS";
-  public static final String ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS =
-         "ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS";
-  public static final String ER_NUMBER_HAS_TOO_MANY_ARGS =
-         "ER_NUMBER_HAS_TOO_MANY_ARGS";
-  public static final String ER_NAME_HAS_TOO_MANY_ARGS =
-         "ER_NAME_HAS_TOO_MANY_ARGS";
-  public static final String ER_STRING_HAS_TOO_MANY_ARGS =
-         "ER_STRING_HAS_TOO_MANY_ARGS";
-  public static final String ER_STRINGLENGTH_HAS_TOO_MANY_ARGS =
-         "ER_STRINGLENGTH_HAS_TOO_MANY_ARGS";
-  public static final String ER_TRANSLATE_TAKES_3_ARGS =
-         "ER_TRANSLATE_TAKES_3_ARGS";
-  public static final String ER_UNPARSEDENTITYURI_TAKES_1_ARG =
-         "ER_UNPARSEDENTITYURI_TAKES_1_ARG";
-  public static final String ER_NAMESPACEAXIS_NOT_IMPLEMENTED =
-         "ER_NAMESPACEAXIS_NOT_IMPLEMENTED";
+  public static final String ER_CONTEXT_HAS_NO_OWNERDOC = 
+	 "ER_CONTEXT_HAS_NO_OWNERDOC";
+  public static final String ER_LOCALNAME_HAS_TOO_MANY_ARGS = 
+	 "ER_LOCALNAME_HAS_TOO_MANY_ARGS";
+  public static final String ER_NAMESPACEURI_HAS_TOO_MANY_ARGS = 
+	 "ER_NAMESPACEURI_HAS_TOO_MANY_ARGS";
+  public static final String ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS = 
+	 "ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS";
+  public static final String ER_NUMBER_HAS_TOO_MANY_ARGS = 
+	 "ER_NUMBER_HAS_TOO_MANY_ARGS";
+  public static final String ER_NAME_HAS_TOO_MANY_ARGS = 
+	 "ER_NAME_HAS_TOO_MANY_ARGS";
+  public static final String ER_STRING_HAS_TOO_MANY_ARGS = 
+	 "ER_STRING_HAS_TOO_MANY_ARGS";
+  public static final String ER_STRINGLENGTH_HAS_TOO_MANY_ARGS = 
+	 "ER_STRINGLENGTH_HAS_TOO_MANY_ARGS";
+  public static final String ER_TRANSLATE_TAKES_3_ARGS = 
+	 "ER_TRANSLATE_TAKES_3_ARGS";
+  public static final String ER_UNPARSEDENTITYURI_TAKES_1_ARG = 
+	 "ER_UNPARSEDENTITYURI_TAKES_1_ARG";
+  public static final String ER_NAMESPACEAXIS_NOT_IMPLEMENTED = 
+	 "ER_NAMESPACEAXIS_NOT_IMPLEMENTED";
   public static final String ER_UNKNOWN_AXIS = "ER_UNKNOWN_AXIS";
-  public static final String ER_UNKNOWN_MATCH_OPERATION =
-         "ER_UNKNOWN_MATCH_OPERATION";
+  public static final String ER_UNKNOWN_MATCH_OPERATION = 
+	 "ER_UNKNOWN_MATCH_OPERATION";
   public static final String ER_INCORRECT_ARG_LENGTH ="ER_INCORRECT_ARG_LENGTH";
-  public static final String ER_CANT_CONVERT_TO_NUMBER =
-         "ER_CANT_CONVERT_TO_NUMBER";
-  public static final String ER_CANT_CONVERT_TO_NODELIST =
-         "ER_CANT_CONVERT_TO_NODELIST";
-  public static final String ER_CANT_CONVERT_TO_MUTABLENODELIST =
-         "ER_CANT_CONVERT_TO_MUTABLENODELIST";
+  public static final String ER_CANT_CONVERT_TO_NUMBER = 
+	 "ER_CANT_CONVERT_TO_NUMBER";
+  public static final String ER_CANT_CONVERT_XPATHRESULTTYPE_TO_NUMBER = 
+	   "ER_CANT_CONVERT_XPATHRESULTTYPE_TO_NUMBER";	 
+  public static final String ER_CANT_CONVERT_TO_NODELIST = 
+	 "ER_CANT_CONVERT_TO_NODELIST";
+  public static final String ER_CANT_CONVERT_TO_MUTABLENODELIST = 
+	 "ER_CANT_CONVERT_TO_MUTABLENODELIST";
   public static final String ER_CANT_CONVERT_TO_TYPE ="ER_CANT_CONVERT_TO_TYPE";
-  public static final String ER_EXPECTED_MATCH_PATTERN =
-         "ER_EXPECTED_MATCH_PATTERN";
-  public static final String ER_COULDNOT_GET_VAR_NAMED =
-         "ER_COULDNOT_GET_VAR_NAMED";
+  public static final String ER_EXPECTED_MATCH_PATTERN = 
+	 "ER_EXPECTED_MATCH_PATTERN";
+  public static final String ER_COULDNOT_GET_VAR_NAMED = 
+	 "ER_COULDNOT_GET_VAR_NAMED";
   public static final String ER_UNKNOWN_OPCODE = "ER_UNKNOWN_OPCODE";
   public static final String ER_EXTRA_ILLEGAL_TOKENS ="ER_EXTRA_ILLEGAL_TOKENS";
-  public static final String ER_EXPECTED_DOUBLE_QUOTE =
-         "ER_EXPECTED_DOUBLE_QUOTE";
-  public static final String ER_EXPECTED_SINGLE_QUOTE =
-         "ER_EXPECTED_SINGLE_QUOTE";
+  public static final String ER_EXPECTED_DOUBLE_QUOTE = 
+	 "ER_EXPECTED_DOUBLE_QUOTE";
+  public static final String ER_EXPECTED_SINGLE_QUOTE = 
+	 "ER_EXPECTED_SINGLE_QUOTE";
   public static final String ER_EMPTY_EXPRESSION = "ER_EMPTY_EXPRESSION";
   public static final String ER_EXPECTED_BUT_FOUND = "ER_EXPECTED_BUT_FOUND";
-  public static final String ER_INCORRECT_PROGRAMMER_ASSERTION =
-         "ER_INCORRECT_PROGRAMMER_ASSERTION";
-  public static final String ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL =
-         "ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL";
-  public static final String ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG =
-         "ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG";
-  public static final String ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG =
-         "ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG";
-  public static final String ER_PREDICATE_ILLEGAL_SYNTAX =
-         "ER_PREDICATE_ILLEGAL_SYNTAX";
+  public static final String ER_INCORRECT_PROGRAMMER_ASSERTION = 
+	 "ER_INCORRECT_PROGRAMMER_ASSERTION";
+  public static final String ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL = 
+	 "ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL";
+  public static final String ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG = 
+	 "ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG";
+  public static final String ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG = 
+	 "ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG";
+  public static final String ER_PREDICATE_ILLEGAL_SYNTAX = 
+	 "ER_PREDICATE_ILLEGAL_SYNTAX";
   public static final String ER_ILLEGAL_AXIS_NAME = "ER_ILLEGAL_AXIS_NAME";
   public static final String ER_UNKNOWN_NODETYPE = "ER_UNKNOWN_NODETYPE";
-  public static final String ER_PATTERN_LITERAL_NEEDS_BE_QUOTED =
-         "ER_PATTERN_LITERAL_NEEDS_BE_QUOTED";
-  public static final String ER_COULDNOT_BE_FORMATTED_TO_NUMBER =
-         "ER_COULDNOT_BE_FORMATTED_TO_NUMBER";
-  public static final String ER_COULDNOT_CREATE_XMLPROCESSORLIAISON =
-         "ER_COULDNOT_CREATE_XMLPROCESSORLIAISON";
-  public static final String ER_DIDNOT_FIND_XPATH_SELECT_EXP =
-         "ER_DIDNOT_FIND_XPATH_SELECT_EXP";
-  public static final String ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH =
-         "ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH";
+  public static final String ER_PATTERN_LITERAL_NEEDS_BE_QUOTED = 
+	 "ER_PATTERN_LITERAL_NEEDS_BE_QUOTED";
+  public static final String ER_COULDNOT_BE_FORMATTED_TO_NUMBER = 
+	 "ER_COULDNOT_BE_FORMATTED_TO_NUMBER";
+  public static final String ER_COULDNOT_CREATE_XMLPROCESSORLIAISON = 
+	 "ER_COULDNOT_CREATE_XMLPROCESSORLIAISON";
+  public static final String ER_DIDNOT_FIND_XPATH_SELECT_EXP = 
+	 "ER_DIDNOT_FIND_XPATH_SELECT_EXP";
+  public static final String ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH = 
+	 "ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH";
   public static final String ER_ERROR_OCCURED = "ER_ERROR_OCCURED";
-  public static final String ER_ILLEGAL_VARIABLE_REFERENCE =
-         "ER_ILLEGAL_VARIABLE_REFERENCE";
+  public static final String ER_ILLEGAL_VARIABLE_REFERENCE = 
+	 "ER_ILLEGAL_VARIABLE_REFERENCE";
   public static final String ER_AXES_NOT_ALLOWED = "ER_AXES_NOT_ALLOWED";
-  public static final String ER_KEY_HAS_TOO_MANY_ARGS =
-         "ER_KEY_HAS_TOO_MANY_ARGS";
+  public static final String ER_KEY_HAS_TOO_MANY_ARGS = 
+	 "ER_KEY_HAS_TOO_MANY_ARGS";
   public static final String ER_COUNT_TAKES_1_ARG = "ER_COUNT_TAKES_1_ARG";
-  public static final String ER_COULDNOT_FIND_FUNCTION =
-         "ER_COULDNOT_FIND_FUNCTION";
+  public static final String ER_COULDNOT_FIND_FUNCTION = 
+	 "ER_COULDNOT_FIND_FUNCTION";
   public static final String ER_UNSUPPORTED_ENCODING ="ER_UNSUPPORTED_ENCODING";
-  public static final String ER_PROBLEM_IN_DTM_NEXTSIBLING =
-         "ER_PROBLEM_IN_DTM_NEXTSIBLING";
-  public static final String ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL =
-         "ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL";
-  public static final String ER_SETDOMFACTORY_NOT_SUPPORTED =
-         "ER_SETDOMFACTORY_NOT_SUPPORTED";
+  public static final String ER_PROBLEM_IN_DTM_NEXTSIBLING = 
+	 "ER_PROBLEM_IN_DTM_NEXTSIBLING";
+  public static final String ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL = 
+	 "ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL";
+  public static final String ER_SETDOMFACTORY_NOT_SUPPORTED = 
+	 "ER_SETDOMFACTORY_NOT_SUPPORTED";
   public static final String ER_PREFIX_MUST_RESOLVE = "ER_PREFIX_MUST_RESOLVE";
   public static final String ER_PARSE_NOT_SUPPORTED = "ER_PARSE_NOT_SUPPORTED";
-  //public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED =
-//       "ER_CREATEDOCUMENT_NOT_SUPPORTED";
-  //public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT =
-//       "ER_CHILD_HAS_NO_OWNER_DOCUMENT";
-  //public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT =
-//       "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";
   public static final String ER_SAX_API_NOT_HANDLED = "ER_SAX_API_NOT_HANDLED";
-public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
-         "ER_IGNORABLE_WHITESPACE_NOT_HANDLED";
-  public static final String ER_DTM_CANNOT_HANDLE_NODES =
-         "ER_DTM_CANNOT_HANDLE_NODES";
-  public static final String ER_XERCES_CANNOT_HANDLE_NODES =
-         "ER_XERCES_CANNOT_HANDLE_NODES";
-  public static final String ER_XERCES_PARSE_ERROR_DETAILS =
-         "ER_XERCES_PARSE_ERROR_DETAILS";
+public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED = 
+	 "ER_IGNORABLE_WHITESPACE_NOT_HANDLED";
+  public static final String ER_DTM_CANNOT_HANDLE_NODES = 
+	 "ER_DTM_CANNOT_HANDLE_NODES";
+  public static final String ER_XERCES_CANNOT_HANDLE_NODES = 
+	 "ER_XERCES_CANNOT_HANDLE_NODES";
+  public static final String ER_XERCES_PARSE_ERROR_DETAILS = 
+	 "ER_XERCES_PARSE_ERROR_DETAILS";
   public static final String ER_XERCES_PARSE_ERROR = "ER_XERCES_PARSE_ERROR";
-  //public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC =
-//       "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";
-  //public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT =
-//       "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";
-  public static final String ER_INVALID_UTF16_SURROGATE =
-         "ER_INVALID_UTF16_SURROGATE";
+  public static final String ER_INVALID_UTF16_SURROGATE = 
+	 "ER_INVALID_UTF16_SURROGATE";
   public static final String ER_OIERROR = "ER_OIERROR";
   public static final String ER_CANNOT_CREATE_URL = "ER_CANNOT_CREATE_URL";
   public static final String ER_XPATH_READOBJECT = "ER_XPATH_READOBJECT";
- public static final String ER_FUNCTION_TOKEN_NOT_FOUND =
-         "ER_FUNCTION_TOKEN_NOT_FOUND";
- //public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";
-  public static final String ER_CANNOT_DEAL_XPATH_TYPE =
-         "ER_CANNOT_DEAL_XPATH_TYPE";
+ public static final String ER_FUNCTION_TOKEN_NOT_FOUND = 
+	 "ER_FUNCTION_TOKEN_NOT_FOUND";
+  public static final String ER_CANNOT_DEAL_XPATH_TYPE = 
+	 "ER_CANNOT_DEAL_XPATH_TYPE";
   public static final String ER_NODESET_NOT_MUTABLE = "ER_NODESET_NOT_MUTABLE";
-  public static final String ER_NODESETDTM_NOT_MUTABLE =
-         "ER_NODESETDTM_NOT_MUTABLE";
+  public static final String ER_NODESETDTM_NOT_MUTABLE = 
+	 "ER_NODESETDTM_NOT_MUTABLE";
    /**  Variable not resolvable:   */
   public static final String ER_VAR_NOT_RESOLVABLE = "ER_VAR_NOT_RESOLVABLE";
    /** Null error handler  */
  public static final String ER_NULL_ERROR_HANDLER = "ER_NULL_ERROR_HANDLER";
    /**  Programmer's assertion: unknown opcode  */
-  public static final String ER_PROG_ASSERT_UNKNOWN_OPCODE =
-         "ER_PROG_ASSERT_UNKNOWN_OPCODE";
+  public static final String ER_PROG_ASSERT_UNKNOWN_OPCODE = 
+	 "ER_PROG_ASSERT_UNKNOWN_OPCODE";
    /**  0 or 1   */
   public static final String ER_ZERO_OR_ONE = "ER_ZERO_OR_ONE";
    /**  rtf() not supported by XRTreeFragSelectWrapper   */
-  public static final String ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER =
-         "ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER";
+  public static final String ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 
+	 "ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER";
    /**  asNodeIterator() not supported by XRTreeFragSelectWrapper   */
   public static final String ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = "ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER";
    /**  fsb() not supported for XStringForChars   */
-  public static final String ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS =
-         "ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS";
+  public static final String ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS = 
+	 "ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS";
    /**  Could not find variable with the name of   */
  public static final String ER_COULD_NOT_FIND_VAR = "ER_COULD_NOT_FIND_VAR";
    /**  XStringForChars can not take a string for an argument   */
- public static final String ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING =
-         "ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING";
+ public static final String ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING = 
+	 "ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING";
    /**  The FastStringBuffer argument can not be null   */
- public static final String ER_FASTSTRINGBUFFER_CANNOT_BE_NULL =
-         "ER_FASTSTRINGBUFFER_CANNOT_BE_NULL";
+ public static final String ER_FASTSTRINGBUFFER_CANNOT_BE_NULL = 
+	 "ER_FASTSTRINGBUFFER_CANNOT_BE_NULL";
    /**  2 or 3   */
   public static final String ER_TWO_OR_THREE = "ER_TWO_OR_THREE";
    /** Variable accessed before it is bound! */
-  public static final String ER_VARIABLE_ACCESSED_BEFORE_BIND =
-         "ER_VARIABLE_ACCESSED_BEFORE_BIND";
+  public static final String ER_VARIABLE_ACCESSED_BEFORE_BIND = 
+	 "ER_VARIABLE_ACCESSED_BEFORE_BIND";
    /** XStringForFSB can not take a string for an argument! */
- public static final String ER_FSB_CANNOT_TAKE_STRING =
-         "ER_FSB_CANNOT_TAKE_STRING";
+ public static final String ER_FSB_CANNOT_TAKE_STRING = 
+	 "ER_FSB_CANNOT_TAKE_STRING";
    /** Error! Setting the root of a walker to null! */
-  public static final String ER_SETTING_WALKER_ROOT_TO_NULL =
-         "ER_SETTING_WALKER_ROOT_TO_NULL";
+  public static final String ER_SETTING_WALKER_ROOT_TO_NULL = 
+	 "ER_SETTING_WALKER_ROOT_TO_NULL";
    /** This NodeSetDTM can not iterate to a previous node! */
-  public static final String ER_NODESETDTM_CANNOT_ITERATE =
-         "ER_NODESETDTM_CANNOT_ITERATE";
+  public static final String ER_NODESETDTM_CANNOT_ITERATE = 
+	 "ER_NODESETDTM_CANNOT_ITERATE";
   /** This NodeSet can not iterate to a previous node! */
- public static final String ER_NODESET_CANNOT_ITERATE =
-         "ER_NODESET_CANNOT_ITERATE";
+ public static final String ER_NODESET_CANNOT_ITERATE = 
+	 "ER_NODESET_CANNOT_ITERATE";
   /** This NodeSetDTM can not do indexing or counting functions! */
-  public static final String ER_NODESETDTM_CANNOT_INDEX =
-         "ER_NODESETDTM_CANNOT_INDEX";
+  public static final String ER_NODESETDTM_CANNOT_INDEX = 
+	 "ER_NODESETDTM_CANNOT_INDEX";
   /** This NodeSet can not do indexing or counting functions! */
-  public static final String ER_NODESET_CANNOT_INDEX =
-         "ER_NODESET_CANNOT_INDEX";
+  public static final String ER_NODESET_CANNOT_INDEX = 
+	 "ER_NODESET_CANNOT_INDEX";
   /** Can not call setShouldCacheNodes after nextNode has been called! */
-  public static final String ER_CANNOT_CALL_SETSHOULDCACHENODE =
-         "ER_CANNOT_CALL_SETSHOULDCACHENODE";
+  public static final String ER_CANNOT_CALL_SETSHOULDCACHENODE = 
+	 "ER_CANNOT_CALL_SETSHOULDCACHENODE";
   /** {0} only allows {1} arguments */
  public static final String ER_ONLY_ALLOWS = "ER_ONLY_ALLOWS";
   /** Programmer's assertion in getNextStepPos: unknown stepType: {0} */
   public static final String ER_UNKNOWN_STEP = "ER_UNKNOWN_STEP";
   /** Problem with RelativeLocationPath */
-  public static final String ER_EXPECTED_REL_LOC_PATH =
-         "ER_EXPECTED_REL_LOC_PATH";
+  public static final String ER_EXPECTED_REL_LOC_PATH = 
+	 "ER_EXPECTED_REL_LOC_PATH";
   /** Problem with LocationPath */
   public static final String ER_EXPECTED_LOC_PATH = "ER_EXPECTED_LOC_PATH";
+  public static final String ER_EXPECTED_LOC_PATH_AT_END_EXPR =
+                                        "ER_EXPECTED_LOC_PATH_AT_END_EXPR";
   /** Problem with Step */
   public static final String ER_EXPECTED_LOC_STEP = "ER_EXPECTED_LOC_STEP";
   /** Problem with NodeTest */
   public static final String ER_EXPECTED_NODE_TEST = "ER_EXPECTED_NODE_TEST";
   /** Expected step pattern */
-  public static final String ER_EXPECTED_STEP_PATTERN =
-        "ER_EXPECTED_STEP_PATTERN";
+  public static final String ER_EXPECTED_STEP_PATTERN = 
+	"ER_EXPECTED_STEP_PATTERN";
   /** Expected relative path pattern */
-  public static final String ER_EXPECTED_REL_PATH_PATTERN =
-         "ER_EXPECTED_REL_PATH_PATTERN";
-  /** localname in QNAME should be a valid NCName */
-  //public static final String ER_ARG_LOCALNAME_INVALID =
-//       "ER_ARG_LOCALNAME_INVALID";
-  /** prefix in QNAME should be a valid NCName */
-  //public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";
-  /** Field ER_CANT_CONVERT_TO_BOOLEAN          */
-  public static final String ER_CANT_CONVERT_TO_BOOLEAN =
-         "ER_CANT_CONVERT_TO_BOOLEAN";
+  public static final String ER_EXPECTED_REL_PATH_PATTERN = 
+	 "ER_EXPECTED_REL_PATH_PATTERN";
+  /** ER_CANT_CONVERT_XPATHRESULTTYPE_TO_BOOLEAN          */
+  public static final String ER_CANT_CONVERT_TO_BOOLEAN = 
+	 "ER_CANT_CONVERT_TO_BOOLEAN";
   /** Field ER_CANT_CONVERT_TO_SINGLENODE       */
-  public static final String ER_CANT_CONVERT_TO_SINGLENODE =
-         "ER_CANT_CONVERT_TO_SINGLENODE";
+  public static final String ER_CANT_CONVERT_TO_SINGLENODE = 
+	 "ER_CANT_CONVERT_TO_SINGLENODE";
   /** Field ER_CANT_GET_SNAPSHOT_LENGTH         */
-  public static final String ER_CANT_GET_SNAPSHOT_LENGTH =
-         "ER_CANT_GET_SNAPSHOT_LENGTH";
+  public static final String ER_CANT_GET_SNAPSHOT_LENGTH = 
+	 "ER_CANT_GET_SNAPSHOT_LENGTH";
   /** Field ER_NON_ITERATOR_TYPE                */
   public static final String ER_NON_ITERATOR_TYPE = "ER_NON_ITERATOR_TYPE";
   /** Field ER_DOC_MUTATED                      */
@@ -315,8 +294,8 @@ public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
   public static final String ER_EMPTY_XPATH_RESULT = "ER_EMPTY_XPATH_RESULT";
   public static final String ER_INCOMPATIBLE_TYPES = "ER_INCOMPATIBLE_TYPES";
   public static final String ER_NULL_RESOLVER = "ER_NULL_RESOLVER";
-  public static final String ER_CANT_CONVERT_TO_STRING =
-         "ER_CANT_CONVERT_TO_STRING";
+  public static final String ER_CANT_CONVERT_TO_STRING = 
+	 "ER_CANT_CONVERT_TO_STRING";
   public static final String ER_NON_SNAPSHOT_TYPE = "ER_NON_SNAPSHOT_TYPE";
   public static final String ER_WRONG_DOCUMENT = "ER_WRONG_DOCUMENT";
   /* Note to translators:  The XPath expression cannot be evaluated with respect
@@ -326,30 +305,598 @@ public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
   public static final String ER_WRONG_NODETYPE = "ER_WRONG_NODETYPE";
   public static final String ER_XPATH_ERROR = "ER_XPATH_ERROR";
 
-  public static final String WG_LOCALE_NAME_NOT_HANDLED =
-         "WG_LOCALE_NAME_NOT_HANDLED";
-  public static final String WG_PROPERTY_NOT_SUPPORTED =
-         "WG_PROPERTY_NOT_SUPPORTED";
-  public static final String WG_DONT_DO_ANYTHING_WITH_NS =
-         "WG_DONT_DO_ANYTHING_WITH_NS";
+  //BEGIN: Keys needed for exception messages of  JAXP 1.3 XPath API implementation
+  public static final String ER_EXTENSION_FUNCTION_CANNOT_BE_INVOKED = "ER_EXTENSION_FUNCTION_CANNOT_BE_INVOKED";
+  public static final String ER_RESOLVE_VARIABLE_RETURNS_NULL = "ER_RESOLVE_VARIABLE_RETURNS_NULL";
+  public static final String ER_UNSUPPORTED_RETURN_TYPE = "ER_UNSUPPORTED_RETURN_TYPE";
+  public static final String ER_SOURCE_RETURN_TYPE_CANNOT_BE_NULL = "ER_SOURCE_RETURN_TYPE_CANNOT_BE_NULL";
+  public static final String ER_ARG_CANNOT_BE_NULL = "ER_ARG_CANNOT_BE_NULL";
+
+  public static final String ER_OBJECT_MODEL_NULL = "ER_OBJECT_MODEL_NULL";
+  public static final String ER_OBJECT_MODEL_EMPTY = "ER_OBJECT_MODEL_EMPTY";
+  public static final String ER_FEATURE_NAME_NULL = "ER_FEATURE_NAME_NULL";
+  public static final String ER_FEATURE_UNKNOWN = "ER_FEATURE_UNKNOWN";
+  public static final String ER_GETTING_NULL_FEATURE = "ER_GETTING_NULL_FEATURE";
+  public static final String ER_GETTING_UNKNOWN_FEATURE = "ER_GETTING_UNKNOWN_FEATURE";
+  public static final String ER_SECUREPROCESSING_FEATURE = "ER_SECUREPROCESSING_FEATURE";
+  public static final String ER_NULL_XPATH_FUNCTION_RESOLVER = "ER_NULL_XPATH_FUNCTION_RESOLVER";
+  public static final String ER_NULL_XPATH_VARIABLE_RESOLVER = "ER_NULL_XPATH_VARIABLE_RESOLVER";
+  //END: Keys needed for exception messages of  JAXP 1.3 XPath API implementation 
+
+  public static final String WG_LOCALE_NAME_NOT_HANDLED = 
+	 "WG_LOCALE_NAME_NOT_HANDLED";
+  public static final String WG_PROPERTY_NOT_SUPPORTED = 
+	 "WG_PROPERTY_NOT_SUPPORTED";
+  public static final String WG_DONT_DO_ANYTHING_WITH_NS = 
+	 "WG_DONT_DO_ANYTHING_WITH_NS";
   public static final String WG_SECURITY_EXCEPTION = "WG_SECURITY_EXCEPTION";
-  public static final String WG_QUO_NO_LONGER_DEFINED =
-         "WG_QUO_NO_LONGER_DEFINED";
-  public static final String WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST =
-         "WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST";
-  public static final String WG_FUNCTION_TOKEN_NOT_FOUND =
-         "WG_FUNCTION_TOKEN_NOT_FOUND";
-  public static final String WG_COULDNOT_FIND_FUNCTION =
-         "WG_COULDNOT_FIND_FUNCTION";
+  public static final String WG_QUO_NO_LONGER_DEFINED = 
+	 "WG_QUO_NO_LONGER_DEFINED";
+  public static final String WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST = 
+	 "WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST";
+  public static final String WG_FUNCTION_TOKEN_NOT_FOUND = 
+	 "WG_FUNCTION_TOKEN_NOT_FOUND";
+  public static final String WG_COULDNOT_FIND_FUNCTION = 
+	 "WG_COULDNOT_FIND_FUNCTION";
   public static final String WG_CANNOT_MAKE_URL_FROM ="WG_CANNOT_MAKE_URL_FROM";
-  public static final String WG_EXPAND_ENTITIES_NOT_SUPPORTED =
-         "WG_EXPAND_ENTITIES_NOT_SUPPORTED";
-  public static final String WG_ILLEGAL_VARIABLE_REFERENCE =
-         "WG_ILLEGAL_VARIABLE_REFERENCE";
+  public static final String WG_EXPAND_ENTITIES_NOT_SUPPORTED = 
+	 "WG_EXPAND_ENTITIES_NOT_SUPPORTED";
+  public static final String WG_ILLEGAL_VARIABLE_REFERENCE = 
+	 "WG_ILLEGAL_VARIABLE_REFERENCE";
   public static final String WG_UNSUPPORTED_ENCODING ="WG_UNSUPPORTED_ENCODING";
 
+  /**  detach() not supported by XRTreeFragSelectWrapper   */
+  public static final String ER_DETACH_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER =
+	 "ER_DETACH_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER";
+  /**  num() not supported by XRTreeFragSelectWrapper   */
+  public static final String ER_NUM_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER =
+	 "ER_NUM_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER";
+  /**  xstr() not supported by XRTreeFragSelectWrapper   */
+  public static final String ER_XSTR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER =
+	 "ER_XSTR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER";
+  /**  str() not supported by XRTreeFragSelectWrapper   */
+  public static final String ER_STR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER =
+	 "ER_STR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER";
 
   // Error messages...
+
+  private static final Object[][] _contents = new Object[][]{
+
+  { "ERROR0000" , "{0}" },
+
+  { ER_CURRENT_NOT_ALLOWED_IN_MATCH, "current()-Funktion ist nicht zul\u00E4ssig in einem Vergleichsmuster." },
+
+  { ER_CURRENT_TAKES_NO_ARGS, "current()-Funktion akzeptiert keine Argumente." },
+
+  { ER_DOCUMENT_REPLACED,
+      "document()-Funktionsimplementierung wurde durch com.sun.org.apache.xalan.internal.xslt.FuncDocument ersetzt."},
+
+  { ER_CONTEXT_HAS_NO_OWNERDOC,
+      "Kontext hat kein Eigent\u00FCmerdokument."},
+
+  { ER_LOCALNAME_HAS_TOO_MANY_ARGS,
+      "local-name() hat zu viele Argumente."},
+
+  { ER_NAMESPACEURI_HAS_TOO_MANY_ARGS,
+      "namespace-uri() hat zu viele Argumente."},
+
+  { ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS,
+      "normalize-space() hat zu viele Argumente."},
+
+  { ER_NUMBER_HAS_TOO_MANY_ARGS,
+      "number() hat zu viele Argumente."},
+
+  { ER_NAME_HAS_TOO_MANY_ARGS,
+     "name() hat zu viele Argumente."},
+
+  { ER_STRING_HAS_TOO_MANY_ARGS,
+      "string() hat zu viele Argumente."},
+
+  { ER_STRINGLENGTH_HAS_TOO_MANY_ARGS,
+      "string-length() hat zu viele Argumente."},
+
+  { ER_TRANSLATE_TAKES_3_ARGS,
+      "translate()-Funktion akzeptiert drei Argumente."},
+
+  { ER_UNPARSEDENTITYURI_TAKES_1_ARG,
+      "unparsed-entity-uri-Funktion sollte ein Argument akzeptieren."},
+
+  { ER_NAMESPACEAXIS_NOT_IMPLEMENTED,
+      "Namespace-Achse noch nicht implementiert."},
+
+  { ER_UNKNOWN_AXIS,
+     "Unbekannte Achse: {0}"},
+
+  { ER_UNKNOWN_MATCH_OPERATION,
+     "Unbekannter Vergleichsvorgang."},
+
+  { ER_INCORRECT_ARG_LENGTH,
+      "Argumentl\u00E4nge von processing-instruction()-Knotentest ist falsch."},
+
+  { ER_CANT_CONVERT_TO_NUMBER,
+      "{0} kann nicht in eine Zahl konvertiert werden"},
+
+  { ER_CANT_CONVERT_TO_NODELIST,
+      "{0} kann nicht in eine NodeList konvertiert werden."},
+
+  { ER_CANT_CONVERT_TO_MUTABLENODELIST,
+      "{0} kann nicht in NodeSetDTM konvertiert werden."},
+
+  { ER_CANT_CONVERT_TO_TYPE,
+      "{0} kann nicht in type#{1} konvertiert werden"},
+
+  { ER_EXPECTED_MATCH_PATTERN,
+      "Vergleichsmuster in getMatchScore erwartet."},
+
+  { ER_COULDNOT_GET_VAR_NAMED,
+      "Variable mit Namen {0} kann nicht abgerufen werden"},
+
+  { ER_UNKNOWN_OPCODE,
+     "ERROR. Unbekannter Vorgangscode: {0}"},
+
+  { ER_EXTRA_ILLEGAL_TOKENS,
+     "Zus\u00E4tzliche ung\u00FCltige Tokens: {0}"},
+
+  { ER_EXPECTED_DOUBLE_QUOTE,
+      "Literal in falschen Anf\u00FChrungszeichen... Doppelte Anf\u00FChrungszeichen erwartet."},
+
+  { ER_EXPECTED_SINGLE_QUOTE,
+      "Literal in falschen Anf\u00FChrungszeichen... Einzelne Anf\u00FChrungszeichen erwartet."},
+
+  { ER_EMPTY_EXPRESSION,
+     "Leerer Ausdruck."},
+
+  { ER_EXPECTED_BUT_FOUND,
+     "{0} erwartet, aber {1} gefunden"},
+
+  { ER_INCORRECT_PROGRAMMER_ASSERTION,
+      "Programmierer-Assertion ist falsch. - {0}"},
+
+  { ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL,
+      "boolean(...)-Argument ist nicht mehr optional bei 19990709 XPath-Entwurf."},
+
+  { ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG,
+      "\",\" gefunden, aber kein vorausgehendes Argument vorhanden."},
+
+  { ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG,
+      "\",\" gefunden, aber kein folgendes Argument vorhanden."},
+
+  { ER_PREDICATE_ILLEGAL_SYNTAX,
+      "\"..[predicate]\" oder \".[predicate]\" ist ung\u00FCltige Syntax. Verwenden Sie stattdessen \"self::node()[predicate]\"."},
+
+  { ER_ILLEGAL_AXIS_NAME,
+     "Ung\u00FCltiger Achsenname: {0}"},
+
+  { ER_UNKNOWN_NODETYPE,
+     "Unbekannter Knotentyp: {0}"},
+
+  { ER_PATTERN_LITERAL_NEEDS_BE_QUOTED,
+      "Musterliteral ({0}) muss in Anf\u00FChrungszeichen gesetzt werden."},
+
+  { ER_COULDNOT_BE_FORMATTED_TO_NUMBER,
+      "{0} konnte nicht als Zahl formatiert werden."},
+
+  { ER_COULDNOT_CREATE_XMLPROCESSORLIAISON,
+      "XML-TransformerFactory-Liaison konnte nicht erstellt werden: {0}"},
+
+  { ER_DIDNOT_FIND_XPATH_SELECT_EXP,
+      "Fehler. xpath-SELECT-Ausdruck (-select) nicht gefunden."},
+
+  { ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH,
+      "ERROR. ENDOP nach OP_LOCATIONPATH konnte nicht gefunden werden"},
+
+  { ER_ERROR_OCCURED,
+     "Fehler aufgetreten."},
+
+  { ER_ILLEGAL_VARIABLE_REFERENCE,
+      "VariableReference au\u00DFerhalb des Kontextes oder ohne Definition f\u00FCr Variable angegeben. Name = {0}"},
+
+  { ER_AXES_NOT_ALLOWED,
+      "Nur \"child::\"- und \"attribute::\"-Achsen sind in Vergleichsmustern zul\u00E4ssig. Betreffende Achsen = {0}"},
+
+  { ER_KEY_HAS_TOO_MANY_ARGS,
+      "key() hat eine falsche Anzahl Argumente."},
+
+  { ER_COUNT_TAKES_1_ARG,
+      "count-Funktion sollte ein Argument akzeptieren."},
+
+  { ER_COULDNOT_FIND_FUNCTION,
+     "Funktion konnte nicht gefunden werden: {0}"},
+
+  { ER_UNSUPPORTED_ENCODING,
+     "Nicht unterst\u00FCtzte Codierung: {0}"},
+
+  { ER_PROBLEM_IN_DTM_NEXTSIBLING,
+      "Problem in DTM in getNextSibling aufgetreten... Es wird versucht, das Problem zu beheben"},
+
+  { ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL,
+      "Programmiererfehler: Es kann nicht in EmptyNodeList geschrieben werden."},
+
+  { ER_SETDOMFACTORY_NOT_SUPPORTED,
+      "setDOMFactory wird nicht von XPathContext unterst\u00FCtzt."},
+
+  { ER_PREFIX_MUST_RESOLVE,
+      "Pr\u00E4fix muss als Namespace aufgel\u00F6st werden: {0}"},
+
+  { ER_PARSE_NOT_SUPPORTED,
+      "parse (InputSource-Quelle) nicht unterst\u00FCtzt in XPathContext. {0} kann nicht ge\u00F6ffnet werden"},
+
+  { ER_SAX_API_NOT_HANDLED,
+      "SAX-API-Zeichen(char ch[]... nicht verarbeitet von DTM."},
+
+  { ER_IGNORABLE_WHITESPACE_NOT_HANDLED,
+      "ignorableWhitespace(char ch[]... nicht verarbeitet von DTM."},
+
+  { ER_DTM_CANNOT_HANDLE_NODES,
+      "DTMLiaison kann keine Knoten des Typs {0} verarbeiten"},
+
+  { ER_XERCES_CANNOT_HANDLE_NODES,
+      "DOM2Helper kann keine Knoten des Typs {0} verarbeiten"},
+
+  { ER_XERCES_PARSE_ERROR_DETAILS,
+      "DOM2Helper.parse-Fehler: SystemID - {0} Zeile - {1}"},
+
+  { ER_XERCES_PARSE_ERROR,
+     "DOM2Helper.parse-Fehler"},
+
+  { ER_INVALID_UTF16_SURROGATE,
+      "Ung\u00FCltige UTF-16-Ersetzung festgestellt: {0}?"},
+
+  { ER_OIERROR,
+     "I/O-Fehler"},
+
+  { ER_CANNOT_CREATE_URL,
+     "URL f\u00FCr {0} kann nicht erstellt werden"},
+
+  { ER_XPATH_READOBJECT,
+     "In XPath.readObject: {0}"},
+
+  { ER_FUNCTION_TOKEN_NOT_FOUND,
+      "Funktionstoken nicht gefunden."},
+
+  { ER_CANNOT_DEAL_XPATH_TYPE,
+       "XPath-Typ {0} kann nicht bearbeitet werden"},
+
+  { ER_NODESET_NOT_MUTABLE,
+       "Dieses NodeSet ist nicht mutierbar"},
+
+  { ER_NODESETDTM_NOT_MUTABLE,
+       "Dieses NodeSetDTM ist nicht mutierbar"},
+
+  { ER_VAR_NOT_RESOLVABLE,
+        "Variable kann nicht aufgel\u00F6st werden: {0}"},
+
+  { ER_NULL_ERROR_HANDLER,
+        "Null-Error Handler"},
+
+  { ER_PROG_ASSERT_UNKNOWN_OPCODE,
+       "Programmierer-Assertion: Unbekannter Vorgangscode: {0}"},
+
+  { ER_ZERO_OR_ONE,
+       "0 oder 1"},
+
+  { ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+       "rtf() nicht unterst\u00FCtzt von XRTreeFragSelectWrapper"},
+
+  { ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+       "asNodeIterator() nicht unterst\u00FCtzt von XRTreeFragSelectWrapper"},
+       
+	/**  detach() not supported by XRTreeFragSelectWrapper   */
+   { ER_DETACH_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+		"detach() nicht unterst\u00FCtzt von XRTreeFragSelectWrapper"},
+		
+	/**  num() not supported by XRTreeFragSelectWrapper   */
+   { ER_NUM_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+		"num() nicht unterst\u00FCtzt von XRTreeFragSelectWrapper"},
+		
+	/**  xstr() not supported by XRTreeFragSelectWrapper   */
+   { ER_XSTR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+		"xstr() nicht unterst\u00FCtzt von XRTreeFragSelectWrapper"},
+		
+	/**  str() not supported by XRTreeFragSelectWrapper   */
+   { ER_STR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
+		"str() nicht unterst\u00FCtzt von XRTreeFragSelectWrapper"},
+
+  { ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS,
+       "fsb() nicht unterst\u00FCtzt f\u00FCr XStringForChars"},
+
+  { ER_COULD_NOT_FIND_VAR,
+      "Variable mit Namen {0} konnte nicht gefunden werden"},
+
+  { ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING,
+      "XStringForChars kann keine Zeichenfolge als Argument akzeptieren"},
+
+  { ER_FASTSTRINGBUFFER_CANNOT_BE_NULL,
+      "FastStringBuffer-Argument darf nicht null sein"},
+
+  { ER_TWO_OR_THREE,
+       "2 oder 3"},
+
+  { ER_VARIABLE_ACCESSED_BEFORE_BIND,
+       "Auf Variable wurde zugegriffen, bevor sie gebunden wurde."},
+
+  { ER_FSB_CANNOT_TAKE_STRING,
+       "XStringForFSB kann keine Zeichenfolge als Argument akzeptieren."},
+
+  { ER_SETTING_WALKER_ROOT_TO_NULL,
+       "\n !!!! Fehler. Root eines Walkers wird auf null gesetzt."},
+
+  { ER_NODESETDTM_CANNOT_ITERATE,
+       "NodeSetDTM kann nicht zu einem vorherigen Knoten iterieren."},
+
+  { ER_NODESET_CANNOT_ITERATE,
+       "NodeSet kann nicht zu einem vorherigen Knoten iterieren."},
+
+  { ER_NODESETDTM_CANNOT_INDEX,
+       "NodeSetDTM kann keine Indizierungs- oder Z\u00E4hlfunktionen ausf\u00FChren."},
+
+  { ER_NODESET_CANNOT_INDEX,
+       "NodeSet kann keine Indizierungs- oder Z\u00E4hlfunktionen ausf\u00FChren."},
+
+  { ER_CANNOT_CALL_SETSHOULDCACHENODE,
+       "setShouldCacheNodes kann nicht aufgerufen werden, nachdem nextNode aufgerufen wurde."},
+
+  { ER_ONLY_ALLOWS,
+       "{0} l\u00E4sst nur {1} Argumente zu"},
+
+  { ER_UNKNOWN_STEP,
+       "Programmierer-Assertion in getNextStepPos: Unbekannter stepType: {0}"},
+
+  //Note to translators:  A relative location path is a form of XPath expression.
+  // The message indicates that such an expression was expected following the
+  // characters '/' or '//', but was not found.
+  { ER_EXPECTED_REL_LOC_PATH,
+      "Nach dem Token \"/\" oder \"//\" wurde ein relativer Verzeichnispfad erwartet."},
+
+  // Note to translators:  A location path is a form of XPath expression.
+  // The message indicates that syntactically such an expression was expected,but
+  // the characters specified by the substitution text were encountered instead.
+  { ER_EXPECTED_LOC_PATH,
+       "Ein Verzeichnispfad wurde erwartet, aber das folgende Token wurde gefunden: {0}"},
+
+  // Note to translators:  A location path is a form of XPath expression.
+  // The message indicates that syntactically such a subexpression was expected,
+  // but no more characters were found in the expression.
+  { ER_EXPECTED_LOC_PATH_AT_END_EXPR,
+       "Ein Verzeichnispfad wurde erwartet, aber stattdessen wurde das Ende des XPath-Ausdrucks gefunden."},
+
+  // Note to translators:  A location step is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected
+  // following the specified characters.
+  { ER_EXPECTED_LOC_STEP,
+       "Nach dem Token \"/\" oder \"//\" wurde ein Verzeichnisschritt erwartet."},
+
+  // Note to translators:  A node test is part of an XPath expression that is
+  // used to test for particular kinds of nodes.  In this case, a node test that
+  // consists of an NCName followed by a colon and an asterisk or that consists
+  // of a QName was expected, but was not found.
+  { ER_EXPECTED_NODE_TEST,
+       "Es wurde ein Knotentest erwartet, der entweder NCName:* oder QName entspricht."},
+
+  // Note to translators:  A step pattern is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected,
+  // but the specified character was found in the expression instead.
+  { ER_EXPECTED_STEP_PATTERN,
+       "Ein Schrittmuster wurde erwartet, aber \"/\" wurde gefunden."},
+
+  // Note to translators: A relative path pattern is part of an XPath expression.
+  // The message indicates that syntactically such an expression was expected,
+  // but was not found.
+  { ER_EXPECTED_REL_PATH_PATTERN,
+       "Ein relatives Pfadmuster wurde erwartet."},
+
+  // Note to translators:  The substitution text is the name of a data type.  The
+  // message indicates that a value of a particular type could not be converted
+  // to a value of type boolean.
+  { ER_CANT_CONVERT_TO_BOOLEAN,
+       "XPathResult von XPath-Ausdruck \"{0}\" hat XPathResultType {1}, der nicht in einen booleschen Wert konvertiert werden kann."},
+
+  // Note to translators: Do not translate ANY_UNORDERED_NODE_TYPE and 
+  // FIRST_ORDERED_NODE_TYPE.
+  { ER_CANT_CONVERT_TO_SINGLENODE,
+       "XPathResult von XPath-Ausdruck \"{0}\" hat XPathResultType {1}, der nicht in einen einzelnen Knoten konvertiert werden kann. Die Methode \"getSingleNodeValue\" gilt nur f\u00FCr die Typen ANY_UNORDERED_NODE_TYPE und FIRST_ORDERED_NODE_TYPE."},
+
+  // Note to translators: Do not translate UNORDERED_NODE_SNAPSHOT_TYPE and
+  // ORDERED_NODE_SNAPSHOT_TYPE.
+  { ER_CANT_GET_SNAPSHOT_LENGTH,
+       "Die Methode \"getSnapshotLength\" kann nicht f\u00FCr XPathResult von XPath-Ausdruck \"{0}\" aufgerufen werden, da der zugeh\u00F6rige XPathResultType {1} ist. Diese Methode gilt nur f\u00FCr die Typen UNORDERED_NODE_SNAPSHOT_TYPE und ORDERED_NODE_SNAPSHOT_TYPE."},
+
+  { ER_NON_ITERATOR_TYPE,
+       "Die Methode \"iterateNext\" kann nicht f\u00FCr XPathResult von XPath-Ausdruck \"{0}\" aufgerufen werden, da der zugeh\u00F6rige XPathResultType {1} ist. Diese Methode gilt nur f\u00FCr die Typen UNORDERED_NODE_ITERATOR_TYPE und ORDERED_NODE_ITERATOR_TYPE."},
+
+  // Note to translators: This message indicates that the document being operated
+  // upon changed, so the iterator object that was being used to traverse the
+  // document has now become invalid.
+  { ER_DOC_MUTATED,
+       "Dokument ge\u00E4ndert, seit Ergebnis zur\u00FCckgegeben wurde. Iterator ist ung\u00FCltig."},
+
+  { ER_INVALID_XPATH_TYPE,
+       "Ung\u00FCltiges XPath-Typargument: {0}"},
+
+  { ER_EMPTY_XPATH_RESULT,
+       "Leeres XPath-Ergebnisobjekt"},
+
+  { ER_INCOMPATIBLE_TYPES,
+       "XPathResult von XPath-Ausdruck \"{0}\" hat XPathResultType {1}, der nicht in den angegebenen XPathResultType {2} ge\u00E4ndert werden kann."},
+
+  { ER_NULL_RESOLVER,
+       "Pr\u00E4fix kann nicht mit Null-Pr\u00E4fix-Resolver aufgel\u00F6st werden."},
+
+  // Note to translators:  The substitution text is the name of a data type.  The
+  // message indicates that a value of a particular type could not be converted
+  // to a value of type string.
+  { ER_CANT_CONVERT_TO_STRING,
+       "XPathResult von XPath-Ausdruck \"{0}\" hat XPathResultType {1}, der nicht in eine Zeichenfolge konvertiert werden kann."},
+
+  // Note to translators: Do not translate snapshotItem,
+  // UNORDERED_NODE_SNAPSHOT_TYPE and ORDERED_NODE_SNAPSHOT_TYPE.
+  { ER_NON_SNAPSHOT_TYPE,
+       "Die Methode \"snapshotItem\" kann nicht f\u00FCr XPathResult von XPath-Ausdruck \"{0}\" aufgerufen werden, da der zugeh\u00F6rige XPathResultType {1} ist. Diese Methode gilt nur f\u00FCr die Typen UNORDERED_NODE_SNAPSHOT_TYPE und ORDERED_NODE_SNAPSHOT_TYPE."},
+
+  // Note to translators:  XPathEvaluator is a Java interface name.  An
+  // XPathEvaluator is created with respect to a particular XML document, and in
+  // this case the expression represented by this object was being evaluated with
+  // respect to a context node from a different document.
+  { ER_WRONG_DOCUMENT,
+       "Kontextknoten geh\u00F6rt nicht zum Dokument, das an diesen XPathEvaluator gebunden ist."},
+
+  // Note to translators:  The XPath expression cannot be evaluated with respect
+  // to this type of node.
+  { ER_WRONG_NODETYPE,
+       "Kontextknotentyp wird nicht unterst\u00FCtzt."},
+
+  { ER_XPATH_ERROR,
+       "Unbekannter Fehler in XPath."},
+
+  { ER_CANT_CONVERT_XPATHRESULTTYPE_TO_NUMBER,
+	"XPathResult von XPath-Ausdruck \"{0}\" hat XPathResultType {1}, der nicht in eine Zahl konvertiert werden kann"},       
+
+  //BEGIN:  Definitions of error keys used  in exception messages of  JAXP 1.3 XPath API implementation
+
+  /** Field ER_EXTENSION_FUNCTION_CANNOT_BE_INVOKED                       */
+
+  { ER_EXTENSION_FUNCTION_CANNOT_BE_INVOKED,
+       "Erweiterungsfunktion \"{0}\" kann nicht aufgerufen werden, wenn das Feature \"XMLConstants.FEATURE_SECURE_PROCESSING\" auf \"true\" gesetzt ist."},
+
+  /** Field ER_RESOLVE_VARIABLE_RETURNS_NULL                       */
+
+  { ER_RESOLVE_VARIABLE_RETURNS_NULL,
+       "resolveVariable f\u00FCr Variable {0} gibt null zur\u00FCck"},
+
+  /** Field ER_UNSUPPORTED_RETURN_TYPE                       */
+
+  { ER_UNSUPPORTED_RETURN_TYPE,
+       "Nicht unterst\u00FCtzter R\u00FCckgabetyp: {0}"},
+
+  /** Field ER_SOURCE_RETURN_TYPE_CANNOT_BE_NULL                       */
+
+  { ER_SOURCE_RETURN_TYPE_CANNOT_BE_NULL,
+       "Quelle und/oder R\u00FCckgabetyp d\u00FCrfen nicht null sein"},
+
+  /** Field ER_SOURCE_RETURN_TYPE_CANNOT_BE_NULL                       */
+
+  { ER_SOURCE_RETURN_TYPE_CANNOT_BE_NULL,
+       "Quelle und/oder R\u00FCckgabetyp d\u00FCrfen nicht null sein"},
+
+  /** Field ER_ARG_CANNOT_BE_NULL                       */
+
+  { ER_ARG_CANNOT_BE_NULL,
+       "{0}-Argument darf nicht null sein"},
+
+  /** Field ER_OBJECT_MODEL_NULL                       */
+
+  { ER_OBJECT_MODEL_NULL,
+       "{0}#isObjectModelSupported( String objectModel ) kann nicht mit objectModel == null aufgerufen werden"},
+
+  /** Field ER_OBJECT_MODEL_EMPTY                       */
+
+  { ER_OBJECT_MODEL_EMPTY,
+       "{0}#isObjectModelSupported( String objectModel ) kann nicht mit objectModel == \"\" aufgerufen werden"},
+
+  /** Field ER_OBJECT_MODEL_EMPTY                       */
+
+  { ER_FEATURE_NAME_NULL,
+       "Es wird versucht, ein Feature mit einem Null-Namen festzulegen: {0}#setFeature( null, {1})"},
+
+  /** Field ER_FEATURE_UNKNOWN                       */
+
+  { ER_FEATURE_UNKNOWN,
+       "Es wird versucht, ein unbekanntes Feature \"{0}\" festzulegen:{1}#setFeature({0},{2})"},
+
+  /** Field ER_GETTING_NULL_FEATURE                       */
+
+  { ER_GETTING_NULL_FEATURE,
+       "Es wird versucht, ein Feature mit einem Null-Namen abzurufen: {0}#getFeature(null)"},
+
+  /** Field ER_GETTING_NULL_FEATURE                       */
+
+  { ER_GETTING_UNKNOWN_FEATURE,
+       "Es wird versucht, das unbekannte Feature \"{0}\" abzurufen:{1}#getFeature({0})"},
+
+  {ER_SECUREPROCESSING_FEATURE,
+        "FEATURE_SECURE_PROCESSING: Feature kann nicht auf \"false\" gesetzt werden, wenn Security Manager vorhanden ist: {1}#setFeature({0},{2})"},
+               
+  /** Field ER_NULL_XPATH_FUNCTION_RESOLVER                       */
+
+  { ER_NULL_XPATH_FUNCTION_RESOLVER,
+       "Versuch, Null-XPathFunctionResolver festzulegen:{0}#setXPathFunctionResolver(null)"},
+
+  /** Field ER_NULL_XPATH_VARIABLE_RESOLVER                       */
+
+  { ER_NULL_XPATH_VARIABLE_RESOLVER,
+       "Versuch, Null-XPathVariableResolver festzulegen:{0}#setXPathVariableResolver(null)"},
+
+  //END:  Definitions of error keys used  in exception messages of  JAXP 1.3 XPath API implementation
+
+  // Warnings...
+
+  { WG_LOCALE_NAME_NOT_HANDLED,
+      "Gebietsschemaname in der format-number-Funktion wird noch nicht verarbeitet."},
+
+  { WG_PROPERTY_NOT_SUPPORTED,
+      "XSL-Eigenschaft nicht unterst\u00FCtzt: {0}"},
+
+  { WG_DONT_DO_ANYTHING_WITH_NS,
+      "Derzeit keine Aktion mit Namespace {0} in Eigenschaft {1} ausf\u00FChren"},
+
+  { WG_SECURITY_EXCEPTION,
+      "SecurityException beim Versuch, auf XSL-Systemeigenschaft {0} zuzugreifen"},
+
+  { WG_QUO_NO_LONGER_DEFINED,
+      "Alte Syntax: quo(...) nicht mehr definiert in XPath."},
+
+  { WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST,
+      "XPath ben\u00F6tigt ein abgeleitetes Objekt, um nodeTest zu implementieren."},
+
+  { WG_FUNCTION_TOKEN_NOT_FOUND,
+      "Funktionstoken nicht gefunden."},
+
+  { WG_COULDNOT_FIND_FUNCTION,
+      "Funktion konnte nicht gefunden werden: {0}"},
+
+  { WG_CANNOT_MAKE_URL_FROM,
+      "URL kann nicht erstellt werden aus: {0}"},
+
+  { WG_EXPAND_ENTITIES_NOT_SUPPORTED,
+      "Option \"-E\" nicht unterst\u00FCtzt f\u00FCr DTM-Parser"},
+
+  { WG_ILLEGAL_VARIABLE_REFERENCE,
+      "VariableReference au\u00DFerhalb des Kontextes oder ohne Definition f\u00FCr Variable angegeben. Name = {0}"},
+
+  { WG_UNSUPPORTED_ENCODING,
+     "Nicht unterst\u00FCtzte Codierung: {0}"},
+
+
+
+  // Other miscellaneous text used inside the code...
+  { "ui_language", "de"},
+  { "help_language", "de"},
+  { "language", "de"},
+  { "BAD_CODE", "Parameter f\u00FCr createMessage war au\u00DFerhalb des g\u00FCltigen Bereichs"},
+  { "FORMAT_FAILED", "Ausnahme bei messageFormat-Aufruf ausgel\u00F6st"},
+  { "version", ">>>>>>> Xalan-Version "},
+  { "version2", "<<<<<<<"},
+  { "yes", "Ja"},
+  { "line", "Zeilennummer"},
+  { "column", "Spaltennummer"},
+  { "xsldone", "XSLProcessor: Fertig"},
+  { "xpath_option", "xpath-Optionen: "},
+  { "optionIN", "   [-in inputXMLURL]"},
+  { "optionSelect", "   [-select xpath expression]"},
+  { "optionMatch", "   [-match match pattern (f\u00FCr Vergleichsdiagnose)]"},
+  { "optionAnyExpr", "Oder nur ein XPath-Ausdruck f\u00FChrt einen Diagnose-Dump aus"},
+  { "noParsermsg1", "XSL-Prozess war nicht erfolgreich."},
+  { "noParsermsg2", "** Parser konnte nicht gefunden werden **"},
+  { "noParsermsg3", "Pr\u00FCfen Sie den Classpath."},
+  { "noParsermsg4", "Wenn Sie nicht \u00FCber den XML-Parser f\u00FCr Java von IBM verf\u00FCgen, k\u00F6nnen Sie ihn hier herunterladen:"},
+  { "noParsermsg5", "IBMs AlphaWorks: http://www.alphaworks.ibm.com/formula/xml"},
+  { "gtone", ">1" },
+  { "zero", "0" },
+  { "one", "1" },
+  { "two" , "2" },
+  { "three", "3" }
+
+  };
 
   /**
    * Get the association list.
@@ -358,899 +905,30 @@ public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
    */
   public Object[][] getContents()
   {
-    return new Object[][]{
-
-  /** Field ERROR0000          */
-
-//  public static final int ERROR0000 = 0;
-
-  { "ERROR0000" , "{0}" },
-
-
-  /** Field ER_CURRENT_NOT_ALLOWED_IN_MATCH          */
-//  public static final int ER_CURRENT_NOT_ALLOWED_IN_MATCH = 1;
-
-  { ER_CURRENT_NOT_ALLOWED_IN_MATCH, "Die Funktion current() ist in einem \u00dcbereinstimmungsmuster nicht zul\u00e4ssig!" },
-
-  /** Field ER_CURRENT_TAKES_NO_ARGS          */
-  //public static final int ER_CURRENT_TAKES_NO_ARGS = 2;
-
-  { ER_CURRENT_TAKES_NO_ARGS, "In der Funktion current() d\u00fcrfen keine Argumente angegeben werden!" },
-
-  /** Field ER_DOCUMENT_REPLACED          */
-//  public static final int ER_DOCUMENT_REPLACED = 3;
-  { ER_DOCUMENT_REPLACED,
-      "Die Implementierung der Funktion document() wurde durch com.sun.org.apache.xalan.internal.xslt.FuncDocument ersetzt!"},
-
-
-  /** Field ER_CONTEXT_HAS_NO_OWNERDOC          */
- // public static final int ER_CONTEXT_HAS_NO_OWNERDOC = 4;
-
-  { ER_CONTEXT_HAS_NO_OWNERDOC,
-      "Der Kontextknoten verf\u00fcgt nicht \u00fcber ein Eignerdokument!"},
-
-  /** Field ER_LOCALNAME_HAS_TOO_MANY_ARGS          */
- // public static final int ER_LOCALNAME_HAS_TOO_MANY_ARGS = 5;
-
-  { ER_LOCALNAME_HAS_TOO_MANY_ARGS,
-      "local-name() weist zu viele Argumente auf."},
-
-  /** Field ER_NAMESPACEURI_HAS_TOO_MANY_ARGS          */
- //public static final int ER_NAMESPACEURI_HAS_TOO_MANY_ARGS = 6;
-
-  { ER_NAMESPACEURI_HAS_TOO_MANY_ARGS,
-      "namespace-uri() weist zu viele Argumente auf."},
-
-  /** Field ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS          */
-//  public static final int ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS = 7;
-  { ER_NORMALIZESPACE_HAS_TOO_MANY_ARGS,
-      "normalize-space() weist zu viele Argumente auf."},
-
-  /** Field ER_NUMBER_HAS_TOO_MANY_ARGS          */
-//  public static final int ER_NUMBER_HAS_TOO_MANY_ARGS = 8;
-
-  { ER_NUMBER_HAS_TOO_MANY_ARGS,
-      "number() weist zu viele Argumente auf."},
-
-  /** Field ER_NAME_HAS_TOO_MANY_ARGS          */
-//  public static final int ER_NAME_HAS_TOO_MANY_ARGS = 9;
-
-  { ER_NAME_HAS_TOO_MANY_ARGS,
-     "name() weist zu viele Argumente auf."},
-
-  /** Field ER_STRING_HAS_TOO_MANY_ARGS          */
-//  public static final int ER_STRING_HAS_TOO_MANY_ARGS = 10;
-
-  { ER_STRING_HAS_TOO_MANY_ARGS,
-      "string() weist zu viele Argumente auf."},
-
-  /** Field ER_STRINGLENGTH_HAS_TOO_MANY_ARGS          */
-//  public static final int ER_STRINGLENGTH_HAS_TOO_MANY_ARGS = 11;
-
-  { ER_STRINGLENGTH_HAS_TOO_MANY_ARGS,
-      "string-length() weist zu viele Argumente auf."},
-
-  /** Field ER_TRANSLATE_TAKES_3_ARGS          */
-//  public static final int ER_TRANSLATE_TAKES_3_ARGS = 12;
-
-  { ER_TRANSLATE_TAKES_3_ARGS,
-      "Die Funktion translate() erfordert drei Argumente!"},
-
-  /** Field ER_UNPARSEDENTITYURI_TAKES_1_ARG          */
-//  public static final int ER_UNPARSEDENTITYURI_TAKES_1_ARG = 13;
-
-  { ER_UNPARSEDENTITYURI_TAKES_1_ARG,
-      "Die Funktion unparsed-entity-uri sollte ein einziges Argument enthalten!"},
-
-  /** Field ER_NAMESPACEAXIS_NOT_IMPLEMENTED          */
-//  public static final int ER_NAMESPACEAXIS_NOT_IMPLEMENTED = 14;
-
-  { ER_NAMESPACEAXIS_NOT_IMPLEMENTED,
-      "Die Namensbereichachse ist bisher nicht implementiert!"},
-
-  /** Field ER_UNKNOWN_AXIS          */
-//  public static final int ER_UNKNOWN_AXIS = 15;
-
-  { ER_UNKNOWN_AXIS,
-     "Unbekannte Achse: {0}"},
-
-  /** Field ER_UNKNOWN_MATCH_OPERATION          */
-//  public static final int ER_UNKNOWN_MATCH_OPERATION = 16;
-
-  { ER_UNKNOWN_MATCH_OPERATION,
-     "Unbekannter \u00dcbereinstimmungsvorgang!"},
-
-  /** Field ER_INCORRECT_ARG_LENGTH          */
-//  public static final int ER_INCORRECT_ARG_LENGTH = 17;
-
-  { ER_INCORRECT_ARG_LENGTH,
-      "Die L\u00e4nge des Arguments f\u00fcr den Knotentest von processing-instruction() ist falsch!"},
-
-  /** Field ER_CANT_CONVERT_TO_NUMBER          */
-//  public static final int ER_CANT_CONVERT_TO_NUMBER = 18;
-
-  { ER_CANT_CONVERT_TO_NUMBER,
-      "{0} kann nicht in eine Zahl konvertiert werden!"},
-
-  /** Field ER_CANT_CONVERT_TO_NODELIST          */
-  //public static final int ER_CANT_CONVERT_TO_NODELIST = 19;
-
-  { ER_CANT_CONVERT_TO_NODELIST,
-      "{0} kann nicht in NodeList konvertiert werden!"},
-
-  /** Field ER_CANT_CONVERT_TO_MUTABLENODELIST          */
-//  public static final int ER_CANT_CONVERT_TO_MUTABLENODELIST = 20;
-
-  { ER_CANT_CONVERT_TO_MUTABLENODELIST,
-      "{0} kann nicht in NodeSetDTM konvertiert werden!"},
-
-  /** Field ER_CANT_CONVERT_TO_TYPE          */
-//  public static final int ER_CANT_CONVERT_TO_TYPE = 21;
-
-  { ER_CANT_CONVERT_TO_TYPE,
-      "{0} kann nicht in type#{1} konvertiert werden."},
-
-  /** Field ER_EXPECTED_MATCH_PATTERN          */
-//  public static final int ER_EXPECTED_MATCH_PATTERN = 22;
-
-  { ER_EXPECTED_MATCH_PATTERN,
-      "\u00dcbereinstimmungsmuster in getMatchScore erwartet!"},
-
-  /** Field ER_COULDNOT_GET_VAR_NAMED          */
-//  public static final int ER_COULDNOT_GET_VAR_NAMED = 23;
-
-  { ER_COULDNOT_GET_VAR_NAMED,
-      "Die Variable mit dem Namen {0} konnte nicht abgerufen werden."},
-
-  /** Field ER_UNKNOWN_OPCODE          */
-//  public static final int ER_UNKNOWN_OPCODE = 24;
-
-  { ER_UNKNOWN_OPCODE,
-     "FEHLER! Unbekannter Operationscode: {0}"},
-
-  /** Field ER_EXTRA_ILLEGAL_TOKENS          */
-//  public static final int ER_EXTRA_ILLEGAL_TOKENS = 25;
-
-  { ER_EXTRA_ILLEGAL_TOKENS,
-     "Zus\u00e4tzliche nicht zul\u00e4ssige Token: {0}"},
-
-  /** Field ER_EXPECTED_DOUBLE_QUOTE          */
-//  public static final int ER_EXPECTED_DOUBLE_QUOTE = 26;
-
-  { ER_EXPECTED_DOUBLE_QUOTE,
-      "Falsche Anf\u00fchrungszeichen f\u00fcr Literal... Doppelte Anf\u00fchrungszeichen wurden erwartet!"},
-
-  /** Field ER_EXPECTED_SINGLE_QUOTE          */
-//  public static final int ER_EXPECTED_SINGLE_QUOTE = 27;
-
-  { ER_EXPECTED_SINGLE_QUOTE,
-      "Falsche Anf\u00fchrungszeichen f\u00fcr Literal... Einfache Anf\u00fchrungszeichen wurden erwartet!"},
-
-  /** Field ER_EMPTY_EXPRESSION          */
-//  public static final int ER_EMPTY_EXPRESSION = 28;
-
-  { ER_EMPTY_EXPRESSION,
-     "Leerer Ausdruck!"},
-
-  /** Field ER_EXPECTED_BUT_FOUND          */
-//  public static final int ER_EXPECTED_BUT_FOUND = 29;
-
-  { ER_EXPECTED_BUT_FOUND,
-     "Erwartet wurde {0}, gefunden wurde: {1}"},
-
-  /** Field ER_INCORRECT_PROGRAMMER_ASSERTION          */
-//  public static final int ER_INCORRECT_PROGRAMMER_ASSERTION = 30;
-
-  { ER_INCORRECT_PROGRAMMER_ASSERTION,
-      "Festlegung des Programmierers ist falsch! - {0}"},
-
-  /** Field ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL          */
-//  public static final int ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL = 31;
-
-  { ER_BOOLEAN_ARG_NO_LONGER_OPTIONAL,
-      "Das Argument boolean(...) ist im XPath-Entwurf 19990709 nicht mehr optional."},
-
-  /** Field ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG          */
-//  public static final int ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG = 32;
-
-  { ER_FOUND_COMMA_BUT_NO_PRECEDING_ARG,
-      "Gefunden wurde ',' ohne vorangestelltes Argument!"},
-
-  /** Field ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG          */
-//  public static final int ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG = 33;
-
-  { ER_FOUND_COMMA_BUT_NO_FOLLOWING_ARG,
-      "Gefunden wurde ',' ohne nachfolgendes Argument!"},
-
-  /** Field ER_PREDICATE_ILLEGAL_SYNTAX          */
-//  public static final int ER_PREDICATE_ILLEGAL_SYNTAX = 34;
-
-  { ER_PREDICATE_ILLEGAL_SYNTAX,
-      "'..[predicate]' oder '.[predicate]' ist eine nicht zul\u00e4ssige Syntax.  Verwenden Sie stattdessen 'self::node()[predicate]'."},
-
-  /** Field ER_ILLEGAL_AXIS_NAME          */
-//  public static final int ER_ILLEGAL_AXIS_NAME = 35;
-
-  { ER_ILLEGAL_AXIS_NAME,
-     "Nicht zul\u00e4ssiger Achsenname: {0}"},
-
-  /** Field ER_UNKNOWN_NODETYPE          */
-//  public static final int ER_UNKNOWN_NODETYPE = 36;
-
-  { ER_UNKNOWN_NODETYPE,
-     "Unbekannter Knotentyp: {0}"},
-
-  /** Field ER_PATTERN_LITERAL_NEEDS_BE_QUOTED          */
-//  public static final int ER_PATTERN_LITERAL_NEEDS_BE_QUOTED = 37;
-
-  { ER_PATTERN_LITERAL_NEEDS_BE_QUOTED,
-      "Musterliteral ({0}) muss in Anf\u00fchrungszeichen angegeben werden!"},
-
-  /** Field ER_COULDNOT_BE_FORMATTED_TO_NUMBER          */
-//  public static final int ER_COULDNOT_BE_FORMATTED_TO_NUMBER = 38;
-
-  { ER_COULDNOT_BE_FORMATTED_TO_NUMBER,
-      "{0} konnte nicht als Zahl formatiert werden!"},
-
-  /** Field ER_COULDNOT_CREATE_XMLPROCESSORLIAISON          */
-//  public static final int ER_COULDNOT_CREATE_XMLPROCESSORLIAISON = 39;
-
-  { ER_COULDNOT_CREATE_XMLPROCESSORLIAISON,
-      "XML-TransformerFactory-Liaison konnte nicht erstellt werden: {0}"},
-
-  /** Field ER_DIDNOT_FIND_XPATH_SELECT_EXP          */
-//  public static final int ER_DIDNOT_FIND_XPATH_SELECT_EXP = 40;
-
-  { ER_DIDNOT_FIND_XPATH_SELECT_EXP,
-      "Fehler! xpath-Auswahlausdruck (-select) konnte nicht gefunden werden."},
-
-  /** Field ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH          */
-//  public static final int ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH = 41;
-
-  { ER_COULDNOT_FIND_ENDOP_AFTER_OPLOCATIONPATH,
-      "FEHLER! ENDOP konnte nach OP_LOCATIONPATH nicht gefunden werden."},
-
-  /** Field ER_ERROR_OCCURED          */
-//  public static final int ER_ERROR_OCCURED = 42;
-
-  { ER_ERROR_OCCURED,
-     "Es ist ein Fehler aufgetreten!"},
-
-  /** Field ER_ILLEGAL_VARIABLE_REFERENCE          */
-//  public static final int ER_ILLEGAL_VARIABLE_REFERENCE = 43;
-
-  { ER_ILLEGAL_VARIABLE_REFERENCE,
-      "Das f\u00fcr die Variable angegebene Argument VariableReference befindet sich au\u00dferhalb des Kontexts oder weist keine Definition auf!  Name = {0}"},
-
-  /** Field ER_AXES_NOT_ALLOWED          */
-//  public static final int ER_AXES_NOT_ALLOWED = 44;
-
-  { ER_AXES_NOT_ALLOWED,
-      "Nur die Achsen ''child::'' und ''attribute::'' sind in Suchmustern zul\u00e4ssig!  Fehlerhafte Achsen = {0}"},
-
-  /** Field ER_KEY_HAS_TOO_MANY_ARGS          */
-//  public static final int ER_KEY_HAS_TOO_MANY_ARGS = 45;
-
-  { ER_KEY_HAS_TOO_MANY_ARGS,
-      "key() weist eine falsche Anzahl Argumenten auf."},
-
-  /** Field ER_COUNT_TAKES_1_ARG          */
-//  public static final int ER_COUNT_TAKES_1_ARG = 46;
-
-  { ER_COUNT_TAKES_1_ARG,
-      "Die Funktion count sollte ein einziges Argument enthalten!"},
-
-  /** Field ER_COULDNOT_FIND_FUNCTION          */
-//  public static final int ER_COULDNOT_FIND_FUNCTION = 47;
-
-  { ER_COULDNOT_FIND_FUNCTION,
-     "Die Funktion konnte nicht gefunden werden: {0}"},
-
-  /** Field ER_UNSUPPORTED_ENCODING          */
-//  public static final int ER_UNSUPPORTED_ENCODING = 48;
-
-  { ER_UNSUPPORTED_ENCODING,
-     "Nicht unterst\u00fctzte Verschl\u00fcsselung: {0}"},
-
-  /** Field ER_PROBLEM_IN_DTM_NEXTSIBLING          */
-//  public static final int ER_PROBLEM_IN_DTM_NEXTSIBLING = 49;
-
-  { ER_PROBLEM_IN_DTM_NEXTSIBLING,
-      "In dem DTM in getNextSibling ist ein Fehler aufgetreten... Wiederherstellung wird durchgef\u00fchrt"},
-
-  /** Field ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL          */
-//  public static final int ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL = 50;
-
-  { ER_CANNOT_WRITE_TO_EMPTYNODELISTIMPL,
-      "Programmierungsfehler: In EmptyNodeList kann nicht geschrieben werden."},
-
-  /** Field ER_SETDOMFACTORY_NOT_SUPPORTED          */
-//  public static final int ER_SETDOMFACTORY_NOT_SUPPORTED = 51;
-
-  { ER_SETDOMFACTORY_NOT_SUPPORTED,
-      "setDOMFactory wird nicht von XPathContext unterst\u00fctzt!"},
-
-  /** Field ER_PREFIX_MUST_RESOLVE          */
-//  public static final int ER_PREFIX_MUST_RESOLVE = 52;
-
-  { ER_PREFIX_MUST_RESOLVE,
-      "Das Pr\u00e4fix muss in einen Namensbereich aufgel\u00f6st werden: {0}"},
-
-  /** Field ER_PARSE_NOT_SUPPORTED          */
-//  public static final int ER_PARSE_NOT_SUPPORTED = 53;
-
-  { ER_PARSE_NOT_SUPPORTED,
-      "parse (InputSource Quelle) wird nicht in XPathContext unterst\u00fctzt! {0} kann nicht ge\u00f6ffnet werden."},
-
-  /** Field ER_CREATEDOCUMENT_NOT_SUPPORTED          */
-//  public static final int ER_CREATEDOCUMENT_NOT_SUPPORTED = 54;
-
-  //{ ER_CREATEDOCUMENT_NOT_SUPPORTED,
-  //    "createDocument() not supported in XPathContext!"},
-
-  /** Field ER_CHILD_HAS_NO_OWNER_DOCUMENT          */
-//  public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT = 55;
-
-  //{ ER_CHILD_HAS_NO_OWNER_DOCUMENT,
-  //    "Attribute child does not have an owner document!"},
-
-  /** Field ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT          */
-//  public static final int ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = 56;
-
-  //{ ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT,
-  //    "Attribute child does not have an owner document element!"},
-
-  /** Field ER_SAX_API_NOT_HANDLED          */
-//  public static final int ER_SAX_API_NOT_HANDLED = 57;
-
-  { ER_SAX_API_NOT_HANDLED,
-      "SAX-API characters(char ch[]... wird nicht von dem DTM verarbeitet!"},
-
-  /** Field ER_IGNORABLE_WHITESPACE_NOT_HANDLED          */
-//public static final int ER_IGNORABLE_WHITESPACE_NOT_HANDLED = 58;
-
-  { ER_IGNORABLE_WHITESPACE_NOT_HANDLED,
-      "ignorableWhitespace(char ch[]... wird nicht von dem DTM verarbeitet!"},
-
-  /** Field ER_DTM_CANNOT_HANDLE_NODES          */
-//  public static final int ER_DTM_CANNOT_HANDLE_NODES = 59;
-
-  { ER_DTM_CANNOT_HANDLE_NODES,
-      "DTMLiaison kann keine Knoten vom Typ {0} verarbeiten"},
-
-  /** Field ER_XERCES_CANNOT_HANDLE_NODES          */
-//  public static final int ER_XERCES_CANNOT_HANDLE_NODES = 60;
-
-  { ER_XERCES_CANNOT_HANDLE_NODES,
-      "DOM2Helper kann keine Knoten vom Typ {0} verarbeiten"},
-
-  /** Field ER_XERCES_PARSE_ERROR_DETAILS          */
-//  public static final int ER_XERCES_PARSE_ERROR_DETAILS = 61;
-
-  { ER_XERCES_PARSE_ERROR_DETAILS,
-      "Fehler bei DOM2Helper.parse: System-ID - {0} Zeile - {1}"},
-
-  /** Field ER_XERCES_PARSE_ERROR          */
-//  public static final int ER_XERCES_PARSE_ERROR = 62;
-
-  { ER_XERCES_PARSE_ERROR,
-     "Fehler bei DOM2Helper.parse"},
-
-  /** Field ER_CANT_OUTPUT_TEXT_BEFORE_DOC          */
-//  public static final int ER_CANT_OUTPUT_TEXT_BEFORE_DOC = 63;
-
-  //{ ER_CANT_OUTPUT_TEXT_BEFORE_DOC,
-   //   "Warning: can't output text before document element!  Ignoring..."},
-
-  /** Field ER_CANT_HAVE_MORE_THAN_ONE_ROOT          */
-//  public static final int ER_CANT_HAVE_MORE_THAN_ONE_ROOT = 64;
-
-  //{ ER_CANT_HAVE_MORE_THAN_ONE_ROOT,
-   //   "Can't have more than one root on a DOM!"},
-
-  /** Field ER_INVALID_UTF16_SURROGATE          */
-//  public static final int ER_INVALID_UTF16_SURROGATE = 65;
-
-  { ER_INVALID_UTF16_SURROGATE,
-      "Ung\u00fcltige UTF-16-Ersetzung festgestellt: {0} ?"},
-
-  /** Field ER_OIERROR          */
-  //public static final int ER_OIERROR = 66;
-
-  { ER_OIERROR,
-     "E/A-Fehler"},
-
-  /** Field ER_CANNOT_CREATE_URL          */
-  //public static final int ER_CANNOT_CREATE_URL = 67;
-
-  { ER_CANNOT_CREATE_URL,
-     "URL kann nicht erstellt werden f\u00fcr: {0}"},
-
-  /** Field ER_XPATH_READOBJECT          */
-//  public static final int ER_XPATH_READOBJECT = 68;
-
-  { ER_XPATH_READOBJECT,
-     "In XPath.readObject: {0}"},
-
-  /** Field ER_FUNCTION_TOKEN_NOT_FOUND         */
-// public static final int ER_FUNCTION_TOKEN_NOT_FOUND = 69;
-
-  { ER_FUNCTION_TOKEN_NOT_FOUND,
-      "Funktionstoken wurde nicht gefunden."},
-
-   /**  Argument 'localName' is null  */
-// public static final int ER_ARG_LOCALNAME_NULL = 70;
-
-  //{ ER_ARG_LOCALNAME_NULL,
-  //     "Argument 'localName' is null"},
-
-   /**  Can not deal with XPath type:   */
-//  public static final int ER_CANNOT_DEAL_XPATH_TYPE = 71;
-
-  { ER_CANNOT_DEAL_XPATH_TYPE,
-       "Der XPath-Typ kann nicht verarbeitet werden: {0}"},
-
-   /**  This NodeSet is not mutable  */
- // public static final int ER_NODESET_NOT_MUTABLE = 72;
-
-  { ER_NODESET_NOT_MUTABLE,
-       "Diese NodeSet kann nicht ge\u00e4ndert werden"},
-
-   /**  This NodeSetDTM is not mutable  */
-//  public static final int ER_NODESETDTM_NOT_MUTABLE = 73;
-
-  { ER_NODESETDTM_NOT_MUTABLE,
-       "Dieses NodeSetDTM kann nicht ge\u00e4ndert werden"},
-
-   /**  Variable not resolvable:   */
-//  public static final int ER_VAR_NOT_RESOLVABLE = 74;
-
-  { ER_VAR_NOT_RESOLVABLE,
-        "Die Variable kann nicht aufgel\u00f6st werden: {0}"},
-
-   /** Null error handler  */
-// public static final int ER_NULL_ERROR_HANDLER = 75;
-
-  { ER_NULL_ERROR_HANDLER,
-        "Kein Fehlerbehandlungsprogramm vorhanden"},
-
-   /**  Programmer's assertion: unknown opcode  */
- // public static final int ER_PROG_ASSERT_UNKNOWN_OPCODE = 76;
-
-  { ER_PROG_ASSERT_UNKNOWN_OPCODE,
-       "Programmiererfestlegung: Unbekannter Operationscode: {0} "},
-
-   /**  0 or 1   */
-//  public static final int ER_ZERO_OR_ONE = 77;
-
-  { ER_ZERO_OR_ONE,
-       "0 oder 1"},
-
-
-   /**  rtf() not supported by XRTreeFragSelectWrapper   */
-  //public static final int ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 78;
-
-  { ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
-       "rtf() wird nicht von XRTreeFragSelectWrapper unterst\u00fctzt"},
-
-   /**  asNodeIterator() not supported by XRTreeFragSelectWrapper   */
-  //public static final int ER_ASNODEITERATOR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER = 79;
-
-  { ER_RTF_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER,
-       "asNodeIterator() wird nicht von XRTreeFragSelectWrapper unterst\u00fctzt"},
-
-   /**  fsb() not supported for XStringForChars   */
- // public static final int ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS = 80;
-
-  { ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS,
-       "fsb() wird nicht f\u00fcr XStringForChars unterst\u00fctzt"},
-
-   /**  Could not find variable with the name of   */
-// public static final int ER_COULD_NOT_FIND_VAR = 81;
-
-  { ER_COULD_NOT_FIND_VAR,
-      "Die Variable mit dem Namen {0} konnte nicht gefunden werden"},
-
-   /**  XStringForChars can not take a string for an argument   */
-// public static final int ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING = 82;
-
-  { ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING,
-      "XStringForChars kann keine Zeichenfolge als Argument enthalten"},
-
-   /**  The FastStringBuffer argument can not be null   */
-// public static final int ER_FASTSTRINGBUFFER_CANNOT_BE_NULL = 83;
-
-  { ER_FASTSTRINGBUFFER_CANNOT_BE_NULL,
-      "Das Argument FastStringBuffer kann nicht Null sein"},
-
-  /* MANTIS_XALAN CHANGE: BEGIN */
-   /**  2 or 3   */
-//  public static final int ER_TWO_OR_THREE = 84;
-
-  { ER_TWO_OR_THREE,
-       "2 oder 3"},
-
-   /** Variable accessed before it is bound! */
-//  public static final int ER_VARIABLE_ACCESSED_BEFORE_BIND = 85;
-
-  { ER_VARIABLE_ACCESSED_BEFORE_BIND,
-       "Auf die Variable wurde zugegriffen, bevor diese gebunden wurde!"},
-
-   /** XStringForFSB can not take a string for an argument! */
-// public static final int ER_FSB_CANNOT_TAKE_STRING = 86;
-
-  { ER_FSB_CANNOT_TAKE_STRING,
-       "XStringForFSB kann keine Zeichenfolge als Argument enthalten!"},
-
-   /** Error! Setting the root of a walker to null! */
-//  public static final int ER_SETTING_WALKER_ROOT_TO_NULL = 87;
-
-  { ER_SETTING_WALKER_ROOT_TO_NULL,
-       "\n !!!! Fehler! Root eines Walker wird auf Null gesetzt!!!"},
-
-   /** This NodeSetDTM can not iterate to a previous node! */
-//  public static final int ER_NODESETDTM_CANNOT_ITERATE = 88;
-
-  { ER_NODESETDTM_CANNOT_ITERATE,
-       "Dieses NodeSetDTM kann keinen vorherigen Knoten wiederholen!"},
-
-  /** This NodeSet can not iterate to a previous node! */
-// public static final int ER_NODESET_CANNOT_ITERATE = 89;
-
-  { ER_NODESET_CANNOT_ITERATE,
-       "Diese NodeSet kann keinen vorherigen Knoten wiederholen!"},
-
-  /** This NodeSetDTM can not do indexing or counting functions! */
-//  public static final int ER_NODESETDTM_CANNOT_INDEX = 90;
-
-  { ER_NODESETDTM_CANNOT_INDEX,
-       "Dieses NodeSetDTM kann keine Indexierungs- oder Z\u00e4hlfunktionen ausf\u00fchren!"},
-
-  /** This NodeSet can not do indexing or counting functions! */
-//  public static final int ER_NODESET_CANNOT_INDEX = 91;
-
-  { ER_NODESET_CANNOT_INDEX,
-       "Diese NodeSet kann keine Indexierungs- oder Z\u00e4hlfunktionen ausf\u00fchren!"},
-
-  /** Can not call setShouldCacheNodes after nextNode has been called! */
-//  public static final int ER_CANNOT_CALL_SETSHOULDCACHENODE = 92;
-
-  { ER_CANNOT_CALL_SETSHOULDCACHENODE,
-       "setShouldCacheNodes kann nicht aufgerufen werden, nachdem nextNode aufgerufen wurde!"},
-
-  /** {0} only allows {1} arguments */
-// public static final int ER_ONLY_ALLOWS = 93;
-
-  { ER_ONLY_ALLOWS,
-       "{0} erlaubt nur {1} Argument(e)"},
-
-  /** Programmer's assertion in getNextStepPos: unknown stepType: {0} */
-//  public static final int ER_UNKNOWN_STEP = 94;
-
-  { ER_UNKNOWN_STEP,
-       "Programmiererfestlegung in getNextStepPos: stepType unbekannt: {0} "},
-
-  //Note to translators:  A relative location path is a form of XPath expression.
-  // The message indicates that such an expression was expected following the
-  // characters '/' or '//', but was not found.
-
-  /** Problem with RelativeLocationPath */
-//  public static final int ER_EXPECTED_REL_LOC_PATH = 95;
-
-  { ER_EXPECTED_REL_LOC_PATH,
-      "Nach dem Token '/' oder '//' wurde ein relativer Positionspfad erwartet."},
-
-  // Note to translators:  A location path is a form of XPath expression.
-  // The message indicates that syntactically such an expression was expected,but
-  // the characters specified by the substitution text were encountered instead.
-
-  /** Problem with LocationPath */
-//  public static final int ER_EXPECTED_LOC_PATH = 96;
-
-  { ER_EXPECTED_LOC_PATH,
-       "Es wurde ein Positionspfad erwartet, aber folgendes Token wurde festgestellt\u003a {0} "},
-
-  // Note to translators:  A location step is part of an XPath expression.
-  // The message indicates that syntactically such an expression was expected
-  // following the specified characters.
-
-  /** Problem with Step */
-//  public static final int ER_EXPECTED_LOC_STEP = 97;
-
-  { ER_EXPECTED_LOC_STEP,
-       "Nach dem Token '/' oder '//' wurde ein Positionsschritt erwartet."},
-
-  // Note to translators:  A node test is part of an XPath expression that is
-  // used to test for particular kinds of nodes.  In this case, a node test that
-  // consists of an NCName followed by a colon and an asterisk or that consists
-  // of a QName was expected, but was not found.
-
-  /** Problem with NodeTest */
-//  public static final int ER_EXPECTED_NODE_TEST = 98;
-
-  { ER_EXPECTED_NODE_TEST,
-       "Es wurde ein Knotentest erwartet, der entweder NCName:* oder dem QNamen entspricht."},
-
-  // Note to translators:  A step pattern is part of an XPath expression.
-  // The message indicates that syntactically such an expression was expected,
-  // but the specified character was found in the expression instead.
-
-  /** Expected step pattern */
-//  public static final int ER_EXPECTED_STEP_PATTERN = 99;
-
-  { ER_EXPECTED_STEP_PATTERN,
-       "Es wurde ein Schrittmuster erwartet, aber '/' festgestellt."},
-
-  // Note to translators: A relative path pattern is part of an XPath expression.
-  // The message indicates that syntactically such an expression was expected,
-  // but was not found.
-
-  /** Expected relative path pattern */
-//  public static final int ER_EXPECTED_REL_PATH_PATTERN = 100;
-
-  { ER_EXPECTED_REL_PATH_PATTERN,
-       "Es wurde ein Muster eines relativen Pfads erwartet."},
-
-  // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
-  // The localname is the portion after the optional colon; the message indicates
-  // that there is a problem with that part of the QNAME.
-
-  /** localname in QNAME should be a valid NCName */
-//  public static final int ER_ARG_LOCALNAME_INVALID = 101;
-
-  //{ ER_ARG_LOCALNAME_INVALID,
-  //     "Localname in QNAME should be a valid NCName"},
-
-  // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
-  // The prefix is the portion before the optional colon; the message indicates
-  // that there is a problem with that part of the QNAME.
-
-  /** prefix in QNAME should be a valid NCName */
- // public static final int ER_ARG_PREFIX_INVALID = 102;
-
-  //{ ER_ARG_PREFIX_INVALID,
-   //    "Prefix in QNAME should be a valid NCName"},
-
-  // Note to translators:  The substitution text is the name of a data type.  The
-  // message indicates that a value of a particular type could not be converted
-  // to a value of type string.
-
-  /** Field ER_CANT_CONVERT_TO_BOOLEAN          */
-//  public static final int ER_CANT_CONVERT_TO_BOOLEAN = 103;
-
-  { ER_CANT_CONVERT_TO_BOOLEAN,
-       "{0} kann nicht in einen Booleschen Wert konvertiert werden."},
-
-  // Note to translators: Do not translate ANY_UNORDERED_NODE_TYPE and
-  // FIRST_ORDERED_NODE_TYPE.
-
-  /** Field ER_CANT_CONVERT_TO_SINGLENODE       */
-  //public static final int ER_CANT_CONVERT_TO_SINGLENODE = 104;
-
-  { ER_CANT_CONVERT_TO_SINGLENODE,
-       "{0} kann nicht in einen Einzelknoten konvertiert werden. Diese Abruffunktion gilt f\u00fcr die Typen ANY_UNORDERED_NODE_TYPE und FIRST_ORDERED_NODE_TYPE."},
-
-  // Note to translators: Do not translate UNORDERED_NODE_SNAPSHOT_TYPE and
-  // ORDERED_NODE_SNAPSHOT_TYPE.
-
-  /** Field ER_CANT_GET_SNAPSHOT_LENGTH         */
-//  public static final int ER_CANT_GET_SNAPSHOT_LENGTH = 105;
-
-  { ER_CANT_GET_SNAPSHOT_LENGTH,
-       "Die L\u00e4nge der Momentaufnahme f\u00fcr den Typ {0} kann nicht abgerufen werden. Diese Abruffunktion gilt f\u00fcr die Typen UNORDERED_NODE_SNAPSHOT_TYPE und ORDERED_NODE_SNAPSHOT_TYPE."},
-
-  /** Field ER_NON_ITERATOR_TYPE                */
-  //public static final int ER_NON_ITERATOR_TYPE        = 106;
-
-  { ER_NON_ITERATOR_TYPE,
-       "F\u00fcr Nicht-Iterator-Typen k\u00f6nnen keine Iterationen ausgef\u00fchrt werden: {0}"},
-
-  // Note to translators: This message indicates that the document being operated
-  // upon changed, so the iterator object that was being used to traverse the
-  // document has now become invalid.
-
-  /** Field ER_DOC_MUTATED                      */
-//  public static final int ER_DOC_MUTATED              = 107;
-
-  { ER_DOC_MUTATED,
-       "Seit der R\u00fcckgabe des Ergebnisses wurde das Dokument ge\u00e4ndert. Der Iterator ist ung\u00fcltig."},
-
-  /** Field ER_INVALID_XPATH_TYPE               */
-//  public static final int ER_INVALID_XPATH_TYPE       = 108;
-
-  { ER_INVALID_XPATH_TYPE,
-       "Ung\u00fcltiges XPath-Typenargument: {0}"},
-
-  /** Field ER_EMPTY_XPATH_RESULT                */
-//  public static final int ER_EMPTY_XPATH_RESULT       = 109;
-
-  { ER_EMPTY_XPATH_RESULT,
-       "Leeres XPath-Ergebnisobjekt"},
-
-  /** Field ER_INCOMPATIBLE_TYPES                */
-//  public static final int ER_INCOMPATIBLE_TYPES       = 110;
-
-  { ER_INCOMPATIBLE_TYPES,
-       "Eine Konvertierung des zur\u00fcckgegebenen Typs {0} in den angegebenen Typ {1} kann nicht erzwungen werden."},
-
-  /** Field ER_NULL_RESOLVER                     */
- // public static final int ER_NULL_RESOLVER            = 111;
-
-  { ER_NULL_RESOLVER,
-       "Das Pr\u00e4fix kann nicht mit einer Aufl\u00f6sungsfunktion f\u00fcr Nullpr\u00e4fixe aufgel\u00f6st werden."},
-
-  // Note to translators:  The substitution text is the name of a data type.  The
-  // message indicates that a value of a particular type could not be converted
-  // to a value of type string.
-
-  /** Field ER_CANT_CONVERT_TO_STRING            */
-//  public static final int ER_CANT_CONVERT_TO_STRING   = 112;
-
-  { ER_CANT_CONVERT_TO_STRING,
-       "{0} kann nicht in eine Zeichenfolge (string) konvertiert werden."},
-
-  // Note to translators: Do not translate snapshotItem,
-  // UNORDERED_NODE_SNAPSHOT_TYPE and ORDERED_NODE_SNAPSHOT_TYPE.
-
-  /** Field ER_NON_SNAPSHOT_TYPE                 */
-//  public static final int ER_NON_SNAPSHOT_TYPE       = 113;
-
-  { ER_NON_SNAPSHOT_TYPE,
-       "snapshotItem kann nicht f\u00fcr Typ {0} aufgerufen werden. Diese Methode gilt f\u00fcr die Typen UNORDERED_NODE_SNAPSHOT_TYPE und ORDERED_NODE_SNAPSHOT_TYPE."},
-
-  // Note to translators:  XPathEvaluator is a Java interface name.  An
-  // XPathEvaluator is created with respect to a particular XML document, and in
-  // this case the expression represented by this object was being evaluated with
-  // respect to a context node from a different document.
-
-  /** Field ER_WRONG_DOCUMENT                    */
-//  public static final int ER_WRONG_DOCUMENT          = 114;
-
-  { ER_WRONG_DOCUMENT,
-       "Kontextknoten geh\u00f6rt nicht zu dem Dokument, das an diesen XPathEvaluator gebunden ist."},
-
-  // Note to translators:  The XPath expression cannot be evaluated with respect
-  // to this type of node.
-  /** Field ER_WRONG_NODETYPE                    */
-//  public static final int ER_WRONG_NODETYPE          = 115;
-
-  { ER_WRONG_NODETYPE,
-       "Der Kontextknotentyp wird nicht unterst\u00fctzt."},
-
-  /** Field ER_XPATH_ERROR                       */
-//  public static final int ER_XPATH_ERROR             = 116;
-
-  { ER_XPATH_ERROR,
-       "Unbekannter Fehler in XPath."},
-
-
-  // Warnings...
-
-  /** Field WG_LOCALE_NAME_NOT_HANDLED          */
-//  public static final int WG_LOCALE_NAME_NOT_HANDLED = 1;
-
-  { WG_LOCALE_NAME_NOT_HANDLED,
-      "Der Name der L\u00e4ndereinstellung in der Funktion format-number wurde bisher nicht verarbeitet!"},
-
-  /** Field WG_PROPERTY_NOT_SUPPORTED          */
-//  public static final int WG_PROPERTY_NOT_SUPPORTED = 2;
-
-  { WG_PROPERTY_NOT_SUPPORTED,
-      "XSL-Merkmal wird nicht unterst\u00fctzt: {0}"},
-
-  /** Field WG_DONT_DO_ANYTHING_WITH_NS          */
-//  public static final int WG_DONT_DO_ANYTHING_WITH_NS = 3;
-
-  { WG_DONT_DO_ANYTHING_WITH_NS,
-      "F\u00fchren Sie derzeit keine Vorg\u00e4nge mit dem Namensbereich {0} in folgendem Merkmal durch: {1}"},
-
-  /** Field WG_SECURITY_EXCEPTION          */
-// public static final int WG_SECURITY_EXCEPTION = 4;
-
-  { WG_SECURITY_EXCEPTION,
-      "SecurityException beim Zugriff auf XSL-Systemmerkmal: {0}"},
-
-  /** Field WG_QUO_NO_LONGER_DEFINED          */
-//  public static final int WG_QUO_NO_LONGER_DEFINED = 5;
-
-  { WG_QUO_NO_LONGER_DEFINED,
-      "Veraltete Syntax: quo(...) ist nicht mehr in XPath definiert."},
-
-  /** Field WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST          */
-// public static final int WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST = 6;
-
-  { WG_NEED_DERIVED_OBJECT_TO_IMPLEMENT_NODETEST,
-      "XPath ben\u00f6tigt f\u00fcr die Implementierung von nodeTest ein abgeleitetes Objekt!"},
-
-  /** Field WG_FUNCTION_TOKEN_NOT_FOUND          */
-//  public static final int WG_FUNCTION_TOKEN_NOT_FOUND = 7;
-
-  { WG_FUNCTION_TOKEN_NOT_FOUND,
-      "Funktionstoken wurde nicht gefunden."},
-
-  /** Field WG_COULDNOT_FIND_FUNCTION          */
-//  public static final int WG_COULDNOT_FIND_FUNCTION = 8;
-
-  { WG_COULDNOT_FIND_FUNCTION,
-      "Die Funktion konnte nicht gefunden werden: {0}"},
-
-  /** Field WG_CANNOT_MAKE_URL_FROM          */
-//  public static final int WG_CANNOT_MAKE_URL_FROM = 9;
-
-  { WG_CANNOT_MAKE_URL_FROM,
-      "URL konnte nicht erstellt werden aus: {0}"},
-
-  /** Field WG_EXPAND_ENTITIES_NOT_SUPPORTED          */
-//  public static final int WG_EXPAND_ENTITIES_NOT_SUPPORTED = 10;
-
-  { WG_EXPAND_ENTITIES_NOT_SUPPORTED,
-      "Option -E wird f\u00fcr DTM-Parser nicht unterst\u00fctzt"},
-
-  /** Field WG_ILLEGAL_VARIABLE_REFERENCE          */
-//  public static final int WG_ILLEGAL_VARIABLE_REFERENCE = 11;
-
-  { WG_ILLEGAL_VARIABLE_REFERENCE,
-      "Das f\u00fcr die Variable angegebene Argument VariableReference befindet sich au\u00dferhalb des Kontexts oder weist keine Definition auf!  Name = {0}"},
-
-  /** Field WG_UNSUPPORTED_ENCODING          */
-//  public static final int WG_UNSUPPORTED_ENCODING = 12;
-
-  { WG_UNSUPPORTED_ENCODING,
-     "Nicht unterst\u00fctzte Verschl\u00fcsselung: {0}"},
-
-
-
-  // Other miscellaneous text used inside the code...
-  { "ui_language", "de"},
-  { "help_language", "de"},
-  { "language", "de"},
-  { "BAD_CODE", "Der Parameter f\u00fcr createMessage lag au\u00dferhalb des g\u00fcltigen Bereichs"},
-  { "FORMAT_FAILED", "W\u00e4hrend des Aufrufs von messageFormat wurde eine Ausnahmebedingung ausgel\u00f6st"},
-  { "version", ">>>>>>> Xalan-Version "},
-  { "version2", "<<<<<<<"},
-  { "yes", "ja"},
-  { "line", "Zeilennummer"},
-  { "column", "Spaltennummer"},
-  { "xsldone", "XSLProcessor: fertig"},
-  { "xpath_option", "xpath-Optionen: "},
-  { "optionIN", "[-in EingabeXMLURL]"},
-  { "optionSelect", "[-select Xpath-Ausdruck]"},
-  { "optionMatch", "[-match \u00dcbereinstimmungsmuster (f\u00fcr \u00dcbereinstimmungsdiagnose)]"},
-  { "optionAnyExpr", "\u00dcber einen einfachen xpath-Ausdruck wird ein Diagnosespeicherauszug erstellt"},
-  { "noParsermsg1", "XSL-Prozess konnte nicht erfolgreich durchgef\u00fchrt werden."},
-  { "noParsermsg2", "** Parser konnte nicht gefunden werden **"},
-  { "noParsermsg3", "Bitte \u00fcberpr\u00fcfen Sie den Klassenpfad."},
-  { "noParsermsg4", "Wenn Sie nicht \u00fcber einen IBM XML-Parser f\u00fcr Java verf\u00fcgen, k\u00f6nnen Sie ihn \u00fcber"},
-  { "noParsermsg5", "IBM AlphaWorks: http://www.alphaworks.ibm.com/formula/xml"},
-  { "gtone", ">1" },
-  { "zero", "0" },
-  { "one", "1" },
-  { "two" , "2" },
-  { "three", "3" }
-
-  };
+      return _contents;
   }
 
 
+  // ================= INFRASTRUCTURE ======================
 
   /** Field BAD_CODE          */
-  public static final String BAD_CODE = "FEHLERHAFTER_CODE";
+  public static final String BAD_CODE = "BAD_CODE";
 
   /** Field FORMAT_FAILED          */
-  public static final String FORMAT_FAILED = "FORMAT_FEHLGESCHLAGEN";
+  public static final String FORMAT_FAILED = "FORMAT_FAILED";
 
   /** Field ERROR_RESOURCES          */
   public static final String ERROR_RESOURCES =
     "com.sun.org.apache.xpath.internal.res.XPATHErrorResources";
 
   /** Field ERROR_STRING          */
-  public static final String ERROR_STRING = "#Fehler";
+  public static final String ERROR_STRING = "#error";
 
   /** Field ERROR_HEADER          */
-  public static final String ERROR_HEADER = "Fehler: ";
+  public static final String ERROR_HEADER = "Error: ";
 
   /** Field WARNING_HEADER          */
-  public static final String WARNING_HEADER = "Achtung: ";
+  public static final String WARNING_HEADER = "Warning: ";
 
   /** Field XSL_HEADER          */
   public static final String XSL_HEADER = "XSL ";
@@ -1259,7 +937,7 @@ public static final String ER_IGNORABLE_WHITESPACE_NOT_HANDLED =
   public static final String XML_HEADER = "XML ";
 
   /** Field QUERY_HEADER          */
-  public static final String QUERY_HEADER = "MUSTER ";
+  public static final String QUERY_HEADER = "PATTERN ";
 
 
   /**

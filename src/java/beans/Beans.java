@@ -1,32 +1,67 @@
 /*
- * @(#)Beans.java	1.64 05/11/17
+ * Copyright (c) 1996, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
 
-import java.applet.*;
+import com.sun.beans.finder.ClassFinder;
 
-import java.awt.*;
+import java.applet.Applet;
+import java.applet.AppletContext;
+import java.applet.AppletStub;
+import java.applet.AudioClip;
 
-import java.beans.AppletInitializer;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
 
 import java.beans.beancontext.BeanContext;
 
-import java.io.*;
-
-import java.lang.reflect.Constructor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamClass;
+import java.io.StreamCorruptedException;
 
 import java.net.URL;
-import java.lang.reflect.Array;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Vector;
+
+import sun.awt.AppContext;
 
 /**
  * This class provides some general purpose beans control methods.
  */
 
 public class Beans {
+    private static final Object DESIGN_TIME = new Object();
+    private static final Object GUI_AVAILABLE = new Object();
 
     /**
      * <p>
@@ -34,18 +69,18 @@ public class Beans {
      * </p>
      *
      * @param     cls         the class-loader from which we should create
-     * 		              the bean.  If this is null, then the system
+     *                        the bean.  If this is null, then the system
      *                        class-loader is used.
      * @param     beanName    the name of the bean within the class-loader.
-     *   	              For example "sun.beanbox.foobah"
+     *                        For example "sun.beanbox.foobah"
      *
-     * @exception java.lang.ClassNotFoundException if the class of a serialized
+     * @exception ClassNotFoundException if the class of a serialized
      *              object could not be found.
-     * @exception java.io.IOException if an I/O error occurs.
+     * @exception IOException if an I/O error occurs.
      */
 
-    public static Object instantiate(ClassLoader cls, String beanName) throws java.io.IOException, ClassNotFoundException {
-	return Beans.instantiate(cls, beanName, null, null);
+    public static Object instantiate(ClassLoader cls, String beanName) throws IOException, ClassNotFoundException {
+        return Beans.instantiate(cls, beanName, null, null);
     }
 
     /**
@@ -54,19 +89,19 @@ public class Beans {
      * </p>
      *
      * @param     cls         the class-loader from which we should create
-     * 		              the bean.  If this is null, then the system
+     *                        the bean.  If this is null, then the system
      *                        class-loader is used.
      * @param     beanName    the name of the bean within the class-loader.
-     *   	              For example "sun.beanbox.foobah"
+     *                        For example "sun.beanbox.foobah"
      * @param     beanContext The BeanContext in which to nest the new bean
      *
-     * @exception java.lang.ClassNotFoundException if the class of a serialized
+     * @exception ClassNotFoundException if the class of a serialized
      *              object could not be found.
-     * @exception java.io.IOException if an I/O error occurs.
+     * @exception IOException if an I/O error occurs.
      */
 
-    public static Object instantiate(ClassLoader cls, String beanName, BeanContext beanContext) throws java.io.IOException, ClassNotFoundException {
-	return Beans.instantiate(cls, beanName, beanContext, null);
+    public static Object instantiate(ClassLoader cls, String beanName, BeanContext beanContext) throws IOException, ClassNotFoundException {
+        return Beans.instantiate(cls, beanName, beanContext, null);
     }
 
     /**
@@ -108,215 +143,211 @@ public class Beans {
      * BDK BeanBox (for a reference bean container).
      *
      * @param     cls         the class-loader from which we should create
-     * 		              the bean.  If this is null, then the system
+     *                        the bean.  If this is null, then the system
      *                        class-loader is used.
      * @param     beanName    the name of the bean within the class-loader.
-     *   	              For example "sun.beanbox.foobah"
+     *                        For example "sun.beanbox.foobah"
      * @param     beanContext The BeanContext in which to nest the new bean
      * @param     initializer The AppletInitializer for the new bean
      *
-     * @exception java.lang.ClassNotFoundException if the class of a serialized
+     * @exception ClassNotFoundException if the class of a serialized
      *              object could not be found.
-     * @exception java.io.IOException if an I/O error occurs.
+     * @exception IOException if an I/O error occurs.
      */
 
     public static Object instantiate(ClassLoader cls, String beanName, BeanContext beanContext, AppletInitializer initializer)
-			throws java.io.IOException, ClassNotFoundException {
+                        throws IOException, ClassNotFoundException {
 
-	java.io.InputStream ins;
-	java.io.ObjectInputStream oins = null;
-	Object result = null;
-	boolean serialized = false;
-	java.io.IOException serex = null;
+        InputStream ins;
+        ObjectInputStream oins = null;
+        Object result = null;
+        boolean serialized = false;
+        IOException serex = null;
 
-	// If the given classloader is null, we check if an
-	// system classloader is available and (if so)
-	// use that instead.
-	// Note that calls on the system class loader will
-	// look in the bootstrap class loader first.
-	if (cls == null) {
-	    try {
-	        cls = ClassLoader.getSystemClassLoader();
+        // If the given classloader is null, we check if an
+        // system classloader is available and (if so)
+        // use that instead.
+        // Note that calls on the system class loader will
+        // look in the bootstrap class loader first.
+        if (cls == null) {
+            try {
+                cls = ClassLoader.getSystemClassLoader();
             } catch (SecurityException ex) {
-	        // We're not allowed to access the system class loader.
-	        // Drop through.
-	    }
-	}
+                // We're not allowed to access the system class loader.
+                // Drop through.
+            }
+        }
 
-	// Try to find a serialized object with this name
-	final String serName = beanName.replace('.','/').concat(".ser");
-	final ClassLoader loader = cls;
-	ins = (InputStream)java.security.AccessController.doPrivileged
-	    (new java.security.PrivilegedAction() {
-		public Object run() {
-		    if (loader == null)
-			return ClassLoader.getSystemResourceAsStream(serName);
-		    else
-			return loader.getResourceAsStream(serName);
-		}
-	});
-	if (ins != null) {
-	    try {
-	        if (cls == null) {
-		    oins = new ObjectInputStream(ins);
-	        } else {
-		    oins = new ObjectInputStreamWithLoader(ins, cls);
-	        }
-	        result = oins.readObject();
-		serialized = true;
-	        oins.close();
-	    } catch (java.io.IOException ex) {
-		ins.close();
-		// Drop through and try opening the class.  But remember
-		// the exception in case we can't find the class either.
-		serex = ex;
-	    } catch (ClassNotFoundException ex) {
-		ins.close();
-		throw ex;
-	    }
-	}
+        // Try to find a serialized object with this name
+        final String serName = beanName.replace('.','/').concat(".ser");
+        final ClassLoader loader = cls;
+        ins = (InputStream)AccessController.doPrivileged
+            (new PrivilegedAction() {
+                public Object run() {
+                    if (loader == null)
+                        return ClassLoader.getSystemResourceAsStream(serName);
+                    else
+                        return loader.getResourceAsStream(serName);
+                }
+        });
+        if (ins != null) {
+            try {
+                if (cls == null) {
+                    oins = new ObjectInputStream(ins);
+                } else {
+                    oins = new ObjectInputStreamWithLoader(ins, cls);
+                }
+                result = oins.readObject();
+                serialized = true;
+                oins.close();
+            } catch (IOException ex) {
+                ins.close();
+                // Drop through and try opening the class.  But remember
+                // the exception in case we can't find the class either.
+                serex = ex;
+            } catch (ClassNotFoundException ex) {
+                ins.close();
+                throw ex;
+            }
+        }
 
-	if (result == null) {
-	    // No serialized object, try just instantiating the class
-	    Class cl;
+        if (result == null) {
+            // No serialized object, try just instantiating the class
+            Class cl;
 
-	    try {
-	        if (cls == null) {
-	            cl = Class.forName(beanName);
-	        } else {
-	            cl = cls.loadClass(beanName);
-	        }
-	    } catch (ClassNotFoundException ex) {
-		// There is no appropriate class.  If we earlier tried to
-		// deserialize an object and got an IO exception, throw that,
-		// otherwise rethrow the ClassNotFoundException.
-		if (serex != null) {
-		    throw serex;
-		}
-		throw ex;
-	    }
+            try {
+                cl = ClassFinder.findClass(beanName, cls);
+            } catch (ClassNotFoundException ex) {
+                // There is no appropriate class.  If we earlier tried to
+                // deserialize an object and got an IO exception, throw that,
+                // otherwise rethrow the ClassNotFoundException.
+                if (serex != null) {
+                    throw serex;
+                }
+                throw ex;
+            }
 
-	    /*
-	     * Try to instantiate the class.
-	     */
+            /*
+             * Try to instantiate the class.
+             */
 
-	    try {
-	        result = cl.newInstance();
-	    } catch (Exception ex) {
-		// We have to remap the exception to one in our signature.
-		// But we pass extra information in the detail message.
-	        throw new ClassNotFoundException("" + cl + " : " + ex, ex);
-	    }
-	}
+            try {
+                result = cl.newInstance();
+            } catch (Exception ex) {
+                // We have to remap the exception to one in our signature.
+                // But we pass extra information in the detail message.
+                throw new ClassNotFoundException("" + cl + " : " + ex, ex);
+            }
+        }
 
-	if (result != null) {
+        if (result != null) {
 
-	    // Ok, if the result is an applet initialize it.
+            // Ok, if the result is an applet initialize it.
 
-	    AppletStub stub = null;
+            AppletStub stub = null;
 
-	    if (result instanceof Applet) {
-	        Applet  applet      = (Applet) result;
-		boolean needDummies = initializer == null;
+            if (result instanceof Applet) {
+                Applet  applet      = (Applet) result;
+                boolean needDummies = initializer == null;
 
-		if (needDummies) {
+                if (needDummies) {
 
-	    	    // Figure our the codebase and docbase URLs.  We do this
-	    	    // by locating the URL for a known resource, and then
-	    	    // massaging the URL.
+                    // Figure our the codebase and docbase URLs.  We do this
+                    // by locating the URL for a known resource, and then
+                    // massaging the URL.
 
-	    	    // First find the "resource name" corresponding to the bean
-	    	    // itself.  So a serialzied bean "a.b.c" would imply a
-		    // resource name of "a/b/c.ser" and a classname of "x.y"
-		    // would imply a resource name of "x/y.class".
+                    // First find the "resource name" corresponding to the bean
+                    // itself.  So a serialzied bean "a.b.c" would imply a
+                    // resource name of "a/b/c.ser" and a classname of "x.y"
+                    // would imply a resource name of "x/y.class".
 
-	    	    final String resourceName;
+                    final String resourceName;
 
-	    	    if (serialized) {
-	    		// Serialized bean
-	    		resourceName = beanName.replace('.','/').concat(".ser");
-	    	    } else {
-	    		// Regular class
-	    		resourceName = beanName.replace('.','/').concat(".class");
-	    	    }
+                    if (serialized) {
+                        // Serialized bean
+                        resourceName = beanName.replace('.','/').concat(".ser");
+                    } else {
+                        // Regular class
+                        resourceName = beanName.replace('.','/').concat(".class");
+                    }
 
-	    	    URL objectUrl = null;
-	    	    URL codeBase  = null;
-	    	    URL docBase   = null;
+                    URL objectUrl = null;
+                    URL codeBase  = null;
+                    URL docBase   = null;
 
-	    	    // Now get the URL correponding to the resource name.
+                    // Now get the URL correponding to the resource name.
 
-		    final ClassLoader cloader = cls;
-		    objectUrl = (URL)
-			java.security.AccessController.doPrivileged
-			(new java.security.PrivilegedAction() {
-			    public Object run() {
-				if (cloader == null)
-				    return ClassLoader.getSystemResource
-								(resourceName);
-				else
-				    return cloader.getResource(resourceName);
-			    }
-		    });
+                    final ClassLoader cloader = cls;
+                    objectUrl = (URL)
+                        AccessController.doPrivileged
+                        (new PrivilegedAction() {
+                            public Object run() {
+                                if (cloader == null)
+                                    return ClassLoader.getSystemResource
+                                                                (resourceName);
+                                else
+                                    return cloader.getResource(resourceName);
+                            }
+                    });
 
-	    	    // If we found a URL, we try to locate the docbase by taking
-	    	    // of the final path name component, and the code base by taking
-	       	    // of the complete resourceName.
-	    	    // So if we had a resourceName of "a/b/c.class" and we got an
-	    	    // objectURL of "file://bert/classes/a/b/c.class" then we would
-	    	    // want to set the codebase to "file://bert/classes/" and the
-	    	    // docbase to "file://bert/classes/a/b/"
+                    // If we found a URL, we try to locate the docbase by taking
+                    // of the final path name component, and the code base by taking
+                    // of the complete resourceName.
+                    // So if we had a resourceName of "a/b/c.class" and we got an
+                    // objectURL of "file://bert/classes/a/b/c.class" then we would
+                    // want to set the codebase to "file://bert/classes/" and the
+                    // docbase to "file://bert/classes/a/b/"
 
-	    	    if (objectUrl != null) {
-	    		String s = objectUrl.toExternalForm();
+                    if (objectUrl != null) {
+                        String s = objectUrl.toExternalForm();
 
-	    		if (s.endsWith(resourceName)) {
-	      		    int ix   = s.length() - resourceName.length();
-	    		    codeBase = new URL(s.substring(0,ix));
-	    		    docBase  = codeBase;
+                        if (s.endsWith(resourceName)) {
+                            int ix   = s.length() - resourceName.length();
+                            codeBase = new URL(s.substring(0,ix));
+                            docBase  = codeBase;
 
-	    		    ix = s.lastIndexOf('/');
+                            ix = s.lastIndexOf('/');
 
-	    		    if (ix >= 0) {
-	    		        docBase = new URL(s.substring(0,ix+1));
-	    		    }
-	    		}
-	    	    }
+                            if (ix >= 0) {
+                                docBase = new URL(s.substring(0,ix+1));
+                            }
+                        }
+                    }
 
-	    	    // Setup a default context and stub.
-	    	    BeansAppletContext context = new BeansAppletContext(applet);
+                    // Setup a default context and stub.
+                    BeansAppletContext context = new BeansAppletContext(applet);
 
-	            stub = (AppletStub)new BeansAppletStub(applet, context, codeBase, docBase);
-	            applet.setStub(stub);
-		} else {
-		    initializer.initialize(applet, beanContext);
-		}
+                    stub = (AppletStub)new BeansAppletStub(applet, context, codeBase, docBase);
+                    applet.setStub(stub);
+                } else {
+                    initializer.initialize(applet, beanContext);
+                }
 
-	        // now, if there is a BeanContext, add the bean, if applicable.
+                // now, if there is a BeanContext, add the bean, if applicable.
 
-	    	if (beanContext != null) {
-	            beanContext.add(result);
-	    	}
+                if (beanContext != null) {
+                    beanContext.add(result);
+                }
 
-		// If it was deserialized then it was already init-ed.
-		// Otherwise we need to initialize it.
+                // If it was deserialized then it was already init-ed.
+                // Otherwise we need to initialize it.
 
-		if (!serialized) {
-		    // We need to set a reasonable initial size, as many
-		    // applets are unhappy if they are started without
-		    // having been explicitly sized.
-		    applet.setSize(100,100);
-		    applet.init();
-		}
+                if (!serialized) {
+                    // We need to set a reasonable initial size, as many
+                    // applets are unhappy if they are started without
+                    // having been explicitly sized.
+                    applet.setSize(100,100);
+                    applet.init();
+                }
 
-		if (needDummies) {
-		  ((BeansAppletStub)stub).active = true;
-	 	} else initializer.activate(applet);
+                if (needDummies) {
+                  ((BeansAppletStub)stub).active = true;
+                } else initializer.activate(applet);
 
-	    } else if (beanContext != null) beanContext.add(result);
-	}
+            } else if (beanContext != null) beanContext.add(result);
+        }
 
-	return result;
+        return result;
     }
 
 
@@ -351,7 +382,7 @@ public class Beans {
      *
      */
     public static boolean isInstanceOf(Object bean, Class<?> targetType) {
-	return Introspector.isSubclass(bean.getClass(), targetType);
+        return Introspector.isSubclass(bean.getClass(), targetType);
     }
 
 
@@ -359,88 +390,83 @@ public class Beans {
      * Test if we are in design-mode.
      *
      * @return  True if we are running in an application construction
-     *		environment.
+     *          environment.
      *
-     * @see java.beans.DesignMode
+     * @see DesignMode
      */
     public static boolean isDesignTime() {
-	return designTime;
+        Object value = AppContext.getAppContext().get(DESIGN_TIME);
+        return (value instanceof Boolean) && (Boolean) value;
     }
 
     /**
      * Determines whether beans can assume a GUI is available.
      *
      * @return  True if we are running in an environment where beans
-     *	   can assume that an interactive GUI is available, so they
-     *	   can pop up dialog boxes, etc.  This will normally return
-     *	   true in a windowing environment, and will normally return
-     *	   false in a server environment or if an application is
-     *	   running as part of a batch job.
+     *     can assume that an interactive GUI is available, so they
+     *     can pop up dialog boxes, etc.  This will normally return
+     *     true in a windowing environment, and will normally return
+     *     false in a server environment or if an application is
+     *     running as part of a batch job.
      *
-     * @see java.beans.Visibility
+     * @see Visibility
      *
      */
     public static boolean isGuiAvailable() {
-	return guiAvailable;
+        Object value = AppContext.getAppContext().get(GUI_AVAILABLE);
+        return (value instanceof Boolean) ? (Boolean) value : !GraphicsEnvironment.isHeadless();
     }
 
     /**
      * Used to indicate whether of not we are running in an application
-     * builder environment.  
-     * 
+     * builder environment.
+     *
      * <p>Note that this method is security checked
      * and is not available to (for example) untrusted applets.
-     * More specifically, if there is a security manager, 
-     * its <code>checkPropertiesAccess</code> 
+     * More specifically, if there is a security manager,
+     * its <code>checkPropertiesAccess</code>
      * method is called. This could result in a SecurityException.
      *
      * @param isDesignTime  True if we're in an application builder tool.
-     * @exception  SecurityException  if a security manager exists and its  
+     * @exception  SecurityException  if a security manager exists and its
      *             <code>checkPropertiesAccess</code> method doesn't allow setting
      *              of system properties.
      * @see SecurityManager#checkPropertiesAccess
      */
 
     public static void setDesignTime(boolean isDesignTime)
-			throws SecurityException {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkPropertiesAccess();
-	}
-	designTime = isDesignTime;
+                        throws SecurityException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPropertiesAccess();
+        }
+        AppContext.getAppContext().put(DESIGN_TIME, Boolean.valueOf(isDesignTime));
     }
 
     /**
      * Used to indicate whether of not we are running in an environment
-     * where GUI interaction is available.  
-     * 
+     * where GUI interaction is available.
+     *
      * <p>Note that this method is security checked
      * and is not available to (for example) untrusted applets.
-     * More specifically, if there is a security manager, 
-     * its <code>checkPropertiesAccess</code> 
+     * More specifically, if there is a security manager,
+     * its <code>checkPropertiesAccess</code>
      * method is called. This could result in a SecurityException.
      *
      * @param isGuiAvailable  True if GUI interaction is available.
-     * @exception  SecurityException  if a security manager exists and its  
+     * @exception  SecurityException  if a security manager exists and its
      *             <code>checkPropertiesAccess</code> method doesn't allow setting
      *              of system properties.
      * @see SecurityManager#checkPropertiesAccess
      */
 
     public static void setGuiAvailable(boolean isGuiAvailable)
-			throws SecurityException {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkPropertiesAccess();
-	}
-	guiAvailable = isGuiAvailable;
-    }
-
-
-    private static boolean designTime;
-    private static boolean guiAvailable;
-    static {
-        guiAvailable = !GraphicsEnvironment.isHeadless();
+                        throws SecurityException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPropertiesAccess();
+        }
+        AppContext.getAppContext().put(GUI_AVAILABLE, Boolean.valueOf(isGuiAvailable));
     }
 }
 
@@ -458,62 +484,23 @@ class ObjectInputStreamWithLoader extends ObjectInputStream
      */
 
     public ObjectInputStreamWithLoader(InputStream in, ClassLoader loader)
-	    throws IOException, StreamCorruptedException {
+            throws IOException, StreamCorruptedException {
 
-	super(in);
-	if (loader == null) {
+        super(in);
+        if (loader == null) {
             throw new IllegalArgumentException("Illegal null argument to ObjectInputStreamWithLoader");
-	}
-	this.loader = loader;
-    }
-
-    /**
-     * Make a primitive array class
-     */
-
-    private Class primitiveType(char type) {
-	switch (type) {
-	case 'B': return byte.class;
-        case 'C': return char.class;
-	case 'D': return double.class;
-	case 'F': return float.class;
-	case 'I': return int.class;
-	case 'J': return long.class;
-	case 'S': return short.class;
-	case 'Z': return boolean.class;
-	default: return null;
-	}
+        }
+        this.loader = loader;
     }
 
     /**
      * Use the given ClassLoader rather than using the system class
      */
     protected Class resolveClass(ObjectStreamClass classDesc)
-	throws IOException, ClassNotFoundException {
+        throws IOException, ClassNotFoundException {
 
-	String cname = classDesc.getName();
-	if (cname.startsWith("[")) {
-	    // An array
-	    Class component;		// component class
-	    int dcount;			// dimension
-	    for (dcount=1; cname.charAt(dcount)=='['; dcount++) ;
-	    if (cname.charAt(dcount) == 'L') {
-		component = loader.loadClass(cname.substring(dcount+1,
-							     cname.length()-1));
-	    } else {
-		if (cname.length() != dcount+1) {
-		    throw new ClassNotFoundException(cname);// malformed
-		}
-		component = primitiveType(cname.charAt(dcount));
-	    }
-	    int dim[] = new int[dcount];
-	    for (int i=0; i<dcount; i++) {
-		dim[i]=0;
-	    }
-	    return Array.newInstance(component, dim).getClass();
-	} else {
-	    return loader.loadClass(cname);
-	}
+        String cname = classDesc.getName();
+        return ClassFinder.resolveClass(cname, this.loader);
     }
 }
 
@@ -524,81 +511,81 @@ class ObjectInputStreamWithLoader extends ObjectInputStream
 
 class BeansAppletContext implements AppletContext {
     Applet target;
-    java.util.Hashtable imageCache = new java.util.Hashtable();
+    Hashtable imageCache = new Hashtable();
 
     BeansAppletContext(Applet target) {
         this.target = target;
     }
 
     public AudioClip getAudioClip(URL url) {
-	// We don't currently support audio clips in the Beans.instantiate
-	// applet context, unless by some luck there exists a URL content
-	// class that can generate an AudioClip from the audio URL.
-	try {
-	    return (AudioClip) url.getContent();
-  	} catch (Exception ex) {
-	    return null;
-	}
+        // We don't currently support audio clips in the Beans.instantiate
+        // applet context, unless by some luck there exists a URL content
+        // class that can generate an AudioClip from the audio URL.
+        try {
+            return (AudioClip) url.getContent();
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public synchronized Image getImage(URL url) {
-	Object o = imageCache.get(url);
-	if (o != null) {
-	    return (Image)o;
-	}
-	try {
-	    o = url.getContent();
-	    if (o == null) {
-		return null;
-	    }
-	    if (o instanceof Image) {
-		imageCache.put(url, o);
-		return (Image) o;
-	    }
-	    // Otherwise it must be an ImageProducer.
-	    Image img = target.createImage((java.awt.image.ImageProducer)o);
-	    imageCache.put(url, img);
-	    return img;
+        Object o = imageCache.get(url);
+        if (o != null) {
+            return (Image)o;
+        }
+        try {
+            o = url.getContent();
+            if (o == null) {
+                return null;
+            }
+            if (o instanceof Image) {
+                imageCache.put(url, o);
+                return (Image) o;
+            }
+            // Otherwise it must be an ImageProducer.
+            Image img = target.createImage((java.awt.image.ImageProducer)o);
+            imageCache.put(url, img);
+            return img;
 
-  	} catch (Exception ex) {
-	    return null;
-	}
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public Applet getApplet(String name) {
-	return null;
+        return null;
     }
 
-    public java.util.Enumeration getApplets() {
-	java.util.Vector applets = new java.util.Vector();
-	applets.addElement(target);
-	return applets.elements();
+    public Enumeration getApplets() {
+        Vector applets = new Vector();
+        applets.addElement(target);
+        return applets.elements();
     }
 
     public void showDocument(URL url) {
-	// We do nothing.
+        // We do nothing.
     }
 
     public void showDocument(URL url, String target) {
-	// We do nothing.
+        // We do nothing.
     }
 
     public void showStatus(String status) {
-	// We do nothing.
+        // We do nothing.
     }
 
     public void setStream(String key, InputStream stream)throws IOException{
-	// We do nothing.
+        // We do nothing.
     }
 
     public InputStream getStream(String key){
-	// We do nothing.
-	return null;
+        // We do nothing.
+        return null;
     }
 
-    public java.util.Iterator getStreamKeys(){
-	// We do nothing.
-	return null;
+    public Iterator getStreamKeys(){
+        // We do nothing.
+        return null;
     }
 }
 
@@ -614,37 +601,37 @@ class BeansAppletStub implements AppletStub {
     transient URL docBase;
 
     BeansAppletStub(Applet target,
-		AppletContext context, URL codeBase,
-				URL docBase) {
+                AppletContext context, URL codeBase,
+                                URL docBase) {
         this.target = target;
-	this.context = context;
-	this.codeBase = codeBase;
-	this.docBase = docBase;
+        this.context = context;
+        this.codeBase = codeBase;
+        this.docBase = docBase;
     }
 
     public boolean isActive() {
-	return active;
+        return active;
     }
 
     public URL getDocumentBase() {
-	// use the root directory of the applet's class-loader
-	return docBase;
+        // use the root directory of the applet's class-loader
+        return docBase;
     }
 
     public URL getCodeBase() {
-	// use the directory where we found the class or serialized object.
-	return codeBase;
+        // use the directory where we found the class or serialized object.
+        return codeBase;
     }
 
     public String getParameter(String name) {
-	return null;
+        return null;
     }
 
     public AppletContext getAppletContext() {
-	return context;
+        return context;
     }
 
     public void appletResize(int width, int height) {
-	// we do nothing.
+        // we do nothing.
     }
 }

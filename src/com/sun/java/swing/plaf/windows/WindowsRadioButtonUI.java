@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsRadioButtonUI.java	1.26 09/08/10
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -38,13 +56,13 @@ public class WindowsRadioButtonUI extends BasicRadioButtonUI
     protected Color focusColor;
 
     private boolean initialized = false;
-    
+
     // ********************************
     //          Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent c) {
         AppContext appContext = AppContext.getAppContext();
-        WindowsRadioButtonUI windowsRadioButtonUI = 
+        WindowsRadioButtonUI windowsRadioButtonUI =
                 (WindowsRadioButtonUI) appContext.get(WINDOWS_RADIO_BUTTON_UI_KEY);
         if (windowsRadioButtonUI == null) {
             windowsRadioButtonUI = new WindowsRadioButtonUI();
@@ -57,24 +75,24 @@ public class WindowsRadioButtonUI extends BasicRadioButtonUI
     //           Defaults
     // ********************************
     public void installDefaults(AbstractButton b) {
-	super.installDefaults(b);
-	if(!initialized) {
-	    dashedRectGapX = ((Integer)UIManager.get("Button.dashedRectGapX")).intValue();
-	    dashedRectGapY = ((Integer)UIManager.get("Button.dashedRectGapY")).intValue();
-	    dashedRectGapWidth = ((Integer)UIManager.get("Button.dashedRectGapWidth")).intValue();
-	    dashedRectGapHeight = ((Integer)UIManager.get("Button.dashedRectGapHeight")).intValue();
-	    focusColor = UIManager.getColor(getPropertyPrefix() + "focus");
-	    initialized = true;
-	}
-	if (XPStyle.getXP() != null) {
-	    LookAndFeel.installProperty(b, "rolloverEnabled", Boolean.TRUE);
-	}
+        super.installDefaults(b);
+        if(!initialized) {
+            dashedRectGapX = ((Integer)UIManager.get("Button.dashedRectGapX")).intValue();
+            dashedRectGapY = ((Integer)UIManager.get("Button.dashedRectGapY")).intValue();
+            dashedRectGapWidth = ((Integer)UIManager.get("Button.dashedRectGapWidth")).intValue();
+            dashedRectGapHeight = ((Integer)UIManager.get("Button.dashedRectGapHeight")).intValue();
+            focusColor = UIManager.getColor(getPropertyPrefix() + "focus");
+            initialized = true;
+        }
+        if (XPStyle.getXP() != null) {
+            LookAndFeel.installProperty(b, "rolloverEnabled", Boolean.TRUE);
+        }
     }
 
     protected Color getFocusColor() {
-	return focusColor;
+        return focusColor;
     }
-    
+
     // ********************************
     //          Paint Methods
     // ********************************
@@ -83,31 +101,30 @@ public class WindowsRadioButtonUI extends BasicRadioButtonUI
      * Overridden method to render the text without the mnemonic
      */
     protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text) {
-	WindowsGraphicsUtils.paintText(g, b, textRect, text, getTextShiftOffset());
-    } 
+        WindowsGraphicsUtils.paintText(g, b, textRect, text, getTextShiftOffset());
+    }
 
 
     protected void paintFocus(Graphics g, Rectangle textRect, Dimension d){
-	g.setColor(getFocusColor());
-	BasicGraphicsUtils.drawDashedRect(g, textRect.x, textRect.y, textRect.width, textRect.height);
-    } 
+        g.setColor(getFocusColor());
+        BasicGraphicsUtils.drawDashedRect(g, textRect.x, textRect.y, textRect.width, textRect.height);
+    }
 
     // ********************************
     //          Layout Methods
     // ********************************
     public Dimension getPreferredSize(JComponent c) {
-	Dimension d = super.getPreferredSize(c);
+        Dimension d = super.getPreferredSize(c);
 
-	/* Ensure that the width and height of the button is odd,
-	 * to allow for the focus line if focus is painted
-	 */
+        /* Ensure that the width and height of the button is odd,
+         * to allow for the focus line if focus is painted
+         */
         AbstractButton b = (AbstractButton)c;
-	if (d != null && b.isFocusPainted()) {
-	    if(d.width % 2 == 0) { d.width += 1; }
-	    if(d.height % 2 == 0) { d.height += 1; }
-	}
-	return d;
+        if (d != null && b.isFocusPainted()) {
+            if(d.width % 2 == 0) { d.width += 1; }
+            if(d.height % 2 == 0) { d.height += 1; }
+        }
+        return d;
     }
 
 }
-

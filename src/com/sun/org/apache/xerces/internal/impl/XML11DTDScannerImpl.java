@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2004 The Apache Software Foundation.  
+ * Copyright (c) 1999-2004 The Apache Software Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -69,7 +73,7 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
 /**
  * This class is responsible for scanning the declarations found
  * in the internal and external subsets of a DTD in an XML document.
- * The scanner acts as the sources for the DTD information which is 
+ * The scanner acts as the sources for the DTD information which is
  * communicated to the DTD handlers.
  * <p>
  * This component requires the following features and properties from the
@@ -81,7 +85,7 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  *  <li>http://apache.org/xml/properties/internal/error-reporter</li>
  *  <li>http://apache.org/xml/properties/internal/entity-manager</li>
  * </ul>
- * 
+ *
  * @xerces.internal
  *
  * @author Arnaud  Le Hors, IBM
@@ -89,7 +93,6 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  * @author Glenn Marcy, IBM
  * @author Eric Ye, IBM
  *
- * @version $Id: XML11DTDScannerImpl.java,v 1.1.2.1 2005/08/01 03:34:16 jeffsuttor Exp $
  */
 public class XML11DTDScannerImpl
     extends XMLDTDScannerImpl {
@@ -134,7 +137,7 @@ public class XML11DTDScannerImpl
     /**
      * Scans public ID literal.
      *
-     * [12] PubidLiteral ::= '"' PubidChar* '"' | "'" (PubidChar - "'")* "'" 
+     * [12] PubidLiteral ::= '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
      * [13] PubidChar::= #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
      *
      * The returned string is normalized according to the following rule,
@@ -197,7 +200,7 @@ public class XML11DTDScannerImpl
         }
         return dataok;
    }
-   
+
     /**
      * Normalize whitespace in an XMLString converting all whitespace
      * characters to space characters.
@@ -211,7 +214,7 @@ public class XML11DTDScannerImpl
             }
         }
     }
-    
+
     /**
      * Normalize whitespace in an XMLString converting all whitespace
      * characters to space characters.
@@ -225,10 +228,10 @@ public class XML11DTDScannerImpl
             }
         }
     }
-    
+
     /**
      * Checks whether this string would be unchanged by normalization.
-     * 
+     *
      * @return -1 if the value would be unchanged by normalization,
      * otherwise the index of the first whitespace character which
      * would be transformed.
@@ -248,43 +251,43 @@ public class XML11DTDScannerImpl
     // valid with respect to the version of
     // XML understood by this scanner.
     protected boolean isInvalid(int value) {
-        return (!XML11Char.isXML11Valid(value)); 
+        return (!XML11Char.isXML11Valid(value));
     } // isInvalid(int):  boolean
 
     // returns true if the given character is not
-    // valid or may not be used outside a character reference 
+    // valid or may not be used outside a character reference
     // with respect to the version of XML understood by this scanner.
     protected boolean isInvalidLiteral(int value) {
-        return (!XML11Char.isXML11ValidLiteral(value)); 
+        return (!XML11Char.isXML11ValidLiteral(value));
     } // isInvalidLiteral(int):  boolean
 
-    // returns true if the given character is 
+    // returns true if the given character is
     // a valid nameChar with respect to the version of
     // XML understood by this scanner.
     protected boolean isValidNameChar(int value) {
-        return (XML11Char.isXML11Name(value)); 
+        return (XML11Char.isXML11Name(value));
     } // isValidNameChar(int):  boolean
 
-    // returns true if the given character is 
+    // returns true if the given character is
     // a valid nameStartChar with respect to the version of
     // XML understood by this scanner.
     protected boolean isValidNameStartChar(int value) {
-        return (XML11Char.isXML11NameStart(value)); 
+        return (XML11Char.isXML11NameStart(value));
     } // isValidNameStartChar(int):  boolean
-    
+
     // returns true if the given character is
     // a valid NCName character with respect to the version of
     // XML understood by this scanner.
     protected boolean isValidNCName(int value) {
         return (XML11Char.isXML11NCName(value));
     } // isValidNCName(int):  boolean
-    
-    // returns true if the given character is 
-    // a valid high surrogate for a nameStartChar 
-    // with respect to the version of XML understood 
+
+    // returns true if the given character is
+    // a valid high surrogate for a nameStartChar
+    // with respect to the version of XML understood
     // by this scanner.
     protected boolean isValidNameStartHighSurrogate(int value) {
-        return XML11Char.isXML11NameHighSurrogate(value); 
+        return XML11Char.isXML11NameHighSurrogate(value);
     } // isValidNameStartHighSurrogate(int):  boolean
 
     // note that, according to 4.3.4 of the XML 1.1 spec, XML 1.1
@@ -293,7 +296,7 @@ public class XML11DTDScannerImpl
     protected boolean versionSupported(String version) {
         return version.equals("1.1") || version.equals ("1.0");
     } // versionSupported(String):  boolean
-    
+
     // returns the error message key for unsupported
     // versions of XML with respect to the version of
     // XML understood by this scanner.

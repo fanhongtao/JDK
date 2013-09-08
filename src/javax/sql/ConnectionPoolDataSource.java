@@ -1,8 +1,26 @@
 /*
- * @(#)ConnectionPoolDataSource.java	1.13 06/04/16
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sql;
@@ -35,7 +53,7 @@ public interface ConnectionPoolDataSource  extends CommonDataSource {
    * @since 1.4
    */
   PooledConnection getPooledConnection() throws SQLException;
-      
+
   /**
    * Attempts to establish a physical database connection that can
    * be used as a pooled connection.
@@ -50,11 +68,6 @@ public interface ConnectionPoolDataSource  extends CommonDataSource {
    * this method
    * @since 1.4
    */
-  PooledConnection getPooledConnection(String user, String password) 
-    throws SQLException;        
- } 
-
-
-
-
-
+  PooledConnection getPooledConnection(String user, String password)
+    throws SQLException;
+ }

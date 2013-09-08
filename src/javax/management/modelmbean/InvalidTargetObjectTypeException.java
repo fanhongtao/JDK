@@ -1,50 +1,52 @@
 /*
- * @(#)file      InvalidTargetObjectTypeException.java
- * @(#)author    IBM Corp.
- * @(#)version   1.29
- * @(#)lastedit      05/12/01
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
+ * @author    IBM Corp.
+ *
  * Copyright IBM Corp. 1999-2000.  All rights reserved.
- * 
- * The program is provided "as is" without any warranty express or implied,
- * including the warranty of non-infringement and the implied warranties of
- * merchantibility and fitness for a particular purpose. IBM will not be
- * liable for any damages suffered by you or any third party claim against 
- * you regarding the Program.
- *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * This software is the proprietary information of Sun Microsystems, Inc.
- * Use is subject to license terms.
- * 
- * Copyright 2006 Sun Microsystems, Inc.  Tous droits reserves.
- * Ce logiciel est propriete de Sun Microsystems, Inc.
- * Distribue par des licences qui en restreignent l'utilisation. 
- *
  */
 
-
-
 package javax.management.modelmbean;
+
+import com.sun.jmx.mbeanserver.GetPropertyAction;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamField;
 import java.security.AccessController;
-import java.security.PrivilegedAction;
-
-import com.sun.jmx.mbeanserver.GetPropertyAction;
 
 /**
  * Exception thrown when an invalid target object type is specified.
- *    
+ *
  *
  * <p>The <b>serialVersionUID</b> of this class is <code>1190536278266811217L</code>.
- * 
+ *
  * @since 1.5
  */
-
+@SuppressWarnings("serial")  // serialVersionUID not constant
 public class InvalidTargetObjectTypeException  extends Exception
 {
 
@@ -54,21 +56,21 @@ public class InvalidTargetObjectTypeException  extends Exception
     //  - "1.0" for JMX 1.0
     //  - any other value for JMX 1.1 and higher
     //
-    // Serial version for old serial form 
+    // Serial version for old serial form
     private static final long oldSerialVersionUID = 3711724570458346634L;
     //
-    // Serial version for new serial form 
+    // Serial version for new serial form
     private static final long newSerialVersionUID = 1190536278266811217L;
     //
     // Serializable fields in old serial form
-    private static final ObjectStreamField[] oldSerialPersistentFields = 
+    private static final ObjectStreamField[] oldSerialPersistentFields =
     {
       new ObjectStreamField("msgStr", String.class),
       new ObjectStreamField("relatedExcept", Exception.class)
     };
     //
     // Serializable fields in new serial form
-    private static final ObjectStreamField[] newSerialPersistentFields = 
+    private static final ObjectStreamField[] newSerialPersistentFields =
     {
       new ObjectStreamField("exception", Exception.class)
     };
@@ -79,22 +81,22 @@ public class InvalidTargetObjectTypeException  extends Exception
      * @serialField exception Exception Encapsulated {@link Exception}
      */
     private static final ObjectStreamField[] serialPersistentFields;
-    private static boolean compat = false;  
+    private static boolean compat = false;
     static {
-	try {
-	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = AccessController.doPrivileged(act);
-	    compat = (form != null && form.equals("1.0"));
-	} catch (Exception e) {
-	    // OK: No compat with 1.0
-	}
-	if (compat) {
-	    serialPersistentFields = oldSerialPersistentFields;
-	    serialVersionUID = oldSerialVersionUID;
-	} else {
-	    serialPersistentFields = newSerialPersistentFields;
-	    serialVersionUID = newSerialVersionUID;
-	}
+        try {
+            GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+            String form = AccessController.doPrivileged(act);
+            compat = (form != null && form.equals("1.0"));
+        } catch (Exception e) {
+            // OK: No compat with 1.0
+        }
+        if (compat) {
+            serialPersistentFields = oldSerialPersistentFields;
+            serialVersionUID = oldSerialVersionUID;
+        } else {
+            serialPersistentFields = newSerialPersistentFields;
+            serialVersionUID = newSerialVersionUID;
+        }
     }
     //
     // END Serialization compatibility stuff
@@ -119,7 +121,7 @@ public class InvalidTargetObjectTypeException  extends Exception
      * Constructor from a string.
      *
      * @param s String value that will be incorporated in the message for
-     *    this exception. 
+     *    this exception.
      */
 
     public InvalidTargetObjectTypeException (String s)
@@ -135,14 +137,14 @@ public class InvalidTargetObjectTypeException  extends Exception
      * @param e Exception that we may have caught to reissue as an
      *    InvalidTargetObjectTypeException.  The message will be used, and we may want to
      *    consider overriding the printStackTrace() methods to get data
-     *    pointing back to original throw stack. 
+     *    pointing back to original throw stack.
      * @param s String value that will be incorporated in message for
-     *    this exception. 
+     *    this exception.
      */
 
     public InvalidTargetObjectTypeException (Exception e, String s)
     {
-      super("InvalidTargetObjectTypeException: " + 
+      super("InvalidTargetObjectTypeException: " +
             s +
             ((e != null)?("\n\t triggered by:" + e.toString()):""));
       exception = e;
@@ -152,14 +154,14 @@ public class InvalidTargetObjectTypeException  extends Exception
      * Deserializes an {@link InvalidTargetObjectTypeException} from an {@link ObjectInputStream}.
      */
     private void readObject(ObjectInputStream in)
-	    throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
       if (compat)
       {
         // Read an object serialized in the old serial form
         //
         ObjectInputStream.GetField fields = in.readFields();
-	exception = (Exception) fields.get("relatedExcept", null);
-	if (fields.defaulted("relatedExcept"))
+        exception = (Exception) fields.get("relatedExcept", null);
+        if (fields.defaulted("relatedExcept"))
         {
           throw new NullPointerException("relatedExcept");
         }
@@ -177,15 +179,15 @@ public class InvalidTargetObjectTypeException  extends Exception
      * Serializes an {@link InvalidTargetObjectTypeException} to an {@link ObjectOutputStream}.
      */
     private void writeObject(ObjectOutputStream out)
-	    throws IOException {
+            throws IOException {
       if (compat)
       {
         // Serializes this instance in the old serial form
         //
         ObjectOutputStream.PutField fields = out.putFields();
-	fields.put("relatedExcept", exception);
-	fields.put("msgStr", ((exception != null)?exception.getMessage():""));
-	out.writeFields();
+        fields.put("relatedExcept", exception);
+        fields.put("msgStr", ((exception != null)?exception.getMessage():""));
+        out.writeFields();
       }
       else
       {
@@ -195,4 +197,3 @@ public class InvalidTargetObjectTypeException  extends Exception
       }
     }
 }
-

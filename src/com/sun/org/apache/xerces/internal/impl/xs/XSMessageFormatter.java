@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,11 +30,10 @@ import com.sun.org.apache.xerces.internal.util.MessageFormatter;
 /**
  * SchemaMessageProvider implements an XMLMessageProvider that
  * provides localizable error messages for the W3C XML Schema Language
- * 
- * @xerces.internal  
- * 
+ *
+ * @xerces.internal
+ *
  * @author Elena Litani, IBM
- * @version $Id: XSMessageFormatter.java,v 1.2.6.1 2005/09/09 07:30:57 sunithareddy Exp $
  */
 public class XSMessageFormatter implements MessageFormatter {
     /**
@@ -46,13 +49,13 @@ public class XSMessageFormatter implements MessageFormatter {
     /**
      * Formats a message with the specified arguments using the given
      * locale information.
-     * 
+     *
      * @param locale    The locale of the message.
      * @param key       The message key.
      * @param arguments The message replacement text arguments. The order
      *                  of the arguments must match that of the placeholders
      *                  in the actual message.
-     * 
+     *
      * @return Returns the formatted message.
      *
      * @throws MissingResourceException Thrown if the message with the
@@ -60,7 +63,7 @@ public class XSMessageFormatter implements MessageFormatter {
      */
      public String formatMessage(Locale locale, String key, Object[] arguments)
         throws MissingResourceException {
-        
+
         if (fResourceBundle == null || locale != fLocale) {
             if (locale != null) {
                 fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSchemaMessages", locale);
@@ -70,7 +73,7 @@ public class XSMessageFormatter implements MessageFormatter {
             if (fResourceBundle == null)
                 fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLSchemaMessages");
         }
-        
+
         String msg = fResourceBundle.getString(key);
         if (arguments != null) {
             try {
@@ -79,7 +82,7 @@ public class XSMessageFormatter implements MessageFormatter {
                 msg = fResourceBundle.getString("FormatFailed");
                 msg += " " + fResourceBundle.getString(key);
             }
-        } 
+        }
 
         if (msg == null) {
             msg = fResourceBundle.getString("BadMessageKey");

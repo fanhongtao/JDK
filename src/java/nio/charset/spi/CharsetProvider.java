@@ -1,8 +1,26 @@
 /*
- * @(#)CharsetProvider.java	1.16 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.charset.spi;
@@ -46,7 +64,6 @@ import java.util.Iterator;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.16, 05/11/17
  * @since 1.4
  *
  * @see java.nio.charset.Charset
@@ -62,9 +79,9 @@ public abstract class CharsetProvider {
      *          {@link RuntimePermission}<tt>("charsetProvider")</tt>
      */
     protected CharsetProvider() {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null)
-	    sm.checkPermission(new RuntimePermission("charsetProvider"));
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null)
+            sm.checkPermission(new RuntimePermission("charsetProvider"));
     }
 
     /**

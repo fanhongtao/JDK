@@ -1,8 +1,26 @@
 /*
- * @(#)ResourceLoader.java	1.7 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.text.html.parser;
@@ -13,7 +31,7 @@ import java.io.InputStream;
  * Simple class to load resources using the 1.2
  * security model.  Since the html support is loaded
  * lazily, it's resources are potentially fetched with
- * applet code in the call stack.  By providing this 
+ * applet code in the call stack.  By providing this
  * functionality in a class that is only built on 1.2,
  * reflection can be used from the code that is also
  * built on 1.1 to call this functionality (and avoid
@@ -21,21 +39,20 @@ import java.io.InputStream;
  * is called from ParserDelegator.getResourceAsStream.
  *
  * @author  Timothy Prinzing
- * @version 1.7 11/17/05
  */
 class ResourceLoader implements java.security.PrivilegedAction {
 
     ResourceLoader(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     public Object run() {
-	Object o = ParserDelegator.class.getResourceAsStream(name);
-	return o;
+        Object o = ParserDelegator.class.getResourceAsStream(name);
+        return o;
     }
 
     public static InputStream getResourceAsStream(String name) {
-	java.security.PrivilegedAction a = new ResourceLoader(name);
+        java.security.PrivilegedAction a = new ResourceLoader(name);
         return (InputStream) java.security.AccessController.doPrivileged(a);
     }
 

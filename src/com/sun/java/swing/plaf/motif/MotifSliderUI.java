@@ -1,8 +1,26 @@
 /*
- * @(#)MotifSliderUI.java	1.23 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -26,7 +44,6 @@ import javax.swing.plaf.basic.BasicSliderUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.23 11/17/05
  * @author Jeff Dinkins
  */
 public class MotifSliderUI extends BasicSliderUI {
@@ -69,26 +86,26 @@ public class MotifSliderUI extends BasicSliderUI {
 
     protected Dimension getThumbSize() {
         if ( slider.getOrientation() == JSlider.HORIZONTAL ) {
-	    return new Dimension( 30, 15 );
-	}
-	else {
-	    return new Dimension( 15, 30 );
-	}
+            return new Dimension( 30, 15 );
+        }
+        else {
+            return new Dimension( 15, 30 );
+        }
     }
 
-    public void paintFocus(Graphics g)  {        
+    public void paintFocus(Graphics g)  {
     }
 
-    public void paintTrack(Graphics g)  {        
+    public void paintTrack(Graphics g)  {
     }
-  
+
     public void paintThumb(Graphics g)  {
         Rectangle knobBounds = thumbRect;
 
         int x = knobBounds.x;
-        int y = knobBounds.y;       
+        int y = knobBounds.y;
         int w = knobBounds.width;
-        int h = knobBounds.height;      
+        int h = knobBounds.height;
 
         if ( slider.isEnabled() ) {
             g.setColor(slider.getForeground());
@@ -140,4 +157,3 @@ public class MotifSliderUI extends BasicSliderUI {
         }
     }
 }
-

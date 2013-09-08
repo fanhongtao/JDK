@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,64 +35,62 @@ class WriterOutputBuffer implements OutputBuffer {
     private static int BUFFER_SIZE = 4 * KB;
 
     static {
-	// Set a larger buffer size for Solaris
-	final String osName = System.getProperty("os.name");
-	if (osName.equalsIgnoreCase("solaris")) {
-	    BUFFER_SIZE = 32 * KB;
-	}
+        // Set a larger buffer size for Solaris
+        final String osName = System.getProperty("os.name");
+        if (osName.equalsIgnoreCase("solaris")) {
+            BUFFER_SIZE = 32 * KB;
+        }
     }
 
     private Writer _writer;
 
     /**
-     * Initializes a WriterOutputBuffer by creating an instance of a 
-     * BufferedWriter. The size of the buffer in this writer may have 
+     * Initializes a WriterOutputBuffer by creating an instance of a
+     * BufferedWriter. The size of the buffer in this writer may have
      * a significant impact on throughput. Solaris prefers a larger
      * buffer, while Linux works better with a smaller one.
      */
     public WriterOutputBuffer(Writer writer) {
-	_writer = new BufferedWriter(writer, BUFFER_SIZE);
+        _writer = new BufferedWriter(writer, BUFFER_SIZE);
     }
 
     public String close() {
-	try {
-	    _writer.flush();
-	}
-	catch (IOException e) {
-	    throw new RuntimeException(e.toString());
-	}
-	return "";
+        try {
+            _writer.flush();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e.toString());
+        }
+        return "";
     }
 
     public OutputBuffer append(String s) {
-	try {
-	    _writer.write(s);
-	}
-	catch (IOException e) {
-	    throw new RuntimeException(e.toString());
-	}
-	return this;
+        try {
+            _writer.write(s);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e.toString());
+        }
+        return this;
     }
 
     public OutputBuffer append(char[] s, int from, int to) {
-	try {
-	    _writer.write(s, from, to);
-	}
-	catch (IOException e) {
-	    throw new RuntimeException(e.toString());
-	}
-	return this;
+        try {
+            _writer.write(s, from, to);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e.toString());
+        }
+        return this;
     }
 
     public OutputBuffer append(char ch) {
-	try {
-	    _writer.write(ch);
-	}
-	catch (IOException e) {
-	    throw new RuntimeException(e.toString());
-	}
-	return this;
+        try {
+            _writer.write(ch);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e.toString());
+        }
+        return this;
     }
 }
-
-

@@ -1,8 +1,26 @@
 /*
- * @(#)CollatorProvider.java	1.2 05/11/17
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.text.spi;
@@ -13,11 +31,10 @@ import java.util.spi.LocaleServiceProvider;
 
 /**
  * An abstract class for service providers that
- * provide concrete implementations of the 
+ * provide concrete implementations of the
  * {@link java.text.Collator Collator} class.
  *
- * @since        1.6 
- * @version      @(#)CollatorProvider.java	1.2 05/11/17
+ * @since        1.6
  */
 public abstract class CollatorProvider extends LocaleServiceProvider {
 
@@ -35,8 +52,8 @@ public abstract class CollatorProvider extends LocaleServiceProvider {
      * @exception NullPointerException if
      * <code>locale</code> is null
      * @exception IllegalArgumentException if <code>locale</code> isn't
-     *     one of the locales returned from 
-     *     {@link java.util.spi.LocaleServiceProvider#getAvailableLocales() 
+     *     one of the locales returned from
+     *     {@link java.util.spi.LocaleServiceProvider#getAvailableLocales()
      *     getAvailableLocales()}.
      * @see java.text.Collator#getInstance(java.util.Locale)
      */

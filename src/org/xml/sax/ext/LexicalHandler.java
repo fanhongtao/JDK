@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // LexicalHandler.java - optional handler for lexical parse events.
 // http://www.saxproject.org
 // Public Domain: no warranty.
@@ -39,7 +64,6 @@ import org.xml.sax.SAXException;
  *
  * @since SAX 2.0 (extensions 1.0)
  * @author David Megginson
- * @version 2.0.1 (sax2r2)
  */
 public interface LexicalHandler
 {
@@ -51,7 +75,7 @@ public interface LexicalHandler
      * DOCTYPE declaration; if the document has no DOCTYPE declaration,
      * this method will not be invoked.</p>
      *
-     * <p>All declarations reported through 
+     * <p>All declarations reported through
      * {@link org.xml.sax.DTDHandler DTDHandler} or
      * {@link org.xml.sax.ext.DeclHandler DeclHandler} events must appear
      * between the startDTD and {@link #endDTD endDTD} events.
@@ -59,14 +83,14 @@ public interface LexicalHandler
      * unless they appear between {@link #startEntity startEntity}
      * and {@link #endEntity endEntity} events.  Comments and
      * processing instructions from the DTD should also be reported
-     * between the startDTD and endDTD events, in their original 
+     * between the startDTD and endDTD events, in their original
      * order of (logical) occurrence; they are not required to
      * appear in their correct locations relative to DTDHandler
      * or DeclHandler events, however.</p>
      *
      * <p>Note that the start/endDTD events will appear within
      * the start/endDocument events from ContentHandler and
-     * before the first 
+     * before the first
      * {@link org.xml.sax.ContentHandler#startElement startElement}
      * event.</p>
      *
@@ -83,8 +107,8 @@ public interface LexicalHandler
      * @see #startEntity
      */
     public abstract void startDTD (String name, String publicId,
-				   String systemId)
-	throws SAXException;
+                                   String systemId)
+        throws SAXException;
 
 
     /**
@@ -98,7 +122,7 @@ public interface LexicalHandler
      * @see #startDTD
      */
     public abstract void endDTD ()
-	throws SAXException;
+        throws SAXException;
 
 
     /**
@@ -112,12 +136,12 @@ public interface LexicalHandler
      * feature to query or control the reporting of parameter entities.</p>
      *
      * <p>General entities are reported with their regular names,
-     * parameter entities have '%' prepended to their names, and 
+     * parameter entities have '%' prepended to their names, and
      * the external DTD subset has the pseudo-entity name "[dtd]".</p>
      *
-     * <p>When a SAX2 driver is providing these events, all other 
-     * events must be properly nested within start/end entity 
-     * events.  There is no additional requirement that events from 
+     * <p>When a SAX2 driver is providing these events, all other
+     * events must be properly nested within start/end entity
+     * events.  There is no additional requirement that events from
      * {@link org.xml.sax.ext.DeclHandler DeclHandler} or
      * {@link org.xml.sax.DTDHandler DTDHandler} be properly ordered.</p>
      *
@@ -126,7 +150,7 @@ public interface LexicalHandler
      * event, which is part of the ContentHandler interface.</p>
      *
      * <p>Because of the streaming event model that SAX uses, some
-     * entity boundaries cannot be reported under any 
+     * entity boundaries cannot be reported under any
      * circumstances:</p>
      *
      * <ul>
@@ -148,10 +172,10 @@ public interface LexicalHandler
      * @exception SAXException The application may raise an exception.
      * @see #endEntity
      * @see org.xml.sax.ext.DeclHandler#internalEntityDecl
-     * @see org.xml.sax.ext.DeclHandler#externalEntityDecl 
+     * @see org.xml.sax.ext.DeclHandler#externalEntityDecl
      */
     public abstract void startEntity (String name)
-	throws SAXException;
+        throws SAXException;
 
 
     /**
@@ -162,7 +186,7 @@ public interface LexicalHandler
      * @see #startEntity
      */
     public abstract void endEntity (String name)
-	throws SAXException;
+        throws SAXException;
 
 
     /**
@@ -177,7 +201,7 @@ public interface LexicalHandler
      * @see #endCDATA
      */
     public abstract void startCDATA ()
-	throws SAXException;
+        throws SAXException;
 
 
     /**
@@ -187,7 +211,7 @@ public interface LexicalHandler
      * @see #startCDATA
      */
     public abstract void endCDATA ()
-	throws SAXException;
+        throws SAXException;
 
 
     /**
@@ -205,7 +229,7 @@ public interface LexicalHandler
      * @exception SAXException The application may raise an exception.
      */
     public abstract void comment (char ch[], int start, int length)
-	throws SAXException;
+        throws SAXException;
 
 }
 

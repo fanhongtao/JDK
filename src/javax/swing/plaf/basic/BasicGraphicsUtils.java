@@ -1,8 +1,26 @@
 /*
- * @(#)BasicGraphicsUtils.java	1.63 05/11/30
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.basic;
 
@@ -15,12 +33,14 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
+
 import sun.swing.SwingUtilities2;
 
 
 /*
- * @version 1.44 02/11/99
  * @author Hans Muller
  */
 
@@ -100,14 +120,14 @@ public class BasicGraphicsUtils
     }
 
 
-    public static void drawBezel(Graphics g, int x, int y, int w, int h, 
-                                 boolean isPressed, boolean isDefault, 
-                                 Color shadow, Color darkShadow, 
+    public static void drawBezel(Graphics g, int x, int y, int w, int h,
+                                 boolean isPressed, boolean isDefault,
+                                 Color shadow, Color darkShadow,
                                  Color highlight, Color lightHighlight)
     {
         Color oldColor = g.getColor();  // Make no net change to g
         g.translate(x, y);
-        
+
         if (isPressed && isDefault) {
             g.setColor(darkShadow);
             g.drawRect(0, 0, w - 1, h - 1);
@@ -117,10 +137,10 @@ public class BasicGraphicsUtils
             drawLoweredBezel(g, x, y, w, h,
                              shadow, darkShadow, highlight, lightHighlight);
         } else if (isDefault) {
-            g.setColor(darkShadow);       
+            g.setColor(darkShadow);
             g.drawRect(0, 0, w-1, h-1);
 
-            g.setColor(lightHighlight);   
+            g.setColor(lightHighlight);
             g.drawLine(1, 1, 1, h-3);
             g.drawLine(2, 1, w-3, 1);
 
@@ -132,11 +152,11 @@ public class BasicGraphicsUtils
             g.drawLine(2, h-3, w-3, h-3);
             g.drawLine(w-3, 2, w-3, h-4);
 
-            g.setColor(darkShadow);        
+            g.setColor(darkShadow);
             g.drawLine(1, h-2, w-2, h-2);
             g.drawLine(w-2, h-2, w-2, 1);
         } else {
-            g.setColor(lightHighlight);    
+            g.setColor(lightHighlight);
             g.drawLine(0, 0, 0, h-1);
             g.drawLine(1, 0, w-2, 0);
 
@@ -148,26 +168,26 @@ public class BasicGraphicsUtils
             g.drawLine(1, h-2, w-2, h-2);
             g.drawLine(w-2, 1, w-2, h-3);
 
-            g.setColor(darkShadow);         
+            g.setColor(darkShadow);
             g.drawLine(0, h-1, w-1, h-1);
             g.drawLine(w-1, h-1, w-1, 0);
         }
-	g.translate(-x, -y);
-	g.setColor(oldColor);
+        g.translate(-x, -y);
+        g.setColor(oldColor);
     }
 
     public static void drawLoweredBezel(Graphics g, int x, int y, int w, int h,
-                                        Color shadow, Color darkShadow, 
+                                        Color shadow, Color darkShadow,
                                         Color highlight, Color lightHighlight)  {
-        g.setColor(darkShadow);    
+        g.setColor(darkShadow);
         g.drawLine(0, 0, 0, h-1);
         g.drawLine(1, 0, w-2, 0);
- 
+
         g.setColor(shadow);
         g.drawLine(1, 1, 1, h-2);
         g.drawLine(1, 1, w-3, 1);
- 
-        g.setColor(lightHighlight);         
+
+        g.setColor(lightHighlight);
         g.drawLine(0, h-1, w-1, h-1);
         g.drawLine(w-1, h-1, w-1, 0);
 
@@ -238,7 +258,7 @@ public class BasicGraphicsUtils
 
         // draw left and right vertical dashes
         for (vy = y; vy < (y + height); vy+=2) {
-	    g.fillRect(x, vy, 1, 1);
+            g.fillRect(x, vy, 1, 1);
             g.fillRect(x+width-1, vy, 1, 1);
         }
     }
@@ -249,24 +269,24 @@ public class BasicGraphicsUtils
             return null;
         }
 
-        Icon icon = (Icon) b.getIcon();
+        Icon icon = b.getIcon();
         String text = b.getText();
 
         Font font = b.getFont();
         FontMetrics fm = b.getFontMetrics(font);
-          
+
         Rectangle iconR = new Rectangle();
         Rectangle textR = new Rectangle();
         Rectangle viewR = new Rectangle(Short.MAX_VALUE, Short.MAX_VALUE);
 
         SwingUtilities.layoutCompoundLabel(
-            (JComponent) b, fm, text, icon,
+            b, fm, text, icon,
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
             viewR, iconR, textR, (text == null ? 0 : textIconGap)
         );
 
-        /* The preferred size of the button is the size of 
+        /* The preferred size of the button is the size of
          * the text and icon rectangles plus the buttons insets.
          */
 
@@ -278,12 +298,17 @@ public class BasicGraphicsUtils
 
         return r.getSize();
     }
-    
+
     /*
      * Convenience function for determining ComponentOrientation.  Helps us
      * avoid having Munge directives throughout the code.
      */
     static boolean isLeftToRight( Component c ) {
         return c.getComponentOrientation().isLeftToRight();
+    }
+
+    static boolean isMenuShortcutKeyDown(InputEvent event) {
+        return (event.getModifiers() &
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()) != 0;
     }
 }

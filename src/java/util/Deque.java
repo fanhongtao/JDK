@@ -1,8 +1,36 @@
 /*
- * @(#)Deque.java	1.5 06/04/21
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea and Josh Bloch with assistance from members of
+ * JCP JSR-166 Expert Group and released to the public domain, as explained
+ * at http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util;
@@ -323,9 +351,11 @@ public interface Deque<E> extends Queue<E> {
      * @param o element to be removed from this deque, if present
      * @return <tt>true</tt> if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
-     *         is incompatible with this deque (optional)
+     *         is incompatible with this deque
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         deque does not permit null elements (optional)
+     *         deque does not permit null elements
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      */
     boolean removeFirstOccurrence(Object o);
 
@@ -341,9 +371,11 @@ public interface Deque<E> extends Queue<E> {
      * @param o element to be removed from this deque, if present
      * @return <tt>true</tt> if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
-     *         is incompatible with this deque (optional)
+     *         is incompatible with this deque
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         deque does not permit null elements (optional)
+     *         deque does not permit null elements
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      */
     boolean removeLastOccurrence(Object o);
 
@@ -499,9 +531,11 @@ public interface Deque<E> extends Queue<E> {
      * @param o element to be removed from this deque, if present
      * @return <tt>true</tt> if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
-     *         is incompatible with this deque (optional)
+     *         is incompatible with this deque
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         deque does not permit null elements (optional)
+     *         deque does not permit null elements
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      */
     boolean remove(Object o);
 
@@ -514,9 +548,11 @@ public interface Deque<E> extends Queue<E> {
      * @param o element whose presence in this deque is to be tested
      * @return <tt>true</tt> if this deque contains the specified element
      * @throws ClassCastException if the type of the specified element
-     *         is incompatible with this deque (optional)
+     *         is incompatible with this deque
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         deque does not permit null elements (optional)
+     *         deque does not permit null elements
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      */
     boolean contains(Object o);
 

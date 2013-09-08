@@ -1,8 +1,26 @@
 /*
- * @(#)Member.java	1.18 06/06/20
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.reflect;
@@ -11,10 +29,10 @@ package java.lang.reflect;
  * Member is an interface that reflects identifying information about
  * a single member (a field or a method) or a constructor.
  *
- * @see	java.lang.Class
- * @see	Field
- * @see	Method
- * @see	Constructor
+ * @see java.lang.Class
+ * @see Field
+ * @see Method
+ * @see Constructor
  *
  * @author Nakul Saraiya
  */
@@ -47,7 +65,7 @@ interface Member {
     /**
      * Returns the simple name of the underlying member or constructor
      * represented by this Member.
-     * 
+     *
      * @return the simple name of the underlying member
      */
     public String getName();
@@ -57,15 +75,15 @@ interface Member {
      * constructor represented by this Member, as an integer.  The
      * Modifier class should be used to decode the modifiers in
      * the integer.
-     * 
+     *
      * @return the Java language modifiers for the underlying member
      * @see Modifier
      */
     public int getModifiers();
 
     /**
-     * Returns <tt>true</tt> if this member was introduced by
-     * the compiler; returns <tt>false</tt> otherwise.
+     * Returns {@code true} if this member was introduced by
+     * the compiler; returns {@code false} otherwise.
      *
      * @return true if and only if this member was introduced by
      * the compiler.

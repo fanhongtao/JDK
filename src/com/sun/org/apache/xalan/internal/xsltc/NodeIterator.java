@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +32,7 @@ import com.sun.org.apache.xml.internal.dtm.DTM;
 public interface NodeIterator extends Cloneable {
     public static final int END = DTM.NULL;
 
-    /** 
+    /**
      * Callers should not call next() after it returns END.
      */
     public int next();
@@ -58,8 +62,8 @@ public interface NodeIterator extends Cloneable {
      */
     public void gotoMark();
 
-    /** 
-     * Set start to END should 'close' the iterator, 
+    /**
+     * Set start to END should 'close' the iterator,
      * i.e. subsequent call to next() should return END.
      */
     public NodeIterator setStartNode(int node);

@@ -1,8 +1,26 @@
 /*
- * @(#)DataCollector.java	1.14 05/11/17
+ * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.orb ;
 
@@ -27,7 +45,7 @@ public interface DataCollector {
     boolean initialHostIsLocal() ;
 
     /** Set the parser which is used to obtain property names.
-     * This must be called before getProperties 
+     * This must be called before getProperties
      * may be called.  It may be called multiple times if different
      * sets of properties are needed for the same data sources.
      */

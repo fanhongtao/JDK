@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,16 +25,16 @@ package com.sun.org.apache.xerces.internal.xs;
  */
 public interface XSParticle extends XSObject {
     /**
-     * [min occurs]: determines the minimum number of terms that can occur. 
+     * [min occurs]: determines the minimum number of terms that can occur.
      */
     public int getMinOccurs();
 
     /**
-     *  [max occurs]: determines the maximum number of terms that can occur. 
-     * To query for the value of unbounded use 
-     * <code>maxOccursUnbounded</code>. When the value of 
-     * <code>maxOccursUnbounded</code> is <code>true</code>, the value of 
-     * <code>maxOccurs</code> is unspecified. 
+     *  [max occurs]: determines the maximum number of terms that can occur.
+     * To query for the value of unbounded use
+     * <code>maxOccursUnbounded</code>. When the value of
+     * <code>maxOccursUnbounded</code> is <code>true</code>, the value of
+     * <code>maxOccurs</code> is unspecified.
      */
     public int getMaxOccurs();
 
@@ -40,8 +44,12 @@ public interface XSParticle extends XSObject {
     public boolean getMaxOccursUnbounded();
 
     /**
-     * [term]: one of a model group, a wildcard, or an element declaration. 
+     * [term]: one of a model group, a wildcard, or an element declaration.
      */
     public XSTerm getTerm();
 
+    /**
+     * A sequence of [annotations] or an empty <code>XSObjectList</code>.
+     */
+    public XSObjectList getAnnotations();
 }

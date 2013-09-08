@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,29 +35,29 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
  * 
  * @author Ankit Pasricha, IBM
  * 
- * @version $Id: DayTimeDurationDV.java,v 1.1.4.1 2005/09/06 11:43:02 neerajbj Exp $
+ * @version $Id: DayTimeDurationDV.java,v 1.6 2010-11-01 04:39:46 joehw Exp $
  */
 class DayTimeDurationDV extends DurationDV {
-    
+
     public Object getActualValue(String content, ValidationContext context)
         throws InvalidDatatypeValueException {
         try {
             return parse(content, DurationDV.DAYTIMEDURATION_TYPE);
-        } 
+        }
         catch (Exception ex) {
             throw new InvalidDatatypeValueException("cvc-datatype-valid.1.2.1", new Object[]{content, "dayTimeDuration"});
         }
     }
-    
+
     protected Duration getDuration(DateTimeData date) {
         int sign = 1;
         if (date.day<0 || date.hour<0 || date.minute<0 || date.second<0) {
             sign = -1;
         }
-        return factory.newDuration(sign == 1, null, null, 
-                date.day != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.day):null, 
-                date.hour != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.hour):null, 
-                date.minute != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.minute):null, 
+        return datatypeFactory.newDuration(sign == 1, null, null,
+                date.day != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.day):null,
+                date.hour != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.hour):null,
+                date.minute != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.minute):null,
                 date.second != DatatypeConstants.FIELD_UNDEFINED?new BigDecimal(String.valueOf(sign*date.second)):null);
     }
 }

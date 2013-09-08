@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,12 +33,11 @@ import com.sun.xml.internal.stream.util.ThreadLocalBufferAllocator;
 /**
  * A simple ASCII byte reader. This is an optimized reader for reading
  * byte streams that only contain 7-bit ASCII characters.
- * 
+ *
  * @xerces.internal
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: ASCIIReader.java,v 1.2.6.1 2005/09/09 07:22:53 neerajbj Exp $
  */
 public class ASCIIReader
     extends Reader {
@@ -67,8 +70,8 @@ public class ASCIIReader
     // Constructors
     //
 
-    /** 
-     * Constructs an ASCII reader from the specified input stream 
+    /**
+     * Constructs an ASCII reader from the specified input stream
      * using the default buffer size.
      *
      * @param inputStream The input stream.
@@ -80,8 +83,8 @@ public class ASCIIReader
         this(inputStream, DEFAULT_BUFFER_SIZE, messageFormatter, locale);
     } // <init>(InputStream, MessageFormatter, Locale)
 
-    /** 
-     * Constructs an ASCII reader from the specified input stream 
+    /**
+     * Constructs an ASCII reader from the specified input stream
      * and buffer size.
      *
      * @param inputStream The input stream.
@@ -121,8 +124,8 @@ public class ASCIIReader
     public int read() throws IOException {
         int b0 = fInputStream.read();
         if (b0 >= 0x80) {
-            throw new MalformedByteSequenceException(fFormatter, 
-                fLocale, XMLMessageFormatter.XML_DOMAIN, 
+            throw new MalformedByteSequenceException(fFormatter,
+                fLocale, XMLMessageFormatter.XML_DOMAIN,
                 "InvalidASCII", new Object [] {Integer.toString(b0)});
         }
         return b0;
@@ -183,14 +186,14 @@ public class ASCIIReader
      * @exception  IOException  If an I/O error occurs
      */
     public boolean ready() throws IOException {
-	    return false;
+            return false;
     } // ready()
 
     /**
      * Tell whether this stream supports the mark() operation.
      */
     public boolean markSupported() {
-	    return fInputStream.markSupported();
+            return fInputStream.markSupported();
     } // markSupported()
 
     /**
@@ -207,7 +210,7 @@ public class ASCIIReader
      *                          or if some other I/O error occurs
      */
     public void mark(int readAheadLimit) throws IOException {
-	    fInputStream.mark(readAheadLimit);
+            fInputStream.mark(readAheadLimit);
     } // mark(int)
 
     /**

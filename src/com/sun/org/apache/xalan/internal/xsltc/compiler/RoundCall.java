@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,15 +38,15 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 final class RoundCall extends FunctionCall {
 
     public RoundCall(QName fname, Vector arguments) {
-	super(fname, arguments);
+        super(fname, arguments);
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// Get two copies of the argument on the stack
-        argument().translate(classGen, methodGen);    
+        // Get two copies of the argument on the stack
+        argument().translate(classGen, methodGen);
                 il.append(new INVOKESTATIC(cpg.addMethodref(BASIS_LIBRARY_CLASS,
                                                             "roundF", "(D)D")));
     }

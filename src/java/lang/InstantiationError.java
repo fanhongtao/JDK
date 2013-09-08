@@ -1,42 +1,61 @@
 /*
- * @(#)InstantiationError.java	1.13 05/11/17
+ * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 /**
- * Thrown when an application tries to use the Java <code>new</code> 
- * construct to instantiate an abstract class or an interface. 
+ * Thrown when an application tries to use the Java <code>new</code>
+ * construct to instantiate an abstract class or an interface.
  * <p>
- * Normally, this error is caught by the compiler; this error can 
- * only occur at run time if the definition of a class has 
- * incompatibly changed. 
+ * Normally, this error is caught by the compiler; this error can
+ * only occur at run time if the definition of a class has
+ * incompatibly changed.
  *
  * @author  unascribed
- * @version 1.13, 11/17/05
  * @since   JDK1.0
  */
 
 
 public
 class InstantiationError extends IncompatibleClassChangeError {
+    private static final long serialVersionUID = -4885810657349421204L;
+
     /**
      * Constructs an <code>InstantiationError</code> with no detail  message.
      */
     public InstantiationError() {
-	super();
+        super();
     }
 
     /**
-     * Constructs an <code>InstantiationError</code> with the specified 
-     * detail message. 
+     * Constructs an <code>InstantiationError</code> with the specified
+     * detail message.
      *
      * @param   s   the detail message.
      */
     public InstantiationError(String s) {
-	super(s);
+        super(s);
     }
 }

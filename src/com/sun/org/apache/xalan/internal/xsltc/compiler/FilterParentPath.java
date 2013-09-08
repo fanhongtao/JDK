@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,67 +52,67 @@ final class FilterParentPath extends Expression {
     private boolean _hasDescendantAxis = false;
 
     public FilterParentPath(Expression filterExpr, Expression path) {
-	(_path = path).setParent(this);
-	(_filterExpr = filterExpr).setParent(this);
+        (_path = path).setParent(this);
+        (_filterExpr = filterExpr).setParent(this);
     }
-		
+
     public void setParser(Parser parser) {
-	super.setParser(parser);
-	_filterExpr.setParser(parser);
-	_path.setParser(parser);
+        super.setParser(parser);
+        _filterExpr.setParser(parser);
+        _path.setParser(parser);
     }
-    
+
     public String toString() {
-	return "FilterParentPath(" + _filterExpr + ", " + _path + ')';
+        return "FilterParentPath(" + _filterExpr + ", " + _path + ')';
     }
 
     public void setDescendantAxis() {
-	_hasDescendantAxis = true;
+        _hasDescendantAxis = true;
     }
 
     /**
-     * Type check a FilterParentPath. If the filter is not a node-set add a 
+     * Type check a FilterParentPath. If the filter is not a node-set add a
      * cast to node-set only if it is of reference type. This type coercion is
      * needed for expressions like $x/LINE where $x is a parameter reference.
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	final Type ftype = _filterExpr.typeCheck(stable);
-	if (ftype instanceof NodeSetType == false) {
-	    if (ftype instanceof ReferenceType)  {
-		_filterExpr = new CastExpr(_filterExpr, Type.NodeSet);
-	    }
-	    /*
-	    else if (ftype instanceof ResultTreeType)  {
-		_filterExpr = new CastExpr(_filterExpr, Type.NodeSet);
-	    }
-	    */
-	    else if (ftype instanceof NodeType)  {
-		_filterExpr = new CastExpr(_filterExpr, Type.NodeSet);
-	    }
-	    else {
-		throw new TypeCheckError(this);
-	    }
-	}
+        final Type ftype = _filterExpr.typeCheck(stable);
+        if (ftype instanceof NodeSetType == false) {
+            if (ftype instanceof ReferenceType)  {
+                _filterExpr = new CastExpr(_filterExpr, Type.NodeSet);
+            }
+            /*
+            else if (ftype instanceof ResultTreeType)  {
+                _filterExpr = new CastExpr(_filterExpr, Type.NodeSet);
+            }
+            */
+            else if (ftype instanceof NodeType)  {
+                _filterExpr = new CastExpr(_filterExpr, Type.NodeSet);
+            }
+            else {
+                throw new TypeCheckError(this);
+            }
+        }
 
-	// Wrap single node path in a node set
-	final Type ptype = _path.typeCheck(stable);
-	if (!(ptype instanceof NodeSetType)) {
-	    _path = new CastExpr(_path, Type.NodeSet);
-	}
+        // Wrap single node path in a node set
+        final Type ptype = _path.typeCheck(stable);
+        if (!(ptype instanceof NodeSetType)) {
+            _path = new CastExpr(_path, Type.NodeSet);
+        }
 
-	return _type = Type.NodeSet;	
+        return _type = Type.NodeSet;
     }
-	
+
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
-	// Create new StepIterator
-	final int initSI = cpg.addMethodref(STEP_ITERATOR_CLASS,
-					    "<init>",
-					    "("
-					    +NODE_ITERATOR_SIG
-					    +NODE_ITERATOR_SIG
-					    +")V");
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
+        // Create new StepIterator
+        final int initSI = cpg.addMethodref(STEP_ITERATOR_CLASS,
+                                            "<init>",
+                                            "("
+                                            +NODE_ITERATOR_SIG
+                                            +NODE_ITERATOR_SIG
+                                            +")V");
 
         // Backwards branches are prohibited if an uninitialized object is
         // on the stack by section 4.9.4 of the JVM Specification, 2nd Ed.
@@ -119,46 +123,46 @@ final class FilterParentPath extends Expression {
         // in temporary variables, create the object and reload the
         // arguments from the temporaries to avoid the problem.
 
-	// Recursively compile 2 iterators
-	_filterExpr.translate(classGen, methodGen);
+        // Recursively compile 2 iterators
+        _filterExpr.translate(classGen, methodGen);
         LocalVariableGen filterTemp =
                 methodGen.addLocalVariable("filter_parent_path_tmp1",
                                            Util.getJCRefType(NODE_ITERATOR_SIG),
                                            il.getEnd(), null);
         il.append(new ASTORE(filterTemp.getIndex()));
 
-	_path.translate(classGen, methodGen);
+        _path.translate(classGen, methodGen);
         LocalVariableGen pathTemp =
                 methodGen.addLocalVariable("filter_parent_path_tmp2",
                                            Util.getJCRefType(NODE_ITERATOR_SIG),
                                            il.getEnd(), null);
         il.append(new ASTORE(pathTemp.getIndex()));
 
-	il.append(new NEW(cpg.addClass(STEP_ITERATOR_CLASS)));
-	il.append(DUP);
+        il.append(new NEW(cpg.addClass(STEP_ITERATOR_CLASS)));
+        il.append(DUP);
         il.append(new ALOAD(filterTemp.getIndex()));
         il.append(new ALOAD(pathTemp.getIndex()));
 
-	// Initialize StepIterator with iterators from the stack
-	il.append(new INVOKESPECIAL(initSI));
+        // Initialize StepIterator with iterators from the stack
+        il.append(new INVOKESPECIAL(initSI));
 
-	// This is a special case for the //* path with or without predicates
+        // This is a special case for the //* path with or without predicates
         if (_hasDescendantAxis) {
-	    final int incl = cpg.addMethodref(NODE_ITERATOR_BASE,
-					      "includeSelf",
-					      "()" + NODE_ITERATOR_SIG);
-	    il.append(new INVOKEVIRTUAL(incl));
-	}
+            final int incl = cpg.addMethodref(NODE_ITERATOR_BASE,
+                                              "includeSelf",
+                                              "()" + NODE_ITERATOR_SIG);
+            il.append(new INVOKEVIRTUAL(incl));
+        }
 
-	if (!(getParent() instanceof RelativeLocationPath) &&
-	    !(getParent() instanceof FilterParentPath)) {
-	    final int order = cpg.addInterfaceMethodref(DOM_INTF,
-							ORDER_ITERATOR,
-							ORDER_ITERATOR_SIG);
-	    il.append(methodGen.loadDOM());
-	    il.append(SWAP);
-	    il.append(methodGen.loadContextNode());
-	    il.append(new INVOKEINTERFACE(order, 3));
-	}
+        if (!(getParent() instanceof RelativeLocationPath) &&
+            !(getParent() instanceof FilterParentPath)) {
+            final int order = cpg.addInterfaceMethodref(DOM_INTF,
+                                                        ORDER_ITERATOR,
+                                                        ORDER_ITERATOR_SIG);
+            il.append(methodGen.loadDOM());
+            il.append(SWAP);
+            il.append(methodGen.loadContextNode());
+            il.append(new INVOKEINTERFACE(order, 3));
+        }
     }
 }

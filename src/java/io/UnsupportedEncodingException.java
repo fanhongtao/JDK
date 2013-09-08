@@ -1,8 +1,26 @@
 /*
- * @(#)UnsupportedEncodingException.java	1.17 05/11/17
+ * Copyright (c) 1996, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.io;
 
@@ -10,12 +28,13 @@ package java.io;
  * The Character Encoding is not supported.
  *
  * @author  Asmus Freytag
- * @version 1.17, 11/17/05
  * @since   JDK1.1
  */
 public class UnsupportedEncodingException
     extends IOException
 {
+    private static final long serialVersionUID = -4274276298326136670L;
+
     /**
      * Constructs an UnsupportedEncodingException without a detail message.
      */

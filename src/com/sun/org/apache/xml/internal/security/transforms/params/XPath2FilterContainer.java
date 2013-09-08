@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +26,7 @@ import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 import com.sun.org.apache.xml.internal.security.transforms.TransformParam;
 import com.sun.org.apache.xml.internal.security.utils.ElementProxy;
 import com.sun.org.apache.xml.internal.security.utils.HelperNodeList;
+import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -32,7 +37,7 @@ import org.w3c.dom.NodeList;
  * Implements the parameters for the <A
  * HREF="http://www.w3.org/TR/xmldsig-filter2/">XPath Filter v2.0</A>.
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  * @see <A HREF="http://www.w3.org/TR/xmldsig-filter2/">XPath Filter v2.0 (TR)</A>
  * @see <A HREF="http://www.w3.org/Signature/Drafts/xmldsig-xfilter2/">XPath Filter v2.0 (editors copy)</A>
  */
@@ -184,7 +189,7 @@ public class XPath2FilterContainer extends ElementProxy
 
       HelperNodeList nl = new HelperNodeList();
 
-      nl.appendChild(doc.createTextNode("\n"));
+      XMLUtils.addReturnToElement(doc, nl);
 
       for (int i = 0; i < params.length; i++) {
          String type = params[i][0];
@@ -203,7 +208,7 @@ public class XPath2FilterContainer extends ElementProxy
          XPath2FilterContainer c = new XPath2FilterContainer(doc, xpath, type);
 
          nl.appendChild(c.getElement());
-         nl.appendChild(doc.createTextNode("\n"));
+         XMLUtils.addReturnToElement(doc, nl);
       }
 
       return nl;

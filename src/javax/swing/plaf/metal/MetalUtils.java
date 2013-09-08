@@ -1,10 +1,28 @@
 /*
- * @(#)MetalUtils.java	1.39 05/11/17
+ * Copyright (c) 1998, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package javax.swing.plaf.metal;
 
 import javax.swing.plaf.*;
@@ -19,7 +37,6 @@ import sun.swing.ImageIconUIResource;
 /**
  * This is a dumping ground for random stuff we want to use in several places.
  *
- * @version 1.39 11/17/05
  * @author Steve Wilson
  */
 
@@ -35,12 +52,12 @@ class MetalUtils {
     static void drawFlush3DBorder(Graphics g, int x, int y, int w, int h) {
         g.translate( x, y);
         g.setColor( MetalLookAndFeel.getControlDarkShadow() );
-	g.drawRect( 0, 0, w-2, h-2 );
+        g.drawRect( 0, 0, w-2, h-2 );
         g.setColor( MetalLookAndFeel.getControlHighlight() );
-	g.drawRect( 1, 1, w-2, h-2 );
+        g.drawRect( 1, 1, w-2, h-2 );
         g.setColor( MetalLookAndFeel.getControl() );
-	g.drawLine( 0, h-1, 1, h-2 );
-	g.drawLine( w-1, 0, w-2, 1 );
+        g.drawLine( 0, h-1, 1, h-2 );
+        g.drawLine( w-1, 0, w-2, 1 );
         g.translate( -x, -y);
     }
 
@@ -55,7 +72,7 @@ class MetalUtils {
     static void drawDisabledBorder(Graphics g, int x, int y, int w, int h) {
         g.translate( x, y);
         g.setColor( MetalLookAndFeel.getControlShadow() );
-	g.drawRect( 0, 0, w-1, h-1 );
+        g.drawRect( 0, 0, w-1, h-1 );
         g.translate(-x, -y);
     }
 
@@ -69,8 +86,8 @@ class MetalUtils {
         drawFlush3DBorder(g, 0, 0, w, h);
 
         g.setColor( MetalLookAndFeel.getControlShadow() );
-	g.drawLine( 1, 1, 1, h-2 );
-	g.drawLine( 1, 1, w-2, 1 );
+        g.drawLine( 1, 1, 1, h-2 );
+        g.drawLine( 1, 1, w-2, 1 );
         g.translate( -x, -y);
     }
 
@@ -94,42 +111,42 @@ class MetalUtils {
         drawFlush3DBorder(g, 0, 0, w, h);
 
         g.setColor( MetalLookAndFeel.getControl() );
-	g.drawLine( 1, 1, 1, h-2 );
-	g.drawLine( 1, 1, w-2, 1 );
+        g.drawLine( 1, 1, 1, h-2 );
+        g.drawLine( 1, 1, w-2, 1 );
         g.setColor( MetalLookAndFeel.getControlShadow() );
-	g.drawLine( 1, h-2, 1, h-2 );
-	g.drawLine( w-2, 1, w-2, 1 );
+        g.drawLine( 1, h-2, 1, h-2 );
+        g.drawLine( w-2, 1, w-2, 1 );
         g.translate( -x, -y);
     }
 
     static void drawButtonBorder(Graphics g, int x, int y, int w, int h, boolean active) {
         if (active) {
-            drawActiveButtonBorder(g, x, y, w, h);	    
+            drawActiveButtonBorder(g, x, y, w, h);
         } else {
             drawFlush3DBorder(g, x, y, w, h);
-	}
+        }
     }
 
     static void drawActiveButtonBorder(Graphics g, int x, int y, int w, int h) {
         drawFlush3DBorder(g, x, y, w, h);
         g.setColor( MetalLookAndFeel.getPrimaryControl() );
-	g.drawLine( x+1, y+1, x+1, h-3 );
-	g.drawLine( x+1, y+1, w-3, x+1 );
+        g.drawLine( x+1, y+1, x+1, h-3 );
+        g.drawLine( x+1, y+1, w-3, x+1 );
         g.setColor( MetalLookAndFeel.getPrimaryControlDarkShadow() );
-	g.drawLine( x+2, h-2, w-2, h-2 );
-	g.drawLine( w-2, y+2, w-2, h-2 );
+        g.drawLine( x+2, h-2, w-2, h-2 );
+        g.drawLine( w-2, y+2, w-2, h-2 );
     }
 
     static void drawDefaultButtonBorder(Graphics g, int x, int y, int w, int h, boolean active) {
-        drawButtonBorder(g, x+1, y+1, w-1, h-1, active);	    
+        drawButtonBorder(g, x+1, y+1, w-1, h-1, active);
         g.translate(x, y);
         g.setColor( MetalLookAndFeel.getControlDarkShadow() );
-	g.drawRect( 0, 0, w-3, h-3 );
-	g.drawLine( w-2, 0, w-2, 0);
-	g.drawLine( 0, h-2, 0, h-2);
+        g.drawRect( 0, 0, w-3, h-3 );
+        g.drawLine( w-2, 0, w-2, 0);
+        g.drawLine( 0, h-2, 0, h-2);
         g.translate(-x, -y);
     }
-    
+
     static void drawDefaultButtonPressedBorder(Graphics g, int x, int y, int w, int h) {
         drawPressed3DBorder(g, x + 1, y + 1, w - 1, h - 1);
         g.translate(x, y);
@@ -150,7 +167,7 @@ class MetalUtils {
     static boolean isLeftToRight( Component c ) {
         return c.getComponentOrientation().isLeftToRight();
     }
-    
+
     static int getInt(Object key, int defaultValue) {
         Object value = UIManager.get(key);
 
@@ -167,7 +184,7 @@ class MetalUtils {
 
     //
     // Ocean specific stuff.
-    // 
+    //
     /**
      * Draws a radial type gradient. The gradient will be drawn vertically if
      * <code>vertical</code> is true, otherwise horizontally.
@@ -369,9 +386,9 @@ class MetalUtils {
     }
 
     static Icon getOceanToolBarIcon(Image i) {
-	ImageProducer prod = new FilteredImageSource(i.getSource(),
+        ImageProducer prod = new FilteredImageSource(i.getSource(),
                              new OceanToolBarImageFilter());
-	return new ImageIconUIResource(Toolkit.getDefaultToolkit().createImage(prod));
+        return new ImageIconUIResource(Toolkit.getDefaultToolkit().createImage(prod));
     }
 
     static Icon getOceanDisabledButtonIcon(Image image) {
@@ -382,9 +399,9 @@ class MetalUtils {
             min = ((Integer)range[0]).intValue();
             max = ((Integer)range[1]).intValue();
         }
-	ImageProducer prod = new FilteredImageSource(image.getSource(),
+        ImageProducer prod = new FilteredImageSource(image.getSource(),
                       new OceanDisabledButtonImageFilter(min , max));
-	return new ImageIconUIResource(Toolkit.getDefaultToolkit().createImage(prod));
+        return new ImageIconUIResource(Toolkit.getDefaultToolkit().createImage(prod));
     }
 
 
@@ -402,7 +419,7 @@ class MetalUtils {
             this.min = (float)min;
             this.factor = (max - min) / 255f;
         }
-    
+
         public int filterRGB(int x, int y, int rgb) {
             // Coefficients are from the sRGB color space:
             int gray = Math.min(255, (int)(((0.2125f * ((rgb >> 16) & 0xFF)) +
@@ -422,7 +439,7 @@ class MetalUtils {
         OceanToolBarImageFilter() {
             canFilterIndexColorModel = true;
         }
-    
+
         public int filterRGB(int x, int y, int rgb) {
             int r = ((rgb >> 16) & 0xff);
             int g = ((rgb >> 8) & 0xff);

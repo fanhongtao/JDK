@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +39,10 @@ import com.sun.org.apache.xerces.internal.dom.DOMStringListImpl;
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.XMLEntityManager;
 import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
+import com.sun.org.apache.xerces.internal.impl.dv.DVFactoryException;
 import com.sun.org.apache.xerces.internal.impl.dv.InvalidDatatypeValueException;
+import com.sun.org.apache.xerces.internal.impl.dv.SchemaDVFactory;
+import com.sun.org.apache.xerces.internal.impl.dv.xs.SchemaDVFactoryImpl;
 import com.sun.org.apache.xerces.internal.impl.xs.models.CMBuilder;
 import com.sun.org.apache.xerces.internal.impl.xs.models.CMNodeFactory;
 import com.sun.org.apache.xerces.internal.impl.xs.traversers.XSDHandler;
@@ -43,6 +50,7 @@ import com.sun.org.apache.xerces.internal.util.DOMEntityResolverWrapper;
 import com.sun.org.apache.xerces.internal.util.DOMErrorHandlerWrapper;
 import com.sun.org.apache.xerces.internal.util.DefaultErrorHandler;
 import com.sun.org.apache.xerces.internal.util.ParserConfigurationSettings;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.util.XMLSymbols;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
@@ -61,6 +69,8 @@ import com.sun.org.apache.xerces.internal.xs.LSInputList;
 import com.sun.org.apache.xerces.internal.xs.StringList;
 import com.sun.org.apache.xerces.internal.xs.XSLoader;
 import com.sun.org.apache.xerces.internal.xs.XSModel;
+import java.util.HashMap;
+import java.util.Map;
 import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMError;
 import org.w3c.dom.DOMErrorHandler;
@@ -85,7 +95,7 @@ import org.xml.sax.InputSource;
  * @xerces.internal 
  *
  * @author Neil Graham, IBM
- * @version $Id: XMLSchemaLoader.java,v 1.3 2005/09/26 13:02:34 sunithareddy Exp $
+ * @version $Id: XMLSchemaLoader.java,v 1.10 2010-11-01 04:39:55 joehw Exp $
  */
 
 public class XMLSchemaLoader implements XMLGrammarLoader, XMLComponent,
@@ -130,8 +140,20 @@ XSLoader, DOMConfiguration {
         Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_AUGMENT_PSVI;
     
     protected static final String PARSER_SETTINGS = 
-        Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;   
-    
+        Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
+
+    /** Feature identifier: namespace growth */
+    protected static final String NAMESPACE_GROWTH =
+        Constants.XERCES_FEATURE_PREFIX + Constants.NAMESPACE_GROWTH_FEATURE;
+
+    /** Feature identifier: tolerate duplicates */
+    protected static final String TOLERATE_DUPLICATES =
+        Constants.XERCES_FEATURE_PREFIX + Constants.TOLERATE_DUPLICATES_FEATURE;
+
+    /** Property identifier: Schema DV Factory */
+    protected static final String SCHEMA_DV_FACTORY =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.SCHEMA_DV_FACTORY_PROPERTY;
+
     // recognized features:
     private static final String[] RECOGNIZED_FEATURES = {
         SCHEMA_FULL_CHECKING,
@@ -142,7 +164,9 @@ XSLoader, DOMConfiguration {
         DISALLOW_DOCTYPE,
         GENERATE_SYNTHETIC_ANNOTATIONS,
         VALIDATE_ANNOTATIONS,
-        HONOUR_ALL_SCHEMALOCATIONS
+        HONOUR_ALL_SCHEMALOCATIONS,
+        NAMESPACE_GROWTH,
+        TOLERATE_DUPLICATES
     };
     
     // property identifiers
@@ -181,6 +205,10 @@ XSLoader, DOMConfiguration {
     
     protected static final String SECURITY_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY;  
+
+    /** Property identifier: locale. */
+    protected static final String LOCALE =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.LOCALE_PROPERTY;
     
     protected static final String ENTITY_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.ENTITY_MANAGER_PROPERTY;   
@@ -196,7 +224,9 @@ XSLoader, DOMConfiguration {
         SCHEMA_LOCATION,
         SCHEMA_NONS_LOCATION,
         JAXP_SCHEMA_SOURCE,
-        SECURITY_MANAGER
+        SECURITY_MANAGER,
+        LOCALE,
+        SCHEMA_DV_FACTORY
     };
     
     // Data
@@ -224,10 +254,11 @@ XSLoader, DOMConfiguration {
     private XSGrammarBucket fGrammarBucket;
     private XSDeclarationPool fDeclPool = null;
     private SubstitutionGroupHandler fSubGroupHandler;
+    private final CMNodeFactory fNodeFactory = new CMNodeFactory(); //component mgr will be set later
     private CMBuilder fCMBuilder;
     private XSDDescription fXSDDescription = new XSDDescription();
     
-    private Hashtable fJAXPCache;
+    private Map fJAXPCache;
     private Locale fLocale = Locale.getDefault();
     
     // XSLoader attributes
@@ -305,17 +336,16 @@ XSLoader, DOMConfiguration {
             sHandler = new SubstitutionGroupHandler(fGrammarBucket);
         }
         fSubGroupHandler = sHandler;
-        
-        //get an instance of the CMNodeFactory */
-        CMNodeFactory nodeFactory = new CMNodeFactory() ;
-        
+                
         if(builder == null) {
-            builder = new CMBuilder(nodeFactory);
+            builder = new CMBuilder(fNodeFactory);
         }
         fCMBuilder = builder;
         fSchemaHandler = new XSDHandler(fGrammarBucket);
-        fDeclPool = new XSDeclarationPool();
-        fJAXPCache = new Hashtable();
+        if (fDeclPool != null) {
+            fDeclPool.reset();
+        }
+        fJAXPCache = new HashMap();
         
         fSettingsChanged = true;
     }
@@ -396,23 +426,26 @@ XSLoader, DOMConfiguration {
             Object state) throws XMLConfigurationException {                   
         fSettingsChanged = true;
         fLoaderConfig.setProperty(propertyId, state);    
-        if(propertyId.equals( JAXP_SCHEMA_SOURCE)) {
+        if (propertyId.equals(JAXP_SCHEMA_SOURCE)) {
             fJAXPSource = state;
             fJAXPProcessed = false;
         }  
-        else if(propertyId.equals( XMLGRAMMAR_POOL)) {
+        else if (propertyId.equals(XMLGRAMMAR_POOL)) {
             fGrammarPool = (XMLGrammarPool)state;
         } 
-        else if (propertyId.equals(SCHEMA_LOCATION)){
+        else if (propertyId.equals(SCHEMA_LOCATION)) {
             fExternalSchemas = (String)state;
         }
-        else if (propertyId.equals(SCHEMA_NONS_LOCATION)){
+        else if (propertyId.equals(SCHEMA_NONS_LOCATION)) {
             fExternalNoNSSchema = (String) state;
         }
-        else if (propertyId.equals(ENTITY_RESOLVER)){
+        else if (propertyId.equals(LOCALE)) {
+            setLocale((Locale) state);
+        }
+        else if (propertyId.equals(ENTITY_RESOLVER)) {
             fEntityManager.setProperty(ENTITY_RESOLVER, state);
         }
-        else if (propertyId.equals(ERROR_REPORTER)){
+        else if (propertyId.equals(ERROR_REPORTER)) {
             fErrorReporter = (XMLErrorReporter)state;
             if (fErrorReporter.getMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN) == null) {
                 fErrorReporter.putMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN, new XSMessageFormatter());
@@ -510,7 +543,7 @@ XSLoader, DOMConfiguration {
         desc.setBaseSystemId(source.getBaseSystemId());
         desc.setLiteralSystemId( source.getSystemId());
         // none of the other fields make sense for preparsing
-        Hashtable locationPairs = new Hashtable();
+        Map locationPairs = new HashMap();
         // Process external schema location properties.
         // We don't call tokenizeSchemaLocationStr here, because we also want
         // to check whether the values are valid URI.
@@ -542,7 +575,7 @@ XSLoader, DOMConfiguration {
      */
     SchemaGrammar loadSchema(XSDDescription desc,
             XMLInputSource source,
-            Hashtable locationPairs) throws IOException, XNIException {
+            Map locationPairs) throws IOException, XNIException {
         
         // this should only be done once per invocation of this object;
         // unless application alters JAXPSource in the mean time.
@@ -566,7 +599,7 @@ XSLoader, DOMConfiguration {
      * @return
      * @throws IOException
      */
-    public static XMLInputSource resolveDocument(XSDDescription desc, Hashtable locationPairs,
+    public static XMLInputSource resolveDocument(XSDDescription desc, Map locationPairs,
             XMLEntityResolver entityResolver) throws IOException {
         String loc = null;
         // we consider the schema location properties for import
@@ -597,7 +630,7 @@ XSLoader, DOMConfiguration {
     
     // add external schema locations to the location pairs
     public static void processExternalHints(String sl, String nsl,
-            Hashtable locations,
+            Map locations,
             XMLErrorReporter er) {
         if (sl != null) {
             try {
@@ -648,9 +681,9 @@ XSLoader, DOMConfiguration {
     // otherwise, true is returned.  In either case, locations
     // is augmented to include as many tokens as possible.
     // @param schemaStr     The schemaLocation string to tokenize
-    // @param locations     Hashtable mapping namespaces to LocationArray objects holding lists of locaitons
+    // @param locations     HashMap mapping namespaces to LocationArray objects holding lists of locaitons
     // @return true if no problems; false if string could not be tokenized
-    public static boolean tokenizeSchemaLocationStr(String schemaStr, Hashtable locations) {
+    public static boolean tokenizeSchemaLocationStr(String schemaStr, Map locations) {
         if (schemaStr!= null) {
             StringTokenizer t = new StringTokenizer(schemaStr, " \n\t\r");
             String namespace, location;
@@ -669,7 +702,7 @@ XSLoader, DOMConfiguration {
             }
         }
         return true;
-    } // tokenizeSchemaLocation(String, Hashtable):  boolean
+    } // tokenizeSchemaLocation(String, HashMap):  boolean
     
     /**
      * Translate the various JAXP SchemaSource property types to XNI
@@ -681,7 +714,7 @@ XSLoader, DOMConfiguration {
      * Note: all JAXP schema files will be checked for full-schema validity if the feature was set up
      * 
      */
-    private void processJAXPSchemaSource(Hashtable locationPairs) throws IOException {
+    private void processJAXPSchemaSource(Map locationPairs) throws IOException {
         fJAXPProcessed = true;
         if (fJAXPSource == null) {
             return;
@@ -731,7 +764,7 @@ XSLoader, DOMConfiguration {
         ) {
             // Not an Object[], String[], File[], InputStream[], InputSource[]
             throw new XMLConfigurationException(
-                    XMLConfigurationException.NOT_SUPPORTED, "\""+JAXP_SCHEMA_SOURCE+
+                    Status.NOT_SUPPORTED, "\""+JAXP_SCHEMA_SOURCE+
                     "\" property cannot have an array of type {"+componentType.getName()+
                     "}. Possible types of the array supported are Object, String, File, "+
             "InputStream, InputSource.");
@@ -832,7 +865,7 @@ XSLoader, DOMConfiguration {
             return new XMLInputSource(null, null, null, is, null);
         }
         throw new XMLConfigurationException(
-                XMLConfigurationException.NOT_SUPPORTED, "\""+JAXP_SCHEMA_SOURCE+
+                Status.NOT_SUPPORTED, "\""+JAXP_SCHEMA_SOURCE+
                 "\" property cannot have a value of type {"+val.getClass().getName()+
                 "}. Possible types of the value supported are String, File, InputStream, "+
         "InputSource OR an array of these types.");
@@ -923,19 +956,19 @@ XSLoader, DOMConfiguration {
         
         fSubGroupHandler.reset();		
         
-        boolean parser_settings;
-        try {
-            parser_settings = componentManager.getFeature(PARSER_SETTINGS);     
-        }
-        catch (XMLConfigurationException e){
-            parser_settings = true;
-        }
-        if (!parser_settings || !fSettingsChanged){            
+        boolean parser_settings = componentManager.getFeature(PARSER_SETTINGS, true);
+
+        if (!parser_settings || !fSettingsChanged){
+            // need to reprocess JAXP schema sources
+            fJAXPProcessed = false;
             // reinitialize grammar bucket
             initGrammarBucket();
             return;           
         } 
-        
+
+        //pass the component manager to the factory..
+        fNodeFactory.reset(componentManager);
+
         // get registered entity manager to be able to resolve JAXP schema-source property:
         // Note: in case XMLSchemaValidator has created the loader, 
         // the entity manager property is null
@@ -943,18 +976,30 @@ XSLoader, DOMConfiguration {
         
         // get the error reporter
         fErrorReporter = (XMLErrorReporter)componentManager.getProperty(ERROR_REPORTER);
-        
-        boolean psvi = true;
-        try {
-            psvi = componentManager.getFeature(AUGMENT_PSVI);
-        } catch (XMLConfigurationException e) {
-            psvi = false;
+
+        // Determine schema dv factory to use
+        SchemaDVFactory dvFactory = null;
+        dvFactory = fSchemaHandler.getDVFactory();
+        if (dvFactory == null) {
+            dvFactory = SchemaDVFactory.getInstance();
+            fSchemaHandler.setDVFactory(dvFactory);
         }
         
+        boolean psvi = componentManager.getFeature(AUGMENT_PSVI, false);
+
         if (!psvi) {
-            fDeclPool.reset();
+            if (fDeclPool != null) {
+                fDeclPool.reset();
+            }
+            else {
+                fDeclPool = new XSDeclarationPool();
+            }
             fCMBuilder.setDeclPool(fDeclPool);
             fSchemaHandler.setDeclPool(fDeclPool);
+            if (dvFactory instanceof SchemaDVFactoryImpl) {
+                fDeclPool.setDVFactory((SchemaDVFactoryImpl)dvFactory);
+                ((SchemaDVFactoryImpl)dvFactory).setDeclPool(fDeclPool);
+            }
         } else {
             fCMBuilder.setDeclPool(null);
             fSchemaHandler.setDeclPool(null);
@@ -963,50 +1008,33 @@ XSLoader, DOMConfiguration {
         // get schema location properties
         try {
             fExternalSchemas = (String) componentManager.getProperty(SCHEMA_LOCATION);
-            fExternalNoNSSchema =
-                (String) componentManager.getProperty(SCHEMA_NONS_LOCATION);
+            fExternalNoNSSchema = (String) componentManager.getProperty(SCHEMA_NONS_LOCATION);
         } catch (XMLConfigurationException e) {
             fExternalSchemas = null;
             fExternalNoNSSchema = null;
         }
+
         // get JAXP sources if available
-        try {
-            fJAXPSource = componentManager.getProperty(JAXP_SCHEMA_SOURCE);
-            fJAXPProcessed = false;
-            
-        } catch (XMLConfigurationException e) {
-            fJAXPSource = null;
-            fJAXPProcessed = false;
-        }
+        fJAXPSource = componentManager.getProperty(JAXP_SCHEMA_SOURCE, null);
+        fJAXPProcessed = false;
         
         // clear grammars, and put the one for schema namespace there
-        try {
-            fGrammarPool = (XMLGrammarPool) componentManager.getProperty(XMLGRAMMAR_POOL);
-        } catch (XMLConfigurationException e) {
-            fGrammarPool = null;
-        }
+        fGrammarPool = (XMLGrammarPool) componentManager.getProperty(XMLGRAMMAR_POOL, null);
         initGrammarBucket();
         // get continue-after-fatal-error feature
         try {
-            boolean fatalError = componentManager.getFeature(CONTINUE_AFTER_FATAL_ERROR);
-            fErrorReporter.setFeature(CONTINUE_AFTER_FATAL_ERROR, fatalError);
+            boolean fatalError = componentManager.getFeature(CONTINUE_AFTER_FATAL_ERROR, false);
+            if (!fatalError) {
+                fErrorReporter.setFeature(CONTINUE_AFTER_FATAL_ERROR, fatalError);
+            }
         } catch (XMLConfigurationException e) {
         }
         // set full validation to false        
-        try {
-            fIsCheckedFully = componentManager.getFeature(SCHEMA_FULL_CHECKING);
-        }
-        catch (XMLConfigurationException e){
-            fIsCheckedFully = false;
-        }
+        fIsCheckedFully = componentManager.getFeature(SCHEMA_FULL_CHECKING, false);
+        
         // get generate-synthetic-annotations feature
-        try {
-            fSchemaHandler.setGenerateSyntheticAnnotations(componentManager.getFeature(GENERATE_SYNTHETIC_ANNOTATIONS));
-        }
-        catch (XMLConfigurationException e) {
-            fSchemaHandler.setGenerateSyntheticAnnotations(false);
-        }
-        fSchemaHandler.reset(componentManager);		 
+        fSchemaHandler.setGenerateSyntheticAnnotations(componentManager.getFeature(GENERATE_SYNTHETIC_ANNOTATIONS, false));
+        fSchemaHandler.reset(componentManager);
     }
     
     private void initGrammarBucket(){
@@ -1052,9 +1080,6 @@ XSLoader, DOMConfiguration {
      */
     public XSModel loadInputList(LSInputList is) {
         int length = is.getLength();
-        if (length == 0) {
-            return null;
-        }
         SchemaGrammar[] gs = new SchemaGrammar[length];
         for (int i = 0; i < length; i++) {
             try {
@@ -1086,9 +1111,6 @@ XSLoader, DOMConfiguration {
      */
     public XSModel loadURIList(StringList uriList) {
         int length = uriList.getLength();
-        if (length == 0) {
-            return null;
-        }
         SchemaGrammar[] gs = new SchemaGrammar[length];
         for (int i = 0; i < length; i++) {
             try {
@@ -1124,7 +1146,9 @@ XSLoader, DOMConfiguration {
                 name.equals(ALLOW_JAVA_ENCODINGS) ||
                 name.equals(STANDARD_URI_CONFORMANT_FEATURE) ||
                 name.equals(GENERATE_SYNTHETIC_ANNOTATIONS) ||
-                name.equals(HONOUR_ALL_SCHEMALOCATIONS)) {
+                name.equals(HONOUR_ALL_SCHEMALOCATIONS) ||
+                name.equals(NAMESPACE_GROWTH) ||
+                name.equals(TOLERATE_DUPLICATES)) {
                 return true;
                 
             }
@@ -1139,7 +1163,8 @@ XSLoader, DOMConfiguration {
             name.equals(XMLGRAMMAR_POOL) ||
             name.equals(SCHEMA_LOCATION) ||
             name.equals(SCHEMA_NONS_LOCATION) ||
-            name.equals(JAXP_SCHEMA_SOURCE)) {
+            name.equals(JAXP_SCHEMA_SOURCE) ||
+            name.equals(SCHEMA_DV_FACTORY)) {
             return true;
         }
         return false;
@@ -1200,6 +1225,8 @@ XSLoader, DOMConfiguration {
             v.add(VALIDATE_ANNOTATIONS);
             v.add(GENERATE_SYNTHETIC_ANNOTATIONS);
             v.add(HONOUR_ALL_SCHEMALOCATIONS);
+            v.add(NAMESPACE_GROWTH);
+            v.add(TOLERATE_DUPLICATES);
             fRecognizedParameters = new DOMStringListImpl(v);      	
         }
         return fRecognizedParameters;

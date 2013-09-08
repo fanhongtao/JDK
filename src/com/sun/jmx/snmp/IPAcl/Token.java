@@ -1,11 +1,25 @@
 /*
- * @(#)file      Token.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.8
- * @(#)date      06/11/29
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 

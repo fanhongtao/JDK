@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,14 +40,14 @@ import org.w3c.dom.DOMException;
  * carry the additional information. This is _NOT_ a full DOM
  * implementation, and shouldn't be one since it sits alongside the
  * DOM rather than becoming part of the DOM model.
- * 
+ *
  * (This used to be an internal class within DOM2DTM. Moved out because
  * I need to perform an instanceof operation on it to support a temporary
  * workaround in DTMManagerDefault.)
- * 
+ *
  * %REVIEW% What if the DOM2DTM was built around a DocumentFragment and
  * there isn't a single root element? I think this fails that case...
- * 
+ *
  * %REVIEW% An alternative solution would be to create the node _only_
  * in DTM space, but given how DOM2DTM is currently written I think
  * this is simplest.
@@ -51,7 +55,7 @@ import org.w3c.dom.DOMException;
 public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
 {
   final String NOT_SUPPORTED_ERR="Unsupported operation on pseudonode";
-  
+
   Element pseudoparent;
   String prefix,uri,nodename;
   int handle;
@@ -71,7 +75,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
   public String getNodeValue() {return uri;}
   public String getValue() {return uri;}
   public Element getOwnerElement() {return pseudoparent;}
-  
+
   public boolean isSupported(String feature, String version) {return false;}
   public boolean hasChildNodes() {return false;}
   public boolean hasAttributes() {return false;}
@@ -94,13 +98,13 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
   public Node removeChild(Node a) {throw new DTMException(NOT_SUPPORTED_ERR);}
   public Document getOwnerDocument() {return pseudoparent.getOwnerDocument();}
   public Node cloneNode(boolean deep) {throw new DTMException(NOT_SUPPORTED_ERR);}
-	
+
     /** Non-DOM method, part of the temporary kluge
      * %REVIEW% This would be a pruning problem, but since it will always be
-     * added to the root element and we prune on elements, we shouldn't have 
+     * added to the root element and we prune on elements, we shouldn't have
      * to worry.
      */
-    public int getHandleOfNode()		
+    public int getHandleOfNode()
     {
         return handle;
     }
@@ -111,12 +115,12 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
      * @see org.w3c.dom.TypeInfo#getTypeName()
      */
     public String getTypeName() {return null; }
-     
+
     /**
      * @see org.w3c.dom.TypeInfo#getTypeNamespace()
      */
     public String getTypeNamespace() { return null;}
-    
+
     /**
      * @see or.gw3c.dom.TypeInfo#isDerivedFrom(String,String,int)
      */
@@ -125,7 +129,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
     }
 
     public TypeInfo getSchemaTypeInfo() { return this; }
-    
+
     public boolean isId( ) { return false; }
 
     /**
@@ -158,7 +162,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
      */
     public Object getUserData(String key) {
         return getOwnerDocument().getUserData( key);
-    } 
+    }
 
     /**
      *  This method returns a specialized object which implements the
@@ -344,12 +348,12 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
                         }
                     }
                 }
-		/*
+                /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.lookupNamespaceURI(specifiedPrefix);
                 }
-		*/
+                */
 
                 return null;
 
@@ -374,7 +378,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
                 return null;
             }
         default:{
-	   /*
+           /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.lookupNamespaceURI(specifiedPrefix);
@@ -385,7 +389,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
 
         }
     }
-    
+
     /**
      *  DOM Level 3: Experimental
      *  This method checks if the specified <code>namespaceURI</code> is the
@@ -446,7 +450,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
                 }
                 return false;
             }
-        default:{  
+        default:{
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.isDefaultNamespace(namespaceURI);
@@ -504,7 +508,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
                 }
                 return null;
             }
-        default:{ 
+        default:{
 /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
@@ -584,7 +588,7 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
         throws DOMException {
         setNodeValue(textContent);
     }
-    
+
     /**
      * This attribute returns the text content of this node and its
      * descendants. When it is defined to be null, setting it has no effect.
@@ -674,4 +678,3 @@ public class DOM2DTMdefaultNamespaceDeclarationNode implements Attr,TypeInfo
         return null;
     }
 }
-

@@ -1,8 +1,26 @@
 /*
- * @(#)ImageCapabilities.java	1.7 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -13,9 +31,9 @@ package java.awt;
  * @since 1.4
  */
 public class ImageCapabilities implements Cloneable {
-    
+
     private boolean accelerated = false;
-    
+
     /**
      * Creates a new object for specifying image capabilities.
      * @param accelerated whether or not an accelerated image is desired
@@ -23,11 +41,11 @@ public class ImageCapabilities implements Cloneable {
     public ImageCapabilities(boolean accelerated) {
         this.accelerated = accelerated;
     }
-    
+
     /**
      * Returns <code>true</code> if the object whose capabilities are
      * encapsulated in this <code>ImageCapabilities</code> can be or is
-     * accelerated. 
+     * accelerated.
      * @return whether or not an image can be, or is, accelerated.  There are
      * various platform-specific ways to accelerate an image, including
      * pixmaps, VRAM, AGP.  This is the general acceleration method (as
@@ -36,7 +54,7 @@ public class ImageCapabilities implements Cloneable {
     public boolean isAccelerated() {
         return accelerated;
     }
-    
+
     /**
      * Returns <code>true</code> if the <code>VolatileImage</code>
      * described by this <code>ImageCapabilities</code> can lose

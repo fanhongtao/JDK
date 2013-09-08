@@ -1,8 +1,26 @@
 /*
- * @(#)BooleanHolder.java	1.34 05/11/17
+ * Copyright (c) 1995, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package org.omg.CORBA;
 
@@ -12,7 +30,7 @@ import org.omg.CORBA.portable.OutputStream;
 
 
 /**
- * The Holder for <tt>Boolean</tt>.  For more information on 
+ * The Holder for <tt>Boolean</tt>.  For more information on
  * Holder files, see <a href="doc-files/generatedfiles.html#holder">
  * "Generated Files: Holder Files"</a>.<P>
  * A Holder class for a <code>boolean</code>
@@ -29,7 +47,6 @@ import org.omg.CORBA.portable.OutputStream;
  * the value stored in its <code>value</code> field can be accessed with
  * <code>myBooleanHolder.value</code>.
  *
- * @version	1.14, 09/09/97
  * @since       JDK1.2
  */
 public final class BooleanHolder implements Streamable {
@@ -55,7 +72,7 @@ public final class BooleanHolder implements Streamable {
      *                <code>BooleanHolder</code> object
      */
     public BooleanHolder(boolean initial) {
-	value = initial;
+        value = initial;
     }
 
     /**
@@ -66,7 +83,7 @@ public final class BooleanHolder implements Streamable {
      *              CDR formatted data from the wire
      */
     public void _read(InputStream input) {
-	value = input.read_boolean();
+        value = input.read_boolean();
     }
 
     /**
@@ -76,17 +93,17 @@ public final class BooleanHolder implements Streamable {
      * @param output the OutputStream which will contain the CDR formatted data
      */
     public void _write(OutputStream output) {
-	output.write_boolean(value);
+        output.write_boolean(value);
     }
 
     /**
-     * Retrieves the <code>TypeCode</code> object that corresponds to the 
+     * Retrieves the <code>TypeCode</code> object that corresponds to the
      * value held in this <code>BooleanHolder</code> object.
      *
-     * @return    the <code>TypeCode</code> for the value held 
+     * @return    the <code>TypeCode</code> for the value held
      *            in this <code>BooleanHolder</code> object
      */
     public TypeCode _type() {
-	return ORB.init().get_primitive_tc(TCKind.tk_boolean);
+        return ORB.init().get_primitive_tc(TCKind.tk_boolean);
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)CDROutputStream_1_2.java	1.13 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -43,7 +61,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
 
     // Used in chunking.  Here's how this works:
     //
-    // When chunking and writing an array of primitives, a string, or a 
+    // When chunking and writing an array of primitives, a string, or a
     // wstring, _AND_ it won't fit in the buffer do the following.  (As
     // you can see, this is a very "special" chunk.)
     //
@@ -55,7 +73,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
     //               b) fragment
     // Now back to the array only case:
     //     [write the data]
-    //     4.  if specialChunk is true 
+    //     4.  if specialChunk is true
     //               a) Close the chunk
     //               b) Set specialChunk to false
 
@@ -66,7 +84,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
     // padded appropriately. However, if there is no body to a request or reply
     // message, there is no need to pad the header, in the unfragmented case.
     private boolean headerPadding;
-    
+
     protected void handleSpecialChunkBegin(int requiredSize)
     {
         // If we're chunking and the item won't fit in the buffer
@@ -81,7 +99,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
             //write_long(oldSize - blockSizeIndex);
             writeLongWithoutAlign((oldSize - blockSizeIndex) + requiredSize);
             bbwi.position(oldSize);
-    
+
             // Set the special flag so we don't end the chunk when
             // we fragment
             specialChunk = true;
@@ -99,7 +117,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
             inBlock = false;
             blockSizeIndex = -1;
             blockSizePosition = -1;
-            
+
             // Start a new chunk since we fragmented during the item.
             // Thus, no one can go back to add more to the chunk length
             start_block();
@@ -110,7 +128,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
             specialChunk = false;
         }
     }
-    
+
     // Called after writing primitives
     private void checkPrimitiveAcrossFragmentedChunk()
     {
@@ -127,7 +145,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
 
             // Start a new chunk
             start_block();
-        }        
+        }
     }
 
 
@@ -160,7 +178,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
 
         // headerPadding bit is set by the write operation of RequestMessage_1_2
         // or ReplyMessage_1_2 classes. When set, the very first body write
-        // operation (from the stub code) would trigger an alignAndReserve 
+        // operation (from the stub code) would trigger an alignAndReserve
         // method call, that would in turn add the appropriate header padding,
         // such that the body is aligned on a 8-octet boundary. The padding
         // is required for GIOP versions 1.2 and above, only if body is present.
@@ -168,10 +186,10 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
             headerPadding = false;
             alignOnBoundary(ORBConstants.GIOP_12_MSG_BODY_ALIGNMENT);
         }
-        
+
         // In GIOP 1.2, we always end fragments at our
         // fragment size, which is an "evenly divisible
-        // 8 byte boundary" (aka divisible by 16).  A fragment can 
+        // 8 byte boundary" (aka divisible by 16).  A fragment can
         // end with appropriate alignment padding, but no padding
         // is needed with respect to the next GIOP fragment
         // header since it ends on an 8 byte boundary.
@@ -183,7 +201,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
     }
 
     protected void grow(int align, int n) {
-        
+
         // Save the current size for possible post-fragmentation calculation
         int oldSize = bbwi.position();
 
@@ -230,7 +248,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
             // start a new chunk after writing the primitive.
             if (handleChunk)
                 primitiveAcrossFragmentedChunk = true;
-            
+
         }
     }
 
@@ -244,7 +262,7 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
         // followed by the octets of the converted wchar.  This is good,
         // but it causes problems with our chunking code.  We don't
         // want that octet to get put in a different chunk at the end
-        // of the previous fragment.  
+        // of the previous fragment.
         //
         // Ensure that this won't happen by overriding write_wchar_array
         // and doing our own handleSpecialChunkBegin/End here.
@@ -268,8 +286,8 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
     public void write_wchar_array(char[] value, int offset, int length)
     {
         if (value == null) {
-	    throw wrapper.nullParam(CompletionStatus.COMPLETED_MAYBE);
-        }   
+            throw wrapper.nullParam(CompletionStatus.COMPLETED_MAYBE);
+        }
 
         CodeSetConversion.CTBConverter converter = getWCharConverter();
 
@@ -309,11 +327,11 @@ public class CDROutputStream_1_2 extends CDROutputStream_1_1
         internalWriteOctetArray(buffer, 0, totalNumBytes);
 
         handleSpecialChunkEnd();
-    }    
+    }
 
     public void write_wstring(String value) {
         if (value == null) {
-	    throw wrapper.nullParam(CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.nullParam(CompletionStatus.COMPLETED_MAYBE);
         }
 
         // In GIOP 1.2, wstrings are not terminated by a null.  The

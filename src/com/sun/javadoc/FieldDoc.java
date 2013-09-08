@@ -1,8 +1,26 @@
 /*
- * @(#)FieldDoc.java	1.7 02/10/01
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.javadoc;
@@ -54,7 +72,7 @@ public interface FieldDoc extends MemberDoc {
      *
      * @return the text of a Java language expression whose value
      * is the value of the constant. The expression uses no identifiers
-     * other than primitive literals. If the field is 
+     * other than primitive literals. If the field is
      * not constant, returns null.
      */
     String constantValueExpression();

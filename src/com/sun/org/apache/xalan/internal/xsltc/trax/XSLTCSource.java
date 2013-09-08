@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation.
@@ -43,9 +47,9 @@ public final class XSLTCSource implements Source {
     private ThreadLocal _dom     = new ThreadLocal();
 
     /**
-     * Create a new XSLTC-specific source from a system ID 
+     * Create a new XSLTC-specific source from a system ID
      */
-    public XSLTCSource(String systemId) 
+    public XSLTCSource(String systemId)
     {
         _systemId = systemId;
     }
@@ -53,14 +57,14 @@ public final class XSLTCSource implements Source {
     /**
      * Create a new XSLTC-specific source from a JAXP Source
      */
-    public XSLTCSource(Source source) 
+    public XSLTCSource(Source source)
     {
         _source = source;
     }
 
     /**
      * Implements javax.xml.transform.Source.setSystemId()
-     * Set the system identifier for this Source. 
+     * Set the system identifier for this Source.
      * This Source can get its input either directly from a file (in this case
      * it will instanciate and use a JAXP parser) or it can receive it through
      * ContentHandler/LexicalHandler interfaces.
@@ -80,14 +84,14 @@ public final class XSLTCSource implements Source {
      *         or null if setSystemId was not called.
      */
     public String getSystemId() {
-	if (_source != null) {
-	    return _source.getSystemId();
-	}
-	else {
-	    return(_systemId);
-	}
+        if (_source != null) {
+            return _source.getSystemId();
+        }
+        else {
+            return(_systemId);
+        }
     }
-    
+
     /**
      * Internal interface which returns a DOM for a given DTMManager and translet.
      */
@@ -95,7 +99,7 @@ public final class XSLTCSource implements Source {
         throws SAXException
     {
         SAXImpl idom = (SAXImpl)_dom.get();
-                
+
         if (idom != null) {
             if (dtmManager != null) {
                 idom.migrateTo(dtmManager);
@@ -112,20 +116,20 @@ public final class XSLTCSource implements Source {
                     throw new SAXException(err.toString());
                 }
             }
-            
+
             DOMWSFilter wsfilter = null;
             if (translet != null && translet instanceof StripFilter) {
                 wsfilter = new DOMWSFilter(translet);
             }
-                
+
             boolean hasIdCall = (translet != null) ? translet.hasIdCall() : false;
-            
+
             if (dtmManager == null) {
                 dtmManager = XSLTCDTMManager.newInstance();
             }
-            
+
             idom = (SAXImpl)dtmManager.getDTM(source, true, wsfilter, false, false, hasIdCall);
-            
+
             String systemId = getSystemId();
             if (systemId != null) {
                 idom.setDocumentURI(systemId);

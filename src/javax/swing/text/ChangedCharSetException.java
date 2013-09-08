@@ -1,8 +1,26 @@
 /*
- * @(#)ChangedCharSetException.java	1.9 05/11/17
+ * Copyright (c) 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -13,7 +31,6 @@ import java.io.IOException;
  * thrown when the charset is changed.
  *
  * @author Sunita Mani
- * 1.9, 11/17/05
  */
 public class ChangedCharSetException extends IOException {
 
@@ -21,16 +38,16 @@ public class ChangedCharSetException extends IOException {
     boolean charSetKey;
 
     public ChangedCharSetException(String charSetSpec, boolean charSetKey) {
-	this.charSetSpec = charSetSpec;
-	this.charSetKey = charSetKey;
+        this.charSetSpec = charSetSpec;
+        this.charSetKey = charSetKey;
     }
 
     public String getCharSetSpec() {
-	return charSetSpec;
+        return charSetSpec;
     }
 
     public boolean keyEqualsCharSet() {
-	return charSetKey;
+        return charSetKey;
     }
 
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 
 /*
  * Copyright 1999-2004 The Apache Software Foundation.
@@ -29,13 +33,13 @@ import com.sun.org.apache.xml.internal.dtm.DTM;
 public final class EmptyIterator implements DTMAxisIterator
 {
   private static final EmptyIterator INSTANCE =  new EmptyIterator();
-  
+
   public static DTMAxisIterator  getInstance() {return INSTANCE;}
-  
+
   private EmptyIterator(){}
-  
-  public final  int  next(){ return END; }  
-  
+
+  public final  int  next(){ return END; }
+
   public final DTMAxisIterator reset(){ return this; }
 
   public final int getLast(){ return 0; }
@@ -48,13 +52,13 @@ public final class EmptyIterator implements DTMAxisIterator
 
   public final DTMAxisIterator setStartNode(int node){ return this; }
 
-  public final int getStartNode(){ return END; } 
-  
-  public final boolean isReverse(){return false;} 
-  
+  public final int getStartNode(){ return END; }
+
+  public final boolean isReverse(){return false;}
+
   public final DTMAxisIterator cloneIterator(){ return this; }
-  
+
   public final void setRestartable(boolean isRestartable) {}
-  
-  public final int getNodeByPosition(int position){ return END; } 
+
+  public final int getNodeByPosition(int position){ return END; }
 }

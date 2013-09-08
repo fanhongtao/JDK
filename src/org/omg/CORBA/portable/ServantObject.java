@@ -1,8 +1,26 @@
 /*
- * @(#)ServantObject.java	1.15 05/11/17
+ * Copyright (c) 1998, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -24,8 +42,7 @@ public class ServantObject
 {
     /** The real servant. The local stub may cast this field to the expected type, and then
      * invoke the operation directly. Note, the object may or may not be the actual servant
-     * instance. 
-     * @return The real servant
+     * instance.
      */
     public java.lang.Object servant;
 }

@@ -1,15 +1,33 @@
 /*
- * @(#)Savepoint.java	1.11 05/11/17
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.sql;
- 
+
 /**
  * The representation of a savepoint, which is a point within
- * the current transaction that can be referenced from the 
+ * the current transaction that can be referenced from the
  * <code>Connection.rollback</code> method. When a transaction
  * is rolled back to a savepoint all changes made after that
  * savepoint are undone.
@@ -23,7 +41,7 @@ package java.sql;
 public interface Savepoint {
 
     /**
-     * Retrieves the generated ID for the savepoint that this 
+     * Retrieves the generated ID for the savepoint that this
      * <code>Savepoint</code> object represents.
      * @return the numeric ID of this savepoint
      * @exception SQLException if this is a named savepoint
@@ -40,5 +58,3 @@ public interface Savepoint {
      */
     String getSavepointName() throws SQLException;
 }
-
-

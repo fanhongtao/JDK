@@ -1,21 +1,39 @@
 /*
- * @(#)Date.java	1.37 06/08/06
+ * Copyright (c) 1996, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.sql;
 
 /**
  * <P>A thin wrapper around a millisecond value that allows
- * JDBC to identify this as an SQL <code>DATE</code> value.  A 
- * milliseconds value represents the number of milliseconds that 
+ * JDBC to identify this as an SQL <code>DATE</code> value.  A
+ * milliseconds value represents the number of milliseconds that
  * have passed since January 1, 1970 00:00:00.000 GMT.
  * <p>
- * To conform with the definition of SQL <code>DATE</code>, the 
- * millisecond values wrapped by a <code>java.sql.Date</code> instance 
- * must be 'normalized' by setting the 
+ * To conform with the definition of SQL <code>DATE</code>, the
+ * millisecond values wrapped by a <code>java.sql.Date</code> instance
+ * must be 'normalized' by setting the
  * hours, minutes, seconds, and milliseconds to zero in the particular
  * time zone with which the instance is associated.
  */
@@ -34,12 +52,12 @@ public class Date extends java.util.Date {
      * @deprecated instead use the constructor <code>Date(long date)</code>
      */
     public Date(int year, int month, int day) {
-	super(year, month, day);
+        super(year, month, day);
     }
 
     /**
-     * Constructs a <code>Date</code> object using the given milliseconds 
-     * time value.  If the given milliseconds value contains time 
+     * Constructs a <code>Date</code> object using the given milliseconds
+     * time value.  If the given milliseconds value contains time
      * information, the driver will set the time components to the
      * time in the default time zone (the time zone of the Java virtual
      * machine running the application) that corresponds to zero GMT.
@@ -50,15 +68,15 @@ public class Date extends java.util.Date {
      *        before January 1, 1970, 00:00:00 GMT.
      */
     public Date(long date) {
-	// If the millisecond date value contains time info, mask it out.
-	super(date);
-	
+        // If the millisecond date value contains time info, mask it out.
+        super(date);
+
     }
 
     /**
-     * Sets an existing <code>Date</code> object 
-     * using the given milliseconds time value. 
-     * If the given milliseconds value contains time information, 
+     * Sets an existing <code>Date</code> object
+     * using the given milliseconds time value.
+     * If the given milliseconds value contains time information,
      * the driver will set the time components to the
      * time in the default time zone (the time zone of the Java virtual
      * machine running the application) that corresponds to zero GMT.
@@ -69,52 +87,73 @@ public class Date extends java.util.Date {
      *        before January 1, 1970, 00:00:00 GMT.
      */
     public void setTime(long date) {
-	// If the millisecond date value contains time info, mask it out.
-	super.setTime(date);	 
+        // If the millisecond date value contains time info, mask it out.
+        super.setTime(date);
     }
 
     /**
      * Converts a string in JDBC date escape format to
      * a <code>Date</code> value.
      *
-     * @param s a <code>String</code> object representing a date in 
-     *        in the format "yyyy-mm-dd"
+     * @param s a <code>String</code> object representing a date in
+     *        in the format "yyyy-[m]m-[d]d". The leading zero for <code>mm</code>
+     * and <code>dd</code> may also be omitted.
      * @return a <code>java.sql.Date</code> object representing the
      *         given date
      * @throws IllegalArgumentException if the date given is not in the
-     *         JDBC date escape format (yyyy-mm-dd)
+     *         JDBC date escape format (yyyy-[m]m-[d]d)
      */
     public static Date valueOf(String s) {
-	int year;
-	int month;
-	int day;
-	int firstDash;
-	int secondDash;
+        final int YEAR_LENGTH = 4;
+        final int MONTH_LENGTH = 2;
+        final int DAY_LENGTH = 2;
+        final int MAX_MONTH = 12;
+        final int MAX_DAY = 31;
+        int firstDash;
+        int secondDash;
+        Date d = null;
 
-	if (s == null) throw new java.lang.IllegalArgumentException();
+        if (s == null) {
+            throw new java.lang.IllegalArgumentException();
+        }
 
-	firstDash = s.indexOf('-');
-	secondDash = s.indexOf('-', firstDash+1);
-	if ((firstDash > 0) & (secondDash > 0) & (secondDash < s.length()-1)) {
-	    year = Integer.parseInt(s.substring(0, firstDash)) - 1900;
-	    month = Integer.parseInt(s.substring(firstDash+1, secondDash)) - 1;
-	    day = Integer.parseInt(s.substring(secondDash+1));	 
-	} else {
-	    throw new java.lang.IllegalArgumentException();
-	}
-			
-	return new Date(year, month, day);
+        firstDash = s.indexOf('-');
+        secondDash = s.indexOf('-', firstDash + 1);
+
+        if ((firstDash > 0) && (secondDash > 0) && (secondDash < s.length() - 1)) {
+            String yyyy = s.substring(0, firstDash);
+            String mm = s.substring(firstDash + 1, secondDash);
+            String dd = s.substring(secondDash + 1);
+            if (yyyy.length() == YEAR_LENGTH &&
+                    (mm.length() >= 1 && mm.length() <= MONTH_LENGTH) &&
+                    (dd.length() >= 1 && dd.length() <= DAY_LENGTH)) {
+                int year = Integer.parseInt(yyyy);
+                int month = Integer.parseInt(mm);
+                int day = Integer.parseInt(dd);
+
+                if ((month >= 1 && month <= MAX_MONTH) && (day >= 1 && day <= MAX_DAY)) {
+                    d = new Date(year - 1900, month - 1, day);
+                }
+            }
+        }
+        if (d == null) {
+            throw new java.lang.IllegalArgumentException();
+        }
+
+        return d;
+
     }
 
+
     /**
-     * Formats a date in the date escape format yyyy-mm-dd.  
+     * Formats a date in the date escape format yyyy-mm-dd.
      * <P>
      * @return a String in yyyy-mm-dd format
      */
     public String toString () {
-	int year = super.getYear() + 1900;
-	int month = super.getMonth() + 1;
-	int day = super.getDate();
+        int year = super.getYear() + 1900;
+        int month = super.getMonth() + 1;
+        int day = super.getDate();
 
         char buf[] = "2000-00-00".toCharArray();
         buf[0] = Character.forDigit(year/1000,10);
@@ -125,14 +164,14 @@ public class Date extends java.util.Date {
         buf[6] = Character.forDigit(month%10,10);
         buf[8] = Character.forDigit(day/10,10);
         buf[9] = Character.forDigit(day%10,10);
-		
-	return new String(buf);
+
+        return new String(buf);
     }
 
     // Override all the time operations inherited from java.util.Date;
 
    /**
-    * This method is deprecated and should not be used because SQL Date 
+    * This method is deprecated and should not be used because SQL Date
     * values do not have a time component.
     *
     * @deprecated
@@ -140,11 +179,11 @@ public class Date extends java.util.Date {
     * @see #setHours
     */
     public int getHours() {
-	throw new java.lang.IllegalArgumentException();
+        throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Date 
+    * This method is deprecated and should not be used because SQL Date
     * values do not have a time component.
     *
     * @deprecated
@@ -152,11 +191,11 @@ public class Date extends java.util.Date {
     * @see #setMinutes
     */
     public int getMinutes() {
-	throw new java.lang.IllegalArgumentException();
+        throw new java.lang.IllegalArgumentException();
     }
-    
+
    /**
-    * This method is deprecated and should not be used because SQL Date 
+    * This method is deprecated and should not be used because SQL Date
     * values do not have a time component.
     *
     * @deprecated
@@ -164,11 +203,11 @@ public class Date extends java.util.Date {
     * @see #setSeconds
     */
     public int getSeconds() {
-	throw new java.lang.IllegalArgumentException();
+        throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Date 
+    * This method is deprecated and should not be used because SQL Date
     * values do not have a time component.
     *
     * @deprecated
@@ -176,11 +215,11 @@ public class Date extends java.util.Date {
     * @see #getHours
     */
     public void setHours(int i) {
-	throw new java.lang.IllegalArgumentException();
+        throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Date 
+    * This method is deprecated and should not be used because SQL Date
     * values do not have a time component.
     *
     * @deprecated
@@ -188,11 +227,11 @@ public class Date extends java.util.Date {
     * @see #getMinutes
     */
     public void setMinutes(int i) {
-	throw new java.lang.IllegalArgumentException();
+        throw new java.lang.IllegalArgumentException();
     }
 
    /**
-    * This method is deprecated and should not be used because SQL Date 
+    * This method is deprecated and should not be used because SQL Date
     * values do not have a time component.
     *
     * @deprecated
@@ -200,13 +239,12 @@ public class Date extends java.util.Date {
     * @see #getSeconds
     */
     public void setSeconds(int i) {
-	throw new java.lang.IllegalArgumentException();
+        throw new java.lang.IllegalArgumentException();
     }
 
    /**
     * Private serial version unique ID to ensure serialization
     * compatibility.
-    */ 
+    */
     static final long serialVersionUID = 1511598038487230103L;
 }
-

@@ -1,24 +1,41 @@
 /*
- * @(#)CertPathParameters.java	1.6 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
 
 /**
  * A specification of certification path algorithm parameters.
- * The purpose of this interface is to group (and provide type safety for) 
- * all <code>CertPath</code> parameter specifications. All 
- * <code>CertPath</code> parameter specifications must implement this 
- * interface.  
+ * The purpose of this interface is to group (and provide type safety for)
+ * all <code>CertPath</code> parameter specifications. All
+ * <code>CertPath</code> parameter specifications must implement this
+ * interface.
  *
- * @version 	1.6 11/17/05
- * @author	Yassir Elley
- * @see 	CertPathValidator#validate(CertPath, CertPathParameters)
- * @see 	CertPathBuilder#build(CertPathParameters)
- * @since	1.4
+ * @author      Yassir Elley
+ * @see         CertPathValidator#validate(CertPath, CertPathParameters)
+ * @see         CertPathBuilder#build(CertPathParameters)
+ * @since       1.4
  */
 public interface CertPathParameters extends Cloneable {
 

@@ -1,8 +1,36 @@
 /*
- * @(#)AtomicReferenceFieldUpdater.java	1.15 06/06/15
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent.atomic;
@@ -17,13 +45,13 @@ import java.lang.reflect.*;
  * independently subject to atomic updates. For example, a tree node
  * might be declared as
  *
- * <pre>
+ *  <pre> {@code
  * class Node {
  *   private volatile Node left, right;
  *
- *   private static final AtomicReferenceFieldUpdater&lt;Node, Node&gt; leftUpdater =
+ *   private static final AtomicReferenceFieldUpdater<Node, Node> leftUpdater =
  *     AtomicReferenceFieldUpdater.newUpdater(Node.class, Node.class, "left");
- *   private static AtomicReferenceFieldUpdater&lt;Node, Node&gt; rightUpdater =
+ *   private static AtomicReferenceFieldUpdater<Node, Node> rightUpdater =
  *     AtomicReferenceFieldUpdater.newUpdater(Node.class, Node.class, "right");
  *
  *   Node getLeft() { return left;  }
@@ -31,8 +59,7 @@ import java.lang.reflect.*;
  *     return leftUpdater.compareAndSet(this, expect, update);
  *   }
  *   // ... and so on
- * }
- * </pre>
+ * }}</pre>
  *
  * <p>Note that the guarantees of the {@code compareAndSet}
  * method in this class are weaker than in other atomic classes.
@@ -46,7 +73,7 @@ import java.lang.reflect.*;
  * @param <T> The type of the object holding the updatable field
  * @param <V> The type of the field
  */
-public abstract class AtomicReferenceFieldUpdater<T, V>  {
+public abstract class AtomicReferenceFieldUpdater<T, V> {
 
     /**
      * Creates and returns an updater for objects with the given field.
@@ -151,7 +178,7 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
     }
 
     private static final class AtomicReferenceFieldUpdaterImpl<T,V>
-	extends AtomicReferenceFieldUpdater<T,V> {
+        extends AtomicReferenceFieldUpdater<T,V> {
         private static final Unsafe unsafe = Unsafe.getUnsafe();
         private final long offset;
         private final Class<T> tclass;
@@ -171,19 +198,19 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
          */
 
         AtomicReferenceFieldUpdaterImpl(Class<T> tclass,
-					Class<V> vclass,
-					String fieldName) {
+                                        Class<V> vclass,
+                                        String fieldName) {
             Field field = null;
             Class fieldClass = null;
-	    Class caller = null;
-	    int modifiers = 0;
+            Class caller = null;
+            int modifiers = 0;
             try {
                 field = tclass.getDeclaredField(fieldName);
-		caller = sun.reflect.Reflection.getCallerClass(3);
-		modifiers = field.getModifiers();
+                caller = sun.reflect.Reflection.getCallerClass(3);
+                modifiers = field.getModifiers();
                 sun.reflect.misc.ReflectUtil.ensureMemberAccess(
-                    caller, tclass, null, modifiers); 
-		sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
+                    caller, tclass, null, modifiers);
+                sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
                 fieldClass = field.getType();
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
@@ -191,12 +218,12 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
 
             if (vclass != fieldClass)
                 throw new ClassCastException();
-            
+
             if (!Modifier.isVolatile(modifiers))
                 throw new IllegalArgumentException("Must be volatile type");
 
-	    this.cclass = (Modifier.isProtected(modifiers) &&
-			   caller != tclass) ? caller : null;
+            this.cclass = (Modifier.isProtected(modifiers) &&
+                           caller != tclass) ? caller : null;
             this.tclass = tclass;
             if (vclass == Object.class)
                 this.vclass = null;
@@ -208,16 +235,16 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
         void targetCheck(T obj) {
             if (!tclass.isInstance(obj))
                 throw new ClassCastException();
-	    if (cclass != null)
-		ensureProtectedAccess(obj);
+            if (cclass != null)
+                ensureProtectedAccess(obj);
         }
 
         void updateCheck(T obj, V update) {
             if (!tclass.isInstance(obj) ||
                 (update != null && vclass != null && !vclass.isInstance(update)))
                 throw new ClassCastException();
-	    if (cclass != null)
-		ensureProtectedAccess(obj);
+            if (cclass != null)
+                ensureProtectedAccess(obj);
         }
 
         public boolean compareAndSet(T obj, V expect, V update) {
@@ -259,19 +286,19 @@ public abstract class AtomicReferenceFieldUpdater<T, V>  {
             return (V)unsafe.getObjectVolatile(obj, offset);
         }
 
-	private void ensureProtectedAccess(T obj) {
-	    if (cclass.isInstance(obj)) {
-		return;
-	    }
-	    throw new RuntimeException (
+        private void ensureProtectedAccess(T obj) {
+            if (cclass.isInstance(obj)) {
+                return;
+            }
+            throw new RuntimeException(
                 new IllegalAccessException("Class " +
-		    cclass.getName() +
+                    cclass.getName() +
                     " can not access a protected member of class " +
                     tclass.getName() +
-		    " using an instance of " +
+                    " using an instance of " +
                     obj.getClass().getName()
-		)
-	    );
-	}
+                )
+            );
+        }
     }
 }

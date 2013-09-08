@@ -1,8 +1,36 @@
 /*
- * @(#)CountDownLatch.java	1.10 06/03/30
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -120,7 +148,8 @@ import java.util.concurrent.atomic.*;
  *
  * </pre>
  *
- * <p>Memory consistency effects: Actions in a thread prior to calling
+ * <p>Memory consistency effects: Until the count reaches
+ * zero, actions in a thread prior to calling
  * {@code countDown()}
  * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
  * actions following a successful return from a corresponding
@@ -145,11 +174,11 @@ public class CountDownLatch {
             return getState();
         }
 
-        public int tryAcquireShared(int acquires) {
-            return getState() == 0? 1 : -1;
+        protected int tryAcquireShared(int acquires) {
+            return (getState() == 0) ? 1 : -1;
         }
 
-        public boolean tryReleaseShared(int releases) {
+        protected boolean tryReleaseShared(int releases) {
             // Decrement count; signal when transition to zero
             for (;;) {
                 int c = getState();

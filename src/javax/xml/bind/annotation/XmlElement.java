@@ -1,6 +1,26 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.bind.annotation;
@@ -10,6 +30,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.*;
 
 /**
@@ -17,20 +38,20 @@ import static java.lang.annotation.RetentionPolicy.*;
  *
  * <p> <b>Usage</b> </p>
  * <p>
- * </tt>@XmlElement</tt> annotation can be used with the following program
- * elements: 
- * <ul> 
+ * <tt>@XmlElement</tt> annotation can be used with the following program
+ * elements:
+ * <ul>
  *   <li> a JavaBean property </li>
  *   <li> non static, non transient field </li>
  *   <li> within {@link XmlElements}
  * <p>
  *
  * </ul>
- * 
+ *
  * The usage is subject to the following constraints:
- * <ul> 
+ * <ul>
  *   <li> This annotation can be used with following annotations:
- *            {@link XmlID}, 
+ *            {@link XmlID},
  *            {@link XmlIDREF},
  *            {@link XmlList},
  *            {@link XmlSchemaType},
@@ -114,29 +135,28 @@ import static java.lang.annotation.RetentionPolicy.*;
  * <p>
  * @author Sekhar Vajjhala, Sun Microsystems, Inc.
  * @since JAXB2.0
- * @version $Revision: 1.18 $
  */
 
-@Retention(RUNTIME) @Target({FIELD, METHOD})
+@Retention(RUNTIME) @Target({FIELD, METHOD, PARAMETER})
 public @interface XmlElement {
     /**
      * Name of the XML Schema element.
      * <p> If the value is "##default", then element name is derived from the
-     * JavaBean property name. 
+     * JavaBean property name.
      */
     String name() default "##default";
- 
+
     /**
-     * Customize the element declaration to be nillable. 
+     * Customize the element declaration to be nillable.
      * <p>If nillable() is true, then the JavaBean property is
-     * mapped to a XML Schema nillable element declaration. 
+     * mapped to a XML Schema nillable element declaration.
      */
     boolean nillable() default false;
 
     /**
      * Customize the element declaration to be required.
      * <p>If required() is true, then Javabean property is mapped to
-     * an XML schema element declaration with minOccurs="1". 
+     * an XML schema element declaration with minOccurs="1".
      * maxOccurs is "1" for a single valued property and "unbounded"
      * for a multivalued property.
      * <p>If required() is false, then the Javabean property is mapped
@@ -160,7 +180,7 @@ public @interface XmlElement {
      *  the enclosing class.
      *
      *  <li>
-     *  Otherwise "" (which produces unqualified element in the default
+     *  Otherwise &#39;&#39; (which produces unqualified element in the default
      *  namespace.
      * </ol>
      */
@@ -170,9 +190,9 @@ public @interface XmlElement {
      * Default value of this element.
      *
      * <p>
-     * The '\u0000' value specified as a default of this annotation element
+     * The <pre>'\u0000'</pre> value specified as a default of this annotation element
      * is used as a poor-man's substitute for null to allow implementations
-     * to recognize the 'no default value' state.  
+     * to recognize the 'no default value' state.
      */
     String defaultValue() default "\u0000";
 
@@ -188,5 +208,3 @@ public @interface XmlElement {
      */
     static final class DEFAULT {}
 }
-
-

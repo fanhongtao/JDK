@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -63,7 +67,6 @@ package com.sun.org.apache.bcel.internal.generic;
  * @see InstructionHandle
  * @see Instruction
  * @see InstructionList
- * @version $Id: BranchHandle.java,v 1.1.2.1 2005/07/31 23:44:58 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class BranchHandle extends InstructionHandle {
@@ -90,7 +93,7 @@ public final class BranchHandle extends InstructionHandle {
       return bh;
     }
   }
-  
+
   /** Handle adds itself to the list of resuable handles.
    */
   protected void addHandle() {
@@ -135,7 +138,7 @@ public final class BranchHandle extends InstructionHandle {
     return bi.getTarget();
   }
 
-  /** 
+  /**
    * Set new contents. Old instruction is disposed and may not be used anymore.
    */
   public void setInstruction(Instruction i) {
@@ -143,9 +146,8 @@ public final class BranchHandle extends InstructionHandle {
 
     if(!(i instanceof BranchInstruction))
       throw new ClassGenException("Assigning " + i +
-				  " to branch handle which is not a branch instruction");
+                                  " to branch handle which is not a branch instruction");
 
     bi = (BranchInstruction)i;
   }
 }
-

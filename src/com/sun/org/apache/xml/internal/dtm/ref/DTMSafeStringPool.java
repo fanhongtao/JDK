@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,14 +42,14 @@ extends DTMStringPool
   /** @return string whose value is uniquely identified by this integer index.
    * @throws java.lang.ArrayIndexOutOfBoundsException
    *  if index doesn't map to a string.
-   * */ 
+   * */
   public synchronized String indexToString(int i)
     throws java.lang.ArrayIndexOutOfBoundsException
     {
       return super.indexToString(i);
     }
 
-  /** @return integer index uniquely identifying the value of this string. */ 
+  /** @return integer index uniquely identifying the value of this string. */
   public synchronized int stringToIndex(String s)
     {
       return super.stringToIndex(s);
@@ -99,9 +103,9 @@ extends DTMStringPool
               System.out.println("\tMismatch in indexToString: returned"+
                                  w+" for lookup "+i);
           }
-        
+
         pool.removeAllElements();
-        
+
         System.out.println("\nPass "+pass+" complete\n");
       } // end pass loop
   }

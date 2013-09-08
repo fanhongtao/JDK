@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,20 +28,20 @@ import java.io.Writer;
 
 /**
  * This class wraps the real writer, it only purpose is to send
- * CHARACTERTOSTREAM events to the trace listener. 
+ * CHARACTERTOSTREAM events to the trace listener.
  * Each method immediately sends the call to the wrapped writer unchanged, but
  * in addition it collects characters to be issued to a trace listener.
- * 
+ *
  * In this way the trace
  * listener knows what characters have been written to the output Writer.
- * 
+ *
  * There may still be differences in what the trace events say is going to the
  * output writer and what is really going there. These differences will be due
  * to the fact that this class is UTF-8 encoding before emiting the trace event
  * and the underlying writer may not be UTF-8 encoding. There may also be
  * encoding differences.  So the main pupose of this class is to provide a
  * resonable facsimile of the true output.
- * 
+ *
  * @xsl.usage internal
  */
 final class SerializerTraceWriter extends Writer implements WriterChain
@@ -59,7 +63,7 @@ final class SerializerTraceWriter extends Writer implements WriterChain
 
     /**
      * Internal buffer to collect the characters to go to the trace listener.
-     * 
+     *
      */
     private byte buf[];
 
@@ -88,7 +92,7 @@ final class SerializerTraceWriter extends Writer implements WriterChain
      * If the writer passed in is not null then the trace events will mirror
      * what is going to that writer. In this way tools, such as a debugger, can
      * gather information on what is being written out.
-     * 
+     *
      * @param out the Writer to write to (possibly null)
      * @param tracer the tracer to inform that characters are being written
      */
@@ -149,7 +153,7 @@ final class SerializerTraceWriter extends Writer implements WriterChain
     public void close() throws java.io.IOException
     {
         // send to the real writer
-        if (m_writer != null)   
+        if (m_writer != null)
             m_writer.close();
 
         // from here on just for tracing purposes

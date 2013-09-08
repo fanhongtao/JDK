@@ -1,21 +1,39 @@
 /*
- * @(#)UNKNOWN.java	1.33 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * This exception is raised if an operation implementation 
- * throws a non-CORBA exception (such as an exception 
- * specific to the implementation's programming language), 
- * or if an operation raises a user exception that does not 
- * appear in the operation's raises expression. UNKNOWN is 
- * also raised if the server returns a system exception that 
- * is unknown to the client. (This can happen if the server 
- * uses a later version of CORBA than the client and new system 
+ * This exception is raised if an operation implementation
+ * throws a non-CORBA exception (such as an exception
+ * specific to the implementation's programming language),
+ * or if an operation raises a user exception that does not
+ * appear in the operation's raises expression. UNKNOWN is
+ * also raised if the server returns a system exception that
+ * is unknown to the client. (This can happen if the server
+ * uses a later version of CORBA than the client and new system
  * exceptions have been added to the later version.)<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -26,7 +44,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.10 07 Nov 1996
  */
 
 public final class UNKNOWN extends SystemException {

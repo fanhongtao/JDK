@@ -1,8 +1,26 @@
 /*
- * @(#)TreeModel.java	1.26 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.tree;
 
@@ -34,10 +52,9 @@ import javax.swing.event.*;
  * see <a
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Trees</a>
  * in <em>The Java Tutorial.</em>
- * 
+ *
  * @see TreePath
- * 
- * @version 1.26 11/17/05
+ *
  * @author Rob Davis
  * @author Ray Ryan
  */
@@ -95,7 +112,7 @@ public interface TreeModel
 
     /**
       * Messaged when the user has altered the value for the item identified
-      * by <code>path</code> to <code>newValue</code>. 
+      * by <code>path</code> to <code>newValue</code>.
       * If <code>newValue</code> signifies a truly new value
       * the model should post a <code>treeNodesChanged</code> event.
       *
@@ -137,7 +154,7 @@ public interface TreeModel
      *
      * @see     #addTreeModelListener
      * @param   l       the listener to remove
-     */  
+     */
     void removeTreeModelListener(TreeModelListener l);
 
 }

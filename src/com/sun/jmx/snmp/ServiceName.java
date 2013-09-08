@@ -1,18 +1,33 @@
 /*
- * @(#)file      ServiceName.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.39
- * @(#)date      00/07/18
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.snmp;
 
 /**
  * Used for storing default values used by SNMP Runtime services.
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is an Oracle Corporation internal API  and is subject
  * to change without notice.</b></p>
  */
 public class ServiceName {
@@ -113,7 +128,7 @@ public class ServiceName {
     public static final String HTML_ADAPTOR_SERVER = "name=HtmlAdaptorServer" ;
 
     /**
-     * The name of the JMX specification implemented by this product.    
+     * The name of the JMX specification implemented by this product.
      * <BR>
      * The value is <CODE>Java Management Extensions</CODE>.
      */
@@ -127,18 +142,18 @@ public class ServiceName {
     public static final String JMX_SPEC_VERSION = "1.2 Maintenance Release";
 
     /**
-     * The vendor of the JMX specification implemented by this product.     
+     * The vendor of the JMX specification implemented by this product.
      * <BR>
-     * The value is <CODE>Sun Microsystems</CODE>.
+     * The value is <CODE>Oracle Corporation</CODE>.
      */
-    public static final String JMX_SPEC_VENDOR = "Sun Microsystems";
+    public static final String JMX_SPEC_VENDOR = "Oracle Corporation";
 
     /**
-     * The name of the vendor of this product implementing the  JMX specification.  
+     * The name of the vendor of this product implementing the  JMX specification.
      * <BR>
-     * The value is <CODE>Sun Microsystems</CODE>.
+     * The value is <CODE>Oracle Corporation</CODE>.
      */
-    public static final String JMX_IMPL_VENDOR = "Sun Microsystems";
+    public static final String JMX_IMPL_VENDOR = "Oracle Corporation";
 
     /**
       * The build number of the current product version, of the form <CODE>rXX</CODE>.
@@ -146,7 +161,7 @@ public class ServiceName {
     public static final String BUILD_NUMBER = "r01";
 
     /**
-     * The version of this product implementing the  JMX specification.  
+     * The version of this product implementing the  JMX specification.
      * <BR>
      * The value is <CODE>5.1_rXX</CODE>, where <CODE>rXX</CODE> is the <CODE>BUILD_NUMBER</CODE> .
      */

@@ -1,24 +1,41 @@
 /*
- * @(#)AbstractCellEditor.java	1.13 06/04/07
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
-package javax.swing; 
+package javax.swing;
 
 import javax.swing.event.*;
 import java.util.EventObject;
 import java.io.Serializable;
 
 /**
- * @version 1.13 04/07/06 
- * 
+ *
  * A base class for <code>CellEditors</code>, providing default
  * implementations for the methods in the <code>CellEditor</code>
- * interface except <code>getCellEditorValue()</code>. 
- * Like the other abstract implementations in Swing, also manages a list 
- * of listeners. 
+ * interface except <code>getCellEditorValue()</code>.
+ * Like the other abstract implementations in Swing, also manages a list
+ * of listeners.
  *
  * <p>
  * <strong>Warning:</strong>
@@ -29,7 +46,7 @@ import java.io.Serializable;
  * of all JavaBeans<sup><font size="-2">TM</font></sup>
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
- * 
+ *
  * @author Philip Milne
  * @since 1.3
  */
@@ -39,41 +56,41 @@ public abstract class AbstractCellEditor implements CellEditor, Serializable {
     protected EventListenerList listenerList = new EventListenerList();
     transient protected ChangeEvent changeEvent = null;
 
-    // Force this to be implemented. 
-    // public Object  getCellEditorValue()  
+    // Force this to be implemented.
+    // public Object  getCellEditorValue()
 
     /**
      * Returns true.
      * @param e  an event object
      * @return true
      */
-    public boolean isCellEditable(EventObject e) { 
-	return true; 
-    } 
+    public boolean isCellEditable(EventObject e) {
+        return true;
+    }
 
     /**
      * Returns true.
      * @param anEvent  an event object
      * @return true
      */
-    public boolean shouldSelectCell(EventObject anEvent) { 
-	return true; 
+    public boolean shouldSelectCell(EventObject anEvent) {
+        return true;
     }
-    
+
     /**
      * Calls <code>fireEditingStopped</code> and returns true.
      * @return true
      */
-    public boolean stopCellEditing() { 
-	fireEditingStopped(); 
-	return true;
+    public boolean stopCellEditing() {
+        fireEditingStopped();
+        return true;
     }
 
     /**
      * Calls <code>fireEditingCanceled</code>.
      */
-    public void  cancelCellEditing() { 
-	fireEditingCanceled(); 
+    public void  cancelCellEditing() {
+        fireEditingCanceled();
     }
 
     /**
@@ -81,7 +98,7 @@ public abstract class AbstractCellEditor implements CellEditor, Serializable {
      * @param l  the new listener to be added
      */
     public void addCellEditorListener(CellEditorListener l) {
-	listenerList.add(CellEditorListener.class, l);
+        listenerList.add(CellEditorListener.class, l);
     }
 
     /**
@@ -89,7 +106,7 @@ public abstract class AbstractCellEditor implements CellEditor, Serializable {
      * @param l  the listener to be removed
      */
     public void removeCellEditorListener(CellEditorListener l) {
-	listenerList.remove(CellEditorListener.class, l);
+        listenerList.remove(CellEditorListener.class, l);
     }
 
     /**
@@ -101,51 +118,50 @@ public abstract class AbstractCellEditor implements CellEditor, Serializable {
      * @since 1.4
      */
     public CellEditorListener[] getCellEditorListeners() {
-        return (CellEditorListener[])listenerList.getListeners(
-                CellEditorListener.class);
+        return listenerList.getListeners(CellEditorListener.class);
     }
 
     /**
      * Notifies all listeners that have registered interest for
-     * notification on this event type.  The event instance 
+     * notification on this event type.  The event instance
      * is created lazily.
      *
      * @see EventListenerList
      */
     protected void fireEditingStopped() {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==CellEditorListener.class) {
-		// Lazily create the event:
-		if (changeEvent == null)
-		    changeEvent = new ChangeEvent(this);
-		((CellEditorListener)listeners[i+1]).editingStopped(changeEvent);
-	    }	       
-	}
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==CellEditorListener.class) {
+                // Lazily create the event:
+                if (changeEvent == null)
+                    changeEvent = new ChangeEvent(this);
+                ((CellEditorListener)listeners[i+1]).editingStopped(changeEvent);
+            }
+        }
     }
 
     /**
      * Notifies all listeners that have registered interest for
-     * notification on this event type.  The event instance 
+     * notification on this event type.  The event instance
      * is created lazily.
      *
      * @see EventListenerList
      */
     protected void fireEditingCanceled() {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==CellEditorListener.class) {
-		// Lazily create the event:
-		if (changeEvent == null)
-		    changeEvent = new ChangeEvent(this);
-		((CellEditorListener)listeners[i+1]).editingCanceled(changeEvent);
-	    }	       
-	}
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==CellEditorListener.class) {
+                // Lazily create the event:
+                if (changeEvent == null)
+                    changeEvent = new ChangeEvent(this);
+                ((CellEditorListener)listeners[i+1]).editingCanceled(changeEvent);
+            }
+        }
     }
 }

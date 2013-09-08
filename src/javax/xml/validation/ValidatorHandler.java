@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: ValidatorHandler.java,v 1.5 2005/11/03 19:34:24 jeffsuttor Exp $
- * @(#)ValidatorHandler.java	1.17 05/12/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.validation;
@@ -35,19 +33,19 @@ import org.xml.sax.SAXNotSupportedException;
 
 /**
  * Streaming validator that works on SAX stream.
- * 
+ *
  * <p>
  * A {@link ValidatorHandler} object is not thread-safe and not reentrant.
  * In other words, it is the application's responsibility to make
  * sure that one {@link ValidatorHandler} object is not used from
  * more than one thread at any given time.
- * 
+ *
  * <p>
- * {@link ValidatorHandler} checks if the SAX events follow 
+ * {@link ValidatorHandler} checks if the SAX events follow
  * the set of constraints described in the associated {@link Schema},
  * and additionally it may modify the SAX events (for example
  * by adding default values, etc.)
- * 
+ *
  * <p>
  * {@link ValidatorHandler} extends from {@link ContentHandler},
  * but it refines the underlying {@link ContentHandler} in
@@ -58,7 +56,7 @@ import org.xml.sax.SAXNotSupportedException;
  *      even though SAX allows some of them to be null.
  *      Similarly, the user-specified {@link ContentHandler} will receive non-null
  *      Strings for all three parameters.
- * 
+ *
  *  <li>Applications must ensure that {@link ValidatorHandler}'s
  *      {@link ContentHandler#startPrefixMapping(String,String)} and
  *      {@link ContentHandler#endPrefixMapping(String)} are invoked
@@ -67,50 +65,49 @@ import org.xml.sax.SAXNotSupportedException;
  *      If the {@link ValidatorHandler} introduces additional namespace
  *      bindings, the user-specified {@link ContentHandler} will receive
  *      additional startPrefixMapping/endPrefixMapping events.
- * 
+ *
  *  <li>{@link org.xml.sax.Attributes} for the
  *      {@link ContentHandler#startElement(String,String,String,Attributes)} method
  *      may or may not include xmlns* attributes.
  * </ol>
- * 
+ *
  * <p>
  * A {@link ValidatorHandler} is automatically reset every time
  * the startDocument method is invoked.
- * 
+ *
  * <h2>Recognized Properties and Features</h2>
  * <p>
  * This spec defines the following feature that must be recognized
  * by all {@link ValidatorHandler} implementations.
- * 
+ *
  * <h3><code>http://xml.org/sax/features/namespace-prefixes</code></h3>
  * <p>
  * This feature controls how a {@link ValidatorHandler} introduces
  * namespace bindings that were not present in the original SAX event
  * stream.
  * When this feature is set to true, it must make
- * sure that the user's {@link ContentHandler} will see 
+ * sure that the user's {@link ContentHandler} will see
  * the corresponding <code>xmlns*</code> attribute in
  * the {@link org.xml.sax.Attributes} object of the
  * {@link ContentHandler#startElement(String,String,String,Attributes)}
  * callback. Otherwise, <code>xmlns*</code> attributes must not be
  * added to {@link org.xml.sax.Attributes} that's passed to the
  * user-specified {@link ContentHandler}.
- * <p> 
+ * <p>
  * (Note that regardless of this switch, namespace bindings are
- * always notified to applications through 
+ * always notified to applications through
  * {@link ContentHandler#startPrefixMapping(String,String)} and
  * {@link ContentHandler#endPrefixMapping(String)} methods of the
  * {@link ContentHandler} specified by the user.)
- * 
+ *
  * <p>
  * Note that this feature does <em>NOT</em> affect the way
  * a {@link ValidatorHandler} receives SAX events. It merely
  * changes the way it augments SAX events.
- * 
+ *
  * <p>This feature is set to <code>false</code> by default.</p>
- * 
+ *
  * @author  <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.5 $, $Date: 2005/11/03 19:34:24 $
  * @since 1.5
  */
 public abstract class ValidatorHandler implements ContentHandler {
@@ -136,16 +133,16 @@ public abstract class ValidatorHandler implements ContentHandler {
      * {@link ValidatorHandler} will work as a filter
      * and basically copy the incoming events to the
      * specified {@link ContentHandler}.
-     * 
+     *
      * <p>
      * In doing so, a {@link ValidatorHandler} may modify
      * the events, for example by adding defaulted attributes.
-     * 
+     *
      * <p>
      * A {@link ValidatorHandler} may buffer events to certain
      * extent, but to allow {@link ValidatorHandler} to be used
      * by a parser, the following requirement has to be met.
-     * 
+     *
      * <ol>
      *  <li>When
      *      {@link ContentHandler#startElement(String, String, String, Attributes)},
@@ -158,65 +155,65 @@ public abstract class ValidatorHandler implements ContentHandler {
      *      returns.
      *  <li>{@link ValidatorHandler} may not introduce new elements that
      *      were not present in the input.
-     * 
+     *
      *  <li>{@link ValidatorHandler} may not remove attributes that were
      *      present in the input.
-     * </ol> 
-     * 
+     * </ol>
+     *
      * <p>
      * When a callback method on the specified {@link ContentHandler}
      * throws an exception, the same exception object must be thrown
      * from the {@link ValidatorHandler}. The {@link ErrorHandler}
      * should not be notified of such an exception.
-     * 
+     *
      * <p>
      * This method can be called even during a middle of a validation.
      *
      * @param receiver
-     *      A {@link ContentHandler} or a null value. 
+     *      A {@link ContentHandler} or a null value.
      */
     public abstract void setContentHandler(ContentHandler receiver);
-    
+
     /**
      * Gets the {@link ContentHandler} which receives the
      * augmented validation result.
-     * 
+     *
      * @return
      *      This method returns the object that was last set through
      *      the {@link #getContentHandler()} method, or null
      *      if that method has never been called since this {@link ValidatorHandler}
      *      has created.
-     * 
+     *
      * @see #setContentHandler(ContentHandler)
      */
     public abstract ContentHandler getContentHandler();
-    
+
     /**
      * Sets the {@link ErrorHandler} to receive errors encountered
      * during the validation.
-     * 
+     *
      * <p>
      * Error handler can be used to customize the error handling process
      * during a validation. When an {@link ErrorHandler} is set,
      * errors found during the validation will be first sent
      * to the {@link ErrorHandler}.
-     * 
+     *
      * <p>
      * The error handler can abort further validation immediately
      * by throwing {@link org.xml.sax.SAXException} from the handler. Or for example
      * it can print an error to the screen and try to continue the
-     * validation by returning normally from the {@link ErrorHandler} 
-     * 
+     * validation by returning normally from the {@link ErrorHandler}
+     *
      * <p>
      * If any {@link Throwable} is thrown from an {@link ErrorHandler},
      * the same {@link Throwable} object will be thrown toward the
      * root of the call stack.
-     * 
+     *
      * <p>
      * {@link ValidatorHandler} is not allowed to
      * throw {@link org.xml.sax.SAXException} without first reporting it to
      * {@link ErrorHandler}.
-     * 
+     *
      * <p>
      * When the {@link ErrorHandler} is null, the implementation will
      * behave as if the following {@link ErrorHandler} is set:
@@ -233,39 +230,39 @@ public abstract class ValidatorHandler implements ContentHandler {
      *     }
      * }
      * </pre>
-     * 
+     *
      * <p>
      * When a new {@link ValidatorHandler} object is created, initially
      * this field is set to null.
-     * 
+     *
      * @param   errorHandler
      *      A new error handler to be set. This parameter can be null.
      */
     public abstract void setErrorHandler(ErrorHandler errorHandler);
-    
+
     /**
      * Gets the current {@link ErrorHandler} set to this {@link ValidatorHandler}.
-     * 
+     *
      * @return
      *      This method returns the object that was last set through
      *      the {@link #setErrorHandler(ErrorHandler)} method, or null
      *      if that method has never been called since this {@link ValidatorHandler}
      *      has created.
-     * 
+     *
      * @see #setErrorHandler(ErrorHandler)
      */
     public abstract ErrorHandler getErrorHandler();
-    
+
     /**
      * Sets the {@link LSResourceResolver} to customize
      * resource resolution while in a validation episode.
-     * 
+     *
      * <p>
      * {@link ValidatorHandler} uses a {@link LSResourceResolver}
      * when it needs to locate external resources while a validation,
      * although exactly what constitutes "locating external resources" is
      * up to each schema language.
-     * 
+     *
      * <p>
      * When the {@link LSResourceResolver} is null, the implementation will
      * behave as if the following {@link LSResourceResolver} is set:
@@ -273,63 +270,63 @@ public abstract class ValidatorHandler implements ContentHandler {
      * class DumbLSResourceResolver implements {@link LSResourceResolver} {
      *     public {@link org.w3c.dom.ls.LSInput} resolveResource(
      *         String publicId, String systemId, String baseURI) {
-     *         
+     *
      *         return null; // always return null
      *     }
      * }
      * </pre>
-     * 
+     *
      * <p>
      * If a {@link LSResourceResolver} throws a {@link RuntimeException}
      *  (or instances of its derived classes),
-     * then the {@link ValidatorHandler} will abort the parsing and  
+     * then the {@link ValidatorHandler} will abort the parsing and
      * the caller of the <code>validate</code> method will receive
-     * the same {@link RuntimeException}. 
-     * 
+     * the same {@link RuntimeException}.
+     *
      * <p>
      * When a new {@link ValidatorHandler} object is created, initially
      * this field is set to null.
-     * 
+     *
      * @param   resourceResolver
      *      A new resource resolver to be set. This parameter can be null.
      */
     public abstract void setResourceResolver(LSResourceResolver resourceResolver);
-    
+
     /**
      * Gets the current {@link LSResourceResolver} set to this {@link ValidatorHandler}.
-     * 
+     *
      * @return
      *      This method returns the object that was last set through
      *      the {@link #setResourceResolver(LSResourceResolver)} method, or null
      *      if that method has never been called since this {@link ValidatorHandler}
      *      has created.
-     * 
+     *
      * @see #setErrorHandler(ErrorHandler)
      */
     public abstract LSResourceResolver getResourceResolver();
-    
+
     /**
      * Obtains the {@link TypeInfoProvider} implementation of this
      * {@link ValidatorHandler}.
-     * 
+     *
      * <p>
      * The obtained {@link TypeInfoProvider} can be queried during a parse
      * to access the type information determined by the validator.
-     * 
+     *
      * <p>
      * Some schema languages do not define the notion of type,
      * for those languages, this method may not be supported.
      * However, to be compliant with this specification, implementations
-     * for W3C XML Schema 1.0 must support this operation. 
-     * 
+     * for W3C XML Schema 1.0 must support this operation.
+     *
      * @return
      *      null if the validator / schema language does not support
      *      the notion of {@link org.w3c.dom.TypeInfo}.
      *      Otherwise a non-null valid {@link TypeInfoProvider}.
      */
     public abstract TypeInfoProvider getTypeInfoProvider();
-    
-    
+
+
     /**
      * Look up the value of a feature flag.
      *
@@ -395,7 +392,7 @@ public abstract class ValidatorHandler implements ContentHandler {
      *
      * @param name The feature name, which is a non-null fully-qualified URI.
      * @param value The requested value of the feature (true or false).
-     * 
+     *
      * @throws SAXNotRecognizedException If the feature
      *   value can't be assigned or retrieved.
      * @throws SAXNotSupportedException When the
@@ -421,8 +418,8 @@ public abstract class ValidatorHandler implements ContentHandler {
      * <p>The property name is any fully-qualified URI.  It is
      * possible for a {@link ValidatorHandler} to recognize a property name but
      * to be unable to change the current value.
-     * Some property values may be immutable or mutable only 
-     * in specific contexts, such as before, during, or after 
+     * Some property values may be immutable or mutable only
+     * in specific contexts, such as before, during, or after
      * a validation.</p>
      *
      * <p>{@link ValidatorHandler}s are not required to recognize setting

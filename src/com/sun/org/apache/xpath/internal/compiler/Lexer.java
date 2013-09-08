@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,7 +75,7 @@ class Lexer
    * Create a Lexer object.
    *
    * @param compiler The owning compiler for this lexer.
-   * @param resolver The prefix resolver for mapping qualified name prefixes 
+   * @param resolver The prefix resolver for mapping qualified name prefixes
    *                 to namespace URIs.
    * @param xpathProcessor The parser that is processing strings to opcodes.
    */
@@ -109,13 +113,13 @@ class Lexer
   {
 
     m_compiler.m_currentPattern = pat;
-    m_patternMapSize = 0; 
+    m_patternMapSize = 0;
 
     // This needs to grow too.
     m_compiler.m_opMap = new OpMapVector(OpMap.MAXTOKENQUEUESIZE * 5, OpMap.BLOCKTOKENQUEUESIZE * 5, OpMap.MAPINDEX_LENGTH);
 
     int nChars = pat.length();
-    int startSubstring = -1; 
+    int startSubstring = -1;
     int posOfNSSep = -1;
     boolean isStartOfPat = true;
     boolean isAttrName = false;
@@ -350,7 +354,7 @@ class Lexer
       isNum = false;
       isStartOfPat = mapPatternElemPos(nesting, isStartOfPat, isAttrName);
 
-      if ((-1 != posOfNSSep) || 
+      if ((-1 != posOfNSSep) ||
          ((m_namespaceContext != null) && (m_namespaceContext.handlesNullPrefixes())))
       {
         posOfNSSep = mapNSTokens(pat, startSubstring, posOfNSSep, nChars);
@@ -396,7 +400,7 @@ class Lexer
         int len = m_patternMap.length;
         m_patternMap = new int[m_patternMapSize + 100];
         System.arraycopy(patternMap, 0, m_patternMap, 0, len);
-      } 
+      }
       if (!isStart)
       {
         m_patternMap[m_patternMapSize - 1] -= TARGETEXTRA;
@@ -571,7 +575,7 @@ class Lexer
  {
 
     String prefix = "";
-    
+
     if ((startSubstring >= 0) && (posOfNSSep >= 0))
     {
        prefix = pat.substring(startSubstring, posOfNSSep);
@@ -635,13 +639,13 @@ class Lexer
     {
         // To older XPath code it doesn't matter if
         // error() is called or errorForDOM3().
-		m_processor.errorForDOM3(XPATHErrorResources.ER_PREFIX_MUST_RESOLVE,
-						 new String[] {prefix});  //"Prefix must resolve to a namespace: {0}";
+                m_processor.errorForDOM3(XPATHErrorResources.ER_PREFIX_MUST_RESOLVE,
+                                                 new String[] {prefix});  //"Prefix must resolve to a namespace: {0}";
 
 /** old code commented out 17-Sep-2004
 // error("Could not locate namespace for prefix: "+prefix);
-//		  m_processor.error(XPATHErrorResources.ER_PREFIX_MUST_RESOLVE,
-//					 new String[] {prefix});  //"Prefix must resolve to a namespace: {0}";
+//                m_processor.error(XPATHErrorResources.ER_PREFIX_MUST_RESOLVE,
+//                                       new String[] {prefix});  //"Prefix must resolve to a namespace: {0}";
 */
 
       /***  Old code commented out 10-Jan-2001

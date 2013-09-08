@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // CatalogManager.java - Access CatalogManager.properties
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -118,7 +122,6 @@ import com.sun.org.apache.xml.internal.resolver.Catalog;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 
 public class CatalogManager {
@@ -242,23 +245,23 @@ public class CatalogManager {
     try {
       propertyFileURI = CatalogManager.class.getResource("/"+propertyFile);
       InputStream in =
-	CatalogManager.class.getResourceAsStream("/"+propertyFile);
+        CatalogManager.class.getResourceAsStream("/"+propertyFile);
       if (in==null) {
-	if (!ignoreMissingProperties) {
-	  System.err.println("Cannot find "+propertyFile);
-	  // there's no reason to give this warning more than once
-	  ignoreMissingProperties = true;
-	}
-	return;
+        if (!ignoreMissingProperties) {
+          System.err.println("Cannot find "+propertyFile);
+          // there's no reason to give this warning more than once
+          ignoreMissingProperties = true;
+        }
+        return;
       }
       resources = new PropertyResourceBundle(in);
     } catch (MissingResourceException mre) {
       if (!ignoreMissingProperties) {
-	System.err.println("Cannot read "+propertyFile);
+        System.err.println("Cannot read "+propertyFile);
       }
     } catch (java.io.IOException e) {
       if (!ignoreMissingProperties) {
-	System.err.println("Failure trying to read "+propertyFile);
+        System.err.println("Failure trying to read "+propertyFile);
       }
     }
 
@@ -267,12 +270,12 @@ public class CatalogManager {
     // the default debug level.
     if (verbosity == null) {
       try {
-	String verbStr = resources.getString("verbosity");
-	int verb = Integer.parseInt(verbStr.trim());
-	debug.setDebug(verb);
-	verbosity = new Integer(verb);
+        String verbStr = resources.getString("verbosity");
+        int verb = Integer.parseInt(verbStr.trim());
+        debug.setDebug(verb);
+        verbosity = new Integer(verb);
       } catch (Exception e) {
-	// nop
+        // nop
       }
     }
   }
@@ -333,13 +336,13 @@ public class CatalogManager {
     if (verbStr == null) {
       if (resources==null) readProperties();
       if (resources != null) {
-	try {
-	  verbStr = resources.getString("verbosity");
-	} catch (MissingResourceException e) {
-	  verbStr = defaultVerbStr;
-	}
+        try {
+          verbStr = resources.getString("verbosity");
+        } catch (MissingResourceException e) {
+          verbStr = defaultVerbStr;
+        }
       } else {
-	verbStr = defaultVerbStr;
+        verbStr = defaultVerbStr;
       }
     }
 
@@ -404,8 +407,8 @@ public class CatalogManager {
     try {
       String allow = resources.getString("relative-catalogs");
       return (allow.equalsIgnoreCase("true")
-	      || allow.equalsIgnoreCase("yes")
-	      || allow.equalsIgnoreCase("1"));
+              || allow.equalsIgnoreCase("yes")
+              || allow.equalsIgnoreCase("1"));
     } catch (MissingResourceException e) {
       return defaultRelativeCatalogs;
     }
@@ -469,13 +472,13 @@ public class CatalogManager {
     if (catalogList == null) {
       if (resources == null) readProperties();
       if (resources != null) {
-	try {
-	  catalogList = resources.getString("catalogs");
-	  fromPropertiesFile = true;
-	} catch (MissingResourceException e) {
-	  System.err.println(propertyFile + ": catalogs not found.");
-	  catalogList = null;
-	}
+        try {
+          catalogList = resources.getString("catalogs");
+          fromPropertiesFile = true;
+        } catch (MissingResourceException e) {
+          System.err.println(propertyFile + ": catalogs not found.");
+          catalogList = null;
+        }
       }
     }
 
@@ -504,12 +507,12 @@ public class CatalogManager {
       URL absURI = null;
 
       if (fromPropertiesFile && !relativeCatalogs()) {
-	try {
-	  absURI = new URL(propertyFileURI, catalogFile);
-	  catalogFile = absURI.toString();
-	} catch (MalformedURLException mue) {
-	  absURI = null;
-	}
+        try {
+          absURI = new URL(propertyFileURI, catalogFile);
+          catalogFile = absURI.toString();
+        } catch (MalformedURLException mue) {
+          absURI = null;
+        }
       }
 
       catalogs.add(catalogFile);
@@ -554,9 +557,9 @@ public class CatalogManager {
       if (resources==null) readProperties();
       if (resources==null) return defaultPreferPublic;
       try {
-	prefer = resources.getString("prefer");
+        prefer = resources.getString("prefer");
       } catch (MissingResourceException e) {
-	return defaultPreferPublic;
+        return defaultPreferPublic;
       }
     }
 
@@ -613,9 +616,9 @@ public class CatalogManager {
       if (resources==null) readProperties();
       if (resources==null) return defaultUseStaticCatalog;
       try {
-	staticCatalog = resources.getString("static-catalog");
+        staticCatalog = resources.getString("static-catalog");
       } catch (MissingResourceException e) {
-	return defaultUseStaticCatalog;
+        return defaultUseStaticCatalog;
       }
     }
 
@@ -624,8 +627,8 @@ public class CatalogManager {
     }
 
     return (staticCatalog.equalsIgnoreCase("true")
-	    || staticCatalog.equalsIgnoreCase("yes")
-	    || staticCatalog.equalsIgnoreCase("1"));
+            || staticCatalog.equalsIgnoreCase("yes")
+            || staticCatalog.equalsIgnoreCase("1"));
   }
 
   /**
@@ -670,35 +673,35 @@ public class CatalogManager {
     if (catalog == null || !useStaticCatalog.booleanValue()) {
 
       try {
-	String catalogClassName = getCatalogClassName();
+        String catalogClassName = getCatalogClassName();
 
-	if (catalogClassName == null) {
-	  catalog = new Catalog();
-	} else {
-	  try {
-	    catalog = (Catalog) Class.forName(catalogClassName).newInstance();
-	  } catch (ClassNotFoundException cnfe) {
-	    debug.message(1,"Catalog class named '"
-			  + catalogClassName
-			  + "' could not be found. Using default.");
-	    catalog = new Catalog();
-	  } catch (ClassCastException cnfe) {
-	    debug.message(1,"Class named '"
-			  + catalogClassName
-			  + "' is not a Catalog. Using default.");
-	    catalog = new Catalog();
-	  }
-	}
+        if (catalogClassName == null) {
+          catalog = new Catalog();
+        } else {
+          try {
+            catalog = (Catalog) Class.forName(catalogClassName).newInstance();
+          } catch (ClassNotFoundException cnfe) {
+            debug.message(1,"Catalog class named '"
+                          + catalogClassName
+                          + "' could not be found. Using default.");
+            catalog = new Catalog();
+          } catch (ClassCastException cnfe) {
+            debug.message(1,"Class named '"
+                          + catalogClassName
+                          + "' is not a Catalog. Using default.");
+            catalog = new Catalog();
+          }
+        }
 
-	catalog.setCatalogManager(this);
-	catalog.setupReaders();
-	catalog.loadSystemCatalogs();
+        catalog.setCatalogManager(this);
+        catalog.setupReaders();
+        catalog.loadSystemCatalogs();
       } catch (Exception ex) {
-	ex.printStackTrace();
+        ex.printStackTrace();
       }
 
       if (useStaticCatalog.booleanValue()) {
-	staticCatalog = catalog;
+        staticCatalog = catalog;
       }
     }
 
@@ -721,7 +724,7 @@ public class CatalogManager {
     if (catalog == null || !useStaticCatalog.booleanValue()) {
       catalog = getPrivateCatalog();
       if (useStaticCatalog.booleanValue()) {
-	staticCatalog = catalog;
+        staticCatalog = catalog;
       }
     }
 
@@ -744,9 +747,9 @@ public class CatalogManager {
       if (resources==null) readProperties();
       if (resources==null) return defaultOasisXMLCatalogPI;
       try {
-	allow = resources.getString("allow-oasis-xml-catalog-pi");
+        allow = resources.getString("allow-oasis-xml-catalog-pi");
       } catch (MissingResourceException e) {
-	return defaultOasisXMLCatalogPI;
+        return defaultOasisXMLCatalogPI;
       }
     }
 
@@ -755,8 +758,8 @@ public class CatalogManager {
     }
 
     return (allow.equalsIgnoreCase("true")
-	    || allow.equalsIgnoreCase("yes")
-	    || allow.equalsIgnoreCase("1"));
+            || allow.equalsIgnoreCase("yes")
+            || allow.equalsIgnoreCase("1"));
   }
 
   /**
@@ -797,9 +800,9 @@ public class CatalogManager {
       if (resources==null) readProperties();
       if (resources==null) return null;
       try {
-	return resources.getString("catalog-class-name");
+        return resources.getString("catalog-class-name");
       } catch (MissingResourceException e) {
-	return null;
+        return null;
       }
     }
 

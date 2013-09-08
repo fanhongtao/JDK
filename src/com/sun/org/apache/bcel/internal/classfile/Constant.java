@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -62,7 +66,6 @@ import  java.io.*;
  * in the constant pool of a class file. The classes keep closely to
  * the JVM specification.
  *
- * @version $Id: Constant.java,v 1.1.2.1 2005/07/31 23:46:35 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class Constant implements Cloneable, Node, Serializable {
@@ -71,7 +74,7 @@ public abstract class Constant implements Cloneable, Node, Serializable {
    * places we will use the tag for switch()es anyway.
    *
    * First, we want match the specification as closely as possible. Second we
-   * need the tag as an index to select the corresponding class name from the 
+   * need the tag as an index to select the corresponding class name from the
    * `CONSTANT_NAMES' array.
    */
   protected byte tag;
@@ -85,9 +88,9 @@ public abstract class Constant implements Cloneable, Node, Serializable {
    *
    * @param v Visitor object
    */
-  public abstract void accept(Visitor v);    
+  public abstract void accept(Visitor v);
 
-  public abstract void dump(DataOutputStream file) throws IOException;    
+  public abstract void dump(DataOutputStream file) throws IOException;
 
   /**
    * @return Tag of constant, i.e., its type. No setTag() method to avoid
@@ -97,10 +100,10 @@ public abstract class Constant implements Cloneable, Node, Serializable {
 
   /**
    * @return String representation.
-   */  
+   */
   public String toString() {
     return Constants.CONSTANT_NAMES[tag] + "[" + tag + "]";
-  }    
+  }
 
   /**
    * @return deep copy of this constant
@@ -132,8 +135,8 @@ public abstract class Constant implements Cloneable, Node, Serializable {
     case Constants.CONSTANT_Class:              return new ConstantClass(file);
     case Constants.CONSTANT_Fieldref:           return new ConstantFieldref(file);
     case Constants.CONSTANT_Methodref:          return new ConstantMethodref(file);
-    case Constants.CONSTANT_InterfaceMethodref: return new 
-					ConstantInterfaceMethodref(file);
+    case Constants.CONSTANT_InterfaceMethodref: return new
+                                        ConstantInterfaceMethodref(file);
     case Constants.CONSTANT_String:             return new ConstantString(file);
     case Constants.CONSTANT_Integer:            return new ConstantInteger(file);
     case Constants.CONSTANT_Float:              return new ConstantFloat(file);
@@ -141,8 +144,8 @@ public abstract class Constant implements Cloneable, Node, Serializable {
     case Constants.CONSTANT_Double:             return new ConstantDouble(file);
     case Constants.CONSTANT_NameAndType:        return new ConstantNameAndType(file);
     case Constants.CONSTANT_Utf8:               return new ConstantUtf8(file);
-    default:                          
+    default:
       throw new ClassFormatException("Invalid byte tag in constant pool: " + b);
     }
-  }    
+  }
 }

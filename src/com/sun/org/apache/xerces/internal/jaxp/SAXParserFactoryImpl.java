@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,6 +33,7 @@ import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXNotSupportedException;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
+import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
 
 /**
  * This is the implementation specific class for the
@@ -38,7 +43,7 @@ import com.sun.org.apache.xerces.internal.impl.Constants;
  * @author Rajiv Mordani
  * @author Edwin Goei
  * 
- * @version $Id: SAXParserFactoryImpl.java,v 1.4 2005/09/26 14:46:10 sunithareddy Exp $
+ * @version $Id: SAXParserFactoryImpl.java,v 1.7 2009/07/28 23:48:32 joehw Exp $
  */
 public class SAXParserFactoryImpl extends SAXParserFactory {
     
@@ -113,6 +118,11 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
         }
         // If this is the secure processing feature, save it then return.
         if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+            if (System.getSecurityManager() != null && (!value)) {
+                throw new ParserConfigurationException(
+                        SAXMessageFormatter.formatMessage(null, 
+                        "jaxp-secureprocessing-feature", null));
+            }
             fSecureProcess = value;
             return;
         }

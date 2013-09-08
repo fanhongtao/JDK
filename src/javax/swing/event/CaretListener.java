@@ -1,19 +1,36 @@
 /*
- * @(#)CaretListener.java	1.10 05/11/17
+ * Copyright (c) 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.event;
 
 
 import java.util.EventListener;
- 
+
 /**
- * Listener for changes in the caret position of a text 
+ * Listener for changes in the caret position of a text
  * component.
  *
- * @version 1.10 11/17/05
  * @author  Timothy Prinzing
  */
 public interface CaretListener extends EventListener {
@@ -25,4 +42,3 @@ public interface CaretListener extends EventListener {
      */
     void caretUpdate(CaretEvent e);
 }
-

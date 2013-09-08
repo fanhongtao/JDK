@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -54,12 +58,11 @@ package com.sun.org.apache.bcel.internal.generic;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * DCONST - Push 0.0 or 1.0, other values cause an exception
  *
  * <PRE>Stack: ... -&gt; ..., </PRE>
  *
- * @version $Id: DCONST.java,v 1.1.2.1 2005/07/31 23:45:27 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class DCONST extends Instruction

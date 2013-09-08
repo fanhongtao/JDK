@@ -1,8 +1,26 @@
 /*
- * @(#)Heap-X-Buffer.java	1.29 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -34,7 +52,7 @@ class HeapCharBufferR
 
     */
 
-    HeapCharBufferR(int cap, int lim) {		// package-private
+    HeapCharBufferR(int cap, int lim) {            // package-private
 
 
 
@@ -42,8 +60,8 @@ class HeapCharBufferR
 
 
 
-	super(cap, lim);
-	this.isReadOnly = true;
+        super(cap, lim);
+        this.isReadOnly = true;
 
     }
 
@@ -55,14 +73,14 @@ class HeapCharBufferR
 
 
 
-	super(buf, off, len);
-	this.isReadOnly = true;
+        super(buf, off, len);
+        this.isReadOnly = true;
 
     }
 
     protected HeapCharBufferR(char[] buf,
-				   int mark, int pos, int lim, int cap,
-				   int off)
+                                   int mark, int pos, int lim, int cap,
+                                   int off)
     {
 
 
@@ -71,27 +89,27 @@ class HeapCharBufferR
 
 
 
-	super(buf, mark, pos, lim, cap, off);
-	this.isReadOnly = true;
+        super(buf, mark, pos, lim, cap, off);
+        this.isReadOnly = true;
 
     }
 
     public CharBuffer slice() {
-	return new HeapCharBufferR(hb,
-					-1,
-					0,
-					this.remaining(),
-					this.remaining(),
-					this.position() + offset);
+        return new HeapCharBufferR(hb,
+                                        -1,
+                                        0,
+                                        this.remaining(),
+                                        this.remaining(),
+                                        this.position() + offset);
     }
 
     public CharBuffer duplicate() {
-	return new HeapCharBufferR(hb,
-					this.markValue(),
-					this.position(),
-					this.limit(),
-					this.capacity(),
-					offset);
+        return new HeapCharBufferR(hb,
+                                        this.markValue(),
+                                        this.position(),
+                                        this.limit(),
+                                        this.capacity(),
+                                        offset);
     }
 
     public CharBuffer asReadOnlyBuffer() {
@@ -103,7 +121,7 @@ class HeapCharBufferR
 
 
 
-	return duplicate();
+        return duplicate();
 
     }
 
@@ -137,7 +155,7 @@ class HeapCharBufferR
 
 
     public boolean isReadOnly() {
-	return true;
+        return true;
     }
 
     public CharBuffer put(char x) {
@@ -145,7 +163,7 @@ class HeapCharBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -154,7 +172,7 @@ class HeapCharBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -167,7 +185,7 @@ class HeapCharBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -195,7 +213,7 @@ class HeapCharBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -206,11 +224,11 @@ class HeapCharBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+
+        throw new ReadOnlyBufferException();
 
     }
 
-
 
 
 
@@ -534,29 +552,33 @@ class HeapCharBufferR
 
 
 
-
 
 
-    String toString(int start, int end) {		// package-private
-	try {
-	    return new String(hb, start + offset, end - start);
-	} catch (StringIndexOutOfBoundsException x) {
-	    throw new IndexOutOfBoundsException();
-	}
+
+
+    String toString(int start, int end) {               // package-private
+        try {
+            return new String(hb, start + offset, end - start);
+        } catch (StringIndexOutOfBoundsException x) {
+            throw new IndexOutOfBoundsException();
+        }
     }
 
 
     // --- Methods to support CharSequence ---
 
-    public CharSequence subSequence(int start, int end) {
+    public CharBuffer subSequence(int start, int end) {
         if ((start < 0)
-	    || (end > length())
-	    || (start > end))
-	    throw new IndexOutOfBoundsException();
-        int len = end - start;
+            || (end > length())
+            || (start > end))
+            throw new IndexOutOfBoundsException();
+        int pos = position();
         return new HeapCharBufferR(hb,
-				      -1, 0, len, len,
-				      offset + position() + start);
+                                      -1,
+                                      pos + start,
+                                      pos + end,
+                                      capacity(),
+                                      offset);
     }
 
 
@@ -565,7 +587,7 @@ class HeapCharBufferR
 
 
     public ByteOrder order() {
-	return ByteOrder.nativeOrder();
+        return ByteOrder.nativeOrder();
     }
 
 

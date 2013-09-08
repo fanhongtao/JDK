@@ -1,4 +1,29 @@
 /*
+ * Copyright (c) 2001, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
   File: Sync.java
 
   Originally written by Doug Lea and released into the public domain.
@@ -33,7 +58,7 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  *   Sync gate;
  *   // ...
  *
- *   public void m() { 
+ *   public void m() {
  *     try {
  *       gate.acquire();  // block until condition holds
  *       try {
@@ -68,27 +93,27 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * Syncs may be used in somewhat tedious but more flexible replacements
  * for built-in Java synchronized blocks. For example:
  * <pre>
- * class HandSynched {          
- *   private double state_ = 0.0; 
+ * class HandSynched {
+ *   private double state_ = 0.0;
  *   private final Sync lock;  // use lock type supplied in constructor
- *   public HandSynched(Sync l) { lock = l; } 
+ *   public HandSynched(Sync l) { lock = l; }
  *
  *   public void changeState(double d) {
  *     try {
- *       lock.acquire(); 
- *       try     { state_ = updateFunction(d); } 
+ *       lock.acquire();
+ *       try     { state_ = updateFunction(d); }
  *       finally { lock.release(); }
- *     } 
+ *     }
  *     catch(InterruptedException ex) { }
  *   }
  *
  *   public double getState() {
  *     double d = 0.0;
  *     try {
- *       lock.acquire(); 
+ *       lock.acquire();
  *       try     { d = accessFunction(state_); }
  *       finally { lock.release(); }
- *     } 
+ *     }
  *     catch(InterruptedException ex){}
  *     return d;
  *   }
@@ -101,10 +126,10 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * wrappers are standardized in LockedExecutor, but you can make others.
  * For example:
  * <pre>
- * class HandSynchedV2 {          
- *   private double state_ = 0.0; 
+ * class HandSynchedV2 {
+ *   private double state_ = 0.0;
  *   private final Sync lock;  // use lock type supplied in constructor
- *   public HandSynchedV2(Sync l) { lock = l; } 
+ *   public HandSynchedV2(Sync l) { lock = l; }
  *
  *   protected void runSafely(Runnable r) {
  *     try {
@@ -119,7 +144,7 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  *
  *   public void changeState(double d) {
  *     runSafely(new Runnable() {
- *       public void run() { state_ = updateFunction(d); } 
+ *       public void run() { state_ = updateFunction(d); }
  *     });
  *   }
  *   // ...
@@ -129,20 +154,20 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * One reason to bother with such constructions is to use deadlock-
  * avoiding back-offs when dealing with locks involving multiple objects.
  * For example, here is a Cell class that uses attempt to back-off
- * and retry if two Cells are trying to swap values with each other 
+ * and retry if two Cells are trying to swap values with each other
  * at the same time.
  * <pre>
  * class Cell {
  *   long value;
  *   Sync lock = ... // some sync implementation class
  *   void swapValue(Cell other) {
- *     for (;;) { 
+ *     for (;;) {
  *       try {
  *         lock.acquire();
  *         try {
  *           if (other.lock.attempt(100)) {
- *             try { 
- *               long t = value; 
+ *             try {
+ *               long t = value;
  *               value = other.value;
  *               other.value = t;
  *               return;
@@ -151,7 +176,7 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  *           }
  *         }
  *         finally { lock.release(); }
- *       } 
+ *       }
  *       catch (InterruptedException ex) { return; }
  *     }
  *   }
@@ -161,15 +186,15 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * Here is an even fancier version, that uses lock re-ordering
  * upon conflict:
  * <pre>
- * class Cell { 
+ * class Cell {
  *   long value;
  *   Sync lock = ...;
  *   private static boolean trySwap(Cell a, Cell b) {
  *     a.lock.acquire();
  *     try {
- *       if (!b.lock.attempt(0)) 
+ *       if (!b.lock.attempt(0))
  *         return false;
- *       try { 
+ *       try {
  *         long t = a.value;
  *         a.value = b.value;
  *         b.value = t;
@@ -184,7 +209,7 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  *  void swapValue(Cell other) {
  *    try {
  *      while (!trySwap(this, other) &&
- *            !tryswap(other, this)) 
+ *            !tryswap(other, this))
  *        Thread.sleep(1);
  *    }
  *    catch (InterruptedException ex) { return; }
@@ -196,12 +221,12 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * Normally, InterruptionExceptions are thrown
  * in acquire and attempt(msec) if interruption
  * is detected upon entry to the method, as well as in any
- * later context surrounding waits. 
+ * later context surrounding waits.
  * However, interruption status is ignored in release();
  * <p>
  * Timed versions of attempt report failure via return value.
  * If so desired, you can transform such constructions to use exception
- * throws via 
+ * throws via
  * <pre>
  *   if (!c.attempt(timeval)) throw new TimeoutException(timeval);
  * </pre>
@@ -210,7 +235,7 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * <p>
  * All time values are expressed in milliseconds as longs, which have a maximum
  * value of Long.MAX_VALUE, or almost 300,000 centuries. It is not
- * known whether JVMs actually deal correctly with such extreme values. 
+ * known whether JVMs actually deal correctly with such extreme values.
  * For convenience, some useful time values are defined as static constants.
  * <p>
  * All implementations of the three Sync methods guarantee to
@@ -221,15 +246,15 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * <p>
  * Syncs may also be used in spinlock constructions. Although
  * it is normally best to just use acquire(), various forms
- * of busy waits can be implemented. For a simple example 
+ * of busy waits can be implemented. For a simple example
  * (but one that would probably never be preferable to using acquire()):
  * <pre>
  * class X {
  *   Sync lock = ...
  *   void spinUntilAcquired() throws InterruptedException {
- *     // Two phase. 
+ *     // Two phase.
  *     // First spin without pausing.
- *     int purespins = 10; 
+ *     int purespins = 10;
  *     for (int i = 0; i < purespins; ++i) {
  *       if (lock.attempt(0))
  *         return true;
@@ -239,8 +264,8 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  *     for (;;) {
  *       if (lock.attempt(waitTime))
  *         return true;
- *       else 
- *         waitTime = waitTime * 3 / 2 + 1; // increase 50% 
+ *       else
+ *         waitTime = waitTime * 3 / 2 + 1; // increase 50%
  *     }
  *   }
  * }
@@ -259,18 +284,18 @@ package com.sun.corba.se.impl.orbutil.concurrent;
 
 public interface Sync {
 
-  /** 
+  /**
    *  Wait (possibly forever) until successful passage.
    *  Fail only upon interuption. Interruptions always result in
-   *  `clean' failures. On failure,  you can be sure that it has not 
-   *  been acquired, and that no 
+   *  `clean' failures. On failure,  you can be sure that it has not
+   *  been acquired, and that no
    *  corresponding release should be performed. Conversely,
    *  a normal return guarantees that the acquire was successful.
   **/
 
   public void acquire() throws InterruptedException;
 
-  /** 
+  /**
    * Wait at most msecs to pass; report whether passed.
    * <p>
    * The method has best-effort semantics:
@@ -287,7 +312,7 @@ public interface Sync {
    * when called in an unintended context.
    * <p>
    * @param msecs the number of milleseconds to wait.
-   * An argument less than or equal to zero means not to wait at all. 
+   * An argument less than or equal to zero means not to wait at all.
    * However, this may still require
    * access to a synchronization lock, which can impose unbounded
    * delay if there is a lot of contention among threads.
@@ -296,13 +321,13 @@ public interface Sync {
 
   public boolean attempt(long msecs) throws InterruptedException;
 
-  /** 
+  /**
    * Potentially enable others to pass.
    * <p>
-   * Because release does not raise exceptions, 
+   * Because release does not raise exceptions,
    * it can be used in `finally' clauses without requiring extra
    * embedded try/catch blocks. But keep in mind that
-   * as with any java method, implementations may 
+   * as with any java method, implementations may
    * still throw unchecked exceptions such as Error or NullPointerException
    * when faced with uncontinuable errors. However, these should normally
    * only be caught by higher-level error handlers.
@@ -336,5 +361,3 @@ public interface Sync {
 
 
 }
-
-

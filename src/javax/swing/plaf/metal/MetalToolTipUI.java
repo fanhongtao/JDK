@@ -1,8 +1,26 @@
 /*
- * @(#)MetalToolTipUI.java	1.31 05/11/30
+ * Copyright (c) 1998, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -31,13 +49,12 @@ import javax.swing.text.View;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.31 11/30/05
  * @author Steve Wilson
  */
 public class MetalToolTipUI extends BasicToolTipUI {
 
     static MetalToolTipUI sharedInstance = new MetalToolTipUI();
-    private Font smallFont;			    	     
+    private Font smallFont;
     // Refer to note in getAcceleratorString about this field.
     private JToolTip tip;
     public static final int padSpaceBetweenStrings = 12;
@@ -54,10 +71,10 @@ public class MetalToolTipUI extends BasicToolTipUI {
     public void installUI(JComponent c) {
         super.installUI(c);
         tip = (JToolTip)c;
-	Font f = c.getFont();
-	smallFont = new Font( f.getName(), f.getStyle(), f.getSize() - 2 );
-	acceleratorDelimiter = UIManager.getString( "MenuItem.acceleratorDelimiter" );
-	if ( acceleratorDelimiter == null ) { acceleratorDelimiter = "-"; }
+        Font f = c.getFont();
+        smallFont = new Font( f.getName(), f.getStyle(), f.getSize() - 2 );
+        acceleratorDelimiter = UIManager.getString( "MenuItem.acceleratorDelimiter" );
+        if ( acceleratorDelimiter == null ) { acceleratorDelimiter = "-"; }
     }
 
     public void uninstallUI(JComponent c) {
@@ -121,12 +138,12 @@ public class MetalToolTipUI extends BasicToolTipUI {
     }
 
     public Dimension getPreferredSize(JComponent c) {
-	Dimension d = super.getPreferredSize(c);
+        Dimension d = super.getPreferredSize(c);
 
-	String key = getAcceleratorString((JToolTip)c);
-	if (!(key.equals(""))) {
+        String key = getAcceleratorString((JToolTip)c);
+        if (!(key.equals(""))) {
             d.width += calcAccelSpacing(c, c.getFontMetrics(smallFont), key);
-	}
+        }
         return d;
     }
 
@@ -155,16 +172,16 @@ public class MetalToolTipUI extends BasicToolTipUI {
             return "";
         }
         JComponent comp = tip.getComponent();
-	if (!(comp instanceof AbstractButton)) {
-	    return "";
-	}
+        if (!(comp instanceof AbstractButton)) {
+            return "";
+        }
 
-	KeyStroke[] keys = comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).keys();
+        KeyStroke[] keys = comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).keys();
         if (keys == null) {
             return "";
         }
 
-	String controlKeyStr = "";
+        String controlKeyStr = "";
 
         for (int i = 0; i < keys.length; i++) {
             int mod = keys[i].getModifiers();
@@ -172,9 +189,9 @@ public class MetalToolTipUI extends BasicToolTipUI {
                             acceleratorDelimiter +
                             KeyEvent.getKeyText(keys[i].getKeyCode());
             break;
-	}
+        }
 
-	return controlKeyStr;
+        return controlKeyStr;
     }
 
 }

@@ -1,8 +1,26 @@
 /*
- *  @(#)HashMap.java	1.73 07/03/13
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -95,12 +113,11 @@ import java.io.*;
  * @author  Josh Bloch
  * @author  Arthur van Hoff
  * @author  Neal Gafter
- * @version 1.73, 03/13/07
  * @see     Object#hashCode()
  * @see     Collection
- * @see	    Map
- * @see	    TreeMap
- * @see	    Hashtable
+ * @see     Map
+ * @see     TreeMap
+ * @see     Hashtable
  * @since   1.2
  */
 
@@ -156,7 +173,7 @@ public class HashMap<K,V>
      * rehash).  This field is used to make iterators on Collection-views of
      * the HashMap fail-fast.  (See ConcurrentModificationException).
      */
-    transient volatile int modCount;
+    transient int modCount;
 
     /**
      * Constructs an empty <tt>HashMap</tt> with the specified initial
@@ -431,10 +448,8 @@ public class HashMap<K,V>
     }
 
     private void putAllForCreate(Map<? extends K, ? extends V> m) {
-        for (Iterator<? extends Map.Entry<? extends K, ? extends V>> i = m.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry<? extends K, ? extends V> e = i.next();
+        for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
             putForCreate(e.getKey(), e.getValue());
-        }
     }
 
     /**
@@ -519,10 +534,8 @@ public class HashMap<K,V>
                 resize(newCapacity);
         }
 
-        for (Iterator<? extends Map.Entry<? extends K, ? extends V>> i = m.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry<? extends K, ? extends V> e = i.next();
+        for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
             put(e.getKey(), e.getValue());
-        }
     }
 
     /**
@@ -625,27 +638,27 @@ public class HashMap<K,V>
      *         specified value
      */
     public boolean containsValue(Object value) {
-	if (value == null)
+        if (value == null)
             return containsNullValue();
 
-	Entry[] tab = table;
+        Entry[] tab = table;
         for (int i = 0; i < tab.length ; i++)
             for (Entry e = tab[i] ; e != null ; e = e.next)
                 if (value.equals(e.value))
                     return true;
-	return false;
+        return false;
     }
 
     /**
      * Special-case code for containsValue with null argument
      */
     private boolean containsNullValue() {
-	Entry[] tab = table;
+        Entry[] tab = table;
         for (int i = 0; i < tab.length ; i++)
             for (Entry e = tab[i] ; e != null ; e = e.next)
                 if (e.value == null)
                     return true;
-	return false;
+        return false;
     }
 
     /**
@@ -656,11 +669,11 @@ public class HashMap<K,V>
      */
     public Object clone() {
         HashMap<K,V> result = null;
-	try {
-	    result = (HashMap<K,V>)super.clone();
-	} catch (CloneNotSupportedException e) {
-	    // assert false;
-	}
+        try {
+            result = (HashMap<K,V>)super.clone();
+        } catch (CloneNotSupportedException e) {
+            // assert false;
+        }
         result.table = new Entry[table.length];
         result.entrySet = null;
         result.modCount = 0;
@@ -696,7 +709,7 @@ public class HashMap<K,V>
         }
 
         public final V setValue(V newValue) {
-	    V oldValue = value;
+            V oldValue = value;
             value = newValue;
             return oldValue;
         }
@@ -749,8 +762,8 @@ public class HashMap<K,V>
      * Subclass overrides this to alter the behavior of put method.
      */
     void addEntry(int hash, K key, V value, int bucketIndex) {
-	Entry<K,V> e = table[bucketIndex];
-        table[bucketIndex] = new Entry<K,V>(hash, key, value, e);
+        Entry<K,V> e = table[bucketIndex];
+        table[bucketIndex] = new Entry<>(hash, key, value, e);
         if (size++ >= threshold)
             resize(2 * table.length);
     }
@@ -764,16 +777,16 @@ public class HashMap<K,V>
      * clone, and readObject.
      */
     void createEntry(int hash, K key, V value, int bucketIndex) {
-	Entry<K,V> e = table[bucketIndex];
-        table[bucketIndex] = new Entry<K,V>(hash, key, value, e);
+        Entry<K,V> e = table[bucketIndex];
+        table[bucketIndex] = new Entry<>(hash, key, value, e);
         size++;
     }
 
     private abstract class HashIterator<E> implements Iterator<E> {
-        Entry<K,V> next;	// next entry to return
-        int expectedModCount;	// For fast-fail
-        int index;		// current slot
-        Entry<K,V> current;	// current entry
+        Entry<K,V> next;        // next entry to return
+        int expectedModCount;   // For fast-fail
+        int index;              // current slot
+        Entry<K,V> current;     // current entry
 
         HashIterator() {
             expectedModCount = modCount;
@@ -800,7 +813,7 @@ public class HashMap<K,V>
                 while (index < t.length && (next = t[index++]) == null)
                     ;
             }
-	    current = e;
+            current = e;
             return e;
         }
 
@@ -937,7 +950,7 @@ public class HashMap<K,V>
      * @return a set view of the mappings contained in this map
      */
     public Set<Map.Entry<K,V>> entrySet() {
-	return entrySet0();
+        return entrySet0();
     }
 
     private Set<Map.Entry<K,V>> entrySet0() {
@@ -972,34 +985,34 @@ public class HashMap<K,V>
      * serialize it).
      *
      * @serialData The <i>capacity</i> of the HashMap (the length of the
-     *		   bucket array) is emitted (int), followed by the
-     *		   <i>size</i> (an int, the number of key-value
-     *		   mappings), followed by the key (Object) and value (Object)
-     *		   for each key-value mapping.  The key-value mappings are
-     *		   emitted in no particular order.
+     *             bucket array) is emitted (int), followed by the
+     *             <i>size</i> (an int, the number of key-value
+     *             mappings), followed by the key (Object) and value (Object)
+     *             for each key-value mapping.  The key-value mappings are
+     *             emitted in no particular order.
      */
     private void writeObject(java.io.ObjectOutputStream s)
         throws IOException
     {
-	Iterator<Map.Entry<K,V>> i =
-	    (size > 0) ? entrySet0().iterator() : null;
+        Iterator<Map.Entry<K,V>> i =
+            (size > 0) ? entrySet0().iterator() : null;
 
-	// Write out the threshold, loadfactor, and any hidden stuff
-	s.defaultWriteObject();
+        // Write out the threshold, loadfactor, and any hidden stuff
+        s.defaultWriteObject();
 
-	// Write out number of buckets
-	s.writeInt(table.length);
+        // Write out number of buckets
+        s.writeInt(table.length);
 
-	// Write out size (number of Mappings)
-	s.writeInt(size);
+        // Write out size (number of Mappings)
+        s.writeInt(size);
 
         // Write out keys and values (alternating)
-	if (i != null) {
-	    while (i.hasNext()) {
-		Map.Entry<K,V> e = i.next();
-		s.writeObject(e.getKey());
-		s.writeObject(e.getValue());
-	    }
+        if (i != null) {
+            while (i.hasNext()) {
+                Map.Entry<K,V> e = i.next();
+                s.writeObject(e.getKey());
+                s.writeObject(e.getValue());
+            }
         }
     }
 
@@ -1012,24 +1025,24 @@ public class HashMap<K,V>
     private void readObject(java.io.ObjectInputStream s)
          throws IOException, ClassNotFoundException
     {
-	// Read in the threshold, loadfactor, and any hidden stuff
-	s.defaultReadObject();
+        // Read in the threshold, loadfactor, and any hidden stuff
+        s.defaultReadObject();
 
-	// Read in number of buckets and allocate the bucket array;
-	int numBuckets = s.readInt();
-	table = new Entry[numBuckets];
+        // Read in number of buckets and allocate the bucket array;
+        int numBuckets = s.readInt();
+        table = new Entry[numBuckets];
 
         init();  // Give subclass a chance to do its thing.
 
-	// Read in size (number of Mappings)
-	int size = s.readInt();
+        // Read in size (number of Mappings)
+        int size = s.readInt();
 
-	// Read the keys and values, and put the mappings in the HashMap
-	for (int i=0; i<size; i++) {
-	    K key = (K) s.readObject();
-	    V value = (V) s.readObject();
-	    putForCreate(key, value);
-	}
+        // Read the keys and values, and put the mappings in the HashMap
+        for (int i=0; i<size; i++) {
+            K key = (K) s.readObject();
+            V value = (V) s.readObject();
+            putForCreate(key, value);
+        }
     }
 
     // These methods are used when serializing HashSets

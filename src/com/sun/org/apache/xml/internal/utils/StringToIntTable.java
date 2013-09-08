@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +31,7 @@ public class StringToIntTable
 {
 
   public static final int INVALID_KEY = -10000;
-  
+
   /** Block size to allocate          */
   private int m_blocksize;
 
@@ -75,7 +79,7 @@ public class StringToIntTable
   /**
    * Get the length of the list.
    *
-   * @return the length of the list 
+   * @return the length of the list
    */
   public final int getLength()
   {
@@ -120,7 +124,7 @@ public class StringToIntTable
    * @param key String to look for
    *
    * @return The String's int value
-   * 
+   *
    */
   public final int get(String key)
   {
@@ -131,7 +135,7 @@ public class StringToIntTable
         return m_values[i];
     }
 
-	return INVALID_KEY;
+        return INVALID_KEY;
   }
 
   /**
@@ -174,10 +178,10 @@ public class StringToIntTable
 
     return false;
   }
-  
+
   /**
    * Return array of keys in the table.
-   * 
+   *
    * @return Array of strings
    */
   public final String[] keys()
@@ -190,5 +194,5 @@ public class StringToIntTable
     }
 
     return keysArr;
-  }  
+  }
 }

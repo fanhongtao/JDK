@@ -1,8 +1,26 @@
 /*
- * @(#)PNGImageReaderSpi.java	1.28 09/04/29
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.png;
@@ -16,19 +34,16 @@ import javax.imageio.metadata.IIOMetadataFormat;
 import javax.imageio.metadata.IIOMetadataFormatImpl;
 import javax.imageio.stream.ImageInputStream;
 
-/**
- * @version 0.5
- */
 public class PNGImageReaderSpi extends ImageReaderSpi {
 
-    private static final String vendorName = "Sun Microsystems, Inc.";
+    private static final String vendorName = "Oracle Corporation";
 
     private static final String version = "1.0";
 
     private static final String[] names = { "png", "PNG" };
 
     private static final String[] suffixes = { "png" };
-    
+
     private static final String[] MIMETypes = { "image/png", "image/x-png" };
 
     private static final String readerClassName =
@@ -71,7 +86,7 @@ public class PNGImageReaderSpi extends ImageReaderSpi {
         stream.mark();
         stream.readFully(b);
         stream.reset();
-        
+
         return (b[0] == (byte)137 &&
                 b[1] == (byte)80 &&
                 b[2] == (byte)78 &&

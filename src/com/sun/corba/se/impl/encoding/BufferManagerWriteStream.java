@@ -1,8 +1,26 @@
 /*
- * @(#)BufferManagerWriteStream.java	1.17 08/11/02
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -30,7 +48,7 @@ public class BufferManagerWriteStream extends BufferManagerWrite
 
     BufferManagerWriteStream( ORB orb )
     {
-	super(orb) ;
+        super(orb) ;
     }
 
     public boolean sentFragment() {
@@ -51,11 +69,11 @@ public class BufferManagerWriteStream extends BufferManagerWrite
         MessageBase.setFlag(bbwi.byteBuffer, Message.MORE_FRAGMENTS_BIT);
 
         try {
-            sendFragment(false);
+           sendFragment(false);
         } catch(SystemException se){
-            orb.getPIHandler().invokeClientPIEndingPoint(
-                ReplyMessage.SYSTEM_EXCEPTION, se);
-            throw se;
+                orb.getPIHandler().invokeClientPIEndingPoint(
+                        ReplyMessage.SYSTEM_EXCEPTION, se);
+                throw se;
         }
 
         // Reuse the old buffer
@@ -70,7 +88,7 @@ public class BufferManagerWriteStream extends BufferManagerWrite
         // Now we must marshal in the fragment header/GIOP header
 
         // REVISIT - we can optimize this by not creating the fragment message
-        // each time.  
+        // each time.
 
         FragmentMessage header = ((CDROutputObject)outputObject).getMessageHeader().createFragmentMessage();
 
@@ -81,8 +99,8 @@ public class BufferManagerWriteStream extends BufferManagerWrite
     {
         Connection conn = ((OutputObject)outputObject).getMessageMediator().getConnection();
 
-	// REVISIT: need an ORB
-	//System.out.println("sendFragment: last?: " + isLastFragment);
+        // REVISIT: need an ORB
+        //System.out.println("sendFragment: last?: " + isLastFragment);
         conn.writeLock();
 
         try {

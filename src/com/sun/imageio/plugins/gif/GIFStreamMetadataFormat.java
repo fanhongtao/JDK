@@ -1,8 +1,26 @@
 /*
- * @(#)GIFStreamMetadataFormat.java	1.8 05/11/17
+ * Copyright (c) 2001, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.gif;
@@ -23,7 +41,7 @@ public class GIFStreamMetadataFormat extends IIOMetadataFormatImpl {
         // root -> Version
         addElement("Version", GIFStreamMetadata.nativeMetadataFormatName,
                    CHILD_POLICY_EMPTY);
-        addAttribute("Version", "value", 
+        addAttribute("Version", "value",
                      DATATYPE_STRING, true, null,
                      Arrays.asList(GIFStreamMetadata.versionStrings));
 
@@ -48,7 +66,7 @@ public class GIFStreamMetadataFormat extends IIOMetadataFormatImpl {
         addElement("GlobalColorTable",
                    GIFStreamMetadata.nativeMetadataFormatName,
                    2, 256);
-        addAttribute("GlobalColorTable", "sizeOfGlobalColorTable", 
+        addAttribute("GlobalColorTable", "sizeOfGlobalColorTable",
                      DATATYPE_INTEGER, true, null,
                      Arrays.asList(GIFStreamMetadata.colorTableSizes));
         addAttribute("GlobalColorTable", "backgroundColorIndex",

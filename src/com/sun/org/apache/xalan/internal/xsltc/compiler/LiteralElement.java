@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,12 +51,12 @@ final class LiteralElement extends Instruction {
     private LiteralElement _literalElemParent = null;
     private Vector _attributeElements = null;
     private Hashtable _accessedPrefixes = null;
-    
+
     // True if all attributes of this LRE are unique, i.e. they all have
     // different names. This flag is set to false if some attribute
     // names are not known at compile time.
     private boolean _allAttributesUnique = false;
-        
+
     private final static String XMLNS_STRING = "xmlns";
 
     /**
@@ -61,7 +65,7 @@ final class LiteralElement extends Instruction {
     public QName getName() {
 	return _qname;
     }
- 
+
     /**
      * Displays the contents of this literal element
      */
@@ -80,8 +84,8 @@ final class LiteralElement extends Instruction {
             if (result != null) {
                 return result;
             }
-        }       
-        return _accessedPrefixes != null ? 
+        }
+        return _accessedPrefixes != null ?
             (String) _accessedPrefixes.get(prefix) : null;
     }
 
@@ -112,7 +116,7 @@ final class LiteralElement extends Instruction {
 		if (old != null) {
 		    if (old.equals(uri))
 			return;
-		    else 
+		    else
 			prefix = stable.generateNamespacePrefix();
 		}
 	    }
@@ -138,7 +142,7 @@ final class LiteralElement extends Instruction {
 	    prefix = Constants.EMPTYSTRING;
 	else if (prefix.equals(XMLNS_STRING))
 	    return(XMLNS_STRING);
-	
+
 	// Check if we must translate the prefix
 	final String alternative = stable.lookupPrefixAlias(prefix);
 	if (alternative != null) {
@@ -189,7 +193,7 @@ final class LiteralElement extends Instruction {
 	if (_attributeElements != null) {
 	    final int count = _attributeElements.size();
 	    for (int i = 0; i < count; i++) {
-		SyntaxTreeNode node = 
+		SyntaxTreeNode node =
 		    (SyntaxTreeNode)_attributeElements.elementAt(i);
 		node.typeCheck(stable);
 	    }
@@ -205,7 +209,7 @@ final class LiteralElement extends Instruction {
      */
     public Enumeration getNamespaceScope(SyntaxTreeNode node) {
 	Hashtable all = new Hashtable();
-	
+
 	while (node != null) {
 	    Hashtable mapping = node.getPrefixMapping();
 	    if (mapping != null) {
@@ -248,19 +252,19 @@ final class LiteralElement extends Instruction {
 	    // Handle xsl:use-attribute-sets. Attribute sets are placed first
 	    // in the vector or attributes to make sure that later local
 	    // attributes can override an attributes in the set.
-	    if (qname == parser.getUseAttributeSets()) {
+	    if (qname.equals(parser.getUseAttributeSets())) {
             	if (!Util.isValidQNames(val)) {
                     ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, val, this);
-                    parser.reportError(Constants.ERROR, err);	
+                    parser.reportError(Constants.ERROR, err);
                }
 		setFirstAttribute(new UseAttributeSets(val, parser));
 	    }
 	    // Handle xsl:extension-element-prefixes
-	    else if (qname == parser.getExtensionElementPrefixes()) {
+	    else if (qname.equals(parser.getExtensionElementPrefixes())) {
 		stable.excludeNamespaces(val);
 	    }
 	    // Handle xsl:exclude-result-prefixes
-	    else if (qname == parser.getExcludeResultPrefixes()) {
+	    else if (qname.equals(parser.getExcludeResultPrefixes())) {
 		stable.excludeNamespaces(val);
 	    }
 	    else {
@@ -270,7 +274,7 @@ final class LiteralElement extends Instruction {
 		    prefix == null && qname.getLocalPart().equals("xmlns") ||
 		    uri != null && uri.equals(XSLT_URI))
 		{
-		    continue;	
+		    continue;
 		}
 
 		// Handle all other literal attributes
@@ -303,11 +307,11 @@ final class LiteralElement extends Instruction {
 	    final String val = _attributes.getValue(i);
 
 	    // Handle xsl:extension-element-prefixes
-	    if (qname == parser.getExtensionElementPrefixes()) {
+	    if (qname.equals(parser.getExtensionElementPrefixes())) {
 		stable.unExcludeNamespaces(val);
 	    }
 	    // Handle xsl:exclude-result-prefixes
-	    else if (qname == parser.getExcludeResultPrefixes()) {
+	    else if (qname.equals(parser.getExcludeResultPrefixes())) {
 		stable.unExcludeNamespaces(val);
 	    }
 	}
@@ -334,29 +338,20 @@ final class LiteralElement extends Instruction {
 
 	// Compile code to emit element start tag
 	il.append(methodGen.loadHandler());
-	
+
 	il.append(new PUSH(cpg, _name));
 	il.append(DUP2); 		// duplicate these 2 args for endElement
 	il.append(methodGen.startElement());
 
 	// The value of an attribute may depend on a (sibling) variable
-    int j=0;
-    while (j < elementCount())
-    {
-        final SyntaxTreeNode item = (SyntaxTreeNode) elementAt(j);
-        if (item instanceof Variable) {
-            item.translate(classGen, methodGen);
-            removeElement(item);	// avoid translating it twice
-            /* When removing an element we do not increment j
-             * but the removal will reduce the value of elementCount()
-             * so this loop WILL end. The next iteration will process
-             * elementAt(j), but with the old element removed
-             * we are actually processing the next element.
-             */
-	    }
-        else
+        int j=0;
+        while (j < elementCount())  {
+            final SyntaxTreeNode item = (SyntaxTreeNode) elementAt(j);
+            if (item instanceof Variable) {
+                item.translate(classGen, methodGen);
+            }
             j++;
-	}
+        }
 
 	// Compile code to emit namespace attributes
 	if (_accessedPrefixes != null) {
@@ -367,8 +362,8 @@ final class LiteralElement extends Instruction {
 		final String prefix = (String)e.nextElement();
 		final String uri = (String)_accessedPrefixes.get(prefix);
 
-		if (uri != Constants.EMPTYSTRING || 
-			prefix != Constants.EMPTYSTRING) 
+		if (uri != Constants.EMPTYSTRING ||
+			prefix != Constants.EMPTYSTRING)
 		{
 		    if (prefix == Constants.EMPTYSTRING) {
 			declaresDefaultNS = true;
@@ -380,12 +375,12 @@ final class LiteralElement extends Instruction {
 		}
 	    }
 
-	    /* 
+	    /*
 	     * If our XslElement parent redeclares the default NS, and this
 	     * element doesn't, it must be redeclared one more time.
 	     */
 	    if (!declaresDefaultNS && (_parent instanceof XslElement)
-		    && ((XslElement) _parent).declaresDefaultNS()) 
+		    && ((XslElement) _parent).declaresDefaultNS())
 	    {
 		il.append(methodGen.loadHandler());
 		il.append(new PUSH(cpg, Constants.EMPTYSTRING));
@@ -398,14 +393,14 @@ final class LiteralElement extends Instruction {
 	if (_attributeElements != null) {
 	    final int count = _attributeElements.size();
 	    for (int i = 0; i < count; i++) {
-		SyntaxTreeNode node = 
+		SyntaxTreeNode node =
 		    (SyntaxTreeNode)_attributeElements.elementAt(i);
 		if (!(node instanceof XslAttribute)) {
 		    node.translate(classGen, methodGen);
 	        }
 	    }
 	}
-	
+
 	// Compile code to emit attributes and child elements
 	translateContents(classGen, methodGen);
 
@@ -419,10 +414,10 @@ final class LiteralElement extends Instruction {
     private boolean isHTMLOutput() {
         return getStylesheet().getOutputMethod() == Stylesheet.HTML_OUTPUT;
     }
-    
+
     /**
      * Return the ElemDesc object for an HTML element.
-     * Return null if the output method is not HTML or this is not a 
+     * Return null if the output method is not HTML or this is not a
      * valid HTML element.
      */
     public ElemDesc getElemDesc() {
@@ -432,14 +427,14 @@ final class LiteralElement extends Instruction {
     	else
     	    return null;
     }
-    
+
     /**
      * Return true if all attributes of this LRE have unique names.
      */
     public boolean allAttributesUnique() {
     	return _allAttributesUnique;
     }
-    
+
     /**
      * Check whether all attributes are unique.
      */
@@ -447,17 +442,17 @@ final class LiteralElement extends Instruction {
     	 boolean hasHiddenXslAttribute = canProduceAttributeNodes(this, true);
     	 if (hasHiddenXslAttribute)
     	     return false;
-    	 
+
     	 if (_attributeElements != null) {
     	     int numAttrs = _attributeElements.size();
     	     Hashtable attrsTable = null;
     	     for (int i = 0; i < numAttrs; i++) {
     	         SyntaxTreeNode node = (SyntaxTreeNode)_attributeElements.elementAt(i);
-    	         
+
     	         if (node instanceof UseAttributeSets) {
     	             return false;
     	         }
-    	         else if (node instanceof XslAttribute) {   	             
+    	         else if (node instanceof XslAttribute) {
     	             if (attrsTable == null) {
     	             	attrsTable = new Hashtable();
     	                 for (int k = 0; k < i; k++) {
@@ -468,7 +463,7 @@ final class LiteralElement extends Instruction {
     	                     }
     	                 }
     	             }
-    	             
+
     	             XslAttribute xslAttr = (XslAttribute)node;
     	             AttributeValue attrName = xslAttr.getName();
     	             if (attrName instanceof AttributeValueTemplate) {
@@ -481,18 +476,18 @@ final class LiteralElement extends Instruction {
     	                     return false;
     	                 else if (name != null) {
     	                     attrsTable.put(name, xslAttr);
-    	                 }    	                 
+    	                 }
     	             }
     	         }
     	     }
     	 }
     	 return true;
     }
-    
+
     /**
      * Return true if the instructions under the given SyntaxTreeNode can produce attribute nodes
-     * to an element. Only return false when we are sure that no attribute node is produced. 
-     * Return true if we are not sure. If the flag ignoreXslAttribute is true, the direct 
+     * to an element. Only return false when we are sure that no attribute node is produced.
+     * Return true if we are not sure. If the flag ignoreXslAttribute is true, the direct
      * <xsl:attribute> children of the current node are not included in the check.
      */
     private boolean canProduceAttributeNodes(SyntaxTreeNode node, boolean ignoreXslAttribute) {
@@ -522,7 +517,7 @@ final class LiteralElement extends Instruction {
     	    	else
     	    	    return true;
     	    }
-    	    // In general, there is no way to check whether <xsl:call-template> or 
+    	    // In general, there is no way to check whether <xsl:call-template> or
     	    // <xsl:apply-templates> can produce attribute nodes. <xsl:copy> and
     	    // <xsl:copy-of> can also copy attribute nodes to an element. Return
     	    // true in those cases to be safe.
@@ -550,5 +545,5 @@ final class LiteralElement extends Instruction {
     	}
     	return false;
     }
-    
-}  
+
+}

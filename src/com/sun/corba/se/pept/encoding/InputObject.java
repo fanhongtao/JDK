@@ -1,8 +1,26 @@
 /*
- * @(#)InputObject.java	1.14 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.pept.encoding;
@@ -33,7 +51,7 @@ import com.sun.corba.se.pept.protocol.MessageMediator;
  *
  * @author Harold Carr
 */
-public interface InputObject 
+public interface InputObject
 {
     public void setMessageMediator(MessageMediator messageMediator);
 
@@ -43,4 +61,3 @@ public interface InputObject
 }
 
 // End of file.
-

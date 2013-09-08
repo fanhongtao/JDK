@@ -1,8 +1,26 @@
 /*
- * @(#)InterruptedNamingException.java	1.9 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -23,7 +41,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.9 05/11/17
   *
   * @see Context
   * @see javax.naming.directory.DirContext
@@ -37,11 +54,11 @@ public class InterruptedNamingException extends NamingException {
       * Constructs an instance of InterruptedNamingException using an
       * explanation of the problem.
       * All name resolution-related fields are initialized to null.
-      * @param explanation	A possibly null message explaining the problem.
+      * @param explanation      A possibly null message explaining the problem.
       * @see java.lang.Throwable#getMessage
       */
     public InterruptedNamingException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -49,7 +66,7 @@ public class InterruptedNamingException extends NamingException {
       * all name resolution fields and explanation initialized to null.
       */
     public InterruptedNamingException() {
-	super();
+        super();
     }
 
     /**

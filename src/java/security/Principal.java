@@ -1,8 +1,26 @@
 /*
- * @(#)Principal.java	1.23 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -14,7 +32,6 @@ package java.security;
  *
  * @see java.security.cert.X509Certificate
  *
- * @version 1.23, 05/11/17
  * @author Li Gong
  */
 public interface Principal {

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,10 +39,10 @@ public class DOMWSFilter implements DTMWSFilter {
 
     private AbstractTranslet m_translet;
     private StripFilter m_filter;
-    
+
     // The Hashtable for DTM to mapping array
     private Hashtable m_mappings;
-    
+
     // Cache the DTM and mapping that are used last time
     private DTM m_currentDTM;
     private short[] m_currentMapping;
@@ -81,12 +85,12 @@ public class DOMWSFilter implements DTMWSFilter {
 
             if (dtm instanceof DOMEnhancedForDTM) {
                 DOMEnhancedForDTM mappableDOM = (DOMEnhancedForDTM)dtm;
-                
+
                 short[] mapping;
                 if (dtm == m_currentDTM) {
                     mapping = m_currentMapping;
                 }
-                else {  
+                else {
                     mapping = (short[])m_mappings.get(dtm);
                     if (mapping == null) {
                         mapping = mappableDOM.getMapping(
@@ -98,9 +102,9 @@ public class DOMWSFilter implements DTMWSFilter {
                         m_currentMapping = mapping;
                     }
                 }
-                
+
                 int expType = mappableDOM.getExpandedTypeID(node);
-                
+
                 // %OPT% The mapping array does not have information about all the
                 // exptypes. However it does contain enough information about all names
                 // in the translet's namesArray. If the expType does not fall into the
@@ -110,8 +114,8 @@ public class DOMWSFilter implements DTMWSFilter {
                   type = mapping[expType];
                 else
                   type = -1;
-                
-            } 
+
+            }
             else {
                 return INHERIT;
             }

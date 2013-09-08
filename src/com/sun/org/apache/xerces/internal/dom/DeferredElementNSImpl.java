@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,13 +24,14 @@
  * duplicated. If you're changing this file you probably want to change
  * DeferredElementImpl.java at the same time.
  *
- * @version $Id: DeferredElementNSImpl.java,v 1.2.6.1 2005/08/31 10:37:59 sunithareddy Exp $
  */
 
 package com.sun.org.apache.xerces.internal.dom;
 
+import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
 import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
 import org.w3c.dom.NamedNodeMap;
+
 
 /**
  * DeferredElementNSImpl is to ElementNSImpl, what DeferredElementImpl is to
@@ -103,7 +108,7 @@ public class DeferredElementNSImpl
         int index = name.indexOf(':');
         if (index < 0) {
             localName = name;
-        } 
+        }
         else {
             localName = name.substring(index + 1);
         }
@@ -116,10 +121,22 @@ public class DeferredElementNSImpl
         int attrIndex = ownerDocument.getNodeExtra(fNodeIndex);
         if (attrIndex != -1) {
             NamedNodeMap attrs = getAttributes();
+            boolean seenSchemaDefault = false;
             do {
-                NodeImpl attr =
-                    (NodeImpl)ownerDocument.getNodeObject(attrIndex);
-                attrs.setNamedItem(attr);
+                AttrImpl attr = (AttrImpl) ownerDocument.getNodeObject(attrIndex);
+                // Take special care of schema defaulted attributes. Calling the
+                // non-namespace aware setAttributeNode() method could overwrite
+                // another attribute with the same local name.
+                if (!attr.getSpecified() && (seenSchemaDefault ||
+                    (attr.getNamespaceURI() != null &&
+                    attr.getNamespaceURI() != NamespaceContext.XMLNS_URI &&
+                    attr.getName().indexOf(':') < 0))) {
+                    seenSchemaDefault = true;
+                    attrs.setNamedItemNS(attr);
+                }
+                else {
+                    attrs.setNamedItem(attr);
+                }
                 attrIndex = ownerDocument.getPrevSibling(attrIndex);
             } while (attrIndex != -1);
         }

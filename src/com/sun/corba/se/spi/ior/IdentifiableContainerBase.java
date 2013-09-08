@@ -1,8 +1,26 @@
 /*
- * @(#)IdentifiableContainerBase.java	1.8 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior;
@@ -27,47 +45,47 @@ public class IdentifiableContainerBase extends FreezableList
     /** Create this class with an empty list of identifiables.
      * The current implementation uses an ArrayList.
      */
-    public IdentifiableContainerBase() 
+    public IdentifiableContainerBase()
     {
-	super( new ArrayList() ) ;
+        super( new ArrayList() ) ;
     }
-    
+
     /** Return an iterator which iterates over all contained Identifiables
      * with type given by id.
      */
-    public Iterator iteratorById( final int id) 
+    public Iterator iteratorById( final int id)
     {
-	return new Iterator() {
-	    Iterator iter = IdentifiableContainerBase.this.iterator() ;
-	    Object current = advance() ;
+        return new Iterator() {
+            Iterator iter = IdentifiableContainerBase.this.iterator() ;
+            Object current = advance() ;
 
-	    private Object advance()
-	    {
-		while (iter.hasNext()) {
-		    Identifiable ide = (Identifiable)(iter.next()) ;
-		    if (ide.getId() == id)
-			return ide ;
-		}
+            private Object advance()
+            {
+                while (iter.hasNext()) {
+                    Identifiable ide = (Identifiable)(iter.next()) ;
+                    if (ide.getId() == id)
+                        return ide ;
+                }
 
-		return null ;
-	    }
+                return null ;
+            }
 
-	    public boolean hasNext() 
-	    {
-		return current != null ;
-	    }
+            public boolean hasNext()
+            {
+                return current != null ;
+            }
 
-	    public Object next()
-	    {
-		Object result = current ;
-		current = advance() ;
-		return result ;
-	    }
+            public Object next()
+            {
+                Object result = current ;
+                current = advance() ;
+                return result ;
+            }
 
-	    public void remove()
-	    {
-		iter.remove() ;
-	    }
-	} ;
+            public void remove()
+            {
+                iter.remove() ;
+            }
+        } ;
     }
 }

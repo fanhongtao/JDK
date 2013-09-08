@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +36,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
 public class FuncExtFunctionAvailable extends FunctionOneArg
 {
     static final long serialVersionUID = 5118814314918592241L;
-    
+
     transient private FunctionTable m_functionTable = null;
 
   /**
@@ -88,9 +92,9 @@ public class FuncExtFunctionAvailable extends FunctionOneArg
              ? XBoolean.S_TRUE : XBoolean.S_FALSE;
     }
   }
-  
+
   /**
-   * The function table is an instance field. In order to access this instance 
+   * The function table is an instance field. In order to access this instance
    * field during evaluation, this method is called at compilation time to
    * insert function table information for later usage. It should only be used
    * during compiling of XPath expressions.

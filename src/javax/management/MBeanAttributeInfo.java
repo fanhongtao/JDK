@@ -1,8 +1,26 @@
 /*
- * @(#)MBeanAttributeInfo.java	1.46 06/03/15
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -21,34 +39,35 @@ import com.sun.jmx.mbeanserver.Introspector;
  *
  * @since 1.5
  */
+@SuppressWarnings("serial")  // serialVersionUID not constant
 public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
 
     /* Serial version */
     private static final long serialVersionUID;
     static {
-	/* For complicated reasons, the serialVersionUID changed
-	   between JMX 1.0 and JMX 1.1, even though JMX 1.1 did not
-	   have compatibility code for this class.  So the
-	   serialization produced by this class with JMX 1.2 and
-	   jmx.serial.form=1.0 is not the same as that produced by
-	   this class with JMX 1.1 and jmx.serial.form=1.0.  However,
-	   the serialization without that property is the same, and
-	   that is the only form required by JMX 1.2.
-	*/
-	long uid = 8644704819898565848L;
-	try {
-	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = AccessController.doPrivileged(act);
-	    if ("1.0".equals(form))
-		uid = 7043855487133450673L;
-	} catch (Exception e) {
-	    // OK: exception means no compat with 1.0, too bad
-	}
-	serialVersionUID = uid;
+        /* For complicated reasons, the serialVersionUID changed
+           between JMX 1.0 and JMX 1.1, even though JMX 1.1 did not
+           have compatibility code for this class.  So the
+           serialization produced by this class with JMX 1.2 and
+           jmx.serial.form=1.0 is not the same as that produced by
+           this class with JMX 1.1 and jmx.serial.form=1.0.  However,
+           the serialization without that property is the same, and
+           that is the only form required by JMX 1.2.
+        */
+        long uid = 8644704819898565848L;
+        try {
+            GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+            String form = AccessController.doPrivileged(act);
+            if ("1.0".equals(form))
+                uid = 7043855487133450673L;
+        } catch (Exception e) {
+            // OK: exception means no compat with 1.0, too bad
+        }
+        serialVersionUID = uid;
     }
 
     static final MBeanAttributeInfo[] NO_ATTRIBUTES =
-	new MBeanAttributeInfo[0];
+        new MBeanAttributeInfo[0];
 
     /**
      * @serial The actual attribute type.
@@ -88,15 +107,15 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * {@code java.lang.Boolean}.)
      */
     public MBeanAttributeInfo(String name,
-			      String type,
-			      String description,
-			      boolean isReadable,
-			      boolean isWritable,
-			      boolean isIs) {
+                              String type,
+                              String description,
+                              boolean isReadable,
+                              boolean isWritable,
+                              boolean isIs) {
         this(name, type, description, isReadable, isWritable, isIs,
              (Descriptor) null);
     }
-    
+
     /**
      * Constructs an <CODE>MBeanAttributeInfo</CODE> object.
      *
@@ -118,27 +137,27 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * @since 1.6
      */
     public MBeanAttributeInfo(String name,
-			      String type,
-			      String description,
-			      boolean isReadable,
-			      boolean isWritable,
-			      boolean isIs,
+                              String type,
+                              String description,
+                              boolean isReadable,
+                              boolean isWritable,
+                              boolean isIs,
                               Descriptor descriptor) {
         super(name, description, descriptor);
 
-	this.attributeType = type;
-	this.isRead = isReadable;
-	this.isWrite = isWritable;
-	if (isIs && !isReadable) {
-	    throw new IllegalArgumentException("Cannot have an \"is\" getter " +
+        this.attributeType = type;
+        this.isRead = isReadable;
+        this.isWrite = isWritable;
+        if (isIs && !isReadable) {
+            throw new IllegalArgumentException("Cannot have an \"is\" getter " +
                                                "for a non-readable attribute");
-	}
-	if (isIs && !type.equals("java.lang.Boolean") &&
+        }
+        if (isIs && !type.equals("java.lang.Boolean") &&
                 !type.equals("boolean")) {
-	    throw new IllegalArgumentException("Cannot have an \"is\" getter " +
+            throw new IllegalArgumentException("Cannot have an \"is\" getter " +
                                                "for a non-boolean attribute");
-	}
-	this.is = isIs;
+        }
+        this.is = isIs;
     }
 
     /**
@@ -158,15 +177,15 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * problem in the definition of this attribute.
      */
     public MBeanAttributeInfo(String name,
-			      String description,
-			      Method getter,
-			      Method setter) throws IntrospectionException {
+                              String description,
+                              Method getter,
+                              Method setter) throws IntrospectionException {
         this(name,
-	     attributeType(getter, setter),
-	     description,
-	     (getter != null),
-	     (setter != null),
-	     isIs(getter),
+             attributeType(getter, setter),
+             description,
+             (getter != null),
+             (setter != null),
+             isIs(getter),
              ImmutableDescriptor.union(Introspector.descriptorForElement(getter),
                                    Introspector.descriptorForElement(setter)));
     }
@@ -182,12 +201,12 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * interest to subclasses.</p>
      */
      public Object clone () {
-	 try {
-	     return super.clone() ;
-	 } catch (CloneNotSupportedException e) {
-	     // should not happen as this class is cloneable
-	     return null;
-	 }
+         try {
+             return super.clone() ;
+         } catch (CloneNotSupportedException e) {
+             // should not happen as this class is cloneable
+             return null;
+         }
      }
 
     /**
@@ -196,7 +215,7 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * @return the class name.
      */
     public String getType() {
-	return attributeType;
+        return attributeType;
     }
 
     /**
@@ -205,7 +224,7 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * @return True if the attribute can be read, false otherwise.
      */
     public boolean isReadable() {
-	return isRead;
+        return isRead;
     }
 
     /**
@@ -214,7 +233,7 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * @return True if the attribute can be written to, false otherwise.
      */
     public boolean isWritable() {
-	return isWrite;
+        return isWrite;
     }
 
     /**
@@ -223,7 +242,7 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * @return true if this attribute has an "is" getter.
      */
     public boolean isIs() {
-	return is;
+        return is;
     }
 
     public String toString() {
@@ -237,7 +256,7 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
             access = "write-only";
         else
             access = "no-access";
-        
+
         return
             getClass().getName() + "[" +
             "description=" + getDescription() + ", " +
@@ -248,7 +267,7 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
             "descriptor=" + getDescriptor() +
             "]";
     }
-            
+
     /**
      * Compare this MBeanAttributeInfo to another.
      *
@@ -261,18 +280,18 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * necessarily identical) to those of this MBeanAttributeInfo.
      */
     public boolean equals(Object o) {
-	if (o == this)
-	    return true;
-	if (!(o instanceof MBeanAttributeInfo))
-	    return false;
-	MBeanAttributeInfo p = (MBeanAttributeInfo) o;
-	return (p.getName().equals(getName()) &&
-		p.getType().equals(getType()) &&
-		p.getDescription().equals(getDescription()) &&
+        if (o == this)
+            return true;
+        if (!(o instanceof MBeanAttributeInfo))
+            return false;
+        MBeanAttributeInfo p = (MBeanAttributeInfo) o;
+        return (p.getName().equals(getName()) &&
+                p.getType().equals(getType()) &&
+                p.getDescription().equals(getDescription()) &&
                 p.getDescriptor().equals(getDescriptor()) &&
-		p.isReadable() == isReadable() &&
-		p.isWritable() == isWritable() &&
-		p.isIs() == isIs());
+                p.isReadable() == isReadable() &&
+                p.isWritable() == isWritable() &&
+                p.isIs() == isIs());
     }
 
     /* We do not include everything in the hashcode.  We assume that
@@ -282,13 +301,13 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
        right and we needlessly hashed in the description and parameter
        array.  */
     public int hashCode() {
-	return getName().hashCode() ^ getType().hashCode();
+        return getName().hashCode() ^ getType().hashCode();
     }
 
     private static boolean isIs(Method getter) {
-	return (getter != null &&
-		getter.getName().startsWith("is") &&
-		(getter.getReturnType().equals(Boolean.TYPE) ||
+        return (getter != null &&
+                getter.getName().startsWith("is") &&
+                (getter.getReturnType().equals(Boolean.TYPE) ||
                  getter.getReturnType().equals(Boolean.class)));
     }
 
@@ -296,39 +315,39 @@ public class MBeanAttributeInfo extends MBeanFeatureInfo implements Cloneable {
      * Finds the type of the attribute.
      */
     private static String attributeType(Method getter, Method setter)
-	    throws IntrospectionException {
-	Class type = null;
+            throws IntrospectionException {
+        Class<?> type = null;
 
-	if (getter != null) {
-	    if (getter.getParameterTypes().length != 0) {
-		throw new IntrospectionException("bad getter arg count");
-	    }
-	    type = getter.getReturnType();
-	    if (type == Void.TYPE) {
-		throw new IntrospectionException("getter " + getter.getName() +
-						 " returns void");
-	    }
-	}
+        if (getter != null) {
+            if (getter.getParameterTypes().length != 0) {
+                throw new IntrospectionException("bad getter arg count");
+            }
+            type = getter.getReturnType();
+            if (type == Void.TYPE) {
+                throw new IntrospectionException("getter " + getter.getName() +
+                                                 " returns void");
+            }
+        }
 
-	if (setter != null) {
-	    Class params[] = setter.getParameterTypes();
-	    if (params.length != 1) {
-		throw new IntrospectionException("bad setter arg count");
-	    }
-	    if (type == null)
-		type = params[0];
-	    else if (type != params[0]) {
-		throw new IntrospectionException("type mismatch between " +
-						 "getter and setter");
-	    }
-	}
+        if (setter != null) {
+            Class<?> params[] = setter.getParameterTypes();
+            if (params.length != 1) {
+                throw new IntrospectionException("bad setter arg count");
+            }
+            if (type == null)
+                type = params[0];
+            else if (type != params[0]) {
+                throw new IntrospectionException("type mismatch between " +
+                                                 "getter and setter");
+            }
+        }
 
-	if (type == null) {
-	    throw new IntrospectionException("getter and setter cannot " +
-					     "both be null");
-	}
+        if (type == null) {
+            throw new IntrospectionException("getter and setter cannot " +
+                                             "both be null");
+        }
 
-	return type.getName();
+        return type.getName();
     }
 
 }

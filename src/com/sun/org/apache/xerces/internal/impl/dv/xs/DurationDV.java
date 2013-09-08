@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +36,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
  *
  * @author Elena Litani
  * @author Gopal Sharma, SUN Microsystem Inc.
- * @version $Id: DurationDV.java,v 1.2.6.1 2005/09/06 11:43:03 neerajbj Exp $
+ * @version $Id: DurationDV.java,v 1.7 2010-11-01 04:39:47 joehw Exp $
  */
 public class DurationDV extends AbstractDateTimeDV {
 
@@ -70,7 +74,7 @@ public class DurationDV extends AbstractDateTimeDV {
     protected DateTimeData parse(String str, int durationType) throws SchemaDateTimeException{
         int len = str.length();
         DateTimeData date= new DateTimeData(str, this);
-        
+
         int start = 0;
         char c=str.charAt(start++);
         if ( c!='P' && c!='-' ) {
@@ -82,16 +86,16 @@ public class DurationDV extends AbstractDateTimeDV {
                 throw new SchemaDateTimeException();
             }
         }
-        
+
         int negate = 1;
         //negative duration
         if ( date.utc=='-' ) {
             negate = -1;
-            
+
         }
         //at least one number and designator must be seen after P
         boolean designator = false;
-        
+
         int endDate = indexOf (str, start, len, 'T');
         if ( endDate == -1 ) {
             endDate = len;
@@ -99,56 +103,56 @@ public class DurationDV extends AbstractDateTimeDV {
         else if (durationType == YEARMONTHDURATION_TYPE) {
             throw new SchemaDateTimeException();
         }
-        
+
         //find 'Y'
         int end = indexOf (str, start, endDate, 'Y');
         if ( end!=-1 ) {
-            
+
             if (durationType == DAYTIMEDURATION_TYPE) {
                 throw new SchemaDateTimeException();
             }
-            
+
             //scan year
             date.year=negate * parseInt(str,start,end);
             start = end+1;
             designator = true;
         }
-        
+
         end = indexOf (str, start, endDate, 'M');
         if ( end!=-1 ) {
-            
+
             if (durationType == DAYTIMEDURATION_TYPE) {
                 throw new SchemaDateTimeException();
             }
-            
+
             //scan month
             date.month=negate * parseInt(str,start,end);
             start = end+1;
             designator = true;
         }
-        
+
         end = indexOf (str, start, endDate, 'D');
         if ( end!=-1 ) {
-            
+
             if(durationType == YEARMONTHDURATION_TYPE) {
                 throw new SchemaDateTimeException();
             }
-            
+
             //scan day
             date.day=negate * parseInt(str,start,end);
             start = end+1;
             designator = true;
         }
-        
+
         if ( len == endDate && start!=len ) {
             throw new SchemaDateTimeException();
         }
         if ( len !=endDate ) {
-            
+
             //scan hours, minutes, seconds
             //REVISIT: can any item include a decimal fraction or only seconds?
             //
-            
+
             end = indexOf (str, ++start, len, 'H');
             if ( end!=-1 ) {
                 //scan hours
@@ -156,7 +160,7 @@ public class DurationDV extends AbstractDateTimeDV {
                 start=end+1;
                 designator = true;
             }
-            
+
             end = indexOf (str, start, len, 'M');
             if ( end!=-1 ) {
                 //scan min
@@ -164,7 +168,7 @@ public class DurationDV extends AbstractDateTimeDV {
                 start=end+1;
                 designator = true;
             }
-            
+
             end = indexOf (str, start, len, 'S');
             if ( end!=-1 ) {
                 //scan seconds
@@ -178,11 +182,11 @@ public class DurationDV extends AbstractDateTimeDV {
                 throw new SchemaDateTimeException();
             }
         }
-        
+
         if ( !designator ) {
             throw new SchemaDateTimeException();
         }
-        
+
         return date;
     }
 
@@ -338,7 +342,11 @@ public class DurationDV extends AbstractDateTimeDV {
         if (dot+1 == end) {
             throw new NumberFormatException("'" + buffer + "' has wrong format");
         }
-        return Double.parseDouble(buffer.substring(start, end));
+        double value = Double.parseDouble(buffer.substring(start, end));
+        if (value == Double.POSITIVE_INFINITY) {
+            throw new NumberFormatException("'" + buffer + "' has wrong format");
+        }
+        return value;
     }
 
     protected String dateToString(DateTimeData date) {
@@ -359,24 +367,24 @@ public class DurationDV extends AbstractDateTimeDV {
         message.append('H');
         message.append((date.minute < 0?-1:1) * date.minute);
         message.append('M');
-        message.append((date.second < 0?-1:1) * date.second);
+        append2(message, (date.second < 0?-1:1) * date.second);
         message.append('S');
 
         return message.toString();
     }
-    
+
     protected Duration getDuration(DateTimeData date) {
         int sign = 1;
         if ( date.year<0 || date.month<0 || date.day<0
                 || date.hour<0 || date.minute<0 || date.second<0) {
             sign = -1;
         }
-        return factory.newDuration(sign == 1, 
-                date.year != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.year):null, 
-                date.month != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.month):null, 
-                date.day != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.day):null, 
-                date.hour != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.hour):null, 
-                date.minute != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.minute):null, 
+        return datatypeFactory.newDuration(sign == 1,
+                date.year != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.year):null,
+                date.month != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.month):null,
+                date.day != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.day):null,
+                date.hour != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.hour):null,
+                date.minute != DatatypeConstants.FIELD_UNDEFINED?BigInteger.valueOf(sign*date.minute):null,
                 date.second != DatatypeConstants.FIELD_UNDEFINED?new BigDecimal(String.valueOf(sign*date.second)):null);
     }
 }

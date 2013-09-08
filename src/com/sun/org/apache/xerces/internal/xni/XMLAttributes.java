@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -58,9 +62,9 @@
 package com.sun.org.apache.xerces.internal.xni;
 
 /**
- * The XMLAttributes interface defines a collection of attributes for 
+ * The XMLAttributes interface defines a collection of attributes for
  * an element. In the parser, the document source would scan the entire
- * start element and collect the attributes. The attributes are 
+ * start element and collect the attributes. The attributes are
  * communicated to the document handler in the startElement method.
  * <p>
  * The attributes are read-write so that subsequent stages in the document
@@ -71,7 +75,6 @@ package com.sun.org.apache.xerces.internal.xni;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLAttributes.java,v 1.1.2.1 2005/08/01 03:34:00 jeffsuttor Exp $
  */
 public interface XMLAttributes {
 
@@ -90,18 +93,18 @@ public interface XMLAttributes {
      * <strong>Note:</strong> If an attribute of the same name already
      * exists, the old values for the attribute are replaced by the new
      * values.
-     * 
+     *
      * @param attrName  The attribute name.
      * @param attrType  The attribute type. The type name is determined by
      *                  the type specified for this attribute in the DTD.
      *                  For example: "CDATA", "ID", "NMTOKEN", etc. However,
      *                  attributes of type enumeration will have the type
      *                  value specified as the pipe ('|') separated list of
-     *                  the enumeration values prefixed by an open 
+     *                  the enumeration values prefixed by an open
      *                  parenthesis and suffixed by a close parenthesis.
      *                  For example: "(true|false)".
      * @param attrValue The attribute value.
-     * 
+     *
      * @return Returns the attribute index.
      *
      * @see #setNonNormalizedValue
@@ -109,7 +112,7 @@ public interface XMLAttributes {
      */
     public int addAttribute(QName attrName, String attrType, String attrValue);
 
-    /** 
+    /**
      * Removes all of the attributes. This method will also remove all
      * entities associated to the attributes.
      */
@@ -120,7 +123,7 @@ public interface XMLAttributes {
      * <p>
      * <strong>Note:</strong> This operation changes the indexes of all
      * attributes following the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      */
     public void removeAttributeAt(int attrIndex);
@@ -163,7 +166,7 @@ public interface XMLAttributes {
 
     /**
      * Sets the name of the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param attrName  The new attribute name.
      */
@@ -172,7 +175,7 @@ public interface XMLAttributes {
     /**
      * Sets the fields in the given QName structure with the values
      * of the attribute name at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param attrName  The attribute name structure to fill in.
      */
@@ -197,7 +200,7 @@ public interface XMLAttributes {
      * @see #getLength
      */
     public String getURI(int index);
-    
+
     /**
      * Look up an attribute's local name by index.
      *
@@ -226,18 +229,18 @@ public interface XMLAttributes {
 
     //why the above method doens't return QName ?
     public QName getQualifiedName(int index);
-    
+
 
     /**
      * Sets the type of the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param attrType  The attribute type. The type name is determined by
      *                  the type specified for this attribute in the DTD.
      *                  For example: "CDATA", "ID", "NMTOKEN", etc. However,
      *                  attributes of type enumeration will have the type
      *                  value specified as the pipe ('|') separated list of
-     *                  the enumeration values prefixed by an open 
+     *                  the enumeration values prefixed by an open
      *                  parenthesis and suffixed by a close parenthesis.
      *                  For example: "(true|false)".
      */
@@ -300,7 +303,7 @@ public interface XMLAttributes {
     /**
      * Sets the value of the attribute at the specified index. This
      * method will overwrite the non-normalized value of the attribute.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param attrValue The new attribute value.
      *
@@ -309,7 +312,7 @@ public interface XMLAttributes {
     public void setValue(int attrIndex, String attrValue);
 
     public void setValue(int attrIndex, String attrValue, XMLString value);
-    
+
     /**
      * Look up an attribute's value by index.
      * <p>
@@ -394,7 +397,7 @@ public interface XMLAttributes {
 
     /**
      * Look up an augmentation by attribute's index.
-     * 
+     *
      * @param attributeIndex The attribute index.
      * @return Augmentations
      */
@@ -402,7 +405,7 @@ public interface XMLAttributes {
 
     /**
      * Look up an augmentation by namespace name.
-     * 
+     *
      * @param uri       The Namespace URI, or the empty string if
      *                  the name has no Namespace URI.
      * @param localPart
@@ -421,10 +424,10 @@ public interface XMLAttributes {
      *
      */
     public Augmentations getAugmentations(String qName);
-    
+
     /**
      * Sets the augmentations of the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param augs      The augmentations.
      */

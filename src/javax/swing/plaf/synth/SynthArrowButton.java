@@ -1,8 +1,26 @@
 /*
- * @(#)SynthArrowButton.java	1.20 08/05/22
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
@@ -13,7 +31,6 @@ import javax.swing.plaf.UIResource;
 /**
  * JButton object that draws a scaled Arrow in one of the cardinal directions.
  *
- * @version 1.20, 05/22/08
  * @author Scott Violet
  */
 class SynthArrowButton extends JButton implements SwingConstants, UIResource {
@@ -36,7 +53,7 @@ class SynthArrowButton extends JButton implements SwingConstants, UIResource {
 
     public void setDirection(int dir) {
         direction = dir;
-        putClientProperty("__arrow_direction__", new Integer(dir));
+        putClientProperty("__arrow_direction__", Integer.valueOf(dir));
         repaint();
     }
 
@@ -44,8 +61,8 @@ class SynthArrowButton extends JButton implements SwingConstants, UIResource {
         return direction;
     }
 
-    public void setFocusable(boolean focusable) {} 
-    
+    public void setFocusable(boolean focusable) {}
+
     private static class SynthArrowButtonUI extends SynthButtonUI {
         protected void installDefaults(AbstractButton b) {
             super.installDefaults(b);
@@ -100,9 +117,10 @@ class SynthArrowButton extends JButton implements SwingConstants, UIResource {
             // handle scaling for sizeVarients for special case components. The
             // key "JComponent.sizeVariant" scales for large/small/mini
             // components are based on Apples LAF
-            JComponent parent = (JComponent)context.getComponent().getParent();
-            if (parent != null && !(parent instanceof JComboBox)){
-                String scaleKey = (String)parent.getClientProperty("JComponent.sizeVariant");
+            Container parent = context.getComponent().getParent();
+            if (parent instanceof JComponent && !(parent instanceof JComboBox)) {
+                Object scaleKey = ((JComponent)parent).
+                                    getClientProperty("JComponent.sizeVariant");
                 if (scaleKey != null){
                     if ("large".equals(scaleKey)){
                         dim = new Dimension(

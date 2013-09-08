@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -60,7 +64,7 @@ package com.sun.org.apache.xerces.internal.impl;
 /**
  * This class defines the version number of the parser.
  *
- * @version $Id: Version.java,v 1.1.2.1 2005/08/01 03:34:09 jeffsuttor Exp $
+ * @version $Id: Version.java,v 1.4 2010-11-01 04:39:40 joehw Exp $
  */
 public class Version {
 
@@ -70,9 +74,9 @@ public class Version {
 
     /** Version string. 
      * @deprecated  getVersion() should be used instead.  */
-    public static String fVersion = "Xerces-J 2.6.2";
+    public static String fVersion = "Xerces-J 2.7.1";
 
-    private static final String fImmutableVersion = "Xerces-J 2.6.2";
+    private static final String fImmutableVersion = "Xerces-J 2.7.1";
 
     // public methods
 

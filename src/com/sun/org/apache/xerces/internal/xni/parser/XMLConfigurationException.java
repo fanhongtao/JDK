@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +20,7 @@
 
 package com.sun.org.apache.xerces.internal.xni.parser;
 
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 
 /**
@@ -25,7 +30,7 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLConfigurationException.java,v 1.2.6.1 2005/09/06 05:38:25 neerajbj Exp $
+ * @version $Id: XMLConfigurationException.java,v 1.7 2010-11-01 04:40:22 joehw Exp $
  */
 public class XMLConfigurationException
     extends XNIException {
@@ -34,21 +39,11 @@ public class XMLConfigurationException
     static final long serialVersionUID = -5437427404547669188L;
     
     //
-    // Constants
-    //
-
-    /** Exception type: identifier not recognized. */
-    public static final short NOT_RECOGNIZED = 0;
-
-    /** Exception type: identifier not supported. */
-    public static final short NOT_SUPPORTED = 1;
-
-    //
     // Data
     //
 
     /** Exception type. */
-    protected short fType;
+    protected Status fType;
 
     /** Identifier. */
     protected String fIdentifier;
@@ -63,11 +58,8 @@ public class XMLConfigurationException
      *
      * @param type       The type of the exception.
      * @param identifier The feature or property identifier.
-     *
-     * @see #NOT_RECOGNIZED
-     * @see #NOT_SUPPORTED
      */
-    public XMLConfigurationException(short type, String identifier) {
+    public XMLConfigurationException(Status type, String identifier) {
         super(identifier);
         fType = type;
         fIdentifier = identifier;
@@ -80,11 +72,8 @@ public class XMLConfigurationException
      * @param type       The type of the exception.
      * @param identifier The feature or property identifier.
      * @param message    The error message.
-     *
-     * @see #NOT_RECOGNIZED
-     * @see #NOT_SUPPORTED
      */
-    public XMLConfigurationException(short type, String identifier,
+    public XMLConfigurationException(Status type, String identifier,
                                      String message) {
         super(message);
         fType = type;
@@ -97,11 +86,8 @@ public class XMLConfigurationException
 
     /** 
      * Returns the exception type. 
-     *
-     * @see #NOT_RECOGNIZED
-     * @see #NOT_SUPPORTED
      */
-    public short getType() {
+    public Status getType() {
         return fType;
     } // getType():short
 

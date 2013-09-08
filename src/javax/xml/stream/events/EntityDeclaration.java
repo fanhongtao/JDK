@@ -1,3 +1,31 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream.events;
 /**
  * An interface for handling Entity Declarations
@@ -5,7 +33,7 @@ package javax.xml.stream.events;
  * This interface is used to record and report unparsed entity declarations.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @since 1.6
  */
 public interface EntityDeclaration extends XMLEvent {
@@ -20,7 +48,7 @@ public interface EntityDeclaration extends XMLEvent {
    * The entity's system identifier.
    * @return the system ID for this declaration or null
    */
-  String getSystemId(); 
+  String getSystemId();
 
   /**
    * The entity's name
@@ -40,7 +68,7 @@ public interface EntityDeclaration extends XMLEvent {
    * if this is an internal entity.
    * @return null or the replacment text
    */
-  String getReplacementText(); 
+  String getReplacementText();
 
   /**
    * Get the base URI for this reference

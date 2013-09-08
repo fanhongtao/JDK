@@ -1,8 +1,26 @@
 /*
- * @(#)BandedSampleModel.java	1.37 06/02/14
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ****************************************************************
@@ -17,7 +35,7 @@
 
 package java.awt.image;
 
-/** 
+/**
  *  This class represents image data which is stored in a band interleaved
  *  fashion and for
  *  which each sample of a pixel occupies one data element of the DataBuffer.
@@ -36,7 +54,7 @@ package java.awt.image;
  *  of the DataBuffer holding each band to the first sample of the band.
  *  The bands are numbered from 0 to N-1.
  *  Bank indices denote the correspondence between a bank of the data buffer
- *  and a band of image data.  This class supports 
+ *  and a band of image data.  This class supports
  *  {@link DataBuffer#TYPE_BYTE TYPE_BYTE},
  *  {@link DataBuffer#TYPE_USHORT TYPE_USHORT},
  *  {@link DataBuffer#TYPE_SHORT TYPE_SHORT},
@@ -55,29 +73,29 @@ public final class BandedSampleModel extends ComponentSampleModel
      * will be the same as the width.  Each band will be stored in
      * a separate bank and all band offsets will be zero.
      * @param dataType  The data type for storing samples.
-     * @param w 	The width (in pixels) of the region of
-     *                  image data described. 
-     * @param h 	The height (in pixels) of the region of image
+     * @param w         The width (in pixels) of the region of
+     *                  image data described.
+     * @param h         The height (in pixels) of the region of image
      *                  data described.
      * @param numBands  The number of bands for the image data.
      * @throws IllegalArgumentException if <code>dataType</code> is not
      *         one of the supported data types
      */
     public BandedSampleModel(int dataType, int w, int h, int numBands) {
-	super(dataType, w, h, 1, w,
+        super(dataType, w, h, 1, w,
               BandedSampleModel.createIndicesArray(numBands),
               BandedSampleModel.createOffsetArray(numBands));
     }
 
     /**
-     * Constructs a BandedSampleModel with the specified parameters. 
+     * Constructs a BandedSampleModel with the specified parameters.
      * The number of bands will be inferred from the lengths of the
      * bandOffsets bankIndices arrays, which must be equal.  The pixel
      * stride will be one data element.
      * @param dataType  The data type for storing samples.
-     * @param w 	The width (in pixels) of the region of
+     * @param w         The width (in pixels) of the region of
      *                  image data described.
-     * @param h 	The height (in pixels) of the region of
+     * @param h         The height (in pixels) of the region of
      *                  image data described.
      * @param scanlineStride The line stride of the of the image data.
      * @param bankIndices The bank index for each band.
@@ -86,12 +104,12 @@ public final class BandedSampleModel extends ComponentSampleModel
      *         one of the supported data types
      */
     public BandedSampleModel(int dataType,
-			     int w, int h,
-			     int scanlineStride,
-			     int bankIndices[],
+                             int w, int h,
+                             int scanlineStride,
+                             int bankIndices[],
                              int bandOffsets[]) {
 
-	super(dataType, w, h, 1,scanlineStride, bankIndices, bandOffsets);
+        super(dataType, w, h, 1,scanlineStride, bankIndices, bandOffsets);
     }
 
     /**
@@ -105,7 +123,7 @@ public final class BandedSampleModel extends ComponentSampleModel
      * @param h the height of the resulting <code>BandedSampleModel</code>
      * @return a new <code>BandedSampleModel</code> with the specified
      *         width and height.
-     * @throws IllegalArgumentException if <code>w</code> or 
+     * @throws IllegalArgumentException if <code>w</code> or
      *         <code>h</code> equals either
      *         <code>Integer.MAX_VALUE</code> or
      *         <code>Integer.MIN_VALUE</code>
@@ -122,9 +140,9 @@ public final class BandedSampleModel extends ComponentSampleModel
             bandOffs = new int[bandOffsets.length];
         }
 
-        SampleModel sampleModel = 
+        SampleModel sampleModel =
             new BandedSampleModel(dataType, w, h, w, bankIndices, bandOffs);
-	return sampleModel;
+        return sampleModel;
     }
 
     /**
@@ -137,24 +155,24 @@ public final class BandedSampleModel extends ComponentSampleModel
      * @throws RasterFormatException if the number of bands is greater than
      *                               the number of banks in this sample model.
      * @throws IllegalArgumentException if <code>dataType</code> is not
-     *         one of the supported data types 
+     *         one of the supported data types
      */
     public SampleModel createSubsetSampleModel(int bands[]) {
-	if (bands.length > bankIndices.length)
-	    throw new RasterFormatException("There are only " +
-					    bankIndices.length +
-					    " bands");
-	int newBankIndices[] = new int[bands.length];
-	int newBandOffsets[] = new int[bands.length];
+        if (bands.length > bankIndices.length)
+            throw new RasterFormatException("There are only " +
+                                            bankIndices.length +
+                                            " bands");
+        int newBankIndices[] = new int[bands.length];
+        int newBandOffsets[] = new int[bands.length];
 
-	for (int i=0; i<bands.length; i++) {
-	    newBankIndices[i] = bankIndices[bands[i]];
-	    newBandOffsets[i] = bandOffsets[bands[i]];
+        for (int i=0; i<bands.length; i++) {
+            newBankIndices[i] = bankIndices[bands[i]];
+            newBandOffsets[i] = bandOffsets[bands[i]];
         }
 
         return new BandedSampleModel(this.dataType, width, height,
-				     this.scanlineStride,
-				     newBankIndices, newBandOffsets);
+                                     this.scanlineStride,
+                                     newBankIndices, newBandOffsets);
     }
 
     /**
@@ -167,7 +185,7 @@ public final class BandedSampleModel extends ComponentSampleModel
     public DataBuffer createDataBuffer() {
         DataBuffer dataBuffer = null;
 
-	int size = scanlineStride * height;
+        int size = scanlineStride * height;
         switch (dataType) {
         case DataBuffer.TYPE_BYTE:
             dataBuffer = new DataBufferByte(size, numBanks);
@@ -196,7 +214,7 @@ public final class BandedSampleModel extends ComponentSampleModel
     }
 
 
-    /** 
+    /**
      * Returns data for a single pixel in a primitive array of type
      * TransferType.  For a BandedSampleModel, this will be the same
      * as the data type, and samples will be returned one per array
@@ -212,9 +230,9 @@ public final class BandedSampleModel extends ComponentSampleModel
      * The transfer will generally be more efficient than using
      * getPixel/setPixel.
      * <pre>
-     * 	     BandedSampleModel bsm1, bsm2;
-     *	     DataBufferInt db1, db2;
-     * 	     bsm2.setDataElements(x, y, bsm1.getDataElements(x, y, null, db1),
+     *       BandedSampleModel bsm1, bsm2;
+     *       DataBufferInt db1, db2;
+     *       bsm2.setDataElements(x, y, bsm1.getDataElements(x, y, null, db1),
      *                            db2);
      * </pre>
      * Using getDataElements/setDataElements to transfer between two
@@ -240,105 +258,105 @@ public final class BandedSampleModel extends ComponentSampleModel
             throw new ArrayIndexOutOfBoundsException
                 ("Coordinate out of bounds!");
         }
-	int type = getTransferType();
-	int numDataElems = getNumDataElements();
-	int pixelOffset = y*scanlineStride + x;
+        int type = getTransferType();
+        int numDataElems = getNumDataElements();
+        int pixelOffset = y*scanlineStride + x;
 
-	switch(type) {
+        switch(type) {
 
-	case DataBuffer.TYPE_BYTE:
+        case DataBuffer.TYPE_BYTE:
 
-	    byte[] bdata;
+            byte[] bdata;
 
-	    if (obj == null) {
-		bdata = new byte[numDataElems];
+            if (obj == null) {
+                bdata = new byte[numDataElems];
             } else {
-		bdata = (byte[])obj;
+                bdata = (byte[])obj;
             }
 
-	    for (int i=0; i<numDataElems; i++) {
-		bdata[i] = (byte)data.getElem(bankIndices[i],
+            for (int i=0; i<numDataElems; i++) {
+                bdata[i] = (byte)data.getElem(bankIndices[i],
                                               pixelOffset + bandOffsets[i]);
-	    }
+            }
 
-	    obj = (Object)bdata;
-	    break;
+            obj = (Object)bdata;
+            break;
 
-	case DataBuffer.TYPE_USHORT:
+        case DataBuffer.TYPE_USHORT:
         case DataBuffer.TYPE_SHORT:
-            
-	    short[] sdata;
 
-	    if (obj == null) {
-		sdata = new short[numDataElems];
-	    } else {
-		sdata = (short[])obj;
+            short[] sdata;
+
+            if (obj == null) {
+                sdata = new short[numDataElems];
+            } else {
+                sdata = (short[])obj;
             }
 
-	    for (int i=0; i<numDataElems; i++) {
-		sdata[i] = (short)data.getElem(bankIndices[i],
+            for (int i=0; i<numDataElems; i++) {
+                sdata[i] = (short)data.getElem(bankIndices[i],
                                                pixelOffset + bandOffsets[i]);
-	    }
-
-	    obj = (Object)sdata;
-	    break;
-
-	case DataBuffer.TYPE_INT:
-
-	    int[] idata;
-
-	    if (obj == null) {
-		idata = new int[numDataElems];
-            } else {
-		idata = (int[])obj;
             }
 
-	    for (int i=0; i<numDataElems; i++) {
-		idata[i] = data.getElem(bankIndices[i],
+            obj = (Object)sdata;
+            break;
+
+        case DataBuffer.TYPE_INT:
+
+            int[] idata;
+
+            if (obj == null) {
+                idata = new int[numDataElems];
+            } else {
+                idata = (int[])obj;
+            }
+
+            for (int i=0; i<numDataElems; i++) {
+                idata[i] = data.getElem(bankIndices[i],
                                         pixelOffset + bandOffsets[i]);
-	    }
-
-	    obj = (Object)idata;
-	    break;
-
-	case DataBuffer.TYPE_FLOAT:
-
-	    float[] fdata;
-
-	    if (obj == null) {
-		fdata = new float[numDataElems];
-            } else {
-		fdata = (float[])obj;
             }
 
-	    for (int i=0; i<numDataElems; i++) {
-		fdata[i] = data.getElemFloat(bankIndices[i],
+            obj = (Object)idata;
+            break;
+
+        case DataBuffer.TYPE_FLOAT:
+
+            float[] fdata;
+
+            if (obj == null) {
+                fdata = new float[numDataElems];
+            } else {
+                fdata = (float[])obj;
+            }
+
+            for (int i=0; i<numDataElems; i++) {
+                fdata[i] = data.getElemFloat(bankIndices[i],
                                              pixelOffset + bandOffsets[i]);
-	    }
-
-	    obj = (Object)fdata;
-	    break;
-
-	case DataBuffer.TYPE_DOUBLE:
-
-	    double[] ddata;
-
-	    if (obj == null) {
-		ddata = new double[numDataElems];
-            } else {
-		ddata = (double[])obj;
             }
 
-	    for (int i=0; i<numDataElems; i++) {
-		ddata[i] = data.getElemDouble(bankIndices[i],
+            obj = (Object)fdata;
+            break;
+
+        case DataBuffer.TYPE_DOUBLE:
+
+            double[] ddata;
+
+            if (obj == null) {
+                ddata = new double[numDataElems];
+            } else {
+                ddata = (double[])obj;
+            }
+
+            for (int i=0; i<numDataElems; i++) {
+                ddata[i] = data.getElemDouble(bankIndices[i],
                                               pixelOffset + bandOffsets[i]);
-	    }
+            }
 
-	    obj = (Object)ddata;
-	    break;
-	}
+            obj = (Object)ddata;
+            break;
+        }
 
-	return obj;
+        return obj;
     }
 
     /**
@@ -348,7 +366,7 @@ public final class BandedSampleModel extends ComponentSampleModel
      * @param x         The X coordinate of the pixel location
      * @param y         The Y coordinate of the pixel location
      * @param iArray    If non-null, returns the samples in this array
-     * @param data      The DataBuffer containing the image data 
+     * @param data      The DataBuffer containing the image data
      * @return the samples for the specified pixel.
      * @see #setPixel(int, int, int[], DataBuffer)
      */
@@ -360,7 +378,7 @@ public final class BandedSampleModel extends ComponentSampleModel
 
         int[] pixels;
 
-	if (iArray != null) {
+        if (iArray != null) {
            pixels = iArray;
         } else {
            pixels = new int [numBands];
@@ -390,7 +408,12 @@ public final class BandedSampleModel extends ComponentSampleModel
      */
     public int[] getPixels(int x, int y, int w, int h,
                            int iArray[], DataBuffer data) {
-        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+        int x1 = x + w;
+        int y1 = y + h;
+
+        if (x < 0 || x >= width || w > width || x1 < 0 || x1 > width ||
+            y < 0 || y >= height || h > height || y1 < 0 || y1 >  height)
+        {
             throw new ArrayIndexOutOfBoundsException
                 ("Coordinate out of bounds!");
         }
@@ -488,7 +511,7 @@ public final class BandedSampleModel extends ComponentSampleModel
 
         double sample = data.getElemDouble(bankIndices[b],
                                        y*scanlineStride + x + bandOffsets[b]);
-	return sample;
+        return sample;
     }
 
     /**
@@ -523,19 +546,19 @@ public final class BandedSampleModel extends ComponentSampleModel
 
         int lineOffset = y*scanlineStride + x + bandOffsets[b];
         int srcOffset = 0;
-	int bank = bankIndices[b];
+        int bank = bankIndices[b];
 
         for (int i = 0; i < h; i++) {
            int sampleOffset = lineOffset;
            for (int j = 0; j < w; j++) {
-	       samples[srcOffset++] = data.getElem(bank, sampleOffset++);
+               samples[srcOffset++] = data.getElem(bank, sampleOffset++);
            }
            lineOffset += scanlineStride;
         }
         return samples;
     }
 
-    /** 
+    /**
      * Sets the data for a single pixel in the specified DataBuffer from a
      * primitive array of type TransferType.  For a BandedSampleModel,
      * this will be the same as the data type, and samples are transferred
@@ -549,9 +572,9 @@ public final class BandedSampleModel extends ComponentSampleModel
      * The transfer will generally be more efficient than using
      * getPixel/setPixel.
      * <pre>
-     * 	     BandedSampleModel bsm1, bsm2;
-     *	     DataBufferInt db1, db2;
-     * 	     bsm2.setDataElements(x, y, bsm1.getDataElements(x, y, null, db1),
+     *       BandedSampleModel bsm1, bsm2;
+     *       DataBufferInt db1, db2;
+     *       bsm2.setDataElements(x, y, bsm1.getDataElements(x, y, null, db1),
      *                            db2);
      * </pre>
      * Using getDataElements/setDataElements to transfer between two
@@ -575,64 +598,64 @@ public final class BandedSampleModel extends ComponentSampleModel
             throw new ArrayIndexOutOfBoundsException
                 ("Coordinate out of bounds!");
         }
-	int type = getTransferType();
-	int numDataElems = getNumDataElements();
-	int pixelOffset = y*scanlineStride + x;
+        int type = getTransferType();
+        int numDataElems = getNumDataElements();
+        int pixelOffset = y*scanlineStride + x;
 
-	switch(type) {
+        switch(type) {
 
-	case DataBuffer.TYPE_BYTE:
+        case DataBuffer.TYPE_BYTE:
 
-	    byte[] barray = (byte[])obj;
+            byte[] barray = (byte[])obj;
 
-	    for (int i=0; i<numDataElems; i++) {
-		data.setElem(bankIndices[i], pixelOffset + bandOffsets[i],
-			     barray[i] & 0xff);
-	    }
-	    break;
+            for (int i=0; i<numDataElems; i++) {
+                data.setElem(bankIndices[i], pixelOffset + bandOffsets[i],
+                             barray[i] & 0xff);
+            }
+            break;
 
-	case DataBuffer.TYPE_USHORT:
+        case DataBuffer.TYPE_USHORT:
         case DataBuffer.TYPE_SHORT:
-            
-	    short[] sarray = (short[])obj;
 
-	    for (int i=0; i<numDataElems; i++) {
-		data.setElem(bankIndices[i], pixelOffset + bandOffsets[i],
-			     sarray[i] & 0xffff);
-	    }
-	    break;
+            short[] sarray = (short[])obj;
 
-	case DataBuffer.TYPE_INT:
+            for (int i=0; i<numDataElems; i++) {
+                data.setElem(bankIndices[i], pixelOffset + bandOffsets[i],
+                             sarray[i] & 0xffff);
+            }
+            break;
 
-	    int[] iarray = (int[])obj;
+        case DataBuffer.TYPE_INT:
 
-	    for (int i=0; i<numDataElems; i++) {
-		data.setElem(bankIndices[i], pixelOffset + bandOffsets[i],
+            int[] iarray = (int[])obj;
+
+            for (int i=0; i<numDataElems; i++) {
+                data.setElem(bankIndices[i], pixelOffset + bandOffsets[i],
                              iarray[i]);
-	    }
-	    break;
+            }
+            break;
 
-	case DataBuffer.TYPE_FLOAT:
+        case DataBuffer.TYPE_FLOAT:
 
-	    float[] farray = (float[])obj;
+            float[] farray = (float[])obj;
 
-	    for (int i=0; i<numDataElems; i++) {
-		data.setElemFloat(bankIndices[i], pixelOffset + bandOffsets[i],
+            for (int i=0; i<numDataElems; i++) {
+                data.setElemFloat(bankIndices[i], pixelOffset + bandOffsets[i],
                                   farray[i]);
-	    }
-	    break;
+            }
+            break;
 
-	case DataBuffer.TYPE_DOUBLE:
+        case DataBuffer.TYPE_DOUBLE:
 
-	    double[] darray = (double[])obj;
+            double[] darray = (double[])obj;
 
-	    for (int i=0; i<numDataElems; i++) {
-		data.setElemDouble(bankIndices[i], pixelOffset + bandOffsets[i],
+            for (int i=0; i<numDataElems; i++) {
+                data.setElemDouble(bankIndices[i], pixelOffset + bandOffsets[i],
                                    darray[i]);
-	    }
-	    break;
+            }
+            break;
 
-	}
+        }
     }
 
     /**
@@ -672,7 +695,12 @@ public final class BandedSampleModel extends ComponentSampleModel
      */
     public void setPixels(int x, int y, int w, int h,
                           int iArray[], DataBuffer data) {
-        if ((x < 0) || (y < 0) || (x + w > width) || (y + h > height)) {
+        int x1 = x + w;
+        int y1 = y + h;
+
+        if (x < 0 || x >= width || w > width || x1 < 0 || x1 > width ||
+            y < 0 || y >= height || h > height || y1 < 0 || y1 >  height)
+        {
             throw new ArrayIndexOutOfBoundsException
                 ("Coordinate out of bounds!");
         }
@@ -729,8 +757,8 @@ public final class BandedSampleModel extends ComponentSampleModel
      * @see #getSample(int, int, int, DataBuffer)
      */
     public void setSample(int x, int y, int b,
-			  float s ,
-			  DataBuffer data) {
+                          float s ,
+                          DataBuffer data) {
         // Bounds check for 'b' will be performed automatically
         if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
             throw new ArrayIndexOutOfBoundsException
@@ -747,14 +775,14 @@ public final class BandedSampleModel extends ComponentSampleModel
      * not in bounds.
      * @param x         The X coordinate of the pixel location
      * @param y         The Y coordinate of the pixel location
-     * @param b         The band to set  
+     * @param b         The band to set
      * @param s         The input sample as a double
      * @param data      The DataBuffer containing the image data
      * @see #getSample(int, int, int, DataBuffer)
      */
     public void setSample(int x, int y, int b,
-			  double s,
-			  DataBuffer data) {
+                          double s,
+                          DataBuffer data) {
         // Bounds check for 'b' will be performed automatically
         if ((x < 0) || (y < 0) || (x >= width) || (y >= height)) {
             throw new ArrayIndexOutOfBoundsException
@@ -787,7 +815,7 @@ public final class BandedSampleModel extends ComponentSampleModel
         }
         int lineOffset = y*scanlineStride + x + bandOffsets[b];
         int srcOffset = 0;
-	int bank = bankIndices[b];
+        int bank = bankIndices[b];
 
         for (int i = 0; i < h; i++) {
            int sampleOffset = lineOffset;

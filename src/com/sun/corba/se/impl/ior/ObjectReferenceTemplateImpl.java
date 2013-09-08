@@ -1,8 +1,26 @@
 /*
- * @(#)ObjectReferenceTemplateImpl.java	1.36 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior ;
@@ -33,8 +51,8 @@ import com.sun.corba.se.impl.orbutil.ORBUtility ;
 
 import com.sun.corba.se.spi.orb.ORB ;
 
-/** This is an implementation of the ObjectReferenceTemplate abstract value 
-* type defined by the portable interceptors IDL.  
+/** This is an implementation of the ObjectReferenceTemplate abstract value
+* type defined by the portable interceptors IDL.
 * Note that this is a direct Java implementation
 * of the abstract value type: there is no stateful value type defined in IDL,
 * since defining the state in IDL is awkward and inefficient.  The best way
@@ -42,106 +60,106 @@ import com.sun.corba.se.spi.orb.ORB ;
 * to and read from CORBA streams.
 */
 public class ObjectReferenceTemplateImpl extends ObjectReferenceProducerBase
-    implements ObjectReferenceTemplate, StreamableValue 
+    implements ObjectReferenceTemplate, StreamableValue
 {
     transient private IORTemplate iorTemplate ;
 
     public ObjectReferenceTemplateImpl( InputStream is )
     {
-	super( (ORB)(is.orb()) ) ;
-	_read( is ) ;
+        super( (ORB)(is.orb()) ) ;
+        _read( is ) ;
     }
 
-    public ObjectReferenceTemplateImpl( ORB orb, IORTemplate iortemp ) 
+    public ObjectReferenceTemplateImpl( ORB orb, IORTemplate iortemp )
     {
-	super( orb ) ;
-	iorTemplate = iortemp ;
+        super( orb ) ;
+        iorTemplate = iortemp ;
     }
 
     public boolean equals( Object obj )
     {
-	if (!(obj instanceof ObjectReferenceTemplateImpl))
-	    return false ;
+        if (!(obj instanceof ObjectReferenceTemplateImpl))
+            return false ;
 
-	ObjectReferenceTemplateImpl other = (ObjectReferenceTemplateImpl)obj ;
+        ObjectReferenceTemplateImpl other = (ObjectReferenceTemplateImpl)obj ;
 
-	return (iorTemplate != null) && 
-	    iorTemplate.equals( other.iorTemplate ) ;
+        return (iorTemplate != null) &&
+            iorTemplate.equals( other.iorTemplate ) ;
     }
 
     public int hashCode()
     {
-	return iorTemplate.hashCode() ;
+        return iorTemplate.hashCode() ;
     }
 
     // Note that this repository ID must reflect the implementation
     // of the abstract valuetype (that is, this class), not the
     // repository ID of the org.omg.PortableInterceptor.ObjectReferenceTemplate
-    // class.  This allows for multiple independent implementations 
+    // class.  This allows for multiple independent implementations
     // of the abstract valuetype, should that become necessary.
-    public static final String repositoryId = 
-	"IDL:com/sun/corba/se/impl/ior/ObjectReferenceTemplateImpl:1.0" ;
+    public static final String repositoryId =
+        "IDL:com/sun/corba/se/impl/ior/ObjectReferenceTemplateImpl:1.0" ;
 
-    public String[] _truncatable_ids() 
+    public String[] _truncatable_ids()
     {
-	return new String[] { repositoryId } ;
+        return new String[] { repositoryId } ;
     }
 
-    public TypeCode _type() 
+    public TypeCode _type()
     {
-	return ObjectReferenceTemplateHelper.type() ;
+        return ObjectReferenceTemplateHelper.type() ;
     }
 
-    /** Read the data into a (presumably) empty ORTImpl.  This sets the 
-    * orb to the ORB of the InputStream.  
+    /** Read the data into a (presumably) empty ORTImpl.  This sets the
+    * orb to the ORB of the InputStream.
     */
-    public void _read( InputStream is ) 
+    public void _read( InputStream is )
     {
-	org.omg.CORBA_2_3.portable.InputStream istr =
-	    (org.omg.CORBA_2_3.portable.InputStream)is ;
-	iorTemplate = IORFactories.makeIORTemplate( istr ) ;
-	orb = (ORB)(istr.orb()) ;
+        org.omg.CORBA_2_3.portable.InputStream istr =
+            (org.omg.CORBA_2_3.portable.InputStream)is ;
+        iorTemplate = IORFactories.makeIORTemplate( istr ) ;
+        orb = (ORB)(istr.orb()) ;
     }
 
-    /** Write the state to the OutputStream.  
+    /** Write the state to the OutputStream.
      */
-    public void _write( OutputStream os ) 
+    public void _write( OutputStream os )
     {
-	org.omg.CORBA_2_3.portable.OutputStream ostr = 
-	    (org.omg.CORBA_2_3.portable.OutputStream)os ;
+        org.omg.CORBA_2_3.portable.OutputStream ostr =
+            (org.omg.CORBA_2_3.portable.OutputStream)os ;
 
-	iorTemplate.write( ostr ) ;
+        iorTemplate.write( ostr ) ;
     }
 
     public String server_id ()
     {
-	int val = iorTemplate.getObjectKeyTemplate().getServerId() ;
-	return Integer.toString( val ) ;
+        int val = iorTemplate.getObjectKeyTemplate().getServerId() ;
+        return Integer.toString( val ) ;
     }
 
     public String orb_id ()
     {
-	return iorTemplate.getObjectKeyTemplate().getORBId() ;
+        return iorTemplate.getObjectKeyTemplate().getORBId() ;
     }
 
     public String[] adapter_name()
     {
-	ObjectAdapterId poaid = 
-	    iorTemplate.getObjectKeyTemplate().getObjectAdapterId() ;
+        ObjectAdapterId poaid =
+            iorTemplate.getObjectKeyTemplate().getObjectAdapterId() ;
 
-	return poaid.getAdapterName() ;
+        return poaid.getAdapterName() ;
     }
 
-    public IORFactory getIORFactory() 
+    public IORFactory getIORFactory()
     {
-	return iorTemplate ;
+        return iorTemplate ;
     }
 
-    public IORTemplateList getIORTemplateList() 
+    public IORTemplateList getIORTemplateList()
     {
-	IORTemplateList tl = IORFactories.makeIORTemplateList() ;
-	tl.add( iorTemplate ) ;
-	tl.makeImmutable() ;
-	return tl ;
+        IORTemplateList tl = IORFactories.makeIORTemplateList() ;
+        tl.add( iorTemplate ) ;
+        tl.makeImmutable() ;
+        return tl ;
     }
 }

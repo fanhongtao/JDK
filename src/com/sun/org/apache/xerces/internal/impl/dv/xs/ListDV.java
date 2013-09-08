@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001,2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +19,8 @@
  */
 
 package com.sun.org.apache.xerces.internal.impl.dv.xs;
+
+import java.util.AbstractList;
 
 import com.sun.org.apache.xerces.internal.impl.dv.InvalidDatatypeValueException;
 import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
@@ -28,7 +34,7 @@ import com.sun.org.apache.xerces.internal.xs.datatypes.ObjectList;
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: ListDV.java,v 1.2.6.1 2005/09/06 11:43:07 neerajbj Exp $
+ * @version $Id: ListDV.java,v 1.7 2010-11-01 04:39:47 joehw Exp $
  */
 public class ListDV extends TypeValidator{
 
@@ -47,7 +53,7 @@ public class ListDV extends TypeValidator{
         return ((ListData)value).getLength();
     }
 
-    final static class ListData implements ObjectList {
+    final static class ListData extends AbstractList implements ObjectList {
         final Object[] data;
         private String canonical;
         public ListData(Object[] data) {
@@ -75,20 +81,28 @@ public class ListDV extends TypeValidator{
             if (!(obj instanceof ListData))
                 return false;
             Object[] odata = ((ListData)obj).data;
-    
+
             int count = data.length;
             if (count != odata.length)
                 return false;
-    
+
             for (int i = 0 ; i < count ; i++) {
                 if (!data[i].equals(odata[i]))
                     return false;
             }//end of loop
-    
+
             //everything went fine.
             return true;
         }
-        
+
+        public int hashCode() {
+            int hash = 0;
+            for (int i = 0; i < data.length; ++i) {
+                hash ^= data[i].hashCode();
+            }
+            return hash;
+        }
+
         public boolean contains(Object item) {
             for (int i = 0;i < data.length; i++) {
                 if (item == data[i]) {
@@ -97,12 +111,27 @@ public class ListDV extends TypeValidator{
             }
             return false;
         }
-        
+
         public Object item(int index) {
             if (index < 0 || index >= data.length) {
                 return null;
             }
             return data[index];
+        }
+
+        /*
+         * List methods
+         */
+
+        public Object get(int index) {
+            if (index >= 0 && index < data.length) {
+                return data[index];
+            }
+            throw new IndexOutOfBoundsException("Index: " + index);
+        }
+
+        public int size() {
+            return getLength();
         }
     }
 } // class ListDV

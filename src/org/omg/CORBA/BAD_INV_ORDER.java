@@ -1,16 +1,34 @@
 /*
- * @(#)BAD_INV_ORDER.java	1.35 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * This exception indicates that the caller has invoked operations in 
- * the wrong order. For example, it can be raised by an ORB if an 
- * application makes an ORB-related call without having correctly 
+ * This exception indicates that the caller has invoked operations in
+ * the wrong order. For example, it can be raised by an ORB if an
+ * application makes an ORB-related call without having correctly
  * initialized the ORB first.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -18,18 +36,17 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.18, 09/09/97
  * @since       JDK1.2
  */
 
 public final class BAD_INV_ORDER extends SystemException {
 
     /**
-     * Constructs a <code>BAD_INV_ORDER</code> exception with a default 
+     * Constructs a <code>BAD_INV_ORDER</code> exception with a default
      * minor code of 0 and a completion state of COMPLETED_NO.
      */
     public BAD_INV_ORDER() {
-	this("");
+        this("");
     }
 
     /**

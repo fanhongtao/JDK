@@ -1,8 +1,26 @@
 /*
- * @(#)NTUserPrincipal.java	1.15 05/11/17
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.security.auth;
@@ -20,7 +38,6 @@ import java.security.Principal;
  * on how to achieve this.  Authorization decisions can then be based upon
  * the Principals associated with a <code>Subject</code>.
  *
- * @version 1.15, 11/17/05
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */
@@ -32,7 +49,7 @@ public class NTUserPrincipal implements Principal, java.io.Serializable {
      * @serial
      */
     private String name;
-    
+
     /**
      * Create an <code>NTUserPrincipal</code> with a Windows NT username.
      *
@@ -41,20 +58,20 @@ public class NTUserPrincipal implements Principal, java.io.Serializable {
      * @param name the Windows NT username for this user. <p>
      *
      * @exception NullPointerException if the <code>name</code>
-     *		  is <code>null</code>.
+     *            is <code>null</code>.
      */
     public NTUserPrincipal(String name) {
-	if (name == null) {
-	    java.text.MessageFormat form = new java.text.MessageFormat
-		(sun.security.util.ResourcesMgr.getString
-			("invalid null input: value",
-			"sun.security.util.AuthResources"));
-	    Object[] source = {"name"};
-	    throw new NullPointerException(form.format(source));
-	}
-	this.name = name;
+        if (name == null) {
+            java.text.MessageFormat form = new java.text.MessageFormat
+                (sun.security.util.ResourcesMgr.getString
+                        ("invalid.null.input.value",
+                        "sun.security.util.AuthResources"));
+            Object[] source = {"name"};
+            throw new NullPointerException(form.format(source));
+        }
+        this.name = name;
     }
-    
+
     /**
      * Return the Windows NT username for this <code>NTPrincipal</code>.
      *
@@ -63,7 +80,7 @@ public class NTUserPrincipal implements Principal, java.io.Serializable {
      * @return the Windows NT username for this <code>NTPrincipal</code>
      */
     public String getName() {
-	return name;
+        return name;
     }
 
     /**
@@ -74,14 +91,14 @@ public class NTUserPrincipal implements Principal, java.io.Serializable {
      * @return a string representation of this <code>NTPrincipal</code>.
      */
     public String toString() {
-	java.text.MessageFormat form = new java.text.MessageFormat
-		(sun.security.util.ResourcesMgr.getString
-			("NTUserPrincipal: name",
-			"sun.security.util.AuthResources"));
-	Object[] source = {name};
-	return form.format(source);
+        java.text.MessageFormat form = new java.text.MessageFormat
+                (sun.security.util.ResourcesMgr.getString
+                        ("NTUserPrincipal.name",
+                        "sun.security.util.AuthResources"));
+        Object[] source = {name};
+        return form.format(source);
     }
-    
+
     /**
      * Compares the specified Object with this <code>NTUserPrincipal</code>
      * for equality.  Returns true if the given object is also a
@@ -91,27 +108,27 @@ public class NTUserPrincipal implements Principal, java.io.Serializable {
      * <p>
      *
      * @param o Object to be compared for equality with this
-     *		<code>NTPrincipal</code>.
+     *          <code>NTPrincipal</code>.
      *
      * @return true if the specified Object is equal equal to this
-     *		<code>NTPrincipal</code>.
+     *          <code>NTPrincipal</code>.
      */
     public boolean equals(Object o) {
-	    if (o == null)
-	        return false;
+            if (o == null)
+                return false;
 
         if (this == o)
             return true;
- 
+
         if (!(o instanceof NTUserPrincipal))
             return false;
         NTUserPrincipal that = (NTUserPrincipal)o;
 
-	    if (name.equals(that.getName()))
-	        return true;
-	    return false;
+            if (name.equals(that.getName()))
+                return true;
+            return false;
     }
- 
+
     /**
      * Return a hash code for this <code>NTUserPrincipal</code>.
      *
@@ -120,6 +137,6 @@ public class NTUserPrincipal implements Principal, java.io.Serializable {
      * @return a hash code for this <code>NTUserPrincipal</code>.
      */
     public int hashCode() {
-	    return this.getName().hashCode();
+            return this.getName().hashCode();
     }
 }

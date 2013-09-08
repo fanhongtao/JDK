@@ -1,13 +1,31 @@
 /*
- * @(#)PrintServiceAttributeListener.java	1.7 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.print.event;
 
-/** 
+/**
   * Implementations of this listener interface are attached to a
   * {@link javax.print.PrintService PrintService} to monitor
   * the status of the print service.

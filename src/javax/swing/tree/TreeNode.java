@@ -1,8 +1,26 @@
 /*
- * @(#)TreeNode.java	1.25 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.tree;
@@ -22,7 +40,6 @@ import java.util.Enumeration;
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/tree.html">How to Use Tree Nodes</a>
  * in <em>The Java Tutorial.</em>
  *
- * @version 1.25 11/17/05
  * @author Rob Davis
  * @author Scott Violet
  */
@@ -30,7 +47,7 @@ import java.util.Enumeration;
 public interface TreeNode
 {
     /**
-     * Returns the child <code>TreeNode</code> at index 
+     * Returns the child <code>TreeNode</code> at index
      * <code>childIndex</code>.
      */
     TreeNode getChildAt(int childIndex);

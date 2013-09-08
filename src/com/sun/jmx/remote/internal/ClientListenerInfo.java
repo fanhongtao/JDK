@@ -1,8 +1,26 @@
 /*
- * @(#)ClientListenerInfo.java	1.6 06/02/21
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.remote.internal;
@@ -27,55 +45,55 @@ public class ClientListenerInfo {
                               NotificationFilter filter,
                               Object handback,
                               Subject delegationSubject) {
-	this.listenerID = listenerID;
-	this.name = name;
-	this.listener = listener;
-	this.filter = filter;
-	this.handback = handback;
-	this.delegationSubject = delegationSubject;
+        this.listenerID = listenerID;
+        this.name = name;
+        this.listener = listener;
+        this.filter = filter;
+        this.handback = handback;
+        this.delegationSubject = delegationSubject;
     }
 
     public ObjectName getObjectName() {
-	return name;
+        return name;
     }
 
     public Integer getListenerID() {
-	return listenerID;
+        return listenerID;
     }
 
     public NotificationFilter getNotificationFilter() {
-	return filter;
+        return filter;
     }
 
     public NotificationListener getListener() {
-	return listener;
+        return listener;
     }
 
     public Object getHandback() {
-	return handback;
+        return handback;
     }
 
     public Subject getDelegationSubject() {
-	return delegationSubject;
+        return delegationSubject;
     }
 
-    
+
     public boolean sameAs(ObjectName name) {
-	return (getObjectName().equals(name));
+        return (getObjectName().equals(name));
     }
 
-    
+
     public boolean sameAs(ObjectName name, NotificationListener listener) {
-	return ( getObjectName().equals(name) &&
-		 getListener() == listener);
+        return ( getObjectName().equals(name) &&
+                 getListener() == listener);
     }
 
-    
+
     public boolean sameAs(ObjectName name, NotificationListener listener, NotificationFilter filter, Object handback) {
-	return ( getObjectName().equals(name) &&
-		 getListener() == listener &&
-		 getNotificationFilter() == filter &&
-		 getHandback() == handback);
+        return ( getObjectName().equals(name) &&
+                 getListener() == listener &&
+                 getNotificationFilter() == filter &&
+                 getHandback() == handback);
     }
 
     private final ObjectName name;

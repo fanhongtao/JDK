@@ -1,8 +1,26 @@
 /*
- * @(#)Object.java	1.53 05/11/17
+ * Copyright (c) 1995, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -144,7 +162,7 @@ public interface Object {
      * Dynamic Invocation Interface.
      *
      * @param operation  the name of the method to be invoked using the
-     *		              <code>Request</code> instance
+     *                        <code>Request</code> instance
      * @return the newly-created <code>Request</code> instance
      */
     Request _request(String operation);
@@ -156,14 +174,14 @@ public interface Object {
      * given context, method name, list of arguments, and container
      * for the method's return value.
      *
-     * @param ctx			a <code>Context</code> object containing
+     * @param ctx                       a <code>Context</code> object containing
      *                     a list of properties
      * @param operation    the name of the method to be invoked
-     * @param arg_list		an <code>NVList</code> containing the actual arguments
+     * @param arg_list          an <code>NVList</code> containing the actual arguments
      *                     to the method being invoked
-     * @param result		a <code>NamedValue</code> object to serve as a
+     * @param result            a <code>NamedValue</code> object to serve as a
      *                     container for the method's return value
-     * @return			the newly-created <code>Request</code> object
+     * @return                  the newly-created <code>Request</code> object
      *
      * @see Request
      * @see NVList
@@ -171,9 +189,9 @@ public interface Object {
      */
 
     Request _create_request(Context ctx,
-			    String operation,
-			    NVList arg_list,
-			    NamedValue result);
+                            String operation,
+                            NVList arg_list,
+                            NamedValue result);
 
     /**
      * Creates a <code>Request</code> instance initialized with the
@@ -181,19 +199,19 @@ public interface Object {
      * for the method's return value, list of possible exceptions,
      * and list of context strings needing to be resolved.
      *
-     * @param ctx			a <code>Context</code> object containing
+     * @param ctx                       a <code>Context</code> object containing
      *                     a list of properties
      * @param operation    the name of the method to be invoked
-     * @param arg_list		an <code>NVList</code> containing the actual arguments
+     * @param arg_list          an <code>NVList</code> containing the actual arguments
      *                     to the method being invoked
-     * @param result		a <code>NamedValue</code> object to serve as a
+     * @param result            a <code>NamedValue</code> object to serve as a
      *                     container for the method's return value
-     * @param exclist		an <code>ExceptionList</code> object containing a
+     * @param exclist           an <code>ExceptionList</code> object containing a
      *                     list of possible exceptions the method can throw
-     * @param ctxlist		a <code>ContextList</code> object containing a list of
+     * @param ctxlist           a <code>ContextList</code> object containing a list of
      *                     context strings that need to be resolved and sent with the
-     * 			     	<code>Request</code> instance
-     * @return			the newly-created <code>Request</code> object
+     *                          <code>Request</code> instance
+     * @return                  the newly-created <code>Request</code> object
      *
      * @see Request
      * @see NVList
@@ -203,25 +221,25 @@ public interface Object {
      */
 
     Request _create_request(Context ctx,
-			    String operation,
-			    NVList arg_list,
-			    NamedValue result,
-			    ExceptionList exclist,
-			    ContextList ctxlist);
+                            String operation,
+                            NVList arg_list,
+                            NamedValue result,
+                            ExceptionList exclist,
+                            ContextList ctxlist);
 
 
 
 
     /**
-     * Returns the <code>Policy</code> object of the specified type 
+     * Returns the <code>Policy</code> object of the specified type
      * which applies to this object.
-     * 
+     *
      * @param policy_type the type of policy to be obtained
-     * @return A <code>Policy</code> object of the type specified by 
+     * @return A <code>Policy</code> object of the type specified by
      *         the policy_type parameter
-     * @exception org.omg.CORBA.BAD_PARAM when the value of policy type 
-     * is not valid either because the specified type is not supported by this 
-     * ORB or because a policy object of that type is not associated with this 
+     * @exception org.omg.CORBA.BAD_PARAM when the value of policy type
+     * is not valid either because the specified type is not supported by this
+     * ORB or because a policy object of that type is not associated with this
      * Object
      */
     Policy _get_policy(int policy_type);
@@ -229,13 +247,13 @@ public interface Object {
 
     /**
      * Retrieves the <code>DomainManagers</code> of this object.
-     * This allows administration services (and applications) to retrieve the 
-     * domain managers, and hence the security and other policies applicable 
+     * This allows administration services (and applications) to retrieve the
+     * domain managers, and hence the security and other policies applicable
      * to individual objects that are members of the domain.
-     * 
+     *
      * @return the list of immediately enclosing domain managers of this object.
-     *  At least one domain manager is always returned in the list since by 
-     * default each object is associated with at least one domain manager at 
+     *  At least one domain manager is always returned in the list since by
+     * default each object is associated with at least one domain manager at
      * creation.
      */
     DomainManager[] _get_domain_managers();
@@ -243,19 +261,19 @@ public interface Object {
 
     /**
      * Returns a new <code>Object</code> with the given policies
-	 * either replacing any existing policies in this
-	 * <code>Object</code> or with the given policies added 
-	 * to the existing ones, depending on the value of the
-	 * given <code>SetOverrideType</code> object.
-	 * 
-	 * @param policies an array of <code>Policy</code> objects containing
-	 *                 the policies to be added or to be used as replacements
-	 * @param set_add either <code>SetOverrideType.SET_OVERRIDE</code>, indicating
-	 *                that the given policies will replace any existing ones, or
-	 *                <code>SetOverrideType.ADD_OVERRIDE</code>, indicating that
-	 *                the given policies should be added to any existing ones
-	 * @return a new <code>Object</code> with the given policies replacing
-	 *         or added to those in this <code>Object</code>
+         * either replacing any existing policies in this
+         * <code>Object</code> or with the given policies added
+         * to the existing ones, depending on the value of the
+         * given <code>SetOverrideType</code> object.
+         *
+         * @param policies an array of <code>Policy</code> objects containing
+         *                 the policies to be added or to be used as replacements
+         * @param set_add either <code>SetOverrideType.SET_OVERRIDE</code>, indicating
+         *                that the given policies will replace any existing ones, or
+         *                <code>SetOverrideType.ADD_OVERRIDE</code>, indicating that
+         *                the given policies should be added to any existing ones
+         * @return a new <code>Object</code> with the given policies replacing
+         *         or added to those in this <code>Object</code>
      */
     org.omg.CORBA.Object _set_policy_override(Policy[] policies,
                                               SetOverrideType set_add);

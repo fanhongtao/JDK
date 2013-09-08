@@ -1,8 +1,26 @@
 /*
- * @(#)BufferCapabilities.java	1.10 06/04/07
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -20,7 +38,7 @@ public class BufferCapabilities implements Cloneable {
     private ImageCapabilities frontCaps;
     private ImageCapabilities backCaps;
     private FlipContents flipContents;
-    
+
     /**
      * Creates a new object for specifying buffering capabilities
      * @param frontCaps the capabilities of the front buffer; cannot be
@@ -130,7 +148,7 @@ public class BufferCapabilities implements Cloneable {
      * @since 1.4
      */
     public static final class FlipContents extends AttributeValue {
-        
+
         private static int I_UNDEFINED = 0;
         private static int I_BACKGROUND = 1;
         private static int I_PRIOR = 2;
@@ -138,7 +156,7 @@ public class BufferCapabilities implements Cloneable {
 
         private static final String NAMES[] =
             { "undefined", "background", "prior", "copied" };
-            
+
         /**
          * When flip contents are <code>UNDEFINED</code>, the
          * contents of the back buffer are undefined after flipping.
@@ -189,11 +207,11 @@ public class BufferCapabilities implements Cloneable {
          */
         public static final FlipContents COPIED =
             new FlipContents(I_COPIED);
-        
+
         private FlipContents(int type) {
             super(type, NAMES);
         }
-        
+
     } // Inner class FlipContents
 
 }

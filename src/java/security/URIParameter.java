@@ -1,8 +1,26 @@
 /*
- * @(#)URIParameter.java	1.2 05/11/17
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -15,7 +33,7 @@ package java.security;
  * @since 1.6
  */
 public class URIParameter implements
-	Policy.Parameters, javax.security.auth.login.Configuration.Parameters {
+        Policy.Parameters, javax.security.auth.login.Configuration.Parameters {
 
     private java.net.URI uri;
 
@@ -28,10 +46,10 @@ public class URIParameter implements
      * @exception NullPointerException if the specified URI is null.
      */
     public URIParameter(java.net.URI uri) {
-	if (uri == null) {
-	    throw new NullPointerException("invalid null URI");
-	}
-	this.uri = uri;
+        if (uri == null) {
+            throw new NullPointerException("invalid null URI");
+        }
+        this.uri = uri;
     }
 
     /**
@@ -40,6 +58,6 @@ public class URIParameter implements
      * @return uri the URI.
      */
     public java.net.URI getURI() {
-	return uri;
+        return uri;
     }
 }

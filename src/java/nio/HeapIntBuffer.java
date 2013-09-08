@@ -1,8 +1,26 @@
 /*
- * @(#)Heap-X-Buffer.java	1.29 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -34,13 +52,13 @@ class HeapIntBuffer
 
     */
 
-    HeapIntBuffer(int cap, int lim) {		// package-private
+    HeapIntBuffer(int cap, int lim) {            // package-private
 
-	super(-1, 0, lim, cap, new int[cap], 0);
-	/*
-	hb = new int[cap];
-	offset = 0;
-	*/
+        super(-1, 0, lim, cap, new int[cap], 0);
+        /*
+        hb = new int[cap];
+        offset = 0;
+        */
 
 
 
@@ -49,11 +67,11 @@ class HeapIntBuffer
 
     HeapIntBuffer(int[] buf, int off, int len) { // package-private
 
-	super(-1, off, off + len, buf.length, buf, 0);
-	/*
-	hb = buf;
-	offset = 0;
-	*/
+        super(-1, off, off + len, buf.length, buf, 0);
+        /*
+        hb = buf;
+        offset = 0;
+        */
 
 
 
@@ -61,15 +79,15 @@ class HeapIntBuffer
     }
 
     protected HeapIntBuffer(int[] buf,
-				   int mark, int pos, int lim, int cap,
-				   int off)
+                                   int mark, int pos, int lim, int cap,
+                                   int off)
     {
 
-	super(mark, pos, lim, cap, buf, off);
-	/*
-	hb = buf;
-	offset = off;
-	*/
+        super(mark, pos, lim, cap, buf, off);
+        /*
+        hb = buf;
+        offset = off;
+        */
 
 
 
@@ -77,31 +95,31 @@ class HeapIntBuffer
     }
 
     public IntBuffer slice() {
-	return new HeapIntBuffer(hb,
-					-1,
-					0,
-					this.remaining(),
-					this.remaining(),
-					this.position() + offset);
+        return new HeapIntBuffer(hb,
+                                        -1,
+                                        0,
+                                        this.remaining(),
+                                        this.remaining(),
+                                        this.position() + offset);
     }
 
     public IntBuffer duplicate() {
-	return new HeapIntBuffer(hb,
-					this.markValue(),
-					this.position(),
-					this.limit(),
-					this.capacity(),
-					offset);
+        return new HeapIntBuffer(hb,
+                                        this.markValue(),
+                                        this.position(),
+                                        this.limit(),
+                                        this.capacity(),
+                                        offset);
     }
 
     public IntBuffer asReadOnlyBuffer() {
 
-	return new HeapIntBufferR(hb,
-				     this.markValue(),
-				     this.position(),
-				     this.limit(),
-				     this.capacity(),
-				     offset);
+        return new HeapIntBufferR(hb,
+                                     this.markValue(),
+                                     this.position(),
+                                     this.limit(),
+                                     this.capacity(),
+                                     offset);
 
 
 
@@ -110,40 +128,40 @@ class HeapIntBuffer
 
 
     protected int ix(int i) {
-	return i + offset;
+        return i + offset;
     }
 
     public int get() {
-	return hb[ix(nextGetIndex())];
+        return hb[ix(nextGetIndex())];
     }
 
     public int get(int i) {
-	return hb[ix(checkIndex(i))];
+        return hb[ix(checkIndex(i))];
     }
 
     public IntBuffer get(int[] dst, int offset, int length) {
-	checkBounds(offset, length, dst.length);
-	if (length > remaining())
-	    throw new BufferUnderflowException();
-	System.arraycopy(hb, ix(position()), dst, offset, length);
-	position(position() + length);
-	return this;
+        checkBounds(offset, length, dst.length);
+        if (length > remaining())
+            throw new BufferUnderflowException();
+        System.arraycopy(hb, ix(position()), dst, offset, length);
+        position(position() + length);
+        return this;
     }
 
     public boolean isDirect() {
-	return false;
+        return false;
     }
 
 
 
     public boolean isReadOnly() {
-	return false;
+        return false;
     }
 
     public IntBuffer put(int x) {
 
-	hb[ix(nextPutIndex())] = x;
-	return this;
+        hb[ix(nextPutIndex())] = x;
+        return this;
 
 
 
@@ -151,8 +169,8 @@ class HeapIntBuffer
 
     public IntBuffer put(int i, int x) {
 
-	hb[ix(checkIndex(i))] = x;
-	return this;
+        hb[ix(checkIndex(i))] = x;
+        return this;
 
 
 
@@ -160,12 +178,12 @@ class HeapIntBuffer
 
     public IntBuffer put(int[] src, int offset, int length) {
 
-	checkBounds(offset, length, src.length);
-	if (length > remaining())
-	    throw new BufferOverflowException();
-	System.arraycopy(src, offset, hb, ix(position()), length);
-	position(position() + length);
-	return this;
+        checkBounds(offset, length, src.length);
+        if (length > remaining())
+            throw new BufferOverflowException();
+        System.arraycopy(src, offset, hb, ix(position()), length);
+        position(position() + length);
+        return this;
 
 
 
@@ -173,27 +191,27 @@ class HeapIntBuffer
 
     public IntBuffer put(IntBuffer src) {
 
-	if (src instanceof HeapIntBuffer) {
-	    if (src == this)
-		throw new IllegalArgumentException();
-	    HeapIntBuffer sb = (HeapIntBuffer)src;
-	    int n = sb.remaining();
-	    if (n > remaining())
-		throw new BufferOverflowException();
-	    System.arraycopy(sb.hb, sb.ix(sb.position()),
-			     hb, ix(position()), n);
-	    sb.position(sb.position() + n);
-	    position(position() + n);
-	} else if (src.isDirect()) {
-	    int n = src.remaining();
-	    if (n > remaining())
-		throw new BufferOverflowException();
-	    src.get(hb, ix(position()), n);
-	    position(position() + n);
-	} else {
-	    super.put(src);
-	}
-	return this;
+        if (src instanceof HeapIntBuffer) {
+            if (src == this)
+                throw new IllegalArgumentException();
+            HeapIntBuffer sb = (HeapIntBuffer)src;
+            int n = sb.remaining();
+            if (n > remaining())
+                throw new BufferOverflowException();
+            System.arraycopy(sb.hb, sb.ix(sb.position()),
+                             hb, ix(position()), n);
+            sb.position(sb.position() + n);
+            position(position() + n);
+        } else if (src.isDirect()) {
+            int n = src.remaining();
+            if (n > remaining())
+                throw new BufferOverflowException();
+            src.get(hb, ix(position()), n);
+            position(position() + n);
+        } else {
+            super.put(src);
+        }
+        return this;
 
 
 
@@ -201,16 +219,16 @@ class HeapIntBuffer
 
     public IntBuffer compact() {
 
-	System.arraycopy(hb, ix(position()), hb, ix(0), remaining());
-	position(remaining());
-	limit(capacity());
-	return this;
+        System.arraycopy(hb, ix(position()), hb, ix(0), remaining());
+        position(remaining());
+        limit(capacity());
+        discardMark();
+        return this;
 
 
 
     }
 
-
 
 
 
@@ -534,7 +552,11 @@ class HeapIntBuffer
 
 
 
-
+
+
+
+
+
 
 
 
@@ -565,7 +587,7 @@ class HeapIntBuffer
 
 
     public ByteOrder order() {
-	return ByteOrder.nativeOrder();
+        return ByteOrder.nativeOrder();
     }
 
 

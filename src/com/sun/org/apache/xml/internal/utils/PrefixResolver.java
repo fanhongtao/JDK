@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +58,7 @@ public interface PrefixResolver
   /**
    * Return the base identifier.
    *
-   * @return The base identifier from where relative URIs should be absolutized, or null 
+   * @return The base identifier from where relative URIs should be absolutized, or null
    * if the base ID is unknown.
    * <p>
    * CAVEAT: Note that the base URI in an XML document may vary with where
@@ -65,6 +69,6 @@ public interface PrefixResolver
    * may not accurately reflect that context information.
    */
   public String getBaseIdentifier();
-  
+
   public boolean handlesNullPrefixes();
 }

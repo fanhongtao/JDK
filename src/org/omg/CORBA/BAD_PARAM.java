@@ -1,18 +1,36 @@
 /*
- * @(#)BAD_PARAM.java	1.36 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
  * Exception  thrown
- * when a parameter passed to a call is out of range or 
- * otherwise considered illegal. An ORB may raise this exception 
- * if null values or null pointers are passed to an operation (for 
- * language mappings where the concept of a null pointers or null 
+ * when a parameter passed to a call is out of range or
+ * otherwise considered illegal. An ORB may raise this exception
+ * if null values or null pointers are passed to an operation (for
+ * language mappings where the concept of a null pointers or null
  * values applies). BAD_PARAM can also be raised as a result of a
  * client generating requests with incorrect parameters using the DII. <P>
  * It contains a minor code, which gives more detailed information about
@@ -23,7 +41,6 @@ package org.omg.CORBA;
  * Java&nbsp;IDL exceptions</A>
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html#minorcodemeanings">meaning of
  * minor codes</A>
- * @version     1.18, 09/09/97
  * @since       JDK1.2
  */
 
@@ -41,7 +58,7 @@ public final class BAD_PARAM extends SystemException {
      * Constructs a <code>BAD_PARAM</code> exception with the specified detail
      * message, a minor code of 0, and a completion state of COMPLETED_NO.
      *
-     * @param s the String containing a detail message describing this 
+     * @param s the String containing a detail message describing this
      *          exception
      */
     public BAD_PARAM(String s) {
@@ -61,7 +78,7 @@ public final class BAD_PARAM extends SystemException {
     /**
      * Constructs a <code>BAD_PARAM</code> exception with the specified detail
      * message, minor code, and completion status.
-     * A detail message is a <code>String</code> that describes 
+     * A detail message is a <code>String</code> that describes
      * this particular exception.
      *
      * @param s the <code>String</code> containing a detail message

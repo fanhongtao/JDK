@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +32,7 @@ import com.sun.org.apache.xerces.internal.xs.datatypes.XSDouble;
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: DoubleDV.java,v 1.2.6.1 2005/09/06 11:43:02 neerajbj Exp $
+ * @version $Id: DoubleDV.java,v 1.7 2010-11-01 04:39:46 joehw Exp $
  */
 public class DoubleDV extends TypeValidator {
 
@@ -49,7 +53,7 @@ public class DoubleDV extends TypeValidator {
     public int compare(Object value1, Object value2) {
         return ((XDouble)value1).compareTo((XDouble)value2);
     }//compare()
-    
+
     //distinguishes between identity and equality for double datatype
     //0.0 is equal but not identical to -0.0
     public boolean isIdentical (Object value1, Object value2) {
@@ -58,8 +62,8 @@ public class DoubleDV extends TypeValidator {
         }
         return false;
     }//isIdentical()
-    
-    /** 
+
+    /**
      * Returns true if it's possible that the given
      * string represents a valid floating point value
      * (excluding NaN, INF and -INF).
@@ -68,7 +72,7 @@ public class DoubleDV extends TypeValidator {
         final int length = val.length();
         for (int i = 0; i < length; ++i) {
             char c = val.charAt(i);
-            if (!(c >= '0' && c <= '9' || c == '.' || 
+            if (!(c >= '0' && c <= '9' || c == '.' ||
                 c == '-' || c == '+' || c == 'E' || c == 'e')) {
                 return false;
             }
@@ -77,7 +81,7 @@ public class DoubleDV extends TypeValidator {
     }
 
     private static final class XDouble implements XSDouble {
-        private double value;
+        private final double value;
         public XDouble(String s) throws NumberFormatException {
             if (isPossibleFP(s)) {
                 value = Double.parseDouble(s);
@@ -99,7 +103,7 @@ public class DoubleDV extends TypeValidator {
         public boolean equals(Object val) {
             if (val == this)
                 return true;
-    
+
             if (!(val instanceof XDouble))
                 return false;
             XDouble oval = (XDouble)val;
@@ -107,28 +111,37 @@ public class DoubleDV extends TypeValidator {
             // NOTE: we don't distinguish 0.0 from -0.0
             if (value == oval.value)
                 return true;
-            
+
             if (value != value && oval.value != oval.value)
                 return true;
 
             return false;
         }
-        
+
+        public int hashCode() {
+            // This check is necessary because doubleToLongBits(+0) != doubleToLongBits(-0)
+            if (value == 0d) {
+                return 0;
+            }
+            long v = Double.doubleToLongBits(value);
+            return (int) (v ^ (v >>> 32));
+        }
+
         // NOTE: 0.0 is equal but not identical to -0.0
         public boolean isIdentical (XDouble val) {
             if (val == this) {
                 return true;
             }
-            
+
             if (value == val.value) {
-                return (value != 0.0d || 
+                return (value != 0.0d ||
                     (Double.doubleToLongBits(value) == Double.doubleToLongBits(val.value)));
             }
-            
+
             if (value != value && val.value != val.value)
                 return true;
 
-            return false; 
+            return false;
         }
 
         private int compareTo(XDouble val) {

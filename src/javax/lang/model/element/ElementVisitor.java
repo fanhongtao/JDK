@@ -1,8 +1,26 @@
 /*
- * @(#)ElementVisitor.java	1.4 06/07/31
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
@@ -21,7 +39,7 @@ import javax.lang.model.util.*;
  * {@code NullPointerException} if the additional parameter {@code p}
  * is {@code null}; see documentation of the implementing class for
  * details.
- * 
+ *
  * <p> <b>WARNING:</b> It is possible that methods will be added to
  * this interface to accommodate new, currently unknown, language
  * structures added to future versions of the Java&trade; programming
@@ -35,7 +53,7 @@ import javax.lang.model.util.*;
  * classes.
  *
  * @param <R> the return type of this visitor's methods.  Use {@link
- * 	      Void} for visitors that do not need to return results.
+ *            Void} for visitors that do not need to return results.
  * @param <P> the type of the additional parameter to this visitor's
  *            methods.  Use {@code Void} for visitors that do not need an
  *            additional parameter.
@@ -43,8 +61,8 @@ import javax.lang.model.util.*;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/07/31
  * @see AbstractElementVisitor6
+ * @see AbstractElementVisitor7
  * @since 1.6
  */
 public interface ElementVisitor<R, P> {
@@ -112,7 +130,7 @@ public interface ElementVisitor<R, P> {
      * @param p  a visitor-specified parameter
      * @return a visitor-specified result
      * @throws UnknownElementException
-     *	a visitor implementation may optionally throw this exception
+     *  a visitor implementation may optionally throw this exception
      */
     R visitUnknown(Element e, P p);
 }

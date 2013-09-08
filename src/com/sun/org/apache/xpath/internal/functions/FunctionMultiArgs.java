@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +40,7 @@ public class FunctionMultiArgs extends Function3Args
   /** Argument expressions that are at index 3 or greater.
    *  @serial */
   Expression[] m_args;
-  
+
   /**
    * Return an expression array containing arguments at index 3 or greater.
    *
@@ -84,15 +88,15 @@ public class FunctionMultiArgs extends Function3Args
       arg.exprSetParent(this);
     }
   }
-  
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -100,7 +104,7 @@ public class FunctionMultiArgs extends Function3Args
     super.fixupVariables(vars, globalsSize);
     if(null != m_args)
     {
-      for (int i = 0; i < m_args.length; i++) 
+      for (int i = 0; i < m_args.length; i++)
       {
         m_args[i].fixupVariables(vars, globalsSize);
       }
@@ -156,16 +160,16 @@ public class FunctionMultiArgs extends Function3Args
       return false;
     }
   }
-  
+
   class ArgMultiOwner implements ExpressionOwner
   {
-  	int m_argIndex;
-  	
-  	ArgMultiOwner(int index)
-  	{
-  		m_argIndex = index;
-  	}
-  	
+        int m_argIndex;
+
+        ArgMultiOwner(int index)
+        {
+                m_argIndex = index;
+        }
+
     /**
      * @see ExpressionOwner#getExpression()
      */
@@ -180,12 +184,12 @@ public class FunctionMultiArgs extends Function3Args
      */
     public void setExpression(Expression exp)
     {
-    	exp.exprSetParent(FunctionMultiArgs.this);
-    	m_args[m_argIndex] = exp;
+        exp.exprSetParent(FunctionMultiArgs.this);
+        m_args[m_argIndex] = exp;
     }
   }
 
-   
+
     /**
      * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
      */
@@ -201,7 +205,7 @@ public class FunctionMultiArgs extends Function3Args
         }
       }
     }
-    
+
     /**
      * @see Expression#deepEquals(Expression)
      */

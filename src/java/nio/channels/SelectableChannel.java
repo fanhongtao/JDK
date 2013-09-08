@@ -1,8 +1,26 @@
 /*
- * @(#)SelectableChannel.java	1.35 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.channels;
@@ -65,7 +83,6 @@ import java.nio.channels.spi.SelectorProvider;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.35, 05/11/17
  * @since 1.4
  *
  * @see SelectionKey
@@ -174,6 +191,9 @@ public abstract class SelectableChannel
      * @throws  ClosedChannelException
      *          If this channel is closed
      *
+     * @throws  ClosedSelectorException
+     *          If the selector is closed
+     *
      * @throws  IllegalBlockingModeException
      *          If this channel is in blocking mode
      *
@@ -194,7 +214,7 @@ public abstract class SelectableChannel
      *          the given selector
      */
     public abstract SelectionKey register(Selector sel, int ops, Object att)
-	throws ClosedChannelException;
+        throws ClosedChannelException;
     //
     // sync(regLock) {
     //   sync(keySet) { look for selector }
@@ -219,7 +239,7 @@ public abstract class SelectableChannel
      * <blockquote><tt>sc.{@link
      * #register(java.nio.channels.Selector,int,java.lang.Object)
      * register}(sel, ops, null)</tt></blockquote>
-     * 
+     *
      * @param  sel
      *         The selector with which this channel is to be registered
      *
@@ -228,6 +248,9 @@ public abstract class SelectableChannel
      *
      * @throws  ClosedChannelException
      *          If this channel is closed
+     *
+     * @throws  ClosedSelectorException
+     *          If the selector is closed
      *
      * @throws  IllegalBlockingModeException
      *          If this channel is in blocking mode
@@ -249,9 +272,9 @@ public abstract class SelectableChannel
      *          the given selector
      */
     public final SelectionKey register(Selector sel, int ops)
-	throws ClosedChannelException
+        throws ClosedChannelException
     {
-	return register(sel, ops, null);
+        return register(sel, ops, null);
     }
 
     /**
@@ -287,7 +310,7 @@ public abstract class SelectableChannel
      *         If an I/O error occurs
      */
     public abstract SelectableChannel configureBlocking(boolean block)
-	throws IOException;
+        throws IOException;
     //
     // sync(regLock) {
     //   sync(keySet) { throw IBME if block && isRegistered; }

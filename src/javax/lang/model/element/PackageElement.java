@@ -1,12 +1,29 @@
 /*
- * @(#)PackageElement.java	1.6 06/08/07
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
-
 
 /**
  * Represents a package program element.  Provides access to information
@@ -15,12 +32,10 @@ package javax.lang.model.element;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.6 06/08/07
  * @see javax.lang.model.util.Elements#getPackageOf
  * @since 1.6
  */
-
-public interface PackageElement extends Element {
+public interface PackageElement extends Element, QualifiedNameable {
 
     /**
      * Returns the fully qualified name of this package.
@@ -28,9 +43,19 @@ public interface PackageElement extends Element {
      *
      * @return the fully qualified name of this package, or an
      * empty name if this is an unnamed package
-     * @jls3 6.7 Fully Qualified Names and Canonical Names
+     * @jls 6.7 Fully Qualified Names and Canonical Names
      */
     Name getQualifiedName();
+
+    /**
+     * Returns the simple name of this package.  For an unnamed
+     * package, an empty name is returned
+     *
+     * @return the simple name of this package or an empty name if
+     * this is an unnamed package
+     */
+    @Override
+    Name getSimpleName();
 
     /**
      * Returns {@code true} is this is an unnamed package and {@code
@@ -38,7 +63,16 @@ public interface PackageElement extends Element {
      *
      * @return {@code true} is this is an unnamed package and {@code
      * false} otherwise
-     * @jls3 7.4.2 Unnamed Packages
+     * @jls 7.4.2 Unnamed Packages
      */
     boolean isUnnamed();
+
+    /**
+     * Returns {@code null} since a package is not enclosed by another
+     * element.
+     *
+     * @return {@code null}
+     */
+    @Override
+    Element getEnclosingElement();
 }

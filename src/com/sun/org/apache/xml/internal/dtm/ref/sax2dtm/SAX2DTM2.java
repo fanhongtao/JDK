@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -193,13 +197,13 @@ public class SAX2DTM2 extends SAX2DTM
       else if (_nodeType >= DTM.NTYPES) {
         if (_nodeType == _exptype2(result)) {
           _currentNode = END;
-	  return returnNode(makeNodeHandle(result));
+          return returnNode(makeNodeHandle(result));
         }
       }
       else {
         if (_nodeType == _type2(result)) {
-	  _currentNode = END;
-	  return returnNode(makeNodeHandle(result));
+          _currentNode = END;
+          return returnNode(makeNodeHandle(result));
         }
       }
 
@@ -280,14 +284,14 @@ public class SAX2DTM2 extends SAX2DTM
       // processing instruction node. Only element node has an extended
       // type greater than or equal to DTM.NTYPES.
       else {
-      	int eType;
-      	while (node != DTM.NULL) {
-      	  eType = _exptype2(node);
-      	  if (eType >= DTM.NTYPES)
-      	    break;
-      	  else
-      	    node = _nextsib2(node);
-      	}
+        int eType;
+        while (node != DTM.NULL) {
+          eType = _exptype2(node);
+          if (eType >= DTM.NTYPES)
+            break;
+          else
+            node = _nextsib2(node);
+        }
       }
 
       if (node == DTM.NULL) {
@@ -325,15 +329,15 @@ public class SAX2DTM2 extends SAX2DTM
         return NULL;
       }
       else {
-      	while (node != DTM.NULL) {
-      	  if (_exptype2(node) >= DTM.NTYPES) {
-      	    pos++;
-      	    if (pos == position)
-      	      return makeNodeHandle(node);
-      	  }
-      	  node = _nextsib2(node);
-      	}
-      	return NULL;
+        while (node != DTM.NULL) {
+          if (_exptype2(node) >= DTM.NTYPES) {
+            pos++;
+            if (pos == position)
+              return makeNodeHandle(node);
+          }
+          node = _nextsib2(node);
+        }
+        return NULL;
       }
     }
 
@@ -872,20 +876,20 @@ public class SAX2DTM2 extends SAX2DTM
         _startNode = node;
         _stack[index = 0] = node;
 
-       	parent=node;
-	while ((parent = _parent2(parent)) != NULL)
-	{
-	  if (++index == _stack.length)
-	  {
-	    final int[] stack = new int[index*2];
-	    System.arraycopy(_stack, 0, stack, 0, index);
-	    _stack = stack;
-	  }
-	  _stack[index] = parent;
+        parent=node;
+        while ((parent = _parent2(parent)) != NULL)
+        {
+          if (++index == _stack.length)
+          {
+            final int[] stack = new int[index*2];
+            System.arraycopy(_stack, 0, stack, 0, index);
+            _stack = stack;
+          }
+          _stack[index] = parent;
         }
 
         if(index>0)
-	  --index; // Pop actual root node (if not start) back off the stack
+          --index; // Pop actual root node (if not start) back off the stack
 
         _currentNode=_stack[index]; // Last parent before root node
 
@@ -904,21 +908,21 @@ public class SAX2DTM2 extends SAX2DTM
      */
     public int next()
     {
-    	// Bugzilla 8324: We were forgetting to skip Attrs and NS nodes.
-    	// Also recoded the loop controls for clarity and to flatten out
-    	// the tail-recursion.
-   	for(++_currentNode; _sp>=0; ++_currentNode)
-   	{
-   	  if(_currentNode < _stack[_sp])
-   	  {
-   	    int type = _type2(_currentNode);
-   	    if(type != ATTRIBUTE_NODE && type != NAMESPACE_NODE)
-   	      return returnNode(makeNodeHandle(_currentNode));
-   	  }
-   	  else
-   	    --_sp;
-   	}
-   	return NULL;
+        // Bugzilla 8324: We were forgetting to skip Attrs and NS nodes.
+        // Also recoded the loop controls for clarity and to flatten out
+        // the tail-recursion.
+        for(++_currentNode; _sp>=0; ++_currentNode)
+        {
+          if(_currentNode < _stack[_sp])
+          {
+            int type = _type2(_currentNode);
+            if(type != ATTRIBUTE_NODE && type != NAMESPACE_NODE)
+              return returnNode(makeNodeHandle(_currentNode));
+          }
+          else
+            --_sp;
+        }
+        return NULL;
     }
 
     // redefine DTMAxisIteratorBase's reset
@@ -1173,7 +1177,7 @@ public class SAX2DTM2 extends SAX2DTM
       if (nodeType >= DTM.NTYPES) {
         do {
           node = currentNodeID;
-	  current = node;
+          current = node;
 
           do {
             current++;
@@ -1188,7 +1192,7 @@ public class SAX2DTM2 extends SAX2DTM
       else {
         do {
           node = currentNodeID;
-	  current = node;
+          current = node;
 
           do {
             current++;
@@ -1443,9 +1447,9 @@ public class SAX2DTM2 extends SAX2DTM
             if (eType == nodeType) {
               if (m_size >= m_ancestors.length)
               {
-              	int[] newAncestors = new int[m_size * 2];
-              	System.arraycopy(m_ancestors, 0, newAncestors, 0, m_ancestors.length);
-              	m_ancestors = newAncestors;
+                int[] newAncestors = new int[m_size * 2];
+                System.arraycopy(m_ancestors, 0, newAncestors, 0, m_ancestors.length);
+                m_ancestors = newAncestors;
               }
               m_ancestors[m_size++] = makeNodeHandle(nodeID);
             }
@@ -1461,9 +1465,9 @@ public class SAX2DTM2 extends SAX2DTM
                     && m_extendedTypes[eType].getNodeType() == nodeType)) {
               if (m_size >= m_ancestors.length)
               {
-              	int[] newAncestors = new int[m_size * 2];
-              	System.arraycopy(m_ancestors, 0, newAncestors, 0, m_ancestors.length);
-              	m_ancestors = newAncestors;
+                int[] newAncestors = new int[m_size * 2];
+                System.arraycopy(m_ancestors, 0, newAncestors, 0, m_ancestors.length);
+                m_ancestors = newAncestors;
               }
               m_ancestors[m_size++] = makeNodeHandle(nodeID);
             }
@@ -1670,7 +1674,7 @@ public class SAX2DTM2 extends SAX2DTM
         do
         {
           node++;
-	  expType = _exptype2(node);
+          expType = _exptype2(node);
 
           if (NULL == expType || _parent2(node) < startNode && startNode != node) {
             _currentNode = NULL;
@@ -1684,24 +1688,24 @@ public class SAX2DTM2 extends SAX2DTM
       // descendants of root.
       else if (startNode == DTMDefaultBase.ROOTNODE)
       {
-	do
-	{
-	  node++;
-	  expType = _exptype2(node);
+        do
+        {
+          node++;
+          expType = _exptype2(node);
 
-	  if (NULL == expType) {
-	    _currentNode = NULL;
-	    return END;
-	  }
-	} while (expType < DTM.NTYPES
-	        || m_extendedTypes[expType].getNodeType() != DTM.ELEMENT_NODE);
+          if (NULL == expType) {
+            _currentNode = NULL;
+            return END;
+          }
+        } while (expType < DTM.NTYPES
+                || m_extendedTypes[expType].getNodeType() != DTM.ELEMENT_NODE);
       }
       else
       {
         do
         {
           node++;
-	  expType = _exptype2(node);
+          expType = _exptype2(node);
 
           if (NULL == expType || _parent2(node) < startNode && startNode != node) {
             _currentNode = NULL;
@@ -1709,7 +1713,7 @@ public class SAX2DTM2 extends SAX2DTM
           }
         }
         while (expType < DTM.NTYPES
-	       || m_extendedTypes[expType].getNodeType() != DTM.ELEMENT_NODE);
+               || m_extendedTypes[expType].getNodeType() != DTM.ELEMENT_NODE);
       }
 
       _currentNode = node;
@@ -2416,7 +2420,7 @@ public class SAX2DTM2 extends SAX2DTM
                              false);
 
           } else {
-            // Store offset and length in the m_data array if one exceeds 
+            // Store offset and length in the m_data array if one exceeds
             // the given limits. Use a negative dataIndex as an indication.
             int dataIndex = m_data.size();
             m_previous = addNode(m_coalescedTextType, DTM.TEXT_NODE,
@@ -2451,16 +2455,16 @@ public class SAX2DTM2 extends SAX2DTM
    * @see org.xml.sax.ContentHandler#processingInstruction
    */
   public void processingInstruction(String target, String data)
-	  throws SAXException
+          throws SAXException
   {
 
     charactersFlush();
 
     int dataIndex = m_data.size();
     m_previous = addNode(DTM.PROCESSING_INSTRUCTION_NODE,
-			 DTM.PROCESSING_INSTRUCTION_NODE,
-			 m_parents.peek(), m_previous,
-			 -dataIndex, false);
+                         DTM.PROCESSING_INSTRUCTION_NODE,
+                         m_parents.peek(), m_previous,
+                         -dataIndex, false);
 
     m_data.addElement(m_valuesOrPrefixes.stringToIndex(target));
     m_values.addElement(data);
@@ -2491,17 +2495,17 @@ public class SAX2DTM2 extends SAX2DTM
       while (true)
       {
         nodeID++;
-	// Assume this can not be null.
-	type = _type2(nodeID);
+        // Assume this can not be null.
+        type = _type2(nodeID);
 
-	if (type == DTM.ATTRIBUTE_NODE)
-	{
-	  return makeNodeHandle(nodeID);
-	}
-	else if (DTM.NAMESPACE_NODE != type)
-	{
-	  break;
-	}
+        if (type == DTM.ATTRIBUTE_NODE)
+        {
+          return makeNodeHandle(nodeID);
+        }
+        else if (DTM.NAMESPACE_NODE != type)
+        {
+          break;
+        }
       }
     }
 
@@ -2600,22 +2604,22 @@ public class SAX2DTM2 extends SAX2DTM
       int expType;
       while (true)
       {
-	nodeID++;
-	expType = _exptype2(nodeID);
+        nodeID++;
+        expType = _exptype2(nodeID);
 
-	if (expType != DTM.NULL)
-	  type = m_extendedTypes[expType].getNodeType();
-	else
-	  return DTM.NULL;
+        if (expType != DTM.NULL)
+          type = m_extendedTypes[expType].getNodeType();
+        else
+          return DTM.NULL;
 
-	if (type == DTM.ATTRIBUTE_NODE)
-	{
-	  if (expType == attType) return makeNodeHandle(nodeID);
-	}
-	else if (DTM.NAMESPACE_NODE != type)
-	{
-	  break;
-	}
+        if (type == DTM.ATTRIBUTE_NODE)
+        {
+          if (expType == attType) return makeNodeHandle(nodeID);
+        }
+        else if (DTM.NAMESPACE_NODE != type)
+        {
+          break;
+        }
       }
     }
 
@@ -2683,8 +2687,8 @@ public class SAX2DTM2 extends SAX2DTM
 
       if (qnameIndex < 0)
       {
-	qnameIndex = -qnameIndex;
-	qnameIndex = m_data.elementAt(qnameIndex);
+        qnameIndex = -qnameIndex;
+        qnameIndex = m_data.elementAt(qnameIndex);
       }
 
       return m_valuesOrPrefixes.indexToString(qnameIndex);
@@ -2716,23 +2720,23 @@ public class SAX2DTM2 extends SAX2DTM
       String localName = extType.getLocalName();
       if (type == DTM.NAMESPACE_NODE)
       {
-	if (localName.length() == 0)
-	  return "xmlns";
-	else
-	  return "xmlns:" + localName;
+        if (localName.length() == 0)
+          return "xmlns";
+        else
+          return "xmlns:" + localName;
       }
       else if (type == DTM.PROCESSING_INSTRUCTION_NODE)
       {
-	int dataIndex = _dataOrQName(nodeID);
-	dataIndex = m_data.elementAt(-dataIndex);
-	return m_valuesOrPrefixes.indexToString(dataIndex);
+        int dataIndex = _dataOrQName(nodeID);
+        dataIndex = m_data.elementAt(-dataIndex);
+        return m_valuesOrPrefixes.indexToString(dataIndex);
       }
       else if (localName.length() == 0)
       {
         return getFixedNames(type);
       }
       else
-	return localName;
+        return localName;
     }
     else
     {
@@ -2743,8 +2747,8 @@ public class SAX2DTM2 extends SAX2DTM
 
       if (qnameIndex < 0)
       {
-	qnameIndex = -qnameIndex;
-	qnameIndex = m_data.elementAt(qnameIndex);
+        qnameIndex = -qnameIndex;
+        qnameIndex = m_data.elementAt(qnameIndex);
       }
 
       return m_valuesOrPrefixes.indexToString(qnameIndex);
@@ -2782,48 +2786,48 @@ public class SAX2DTM2 extends SAX2DTM
       identity = _firstch2(identity);
       if (DTM.NULL != identity)
       {
-	int offset = -1;
-	int length = 0;
+        int offset = -1;
+        int length = 0;
 
-	do
-	{
-	  type = _exptype2(identity);
+        do
+        {
+          type = _exptype2(identity);
 
-	  if (type == DTM.TEXT_NODE || type == DTM.CDATA_SECTION_NODE)
-	  {
-	    int dataIndex = m_dataOrQName.elementAt(identity);
-	    if (dataIndex >= 0)
-	    {
-	      if (-1 == offset)
-	      {
+          if (type == DTM.TEXT_NODE || type == DTM.CDATA_SECTION_NODE)
+          {
+            int dataIndex = m_dataOrQName.elementAt(identity);
+            if (dataIndex >= 0)
+            {
+              if (-1 == offset)
+              {
                 offset = dataIndex >>> TEXT_LENGTH_BITS;
-	      }
+              }
 
-	      length += dataIndex & TEXT_LENGTH_MAX;
-	    }
-	    else
-	    {
-	      if (-1 == offset)
-	      {
+              length += dataIndex & TEXT_LENGTH_MAX;
+            }
+            else
+            {
+              if (-1 == offset)
+              {
                 offset = m_data.elementAt(-dataIndex);
-	      }
+              }
 
-	      length += m_data.elementAt(-dataIndex + 1);
-	    }
-	  }
+              length += m_data.elementAt(-dataIndex + 1);
+            }
+          }
 
-	  identity++;
-	} while (_parent2(identity) >= startNode);
+          identity++;
+        } while (_parent2(identity) >= startNode);
 
-	if (length > 0)
-	{
-	  if (m_xstrf != null)
-	    return m_xstrf.newstr(m_chars, offset, length);
-	  else
-	    return new XMLStringDefault(m_chars.getString(offset, length));
-	}
-	else
-	  return EMPTY_XML_STR;
+        if (length > 0)
+        {
+          if (m_xstrf != null)
+            return m_xstrf.newstr(m_chars, offset, length);
+          else
+            return new XMLStringDefault(m_chars.getString(offset, length));
+        }
+        else
+          return EMPTY_XML_STR;
       }
       else
         return EMPTY_XML_STR;
@@ -2833,12 +2837,12 @@ public class SAX2DTM2 extends SAX2DTM
       int dataIndex = m_dataOrQName.elementAt(identity);
       if (dataIndex >= 0)
       {
-      	if (m_xstrf != null)
-      	  return m_xstrf.newstr(m_chars, dataIndex >>> TEXT_LENGTH_BITS,
-      	                 dataIndex & TEXT_LENGTH_MAX);
-      	else
-      	  return new XMLStringDefault(m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
-      	                              dataIndex & TEXT_LENGTH_MAX));
+        if (m_xstrf != null)
+          return m_xstrf.newstr(m_chars, dataIndex >>> TEXT_LENGTH_BITS,
+                         dataIndex & TEXT_LENGTH_MAX);
+        else
+          return new XMLStringDefault(m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
+                                      dataIndex & TEXT_LENGTH_MAX));
       }
       else
       {
@@ -2895,45 +2899,45 @@ public class SAX2DTM2 extends SAX2DTM
       identity = _firstch2(identity);
       if (DTM.NULL != identity)
       {
-	int offset = -1;
-	int length = 0;
+        int offset = -1;
+        int length = 0;
 
-	do
-	{
-	  type = _exptype2(identity);
+        do
+        {
+          type = _exptype2(identity);
 
-	  if (type == DTM.TEXT_NODE || type == DTM.CDATA_SECTION_NODE)
-	  {
-	    int dataIndex = m_dataOrQName.elementAt(identity);
-	    if (dataIndex >= 0)
-	    {
-	      if (-1 == offset)
-	      {
+          if (type == DTM.TEXT_NODE || type == DTM.CDATA_SECTION_NODE)
+          {
+            int dataIndex = m_dataOrQName.elementAt(identity);
+            if (dataIndex >= 0)
+            {
+              if (-1 == offset)
+              {
                 offset = dataIndex >>> TEXT_LENGTH_BITS;
-	      }
+              }
 
-	      length += dataIndex & TEXT_LENGTH_MAX;
-	    }
-	    else
-	    {
-	      if (-1 == offset)
-	      {
+              length += dataIndex & TEXT_LENGTH_MAX;
+            }
+            else
+            {
+              if (-1 == offset)
+              {
                 offset = m_data.elementAt(-dataIndex);
-	      }
+              }
 
-	      length += m_data.elementAt(-dataIndex + 1);
-	    }
-	  }
+              length += m_data.elementAt(-dataIndex + 1);
+            }
+          }
 
-	  identity++;
-	} while (_parent2(identity) >= startNode);
+          identity++;
+        } while (_parent2(identity) >= startNode);
 
-	if (length > 0)
-	{
-	  return m_chars.getString(offset, length);
-	}
-	else
-	  return EMPTY_STR;
+        if (length > 0)
+        {
+          return m_chars.getString(offset, length);
+        }
+        else
+          return EMPTY_STR;
       }
       else
         return EMPTY_STR;
@@ -2943,8 +2947,8 @@ public class SAX2DTM2 extends SAX2DTM
       int dataIndex = m_dataOrQName.elementAt(identity);
       if (dataIndex >= 0)
       {
-      	return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
-      	                          dataIndex & TEXT_LENGTH_MAX);
+        return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
+                                  dataIndex & TEXT_LENGTH_MAX);
       }
       else
       {
@@ -3026,47 +3030,47 @@ public class SAX2DTM2 extends SAX2DTM
       identity = _firstch2(identity);
       if (DTM.NULL != identity)
       {
-	int offset = -1;
-	int length = 0;
+        int offset = -1;
+        int length = 0;
 
-	do
-	{
-	  type = _exptype2(identity);
+        do
+        {
+          type = _exptype2(identity);
 
-	  if (type == DTM.TEXT_NODE || type == DTM.CDATA_SECTION_NODE)
-	  {
-	    int dataIndex = m_dataOrQName.elementAt(identity);
+          if (type == DTM.TEXT_NODE || type == DTM.CDATA_SECTION_NODE)
+          {
+            int dataIndex = m_dataOrQName.elementAt(identity);
 
-	    if (dataIndex >= 0)
-	    {
-	      if (-1 == offset)
-	      {
+            if (dataIndex >= 0)
+            {
+              if (-1 == offset)
+              {
                 offset = dataIndex >>> TEXT_LENGTH_BITS;
-	      }
+              }
 
-	      length += dataIndex & TEXT_LENGTH_MAX;
-	    }
-	    else
-	    {
-	      if (-1 == offset)
-	      {
+              length += dataIndex & TEXT_LENGTH_MAX;
+            }
+            else
+            {
+              if (-1 == offset)
+              {
                 offset = m_data.elementAt(-dataIndex);
-	      }
+              }
 
-	      length += m_data.elementAt(-dataIndex + 1);
-	    }
-	  }
+              length += m_data.elementAt(-dataIndex + 1);
+            }
+          }
 
-	  identity++;
-	} while (_parent2(identity) >= startNode);
+          identity++;
+        } while (_parent2(identity) >= startNode);
 
-	if (length > 0)
-	{
+        if (length > 0)
+        {
           if(normalize)
             m_chars.sendNormalizedSAXcharacters(ch, offset, length);
           else
-	    m_chars.sendSAXcharacters(ch, offset, length);
-	}
+            m_chars.sendSAXcharacters(ch, offset, length);
+        }
       }
     }
     else if (DTM.TEXT_NODE == type || DTM.CDATA_SECTION_NODE == type)
@@ -3075,12 +3079,12 @@ public class SAX2DTM2 extends SAX2DTM
 
       if (dataIndex >= 0)
       {
-      	if (normalize)
-      	  m_chars.sendNormalizedSAXcharacters(ch, dataIndex >>> TEXT_LENGTH_BITS,
-      	                                      dataIndex & TEXT_LENGTH_MAX);
-      	else
-      	  m_chars.sendSAXcharacters(ch, dataIndex >>> TEXT_LENGTH_BITS,
-      	                            dataIndex & TEXT_LENGTH_MAX);
+        if (normalize)
+          m_chars.sendNormalizedSAXcharacters(ch, dataIndex >>> TEXT_LENGTH_BITS,
+                                              dataIndex & TEXT_LENGTH_MAX);
+        else
+          m_chars.sendSAXcharacters(ch, dataIndex >>> TEXT_LENGTH_BITS,
+                                    dataIndex & TEXT_LENGTH_MAX);
       }
       else
       {
@@ -3132,8 +3136,8 @@ public class SAX2DTM2 extends SAX2DTM
       int dataIndex = _dataOrQName(identity);
       if (dataIndex > 0)
       {
-      	return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
-      	                          dataIndex & TEXT_LENGTH_MAX);
+        return m_chars.getString(dataIndex >>> TEXT_LENGTH_BITS,
+                                  dataIndex & TEXT_LENGTH_MAX);
       }
       else
       {
@@ -3167,7 +3171,7 @@ public class SAX2DTM2 extends SAX2DTM
         throws SAXException
     {
         if (nodeID != DTM.NULL) {
-      	    int dataIndex = m_dataOrQName.elementAt(nodeID);
+            int dataIndex = m_dataOrQName.elementAt(nodeID);
             if (dataIndex >= 0) {
                 m_chars.sendSAXcharacters(handler,
                                           dataIndex >>> TEXT_LENGTH_BITS,
@@ -3209,8 +3213,8 @@ public class SAX2DTM2 extends SAX2DTM
             }
 
             if (qnameIndex < 0) {
-    	        qnameIndex = -qnameIndex;
-    	        qnameIndex = m_data.elementAt(qnameIndex);
+                qnameIndex = -qnameIndex;
+                qnameIndex = m_data.elementAt(qnameIndex);
             }
 
             String qName = m_valuesOrPrefixes.indexToString(qnameIndex);
@@ -3375,7 +3379,7 @@ public class SAX2DTM2 extends SAX2DTM
         String nodeName = (prefix != null) ? qname : localName;
         String nodeValue = (String)m_values.elementAt(valueIndex);
 
-        handler.addAttribute(nodeName, nodeValue);
+        handler.addAttribute(uri, localName, nodeName, "CDATA", nodeValue);
     }
 
 }

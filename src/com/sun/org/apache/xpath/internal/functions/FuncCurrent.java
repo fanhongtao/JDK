@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +53,7 @@ public class FuncCurrent extends Function
    */
   public XObject execute(XPathContext xctxt) throws javax.xml.transform.TransformerException
   {
-   
+
     SubContextList subContextList = xctxt.getCurrentNodeList();
     int currentNode = DTM.NULL;
 
@@ -68,7 +72,7 @@ public class FuncCurrent extends Function
     }
     return new XNodeSet(currentNode, xctxt.getDTMManager());
   }
-  
+
   /**
    * No arguments to process, so this does nothing.
    */

@@ -1,19 +1,30 @@
 /*
- * @(#)BigDecimal.java	1.68 09/05/08
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * @(#)BigDecimal.java  1.x 01/xx/xx
- *
- * Copyright 1996-2001 Sun Microsystems, Inc. All Rights Reserved.
  * Portions Copyright IBM Corporation, 2001. All Rights Reserved.
- *
- * This software is the proprietary information of Sun Microsystems, Inc.
- * Use is subject to license terms.
- *
  */
 
 package java.math;
@@ -30,12 +41,12 @@ import static java.math.BigInteger.LONG_MASK;
  * multiplied by ten to the power of the negation of the scale.  The
  * value of the number represented by the {@code BigDecimal} is
  * therefore <tt>(unscaledValue &times; 10<sup>-scale</sup>)</tt>.
- * 
+ *
  * <p>The {@code BigDecimal} class provides operations for
  * arithmetic, scale manipulation, rounding, comparison, hashing, and
  * format conversion.  The {@link #toString} method provides a
  * canonical representation of a {@code BigDecimal}.
- * 
+ *
  * <p>The {@code BigDecimal} class gives its user complete control
  * over rounding behavior.  If no rounding mode is specified and the
  * exact result cannot be represented, an exception is thrown;
@@ -47,7 +58,7 @@ import static java.math.BigInteger.LONG_MASK;
  * represent rounding mode is largely obsolete; the enumeration values
  * of the {@code RoundingMode} {@code enum}, (such as {@link
  * RoundingMode#HALF_UP}) should be used instead.
- * 
+ *
  * <p>When a {@code MathContext} object is supplied with a precision
  * setting of 0 (for example, {@link MathContext#UNLIMITED}),
  * arithmetic operations are exact, as are the arithmetic methods
@@ -71,7 +82,7 @@ import static java.math.BigInteger.LONG_MASK;
  * were mandatory for division in {@code BigDecimal} releases prior
  * to 5.  Any conflicts between these ANSI standards and the
  * {@code BigDecimal} specification are resolved in favor of
- * {@code BigDecimal}.  
+ * {@code BigDecimal}.
  *
  * <p>Since the same numerical value can have different
  * representations (with different scales), the rules of arithmetic
@@ -110,8 +121,8 @@ import static java.math.BigInteger.LONG_MASK;
  * scale for each operation is listed in the table below.
  *
  * <table border>
- * <caption top><h3>Preferred Scales for Results of Arithmetic Operations
- * </h3></caption>
+ * <caption><b>Preferred Scales for Results of Arithmetic Operations
+ * </b></caption>
  * <tr><th>Operation</th><th>Preferred Scale of Result</th></tr>
  * <tr><td>Add</td><td>max(addend.scale(), augend.scale())</td>
  * <tr><td>Subtract</td><td>max(minuend.scale(), subtrahend.scale())</td>
@@ -169,7 +180,7 @@ import static java.math.BigInteger.LONG_MASK;
  * {@link #movePointRight movePointRight}) return a
  * {@code BigDecimal} created from the operand by moving the decimal
  * point a specified distance in the specified direction.
- * 
+ *
  * <p>For the sake of brevity and clarity, pseudo-code is used
  * throughout the descriptions of {@code BigDecimal} methods.  The
  * pseudo-code expression {@code (i + j)} is shorthand for "a
@@ -191,7 +202,7 @@ import static java.math.BigInteger.LONG_MASK;
  * with equals</i>.  See {@link Comparable}, {@link
  * java.util.SortedMap} or {@link java.util.SortedSet} for more
  * information.
- * 
+ *
  * <p>All methods and constructors for this class throw
  * {@code NullPointerException} when passed a {@code null} object
  * reference for any input parameter.
@@ -221,8 +232,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @serial
      * @see #scale
      */
-    private int scale;      // Note: this may have any value, so
-                            // calculations must be done in longs
+    private int scale;  // Note: this may have any value, so
+                        // calculations must be done in longs
     /**
      * The number of decimal digits in this BigDecimal, or 0 if the
      * number of digits are not known (lookaside information).  If
@@ -243,7 +254,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * Sentinel value for {@link #intCompact} indicating the
      * significand information is only available from {@code intVal}.
      */
-    final static long INFLATED = Long.MIN_VALUE;
+    static final long INFLATED = Long.MIN_VALUE;
 
     /**
      * If the absolute value of the significand of this BigDecimal is
@@ -261,27 +272,27 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     /* Appease the serialization gods */
     private static final long serialVersionUID = 6108874887143696463L;
 
-    private static final ThreadLocal<StringBuilderHelper> 
+    private static final ThreadLocal<StringBuilderHelper>
         threadLocalStringBuilderHelper = new ThreadLocal<StringBuilderHelper>() {
         @Override
         protected StringBuilderHelper initialValue() {
             return new StringBuilderHelper();
         }
     };
-    
+
     // Cache of common small BigDecimal values.
     private static final BigDecimal zeroThroughTen[] = {
-	new BigDecimal(BigInteger.ZERO,		0,  0, 1),
-        new BigDecimal(BigInteger.ONE,		1,  0, 1),
-        new BigDecimal(BigInteger.valueOf(2),	2,  0, 1),
-        new BigDecimal(BigInteger.valueOf(3),	3,  0, 1),
-        new BigDecimal(BigInteger.valueOf(4),	4,  0, 1),
-        new BigDecimal(BigInteger.valueOf(5),	5,  0, 1),
-        new BigDecimal(BigInteger.valueOf(6),	6,  0, 1),
-        new BigDecimal(BigInteger.valueOf(7),	7,  0, 1),
-        new BigDecimal(BigInteger.valueOf(8),	8,  0, 1),
-        new BigDecimal(BigInteger.valueOf(9),	9,  0, 1),
-        new BigDecimal(BigInteger.TEN,		10, 0, 2),
+        new BigDecimal(BigInteger.ZERO,         0,  0, 1),
+        new BigDecimal(BigInteger.ONE,          1,  0, 1),
+        new BigDecimal(BigInteger.valueOf(2),   2,  0, 1),
+        new BigDecimal(BigInteger.valueOf(3),   3,  0, 1),
+        new BigDecimal(BigInteger.valueOf(4),   4,  0, 1),
+        new BigDecimal(BigInteger.valueOf(5),   5,  0, 1),
+        new BigDecimal(BigInteger.valueOf(6),   6,  0, 1),
+        new BigDecimal(BigInteger.valueOf(7),   7,  0, 1),
+        new BigDecimal(BigInteger.valueOf(8),   8,  0, 1),
+        new BigDecimal(BigInteger.valueOf(9),   9,  0, 1),
+        new BigDecimal(BigInteger.TEN,          10, 0, 2),
     };
 
     // Cache of zero scaled by 0 - 15
@@ -303,6 +314,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         new BigDecimal(BigInteger.ZERO, 0, 14, 1),
         new BigDecimal(BigInteger.ZERO, 0, 15, 1),
     };
+
+    // Half of Long.MIN_VALUE & Long.MAX_VALUE.
+    private static final long HALF_LONG_MAX_VALUE = Long.MAX_VALUE / 2;
+    private static final long HALF_LONG_MIN_VALUE = Long.MIN_VALUE / 2;
 
     // Constants
     /**
@@ -327,7 +342,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since  1.5
      */
     public static final BigDecimal TEN =
-	zeroThroughTen[10];
+        zeroThroughTen[10];
 
     // Constructors
 
@@ -342,13 +357,13 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         this.intCompact = val;
         this.intVal = intVal;
     }
-    
+
     /**
      * Translates a character array representation of a
      * {@code BigDecimal} into a {@code BigDecimal}, accepting the
      * same sequence of characters as the {@link #BigDecimal(String)}
      * constructor, while allowing a sub-array to be specified.
-     * 
+     *
      * <p>Note that if the sequence of characters is already available
      * within a character array, using this constructor is faster than
      * converting the {@code char} array to string and using the
@@ -376,7 +391,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         int scl = 0;                  // record scale value
         long rs = 0;                  // the compact value in long
         BigInteger rb = null;         // the inflated value in BigInteger
-        
+
         // use array bounds checking to handle too-long, len == 0,
         // bad offset, etc.
         try {
@@ -396,12 +411,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             int cfirst = offset;             // record start of integer
             long exp = 0;                    // exponent
             char c;                          // current character
-    
+
             boolean isCompact = (len <= MAX_COMPACT_DIGITS);
             // integer significand array & idx is the index to it. The array
             // is ONLY used when we can't use a compact representation.
-            char coeff[] = isCompact ? null : new char[len];             
-            int idx = 0;                     
+            char coeff[] = isCompact ? null : new char[len];
+            int idx = 0;
 
             for (; len > 0; offset++, len--) {
                 c = in[offset];
@@ -465,13 +480,13 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
                 }
                 if (len <= 0)    // no exponent digits
                     throw new NumberFormatException();
-		// skip leading zeros in the exponent 
-		while (len > 10 && Character.digit(c, 10) == 0) {
+                // skip leading zeros in the exponent
+                while (len > 10 && Character.digit(c, 10) == 0) {
                     offset++;
                     c = in[offset];
                     len--;
-		}
-		if (len > 10)  // too many nonzero exponent digits
+                }
+                if (len > 10)  // too many nonzero exponent digits
                     throw new NumberFormatException();
                 // c now holds first digit of exponent
                 for (;; len--) {
@@ -522,7 +537,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
                     quick = new char[prec + 1];
                     quick[0] = '-';
                     System.arraycopy(coeff, 0, quick, 1, prec);
-                }                
+                }
                 rb = new BigInteger(quick);
                 rs = compactValFor(rb);
             }
@@ -534,7 +549,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         this.scale = scl;
         this.precision = prec;
         this.intCompact = rs;
-        this.intVal = rb;
+        this.intVal = (rs != INFLATED) ? null : rb;
     }
 
     /**
@@ -543,7 +558,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * same sequence of characters as the {@link #BigDecimal(String)}
      * constructor, while allowing a sub-array to be specified and
      * with rounding according to the context settings.
-     * 
+     *
      * <p>Note that if the sequence of characters is already available
      * within a character array, using this constructor is faster than
      * converting the {@code char} array to string and using the
@@ -571,7 +586,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * {@code BigDecimal} into a {@code BigDecimal}, accepting the
      * same sequence of characters as the {@link #BigDecimal(String)}
      * constructor.
-     * 
+     *
      * <p>Note that if the sequence of characters is already available
      * as a character array, using this constructor is faster than
      * converting the {@code char} array to string and using the
@@ -592,7 +607,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * same sequence of characters as the {@link #BigDecimal(String)}
      * constructor and with rounding according to the context
      * settings.
-     * 
+     *
      * <p>Note that if the sequence of characters is already available
      * as a character array, using this constructor is faster than
      * converting the {@code char} array to string and using the
@@ -617,7 +632,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * {@code '-'} (<tt>'&#92;u002D'</tt>), followed by a sequence of
      * zero or more decimal digits ("the integer"), optionally
      * followed by a fraction, optionally followed by an exponent.
-     * 
+     *
      * <p>The fraction consists of a decimal point followed by zero
      * or more decimal digits.  The string must contain at least one
      * digit in either the integer or the fraction.  The number formed
@@ -646,25 +661,25 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * <dd>{@code .} <i>FractionPart</i>
      * <dd><i>IntegerPart</i>
      * <p>
-     * <dt><i>IntegerPart:
-     * <dd>Digits</i>
+     * <dt><i>IntegerPart:</i>
+     * <dd><i>Digits</i>
      * <p>
-     * <dt><i>FractionPart:
-     * <dd>Digits</i>
+     * <dt><i>FractionPart:</i>
+     * <dd><i>Digits</i>
      * <p>
-     * <dt><i>Exponent:
-     * <dd>ExponentIndicator SignedInteger</i>
+     * <dt><i>Exponent:</i>
+     * <dd><i>ExponentIndicator SignedInteger</i>
      * <p>
      * <dt><i>ExponentIndicator:</i>
      * <dd>{@code e}
      * <dd>{@code E}
      * <p>
-     * <dt><i>SignedInteger:
-     * <dd>Sign<sub>opt</sub> Digits</i>
+     * <dt><i>SignedInteger:</i>
+     * <dd><i>Sign<sub>opt</sub> Digits</i>
      * <p>
-     * <dt><i>Digits:
-     * <dd>Digit
-     * <dd>Digits Digit</i>
+     * <dt><i>Digits:</i>
+     * <dd><i>Digit</i>
+     * <dd><i>Digits Digit</i>
      * <p>
      * <dt><i>Digit:</i>
      * <dd>any character for which {@link Character#isDigit}
@@ -687,7 +702,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *
      * <p><b>Examples:</b><br>
      * The value of the returned {@code BigDecimal} is equal to
-     * <i>significand</i> &times; 10<sup>&nbsp;<i>exponent</i></sup>.  
+     * <i>significand</i> &times; 10<sup>&nbsp;<i>exponent</i></sup>.
      * For each string on the left, the resulting representation
      * [{@code BigInteger}, {@code scale}] is shown on the right.
      * <pre>
@@ -717,8 +732,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *
      * @param val String representation of {@code BigDecimal}.
      *
-     * @throws NumberFormatException if {@code val} is not a valid 
-     *	       representation of a {@code BigDecimal}.
+     * @throws NumberFormatException if {@code val} is not a valid
+     *         representation of a {@code BigDecimal}.
      */
     public BigDecimal(String val) {
         this(val.toCharArray(), 0, val.length());
@@ -729,7 +744,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * into a {@code BigDecimal}, accepting the same strings as the
      * {@link #BigDecimal(String)} constructor, with rounding
      * according to the context settings.
-     * 
+     *
      * @param  val string representation of a {@code BigDecimal}.
      * @param  mc the context to use.
      * @throws ArithmeticException if the result is inexact but the
@@ -784,50 +799,54 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * use the {@code static} {@link #valueOf(double)} method.
      * </ol>
      *
-     * @param val {@code double} value to be converted to 
+     * @param val {@code double} value to be converted to
      *        {@code BigDecimal}.
      * @throws NumberFormatException if {@code val} is infinite or NaN.
      */
     public BigDecimal(double val) {
- 	if (Double.isInfinite(val) || Double.isNaN(val))
- 	    throw new NumberFormatException("Infinite or NaN");
+        if (Double.isInfinite(val) || Double.isNaN(val))
+            throw new NumberFormatException("Infinite or NaN");
 
- 	// Translate the double into sign, exponent and significand, according
- 	// to the formulae in JLS, Section 20.10.22.
- 	long valBits = Double.doubleToLongBits(val);
- 	int sign = ((valBits >> 63)==0 ? 1 : -1);
- 	int exponent = (int) ((valBits >> 52) & 0x7ffL);
- 	long significand = (exponent==0 ? (valBits & ((1L<<52) - 1)) << 1
-			    : (valBits & ((1L<<52) - 1)) | (1L<<52));
- 	exponent -= 1075;
- 	// At this point, val == sign * significand * 2**exponent.
+        // Translate the double into sign, exponent and significand, according
+        // to the formulae in JLS, Section 20.10.22.
+        long valBits = Double.doubleToLongBits(val);
+        int sign = ((valBits >> 63)==0 ? 1 : -1);
+        int exponent = (int) ((valBits >> 52) & 0x7ffL);
+        long significand = (exponent==0 ? (valBits & ((1L<<52) - 1)) << 1
+                            : (valBits & ((1L<<52) - 1)) | (1L<<52));
+        exponent -= 1075;
+        // At this point, val == sign * significand * 2**exponent.
 
- 	/*
- 	 * Special case zero to supress nonterminating normalization
- 	 * and bogus scale calculation.
- 	 */
- 	if (significand == 0) {
- 	    intVal = BigInteger.ZERO;
-  	    intCompact = 0;
- 	    precision = 1;
- 	    return;
- 	}
+        /*
+         * Special case zero to supress nonterminating normalization
+         * and bogus scale calculation.
+         */
+        if (significand == 0) {
+            intVal = BigInteger.ZERO;
+            intCompact = 0;
+            precision = 1;
+            return;
+        }
 
- 	// Normalize
- 	while((significand & 1) == 0) {    //  i.e., significand is even
- 	    significand >>= 1;
- 	    exponent++;
- 	}
+        // Normalize
+        while((significand & 1) == 0) {    //  i.e., significand is even
+            significand >>= 1;
+            exponent++;
+        }
 
- 	// Calculate intVal and scale
- 	intVal = BigInteger.valueOf(sign*significand);
- 	if (exponent < 0) {
- 	    intVal = intVal.multiply(BigInteger.valueOf(5).pow(-exponent));
- 	    scale = -exponent;
- 	} else if (exponent > 0) {
- 	    intVal = intVal.multiply(BigInteger.valueOf(2).pow(exponent));
- 	}
-        intCompact = compactValFor(intVal);
+        // Calculate intVal and scale
+        long s = sign * significand;
+        BigInteger b;
+        if (exponent < 0) {
+            b = BigInteger.valueOf(5).pow(-exponent).multiply(s);
+            scale = -exponent;
+        } else if (exponent > 0) {
+            b = BigInteger.valueOf(2).pow(exponent).multiply(s);
+        } else {
+            b = BigInteger.valueOf(s);
+        }
+        intCompact = compactValFor(b);
+        intVal = (intCompact != INFLATED) ? null : b;
     }
 
     /**
@@ -835,12 +854,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * rounding according to the context settings.  The scale of the
      * {@code BigDecimal} is the smallest value such that
      * <tt>(10<sup>scale</sup> &times; val)</tt> is an integer.
-     * 
+     *
      * <p>The results of this constructor can be somewhat unpredictable
      * and its use is generally not recommended; see the notes under
      * the {@link #BigDecimal(double)} constructor.
      *
-     * @param  val {@code double} value to be converted to 
+     * @param  val {@code double} value to be converted to
      *         {@code BigDecimal}.
      * @param  mc the context to use.
      * @throws ArithmeticException if the result is inexact but the
@@ -862,15 +881,15 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *            {@code BigDecimal}.
      */
     public BigDecimal(BigInteger val) {
-        intVal = val;
         intCompact = compactValFor(val);
+        intVal = (intCompact != INFLATED) ? null : val;
     }
 
     /**
      * Translates a {@code BigInteger} into a {@code BigDecimal}
      * rounding according to the context settings.  The scale of the
      * {@code BigDecimal} is zero.
-     * 
+     *
      * @param val {@code BigInteger} value to be converted to
      *            {@code BigDecimal}.
      * @param  mc the context to use.
@@ -930,14 +949,14 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since  1.5
      */
     public BigDecimal(int val) {
-	intCompact = val;
+        intCompact = val;
     }
 
     /**
      * Translates an {@code int} into a {@code BigDecimal}, with
      * rounding according to the context settings.  The scale of the
      * {@code BigDecimal}, before any rounding, is zero.
-     * 
+     *
      * @param  val {@code int} value to be converted to {@code BigDecimal}.
      * @param  mc the context to use.
      * @throws ArithmeticException if the result is inexact but the
@@ -945,7 +964,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since  1.5
      */
     public BigDecimal(int val, MathContext mc) {
-	intCompact = val;
+        intCompact = val;
         if (mc.precision > 0)
             roundThis(mc);
     }
@@ -966,7 +985,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * Translates a {@code long} into a {@code BigDecimal}, with
      * rounding according to the context settings.  The scale of the
      * {@code BigDecimal}, before any rounding, is zero.
-     * 
+     *
      * @param  val {@code long} value to be converted to {@code BigDecimal}.
      * @param  mc the context to use.
      * @throws ArithmeticException if the result is inexact but the
@@ -991,7 +1010,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @param unscaledVal unscaled value of the {@code BigDecimal}.
      * @param scale scale of the {@code BigDecimal}.
      * @return a {@code BigDecimal} whose value is
-     *	       <tt>(unscaledVal &times; 10<sup>-scale</sup>)</tt>.
+     *         <tt>(unscaledVal &times; 10<sup>-scale</sup>)</tt>.
      */
     public static BigDecimal valueOf(long unscaledVal, int scale) {
         if (scale == 0)
@@ -1003,7 +1022,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
                 return new BigDecimal(BigInteger.ZERO, 0, scale, 1);
         }
         return new BigDecimal(unscaledVal == INFLATED ?
-                              BigInteger.valueOf(unscaledVal) : null, 
+                              BigInteger.valueOf(unscaledVal) : null,
                               unscaledVal, scale, 0);
     }
 
@@ -1029,7 +1048,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * Translates a {@code double} into a {@code BigDecimal}, using
      * the {@code double}'s canonical string representation provided
      * by the {@link Double#toString(double)} method.
-     * 
+     *
      * <p><b>Note:</b> This is generally the preferred way to convert
      * a {@code double} (or {@code float}) into a
      * {@code BigDecimal}, as the value returned is equal to that
@@ -1062,8 +1081,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     public BigDecimal add(BigDecimal augend) {
         long xs = this.intCompact;
         long ys = augend.intCompact;
-        BigInteger fst = (this.intCompact != INFLATED) ? null : this.intVal;
-        BigInteger snd = (augend.intCompact != INFLATED) ? null : augend.intVal;
+        BigInteger fst = (xs != INFLATED) ? null : this.intVal;
+        BigInteger snd = (ys != INFLATED) ? null : augend.intVal;
         int rscale = this.scale;
 
         long sdiff = (long)rscale - augend.scale;
@@ -1086,16 +1105,16 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             // See "Hacker's Delight" section 2-12 for explanation of
             // the overflow test.
             if ( (((sum ^ xs) & (sum ^ ys))) >= 0L) // not overflowed
-                return new BigDecimal(null, sum, rscale, 0);
+                return BigDecimal.valueOf(sum, rscale);
         }
         if (fst == null)
             fst = BigInteger.valueOf(xs);
         if (snd == null)
             snd = BigInteger.valueOf(ys);
         BigInteger sum = fst.add(snd);
-        return (fst.signum == snd.signum) ? 
+        return (fst.signum == snd.signum) ?
             new BigDecimal(sum, INFLATED, rscale, 0) :
-            new BigDecimal(sum, compactValFor(sum), rscale, 0);
+            new BigDecimal(sum, rscale);
     }
 
     /**
@@ -1117,45 +1136,45 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             return add(augend);
         BigDecimal lhs = this;
 
-	// Could optimize if values are compact
-	this.inflate();
-	augend.inflate();
-	
+        // Could optimize if values are compact
+        this.inflate();
+        augend.inflate();
+
         // If either number is zero then the other number, rounded and
         // scaled if necessary, is used as the result.
-	{
-	    boolean lhsIsZero = lhs.signum() == 0;
-	    boolean augendIsZero = augend.signum() == 0;
+        {
+            boolean lhsIsZero = lhs.signum() == 0;
+            boolean augendIsZero = augend.signum() == 0;
 
-	    if (lhsIsZero || augendIsZero) {
-		int preferredScale = Math.max(lhs.scale(), augend.scale());
-		BigDecimal result;
+            if (lhsIsZero || augendIsZero) {
+                int preferredScale = Math.max(lhs.scale(), augend.scale());
+                BigDecimal result;
 
-		// Could use a factory for zero instead of a new object
-		if (lhsIsZero && augendIsZero)
-		    return new BigDecimal(BigInteger.ZERO, 0, preferredScale, 0);
+                // Could use a factory for zero instead of a new object
+                if (lhsIsZero && augendIsZero)
+                    return new BigDecimal(BigInteger.ZERO, 0, preferredScale, 0);
 
-		result = lhsIsZero ? doRound(augend, mc) : doRound(lhs, mc);
+                result = lhsIsZero ? doRound(augend, mc) : doRound(lhs, mc);
 
-		if (result.scale() == preferredScale) 
-		    return result;
-		else if (result.scale() > preferredScale) {
-		    BigDecimal scaledResult  = 
-                        new BigDecimal(result.intVal, result.intCompact, 
+                if (result.scale() == preferredScale)
+                    return result;
+                else if (result.scale() > preferredScale) {
+                    BigDecimal scaledResult =
+                        new BigDecimal(result.intVal, result.intCompact,
                                        result.scale, 0);
-		    scaledResult.stripZerosToMatchScale(preferredScale);
+                    scaledResult.stripZerosToMatchScale(preferredScale);
                     return scaledResult;
                 } else { // result.scale < preferredScale
-		    int precisionDiff = mc.precision - result.precision();
-		    int scaleDiff     = preferredScale - result.scale();
+                    int precisionDiff = mc.precision - result.precision();
+                    int scaleDiff     = preferredScale - result.scale();
 
-		    if (precisionDiff >= scaleDiff)
-			return result.setScale(preferredScale); // can achieve target scale
-		    else
-			return result.setScale(result.scale() + precisionDiff);
-		} 
-	    }
-	}
+                    if (precisionDiff >= scaleDiff)
+                        return result.setScale(preferredScale); // can achieve target scale
+                    else
+                        return result.setScale(result.scale() + precisionDiff);
+                }
+            }
+        }
 
         long padding = (long)lhs.scale - augend.scale;
         if (padding != 0) {        // scales differ; alignment needed
@@ -1164,8 +1183,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             lhs    = arg[0];
             augend = arg[1];
         }
-	
-	BigDecimal d = new BigDecimal(lhs.inflate().add(augend.inflate()),
+
+        BigDecimal d = new BigDecimal(lhs.inflate().add(augend.inflate()),
                                       lhs.scale);
         return doRound(d, mc);
     }
@@ -1183,7 +1202,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *
      * <p>Note that while strictly speaking this is an optimization,
      * it makes a much wider range of additions practical.
-     * 
+     *
      * <p>This corresponds to a pre-shift operation in a fixed
      * precision floating-point adder; this method is complicated by
      * variable precision of the result as determined by the
@@ -1193,47 +1212,47 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * reduced even though the significands partially overlapped.
      */
     private BigDecimal[] preAlign(BigDecimal lhs, BigDecimal augend,
-				  long padding, MathContext mc) {
-	assert padding != 0;
-	BigDecimal big;
-	BigDecimal small;
-	
-	if (padding < 0) {     // lhs is big;   augend is small
-	    big   = lhs;
-	    small = augend;
-	} else {               // lhs is small; augend is big
-	    big   = augend;
-	    small = lhs;
-	}
+                                  long padding, MathContext mc) {
+        assert padding != 0;
+        BigDecimal big;
+        BigDecimal small;
 
-	/*
-	 * This is the estimated scale of an ulp of the result; it
-	 * assumes that the result doesn't have a carry-out on a true
-	 * add (e.g. 999 + 1 => 1000) or any subtractive cancellation
-	 * on borrowing (e.g. 100 - 1.2 => 98.8)
-	 */
-	long estResultUlpScale = (long)big.scale - big.precision() + mc.precision;
+        if (padding < 0) {     // lhs is big;   augend is small
+            big   = lhs;
+            small = augend;
+        } else {               // lhs is small; augend is big
+            big   = augend;
+            small = lhs;
+        }
 
-	/*
-	 * The low-order digit position of big is big.scale().  This
-	 * is true regardless of whether big has a positive or
-	 * negative scale.  The high-order digit position of small is
-	 * small.scale - (small.precision() - 1).  To do the full
-	 * condensation, the digit positions of big and small must be
-	 * disjoint *and* the digit positions of small should not be
-	 * directly visible in the result.
-	 */
-	long smallHighDigitPos = (long)small.scale - small.precision() + 1;
-	if (smallHighDigitPos > big.scale + 2 && 	 // big and small disjoint
-	    smallHighDigitPos > estResultUlpScale + 2) { // small digits not visible
-	    small = BigDecimal.valueOf(small.signum(),
-				       this.checkScale(Math.max(big.scale, estResultUlpScale) + 3));
-	}
-	
-	// Since addition is symmetric, preserving input order in
-	// returned operands doesn't matter
-	BigDecimal[] result = {big, small};
-	return result;
+        /*
+         * This is the estimated scale of an ulp of the result; it
+         * assumes that the result doesn't have a carry-out on a true
+         * add (e.g. 999 + 1 => 1000) or any subtractive cancellation
+         * on borrowing (e.g. 100 - 1.2 => 98.8)
+         */
+        long estResultUlpScale = (long)big.scale - big.precision() + mc.precision;
+
+        /*
+         * The low-order digit position of big is big.scale().  This
+         * is true regardless of whether big has a positive or
+         * negative scale.  The high-order digit position of small is
+         * small.scale - (small.precision() - 1).  To do the full
+         * condensation, the digit positions of big and small must be
+         * disjoint *and* the digit positions of small should not be
+         * directly visible in the result.
+         */
+        long smallHighDigitPos = (long)small.scale - small.precision() + 1;
+        if (smallHighDigitPos > big.scale + 2 &&         // big and small disjoint
+            smallHighDigitPos > estResultUlpScale + 2) { // small digits not visible
+            small = BigDecimal.valueOf(small.signum(),
+                                       this.checkScale(Math.max(big.scale, estResultUlpScale) + 3));
+        }
+
+        // Since addition is symmetric, preserving input order in
+        // returned operands doesn't matter
+        BigDecimal[] result = {big, small};
+        return result;
     }
 
     /**
@@ -1280,29 +1299,28 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      */
     public BigDecimal multiply(BigDecimal multiplicand) {
         long x = this.intCompact;
-	long y = multiplicand.intCompact;
-	int productScale = checkScale((long)scale + multiplicand.scale);
+        long y = multiplicand.intCompact;
+        int productScale = checkScale((long)scale + multiplicand.scale);
 
-	// Might be able to do a more clever check incorporating the
-	// inflated check into the overflow computation.
-	if (x != INFLATED && y != INFLATED) {
+        // Might be able to do a more clever check incorporating the
+        // inflated check into the overflow computation.
+        if (x != INFLATED && y != INFLATED) {
             /*
              * If the product is not an overflowed value, continue
              * to use the compact representation.  if either of x or y
              * is INFLATED, the product should also be regarded as
-             * an overflow.  See "Hacker's Delight" section 2-12 for
-             * explanation of the overflow test. Perform a quick check
-             * to see whether the absolute value of the two numbers are 
-             * less than Integer.MAX_VALUE before doing product division 
-             * check which is usually expensive.
+             * an overflow. Before using the overflow test suggested in
+             * "Hacker's Delight" section 2-12, we perform quick checks
+             * using the precision information to see whether the overflow
+             * would occur since division is expensive on most CPUs.
              */
             long product = x * y;
-            if ((Math.abs(x) >>> 31 == 0 && Math.abs(y) >>> 31 == 0) ||
-                y == 0 || product / y == x)
-                return new BigDecimal(null, product, productScale, 0);
+            long prec = this.precision() + multiplicand.precision();
+            if (prec < 19 || (prec < 21 && (y == 0 || product / y == x)))
+                return BigDecimal.valueOf(product, productScale);
             return new BigDecimal(BigInteger.valueOf(x).multiply(y), INFLATED,
                                   productScale, 0);
-	}
+        }
         BigInteger rb;
         if (x == INFLATED && y == INFLATED)
             rb = this.intVal.multiply(multiplicand.intVal);
@@ -1312,7 +1330,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             rb = this.intVal.multiply(y);
         return new BigDecimal(rb, INFLATED, productScale, 0);
     }
-    
+
     /**
      * Returns a {@code BigDecimal} whose value is <tt>(this &times;
      * multiplicand)</tt>, with rounding according to the context settings.
@@ -1327,7 +1345,6 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     public BigDecimal multiply(BigDecimal multiplicand, MathContext mc) {
         if (mc.precision == 0)
             return multiply(multiplicand);
-        
         return doRound(this.multiply(multiplicand), mc);
     }
 
@@ -1336,10 +1353,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * divisor)}, and whose scale is as specified.  If rounding must
      * be performed to generate a result with the specified scale, the
      * specified rounding mode is applied.
-     * 
+     *
      * <p>The new {@link #divide(BigDecimal, int, RoundingMode)} method
      * should be used in preference to this legacy method.
-     * 
+     *
      * @param  divisor value by which this {@code BigDecimal} is to be divided.
      * @param  scale scale of the {@code BigDecimal} quotient to be returned.
      * @param  roundingMode rounding mode to apply.
@@ -1360,11 +1377,11 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @see    #ROUND_UNNECESSARY
      */
     public BigDecimal divide(BigDecimal divisor, int scale, int roundingMode) {
-	/* 
-	 * IMPLEMENTATION NOTE: This method *must* return a new object
-	 * since divideAndRound uses divide to generate a value whose
-	 * scale is then modified.
-	 */
+        /*
+         * IMPLEMENTATION NOTE: This method *must* return a new object
+         * since divideAndRound uses divide to generate a value whose
+         * scale is then modified.
+         */
         if (roundingMode < ROUND_UP || roundingMode > ROUND_UNNECESSARY)
             throw new IllegalArgumentException("Invalid rounding mode");
         /*
@@ -1373,26 +1390,26 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
          * Take care to detect out-of-range scales
          */
         BigDecimal dividend = this;
-        if (checkScale((long)scale + divisor.scale) > this.scale) 
+        if (checkScale((long)scale + divisor.scale) > this.scale)
             dividend = this.setScale(scale + divisor.scale, ROUND_UNNECESSARY);
         else
             divisor = divisor.setScale(checkScale((long)this.scale - scale),
                                        ROUND_UNNECESSARY);
-        return divideAndRound(dividend.intCompact, dividend.intVal, 
-                              divisor.intCompact, divisor.intVal, 
+        return divideAndRound(dividend.intCompact, dividend.intVal,
+                              divisor.intCompact, divisor.intVal,
                               scale, roundingMode, scale);
     }
-    
+
     /**
-     * Internally used for division operation. The dividend and divisor are 
+     * Internally used for division operation. The dividend and divisor are
      * passed both in {@code long} format and {@code BigInteger} format. The
      * returned {@code BigDecimal} object is the quotient whose scale is set to
-     * the passed in scale. If the remainder is not zero, it will be rounded 
+     * the passed in scale. If the remainder is not zero, it will be rounded
      * based on the passed in roundingMode. Also, if the remainder is zero and
-     * the last parameter, i.e. preferredScale is NOT equal to scale, the 
+     * the last parameter, i.e. preferredScale is NOT equal to scale, the
      * trailing zeros of the result is stripped to match the preferredScale.
      */
-    private static BigDecimal divideAndRound(long ldividend, BigInteger bdividend, 
+    private static BigDecimal divideAndRound(long ldividend, BigInteger bdividend,
                                              long ldivisor,  BigInteger bdivisor,
                                              int scale, int roundingMode,
                                              int preferredScale) {
@@ -1442,10 +1459,15 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             } else if (roundingMode == ROUND_FLOOR) {   // Towards -infinity
                 increment = (qsign < 0);
             } else {
-                if (isLongDivision || ldivisor != INFLATED)
-                    cmpFracHalf = longCompareMagnitude(2 * r, ldivisor);
-                else
+                if (isLongDivision || ldivisor != INFLATED) {
+                    if (r <= HALF_LONG_MIN_VALUE || r > HALF_LONG_MAX_VALUE) {
+                        cmpFracHalf = 1;    // 2 * r can't fit into long
+                    } else {
+                        cmpFracHalf = longCompareMagnitude(2 * r, ldivisor);
+                    }
+                } else {
                     cmpFracHalf = mr.compareHalf(mdivisor);
+                }
                 if (cmpFracHalf < 0)
                     increment = false;     // We're closer to higher digit
                 else if (cmpFracHalf > 0)  // We're closer to lower digit
@@ -1470,13 +1492,13 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             res.stripZerosToMatchScale(preferredScale);
         return res;
     }
-    
+
     /**
      * Returns a {@code BigDecimal} whose value is {@code (this /
      * divisor)}, and whose scale is as specified.  If rounding must
      * be performed to generate a result with the specified scale, the
      * specified rounding mode is applied.
-     * 
+     *
      * @param  divisor value by which this {@code BigDecimal} is to be divided.
      * @param  scale scale of the {@code BigDecimal} quotient to be returned.
      * @param  roundingMode rounding mode to apply.
@@ -1488,7 +1510,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since 1.5
      */
     public BigDecimal divide(BigDecimal divisor, int scale, RoundingMode roundingMode) {
-	return divide(divisor, scale, roundingMode.oldMode);
+        return divide(divisor, scale, roundingMode.oldMode);
     }
 
     /**
@@ -1496,10 +1518,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * divisor)}, and whose scale is {@code this.scale()}.  If
      * rounding must be performed to generate a result with the given
      * scale, the specified rounding mode is applied.
-     * 
+     *
      * <p>The new {@link #divide(BigDecimal, RoundingMode)} method
      * should be used in preference to this legacy method.
-     * 
+     *
      * @param  divisor value by which this {@code BigDecimal} is to be divided.
      * @param  roundingMode rounding mode to apply.
      * @return {@code this / divisor}
@@ -1519,7 +1541,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @see    #ROUND_UNNECESSARY
      */
     public BigDecimal divide(BigDecimal divisor, int roundingMode) {
-        return this.divide(divisor, scale, roundingMode);
+            return this.divide(divisor, scale, roundingMode);
     }
 
     /**
@@ -1527,7 +1549,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * divisor)}, and whose scale is {@code this.scale()}.  If
      * rounding must be performed to generate a result with the given
      * scale, the specified rounding mode is applied.
-     * 
+     *
      * @param  divisor value by which this {@code BigDecimal} is to be divided.
      * @param  roundingMode rounding mode to apply.
      * @return {@code this / divisor}
@@ -1538,7 +1560,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since 1.5
      */
     public BigDecimal divide(BigDecimal divisor, RoundingMode roundingMode) {
-	return this.divide(divisor, scale, roundingMode.oldMode);
+        return this.divide(divisor, scale, roundingMode.oldMode);
     }
 
     /**
@@ -1556,56 +1578,57 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @author Joseph D. Darcy
      */
     public BigDecimal divide(BigDecimal divisor) {
-	/*
-	 * Handle zero cases first.
-	 */
+        /*
+         * Handle zero cases first.
+         */
         if (divisor.signum() == 0) {   // x/0
             if (this.signum() == 0)    // 0/0
                 throw new ArithmeticException("Division undefined");  // NaN
             throw new ArithmeticException("Division by zero");
-	}
+        }
 
-	// Calculate preferred scale
+        // Calculate preferred scale
         int preferredScale = saturateLong((long)this.scale - divisor.scale);
-        
-        if (this.signum() == 0)      // 0/y
-            return (0<=preferredScale && preferredScale<ZERO_SCALED_BY.length) ? 
+        if (this.signum() == 0)        // 0/y
+            return (preferredScale >= 0 &&
+                    preferredScale < ZERO_SCALED_BY.length) ?
                 ZERO_SCALED_BY[preferredScale] :
-                new BigDecimal(null, 0, preferredScale, 1);
-	else {
-	    this.inflate();
-	    divisor.inflate();
-	    /*
-	     * If the quotient this/divisor has a terminating decimal
-	     * expansion, the expansion can have no more than
-	     * (a.precision() + ceil(10*b.precision)/3) digits.
-	     * Therefore, create a MathContext object with this
-	     * precision and do a divide with the UNNECESSARY rounding
-	     * mode.
-	     */
-	    MathContext mc = new MathContext( (int)Math.min(this.precision() + 
-							    (long)Math.ceil(10.0*divisor.precision()/3.0),
-							    Integer.MAX_VALUE),
-					      RoundingMode.UNNECESSARY);
-	    BigDecimal quotient;
-	    try {
-		quotient = this.divide(divisor, mc);
-	    } catch (ArithmeticException e) {
-		throw new ArithmeticException("Non-terminating decimal expansion; " + 
-					      "no exact representable decimal result.");
-	    }
+                BigDecimal.valueOf(0, preferredScale);
+        else {
+            this.inflate();
+            divisor.inflate();
+            /*
+             * If the quotient this/divisor has a terminating decimal
+             * expansion, the expansion can have no more than
+             * (a.precision() + ceil(10*b.precision)/3) digits.
+             * Therefore, create a MathContext object with this
+             * precision and do a divide with the UNNECESSARY rounding
+             * mode.
+             */
+            MathContext mc = new MathContext( (int)Math.min(this.precision() +
+                                                            (long)Math.ceil(10.0*divisor.precision()/3.0),
+                                                            Integer.MAX_VALUE),
+                                              RoundingMode.UNNECESSARY);
+            BigDecimal quotient;
+            try {
+                quotient = this.divide(divisor, mc);
+            } catch (ArithmeticException e) {
+                throw new ArithmeticException("Non-terminating decimal expansion; " +
+                                              "no exact representable decimal result.");
+            }
 
-	    int quotientScale = quotient.scale();
+            int quotientScale = quotient.scale();
 
-	    // divide(BigDecimal, mc) tries to adjust the quotient to
-	    // the desired one by removing trailing zeros; since the
-	    // exact divide method does not have an explicit digit
-	    // limit, we can add zeros too.
-	    if (preferredScale > quotientScale)
-		return quotient.setScale(preferredScale, ROUND_UNNECESSARY);
+            // divide(BigDecimal, mc) tries to adjust the quotient to
+            // the desired one by removing trailing zeros; since the
+            // exact divide method does not have an explicit digit
+            // limit, we can add zeros too.
 
-	    return quotient;
-	}
+            if (preferredScale > quotientScale)
+                return quotient.setScale(preferredScale, ROUND_UNNECESSARY);
+
+            return quotient;
+        }
     }
 
     /**
@@ -1616,8 +1639,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @param  mc the context to use.
      * @return {@code this / divisor}, rounded as necessary.
      * @throws ArithmeticException if the result is inexact but the
-     *         rounding mode is {@code UNNECESSARY} or 
-     *         {@code mc.precision == 0} and the quotient has a 
+     *         rounding mode is {@code UNNECESSARY} or
+     *         {@code mc.precision == 0} and the quotient has a
      *         non-terminating decimal expansion.
      * @since  1.5
      */
@@ -1626,8 +1649,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         if (mcp == 0)
             return divide(divisor);
 
-	BigDecimal dividend = this;
-        long preferredScale = (long)dividend.scale - divisor.scale;        
+        BigDecimal dividend = this;
+        long preferredScale = (long)dividend.scale - divisor.scale;
         // Now calculate the answer.  We use the existing
         // divide-and-round method, but as this rounds to scale we have
         // to normalize the values here to achieve the desired result.
@@ -1644,30 +1667,30 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             if (dividend.signum() == 0)    // 0/0
                 throw new ArithmeticException("Division undefined");  // NaN
             throw new ArithmeticException("Division by zero");
-	}
-        if (dividend.signum() == 0)        // 0/y 
-            return new BigDecimal(BigInteger.ZERO, 0, 
+        }
+        if (dividend.signum() == 0)        // 0/y
+            return new BigDecimal(BigInteger.ZERO, 0,
                                   saturateLong(preferredScale), 1);
-                             
+
         // Normalize dividend & divisor so that both fall into [0.1, 0.999...]
         int xscale = dividend.precision();
         int yscale = divisor.precision();
-        dividend = new BigDecimal(dividend.intVal, dividend.intCompact, 
+        dividend = new BigDecimal(dividend.intVal, dividend.intCompact,
                                   xscale, xscale);
-        divisor = new BigDecimal(divisor.intVal, divisor.intCompact, 
+        divisor = new BigDecimal(divisor.intVal, divisor.intCompact,
                                  yscale, yscale);
         if (dividend.compareMagnitude(divisor) > 0) // satisfy constraint (b)
             yscale = divisor.scale -= 1;            // [that is, divisor *= 10]
-        
-        // In order to find out whether the divide generates the exact result, 
-        // we avoid calling the above divide method. 'quotient' holds the 
+
+        // In order to find out whether the divide generates the exact result,
+        // we avoid calling the above divide method. 'quotient' holds the
         // return BigDecimal object whose scale will be set to 'scl'.
         BigDecimal quotient;
         int scl = checkScale(preferredScale + yscale - xscale + mcp);
         if (checkScale((long)mcp + yscale) > xscale)
             dividend = dividend.setScale(mcp + yscale, ROUND_UNNECESSARY);
         else
-            divisor = divisor.setScale(checkScale((long)xscale - mcp), 
+            divisor = divisor.setScale(checkScale((long)xscale - mcp),
                                        ROUND_UNNECESSARY);
         quotient = divideAndRound(dividend.intCompact, dividend.intVal,
                                   divisor.intCompact, divisor.intVal,
@@ -1675,7 +1698,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
                                   checkScale(preferredScale));
         // doRound, here, only affects 1000000000 case.
         quotient = doRound(quotient, mc);
-        
+
         return quotient;
     }
 
@@ -1691,36 +1714,35 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since  1.5
      */
     public BigDecimal divideToIntegralValue(BigDecimal divisor) {
-	// Calculate preferred scale
-	int preferredScale = saturateLong((long)this.scale - divisor.scale);
+        // Calculate preferred scale
+        int preferredScale = saturateLong((long)this.scale - divisor.scale);
         if (this.compareMagnitude(divisor) < 0) {
-	    // much faster when this << divisor
+            // much faster when this << divisor
             return BigDecimal.valueOf(0, preferredScale);
         }
 
-	if(this.signum() == 0 && divisor.signum() != 0)
-	    return this.setScale(preferredScale, ROUND_UNNECESSARY);
+        if(this.signum() == 0 && divisor.signum() != 0)
+            return this.setScale(preferredScale, ROUND_UNNECESSARY);
 
-	// Perform a divide with enough digits to round to a correct
-	// integer value; then remove any fractional digits
+        // Perform a divide with enough digits to round to a correct
+        // integer value; then remove any fractional digits
 
-	int maxDigits = (int)Math.min(this.precision() +
-				      (long)Math.ceil(10.0*divisor.precision()/3.0) +
-				      Math.abs((long)this.scale() - divisor.scale()) + 2,
-				      Integer.MAX_VALUE);
+        int maxDigits = (int)Math.min(this.precision() +
+                                      (long)Math.ceil(10.0*divisor.precision()/3.0) +
+                                      Math.abs((long)this.scale() - divisor.scale()) + 2,
+                                      Integer.MAX_VALUE);
         BigDecimal quotient = this.divide(divisor, new MathContext(maxDigits,
-								   RoundingMode.DOWN));
-	if (quotient.scale > 0) {
-	    quotient = quotient.setScale(0, RoundingMode.DOWN);
+                                                                   RoundingMode.DOWN));
+        if (quotient.scale > 0) {
+            quotient = quotient.setScale(0, RoundingMode.DOWN);
             quotient.stripZerosToMatchScale(preferredScale);
-	}
-	
-	if (quotient.scale < preferredScale) {
-	    // pad with zeros if necessary
-	    quotient = quotient.setScale(preferredScale, ROUND_UNNECESSARY);
-	}
+        }
 
-	return quotient;
+        if (quotient.scale < preferredScale) {
+            // pad with zeros if necessary
+            quotient = quotient.setScale(preferredScale, ROUND_UNNECESSARY);
+        }
+        return quotient;
     }
 
     /**
@@ -1744,59 +1766,59 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @author Joseph D. Darcy
      */
     public BigDecimal divideToIntegralValue(BigDecimal divisor, MathContext mc) {
-        if (mc.precision == 0 || 			// exact result
-	    (this.compareMagnitude(divisor) < 0) )	// zero result
+        if (mc.precision == 0 ||                        // exact result
+            (this.compareMagnitude(divisor) < 0) )      // zero result
             return divideToIntegralValue(divisor);
-	
-	// Calculate preferred scale
-	int preferredScale = saturateLong((long)this.scale - divisor.scale);
-        
-	/*
-	 * Perform a normal divide to mc.precision digits.  If the
-	 * remainder has absolute value less than the divisor, the
-	 * integer portion of the quotient fits into mc.precision
-	 * digits.  Next, remove any fractional digits from the
-	 * quotient and adjust the scale to the preferred value.
-	 */
-	BigDecimal result = this.
+
+        // Calculate preferred scale
+        int preferredScale = saturateLong((long)this.scale - divisor.scale);
+
+        /*
+         * Perform a normal divide to mc.precision digits.  If the
+         * remainder has absolute value less than the divisor, the
+         * integer portion of the quotient fits into mc.precision
+         * digits.  Next, remove any fractional digits from the
+         * quotient and adjust the scale to the preferred value.
+         */
+        BigDecimal result = this.
             divide(divisor, new MathContext(mc.precision, RoundingMode.DOWN));
 
-	if (result.scale() < 0) {
-	    /*
-	     * Result is an integer. See if quotient represents the
-	     * full integer portion of the exact quotient; if it does,
-	     * the computed remainder will be less than the divisor.
-	     */
-	    BigDecimal product = result.multiply(divisor);
-	    // If the quotient is the full integer value,
-	    // |dividend-product| < |divisor|.
-	    if (this.subtract(product).compareMagnitude(divisor) >= 0) {
-		throw new ArithmeticException("Division impossible");
-	    }
-	} else if (result.scale() > 0) { 
-	    /*
-	     * Integer portion of quotient will fit into precision
-	     * digits; recompute quotient to scale 0 to avoid double
-	     * rounding and then try to adjust, if necessary.
-	     */
-	    result = result.setScale(0, RoundingMode.DOWN);
-	}
-	// else result.scale() == 0; 
+        if (result.scale() < 0) {
+            /*
+             * Result is an integer. See if quotient represents the
+             * full integer portion of the exact quotient; if it does,
+             * the computed remainder will be less than the divisor.
+             */
+            BigDecimal product = result.multiply(divisor);
+            // If the quotient is the full integer value,
+            // |dividend-product| < |divisor|.
+            if (this.subtract(product).compareMagnitude(divisor) >= 0) {
+                throw new ArithmeticException("Division impossible");
+            }
+        } else if (result.scale() > 0) {
+            /*
+             * Integer portion of quotient will fit into precision
+             * digits; recompute quotient to scale 0 to avoid double
+             * rounding and then try to adjust, if necessary.
+             */
+            result = result.setScale(0, RoundingMode.DOWN);
+        }
+        // else result.scale() == 0;
 
-	int precisionDiff;
-	if ((preferredScale > result.scale()) && 
-	    (precisionDiff = mc.precision - result.precision()) > 0  ) {
-	    return result.setScale(result.scale() + 
-				   Math.min(precisionDiff, preferredScale - result.scale) );
-	} else {
-	    result.stripZerosToMatchScale(preferredScale);
+        int precisionDiff;
+        if ((preferredScale > result.scale()) &&
+            (precisionDiff = mc.precision - result.precision()) > 0) {
+            return result.setScale(result.scale() +
+                                   Math.min(precisionDiff, preferredScale - result.scale) );
+        } else {
+            result.stripZerosToMatchScale(preferredScale);
             return result;
         }
     }
 
     /**
      * Returns a {@code BigDecimal} whose value is {@code (this % divisor)}.
-     * 
+     *
      * <p>The remainder is given by
      * {@code this.subtract(this.divideToIntegralValue(divisor).multiply(divisor))}.
      * Note that this is not the modulo operation (the result can be
@@ -1820,7 +1842,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * used to compute the remainder.  The remainder computation
      * itself is by definition exact.  Therefore, the remainder may
      * contain more than {@code mc.getPrecision()} digits.
-     * 
+     *
      * <p>The remainder is given by
      * {@code this.subtract(this.divideToIntegralValue(divisor,
      * mc).multiply(divisor))}.  Note that this is not the modulo
@@ -1831,8 +1853,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @return {@code this % divisor}, rounded as necessary.
      * @throws ArithmeticException if {@code divisor==0}
      * @throws ArithmeticException if the result is inexact but the
-     *         rounding mode is {@code UNNECESSARY}, or {@code mc.precision} 
-     *         {@literal >} 0 and the result of {@code this.divideToIntgralValue(divisor)} would 
+     *         rounding mode is {@code UNNECESSARY}, or {@code mc.precision}
+     *         {@literal >} 0 and the result of {@code this.divideToIntgralValue(divisor)} would
      *         require a precision of more than {@code mc.precision} digits.
      * @see    #divideToIntegralValue(java.math.BigDecimal, java.math.MathContext)
      * @since  1.5
@@ -1846,16 +1868,16 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * Returns a two-element {@code BigDecimal} array containing the
      * result of {@code divideToIntegralValue} followed by the result of
      * {@code remainder} on the two operands.
-     * 
+     *
      * <p>Note that if both the integer quotient and remainder are
      * needed, this method is faster than using the
      * {@code divideToIntegralValue} and {@code remainder} methods
      * separately because the division need only be carried out once.
      *
-     * @param  divisor value by which this {@code BigDecimal} is to be divided, 
+     * @param  divisor value by which this {@code BigDecimal} is to be divided,
      *         and the remainder computed.
-     * @return a two element {@code BigDecimal} array: the quotient 
-     *         (the result of {@code divideToIntegralValue}) is the initial element 
+     * @return a two element {@code BigDecimal} array: the quotient
+     *         (the result of {@code divideToIntegralValue}) is the initial element
      *         and the remainder is the final element.
      * @throws ArithmeticException if {@code divisor==0}
      * @see    #divideToIntegralValue(java.math.BigDecimal, java.math.MathContext)
@@ -1867,7 +1889,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         BigDecimal[] result = new BigDecimal[2];
 
         result[0] = this.divideToIntegralValue(divisor);
-	result[1] = this.subtract(result[0].multiply(divisor));
+        result[1] = this.subtract(result[0].multiply(divisor));
         return result;
     }
 
@@ -1876,22 +1898,22 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * result of {@code divideToIntegralValue} followed by the result of
      * {@code remainder} on the two operands calculated with rounding
      * according to the context settings.
-     * 
+     *
      * <p>Note that if both the integer quotient and remainder are
      * needed, this method is faster than using the
      * {@code divideToIntegralValue} and {@code remainder} methods
      * separately because the division need only be carried out once.
      *
-     * @param  divisor value by which this {@code BigDecimal} is to be divided, 
+     * @param  divisor value by which this {@code BigDecimal} is to be divided,
      *         and the remainder computed.
      * @param  mc the context to use.
-     * @return a two element {@code BigDecimal} array: the quotient 
-     *         (the result of {@code divideToIntegralValue}) is the 
+     * @return a two element {@code BigDecimal} array: the quotient
+     *         (the result of {@code divideToIntegralValue}) is the
      *         initial element and the remainder is the final element.
      * @throws ArithmeticException if {@code divisor==0}
      * @throws ArithmeticException if the result is inexact but the
-     *         rounding mode is {@code UNNECESSARY}, or {@code mc.precision} 
-     *         {@literal >} 0 and the result of {@code this.divideToIntgralValue(divisor)} would 
+     *         rounding mode is {@code UNNECESSARY}, or {@code mc.precision}
+     *         {@literal >} 0 and the result of {@code this.divideToIntgralValue(divisor)} would
      *         require a precision of more than {@code mc.precision} digits.
      * @see    #divideToIntegralValue(java.math.BigDecimal, java.math.MathContext)
      * @see    #remainder(java.math.BigDecimal, java.math.MathContext)
@@ -1905,7 +1927,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         BigDecimal lhs = this;
 
         result[0] = lhs.divideToIntegralValue(divisor, mc);
-	result[1] = lhs.subtract(result[0].multiply(divisor));
+        result[1] = lhs.subtract(result[0].multiply(divisor));
         return result;
     }
 
@@ -1913,7 +1935,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * Returns a {@code BigDecimal} whose value is
      * <tt>(this<sup>n</sup>)</tt>, The power is computed exactly, to
      * unlimited precision.
-     * 
+     *
      * <p>The parameter {@code n} must be in the range 0 through
      * 999999999, inclusive.  {@code ZERO.pow(0)} returns {@link
      * #ONE}.
@@ -1929,9 +1951,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     public BigDecimal pow(int n) {
         if (n < 0 || n > 999999999)
             throw new ArithmeticException("Invalid operation");
-	// No need to calculate pow(n) if result will over/underflow.
-	// Don't attempt to support "supernormal" numbers.
-	int newScale = checkScale((long)scale * n);
+        // No need to calculate pow(n) if result will over/underflow.
+        // Don't attempt to support "supernormal" numbers.
+        int newScale = checkScale((long)scale * n);
         this.inflate();
         return new BigDecimal(intVal.pow(n), newScale);
     }
@@ -1983,7 +2005,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @return <tt>this<sup>n</sup></tt> using the ANSI standard X3.274-1996
      *         algorithm
      * @throws ArithmeticException if the result is inexact but the
-     *         rounding mode is {@code UNNECESSARY}, or {@code n} is out 
+     *         rounding mode is {@code UNNECESSARY}, or {@code n} is out
      *         of range.
      * @since  1.5
      */
@@ -1994,16 +2016,17 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             throw new ArithmeticException("Invalid operation");
         if (n == 0)
             return ONE;                      // x**0 == 1 in X3.274
-	this.inflate();
+        this.inflate();
         BigDecimal lhs = this;
         MathContext workmc = mc;           // working settings
         int mag = Math.abs(n);               // magnitude of n
         if (mc.precision > 0) {
-            int elength = longDigitLength(mag);    // length of n in digits
+
+            int elength = longDigitLength(mag); // length of n in digits
             if (elength > mc.precision)        // X3.274 rule
                 throw new ArithmeticException("Invalid operation");
             workmc = new MathContext(mc.precision + elength + 1,
-				      mc.roundingMode);
+                                      mc.roundingMode);
         }
         // ready to carry out power calculation...
         BigDecimal acc = ONE;           // accumulator
@@ -2060,16 +2083,14 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @return {@code -this}.
      */
     public BigDecimal negate() {
-        long ns;
-        BigInteger nb;
-        if (intCompact == INFLATED) {
-            ns = INFLATED;
-            nb = intVal.negate();
-        } else {
-            ns = -intCompact;
-            nb = null;
+        BigDecimal result;
+        if (intCompact != INFLATED)
+            result = BigDecimal.valueOf(-intCompact, scale);
+        else {
+            result = new BigDecimal(intVal.negate(), scale);
+            result.precision = precision;
         }
-        return new BigDecimal(nb, ns, scale, precision);
+        return result;
     }
 
     /**
@@ -2078,7 +2099,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *
      * @param mc the context to use.
      * @return {@code -this}, rounded as necessary.
-     * @throws ArithmeticException if the result is inexact but the 
+     * @throws ArithmeticException if the result is inexact but the
      *         rounding mode is {@code UNNECESSARY}.
      * @since  1.5
      */
@@ -2089,11 +2110,11 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     /**
      * Returns a {@code BigDecimal} whose value is {@code (+this)}, and whose
      * scale is {@code this.scale()}.
-     * 
+     *
      * <p>This method, which simply returns this {@code BigDecimal}
      * is included for symmetry with the unary minus method {@link
      * #negate()}.
-     * 
+     *
      * @return {@code this}.
      * @see #negate()
      * @since  1.5
@@ -2105,7 +2126,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     /**
      * Returns a {@code BigDecimal} whose value is {@code (+this)},
      * with rounding according to the context settings.
-     * 
+     *
      * <p>The effect of this method is identical to that of the {@link
      * #round(MathContext)} method.
      *
@@ -2126,12 +2147,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     /**
      * Returns the signum function of this {@code BigDecimal}.
      *
-     * @return -1, 0, or 1 as the value of this {@code BigDecimal} 
+     * @return -1, 0, or 1 as the value of this {@code BigDecimal}
      *         is negative, zero, or positive.
      */
     public int signum() {
-	return (intCompact != INFLATED)?
-	    Long.signum(intCompact):
+        return (intCompact != INFLATED)?
+            Long.signum(intCompact):
             intVal.signum();
     }
 
@@ -2264,12 +2285,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * Returns a {@code BigDecimal} rounded according to the
      * {@code MathContext} settings.  If the precision setting is 0 then
      * no rounding takes place.
-     * 
+     *
      * <p>The effect of this method is identical to that of the
      * {@link #plus(MathContext)} method.
      *
      * @param mc the context to use.
-     * @return a {@code BigDecimal} rounded according to the 
+     * @return a {@code BigDecimal} rounded according to the
      *         {@code MathContext} settings.
      * @throws ArithmeticException if the rounding mode is
      *         {@code UNNECESSARY} and the
@@ -2297,12 +2318,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * named <tt>set<i>X</i></tt> mutate field <i>{@code X}</i>.
      * Instead, {@code setScale} returns an object with the proper
      * scale; the returned object may or may not be newly allocated.
-     * 
+     *
      * @param  newScale scale of the {@code BigDecimal} value to be returned.
      * @param  roundingMode The rounding mode to apply.
-     * @return a {@code BigDecimal} whose scale is the specified value, 
-     *         and whose unscaled value is determined by multiplying or 
-     *         dividing this {@code BigDecimal}'s unscaled value by the 
+     * @return a {@code BigDecimal} whose scale is the specified value,
+     *         and whose unscaled value is determined by multiplying or
+     *         dividing this {@code BigDecimal}'s unscaled value by the
      *         appropriate power of ten to maintain its overall value.
      * @throws ArithmeticException if {@code roundingMode==UNNECESSARY}
      *         and the specified scaling operation would require
@@ -2323,22 +2344,22 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * divided (rather than multiplied), and the value may be changed;
      * in this case, the specified rounding mode is applied to the
      * division.
-     * 
+     *
      * <p>Note that since BigDecimal objects are immutable, calls of
      * this method do <i>not</i> result in the original object being
      * modified, contrary to the usual convention of having methods
      * named <tt>set<i>X</i></tt> mutate field <i>{@code X}</i>.
      * Instead, {@code setScale} returns an object with the proper
      * scale; the returned object may or may not be newly allocated.
-     * 
+     *
      * <p>The new {@link #setScale(int, RoundingMode)} method should
      * be used in preference to this legacy method.
-     * 
+     *
      * @param  newScale scale of the {@code BigDecimal} value to be returned.
      * @param  roundingMode The rounding mode to apply.
-     * @return a {@code BigDecimal} whose scale is the specified value, 
-     *         and whose unscaled value is determined by multiplying or 
-     *         dividing this {@code BigDecimal}'s unscaled value by the 
+     * @return a {@code BigDecimal} whose scale is the specified value,
+     *         and whose unscaled value is determined by multiplying or
+     *         dividing this {@code BigDecimal}'s unscaled value by the
      *         appropriate power of ten to maintain its overall value.
      * @throws ArithmeticException if {@code roundingMode==ROUND_UNNECESSARY}
      *         and the specified scaling operation would require
@@ -2361,24 +2382,24 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         int oldScale = this.scale;
         if (newScale == oldScale)        // easy case
             return this;
-	if (this.signum() == 0) 	   // zero can have any scale
-	    return BigDecimal.valueOf(0, newScale);
-        
+        if (this.signum() == 0)            // zero can have any scale
+            return BigDecimal.valueOf(0, newScale);
+
         long rs = this.intCompact;
         if (newScale > oldScale) {
             int raise = checkScale((long)newScale - oldScale);
-   	    BigInteger rb = null;
+            BigInteger rb = null;
             if (rs == INFLATED ||
                 (rs = longMultiplyPowerTen(rs, raise)) == INFLATED)
                 rb = bigMultiplyPowerTen(raise);
-            return new BigDecimal(rb, rs, newScale, 
-                                  (precision > 0) ? precision + raise : 0); 
-        } else { 
+            return new BigDecimal(rb, rs, newScale,
+                                  (precision > 0) ? precision + raise : 0);
+        } else {
             // newScale < oldScale -- drop some digits
             // Can't predict the precision due to the effect of rounding.
             int drop = checkScale((long)oldScale - newScale);
             if (drop < LONG_TEN_POWERS_TABLE.length)
-                return divideAndRound(rs, this.intVal, 
+                return divideAndRound(rs, this.intVal,
                                       LONG_TEN_POWERS_TABLE[drop], null,
                                       newScale, roundingMode, newScale);
             else
@@ -2393,7 +2414,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * value, and whose value is numerically equal to this
      * {@code BigDecimal}'s.  Throws an {@code ArithmeticException}
      * if this is not possible.
-     * 
+     *
      * <p>This call is typically used to increase the scale, in which
      * case it is guaranteed that there exists a {@code BigDecimal}
      * of the specified scale and the correct value.  The call can
@@ -2401,11 +2422,11 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * {@code BigDecimal} has sufficiently many zeros at the end of
      * its fractional part (i.e., factors of ten in its integer value)
      * to allow for the rescaling without changing its value.
-     * 
+     *
      * <p>This method returns the same result as the two-argument
      * versions of {@code setScale}, but saves the caller the trouble
      * of specifying a rounding mode in cases where it is irrelevant.
-     * 
+     *
      * <p>Note that since {@code BigDecimal} objects are immutable,
      * calls of this method do <i>not</i> result in the original
      * object being modified, contrary to the usual convention of
@@ -2415,9 +2436,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * not be newly allocated.
      *
      * @param  newScale scale of the {@code BigDecimal} value to be returned.
-     * @return a {@code BigDecimal} whose scale is the specified value, and 
-     *         whose unscaled value is determined by multiplying or dividing 
-     *         this {@code BigDecimal}'s unscaled value by the appropriate 
+     * @return a {@code BigDecimal} whose scale is the specified value, and
+     *         whose unscaled value is determined by multiplying or dividing
+     *         this {@code BigDecimal}'s unscaled value by the appropriate
      *         power of ten to maintain its overall value.
      * @throws ArithmeticException if the specified scaling operation would
      *         require rounding.
@@ -2441,14 +2462,14 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * 0)}.
      *
      * @param  n number of places to move the decimal point to the left.
-     * @return a {@code BigDecimal} which is equivalent to this one with the 
+     * @return a {@code BigDecimal} which is equivalent to this one with the
      *         decimal point moved {@code n} places to the left.
      * @throws ArithmeticException if scale overflows.
      */
     public BigDecimal movePointLeft(int n) {
         // Cannot use movePointRight(-n) in case of n==Integer.MIN_VALUE
-	int newScale = checkScale((long)scale + n);
-	BigDecimal num = new BigDecimal(intVal, intCompact, newScale, 0);
+        int newScale = checkScale((long)scale + n);
+        BigDecimal num = new BigDecimal(intVal, intCompact, newScale, 0);
         return num.scale < 0 ? num.setScale(0, ROUND_UNNECESSARY) : num;
     }
 
@@ -2469,8 +2490,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      */
     public BigDecimal movePointRight(int n) {
         // Cannot use movePointLeft(-n) in case of n==Integer.MIN_VALUE
-	int newScale = checkScale((long)scale - n);
-	BigDecimal num = new BigDecimal(intVal, intCompact, newScale, 0);
+        int newScale = checkScale((long)scale - n);
+        BigDecimal num = new BigDecimal(intVal, intCompact, newScale, 0);
         return num.scale < 0 ? num.setScale(0, ROUND_UNNECESSARY) : num;
     }
 
@@ -2485,7 +2506,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since 1.5
      */
     public BigDecimal scaleByPowerOfTen(int n) {
-        return new BigDecimal(intVal, intCompact, 
+        return new BigDecimal(intVal, intCompact,
                               checkScale((long)scale - n), precision);
     }
 
@@ -2503,8 +2524,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since 1.5
      */
     public BigDecimal stripTrailingZeros() {
-	this.inflate();
-	BigDecimal result = new BigDecimal(intVal, scale);
+        this.inflate();
+        BigDecimal result = new BigDecimal(intVal, scale);
         result.stripZerosToMatchScale(Long.MIN_VALUE);
         return result;
     }
@@ -2523,9 +2544,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * {@code (x.compareTo(y)} &lt;<i>op</i>&gt; {@code 0)}, where
      * &lt;<i>op</i>&gt; is one of the six comparison operators.
      *
-     * @param  val {@code BigDecimal} to which this {@code BigDecimal} is 
+     * @param  val {@code BigDecimal} to which this {@code BigDecimal} is
      *         to be compared.
-     * @return -1, 0, or 1 as this {@code BigDecimal} is numerically 
+     * @return -1, 0, or 1 as this {@code BigDecimal} is numerically
      *          less than, equal to, or greater than {@code val}.
      */
     public int compareTo(BigDecimal val) {
@@ -2557,7 +2578,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             return (ys == 0) ? 0 : -1;
         if (ys == 0)
             return 1;
-        
+
         int sdiff = this.scale - val.scale;
         if (sdiff != 0) {
             // Avoid matching scales if the (adjusted) exponents differ
@@ -2588,10 +2609,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             return (ys != INFLATED) ? longCompareMagnitude(xs, ys) : -1;
         else if (ys != INFLATED)
             return 1;
-        else 
+        else
             return this.intVal.compareMagnitude(val.intVal);
     }
-        
+
     /**
      * Compares this {@code BigDecimal} with the specified
      * {@code Object} for equality.  Unlike {@link
@@ -2600,10 +2621,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * value and scale (thus 2.0 is not equal to 2.00 when compared by
      * this method).
      *
-     * @param  x {@code Object} to which this {@code BigDecimal} is 
+     * @param  x {@code Object} to which this {@code BigDecimal} is
      *         to be compared.
      * @return {@code true} if and only if the specified {@code Object} is a
-     *         {@code BigDecimal} whose value and scale are equal to this 
+     *         {@code BigDecimal} whose value and scale are equal to this
      *         {@code BigDecimal}'s.
      * @see    #compareTo(java.math.BigDecimal)
      * @see    #hashCode
@@ -2615,8 +2636,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         BigDecimal xDec = (BigDecimal) x;
         if (x == this)
             return true;
-	if (scale != xDec.scale)
-	    return false;
+        if (scale != xDec.scale)
+            return false;
         long s = this.intCompact;
         long xs = xDec.intCompact;
         if (s != INFLATED) {
@@ -2625,7 +2646,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             return xs == s;
         } else if (xs != INFLATED)
             return xs == compactValFor(this.intVal);
-        
+
         return this.inflate().equals(xDec.inflate());
     }
 
@@ -2634,9 +2655,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * {@code val}.
      *
      * @param  val value with which the minimum is to be computed.
-     * @return the {@code BigDecimal} whose value is the lesser of this 
-     *         {@code BigDecimal} and {@code val}.  If they are equal, 
-     *         as defined by the {@link #compareTo(BigDecimal) compareTo}  
+     * @return the {@code BigDecimal} whose value is the lesser of this
+     *         {@code BigDecimal} and {@code val}.  If they are equal,
+     *         as defined by the {@link #compareTo(BigDecimal) compareTo}
      *         method, {@code this} is returned.
      * @see    #compareTo(java.math.BigDecimal)
      */
@@ -2648,9 +2669,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * Returns the maximum of this {@code BigDecimal} and {@code val}.
      *
      * @param  val value with which the maximum is to be computed.
-     * @return the {@code BigDecimal} whose value is the greater of this 
-     *         {@code BigDecimal} and {@code val}.  If they are equal, 
-     *         as defined by the {@link #compareTo(BigDecimal) compareTo} 
+     * @return the {@code BigDecimal} whose value is the greater of this
+     *         {@code BigDecimal} and {@code val}.  If they are equal,
+     *         as defined by the {@link #compareTo(BigDecimal) compareTo}
      *         method, {@code this} is returned.
      * @see    #compareTo(java.math.BigDecimal)
      */
@@ -2672,20 +2693,20 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     @Override
     public int hashCode() {
         if (intCompact != INFLATED) {
-            long val2 = (intCompact < 0) ? -intCompact : intCompact;
+            long val2 = (intCompact < 0)? -intCompact : intCompact;
             int temp = (int)( ((int)(val2 >>> 32)) * 31  +
                               (val2 & LONG_MASK));
             return 31*((intCompact < 0) ?-temp:temp) + scale;
         } else
             return 31*intVal.hashCode() + scale;
     }
-    
+
     // Format Converters
 
     /**
      * Returns the string representation of this {@code BigDecimal},
      * using scientific notation if an exponent is needed.
-     * 
+     *
      * <p>A standard canonical string form of the {@code BigDecimal}
      * is created as though by the following steps: first, the
      * absolute value of the unscaled value of the {@code BigDecimal}
@@ -2693,14 +2714,14 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * {@code '0'} through {@code '9'} with no leading zeros (except
      * if its value is zero, in which case a single {@code '0'}
      * character is used).
-     * 
+     *
      * <p>Next, an <i>adjusted exponent</i> is calculated; this is the
      * negated scale, plus the number of characters in the converted
      * unscaled value, less one.  That is,
      * {@code -scale+(ulength-1)}, where {@code ulength} is the
      * length of the absolute value of the unscaled value in decimal
      * digits (its <i>precision</i>).
-     * 
+     *
      * <p>If the scale is greater than or equal to zero and the
      * adjusted exponent is greater than or equal to {@code -6}, the
      * number will be converted to a character form without using
@@ -2712,7 +2733,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * unscaled value as necessary.  If no character precedes the
      * decimal point after this insertion then a conventional
      * {@code '0'} character is prefixed.
-     * 
+     *
      * <p>Otherwise (that is, if the scale is negative, or the
      * adjusted exponent is less than {@code -6}), the number will be
      * converted to a character form using exponential notation.  In
@@ -2727,12 +2748,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * sign character {@code '-'} (<tt>'&#92;u002D'</tt>) if the
      * adjusted exponent is negative, {@code '+'}
      * (<tt>'&#92;u002B'</tt>) otherwise).
-     * 
+     *
      * <p>Finally, the entire string is prefixed by a minus sign
      * character {@code '-'} (<tt>'&#92;u002D'</tt>) if the unscaled
      * value is less than zero.  No sign character is prefixed if the
      * unscaled value is zero or positive.
-     * 
+     *
      * <p><b>Examples:</b>
      * <p>For each representation [<i>unscaled value</i>, <i>scale</i>]
      * on the left, the resulting string is shown on the right.
@@ -2758,20 +2779,20 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * representation is converted back to a {@code BigDecimal} using
      * the {@link #BigDecimal(String)} constructor, then the original
      * value will be recovered.
-     * 
+     *
      * <li>The string produced for a given number is always the same;
      * it is not affected by locale.  This means that it can be used
      * as a canonical string representation for exchanging decimal
      * data, or as a key for a Hashtable, etc.  Locale-sensitive
      * number formatting and parsing is handled by the {@link
      * java.text.NumberFormat} class and its subclasses.
-     * 
+     *
      * <li>The {@link #toEngineeringString} method may be used for
      * presenting numbers with exponents in engineering notation, and the
      * {@link #setScale(int,RoundingMode) setScale} method may be used for
      * rounding a {@code BigDecimal} so it has a known number of digits after
      * the decimal point.
-     * 
+     *
      * <li>The digit-to-character mapping provided by
      * {@code Character.forDigit} is used.
      *
@@ -2784,15 +2805,15 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     @Override
     public String toString() {
         String sc = stringCache;
-	if (sc == null)
-	    stringCache = sc = layoutChars(true);
-	return sc;
+        if (sc == null)
+            stringCache = sc = layoutChars(true);
+        return sc;
     }
 
     /**
      * Returns a string representation of this {@code BigDecimal},
      * using engineering notation if an exponent is needed.
-     * 
+     *
      * <p>Returns a string that represents the {@code BigDecimal} as
      * described in the {@link #toString()} method, except that if
      * exponential notation is used, the power of ten is adjusted to
@@ -2851,45 +2872,44 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @see #toEngineeringString()
      */
     public String toPlainString() {
-	BigDecimal bd = this;
-	if (bd.scale < 0)
-	    bd = bd.setScale(0);
-	bd.inflate();
-	if (bd.scale == 0)	// No decimal point
-	    return bd.intVal.toString();
+        BigDecimal bd = this;
+        if (bd.scale < 0)
+            bd = bd.setScale(0);
+        bd.inflate();
+        if (bd.scale == 0)      // No decimal point
+            return bd.intVal.toString();
         return bd.getValueString(bd.signum(), bd.intVal.abs().toString(), bd.scale);
     }
 
     /* Returns a digit.digit string */
     private String getValueString(int signum, String intString, int scale) {
- 	/* Insert decimal point */
- 	StringBuilder buf;
- 	int insertionPoint = intString.length() - scale;
- 	if (insertionPoint == 0) {  /* Point goes right before intVal */
- 	    return (signum<0 ? "-0." : "0.") + intString;
- 	} else if (insertionPoint > 0) { /* Point goes inside intVal */
- 	    buf = new StringBuilder(intString);
- 	    buf.insert(insertionPoint, '.');
- 	    if (signum < 0)
- 		buf.insert(0, '-');
- 	} else { /* We must insert zeros between point and intVal */
- 	    buf = new StringBuilder(3-insertionPoint + intString.length());
- 	    buf.append(signum<0 ? "-0." : "0.");
- 	    for (int i=0; i<-insertionPoint; i++)
- 		buf.append('0');
- 	    buf.append(intString);
- 	}
- 	return buf.toString();
+        /* Insert decimal point */
+        StringBuilder buf;
+        int insertionPoint = intString.length() - scale;
+        if (insertionPoint == 0) {  /* Point goes right before intVal */
+            return (signum<0 ? "-0." : "0.") + intString;
+        } else if (insertionPoint > 0) { /* Point goes inside intVal */
+            buf = new StringBuilder(intString);
+            buf.insert(insertionPoint, '.');
+            if (signum < 0)
+                buf.insert(0, '-');
+        } else { /* We must insert zeros between point and intVal */
+            buf = new StringBuilder(3-insertionPoint + intString.length());
+            buf.append(signum<0 ? "-0." : "0.");
+            for (int i=0; i<-insertionPoint; i++)
+                buf.append('0');
+            buf.append(intString);
+        }
+        return buf.toString();
     }
 
     /**
      * Converts this {@code BigDecimal} to a {@code BigInteger}.
-     * This conversion is analogous to a <a
-     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
-     * primitive conversion</i></a> from {@code double} to
-     * {@code long} as defined in the <a
-     * href="http://java.sun.com/docs/books/jls/html/">Java Language
-     * Specification</a>: any fractional part of this
+     * This conversion is analogous to the
+     * <i>narrowing primitive conversion</i> from {@code double} to
+     * {@code long} as defined in section 5.1.3 of
+     * <cite>The Java&trade; Language Specification</cite>:
+     * any fractional part of this
      * {@code BigDecimal} will be discarded.  Note that this
      * conversion can lose information about the precision of the
      * {@code BigDecimal} value.
@@ -2921,26 +2941,25 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     }
 
     /**
-     * Converts this {@code BigDecimal} to a {@code long}.  This
-     * conversion is analogous to a <a
-     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
-     * primitive conversion</i></a> from {@code double} to
-     * {@code short} as defined in the <a
-     * href="http://java.sun.com/docs/books/jls/html/">Java Language
-     * Specification</a>: any fractional part of this
+     * Converts this {@code BigDecimal} to a {@code long}.
+     * This conversion is analogous to the
+     * <i>narrowing primitive conversion</i> from {@code double} to
+     * {@code short} as defined in section 5.1.3 of
+     * <cite>The Java&trade; Language Specification</cite>:
+     * any fractional part of this
      * {@code BigDecimal} will be discarded, and if the resulting
      * "{@code BigInteger}" is too big to fit in a
      * {@code long}, only the low-order 64 bits are returned.
      * Note that this conversion can lose information about the
      * overall magnitude and precision of this {@code BigDecimal} value as well
      * as return a result with the opposite sign.
-     * 
+     *
      * @return this {@code BigDecimal} converted to a {@code long}.
      */
     public long longValue(){
-	return (intCompact != INFLATED && scale == 0) ?
-	    intCompact:
-	    toBigInteger().longValue();
+        return (intCompact != INFLATED && scale == 0) ?
+            intCompact:
+            toBigInteger().longValue();
     }
 
     /**
@@ -2956,8 +2975,8 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since  1.5
      */
     public long longValueExact() {
-	if (intCompact != INFLATED && scale == 0) 
-	    return intCompact;
+        if (intCompact != INFLATED && scale == 0)
+            return intCompact;
         // If more than 19 digits in integer part it cannot possibly fit
         if ((precision() - scale) > 19) // [OK for negative scale too]
             throw new java.lang.ArithmeticException("Overflow");
@@ -2970,46 +2989,45 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         // round to an integer, with Exception if decimal part non-0
         BigDecimal num = this.setScale(0, ROUND_UNNECESSARY);
         if (num.precision() >= 19) // need to check carefully
-	    LongOverflow.check(num);
+            LongOverflow.check(num);
         return num.inflate().longValue();
     }
 
     private static class LongOverflow {
-	/** BigInteger equal to Long.MIN_VALUE. */
-	private static final BigInteger LONGMIN = BigInteger.valueOf(Long.MIN_VALUE);
+        /** BigInteger equal to Long.MIN_VALUE. */
+        private static final BigInteger LONGMIN = BigInteger.valueOf(Long.MIN_VALUE);
 
-	/** BigInteger equal to Long.MAX_VALUE. */
-	private static final BigInteger LONGMAX = BigInteger.valueOf(Long.MAX_VALUE);
+        /** BigInteger equal to Long.MAX_VALUE. */
+        private static final BigInteger LONGMAX = BigInteger.valueOf(Long.MAX_VALUE);
 
-	public static void check(BigDecimal num) {
+        public static void check(BigDecimal num) {
             num.inflate();
-            if (num.intVal.compareTo(LONGMIN) < 0 ||
-                num.intVal.compareTo(LONGMAX) > 0)
+            if ((num.intVal.compareTo(LONGMIN) < 0) ||
+                (num.intVal.compareTo(LONGMAX) > 0))
                 throw new java.lang.ArithmeticException("Overflow");
-	}
+        }
     }
 
     /**
-     * Converts this {@code BigDecimal} to an {@code int}.  This
-     * conversion is analogous to a <a
-     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
-     * primitive conversion</i></a> from {@code double} to
-     * {@code short} as defined in the <a
-     * href="http://java.sun.com/docs/books/jls/html/">Java Language
-     * Specification</a>: any fractional part of this
+     * Converts this {@code BigDecimal} to an {@code int}.
+     * This conversion is analogous to the
+     * <i>narrowing primitive conversion</i> from {@code double} to
+     * {@code short} as defined in section 5.1.3 of
+     * <cite>The Java&trade; Language Specification</cite>:
+     * any fractional part of this
      * {@code BigDecimal} will be discarded, and if the resulting
      * "{@code BigInteger}" is too big to fit in an
      * {@code int}, only the low-order 32 bits are returned.
      * Note that this conversion can lose information about the
      * overall magnitude and precision of this {@code BigDecimal}
      * value as well as return a result with the opposite sign.
-     * 
+     *
      * @return this {@code BigDecimal} converted to an {@code int}.
      */
     public int intValue() {
-	return  (intCompact != INFLATED && scale == 0) ?
-	    (int)intCompact :
-	    toBigInteger().intValue();
+        return  (intCompact != INFLATED && scale == 0) ?
+            (int)intCompact :
+            toBigInteger().intValue();
     }
 
     /**
@@ -3074,50 +3092,48 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
 
     /**
      * Converts this {@code BigDecimal} to a {@code float}.
-     * This conversion is similar to the <a
-     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
-     * primitive conversion</i></a> from {@code double} to
-     * {@code float} defined in the <a
-     * href="http://java.sun.com/docs/books/jls/html/">Java Language
-     * Specification</a>: if this {@code BigDecimal} has too great a
+     * This conversion is similar to the
+     * <i>narrowing primitive conversion</i> from {@code double} to
+     * {@code float} as defined in section 5.1.3 of
+     * <cite>The Java&trade; Language Specification</cite>:
+     * if this {@code BigDecimal} has too great a
      * magnitude to represent as a {@code float}, it will be
      * converted to {@link Float#NEGATIVE_INFINITY} or {@link
      * Float#POSITIVE_INFINITY} as appropriate.  Note that even when
      * the return value is finite, this conversion can lose
      * information about the precision of the {@code BigDecimal}
      * value.
-     * 
+     *
      * @return this {@code BigDecimal} converted to a {@code float}.
      */
     public float floatValue(){
-	if (scale == 0 && intCompact != INFLATED)
-		return (float)intCompact;
-	// Somewhat inefficient, but guaranteed to work.
-	return Float.parseFloat(this.toString());
+        if (scale == 0 && intCompact != INFLATED)
+                return (float)intCompact;
+        // Somewhat inefficient, but guaranteed to work.
+        return Float.parseFloat(this.toString());
     }
 
     /**
      * Converts this {@code BigDecimal} to a {@code double}.
-     * This conversion is similar to the <a
-     * href="http://java.sun.com/docs/books/jls/second_edition/html/conversions.doc.html#25363"><i>narrowing
-     * primitive conversion</i></a> from {@code double} to
-     * {@code float} as defined in the <a
-     * href="http://java.sun.com/docs/books/jls/html/">Java Language
-     * Specification</a>: if this {@code BigDecimal} has too great a
+     * This conversion is similar to the
+     * <i>narrowing primitive conversion</i> from {@code double} to
+     * {@code float} as defined in section 5.1.3 of
+     * <cite>The Java&trade; Language Specification</cite>:
+     * if this {@code BigDecimal} has too great a
      * magnitude represent as a {@code double}, it will be
      * converted to {@link Double#NEGATIVE_INFINITY} or {@link
      * Double#POSITIVE_INFINITY} as appropriate.  Note that even when
      * the return value is finite, this conversion can lose
      * information about the precision of the {@code BigDecimal}
      * value.
-     * 
+     *
      * @return this {@code BigDecimal} converted to a {@code double}.
      */
     public double doubleValue(){
-	if (scale == 0 && intCompact != INFLATED)
-	    return (double)intCompact;
-	// Somewhat inefficient, but guaranteed to work.
-	return Double.parseDouble(this.toString());
+        if (scale == 0 && intCompact != INFLATED)
+            return (double)intCompact;
+        // Somewhat inefficient, but guaranteed to work.
+        return Double.parseDouble(this.toString());
     }
 
     /**
@@ -3135,15 +3151,16 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * @since 1.5
      */
     public BigDecimal ulp() {
-	return BigDecimal.valueOf(1, this.scale());
+        return BigDecimal.valueOf(1, this.scale());
     }
+
 
     // Private class to build a string representation for BigDecimal object.
     // "StringBuilderHelper" is constructed as a thread local variable so it is
     // thread safe. The StringBuilder field acts as a buffer to hold the temporary
-    // representation of BigDecimal. The cmpCharArray holds all the characters for 
-    // the compact representation of BigDecimal (except for '-' sign' if it is 
-    // negative) if its intCompact field is not INFLATED. It is shared by all 
+    // representation of BigDecimal. The cmpCharArray holds all the characters for
+    // the compact representation of BigDecimal (except for '-' sign' if it is
+    // negative) if its intCompact field is not INFLATED. It is shared by all
     // calls to toString() and its variants in that particular thread.
     static class StringBuilderHelper {
         final StringBuilder sb;    // Placeholder for BigDecimal string
@@ -3164,24 +3181,24 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         char[] getCompactCharArray() {
             return cmpCharArray;
         }
-        
+
         /**
          * Places characters representing the intCompact in {@code long} into
-         * cmpCharArray and returns the offset to the array where the 
+         * cmpCharArray and returns the offset to the array where the
          * representation starts.
          *
          * @param intCompact the number to put into the cmpCharArray.
          * @return offset to the array where the representation starts.
          * Note: intCompact must be greater or equal to zero.
          */
-        int putIntCompact(long intCompact) {         
+        int putIntCompact(long intCompact) {
             assert intCompact >= 0;
 
             long q;
             int r;
             // since we start from the least significant digit, charPos points to
             // the last character in cmpCharArray.
-            int charPos = cmpCharArray.length;         
+            int charPos = cmpCharArray.length;
 
             // Get 2 digits/iteration using longs until quotient fits into an int
             while (intCompact > Integer.MAX_VALUE) {
@@ -3206,10 +3223,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             cmpCharArray[--charPos] = DIGIT_ONES[i2];
             if (i2 >= 10)
                 cmpCharArray[--charPos] = DIGIT_TENS[i2];
-            
+
             return charPos;
         }
-        
+
         final static char[] DIGIT_TENS = {
             '0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
             '1', '1', '1', '1', '1', '1', '1', '1', '1', '1',
@@ -3222,7 +3239,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             '8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
             '9', '9', '9', '9', '9', '9', '9', '9', '9', '9',
         };
-        
+
         final static char[] DIGIT_ONES = {
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -3236,7 +3253,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
         };
     }
-        
+
     /**
      * Lay out this {@code BigDecimal} into a {@code char[]} array.
      * The Java 1.2 equivalent to this was called {@code getValueString}.
@@ -3248,10 +3265,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      */
     private String layoutChars(boolean sci) {
         if (scale == 0)                      // zero scale is trivial
-	    return (intCompact != INFLATED) ? 
-		Long.toString(intCompact):
-		intVal.toString();
-        
+            return (intCompact != INFLATED) ?
+                Long.toString(intCompact):
+                intVal.toString();
+
         StringBuilderHelper sbHelper = threadLocalStringBuilderHelper.get();
         char[] coeff;
         int offset;  // offset is the starting index for coeff array
@@ -3263,7 +3280,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             offset = 0;
             coeff  = intVal.abs().toString().toCharArray();
         }
-        
+
         // Construct a buffer, with sufficient capacity for all cases.
         // If E-notation is needed, length will be: +1 if negative, +1
         // if '.' needed, +2 for "E+", + up to 10 for adjusted exponent.
@@ -3300,23 +3317,23 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
                     sig += 3;                // [adjusted was negative]
                 adjusted -= sig;             // now a multiple of 3
                 sig++;
-		if (signum() == 0) {
-		    switch (sig) {
-		    case 1:
-			buf.append('0'); // exponent is a multiple of three
-			break;
-		    case 2:
-			buf.append("0.00");
-			adjusted += 3;
-			break;
-		    case 3:
-			buf.append("0.0");
-			adjusted += 3;
-			break;
-		    default:
-			throw new AssertionError("Unexpected sig value " + sig);
-		    }
-		} else if (sig >= coeffLen) {   // significand all in integer
+                if (signum() == 0) {
+                    switch (sig) {
+                    case 1:
+                        buf.append('0'); // exponent is a multiple of three
+                        break;
+                    case 2:
+                        buf.append("0.00");
+                        adjusted += 3;
+                        break;
+                    case 3:
+                        buf.append("0.0");
+                        adjusted += 3;
+                        break;
+                    default:
+                        throw new AssertionError("Unexpected sig value " + sig);
+                    }
+                } else if (sig >= coeffLen) {   // significand all in integer
                     buf.append(coeff, offset, coeffLen);
                     // may need some zeros, too
                     for (int i = sig - coeffLen; i > 0; i--)
@@ -3359,16 +3376,16 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         char tenpow[] = new char[n + 1];
         tenpow[0] = '1';
         for (int i = 1; i <= n; i++)
-            tenpow[i] = '0';                
+            tenpow[i] = '0';
         return new BigInteger(tenpow);
     }
 
     /**
      * Expand the BIG_TEN_POWERS_TABLE array to contain at least 10**n.
-     * 
+     *
      * @param n the power of ten to be returned (>=0)
      * @return a {@code BigDecimal} with the value (10<sup>n</sup>) and
-     *         in the meantime, the BIG_TEN_POWERS_TABLE array gets 
+     *         in the meantime, the BIG_TEN_POWERS_TABLE array gets
      *         expanded to the size greater than n.
      */
     private static BigInteger expandBigIntegerTenPowers(int n) {
@@ -3393,18 +3410,18 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             return pows[n];
         }
     }
-        
+
     private static final long[] LONG_TEN_POWERS_TABLE = {
         1,                     // 0 / 10^0
-	10,                    // 1 / 10^1
-	100,                   // 2 / 10^2
-	1000,                  // 3 / 10^3
-	10000,                 // 4 / 10^4
-	100000,                // 5 / 10^5
-	1000000,               // 6 / 10^6
-	10000000,              // 7 / 10^7
-	100000000,             // 8 / 10^8  
-	1000000000,            // 9 / 10^9
+        10,                    // 1 / 10^1
+        100,                   // 2 / 10^2
+        1000,                  // 3 / 10^3
+        10000,                 // 4 / 10^4
+        100000,                // 5 / 10^5
+        1000000,               // 6 / 10^6
+        10000000,              // 7 / 10^7
+        100000000,             // 8 / 10^8
+        1000000000,            // 9 / 10^9
         10000000000L,          // 10 / 10^10
         100000000000L,         // 11 / 10^11
         1000000000000L,        // 12 / 10^12
@@ -3415,7 +3432,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         100000000000000000L,   // 17 / 10^17
         1000000000000000000L   // 18 / 10^18
     };
-    
+
     private static volatile BigInteger BIG_TEN_POWERS_TABLE[] = {BigInteger.ONE,
         BigInteger.valueOf(10),       BigInteger.valueOf(100),
         BigInteger.valueOf(1000),     BigInteger.valueOf(10000),
@@ -3430,36 +3447,36 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         BigInteger.valueOf(1000000000000000L),
         BigInteger.valueOf(10000000000000000L),
         BigInteger.valueOf(100000000000000000L),
-        BigInteger.valueOf(1000000000000000000L)                                     
+        BigInteger.valueOf(1000000000000000000L)
     };
 
-    private static final int BIG_TEN_POWERS_TABLE_INITLEN = 
+    private static final int BIG_TEN_POWERS_TABLE_INITLEN =
         BIG_TEN_POWERS_TABLE.length;
-    private static final int BIG_TEN_POWERS_TABLE_MAX = 
+    private static final int BIG_TEN_POWERS_TABLE_MAX =
         16 * BIG_TEN_POWERS_TABLE_INITLEN;
-    
+
     private static final long THRESHOLDS_TABLE[] = {
         Long.MAX_VALUE,                     // 0
-        Long.MAX_VALUE/10L, 	            // 1		
-	Long.MAX_VALUE/100L, 		    // 2  
-	Long.MAX_VALUE/1000L, 		    // 3   
-	Long.MAX_VALUE/10000L, 		    // 4
-	Long.MAX_VALUE/100000L, 	    // 5 
-	Long.MAX_VALUE/1000000L,            // 6		
-	Long.MAX_VALUE/10000000L,           // 7		
-	Long.MAX_VALUE/100000000L,          // 8		
-	Long.MAX_VALUE/1000000000L, 	    // 9   
-	Long.MAX_VALUE/10000000000L, 	    // 10   
-	Long.MAX_VALUE/100000000000L,       // 11		
-	Long.MAX_VALUE/1000000000000L, 	    // 12
-	Long.MAX_VALUE/10000000000000L,     // 13
+        Long.MAX_VALUE/10L,                 // 1
+        Long.MAX_VALUE/100L,                // 2
+        Long.MAX_VALUE/1000L,               // 3
+        Long.MAX_VALUE/10000L,              // 4
+        Long.MAX_VALUE/100000L,             // 5
+        Long.MAX_VALUE/1000000L,            // 6
+        Long.MAX_VALUE/10000000L,           // 7
+        Long.MAX_VALUE/100000000L,          // 8
+        Long.MAX_VALUE/1000000000L,         // 9
+        Long.MAX_VALUE/10000000000L,        // 10
+        Long.MAX_VALUE/100000000000L,       // 11
+        Long.MAX_VALUE/1000000000000L,      // 12
+        Long.MAX_VALUE/10000000000000L,     // 13
         Long.MAX_VALUE/100000000000000L,    // 14
         Long.MAX_VALUE/1000000000000000L,   // 15
         Long.MAX_VALUE/10000000000000000L,  // 16
         Long.MAX_VALUE/100000000000000000L, // 17
         Long.MAX_VALUE/1000000000000000000L // 18
     };
-    
+
     /**
      * Compute val * 10 ^ n; return this product if it is
      * representable as a long, INFLATED otherwise.
@@ -3469,9 +3486,9 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             return val;
         long[] tab = LONG_TEN_POWERS_TABLE;
         long[] bounds = THRESHOLDS_TABLE;
-	if (n < tab.length && n < bounds.length) {
-            long tenpower = tab[n];        
-            if (val == 1) 
+        if (n < tab.length && n < bounds.length) {
+            long tenpower = tab[n];
+            if (val == 1)
                 return tenpower;
             if (Math.abs(val) <= bounds[n])
                 return val * tenpower;
@@ -3486,7 +3503,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
     private BigInteger bigMultiplyPowerTen(int n) {
         if (n <= 0)
             return this.inflate();
-        
+
         if (intCompact != INFLATED)
             return bigTenToThe(n).multiply(intCompact);
         else
@@ -3498,15 +3515,15 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * null, i.e. the compact representation is in use.
      */
     private BigInteger inflate() {
-	if (intVal == null)
-	    intVal = BigInteger.valueOf(intCompact);
-	return intVal;
+        if (intVal == null)
+            intVal = BigInteger.valueOf(intCompact);
+        return intVal;
     }
 
     /**
      * Match the scales of two {@code BigDecimal}s to align their
      * least significant digits.
-     * 
+     *
      * <p>If the scales of val[0] and val[1] differ, rescale
      * (non-destructively) the lower-scaled {@code BigDecimal} so
      * they match.  That is, the lower-scaled reference will be
@@ -3537,12 +3554,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         // Read in all fields
         s.defaultReadObject();
         // validate possibly bad fields
-	if (intVal == null) {
+        if (intVal == null) {
             String message = "BigDecimal: null intVal in stream";
             throw new java.io.StreamCorruptedException(message);
         // [all values of scale are now allowed]
         }
-	intCompact = compactValFor(intVal);
+        intCompact = compactValFor(intVal);
     }
 
    /**
@@ -3558,11 +3575,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
        // Write proper fields
        s.defaultWriteObject();
    }
-    
+
+
     /**
      * Returns the length of the absolute value of a {@code long}, in decimal
      * digits.
-     * 
+     *
      * @param x the {@code long}
      * @return the length of the unscaled value, in deciaml digits.
      */
@@ -3570,7 +3588,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         /*
          * As described in "Bit Twiddling Hacks" by Sean Anderson,
          * (http://graphics.stanford.edu/~seander/bithacks.html)
-         * integer log 10 of x is within 1 of 
+         * integer log 10 of x is within 1 of
          * (1233/4096)* (1 + integer log 2 of x).
          * The fraction 1233/4096 approximates log10(2). So we first
          * do a version of log2 (a variant of Long class with
@@ -3597,7 +3615,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         // if r >= length, must have max possible digits for long
         return (r >= tab.length || x < tab[r])? r : r+1;
     }
-    
+
     /**
      * Returns the length of the absolute value of a BigInteger, in
      * decimal digits.
@@ -3617,7 +3635,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         return b.compareMagnitude(bigTenToThe(r)) < 0? r : r+1;
     }
 
-    
+
     /**
      * Remove insignificant trailing zeros from this
      * {@code BigDecimal} until the preferred scale is reached or no
@@ -3633,11 +3651,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      * to be closed to the preferred scale.
      */
     private BigDecimal stripZerosToMatchScale(long preferredScale) {
-        boolean compact = (intCompact != INFLATED);
-	this.inflate();
+        this.inflate();
         BigInteger qr[];                // quotient-remainder pair
-        while ( intVal.compareMagnitude(BigInteger.TEN) >= 0 && 
-		scale > preferredScale) {
+        while ( intVal.compareMagnitude(BigInteger.TEN) >= 0 &&
+                scale > preferredScale) {
             if (intVal.testBit(0))
                 break;                  // odd number cannot end in 0
             qr = intVal.divideAndRemainder(BigInteger.TEN);
@@ -3648,15 +3665,15 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             if (precision > 0)          // adjust precision if known
               precision--;
         }
-	if (intVal != null)
-	    intCompact = compactValFor(intVal);
+        if (intVal != null)
+            intCompact = compactValFor(intVal);
         return this;
     }
-    
+
     /**
      * Check a scale for Underflow or Overflow.  If this BigDecimal is
-     * nonzero, throw an exception if the scale is outof range. If this 
-     * is zero, saturate the scale to the extreme value of the right 
+     * nonzero, throw an exception if the scale is outof range. If this
+     * is zero, saturate the scale to the extreme value of the right
      * sign if the scale is out of range.
      *
      * @param val The new scale.
@@ -3669,13 +3686,13 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         if (asInt != val) {
             asInt = val>Integer.MAX_VALUE ? Integer.MAX_VALUE : Integer.MIN_VALUE;
             BigInteger b;
-            if (intCompact != 0 && 
+            if (intCompact != 0 &&
                 ((b = intVal) == null || b.signum() != 0))
                 throw new ArithmeticException(asInt>0 ? "Underflow":"Overflow");
         }
         return asInt;
     }
-    
+
     /**
      * Round an operand; used only if digits &gt; 0.  Does not change
      * {@code this}; if rounding is needed a new {@code BigDecimal}
@@ -3705,10 +3722,10 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
         BigDecimal rounded = doRound(this, mc);
         if (rounded == this)                 // wasn't rounded
             return;
-        this.intVal	= rounded.intVal;
-        this.intCompact	= rounded.intCompact;
-        this.scale	= rounded.scale;
-        this.precision	= rounded.precision;
+        this.intVal     = rounded.intVal;
+        this.intCompact = rounded.intCompact;
+        this.scale      = rounded.scale;
+        this.precision  = rounded.precision;
     }
 
     /**
@@ -3732,12 +3749,12 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             int newScale = d.checkScale((long)d.scale - drop);
             int mode = mc.roundingMode.oldMode;
             if (drop < LONG_TEN_POWERS_TABLE.length)
-                d = divideAndRound(d.intCompact, d.intVal, 
+                d = divideAndRound(d.intCompact, d.intVal,
                                    LONG_TEN_POWERS_TABLE[drop], null,
                                    newScale, mode, newScale);
             else
                 d = divideAndRound(d.intCompact, d.intVal,
-                                   INFLATED, bigTenToThe(drop), 
+                                   INFLATED, bigTenToThe(drop),
                                    newScale, mode, newScale);
         }
         return d;
@@ -3745,7 +3762,7 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
 
     /**
      * Returns the compact value for given {@code BigInteger}, or
-     * INFLATED if too big. Relies on internal representation of 
+     * INFLATED if too big. Relies on internal representation of
      * {@code BigInteger}.
      */
     private static long compactValFor(BigInteger b) {
@@ -3768,24 +3785,24 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
             x = -x;
         if (y < 0)
             y = -y;
-        return (x < y) ? -1 : ((x == y) ? 0 : 1); 
+        return (x < y) ? -1 : ((x == y) ? 0 : 1);
     }
 
     private static int saturateLong(long s) {
         int i = (int)s;
-        return (s == i) ? i : (s < 0 ? Integer.MIN_VALUE : Integer.MAX_VALUE); 
+        return (s == i) ? i : (s < 0 ? Integer.MIN_VALUE : Integer.MAX_VALUE);
     }
-    
+
     /*
      * Internal printing routine
      */
     private static void print(String name, BigDecimal bd) {
-	System.err.format("%s:\tintCompact %d\tintVal %d\tscale %d\tprecision %d%n",
-			  name,
-			  bd.intCompact,
-			  bd.intVal,
-			  bd.scale,
-			  bd.precision);
+        System.err.format("%s:\tintCompact %d\tintVal %d\tscale %d\tprecision %d%n",
+                          name,
+                          bd.intCompact,
+                          bd.intVal,
+                          bd.scale,
+                          bd.precision);
     }
 
     /**
@@ -3800,39 +3817,39 @@ public class BigDecimal extends Number implements Comparable<BigDecimal> {
      *
      * <li>If both intCompact and intVal and set, their values must be
      * consistent.
-     * 
+     *
      * <li>If precision is nonzero, it must have the right value.
      * </ul>
-     * 
+     *
      * Note: Since this is an audit method, we are not supposed to change the
      * state of this BigDecimal object.
      */
     private BigDecimal audit() {
-	if (intCompact == INFLATED) {
-	    if (intVal == null) { 
-		print("audit", this);
-		throw new AssertionError("null intVal");
-	    }
+        if (intCompact == INFLATED) {
+            if (intVal == null) {
+                print("audit", this);
+                throw new AssertionError("null intVal");
+            }
             // Check precision
             if (precision > 0 && precision != bigDigitLength(intVal)) {
                 print("audit", this);
-		throw new AssertionError("precision mismatch");
-	    }
-	} else {
-	    if (intVal != null) {
-		long val = intVal.longValue();
-		if (val != intCompact) {
-		    print("audit", this);
-		    throw new AssertionError("Inconsistent state, intCompact=" + 
-					     intCompact + "\t intVal=" + val);
-		}
-	    }
+                throw new AssertionError("precision mismatch");
+            }
+        } else {
+            if (intVal != null) {
+                long val = intVal.longValue();
+                if (val != intCompact) {
+                    print("audit", this);
+                    throw new AssertionError("Inconsistent state, intCompact=" +
+                                             intCompact + "\t intVal=" + val);
+                }
+            }
             // Check precision
             if (precision > 0 && precision != longDigitLength(intCompact)) {
                 print("audit", this);
-		throw new AssertionError("precision mismatch");
-	    }
-	}
-	return this;
+                throw new AssertionError("precision mismatch");
+            }
+        }
+        return this;
     }
 }

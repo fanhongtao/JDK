@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -58,10 +62,9 @@ import com.sun.org.apache.bcel.internal.generic.Type;
 import java.io.*;
 
 /**
- * This class represents the field info structure, i.e., the representation 
+ * This class represents the field info structure, i.e., the representation
  * for a variable in the class. See JVM specification for details.
  *
- * @version $Id: Field.java,v 1.1.2.1 2005/07/31 23:46:32 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class Field extends FieldOrMethod {
@@ -91,7 +94,7 @@ public final class Field extends FieldOrMethod {
    * @param constant_pool Array of constants
    */
   public Field(int access_flags, int name_index, int signature_index,
-	       Attribute[] attributes, ConstantPool constant_pool)
+               Attribute[] attributes, ConstantPool constant_pool)
   {
     super(access_flags, name_index, signature_index, attributes, constant_pool);
   }
@@ -113,7 +116,7 @@ public final class Field extends FieldOrMethod {
   public final ConstantValue getConstantValue() {
     for(int i=0; i < attributes_count; i++)
       if(attributes[i].getTag() == Constants.ATTR_CONSTANT_VALUE)
-	return (ConstantValue)attributes[i];
+        return (ConstantValue)attributes[i];
 
     return null;
   }
@@ -143,7 +146,7 @@ public final class Field extends FieldOrMethod {
       Attribute a = attributes[i];
 
       if(!(a instanceof ConstantValue))
-	buf.append(" [" + a.toString() + "]");
+        buf.append(" [" + a.toString() + "]");
     }
 
     return buf.toString();

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  2003-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,29 +23,29 @@ package com.sun.org.apache.xml.internal.security.encryption;
 import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 
 /**
- * 
+ *
  */
 public class XMLEncryptionException extends XMLSecurityException {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	/**
-     * 
-	 *
-	 */
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+        /**
+     *
+         *
+         */
    public XMLEncryptionException() {
       super();
    }
    /**
-    * 
+    *
     * @param _msgID
     */
    public XMLEncryptionException(String _msgID) {
       super(_msgID);
    }
    /**
-    * 
+    *
     * @param _msgID
     * @param exArgs
     */
@@ -49,7 +53,7 @@ public class XMLEncryptionException extends XMLSecurityException {
       super(_msgID, exArgs);
    }
    /**
-    * 
+    *
     * @param _msgID
     * @param _originalException
     */
@@ -58,7 +62,7 @@ public class XMLEncryptionException extends XMLSecurityException {
       super(_msgID, _originalException);
    }
    /**
-    * 
+    *
     * @param _msgID
     * @param exArgs
     * @param _originalException

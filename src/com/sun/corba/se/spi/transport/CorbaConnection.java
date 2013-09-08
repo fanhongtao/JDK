@@ -1,8 +1,26 @@
 /*
- * @(#)CorbaConnection.java	1.32 09/04/01
- * 
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.transport;
@@ -34,21 +52,21 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException;
  */
 public interface CorbaConnection
     extends
-	Connection,
-	com.sun.corba.se.spi.legacy.connection.Connection
+        Connection,
+        com.sun.corba.se.spi.legacy.connection.Connection
 {
     public boolean shouldUseDirectByteBuffers();
 
     public boolean shouldReadGiopHeaderOnly();
 
     public ByteBuffer read(int size, int offset, int length, long max_wait_time)
-	throws IOException;
+        throws IOException;
 
     public ByteBuffer read(ByteBuffer byteBuffer, int offset,
-	                  int length, long max_wait_time) throws IOException;
+                          int length, long max_wait_time) throws IOException;
 
     public void write(ByteBuffer byteBuffer)
-	throws IOException;
+        throws IOException;
 
     public void dprint(String msg);
 
@@ -60,7 +78,7 @@ public interface CorbaConnection
     public ORB getBroker();
     public CodeSetComponentInfo.CodeSetContext getCodeSetContext();
     public void setCodeSetContext(CodeSetComponentInfo.CodeSetContext csc);
-    
+
     //
     // from iiop.IIOPConnection.java
     //
@@ -82,7 +100,7 @@ public interface CorbaConnection
     public void setPostInitialContexts();
 
     public void purgeCalls(SystemException systemException,
-			   boolean die, boolean lockHeld);
+                           boolean die, boolean lockHeld);
 
     //
     // Connection status
@@ -118,24 +136,24 @@ public interface CorbaConnection
     // End Code Base methods -----------------------------------------
 
     public void sendCloseConnection(GIOPVersion giopVersion)
-	throws IOException;
+        throws IOException;
 
     public void sendMessageError(GIOPVersion giopVersion)
-	throws IOException;
+        throws IOException;
 
     public void sendCancelRequest(GIOPVersion giopVersion, int requestId)
-	throws
-	    IOException;
+        throws
+            IOException;
 
     public void sendCancelRequestWithLock(GIOPVersion giopVersion,
-					  int requestId)
-	throws 
-	    IOException;
+                                          int requestId)
+        throws
+            IOException;
 
     public ResponseWaitingRoom getResponseWaitingRoom();
 
     public void serverRequestMapPut(int requestId,
-				    CorbaMessageMediator messageMediator);
+                                    CorbaMessageMediator messageMediator);
     public CorbaMessageMediator serverRequestMapGet(int requestId);
     public void serverRequestMapRemove(int requestId);
 
@@ -152,4 +170,3 @@ public interface CorbaConnection
 }
 
 // End of file.
-

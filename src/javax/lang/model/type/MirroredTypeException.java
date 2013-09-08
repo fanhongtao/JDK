@@ -1,13 +1,32 @@
 /*
- * @(#)MirroredTypeException.java	1.3 06/07/31
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.type;
 
-
+import java.io.ObjectInputStream;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import javax.lang.model.element.Element;
 
@@ -19,16 +38,15 @@ import javax.lang.model.element.Element;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.3 06/07/31
  * @see MirroredTypesException
  * @see Element#getAnnotation(Class)
  * @since 1.6
  */
-public class MirroredTypeException extends RuntimeException {
+public class MirroredTypeException extends MirroredTypesException {
 
     private static final long serialVersionUID = 269;
 
-    private transient TypeMirror type;		// cannot be serialized
+    private transient TypeMirror type;          // cannot be serialized
 
     /**
      * Constructs a new MirroredTypeException for the specified type.
@@ -36,8 +54,8 @@ public class MirroredTypeException extends RuntimeException {
      * @param type  the type being accessed
      */
     public MirroredTypeException(TypeMirror type) {
-	super("Attempt to access Class object for TypeMirror " + type);
-	this.type = type;
+        super("Attempt to access Class object for TypeMirror " + type.toString(), type);
+        this.type = type;
     }
 
     /**
@@ -48,6 +66,16 @@ public class MirroredTypeException extends RuntimeException {
      * @return the type mirror, or {@code null} if unavailable
      */
     public TypeMirror getTypeMirror() {
-	return type;
+        return type;
+    }
+
+    /**
+     * Explicitly set all transient fields.
+     */
+    private void readObject(ObjectInputStream s)
+        throws IOException, ClassNotFoundException {
+        s.defaultReadObject();
+        type = null;
+        types = null;
     }
 }

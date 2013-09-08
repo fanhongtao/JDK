@@ -1,8 +1,26 @@
 /*
- * @(#)UndoableEditSupport.java	1.21 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.undo;
@@ -14,7 +32,6 @@ import java.util.*;
  * A support class used for managing <code>UndoableEdit</code> listeners.
  *
  * @author Ray Ryan
- * @version 1.21 11/17/05
  */
 public class UndoableEditSupport {
     protected int updateLevel;
@@ -26,19 +43,19 @@ public class UndoableEditSupport {
      * Constructs an <code>UndoableEditSupport</code> object.
      */
     public UndoableEditSupport() {
-	this(null);
+        this(null);
     }
 
     /**
      * Constructs an <code>UndoableEditSupport</code> object.
      *
-     * @param r  an <code>Object</code> 
+     * @param r  an <code>Object</code>
      */
     public UndoableEditSupport(Object r) {
-	realSource = r == null ? this : r;
-	updateLevel = 0;
-	compoundEdit = null;
-	listeners = new Vector<UndoableEditListener>();
+        realSource = r == null ? this : r;
+        updateLevel = 0;
+        compoundEdit = null;
+        listeners = new Vector<UndoableEditListener>();
     }
 
     /**
@@ -49,7 +66,7 @@ public class UndoableEditSupport {
      * @see #removeUndoableEditListener
      */
     public synchronized void addUndoableEditListener(UndoableEditListener l) {
-	listeners.addElement(l);
+        listeners.addElement(l);
     }
 
     /**
@@ -60,7 +77,7 @@ public class UndoableEditSupport {
      */
     public synchronized void removeUndoableEditListener(UndoableEditListener l)
     {
-	listeners.removeElement(l);
+        listeners.removeElement(l);
     }
 
     /**
@@ -72,8 +89,7 @@ public class UndoableEditSupport {
      * @since 1.4
      */
     public synchronized UndoableEditListener[] getUndoableEditListeners() {
-        return (UndoableEditListener[])(listeners.toArray(
-                new UndoableEditListener[0]));
+        return listeners.toArray(new UndoableEditListener[0]);
     }
 
     /**
@@ -82,26 +98,26 @@ public class UndoableEditSupport {
      * is performed here, since the two calling methods are synchronized.
      */
     protected void _postEdit(UndoableEdit e) {
-	UndoableEditEvent ev = new UndoableEditEvent(realSource, e);
-	Enumeration cursor = ((Vector)listeners.clone()).elements();
-	while (cursor.hasMoreElements()) {
-	    ((UndoableEditListener)cursor.nextElement()).
-		undoableEditHappened(ev);	    
-	}
+        UndoableEditEvent ev = new UndoableEditEvent(realSource, e);
+        Enumeration cursor = ((Vector)listeners.clone()).elements();
+        while (cursor.hasMoreElements()) {
+            ((UndoableEditListener)cursor.nextElement()).
+                undoableEditHappened(ev);
+        }
     }
-    
+
     /**
      * DEADLOCK WARNING: Calling this method may call
      * <code>undoableEditHappened</code> in all listeners.
      * It is unwise to call this method from one of its listeners.
      */
     public synchronized void postEdit(UndoableEdit e) {
-	if (updateLevel == 0) {
-	    _postEdit(e);
-	} else {
-	    // PENDING(rjrjr) Throw an exception if this fails? 
-	    compoundEdit.addEdit(e);
-	}
+        if (updateLevel == 0) {
+            _postEdit(e);
+        } else {
+            // PENDING(rjrjr) Throw an exception if this fails?
+            compoundEdit.addEdit(e);
+        }
     }
 
     /**
@@ -110,17 +126,17 @@ public class UndoableEditSupport {
      * @return an integer representing the update level
      */
     public int getUpdateLevel() {
-	return updateLevel;
+        return updateLevel;
     }
 
     /**
      *
      */
     public synchronized void beginUpdate() {
-	if (updateLevel == 0) {
-	    compoundEdit = createCompoundEdit();
-	}
-	updateLevel++;
+        if (updateLevel == 0) {
+            compoundEdit = createCompoundEdit();
+        }
+        updateLevel++;
     }
 
     /**
@@ -128,7 +144,7 @@ public class UndoableEditSupport {
      * Exposed here for subclasses' use.
      */
     protected CompoundEdit createCompoundEdit() {
-	return new CompoundEdit();
+        return new CompoundEdit();
     }
 
     /**
@@ -137,14 +153,14 @@ public class UndoableEditSupport {
      * It is unwise to call this method from one of its listeners.
      */
     public synchronized void endUpdate() {
-	updateLevel--;
-	if (updateLevel == 0) {
-	    compoundEdit.end();
-	    _postEdit(compoundEdit);
-	    compoundEdit = null;
-	}
+        updateLevel--;
+        if (updateLevel == 0) {
+            compoundEdit.end();
+            _postEdit(compoundEdit);
+            compoundEdit = null;
+        }
     }
-    
+
     /**
      * Returns a string that displays and identifies this
      * object's properties.
@@ -152,11 +168,9 @@ public class UndoableEditSupport {
      * @return a <code>String</code> representation of this object
      */
     public String toString() {
-	return super.toString() +
-	    " updateLevel: " + updateLevel +
-	    " listeners: " + listeners +
-	    " compoundEdit: " + compoundEdit;
+        return super.toString() +
+            " updateLevel: " + updateLevel +
+            " listeners: " + listeners +
+            " compoundEdit: " + compoundEdit;
     }
 }
-
-

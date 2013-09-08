@@ -1,4 +1,7 @@
-
+/*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 /*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
@@ -29,6 +32,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.sun.org.apache.xml.internal.security.c14n.CanonicalizationException;
 import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
+import com.sun.org.apache.xml.internal.security.transforms.Transform;
 import com.sun.org.apache.xml.internal.security.transforms.TransformSpi;
 import com.sun.org.apache.xml.internal.security.transforms.TransformationException;
 import com.sun.org.apache.xml.internal.security.transforms.Transforms;
@@ -38,7 +42,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
-
 
 /**
  * Implements the <CODE>http://www.w3.org/2000/09/xmldsig#base64</CODE> decoding
@@ -91,41 +94,43 @@ public class TransformBase64Decode extends TransformSpi {
     * @throws IOException
     * @throws TransformationException
     */
-   protected XMLSignatureInput enginePerformTransform(XMLSignatureInput input)
+   protected XMLSignatureInput enginePerformTransform
+        (XMLSignatureInput input, Transform _transformObject)
            throws IOException, CanonicalizationException,
                   TransformationException {
-   	return enginePerformTransform(input,null);
+        return enginePerformTransform(input, null, _transformObject);
    }
+
     protected XMLSignatureInput enginePerformTransform(XMLSignatureInput input,
-            OutputStream os)
+            OutputStream os, Transform _transformObject)
     throws IOException, CanonicalizationException,
            TransformationException {
-	 try {
+         try {
       if (input.isElement()) {
          Node el=input.getSubNode();
-         if (input.getSubNode().getNodeType()==Node.TEXT_NODE) {         	
+         if (input.getSubNode().getNodeType()==Node.TEXT_NODE) {
             el=el.getParentNode();
          }
          StringBuffer sb=new StringBuffer();
          traverseElement((Element)el,sb);
          if (os==null) {
-         	byte[] decodedBytes = Base64.decode(sb.toString());            
-         	return new XMLSignatureInput(decodedBytes);
-         } 
-         	Base64.decode(sb.toString().getBytes(),os);
+                byte[] decodedBytes = Base64.decode(sb.toString());
+                return new XMLSignatureInput(decodedBytes);
+         }
+                Base64.decode(sb.toString(),os);
             XMLSignatureInput output=new XMLSignatureInput((byte[])null);
             output.setOutputStream(os);
             return output;
-         
+
       }
       if (input.isOctetStream() || input.isNodeSet()) {
-                    
-        
+
+
         if (os==null) {
             byte[] base64Bytes = input.getBytes();
-            byte[] decodedBytes = Base64.decode(base64Bytes);            
+            byte[] decodedBytes = Base64.decode(base64Bytes);
             return new XMLSignatureInput(decodedBytes);
-         } 
+         }
         if (input.isByteArray() || input.isNodeSet()) {
                Base64.decode(input.getBytes(),os);
         } else {
@@ -135,44 +140,44 @@ public class TransformBase64Decode extends TransformSpi {
             XMLSignatureInput output=new XMLSignatureInput((byte[])null);
             output.setOutputStream(os);
             return output;
-         
-        
-      } 
-       
-	 try {
+
+
+      }
+
+         try {
             //Exceptional case there is current not text case testing this(Before it was a
-	 	    //a common case).
+                    //a common case).
             Document doc =
                DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
                   input.getOctetStream());
-                  
+
             Element rootNode = doc.getDocumentElement();
             StringBuffer sb = new StringBuffer();
             traverseElement(rootNode,sb);
             byte[] decodedBytes = Base64.decode(sb.toString());
-			
+
             return new XMLSignatureInput(decodedBytes);
-		  } catch (ParserConfigurationException e) {
-			  throw new TransformationException("c14n.Canonicalizer.Exception",e);
-		  } catch (SAXException e) {
-			  throw new TransformationException("SAX exception", e);
-		  }      
-	} catch (Base64DecodingException e) {
+                  } catch (ParserConfigurationException e) {
+                          throw new TransformationException("c14n.Canonicalizer.Exception",e);
+                  } catch (SAXException e) {
+                          throw new TransformationException("SAX exception", e);
+                  }
+        } catch (Base64DecodingException e) {
         throw new TransformationException("Base64Decoding", e);
-	}
+        }
    }
 
    void traverseElement(org.w3c.dom.Element node,StringBuffer sb) {
-   	    Node sibling=node.getFirstChild();
+            Node sibling=node.getFirstChild();
         while (sibling!=null) {
-        	switch (sibling.getNodeType()) {
-        		case Node.ELEMENT_NODE:
+                switch (sibling.getNodeType()) {
+                        case Node.ELEMENT_NODE:
                     traverseElement((Element)sibling,sb);
                     break;
                case Node.TEXT_NODE:
-               	    sb.append(((Text)sibling).getData());
+                    sb.append(((Text)sibling).getData());
             }
             sibling=sibling.getNextSibling();
         }
-   }  
+   }
 }

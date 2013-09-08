@@ -1,11 +1,25 @@
 /*
- * @(#)file      SnmpMsgTranslator.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.17
- * @(#)date      06/11/29
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 package com.sun.jmx.snmp.mpm;
@@ -14,7 +28,7 @@ import com.sun.jmx.snmp.SnmpSecurityParameters;
 import com.sun.jmx.snmp.SnmpMsg;
 /**
  * The translator interface is implemented by classes dealing with a specific SNMP protocol version. SnmpMsgTranslator are used in conjonction with SnmpMsgProcessingModel implementations.
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  * @since 1.5
  */

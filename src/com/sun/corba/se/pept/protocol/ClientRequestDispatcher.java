@@ -1,8 +1,26 @@
 /*
- * @(#)ClientRequestDispatcher.java	1.15 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.pept.protocol;
@@ -37,9 +55,9 @@ public interface ClientRequestDispatcher
      * {@link com.sun.corba.se.pept.encoding.OutputObject OutputObject}
      */
     public OutputObject beginRequest(Object self,
-				     String methodName,
-				     boolean isOneWay,
-				     ContactInfo contactInfo);
+                                     String methodName,
+                                     boolean isOneWay,
+                                     ContactInfo contactInfo);
 
     /**
      * After the presentation block has set data on the
@@ -57,17 +75,17 @@ public interface ClientRequestDispatcher
      * @throws
      * {@link org.omg.CORBA.portable.ApplicationException ApplicationException}
      * if the remote side raises an exception declared in the remote interface.
-     * 
+     *
      * @throws
      * {@link org.omg.CORBA.portable.RemarshalException RemarshalException}
      * if the PEPt runtime would like the presentation block to start over.
      */
     public InputObject marshalingComplete(java.lang.Object self,
-					  OutputObject outputObject)
+                                          OutputObject outputObject)
     // REVISIT EXCEPTIONS
-	throws
-	    org.omg.CORBA.portable.ApplicationException, 
-	    org.omg.CORBA.portable.RemarshalException;
+        throws
+            org.omg.CORBA.portable.ApplicationException,
+            org.omg.CORBA.portable.RemarshalException;
 
     /**
      * After the presentation block completes a request it signals
@@ -80,8 +98,8 @@ public interface ClientRequestDispatcher
      * @param inputObject -
      */
     public void endRequest(Broker broker,
-			   java.lang.Object self, 
-			   InputObject inputObject);
+                           java.lang.Object self,
+                           InputObject inputObject);
 }
 
 // End of file.

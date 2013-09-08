@@ -1,8 +1,26 @@
 /*
- * @(#)ByteBufferAs-X-Buffer.java	1.18 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -10,7 +28,7 @@
 package java.nio;
 
 
-class ByteBufferAsCharBufferRB			// package-private
+class ByteBufferAsCharBufferRB                  // package-private
     extends ByteBufferAsCharBufferB
 {
 
@@ -21,7 +39,7 @@ class ByteBufferAsCharBufferRB			// package-private
 
 
 
-    ByteBufferAsCharBufferRB(ByteBuffer bb) {	// package-private
+    ByteBufferAsCharBufferRB(ByteBuffer bb) {   // package-private
 
 
 
@@ -34,40 +52,40 @@ class ByteBufferAsCharBufferRB			// package-private
 
 
 
-	super(bb);
+        super(bb);
 
     }
 
     ByteBufferAsCharBufferRB(ByteBuffer bb,
-				     int mark, int pos, int lim, int cap,
-				     int off)
+                                     int mark, int pos, int lim, int cap,
+                                     int off)
     {
 
 
 
 
 
-	super(bb, mark, pos, lim, cap, off);
+        super(bb, mark, pos, lim, cap, off);
 
     }
 
     public CharBuffer slice() {
-	int pos = this.position();
-	int lim = this.limit();
-	assert (pos <= lim);
-	int rem = (pos <= lim ? lim - pos : 0);
-	int off = (pos << 1) + offset;
+        int pos = this.position();
+        int lim = this.limit();
+        assert (pos <= lim);
+        int rem = (pos <= lim ? lim - pos : 0);
+        int off = (pos << 1) + offset;
         assert (off >= 0);
-	return new ByteBufferAsCharBufferRB(bb, -1, 0, rem, rem, off);
+        return new ByteBufferAsCharBufferRB(bb, -1, 0, rem, rem, off);
     }
 
     public CharBuffer duplicate() {
-	return new ByteBufferAsCharBufferRB(bb,
-						    this.markValue(),
-						    this.position(),
-						    this.limit(),
-						    this.capacity(),
-						    offset);
+        return new ByteBufferAsCharBufferRB(bb,
+                                                    this.markValue(),
+                                                    this.position(),
+                                                    this.limit(),
+                                                    this.capacity(),
+                                                    offset);
     }
 
     public CharBuffer asReadOnlyBuffer() {
@@ -79,7 +97,7 @@ class ByteBufferAsCharBufferRB			// package-private
 
 
 
-	return duplicate();
+        return duplicate();
 
     }
 
@@ -104,7 +122,7 @@ class ByteBufferAsCharBufferRB			// package-private
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -113,7 +131,7 @@ class ByteBufferAsCharBufferRB			// package-private
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -134,53 +152,56 @@ class ByteBufferAsCharBufferRB			// package-private
 
 
 
-	throw new ReadOnlyBufferException();
+
+        throw new ReadOnlyBufferException();
 
     }
 
     public boolean isDirect() {
-	return bb.isDirect();
+        return bb.isDirect();
     }
 
     public boolean isReadOnly() {
-	return true;
+        return true;
     }
 
 
 
     public String toString(int start, int end) {
-	if ((end > limit()) || (start > end))
-	    throw new IndexOutOfBoundsException();
-	try {
-	    int len = end - start;
-	    char[] ca = new char[len];
-	    CharBuffer cb = CharBuffer.wrap(ca);
-	    CharBuffer db = this.duplicate();
-	    db.position(start);
-	    db.limit(end);
-	    cb.put(db);
-	    return new String(ca);
-	} catch (StringIndexOutOfBoundsException x) {
-	    throw new IndexOutOfBoundsException();
-	}
+        if ((end > limit()) || (start > end))
+            throw new IndexOutOfBoundsException();
+        try {
+            int len = end - start;
+            char[] ca = new char[len];
+            CharBuffer cb = CharBuffer.wrap(ca);
+            CharBuffer db = this.duplicate();
+            db.position(start);
+            db.limit(end);
+            cb.put(db);
+            return new String(ca);
+        } catch (StringIndexOutOfBoundsException x) {
+            throw new IndexOutOfBoundsException();
+        }
     }
 
 
     // --- Methods to support CharSequence ---
 
-    public CharSequence subSequence(int start, int end) {
-	int pos = position();
-	int lim = limit();
-	assert (pos <= lim);
-	pos = (pos <= lim ? pos : lim);
-	int len = lim - pos;
+    public CharBuffer subSequence(int start, int end) {
+        int pos = position();
+        int lim = limit();
+        assert (pos <= lim);
+        pos = (pos <= lim ? pos : lim);
+        int len = lim - pos;
 
-	if ((start < 0) || (end > len) || (start > end))
-	    throw new IndexOutOfBoundsException();
-	int sublen = end - start;
- 	int off = offset + ((pos + start) << 1);
-        assert (off >= 0);
-	return new ByteBufferAsCharBufferRB(bb, -1, 0, sublen, sublen, off);
+        if ((start < 0) || (end > len) || (start > end))
+            throw new IndexOutOfBoundsException();
+        return new ByteBufferAsCharBufferRB(bb,
+                                                  -1,
+                                                  pos + start,
+                                                  pos + end,
+                                                  capacity(),
+                                                  offset);
     }
 
 
@@ -188,7 +209,7 @@ class ByteBufferAsCharBufferRB			// package-private
 
     public ByteOrder order() {
 
-	return ByteOrder.BIG_ENDIAN;
+        return ByteOrder.BIG_ENDIAN;
 
 
 

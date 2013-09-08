@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +23,8 @@
 package com.sun.org.apache.xml.internal.utils;
 
 /**
- * Class used to verify whether the specified <var>ch</var> 
- * conforms to the XML 1.0 definition of whitespace. 
+ * Class used to verify whether the specified <var>ch</var>
+ * conforms to the XML 1.0 definition of whitespace.
  * @xsl.usage internal
  */
 public class XMLCharacterRecognizer
@@ -43,8 +47,8 @@ public class XMLCharacterRecognizer
    *
    * @param ch Character array to check as XML whitespace.
    * @param start Start index of characters in the array
-   * @param length Number of characters in the array 
-   * @return True if the characters in the array are 
+   * @param length Number of characters in the array
+   * @return True if the characters in the array are
    * XML whitespace; otherwise, false.
    */
   public static boolean isWhiteSpace(char ch[], int start, int length)
@@ -80,7 +84,7 @@ public class XMLCharacterRecognizer
 
     return true;
   }
-  
+
   /**
    * Tell if the string is whitespace.
    *
@@ -93,7 +97,7 @@ public class XMLCharacterRecognizer
     if(null != s)
     {
       int n = s.length();
-  
+
       for (int i = 0; i < n; i++)
       {
         if (!isWhiteSpace(s.charAt(i)))

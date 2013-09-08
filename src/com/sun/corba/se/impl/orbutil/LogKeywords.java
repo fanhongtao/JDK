@@ -1,8 +1,26 @@
 /*
- * @(#)LogKeywords.java	1.4 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.orbutil;
@@ -15,8 +33,8 @@ package com.sun.corba.se.impl.orbutil;
  */
 public class LogKeywords {
 
-    /** 
-     ** Keywords for Lifecycle Loggers. 
+    /**
+     ** Keywords for Lifecycle Loggers.
      ** _REVISIT_ After it is clearly defined in JSR 117
      **/
     public final static String LIFECYCLE_CREATE     = "<<LIFECYCLE CREATE>>";
@@ -25,26 +43,26 @@ public class LogKeywords {
     public final static String LIFECYCLE_DESTROY    = "<<LIFECYCLE DESTROY>>";
 
 
-    public final static String LIFECYCLE_CREATE_SUCCESS = 
+    public final static String LIFECYCLE_CREATE_SUCCESS =
         LIFECYCLE_CREATE + "<<SUCCESS>>";
-    public final static String LIFECYCLE_CREATE_FAILURE = 
+    public final static String LIFECYCLE_CREATE_FAILURE =
         LIFECYCLE_CREATE + "<<FAILURE>>";
-    public final static String LIFECYCLE_INITIALIZE_SUCCESS = 
+    public final static String LIFECYCLE_INITIALIZE_SUCCESS =
         LIFECYCLE_INITIALIZE + "<<SUCCESS>>";
-    public final static String LIFECYCLE_INITIALIZE_FAILURE = 
+    public final static String LIFECYCLE_INITIALIZE_FAILURE =
         LIFECYCLE_INITIALIZE + "<<FAILURE>>";
-    public final static String LIFECYCLE_SHUTDOWN_SUCCESS = 
+    public final static String LIFECYCLE_SHUTDOWN_SUCCESS =
         LIFECYCLE_SHUTDOWN + "<<SUCCESS>>";
-    public final static String LIFECYCLE_SHUTDOWN_FAILURE = 
+    public final static String LIFECYCLE_SHUTDOWN_FAILURE =
         LIFECYCLE_SHUTDOWN + "<<FAILURE>>";
-    public final static String LIFECYCLE_DESTROY_SUCCESS = 
+    public final static String LIFECYCLE_DESTROY_SUCCESS =
         LIFECYCLE_DESTROY + "<<SUCCESS>>";
-    public final static String LIFECYCLE_DESTROY_FAILURE = 
+    public final static String LIFECYCLE_DESTROY_FAILURE =
         LIFECYCLE_DESTROY + "<<FAILURE>>";
 
     /**
      ** Keywords for Naming Read Loggers.
-     **/ 
+     **/
     public final static String NAMING_RESOLVE       = "<<NAMING RESOLVE>>";
     public final static String NAMING_LIST          = "<<NAMING LIST>>";
 
@@ -77,9 +95,3 @@ public class LogKeywords {
     public final static String NAMING_REBIND_FAILURE =
         NAMING_REBIND + "<<FAILURE>>";
 }
-
-    
-    
-
-     
-

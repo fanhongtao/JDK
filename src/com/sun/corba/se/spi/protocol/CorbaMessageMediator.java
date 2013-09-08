@@ -1,8 +1,26 @@
 /*
- * @(#)CorbaMessageMediator.java	1.33 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.protocol;
@@ -44,8 +62,8 @@ import com.sun.corba.se.impl.protocol.giopmsgheaders.RequestMessage_1_0;
  */
 public interface CorbaMessageMediator
     extends
-	MessageMediator,
-	ResponseHandler
+        MessageMediator,
+        ResponseHandler
 {
     public void setReplyHeader(LocateReplyOrReplyMessage header);
     public LocateReplyMessage getLocateReplyHeader();
@@ -77,7 +95,7 @@ public interface CorbaMessageMediator
     public void setDIIInfo(org.omg.CORBA.Request request);
     public boolean isDIIRequest();
     public Exception unmarshalDIIUserException(String repoId,
-					       InputStream inputStream);
+                                               InputStream inputStream);
     public void setDIIException(Exception exception);
     public void handleDIIReply(InputStream inputStream);
 
@@ -126,4 +144,3 @@ public interface CorbaMessageMediator
 }
 
 // End of file.
-

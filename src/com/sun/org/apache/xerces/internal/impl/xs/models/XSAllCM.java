@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,14 +27,15 @@ import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaException;
 import com.sun.org.apache.xerces.internal.impl.xs.XSConstraints;
 
 import java.util.Vector;
+import java.util.ArrayList;
 
 /**
- * XSAllCM implements XSCMValidator and handles <all>
+ * XSAllCM implements XSCMValidator and handles &lt;all&gt;.
  *
  * @xerces.internal 
  *
  * @author Pavani Mukthipudi, Sun Microsystems Inc.
- * @version $Id: XSAllCM.java,v 1.4 2006/07/19 22:39:34 spericas Exp $
+ * @version $Id: XSAllCM.java,v 1.10 2010-11-01 04:39:58 joehw Exp $
  */
 public class XSAllCM implements XSCMValidator {
 
@@ -74,20 +79,6 @@ public class XSAllCM implements XSCMValidator {
     // XSCMValidator methods
     //
 
-    /**
-     * This method is only implemented by <code>XSDFACM</code>.
-     */
-    public Object getUserData() {
-        return null;
-    }
-
-    /**
-     * This method is only implemented by <code>XSDFACM</code>.
-     */
-    public int getOneTransitionCounter() {
-        throw new UnsupportedOperationException();
-    }
-    
     /**
      * This methods to be called on entering a first element whose type
      * has this content model. It will return the initial state of the
@@ -224,6 +215,10 @@ public class XSAllCM implements XSCMValidator {
                 ret.addElement(fAllElements[i]);
         }
         return ret;
+    }
+
+    public ArrayList checkMinMaxBounds() {
+        return null;
     }
 
 } // class XSAllCM

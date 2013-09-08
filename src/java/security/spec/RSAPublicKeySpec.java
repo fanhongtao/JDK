@@ -1,8 +1,26 @@
 /*
- * @(#)RSAPublicKeySpec.java	1.11 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.spec;
@@ -14,7 +32,6 @@ import java.math.BigInteger;
  *
  * @author Jan Luehe
  *
- * @version 1.11 05/11/17
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -36,8 +53,8 @@ public class RSAPublicKeySpec implements KeySpec {
      * @param publicExponent the public exponent
      */
     public RSAPublicKeySpec(BigInteger modulus, BigInteger publicExponent) {
-	this.modulus = modulus;
-	this.publicExponent = publicExponent;
+        this.modulus = modulus;
+        this.publicExponent = publicExponent;
     }
 
     /**
@@ -46,7 +63,7 @@ public class RSAPublicKeySpec implements KeySpec {
      * @return the modulus
      */
     public BigInteger getModulus() {
-	return this.modulus;
+        return this.modulus;
     }
 
     /**
@@ -55,6 +72,6 @@ public class RSAPublicKeySpec implements KeySpec {
      * @return the public exponent
      */
     public BigInteger getPublicExponent() {
-	return this.publicExponent;
+        return this.publicExponent;
     }
 }

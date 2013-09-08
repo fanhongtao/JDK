@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +53,7 @@ public class FuncDoclocation extends FunctionDef1Arg
     if (DTM.NULL != whereNode)
     {
       DTM dtm = xctxt.getDTM(whereNode);
-      
+
       // %REVIEW%
       if (DTM.DOCUMENT_FRAGMENT_NODE ==  dtm.getNodeType(whereNode))
       {
@@ -57,7 +61,7 @@ public class FuncDoclocation extends FunctionDef1Arg
       }
 
       if (DTM.NULL != whereNode)
-      {        
+      {
         fileLocation = dtm.getDocumentBaseURI();
 //        int owner = dtm.getDocument();
 //        fileLocation = xctxt.getSourceTreeManager().findURIFromDoc(owner);

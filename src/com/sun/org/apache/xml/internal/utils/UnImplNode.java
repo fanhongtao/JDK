@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +18,7 @@
  * limitations under the License.
  */
 /*
- * $Id: UnImplNode.java,v 
+ * $Id: UnImplNode.java,v
  */
 package com.sun.org.apache.xml.internal.utils;
 
@@ -574,10 +578,10 @@ public class UnImplNode implements Node, Element, NodeList, Document
    */
 
   // public String getValue ()
-  // {      
+  // {
   //  error(XMLErrorResources.ER_FUNCTION_NOT_SUPPORTED); //"getValue not supported!");
   //  return null;
-  // } 
+  // }
 
   /**
    * Unimplemented. See org.w3c.dom.Node
@@ -1110,7 +1114,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
   }
 
   /**
-   * NEEDSDOC Method adoptNode 
+   * NEEDSDOC Method adoptNode
    *
    *
    * NEEDSDOC @param source
@@ -1278,7 +1282,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
 
 
 //RAMESH : Pending proper implementation of DOM Level 3
-    
+
     public Object setUserData(String key,
                               Object data,
                               UserDataHandler handler) {
@@ -1296,7 +1300,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
      */
     public Object getUserData(String key) {
         return getOwnerDocument().getUserData( key);
-    } 
+    }
 
       /**
      *  This method returns a specialized object which implements the
@@ -1480,12 +1484,12 @@ public class UnImplNode implements Node, Element, NodeList, Document
                         }
                     }
                 }
-		/*
+                /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.lookupNamespaceURI(specifiedPrefix);
                 }
-		*/
+                */
 
                 return null;
 
@@ -1510,7 +1514,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
                 return null;
             }
         default:{
-	   /*
+           /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.lookupNamespaceURI(specifiedPrefix);
@@ -1522,7 +1526,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
         }
     }
 
-    
+
     /**
      *  DOM Level 3: Experimental
      *  This method checks if the specified <code>namespaceURI</code> is the
@@ -1583,7 +1587,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
                 }
                 return false;
             }
-        default:{  
+        default:{
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.isDefaultNamespace(namespaceURI);
@@ -1641,7 +1645,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
                 }
                 return null;
             }
-        default:{ 
+        default:{
 /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
@@ -1821,12 +1825,12 @@ public class UnImplNode implements Node, Element, NodeList, Document
         return n;
     }
 
-    
+
     /**
      *  DOM Level 3 WD - Experimental
      *  Normalize document.
      */
-    public void normalizeDocument(){   
+    public void normalizeDocument(){
 
     }
     /**
@@ -1838,7 +1842,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
        return null;
     }
 
-    
+
     /**Experimental DOM Level 3 feature: documentURI */
     protected String fDocumentURI;
 
@@ -1846,7 +1850,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
      * DOM Level 3 WD - Experimental.
      */
     public void setDocumentURI(String documentURI){
-        
+
         fDocumentURI= documentURI;
     }
 
@@ -1993,7 +1997,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
         //PENDING
     }
 
-       
+
     /**
      * DOM Level 3: register the given attribute node as an ID attribute
      */
@@ -2019,7 +2023,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
     public boolean isId() {
         return false; //PENDING
     }
-  
+
     private String xmlEncoding;
     public String getXmlEncoding ( ) {
         return xmlEncoding;
@@ -2027,7 +2031,7 @@ public class UnImplNode implements Node, Element, NodeList, Document
     public void setXmlEncoding ( String xmlEncoding ) {
         this.xmlEncoding = xmlEncoding;
     }
-  
+
     private boolean xmlStandalone;
     public boolean getXmlStandalone() {
         return xmlStandalone;

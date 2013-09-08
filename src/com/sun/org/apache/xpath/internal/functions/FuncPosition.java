@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,10 +38,10 @@ public class FuncPosition extends Function
 {
     static final long serialVersionUID = -9092846348197271582L;
   private boolean m_isTopLevel;
-  
+
   /**
    * Figure out if we're executing a toplevel expression.
-   * If so, we can't be inside of a predicate. 
+   * If so, we can't be inside of a predicate.
    */
   public void postCompileStep(Compiler compiler)
   {
@@ -49,7 +53,7 @@ public class FuncPosition extends Function
    *
    * @param xctxt Runtime XPath context.
    *
-   * @return The current position of the itteration in the context node list, 
+   * @return The current position of the itteration in the context node list,
    *         or -1 if there is no active context node list.
    */
   public int getPositionInContextNodeList(XPathContext xctxt)
@@ -62,7 +66,7 @@ public class FuncPosition extends Function
     if (null != iter)
     {
       int prox = iter.getProximityPosition(xctxt);
- 
+
       // System.out.println("FuncPosition- prox: "+prox);
       return prox;
     }
@@ -76,15 +80,15 @@ public class FuncPosition extends Function
       {
         if(cnl.getCurrentPos() == 0)
           return 0;
-          
-        // Then I think we're in a sort.  See sort21.xsl. So the iterator has 
-        // already been spent, and is not on the node we're processing. 
-        // It's highly possible that this is an issue for other context-list 
-        // functions.  Shouldn't be a problem for last(), and it shouldn't be 
+
+        // Then I think we're in a sort.  See sort21.xsl. So the iterator has
+        // already been spent, and is not on the node we're processing.
+        // It's highly possible that this is an issue for other context-list
+        // functions.  Shouldn't be a problem for last(), and it shouldn't be
         // a problem for current().
-        try 
-        { 
-          cnl = cnl.cloneWithReset(); 
+        try
+        {
+          cnl = cnl.cloneWithReset();
         }
         catch(CloneNotSupportedException cnse)
         {
@@ -118,10 +122,10 @@ public class FuncPosition extends Function
   public XObject execute(XPathContext xctxt) throws javax.xml.transform.TransformerException
   {
     double pos = (double) getPositionInContextNodeList(xctxt);
-    
+
     return new XNumber(pos);
   }
-  
+
   /**
    * No arguments to process, so this does nothing.
    */

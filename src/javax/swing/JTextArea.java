@@ -1,8 +1,26 @@
 /*
- * @(#)JTextArea.java	1.98 06/08/08
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -21,8 +39,8 @@ import java.io.ObjectInputStream;
 import java.io.IOException;
 
 /**
- * A <code>JTextArea</code> is a multi-line area that displays plain text. 
- * It is intended to be a lightweight component that provides source 
+ * A <code>JTextArea</code> is a multi-line area that displays plain text.
+ * It is intended to be a lightweight component that provides source
  * compatibility with the <code>java.awt.TextArea</code> class where it can
  * reasonably do so.
  * You can find information and examples of using all the text components in
@@ -36,15 +54,15 @@ import java.io.IOException;
  * Alternative multi-line text classes with
  * more capabilities are <code>JTextPane</code> and <code>JEditorPane</code>.
  * <p>
- * The <code>java.awt.TextArea</code> internally handles scrolling.  
- * <code>JTextArea</code> is different in that it doesn't manage scrolling, 
- * but implements the swing <code>Scrollable</code> interface.  This allows it 
+ * The <code>java.awt.TextArea</code> internally handles scrolling.
+ * <code>JTextArea</code> is different in that it doesn't manage scrolling,
+ * but implements the swing <code>Scrollable</code> interface.  This allows it
  * to be placed inside a <code>JScrollPane</code> if scrolling
  * behavior is desired, and used directly if scrolling is not desired.
  * <p>
- * The <code>java.awt.TextArea</code> has the ability to do line wrapping. 
+ * The <code>java.awt.TextArea</code> has the ability to do line wrapping.
  * This was controlled by the horizontal scrolling policy.  Since
- * scrolling is not done by <code>JTextArea</code> directly, backward 
+ * scrolling is not done by <code>JTextArea</code> directly, backward
  * compatibility must be provided another way.  <code>JTextArea</code> has
  * a bound property for line wrapping that controls whether or
  * not it will wrap lines.  By default, the line wrapping property
@@ -63,11 +81,11 @@ import java.io.IOException;
  * the viewport preferred size along the same axis.
  * <p>
  * The <code>java.awt.TextArea</code> could be monitored for changes by adding
- * a <code>TextListener</code> for <code>TextEvent</code>s. 
+ * a <code>TextListener</code> for <code>TextEvent</code>s.
  * In the <code>JTextComponent</code> based
  * components, changes are broadcasted from the model via a
- * <code>DocumentEvent</code> to <code>DocumentListeners</code>. 
- * The <code>DocumentEvent</code> gives 
+ * <code>DocumentEvent</code> to <code>DocumentListeners</code>.
+ * The <code>DocumentEvent</code> gives
  * the location of the change and the kind of change if desired.
  * The code fragment might look something like:
  * <pre>
@@ -101,9 +119,8 @@ import java.io.IOException;
  * @beaninfo
  *   attribute: isContainer false
  * description: A multi-line area that displays plain text.
- * 
+ *
  * @author  Timothy Prinzing
- * @version 1.98 08/08/06
  * @see JTextPane
  * @see JEditorPane
  */
@@ -195,18 +212,18 @@ public class JTextArea extends JTextComponent {
             setText(text);
             select(0, 0);
         }
-	if (rows < 0) {
-	    throw new IllegalArgumentException("rows: " + rows);
-	}
-	if (columns < 0) {
-	    throw new IllegalArgumentException("columns: " + columns);
-	}
+        if (rows < 0) {
+            throw new IllegalArgumentException("rows: " + rows);
+        }
+        if (columns < 0) {
+            throw new IllegalArgumentException("columns: " + columns);
+        }
         LookAndFeel.installProperty(this,
-                                    "focusTraversalKeysForward", 
+                                    "focusTraversalKeysForward",
                                     JComponent.
                                     getManagingFocusForwardTraversalKeys());
         LookAndFeel.installProperty(this,
-                                    "focusTraversalKeysBackward", 
+                                    "focusTraversalKeysBackward",
                                     JComponent.
                                     getManagingFocusBackwardTraversalKeys());
     }
@@ -224,7 +241,7 @@ public class JTextArea extends JTextComponent {
 
     /**
      * Creates the default implementation of the model
-     * to be used at construction if one isn't explicitly 
+     * to be used at construction if one isn't explicitly
      * given.  A new instance of PlainDocument is returned.
      *
      * @return the default document model
@@ -250,7 +267,7 @@ public class JTextArea extends JTextComponent {
         Document doc = getDocument();
         if (doc != null) {
             int old = getTabSize();
-            doc.putProperty(PlainDocument.tabSizeAttribute, new Integer(size));
+            doc.putProperty(PlainDocument.tabSizeAttribute, Integer.valueOf(size));
             firePropertyChange("tabSize", old, size);
         }
     }
@@ -344,7 +361,7 @@ public class JTextArea extends JTextComponent {
     }
 
     /**
-     * Translates an offset into the components text to a 
+     * Translates an offset into the components text to a
      * line number.
      *
      * @param offset the offset >= 0
@@ -381,7 +398,7 @@ public class JTextArea extends JTextComponent {
      * @return the offset >= 0
      * @exception BadLocationException thrown if the line is
      * less than zero or greater or equal to the number of
-     * lines contained in the document (as reported by 
+     * lines contained in the document (as reported by
      * getLineCount).
      */
     public int getLineStartOffset(int line) throws BadLocationException {
@@ -404,7 +421,7 @@ public class JTextArea extends JTextComponent {
      * @return the offset >= 0
      * @exception BadLocationException Thrown if the line is
      * less than zero or greater or equal to the number of
-     * lines contained in the document (as reported by 
+     * lines contained in the document (as reported by
      * getLineCount).
      */
     public int getLineEndOffset(int line) throws BadLocationException {
@@ -427,11 +444,6 @@ public class JTextArea extends JTextComponent {
     /**
      * Inserts the specified text at the specified position.  Does nothing
      * if the model is null or if the text is null or empty.
-     * <p>
-     * This method is thread safe, although most Swing methods
-     * are not. Please see 
-     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
-     * to Use Threads</A> for more information.     
      *
      * @param str the text to insert
      * @param pos the position at which to insert >= 0
@@ -454,11 +466,6 @@ public class JTextArea extends JTextComponent {
     /**
      * Appends the given text to the end of the document.  Does nothing if
      * the model is null or the string is null or empty.
-     * <p>
-     * This method is thread safe, although most Swing methods
-     * are not. Please see 
-     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
-     * to Use Threads</A> for more information.     
      *
      * @param str the text to insert
      * @see #insert
@@ -477,11 +484,6 @@ public class JTextArea extends JTextComponent {
      * Replaces text from the indicated start to end position with the
      * new text specified.  Does nothing if the model is null.  Simply
      * does a delete if the new string is null or empty.
-     * <p>
-     * This method is thread safe, although most Swing methods
-     * are not. Please see 
-     * <A HREF="http://java.sun.com/docs/books/tutorial/uiswing/misc/threads.html">How
-     * to Use Threads</A> for more information.     
      *
      * @param str the text to use as the replacement
      * @param start the start position >= 0
@@ -591,7 +593,7 @@ public class JTextArea extends JTextComponent {
      * The meaning of what a column is can be considered a fairly weak
      * notion for some fonts.  This method is used to define the width
      * of a column.  By default this is defined to be the width of the
-     * character <em>m</em> for the font used.  This method can be 
+     * character <em>m</em> for the font used.  This method can be
      * redefined to be some alternative amount.
      *
      * @return the column width >= 1
@@ -614,19 +616,19 @@ public class JTextArea extends JTextComponent {
      * @return the size
      */
     public Dimension getPreferredSize() {
-	Dimension d = super.getPreferredSize();
+        Dimension d = super.getPreferredSize();
         d = (d == null) ? new Dimension(400,400) : d;
         Insets insets = getInsets();
 
         if (columns != 0) {
-            d.width = Math.max(d.width, columns * getColumnWidth() + 
-                    insets.left + insets.right); 	
+            d.width = Math.max(d.width, columns * getColumnWidth() +
+                    insets.left + insets.right);
         }
-	if (rows != 0) {
-	    d.height = Math.max(d.height, rows * getRowHeight() +
+        if (rows != 0) {
+            d.height = Math.max(d.height, rows * getRowHeight() +
                                 insets.top + insets.bottom);
-	}
-	return d;
+        }
+        return d;
     }
 
     /**
@@ -637,25 +639,25 @@ public class JTextArea extends JTextComponent {
      */
     public void setFont(Font f) {
         super.setFont(f);
-        rowHeight = 0; 
+        rowHeight = 0;
         columnWidth = 0;
     }
 
 
     /**
-     * Returns a string representation of this JTextArea. This method 
-     * is intended to be used only for debugging purposes, and the 
-     * content and format of the returned string may vary between      
-     * implementations. The returned string may be empty but may not 
+     * Returns a string representation of this JTextArea. This method
+     * is intended to be used only for debugging purposes, and the
+     * content and format of the returned string may vary between
+     * implementations. The returned string may be empty but may not
      * be <code>null</code>.
-     * 
+     *
      * @return  a string representation of this JTextArea.
      */
     protected String paramString() {
         String wrapString = (wrap ?
-			     "true" : "false");
+                             "true" : "false");
         String wordString = (word ?
-			     "true" : "false");
+                             "true" : "false");
 
         return super.paramString() +
         ",colums=" + columns +
@@ -669,11 +671,11 @@ public class JTextArea extends JTextComponent {
     // --- Scrollable methods ----------------------------------------
 
     /**
-     * Returns true if a viewport should always force the width of this 
+     * Returns true if a viewport should always force the width of this
      * Scrollable to match the width of the viewport.  This is implemented
      * to return true if the line wrapping policy is true, and false
      * if lines are not being wrapped.
-     * 
+     *
      * @return true if a viewport should force the Scrollables width
      * to match its own.
      */
@@ -686,7 +688,7 @@ public class JTextArea extends JTextComponent {
      * is embedded in a JScrollPane.  This uses the desired column
      * and row settings if they have been set, otherwise the superclass
      * behavior is used.
-     * 
+     *
      * @return The preferredSize of a JViewport whose view is this Scrollable.
      * @see JViewport#getPreferredSize
      */
@@ -711,7 +713,7 @@ public class JTextArea extends JTextComponent {
      * <p>
      * Scrolling containers, like JScrollPane, will use this method
      * each time the user requests a unit scroll.
-     * 
+     *
      * @param visibleRect the view area visible within the viewport
      * @param orientation Either SwingConstants.VERTICAL or
      *   SwingConstants.HORIZONTAL.
@@ -734,8 +736,8 @@ public class JTextArea extends JTextComponent {
         }
     }
 
-    /** 
-     * See readObject() and writeObject() in JComponent for more 
+    /**
+     * See readObject() and writeObject() in JComponent for more
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -755,12 +757,12 @@ public class JTextArea extends JTextComponent {
 
 
     /**
-     * Gets the AccessibleContext associated with this JTextArea. 
-     * For JTextAreas, the AccessibleContext takes the form of an 
-     * AccessibleJTextArea. 
+     * Gets the AccessibleContext associated with this JTextArea.
+     * For JTextAreas, the AccessibleContext takes the form of an
+     * AccessibleJTextArea.
      * A new AccessibleJTextArea instance is created if necessary.
      *
-     * @return an AccessibleJTextArea that serves as the 
+     * @return an AccessibleJTextArea that serves as the
      *         AccessibleContext of this JTextArea
      */
     public AccessibleContext getAccessibleContext() {
@@ -771,9 +773,9 @@ public class JTextArea extends JTextComponent {
     }
 
     /**
-     * This class implements accessibility support for the 
-     * <code>JTextArea</code> class.  It provides an implementation of the 
-     * Java Accessibility API appropriate to text area user-interface 
+     * This class implements accessibility support for the
+     * <code>JTextArea</code> class.  It provides an implementation of the
+     * Java Accessibility API appropriate to text area user-interface
      * elements.
      * <p>
      * <strong>Warning:</strong>

@@ -1,15 +1,32 @@
 /*
- * @(#)JMXProviderException.java	1.13 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
 package javax.management.remote;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * <p>Exception thrown by {@link JMXConnectorFactory} and
@@ -19,7 +36,6 @@ import java.util.Map;
  * @see JMXConnectorFactory#newJMXConnector
  * @see JMXConnectorServerFactory#newJMXConnectorServer
  * @since 1.5
- * @since.unbundled 1.0
  */
 public class JMXProviderException extends IOException {
 
@@ -39,7 +55,7 @@ public class JMXProviderException extends IOException {
      * @param message the detail message
      */
     public JMXProviderException(String message) {
-	super(message);
+        super(message);
     }
 
     /**
@@ -50,12 +66,12 @@ public class JMXProviderException extends IOException {
      * @param cause the nested exception
      */
     public JMXProviderException(String message, Throwable cause) {
-	super(message);
-	this.cause = cause;
+        super(message);
+        this.cause = cause;
     }
 
     public Throwable getCause() {
-	return cause;
+        return cause;
     }
 
     /**

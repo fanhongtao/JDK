@@ -1,8 +1,26 @@
 /*
- * @(#)SynthInternalFrameTitlePane.java	1.27 05/11/30
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.synth;
@@ -12,20 +30,14 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
-import javax.swing.border.*;
-import javax.swing.event.InternalFrameEvent;
-import java.util.EventListener;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-import java.beans.VetoableChangeListener;
 import java.beans.PropertyVetoException;
-import sun.swing.plaf.synth.SynthUI;
 import sun.swing.SwingUtilities2;
 
 /**
  * The class that manages a synth title bar
  *
- * @version 1.27 11/30/05
  * @author David Kloba
  * @author Joshua Outwater
  * @author Steve Wilson
@@ -73,15 +85,15 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
     }
 
     protected void addSubComponents() {
-	menuButton.setName("InternalFrameTitlePane.menuButton");
+        menuButton.setName("InternalFrameTitlePane.menuButton");
         iconButton.setName("InternalFrameTitlePane.iconifyButton");
         maxButton.setName("InternalFrameTitlePane.maximizeButton");
         closeButton.setName("InternalFrameTitlePane.closeButton");
 
-	add(menuButton);
-	add(iconButton);
-	add(maxButton);
-	add(closeButton);
+        add(menuButton);
+        add(iconButton);
+        add(maxButton);
+        add(closeButton);
     }
 
     protected void installListeners() {
@@ -153,7 +165,7 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
     protected void assembleSystemMenu() {
         systemPopupMenu = new JPopupMenuUIResource();
         addSystemMenuItems(systemPopupMenu);
-	enableActions();
+        enableActions();
         menuButton = createNoFocusButton();
         updateMenuIcon();
         menuButton.addMouseListener(new MouseAdapter() {
@@ -165,40 +177,40 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
                 showSystemMenu();
             }
         });
-	JPopupMenu p = frame.getComponentPopupMenu();
-	if (p == null || p instanceof UIResource) {
-	    frame.setComponentPopupMenu(systemPopupMenu);
-	}
-	if (frame.getDesktopIcon() != null) {
-	    p = frame.getDesktopIcon().getComponentPopupMenu();
-	    if (p == null || p instanceof UIResource) {
-		frame.getDesktopIcon().setComponentPopupMenu(systemPopupMenu);
-	    }
-	}
-	setInheritsPopupMenu(true);
+        JPopupMenu p = frame.getComponentPopupMenu();
+        if (p == null || p instanceof UIResource) {
+            frame.setComponentPopupMenu(systemPopupMenu);
+        }
+        if (frame.getDesktopIcon() != null) {
+            p = frame.getDesktopIcon().getComponentPopupMenu();
+            if (p == null || p instanceof UIResource) {
+                frame.getDesktopIcon().setComponentPopupMenu(systemPopupMenu);
+            }
+        }
+        setInheritsPopupMenu(true);
     }
 
     protected void addSystemMenuItems(JPopupMenu menu) {
         // PENDING: this should all be localizable!
-        JMenuItem mi = (JMenuItem)menu.add(restoreAction);
-	mi.setMnemonic('R');
-	mi = (JMenuItem)menu.add(moveAction);
-	mi.setMnemonic('M');
-	mi = (JMenuItem)menu.add(sizeAction);
-	mi.setMnemonic('S');
-	mi = (JMenuItem)menu.add(iconifyAction);
-	mi.setMnemonic('n');
-	mi = (JMenuItem)menu.add(maximizeAction);
-	mi.setMnemonic('x');
-	menu.add(new JSeparator());
-	mi = (JMenuItem)menu.add(closeAction);
-	mi.setMnemonic('C');
+        JMenuItem mi = menu.add(restoreAction);
+        mi.setMnemonic('R');
+        mi = menu.add(moveAction);
+        mi.setMnemonic('M');
+        mi = menu.add(sizeAction);
+        mi.setMnemonic('S');
+        mi = menu.add(iconifyAction);
+        mi.setMnemonic('n');
+        mi = menu.add(maximizeAction);
+        mi.setMnemonic('x');
+        menu.add(new JSeparator());
+        mi = menu.add(closeAction);
+        mi.setMnemonic('C');
     }
 
     protected void showSystemMenu() {
         Insets insets = frame.getInsets();
         if (!frame.isIcon()) {
-            systemPopupMenu.show(frame, insets.left, getY() + getHeight());
+            systemPopupMenu.show(frame, menuButton.getX(), getY() + getHeight());
         } else {
             systemPopupMenu.show(menuButton,
                 getX() - insets.left - insets.right,
@@ -220,14 +232,14 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
     protected void paint(SynthContext context, Graphics g) {
         String title = frame.getTitle();
 
-	if (title != null) {
+        if (title != null) {
             SynthStyle style = context.getStyle();
 
             g.setColor(style.getColor(context, ColorType.TEXT_FOREGROUND));
             g.setFont(style.getFont(context));
 
             // Center text vertically.
-	    FontMetrics fm = SwingUtilities2.getFontMetrics(frame, g);
+            FontMetrics fm = SwingUtilities2.getFontMetrics(frame, g);
             int baseline = (getHeight() + fm.getAscent() - fm.getLeading() -
                             fm.getDescent()) / 2;
             JButton lastButton = null;
@@ -287,7 +299,7 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
             }
             style.getGraphicsUtils(context).paintText(
                 context, g, clippedTitle, minX, baseline - fm.getAscent(), -1);
-	}
+        }
     }
 
     public void paintBorder(SynthContext context, Graphics g, int x,
@@ -298,9 +310,9 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
 
     protected LayoutManager createLayout() {
         SynthContext context = getContext(this);
-	LayoutManager lm =
-	    (LayoutManager)style.get(context, "InternalFrameTitlePane.titlePaneLayout");
-	context.dispose();
+        LayoutManager lm =
+            (LayoutManager)style.get(context, "InternalFrameTitlePane.titlePaneLayout");
+        context.dispose();
         return (lm != null) ? lm : new SynthTitlePaneLayout();
     }
 
@@ -334,7 +346,7 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
                 maxHeight = maxSize.height;
             }
             if ((frameIcon.getIconWidth() > maxWidth ||
-                     frameIcon.getIconHeight() > maxHeight) && 
+                     frameIcon.getIconHeight() > maxHeight) &&
                     (frameIcon instanceof ImageIcon)) {
                 frameIcon = new ImageIcon(((ImageIcon)frameIcon).
                              getImage().getScaledInstance(maxWidth, maxHeight,
@@ -348,17 +360,17 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
 
     class SynthTitlePaneLayout implements LayoutManager {
         public void addLayoutComponent(String name, Component c) {}
-        public void removeLayoutComponent(Component c) {}    
+        public void removeLayoutComponent(Component c) {}
         public Dimension preferredLayoutSize(Container c)  {
-	    return minimumLayoutSize(c);
-	}
-    
+            return minimumLayoutSize(c);
+        }
+
         public Dimension minimumLayoutSize(Container c) {
             SynthContext context = getContext(
                              SynthInternalFrameTitlePane.this);
             int width = 0;
             int height = 0;
- 
+
             int buttonCount = 0;
             Dimension pref;
 
@@ -414,8 +426,8 @@ class SynthInternalFrameTitlePane extends BasicInternalFrameTitlePane
             width += insets.left + insets.right;
             context.dispose();
             return new Dimension(width, height);
-	}
-    
+        }
+
         private int center(Component c, Insets insets, int x,
                            boolean trailing) {
             Dimension pref = c.getPreferredSize();

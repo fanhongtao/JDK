@@ -1,5 +1,26 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * $Id: KeyName.java,v 1.4 2005/05/10 16:35:35 mullan Exp $
@@ -9,7 +30,7 @@ package javax.xml.crypto.dsig.keyinfo;
 import javax.xml.crypto.XMLStructure;
 
 /**
- * A representation of the XML <code>KeyName</code> element as 
+ * A representation of the XML <code>KeyName</code> element as
  * defined in the <a href="http://www.w3.org/TR/xmldsig-core/">
  * W3C Recommendation for XML-Signature Syntax and Processing</a>.
  * A <code>KeyName</code> object contains a string value which may be used
@@ -19,14 +40,14 @@ import javax.xml.crypto.XMLStructure;
  * <pre>
  * &lt;element name="KeyName" type="string"/&gt;
  * </pre>
- * 
+ *
  * A <code>KeyName</code> instance may be created by invoking the
  * {@link KeyInfoFactory#newKeyName newKeyName} method of the
- * {@link KeyInfoFactory} class, and passing it a <code>String</code> 
+ * {@link KeyInfoFactory} class, and passing it a <code>String</code>
  * representing the name of the key; for example:
  * <pre>
  * KeyInfoFactory factory = KeyInfoFactory.getInstance("DOM");
- * KeyName keyName = factory.newKeyName("Alice");   
+ * KeyName keyName = factory.newKeyName("Alice");
  * </pre>
  *
  * @author Sean Mullan
@@ -39,7 +60,7 @@ public interface KeyName extends XMLStructure {
     /**
      * Returns the name of this <code>KeyName</code>.
      *
-     * @return the name of this <code>KeyName</code> (never 
+     * @return the name of this <code>KeyName</code> (never
      *    <code>null</code>)
      */
     String getName();

@@ -1,8 +1,26 @@
 /*
- * @(#)FormatFlagsConversionMismatchException.java	1.3 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -14,7 +32,6 @@ package java.util;
  * method or constructor in this class will cause a {@link
  * NullPointerException} to be thrown.
  *
- * @version 	1.3, 11/17/05
  * @since 1.5
  */
 public class FormatFlagsConversionMismatchException
@@ -37,10 +54,10 @@ public class FormatFlagsConversionMismatchException
      *         The conversion
      */
     public FormatFlagsConversionMismatchException(String f, char c) {
- 	if (f == null)
- 	    throw new NullPointerException();
-	this.f = f;
-	this.c = c;
+        if (f == null)
+            throw new NullPointerException();
+        this.f = f;
+        this.c = c;
     }
 
     /**
@@ -49,7 +66,7 @@ public class FormatFlagsConversionMismatchException
      * @return  The flag
      */
      public String getFlags() {
-	return f;
+        return f;
     }
 
     /**
@@ -58,10 +75,10 @@ public class FormatFlagsConversionMismatchException
      * @return  The conversion
      */
     public char getConversion() {
-	return c;
+        return c;
     }
 
     public String getMessage() {
-	return "Conversion = " + c + ", Flags = " + f;
+        return "Conversion = " + c + ", Flags = " + f;
     }
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +29,7 @@ package com.sun.org.apache.xml.internal.dtm;
 public interface DTMFilter
 {
 
-  // Constants for whatToShow.  These are used to set the node type that will 
+  // Constants for whatToShow.  These are used to set the node type that will
   // be traversed. These values may be ORed together before being passed to
   // the DTMIterator.
 
@@ -94,7 +98,7 @@ public interface DTMFilter
   public static final int SHOW_DOCUMENT = 0x00000100;
 
   /**
-   * Show <code>DocumentType</code> nodes. 
+   * Show <code>DocumentType</code> nodes.
    */
   public static final int SHOW_DOCUMENT_TYPE = 0x00000200;
 
@@ -114,7 +118,7 @@ public interface DTMFilter
    * not appear when traversing over the main document tree.
    */
   public static final int SHOW_NOTATION = 0x00000800;
-  
+
   /**
 
    * This bit instructs the iterator to show namespace nodes, which
@@ -141,30 +145,30 @@ public interface DTMFilter
   /**
    * Test whether a specified node is visible in the logical view of a
    * <code>DTMIterator</code>. Normally, this function
-   * will be called by the implementation of <code>DTMIterator</code>; 
+   * will be called by the implementation of <code>DTMIterator</code>;
    * it is not normally called directly from
    * user code.
-   * 
+   *
    * @param nodeHandle int Handle of the node.
    * @param whatToShow one of SHOW_XXX values.
    * @return one of FILTER_ACCEPT, FILTER_REJECT, or FILTER_SKIP.
    */
   public short acceptNode(int nodeHandle, int whatToShow);
-  
+
   /**
    * Test whether a specified node is visible in the logical view of a
    * <code>DTMIterator</code>. Normally, this function
-   * will be called by the implementation of <code>DTMIterator</code>; 
+   * will be called by the implementation of <code>DTMIterator</code>;
    * it is not normally called directly from
    * user code.
    * <p>
    * TODO: Should this be setNameMatch(expandedName) followed by accept()?
    * Or will we really be testing a different name at every invocation?
-   * 
+   *
    * <p>%REVIEW% Under what circumstances will this be used? The cases
    * I've considered are just as easy and just about as efficient if
    * the name test is performed in the DTMIterator... -- Joe</p>
-   * 
+   *
    * <p>%REVIEW% Should that 0xFFFF have a mnemonic assigned to it?
    * Also: This representation is assuming the expanded name is indeed
    * split into high/low 16-bit halfwords. If we ever change the
@@ -173,14 +177,14 @@ public interface DTMFilter
    * fairly likely), this is going to break. It might be safer to
    * encapsulate the details with a makeExpandedName method and make
    * that responsible for setting up the wildcard version as well.</p>
-   * 
+   *
    * @param nodeHandle int Handle of the node.
    * @param whatToShow one of SHOW_XXX values.
-   * @param expandedName a value defining the exanded name as defined in 
-   *                     the DTM interface.  Wild cards will be defined 
+   * @param expandedName a value defining the exanded name as defined in
+   *                     the DTM interface.  Wild cards will be defined
    *                     by 0xFFFF in the namespace and/or localname
-   *			 portion of the expandedName.
+   *                     portion of the expandedName.
    * @return one of FILTER_ACCEPT, FILTER_REJECT, or FILTER_SKIP.  */
   public short acceptNode(int nodeHandle, int whatToShow, int expandedName);
- 
+
 }

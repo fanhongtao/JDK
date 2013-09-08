@@ -1,14 +1,32 @@
 /*
- * @(#)_PolicyStub.java	1.11 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package org.omg.CORBA;
 
 
 /**
-* The Stub for <tt>Policy</tt>.  For more information on 
+* The Stub for <tt>Policy</tt>.  For more information on
 * Stub files, see <a href="doc-files/generatedfiles.html#stub">
 * "Generated Files: Stubs"</a>.<P>
 * org/omg/CORBA/_PolicyStub.java
@@ -41,16 +59,16 @@ public class _PolicyStub extends org.omg.CORBA.portable.ObjectImpl implements or
   }
 
 
-  /** Returns the constant value that corresponds to the 
-  		* type of the policy object.  The values of 
-  		* the polivy objectys are allocated by the OMG.
-  		* New values for PolicyType should be obtained from the OMG by
-  		* sending mail to request@omg.org.  In general the constant
-  		* values that are allocated are defined in conjunction with
-  		* the definition of the corresponding policy object.
-  		* @return the constant value that corresponds to the type of
-  		* the policy object.
-  		*/
+  /** Returns the constant value that corresponds to the
+                * type of the policy object.  The values of
+                * the polivy objectys are allocated by the OMG.
+                * New values for PolicyType should be obtained from the OMG by
+                * sending mail to request@omg.org.  In general the constant
+                * values that are allocated are defined in conjunction with
+                * the definition of the corresponding policy object.
+                * @return the constant value that corresponds to the type of
+                * the policy object.
+                */
   public int policy_type ()
   {
     org.omg.CORBA.portable.InputStream _in = null;
@@ -72,9 +90,9 @@ public class _PolicyStub extends org.omg.CORBA.portable.ObjectImpl implements or
 
 
   /** Copies the policy object. The copy does not retain any
-  		* relationships that the policy had with any domain or object.
-  		* @return the copy of the policy object.
-  		*/
+                * relationships that the policy had with any domain or object.
+                * @return the copy of the policy object.
+                */
   public org.omg.CORBA.Policy copy ()
   {
     org.omg.CORBA.portable.InputStream _in = null;
@@ -96,8 +114,8 @@ public class _PolicyStub extends org.omg.CORBA.portable.ObjectImpl implements or
 
 
   /** Destroys the policy object.  It is the responsibility of
-  		* the policy object to determine whether it can be destroyed.
-  		*/
+                * the policy object to determine whether it can be destroyed.
+                */
   public void destroy ()
   {
     org.omg.CORBA.portable.InputStream _in = null;
@@ -126,7 +144,7 @@ public class _PolicyStub extends org.omg.CORBA.portable.ObjectImpl implements or
 
   private void readObject (java.io.ObjectInputStream s)
   {
-     try 
+     try
      {
        String str = s.readUTF ();
        org.omg.CORBA.Object obj = org.omg.CORBA.ORB.init ().string_to_object (str);
@@ -137,7 +155,7 @@ public class _PolicyStub extends org.omg.CORBA.portable.ObjectImpl implements or
 
   private void writeObject (java.io.ObjectOutputStream s)
   {
-     try 
+     try
      {
        String str = org.omg.CORBA.ORB.init ().object_to_string (this);
        s.writeUTF (str);

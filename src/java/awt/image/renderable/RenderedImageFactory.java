@@ -1,8 +1,26 @@
 /*
- * @(#)RenderedImageFactory.java	1.11 05/11/17
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ********************************************************************
@@ -49,12 +67,12 @@ public interface RenderedImageFactory {
    * were used to create the image.  In addition any RenderedImages
    * that are obtained via the getSources() method on the created
    * RenderedImage may have such a property.
-   *  
+   *
    * @param paramBlock a ParameterBlock containing sources and parameters
    *        for the RenderedImage to be created.
    * @param hints a RenderingHints object containing hints.
    * @return A RenderedImage containing the desired output.
    */
-  RenderedImage create(ParameterBlock paramBlock, 
+  RenderedImage create(ParameterBlock paramBlock,
                        RenderingHints hints);
 }

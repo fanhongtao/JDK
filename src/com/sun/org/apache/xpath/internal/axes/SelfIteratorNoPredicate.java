@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +28,7 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
 
 /**
  * This class implements an optimized iterator for
- * "." patterns, that is, the self axes without any predicates.  
+ * "." patterns, that is, the self axes without any predicates.
  * @see com.sun.org.apache.xpath.internal.axes.LocPathIterator
  * @xsl.usage advanced
  */
@@ -47,7 +51,7 @@ public class SelfIteratorNoPredicate extends LocPathIterator
   {
     super(compiler, opPos, analysis, false);
   }
-  
+
   /**
    * Create a SelfIteratorNoPredicate object.
    *
@@ -72,7 +76,7 @@ public class SelfIteratorNoPredicate extends LocPathIterator
   {
     if (m_foundLast)
       return DTM.NULL;
-      
+
     int next;
     DTM dtm = m_cdtm;
 
@@ -94,11 +98,11 @@ public class SelfIteratorNoPredicate extends LocPathIterator
       return DTM.NULL;
     }
   }
-  
+
   /**
-   * Return the first node out of the nodeset, if this expression is 
-   * a nodeset expression.  This is the default implementation for 
-   * nodesets.  Derived classes should try and override this and return a 
+   * Return the first node out of the nodeset, if this expression is
+   * a nodeset expression.  This is the default implementation for
+   * nodesets.  Derived classes should try and override this and return a
    * value without having to do a clone operation.
    * @param xctxt The XPath runtime context.
    * @return the first node out of the nodeset, or DTM.NULL.
@@ -108,7 +112,7 @@ public class SelfIteratorNoPredicate extends LocPathIterator
   {
     return xctxt.getCurrentNode();
   }
-  
+
   /**
    * Get the index of the last node that can be itterated to.
    * This probably will need to be overridded by derived classes.

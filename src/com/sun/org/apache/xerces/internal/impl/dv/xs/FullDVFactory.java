@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002, 2003,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,12 +28,11 @@ import com.sun.org.apache.xerces.internal.xs.XSConstants;
 /**
  * the factory to create/return built-in schema DVs and create user-defined DVs
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: FullDVFactory.java,v 1.2.6.1 2005/09/06 11:43:04 neerajbj Exp $
  */
 public class FullDVFactory extends BaseDVFactory {
 
@@ -70,7 +73,7 @@ public class FullDVFactory extends BaseDVFactory {
     static void createBuiltInTypes(SymbolHash types) {
         // create base types first
         BaseDVFactory.createBuiltInTypes(types);
-        
+
         // full schema simple type names
         final String DOUBLE            = "double";
         final String DURATION          = "duration";

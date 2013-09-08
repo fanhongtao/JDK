@@ -1,8 +1,26 @@
 /*
- * @(#)IIOParam.java	1.30 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio;
@@ -11,13 +29,13 @@ import java.awt.Point;
 import java.awt.Rectangle;
 
 /**
- * A superclass of all classes describing how streams should be 
+ * A superclass of all classes describing how streams should be
  * decoded or encoded.  This class contains all the variables and
  * methods that are shared by <code>ImageReadParam</code> and
  * <code>ImageWriteParam</code>.
- * 
+ *
  * <p> This class provides mechanisms to specify a source region and a
- * destination region.  When reading, the source is the stream and 
+ * destination region.  When reading, the source is the stream and
  * the in-memory image is the destination.  When writing, these are
  * reversed.  In the case of writing, destination regions may be used
  * only with a writer that supports pixel replacement.
@@ -27,7 +45,6 @@ import java.awt.Rectangle;
  * <p>
  * Subsets of the source and destination bands may be selected.
  *
- * @version 0.5
  */
 public abstract class IIOParam {
 
@@ -65,7 +82,7 @@ public abstract class IIOParam {
      * region is specified.
      */
     protected int subsamplingYOffset = 0;
-    
+
     /**
      * An array of <code>int</code>s indicating which source bands
      * will be used, or <code>null</code>.  If <code>null</code>, the
@@ -94,7 +111,7 @@ public abstract class IIOParam {
      * used to provide settings for this <code>IIOParam</code>
      * object when the <code>activateController</code> method
      * is called.  This default should be set by subclasses
-     * that choose to provide their own default controller, 
+     * that choose to provide their own default controller,
      * usually a GUI, for setting parameters.
      *
      * @see IIOParamController
@@ -107,7 +124,7 @@ public abstract class IIOParam {
      * The <code>IIOParamController</code> that will be
      * used to provide settings for this <code>IIOParam</code>
      * object when the <code>activateController</code> method
-     * is called.  This value overrides any default controller, 
+     * is called.  This value overrides any default controller,
      * even when null.
      *
      * @see IIOParamController
@@ -198,7 +215,7 @@ public abstract class IIOParam {
      * that set by the most recent call to
      * <code>setSourceRegion</code>, and will be <code>null</code> if
      * there is no region set.
-     * 
+     *
      * @return the source region of interest as a
      * <code>Rectangle</code>, or <code>null</code>.
      *
@@ -234,15 +251,15 @@ public abstract class IIOParam {
      * <code>truncate[(width - subsamplingXOffset + sourceXSubsampling - 1)
      * / sourceXSubsampling]</code>.
      * <p>
-     * If the region is such that this width is zero, an 
+     * If the region is such that this width is zero, an
      * <code>IllegalStateException</code> is thrown.
-     * <p> 
+     * <p>
      * The number of scanlines to be used can be computed similarly.
      *
      * <p>The ability to set the subsampling grid to start somewhere
-     * other than the source region origin is useful if the 
-     * region is being used to create subsampled tiles of a large image, 
-     * where the tile width and height are not multiples of the 
+     * other than the source region origin is useful if the
+     * region is being used to create subsampled tiles of a large image,
+     * where the tile width and height are not multiples of the
      * subsampling periods.  If the subsampling grid does not remain
      * consistent from tile to tile, there will be artifacts at the tile
      * boundaries.  By adjusting the subsampling grid offset for each
@@ -258,7 +275,7 @@ public abstract class IIOParam {
      *
      * <p> If either <code>subsamplingXOffset</code> or
      * <code>subsamplingYOffset</code> is negative or greater than or
-     * equal to the corresponding period, an 
+     * equal to the corresponding period, an
      * <code>IllegalArgumentException</code> will be thrown.
      *
      * <p> There is no <code>unsetSourceSubsampling</code> method;
@@ -299,7 +316,7 @@ public abstract class IIOParam {
             throw new IllegalArgumentException
                 ("subsamplingYOffset out of range!");
         }
-        
+
         // Throw an IllegalStateException if region falls between subsamples
         if (sourceRegion != null) {
             if (subsamplingXOffset >= sourceRegion.width ||
@@ -380,7 +397,7 @@ public abstract class IIOParam {
      *
      * <p> A <code>null</code> value indicates that all source bands
      * will be used.
-     * 
+     *
      * <p> At the time of reading, an
      * <code>IllegalArgumentException</code> will be thrown by the
      * reader or writer if a value larger than the largest available
@@ -418,7 +435,7 @@ public abstract class IIOParam {
                         throw new IllegalArgumentException("Duplicate band value!");
                     }
                 }
-                
+
             }
             this.sourceBands = (int[])(sourceBands.clone());
         }
@@ -558,7 +575,7 @@ public abstract class IIOParam {
      * used, including any default.  To restore the default, use
      * <code>setController(getDefaultController())</code>.
      *
-     * @param controller An appropriate 
+     * @param controller An appropriate
      * <code>IIOParamController</code>, or <code>null</code>.
      *
      * @see IIOParamController
@@ -573,7 +590,7 @@ public abstract class IIOParam {
 
     /**
      * Returns whatever <code>IIOParamController</code> is currently
-     * installed.  This could be the default if there is one, 
+     * installed.  This could be the default if there is one,
      * <code>null</code>, or the argument of the most recent call
      * to <code>setController</code>.
      *

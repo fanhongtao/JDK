@@ -1,8 +1,26 @@
 /*
- * @(#)ByteBufferPoolImpl.java	1.13 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.transport;
@@ -57,7 +75,7 @@ public class ByteBufferPoolImpl implements ByteBufferPool
         ByteBuffer abb = null;
 
         if ((theAskSize <= itsByteBufferSize) &&
-	    !itsOrb.getORBData().disableDirectByteBufferUse())
+            !itsOrb.getORBData().disableDirectByteBufferUse())
         {
             // check if there's one in the pool, if not allocate one.
             int poolSize;
@@ -90,11 +108,11 @@ public class ByteBufferPoolImpl implements ByteBufferPool
         else
         {
             // Requested ByteBuffer size larger than the pool manages.
-            // Just allocate a non-direct ByteBuffer 
+            // Just allocate a non-direct ByteBuffer
             abb = ByteBuffer.allocate(theAskSize);
         }
 
-	return abb;
+        return abb;
     }
 
 
@@ -117,7 +135,7 @@ public class ByteBufferPoolImpl implements ByteBufferPool
     //       this pool's ByteBuffer size since only DirectByteBuffers
     //       ever allocated. Hence, only DirectByteBuffer are checked
     //       here. An additional check could be added here for that though.
-    public void releaseByteBuffer(ByteBuffer thebb) 
+    public void releaseByteBuffer(ByteBuffer thebb)
     {
         if (thebb.isDirect())
         {
@@ -156,7 +174,7 @@ public class ByteBufferPoolImpl implements ByteBufferPool
                 {
                     String threadName = Thread.currentThread().getName();
                     Throwable t =
-                            new Throwable(threadName + 
+                            new Throwable(threadName +
                                          ": Duplicate ByteBuffer reference (" +
                                          bbAddr + ")");
                     t.printStackTrace(System.out);

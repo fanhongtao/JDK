@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -105,7 +109,7 @@ import org.w3c.dom.Text;
  * @author Arnaud  Le Hors, IBM
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM 
- * @version $Id: AttrImpl.java,v 1.2.6.1 2005/08/30 11:26:26 sunithareddy Exp $
+ * @version $Id: AttrImpl.java,v 1.5 2008/06/10 00:59:32 joehw Exp $
  * @since PR-DOM-Level-1-19980818.
  *
  */
@@ -137,7 +141,7 @@ public class AttrImpl
     // REVISIT: we are losing the type information in DOM during serialization
     transient Object type;
 
-    protected static TextImpl textNode = null;
+    protected TextImpl textNode = null;
 
     //
     // Constructors

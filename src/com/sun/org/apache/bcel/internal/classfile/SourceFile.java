@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -63,7 +67,6 @@ import  java.io.*;
  * should appear per classfile.  The intention of this class is that it is
  * instantiated from the <em>Attribute.readAttribute()</em> method.
  *
- * @version $Id: SourceFile.java,v 1.1.2.1 2005/07/31 23:46:26 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  */
@@ -76,7 +79,7 @@ public final class SourceFile extends Attribute {
    */
   public SourceFile(SourceFile c) {
     this(c.getNameIndex(), c.getLength(), c.getSourceFileIndex(),
-	 c.getConstantPool());
+         c.getConstantPool());
   }
 
   /**
@@ -88,7 +91,7 @@ public final class SourceFile extends Attribute {
    * @throws IOException
    */
   SourceFile(int name_index, int length, DataInputStream file,
-	     ConstantPool constant_pool) throws IOException
+             ConstantPool constant_pool) throws IOException
   {
     this(name_index, length, file.readUnsignedShort(), constant_pool);
   }
@@ -107,7 +110,7 @@ public final class SourceFile extends Attribute {
    * many cases, the JVM.
    */
   public SourceFile(int name_index, int length, int sourcefile_index,
-		    ConstantPool constant_pool)
+                    ConstantPool constant_pool)
   {
     super(Constants.ATTR_SOURCE_FILE, name_index, length, constant_pool);
     this.sourcefile_index = sourcefile_index;
@@ -129,40 +132,40 @@ public final class SourceFile extends Attribute {
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     super.dump(file);
     file.writeShort(sourcefile_index);
-  }    
+  }
 
   /**
    * @return Index in constant pool of source file name.
-   */  
-  public final int getSourceFileIndex() { return sourcefile_index; }    
+   */
+  public final int getSourceFileIndex() { return sourcefile_index; }
 
   /**
    * @param sourcefile_index.
    */
   public final void setSourceFileIndex(int sourcefile_index) {
     this.sourcefile_index = sourcefile_index;
-  }    
+  }
 
   /**
    * @return Source file name.
-   */ 
+   */
   public final String getSourceFileName() {
-    ConstantUtf8 c = (ConstantUtf8)constant_pool.getConstant(sourcefile_index, 
-							     Constants.CONSTANT_Utf8);
+    ConstantUtf8 c = (ConstantUtf8)constant_pool.getConstant(sourcefile_index,
+                                                             Constants.CONSTANT_Utf8);
     return c.getBytes();
   }
 
   /**
    * @return String representation
-   */ 
+   */
   public final String toString() {
     return "SourceFile(" + getSourceFileName() + ")";
-  }    
+  }
 
   /**
    * @return deep copy of this attribute

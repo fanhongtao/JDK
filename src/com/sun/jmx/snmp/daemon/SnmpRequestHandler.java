@@ -1,11 +1,25 @@
 /*
- * @(#)file	SnmpRequestHandler.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.32
- * @(#)date      06/11/29
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -19,6 +33,7 @@ package com.sun.jmx.snmp.daemon;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.logging.Level;
 import java.io.InterruptedIOException;
 import java.net.DatagramSocket;
 import java.net.DatagramPacket;
@@ -44,7 +59,7 @@ import com.sun.jmx.snmp.SnmpDataTypeEnums;
 
 // RI imports
 //
-import com.sun.jmx.trace.Trace;
+import static com.sun.jmx.defaults.JmxProperties.SNMP_ADAPTOR_LOGGER;
 
 // SNMP runtime import
 //
@@ -59,96 +74,99 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
     private transient DatagramSocket      socket = null ;
     private transient DatagramPacket      packet = null ;
     private transient Vector              mibs = null ;
-  
+
     /**
      * Contains the list of sub-requests associated to the current request.
      */
-    private transient Hashtable subs = null ;
-    
+    private transient Hashtable<SnmpMibAgent, SnmpSubRequestHandler> subs = null;
+
     /**
      * Reference on the MIBS
      */
     private transient SnmpMibTree root;
- 
+
     private transient Object              ipacl = null ;
-    private transient SnmpPduFactory      pduFactory = null ;  
-    private transient SnmpUserDataFactory userDataFactory = null ;  
+    private transient SnmpPduFactory      pduFactory = null ;
+    private transient SnmpUserDataFactory userDataFactory = null ;
     private transient SnmpAdaptorServer adaptor = null;
     /**
      * Full constructor
      */
-    public SnmpRequestHandler(SnmpAdaptorServer server, int id, 
+    public SnmpRequestHandler(SnmpAdaptorServer server, int id,
                               DatagramSocket s, DatagramPacket p,
-                              SnmpMibTree tree, Vector m, Object a, 
-                              SnmpPduFactory factory, 
+                              SnmpMibTree tree, Vector m, Object a,
+                              SnmpPduFactory factory,
                               SnmpUserDataFactory dataFactory,
-                              MBeanServer f, ObjectName n) 
+                              MBeanServer f, ObjectName n)
     {
         super(server, id, f, n);
-	
-	// Need a reference on SnmpAdaptorServer for getNext & getBulk, 
-	// in case of oid equality (mib overlapping).
-	//
-	adaptor = server;
+
+        // Need a reference on SnmpAdaptorServer for getNext & getBulk,
+        // in case of oid equality (mib overlapping).
+        //
+        adaptor = server;
         socket = s;
         packet = p;
         root= tree;
         mibs = (Vector) m.clone();
-        subs= new Hashtable(mibs.size());
+        subs= new Hashtable<SnmpMibAgent, SnmpSubRequestHandler>(mibs.size());
         ipacl = a;
         pduFactory = factory ;
         userDataFactory = dataFactory ;
         //thread.start();
     }
-    
+
     /**
      * Treat the request available in 'packet' and send the result
      * back to the client.
      * Note: we overwrite 'packet' with the response bytes.
      */
     public void doRun() {
-  
+
         // Trace the input packet
         //
-        if (isTraceOn()) {
-            trace("doRun", "Packet received:\n" + SnmpMessage.dumpHexBuffer(packet.getData(), 0, packet.getLength()));
+        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+            SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+                    "doRun","Packet received:\n" +
+                    SnmpMessage.dumpHexBuffer(packet.getData(), 0, packet.getLength()));
         }
 
         // Let's build the response packet
         //
         DatagramPacket respPacket = makeResponsePacket(packet) ;
-    
+
         // Trace the output packet
         //
-        if (isTraceOn() && (respPacket != null)) {
-            trace("doRun", "Packet to be sent:\n" + SnmpMessage.dumpHexBuffer(respPacket.getData(), 0, respPacket.getLength()));
+        if ((SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) && (respPacket != null)) {
+            SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+                    "doRun","Packet to be sent:\n" +
+                    SnmpMessage.dumpHexBuffer(respPacket.getData(), 0, respPacket.getLength()));
         }
-    
+
         // Send the response packet if any
         //
         if (respPacket != null) {
             try {
                 socket.send(respPacket) ;
-            }
-            catch (SocketException e) {
-                if (isDebugOn()) {
-                    if (e.getMessage().equals(InterruptSysCallMsg))
-                        debug("doRun", "interrupted");
-                    else {
-                        debug("doRun", "i/o exception");
-                        debug("doRun", e);
+            } catch (SocketException e) {
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    if (e.getMessage().equals(InterruptSysCallMsg)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                            "doRun", "interrupted");
+                    } else {
+                      SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                            "doRun", "I/O exception", e);
                     }
                 }
-            }
-            catch(InterruptedIOException e) {
-                if (isDebugOn()) {
-                    debug("doRun", "interrupted");
+            } catch(InterruptedIOException e) {
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                        "doRun", "interrupted");
                 }
-            }
-            catch(Exception e) {
-                if (isDebugOn()) {
-                    debug("doRun", "failure when sending response");
-                    debug("doRun", e);
+            } catch(Exception e) {
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                        "doRun", "failure when sending response", e);
                 }
             }
         }
@@ -160,7 +178,7 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
      */
     private DatagramPacket makeResponsePacket(DatagramPacket reqPacket) {
         DatagramPacket respPacket = null ;
-    
+
         // Transform the request packet into a request SnmpMessage
         //
         SnmpMessage reqMsg = new SnmpMessage() ;
@@ -170,21 +188,21 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
             reqMsg.port = reqPacket.getPort() ;
         }
         catch(SnmpStatusException x) {
-            if (isDebugOn()) {
-                debug("makeResponsePacket", "packet decoding failed");
-		debug("makeResponsePacket", x);
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                    "makeResponsePacket", "packet decoding failed", x);
             }
             reqMsg = null ;
             ((SnmpAdaptorServer)adaptorServer).incSnmpInASNParseErrs(1) ;
         }
-    
+
         // Make the response SnmpMessage if any
         //
         SnmpMessage respMsg = null ;
         if (reqMsg != null) {
             respMsg = makeResponseMessage(reqMsg) ;
         }
-    
+
         // Try to transform the response SnmpMessage into response packet.
         // NOTE: we overwrite the request packet.
         //
@@ -194,8 +212,9 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
                 respPacket = reqPacket ;
             }
             catch(SnmpTooBigException x) {
-                if (isDebugOn()) {
-                    debug("makeResponsePacket", "response message is too big");
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                        "makeResponsePacket", "response message is too big");
                 }
                 try {
                     respMsg = newTooBigMessage(reqMsg) ;
@@ -203,24 +222,25 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
                     respPacket = reqPacket ;
                 }
                 catch(SnmpTooBigException xx) {
-                    if (isDebugOn()) {
-                        debug("makeResponsePacket", "'too big' is 'too big' !!!");
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                            "makeResponsePacket", "'too big' is 'too big' !!!");
                     }
-		    adaptor.incSnmpSilentDrops(1);
+                    adaptor.incSnmpSilentDrops(1);
                 }
             }
         }
-    
+
         return respPacket ;
     }
-  
+
     /**
      * Here we make a response message from a request message.
      * We return null if there is no message to reply.
      */
     private SnmpMessage makeResponseMessage(SnmpMessage reqMsg) {
         SnmpMessage respMsg = null ;
-    
+
         // Transform the request message into a request pdu
         //
         SnmpPduPacket reqPdu = null ;
@@ -236,9 +256,9 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
             snmpServer.incSnmpInASNParseErrs(1) ;
             if (x.getStatus()== SnmpDefinitions.snmpWrongSnmpVersion)
                 snmpServer.incSnmpInBadVersions(1) ;
-            if (isDebugOn()) {
-                debug("makeResponseMessage", "message decoding failed");
-		debug("makeResponseMessage",x);
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                    "makeResponseMessage", "message decoding failed", x);
             }
         }
 
@@ -248,66 +268,66 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         if (reqPdu != null) {
             respPdu = makeResponsePdu(reqPdu,userData) ;
             try {
-                if (userDataFactory != null) 
+                if (userDataFactory != null)
                     userDataFactory.releaseUserData(userData,respPdu);
             } catch (SnmpStatusException x) {
                 respPdu = null;
             }
         }
-    
+
         // Try to transform the response pdu into a response message if any
         //
         if (respPdu != null) {
             try {
                 respMsg = (SnmpMessage)pduFactory.
-		    encodeSnmpPdu(respPdu, packet.getData().length) ;
+                    encodeSnmpPdu(respPdu, packet.getData().length) ;
             }
             catch(SnmpStatusException x) {
                 respMsg = null ;
-                if (isDebugOn()) {
-                    debug("makeResponseMessage", 
-			  "failure when encoding the response message");
-                    debug("makeResponseMessage", x);
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                        "makeResponseMessage", "failure when encoding the response message", x);
                 }
             }
             catch(SnmpTooBigException x) {
-                if (isDebugOn()) {
-                    debug("makeResponseMessage", 
-			  "response message is too big");
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                        "makeResponseMessage", "response message is too big");
                 }
 
                 try {
-                    // if the PDU is too small, why should we try to do 
-		    // recovery ? 
-                    // 
-                    if (packet.getData().length <=32) 
-                        throw x; 
+                    // if the PDU is too small, why should we try to do
+                    // recovery ?
+                    //
+                    if (packet.getData().length <=32)
+                        throw x;
                     int pos= x.getVarBindCount();
-                    if (isDebugOn()) {
-                        debug("makeResponseMessage", "fail on element" + pos);
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                            "makeResponseMessage", "fail on element" + pos);
                     }
                     int old= 0;
                     while (true) {
                         try {
                             respPdu = reduceResponsePdu(reqPdu, respPdu, pos) ;
                             respMsg = (SnmpMessage)pduFactory.
-				encodeSnmpPdu(respPdu, 
-					      packet.getData().length -32) ;
+                                encodeSnmpPdu(respPdu,
+                                              packet.getData().length -32) ;
                             break;
                         } catch (SnmpTooBigException xx) {
-                            if (isDebugOn()) {
-                                debug("makeResponseMessage", 
-				      "response message is still too big");
+                            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                                    "makeResponseMessage", "response message is still too big");
                             }
                             old= pos;
                             pos= xx.getVarBindCount();
-                            if (isDebugOn()) {
-                                debug("makeResponseMessage", 
-				      "fail on element" + pos);
+                            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                                    "makeResponseMessage","fail on element" + pos);
                             }
                             if (pos == old) {
-                                // we can not go any further in trying to 
-				// reduce the message !
+                                // we can not go any further in trying to
+                                // reduce the message !
                                 //
                                 throw xx;
                             }
@@ -315,65 +335,70 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
                     }// end of loop
                 } catch(SnmpStatusException xx) {
                     respMsg = null ;
-                    if (isDebugOn()) {
-                        debug("makeResponseMessage", 
-			      "failure when encoding the response message");
-                        debug("makeResponseMessage", xx);
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                           "makeResponseMessage", "failure when encoding the response message", xx);
                     }
                 }
                 catch(SnmpTooBigException xx) {
                     try {
                         respPdu = newTooBigPdu(reqPdu) ;
                         respMsg = (SnmpMessage)pduFactory.
-			    encodeSnmpPdu(respPdu, packet.getData().length) ;
+                            encodeSnmpPdu(respPdu, packet.getData().length) ;
                     }
                     catch(SnmpTooBigException xxx) {
                         respMsg = null ;
-                        if (isDebugOn()) {
-                            debug("makeResponseMessage", 
-				  "'too big' is 'too big' !!!");
+                        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                            SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                               "makeResponseMessage", "'too big' is 'too big' !!!");
                         }
-			adaptor.incSnmpSilentDrops(1);
+                        adaptor.incSnmpSilentDrops(1);
                     }
                     catch(Exception xxx) {
-			debug("makeResponseMessage", xxx);
+                        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                            SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                               "makeResponseMessage", "Got unexpected exception", xxx);
+                        }
                         respMsg = null ;
                     }
                 }
                 catch(Exception xx) {
-		    debug("makeResponseMessage", xx);
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                           "makeResponseMessage", "Got unexpected exception", xx);
+                    }
                     respMsg = null ;
                 }
             }
         }
         return respMsg ;
     }
-  
+
     /**
      * Here we make a response pdu from a request pdu.
      * We return null if there is no pdu to reply.
      */
-    private SnmpPduPacket makeResponsePdu(SnmpPduPacket reqPdu, 
+    private SnmpPduPacket makeResponsePdu(SnmpPduPacket reqPdu,
                                           Object userData) {
-        
+
         SnmpAdaptorServer snmpServer = (SnmpAdaptorServer)adaptorServer ;
         SnmpPduPacket respPdu = null ;
-    
+
         snmpServer.updateRequestCounters(reqPdu.type) ;
         if (reqPdu.varBindList != null)
-            snmpServer.updateVarCounters(reqPdu.type, 
-                                         reqPdu.varBindList.length) ; 
-    
+            snmpServer.updateVarCounters(reqPdu.type,
+                                         reqPdu.varBindList.length) ;
+
         if (checkPduType(reqPdu)) {
             respPdu = checkAcl(reqPdu) ;
             if (respPdu == null) { // reqPdu is accepted by ACLs
                 if (mibs.size() < 1) {
-                    if (isTraceOn()) {
-                        trace("makeResponsePdu", "Request " + 
-                              reqPdu.requestId + 
-                              " received but no MIB registered.");
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+                           "makeResponsePdu", "Request " + reqPdu.requestId +
+                           " received but no MIB registered.");
                     }
-		    return makeNoMibErrorPdu((SnmpPduRequest)reqPdu, userData);
+                    return makeNoMibErrorPdu((SnmpPduRequest)reqPdu, userData);
                 }
                 switch(reqPdu.type) {
                 case SnmpPduPacket.pduGetRequestPdu:
@@ -382,7 +407,7 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
                     respPdu = makeGetSetResponsePdu((SnmpPduRequest)reqPdu,
                                                     userData) ;
                     break ;
-            
+
                 case SnmpPduPacket.pduGetBulkRequestPdu:
                     respPdu = makeGetBulkResponsePdu((SnmpPduBulk)reqPdu,
                                                      userData) ;
@@ -398,14 +423,13 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
                 if (snmpServer.getAuthTrapEnabled()) { // A trap must be sent
                     try {
                         snmpServer.snmpV1Trap(SnmpPduTrap.
-					      trapAuthenticationFailure, 0, 
-					      new SnmpVarBindList()) ;
+                                              trapAuthenticationFailure, 0,
+                                              new SnmpVarBindList()) ;
                     }
                     catch(Exception x) {
-                        if (isDebugOn()) {
-                            debug("makeResponsePdu", 
-				  "failure when sending authentication trap");
-                            debug("makeResponsePdu", x);
+                        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                            SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                               "makeResponsePdu", "Failure when sending authentication trap", x);
                         }
                     }
                 }
@@ -413,12 +437,12 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         }
         return respPdu ;
     }
-  
+
     //
     // Generates a response packet, filling the values in the
     // varbindlist with one of endOfMibView, noSuchObject, noSuchInstance
     // according to the value of <code>status</code>
-    // 
+    //
     // @param statusTag should be one of:
     //        <li>SnmpDataTypeEnums.errEndOfMibViewTag</li>
     //        <li>SnmpDataTypeEnums.errNoSuchObjectTag</li>
@@ -431,15 +455,15 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
 
         switch (statusTag) {
         case SnmpDataTypeEnums.errEndOfMibViewTag:
-            for (int i=0 ; i<length ; i++) 
+            for (int i=0 ; i<length ; i++)
                 vblist[i].value = SnmpVarBind.endOfMibView;
             break;
         case SnmpDataTypeEnums.errNoSuchObjectTag:
-            for (int i=0 ; i<length ; i++) 
+            for (int i=0 ; i<length ; i++)
                 vblist[i].value = SnmpVarBind.noSuchObject;
             break;
         case SnmpDataTypeEnums.errNoSuchInstanceTag:
-            for (int i=0 ; i<length ; i++) 
+            for (int i=0 ; i<length ; i++)
                 vblist[i].value = SnmpVarBind.noSuchInstance;
             break;
         default:
@@ -456,39 +480,39 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
     // <li>If the version is V2:</li>
     // <ul><li>If the request is a GET, fills the varbind list with
     //         NoSuchObject's</li>
-    //     <li>If the request is a GET-NEXT/GET-BULK, fills the varbind 
+    //     <li>If the request is a GET-NEXT/GET-BULK, fills the varbind
     //         list with EndOfMibView's</li>
-    //     <li>If the request is a SET, generates a NoAccess error V2 
+    //     <li>If the request is a SET, generates a NoAccess error V2
     //          response PDU</li>
     // </ul>
-    // 
+    //
     //
     SnmpPduPacket makeNoMibErrorPdu(SnmpPduRequest req, Object userData) {
         // There is no agent registered
         //
         if (req.version == SnmpDefinitions.snmpVersionOne) {
             // Version 1: => NoSuchName
-            return 
+            return
                 newErrorResponsePdu(req,snmpRspNoSuchName,1);
         } else if (req.version == SnmpDefinitions.snmpVersionTwo) {
             // Version 2: => depends on PDU type
             switch (req.type) {
             case pduSetRequestPdu :
-            case pduWalkRequest : 
+            case pduWalkRequest :
                 // SET request => NoAccess
-                return 
+                return
                     newErrorResponsePdu(req,snmpRspNoAccess,1);
-            case pduGetRequestPdu : 
+            case pduGetRequestPdu :
                 // GET request => NoSuchObject
-                return 
+                return
                     makeErrorVarbindPdu(req,SnmpDataTypeEnums.
-					errNoSuchObjectTag);
+                                        errNoSuchObjectTag);
             case pduGetNextRequestPdu :
-            case pduGetBulkRequestPdu : 
+            case pduGetBulkRequestPdu :
                 // GET-NEXT or GET-BULK => EndOfMibView
-                return 
+                return
                     makeErrorVarbindPdu(req,SnmpDataTypeEnums.
-					errEndOfMibViewTag);
+                                        errEndOfMibViewTag);
             default:
             }
         }
@@ -502,18 +526,18 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
      */
     private SnmpPduPacket makeGetSetResponsePdu(SnmpPduRequest req,
                                                 Object userData) {
-   
-        // Create the trhead group specific for handling sub-requests 
-	// associated to the current request. Use the invoke id
+
+        // Create the trhead group specific for handling sub-requests
+        // associated to the current request. Use the invoke id
         //
-        // Nice idea to use a thread group on a request basis. 
-	// However the impact on performance is terrible !
-        // theGroup= new ThreadGroup(thread.getThreadGroup(), 
-	//                "request " + String.valueOf(req.requestId));
-	
+        // Nice idea to use a thread group on a request basis.
+        // However the impact on performance is terrible !
+        // theGroup= new ThreadGroup(thread.getThreadGroup(),
+        //                "request " + String.valueOf(req.requestId));
+
         // Let's build the varBindList for the response pdu
         //
-   
+
         if (req.varBindList == null) {
             // Good ! Let's make a full response pdu.
             //
@@ -526,106 +550,108 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         int nbSubRequest= subs.size();
         if (nbSubRequest == 1)
             return turboProcessingGetSet(req,userData);
-  
-    
-        // Execute all the subrequests resulting from the split of the 
-	// varbind list.
+
+
+        // Execute all the subrequests resulting from the split of the
+        // varbind list.
         //
         SnmpPduPacket result= executeSubRequest(req,userData);
         if (result != null)
-            // It means that an error occured. The error is already 
-	    // formatted by the executeSubRequest
+            // It means that an error occured. The error is already
+            // formatted by the executeSubRequest
             // method.
             return result;
-        
+
         // So far so good. So we need to concatenate all the answers.
         //
-        if (isTraceOn()) {
-            trace("makeGetSetResponsePdu", 
-		  "Build the unified response for request " + req.requestId);
+        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+            SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+               "makeGetSetResponsePdu",
+               "Build the unified response for request " + req.requestId);
         }
         return mergeResponses(req);
     }
-  
+
     /**
-     * The method runs all the sub-requests associated to the current 
+     * The method runs all the sub-requests associated to the current
      * instance of SnmpRequestHandler.
      */
     private SnmpPduPacket executeSubRequest(SnmpPduPacket req,
                                             Object userData) {
-    
+
         int errorStatus = SnmpDefinitions.snmpRspNoError ;
         int nbSubRequest= subs.size();
-            
-	int i=0;
+
+        int i=0;
         // If it's a set request, we must first check any varBind
         //
         if (req.type == pduSetRequestPdu) {
-     
-	    i=0;
+
+            i=0;
             for(Enumeration e= subs.elements(); e.hasMoreElements() ; i++) {
                 // Indicate to the sub request that a check must be invoked ...
                 // OK we should have defined out own tag for that !
                 //
-                SnmpSubRequestHandler sub= (SnmpSubRequestHandler) 
-		    e.nextElement();
+                SnmpSubRequestHandler sub= (SnmpSubRequestHandler)
+                    e.nextElement();
                 sub.setUserData(userData);
                 sub.type= pduWalkRequest;
 
-		sub.run();
+                sub.run();
 
-		sub.type= pduSetRequestPdu;
+                sub.type= pduSetRequestPdu;
 
-		if (sub.getErrorStatus() != SnmpDefinitions.snmpRspNoError) {
-		    // No point to go any further.
-		    //
-		    if (isDebugOn()) {
-			debug("executeSubRequest", "an error occurs");
-		    }
+                if (sub.getErrorStatus() != SnmpDefinitions.snmpRspNoError) {
+                    // No point to go any further.
+                    //
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                           "executeSubRequest", "an error occurs");
+                    }
 
-		    return newErrorResponsePdu(req, errorStatus, 
-					       sub.getErrorIndex() + 1) ;
-		}
+                    return newErrorResponsePdu(req, errorStatus,
+                                               sub.getErrorIndex() + 1) ;
+                }
             }
         }// end processing check operation for a set PDU.
-    
+
         // Let's start the sub-requests.
-        // 
-	i=0;
+        //
+        i=0;
         for(Enumeration e= subs.elements(); e.hasMoreElements() ;i++) {
             SnmpSubRequestHandler sub= (SnmpSubRequestHandler) e.nextElement();
-        /* NPCTE fix for bugId 4492741, esc 0, 16-August 2001 */ 
-	    sub.setUserData(userData);
-	/* end of NPCTE fix for bugId 4492741 */      
+        /* NPCTE fix for bugId 4492741, esc 0, 16-August 2001 */
+            sub.setUserData(userData);
+        /* end of NPCTE fix for bugId 4492741 */
 
-	    sub.run();
+            sub.run();
 
             if (sub.getErrorStatus() != SnmpDefinitions.snmpRspNoError) {
                 // No point to go any further.
                 //
-                if (isDebugOn()) {
-                    debug("executeSubRequest", "an error occurs");
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                       "executeSubRequest", "an error occurs");
                 }
 
-                return newErrorResponsePdu(req, errorStatus, 
-					   sub.getErrorIndex() + 1) ;
+                return newErrorResponsePdu(req, errorStatus,
+                                           sub.getErrorIndex() + 1) ;
             }
-	}
-    
+        }
+
         // everything is ok
         //
         return null;
     }
-  
+
     /**
      * Optimize when there is only one sub request
      */
     private SnmpPduPacket turboProcessingGetSet(SnmpPduRequest req,
                                                 Object userData) {
-  
+
         int errorStatus = SnmpDefinitions.snmpRspNoError ;
-        SnmpSubRequestHandler sub= (SnmpSubRequestHandler) 
-	    subs.elements().nextElement();
+        SnmpSubRequestHandler sub = subs.elements().nextElement();
         sub.setUserData(userData);
 
         // Indicate to the sub request that a check must be invoked ...
@@ -633,73 +659,75 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         //
         if (req.type == SnmpDefinitions.pduSetRequestPdu) {
             sub.type= pduWalkRequest;
-            sub.run();    
+            sub.run();
             sub.type= pduSetRequestPdu;
-       
-            // Check the error status. 
+
+            // Check the error status.
             //
             errorStatus= sub.getErrorStatus();
             if (errorStatus != SnmpDefinitions.snmpRspNoError) {
                 // No point to go any further.
                 //
-                return newErrorResponsePdu(req, errorStatus, 
-					   sub.getErrorIndex() + 1) ;
+                return newErrorResponsePdu(req, errorStatus,
+                                           sub.getErrorIndex() + 1) ;
             }
         }
-  
+
         // process the operation
         //
-   
+
         sub.run();
         errorStatus= sub.getErrorStatus();
         if (errorStatus != SnmpDefinitions.snmpRspNoError) {
             // No point to go any further.
             //
-            if (isDebugOn()) {
-                debug("turboProcessingGetSet", "an error occurs");
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                   "turboProcessingGetSet", "an error occurs");
             }
             int realIndex= sub.getErrorIndex() + 1;
             return newErrorResponsePdu(req, errorStatus, realIndex) ;
         }
-    
+
         // So far so good. So we need to concatenate all the answers.
         //
-    
-        if (isTraceOn()) {
-            trace("turboProcessingGetSet", 
-		  "build the unified response for request " + req.requestId);
+
+        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+            SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+               "turboProcessingGetSet",  "build the unified response for request "
+                + req.requestId);
         }
         return mergeResponses(req);
     }
-  
+
     /**
      * Here we make the response pdu for a bulk request.
      * At this level, the result is never null.
      */
-    private SnmpPduPacket makeGetBulkResponsePdu(SnmpPduBulk req, 
+    private SnmpPduPacket makeGetBulkResponsePdu(SnmpPduBulk req,
                                                  Object userData) {
-   
+
         SnmpVarBind[] respVarBindList = null ;
-    
+
         // RFC 1905, Section 4.2.3, p14
         int L = req.varBindList.length ;
         int N = Math.max(Math.min(req.nonRepeaters, L), 0) ;
         int M = Math.max(req.maxRepetitions, 0) ;
         int R = L - N ;
-    
+
         if (req.varBindList == null) {
             // Good ! Let's make a full response pdu.
             //
             return newValidResponsePdu(req, null) ;
         }
-    
+
         // Split the request into subrequests.
         //
         splitBulkRequest(req, N, M, R);
         SnmpPduPacket result= executeSubRequest(req,userData);
         if (result != null)
             return result;
-    
+
         respVarBindList= mergeBulkResponses(N + (M * R));
 
         // Now we remove useless trailing endOfMibView.
@@ -707,7 +735,7 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         int m2 ; // respVarBindList[m2] item and next are going to be removed
         int t = respVarBindList.length ;
         while ((t > N) && (respVarBindList[t-1].
-			   value.equals(SnmpVarBind.endOfMibView))) {
+                           value.equals(SnmpVarBind.endOfMibView))) {
             t-- ;
         }
         if (t == N)
@@ -726,7 +754,7 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         //
         return newValidResponsePdu(req, respVarBindList) ;
     }
-  
+
     /**
      * Check the type of the pdu: only the get/set/bulk request
      * are accepted.
@@ -736,7 +764,7 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         boolean result = true ;
 
         switch(pdu.type) {
-    
+
         case SnmpDefinitions.pduGetRequestPdu:
         case SnmpDefinitions.pduGetNextRequestPdu:
         case SnmpDefinitions.pduSetRequestPdu:
@@ -745,16 +773,17 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
             break;
 
         default:
-            if (isDebugOn()) {
-                debug("checkPduType", "cannot respond to this kind of PDU");
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                   "checkPduType", "cannot respond to this kind of PDU");
             }
             result = false ;
             break;
         }
-    
+
         return result ;
     }
-  
+
     /**
      * Check if the specified pdu is conform to the ACL.
      * This method returns null if the pdu is ok. If not, it returns
@@ -763,62 +792,62 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
     private SnmpPduPacket checkAcl(SnmpPduPacket pdu) {
         SnmpPduPacket response = null ;
         String community = new String(pdu.community) ;
-    
+
         // We check the pdu type and create an error response if
         // the check failed.
         //
         if (ipacl != null) {
             if (pdu.type == SnmpDefinitions.pduSetRequestPdu) {
                 if (!((InetAddressAcl)ipacl).
-		    checkWritePermission(pdu.address, community)) {
-                    if (isTraceOn()) {
-                        trace("checkAcl", "sender is " + pdu.address + 
-			      " with " + community);
-                        trace("checkAcl", "sender has no write permission");
+                    checkWritePermission(pdu.address, community)) {
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+                           "checkAcl", "sender is " + pdu.address +
+                              " with " + community +". Sender has no write permission");
                     }
-		    int err = SnmpSubRequestHandler.
-			mapErrorStatus(SnmpDefinitions.
-				       snmpRspAuthorizationError, 
-				       pdu.version, pdu.type);
+                    int err = SnmpSubRequestHandler.
+                        mapErrorStatus(SnmpDefinitions.
+                                       snmpRspAuthorizationError,
+                                       pdu.version, pdu.type);
                     response = newErrorResponsePdu(pdu, err, 0) ;
                 }
                 else {
-                    if (isTraceOn()) {
-                        trace("checkAcl", "sender is " + pdu.address + 
-			      " with " + community);
-                        trace("checkAcl", "sender has write permission");
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+                           "checkAcl", "sender is " + pdu.address +
+                              " with " + community +". Sender has write permission");
                     }
                 }
             }
             else {
                 if (!((InetAddressAcl)ipacl).checkReadPermission(pdu.address, community)) {
-                    if (isTraceOn()) {
-                        trace("checkAcl", "sender is " + pdu.address +
-			      " with " + community);
-                        trace("checkAcl", "sender has no read permission");
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+                           "checkAcl", "sender is " + pdu.address +
+                              " with " + community +". Sender has no read permission");
                     }
-		    int err = SnmpSubRequestHandler.
-			mapErrorStatus(SnmpDefinitions.
-				       snmpRspAuthorizationError, 
-				       pdu.version, pdu.type);
-                    response = newErrorResponsePdu(pdu, 
-						   err, 
-						   0);
-		    SnmpAdaptorServer snmpServer = 
-			(SnmpAdaptorServer)adaptorServer;
-		    snmpServer.updateErrorCounters(SnmpDefinitions.
-						   snmpRspNoSuchName);
+                    int err = SnmpSubRequestHandler.
+                        mapErrorStatus(SnmpDefinitions.
+                                       snmpRspAuthorizationError,
+                                       pdu.version, pdu.type);
+                    response = newErrorResponsePdu(pdu,
+                                                   err,
+                                                   0);
+                    SnmpAdaptorServer snmpServer =
+                        (SnmpAdaptorServer)adaptorServer;
+                    snmpServer.updateErrorCounters(SnmpDefinitions.
+                                                   snmpRspNoSuchName);
                 }
-		else {
-                    if (isTraceOn()) {
-                        trace("checkAcl", "sender is " + pdu.address +
-			      " with " + community);
-                        trace("checkAcl", "sender has read permission");
+                else {
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+                           "checkAcl", "sender is " + pdu.address +
+                              " with " + community +". Sender has read permission");
                     }
                 }
             }
         }
-    
+
         // If the response is not null, this means the pdu is rejected.
         // So let's update the statistics.
         //
@@ -828,18 +857,18 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
             if (((InetAddressAcl)ipacl).checkCommunity(community) == false)
                 snmpServer.incSnmpInBadCommunityNames(1) ;
         }
-    
+
         return response ;
     }
-    
+
     /**
      * Make a response pdu with the specified error status and index.
-     * NOTE: the response pdu share its varBindList with the request pdu. 
+     * NOTE: the response pdu share its varBindList with the request pdu.
      */
-    private SnmpPduRequest newValidResponsePdu(SnmpPduPacket reqPdu, 
-					       SnmpVarBind[] varBindList) {
+    private SnmpPduRequest newValidResponsePdu(SnmpPduPacket reqPdu,
+                                               SnmpVarBind[] varBindList) {
         SnmpPduRequest result = new SnmpPduRequest() ;
-    
+
         result.address = reqPdu.address ;
         result.port = reqPdu.port ;
         result.version = reqPdu.version ;
@@ -849,16 +878,16 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         result.errorStatus = SnmpDefinitions.snmpRspNoError ;
         result.errorIndex = 0 ;
         result.varBindList = varBindList ;
-    
+
         ((SnmpAdaptorServer)adaptorServer).
-	    updateErrorCounters(result.errorStatus) ;
-    
+            updateErrorCounters(result.errorStatus) ;
+
         return result ;
     }
-  
+
     /**
      * Make a response pdu with the specified error status and index.
-     * NOTE: the response pdu share its varBindList with the request pdu. 
+     * NOTE: the response pdu share its varBindList with the request pdu.
      */
     private SnmpPduRequest newErrorResponsePdu(SnmpPduPacket req,int s,int i) {
         SnmpPduRequest result = newValidResponsePdu(req, null) ;
@@ -867,65 +896,69 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         result.varBindList = req.varBindList ;
 
         ((SnmpAdaptorServer)adaptorServer).
-	    updateErrorCounters(result.errorStatus) ;
-    
+            updateErrorCounters(result.errorStatus) ;
+
         return result ;
     }
 
-    private SnmpMessage newTooBigMessage(SnmpMessage reqMsg) 
-	throws SnmpTooBigException {
+    private SnmpMessage newTooBigMessage(SnmpMessage reqMsg)
+        throws SnmpTooBigException {
         SnmpMessage result = null ;
         SnmpPduPacket reqPdu = null ;
-    
+
         try {
             reqPdu = (SnmpPduPacket)pduFactory.decodeSnmpPdu(reqMsg) ;
             if (reqPdu != null) {
                 SnmpPduPacket respPdu = newTooBigPdu(reqPdu) ;
                 result = (SnmpMessage)pduFactory.
-		    encodeSnmpPdu(respPdu, packet.getData().length) ;
+                    encodeSnmpPdu(respPdu, packet.getData().length) ;
             }
         }
         catch(SnmpStatusException x) {
             // This should not occur because decodeIncomingRequest has normally
             // been successfully called before.
-	    debug("InternalError: ", x);
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                   "newTooBigMessage", "Internal error", x);
+            }
             throw new InternalError() ;
         }
-    
+
         return result ;
     }
-  
+
     private SnmpPduPacket newTooBigPdu(SnmpPduPacket req) {
-        SnmpPduRequest result = 
-	    newErrorResponsePdu(req, SnmpDefinitions.snmpRspTooBig, 0) ;
+        SnmpPduRequest result =
+            newErrorResponsePdu(req, SnmpDefinitions.snmpRspTooBig, 0) ;
         result.varBindList = null ;
         return result ;
     }
 
-    private SnmpPduPacket reduceResponsePdu(SnmpPduPacket req, 
-					    SnmpPduPacket resp, 
-					    int acceptedVbCount) 
+    private SnmpPduPacket reduceResponsePdu(SnmpPduPacket req,
+                                            SnmpPduPacket resp,
+                                            int acceptedVbCount)
         throws SnmpTooBigException {
-  
+
         // Reduction can be attempted only on bulk response
         //
         if (req.type != req.pduGetBulkRequestPdu) {
-            if (isDebugOn()) {
-                debug("reduceResponsePdu", "cannot remove anything");
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                   "reduceResponsePdu", "cannot remove anything");
             }
             throw new SnmpTooBigException(acceptedVbCount) ;
         }
-    
+
         // We're going to reduce the varbind list.
         // First determine which items should be removed.
         // Next duplicate and replace the existing list by the reduced one.
         //
         // acceptedVbCount is the number of varbind which have been
         // successfully encoded before reaching bufferSize:
-        //   * when it is >= 2, we split the varbindlist at this 
+        //   * when it is >= 2, we split the varbindlist at this
         //     position (-1 to be safe),
         //   * when it is 1, we only put one (big?) item in the varbindlist
-        //   * when it is 0 (in fact, acceptedVbCount is not available), 
+        //   * when it is 0 (in fact, acceptedVbCount is not available),
         //     we split the varbindlist by 2.
         //
         int vbCount = resp.varBindList.length ;
@@ -935,10 +968,11 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
             vbCount = 1 ;
         else // acceptedCount == 0 ie it is unknown
             vbCount = resp.varBindList.length / 2 ;
-    
+
         if (vbCount < 1) {
-            if (isDebugOn()) {
-                debug("reduceResponsePdu", "cannot remove anything");
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                   "reduceResponsePdu", "cannot remove anything");
             }
             throw new SnmpTooBigException(acceptedVbCount) ;
         }
@@ -947,14 +981,14 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
             for (int i = 0 ; i < vbCount ; i++) {
                 newVbList[i] = resp.varBindList[i] ;
             }
-            if (isDebugOn()) {
-                debug("reduceResponsePdu", 
-		      (resp.varBindList.length - newVbList.length) + 
-		      " items have been removed");
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, dbgTag,
+                   "reduceResponsePdu", (resp.varBindList.length - newVbList.length) +
+                    " items have been removed");
             }
             resp.varBindList = newVbList ;
         }
-    
+
         return resp ;
     }
 
@@ -962,16 +996,16 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
      * The method takes the incoming requests and split it into subrequests.
      */
     private void splitRequest(SnmpPduRequest req) {
-    
+
         int nbAgents= mibs.size();
         SnmpMibAgent agent= (SnmpMibAgent) mibs.firstElement();
         if (nbAgents == 1) {
-            // Take all the oids contained in the request and 
+            // Take all the oids contained in the request and
             //
             subs.put(agent, new SnmpSubRequestHandler(agent, req, true));
             return;
         }
-    
+
         // For the get next operation we are going to send the varbind list
         // to all agents
         //
@@ -988,60 +1022,61 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         SnmpSubRequestHandler sub;
         for(int i=0; i < nbReqs; i++) {
             agent= root.getAgentMib(vars[i].oid);
-            sub= (SnmpSubRequestHandler) subs.get(agent);
+            sub= subs.get(agent);
             if (sub == null) {
-                // We need to create the sub request handler and update 
-		// the hashtable
+                // We need to create the sub request handler and update
+                // the hashtable
                 //
                 sub= new SnmpSubRequestHandler(agent, req);
                 subs.put(agent, sub);
             }
-      
+
             // Update the translation table within the subrequest
             //
             sub.updateRequest(vars[i], i);
         }
     }
-  
+
     /**
-     * The method takes the incoming get bulk requests and split it into 
+     * The method takes the incoming get bulk requests and split it into
      * subrequests.
      */
-    private void splitBulkRequest(SnmpPduBulk req, 
-				  int nonRepeaters, 
-				  int maxRepetitions, 
-				  int R) {
-	// Send the getBulk to all agents
-	//
-	for(Enumeration e= mibs.elements(); e.hasMoreElements(); ) {
-	    SnmpMibAgent agent = (SnmpMibAgent) e.nextElement();
+    private void splitBulkRequest(SnmpPduBulk req,
+                                  int nonRepeaters,
+                                  int maxRepetitions,
+                                  int R) {
+        // Send the getBulk to all agents
+        //
+        for(Enumeration e= mibs.elements(); e.hasMoreElements(); ) {
+            SnmpMibAgent agent = (SnmpMibAgent) e.nextElement();
 
-	    if(isDebugOn())
-		trace("splitBulkRequest", "Create a sub with : " + 
-		      agent + " " + nonRepeaters + " " +
-		      maxRepetitions + " " + R);
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINER, dbgTag,
+                   "splitBulkRequest", "Create a sub with : " + agent + " " + nonRepeaters
+                   + " " + maxRepetitions + " " + R);
+            }
 
-	    subs.put(agent, 
-		     new SnmpSubBulkRequestHandler(adaptor,
-						   agent, 
-						   req, 
-						   nonRepeaters, 
-						   maxRepetitions, 
-						   R));
-	}
-	return;
+            subs.put(agent,
+                     new SnmpSubBulkRequestHandler(adaptor,
+                                                   agent,
+                                                   req,
+                                                   nonRepeaters,
+                                                   maxRepetitions,
+                                                   R));
+        }
+        return;
     }
-  
+
     private SnmpPduPacket mergeResponses(SnmpPduRequest req) {
-    
+
         if (req.type == pduGetNextRequestPdu) {
             return mergeNextResponses(req);
         }
-      
+
         SnmpVarBind[] result= req.varBindList;
-  
-        // Go through the list of subrequests and concatenate. 
-	// Hopefully, by now all the sub-requests should be finished
+
+        // Go through the list of subrequests and concatenate.
+        // Hopefully, by now all the sub-requests should be finished
         //
         for(Enumeration e= subs.elements(); e.hasMoreElements();) {
             SnmpSubRequestHandler sub= (SnmpSubRequestHandler) e.nextElement();
@@ -1049,37 +1084,37 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
         }
         return newValidResponsePdu(req,result);
     }
-  
+
     private SnmpPduPacket mergeNextResponses(SnmpPduRequest req) {
         int max= req.varBindList.length;
         SnmpVarBind[] result= new SnmpVarBind[max];
-    
-        // Go through the list of subrequests and concatenate. 
-	// Hopefully, by now all the sub-requests should be finished
+
+        // Go through the list of subrequests and concatenate.
+        // Hopefully, by now all the sub-requests should be finished
         //
         for(Enumeration e= subs.elements(); e.hasMoreElements();) {
             SnmpSubRequestHandler sub= (SnmpSubRequestHandler) e.nextElement();
             sub.updateResult(result);
         }
-    
+
         if (req.version == snmpVersionTwo) {
             return newValidResponsePdu(req,result);
         }
-    
+
         // In v1 make sure there is no endOfMibView ...
         //
         for(int i=0; i < max; i++) {
             SnmpValue val= result[i].value;
             if (val == SnmpVarBind.endOfMibView)
-                return newErrorResponsePdu(req, 
-				   SnmpDefinitions.snmpRspNoSuchName, i+1);
+                return newErrorResponsePdu(req,
+                                   SnmpDefinitions.snmpRspNoSuchName, i+1);
         }
-    
+
         // So far so good ...
         //
         return newValidResponsePdu(req,result);
     }
-  
+
     private SnmpVarBind[] mergeBulkResponses(int size) {
         // Let's allocate the array for storing the result
         //
@@ -1088,64 +1123,30 @@ class SnmpRequestHandler extends ClientHandler implements SnmpDefinitions {
             result[i]= new SnmpVarBind();
             result[i].value= SnmpVarBind.endOfMibView;
         }
-    
-        // Go through the list of subrequests and concatenate. 
-	// Hopefully, by now all the sub-requests should be finished
+
+        // Go through the list of subrequests and concatenate.
+        // Hopefully, by now all the sub-requests should be finished
         //
         for(Enumeration e= subs.elements(); e.hasMoreElements();) {
             SnmpSubRequestHandler sub= (SnmpSubRequestHandler) e.nextElement();
             sub.updateResult(result);
         }
-   
+
         return result;
     }
-    
-    protected boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_ADAPTOR_SNMP);
-    }
 
-    protected void trace(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_ADAPTOR_SNMP, clz,func,info);
-    }
-
-    protected void trace(String func, String info) {
-        trace(dbgTag, func, info);
-    }
-    
-    protected boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP);
-    }
-
-    protected void debug(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP, clz,func,info);
-    }
-
-    protected void debug(String clz, String func, Throwable exception) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP, clz, func,
-		   exception);
-    }
-
-    protected void debug(String func, String info) {
-        debug(dbgTag, func, info);
-    }
-    
-    protected void debug(String func, Throwable exception) {
-        debug(dbgTag, func, exception);
-    }
-    
     protected String makeDebugTag() {
-        return "SnmpRequestHandler[" + adaptorServer.getProtocol() + ":" + 
-	    adaptorServer.getPort() + "]";
+        return "SnmpRequestHandler[" + adaptorServer.getProtocol() + ":" +
+            adaptorServer.getPort() + "]";
     }
 
     Thread createThread(Runnable r) {
-	return null;
-    }  
+        return null;
+    }
 
-    static final private String InterruptSysCallMsg = 
-	"Interrupted system call";
+    static final private String InterruptSysCallMsg =
+        "Interrupted system call";
 
     static final private SnmpStatusException noSuchNameException =
         new SnmpStatusException(SnmpDefinitions.snmpRspNoSuchName) ;
 }
-

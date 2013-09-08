@@ -1,11 +1,26 @@
-// This file was generated AUTOMATICALLY from a template file Wed Nov 29 01:26:55 PST 2006
-
-/* @(#)CharacterData02.java.template	1.3 03/07/26
+// This file was generated AUTOMATICALLY from a template file Mon Jun 27 00:52:14 GMT-08:00 2011
+/*
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 1994-2002 Sun Microsystems, Inc. All Rights Reserved.
  *
- * This software is the proprietary information of Sun Microsystems, Inc.
- * Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -14,7 +29,7 @@ package java.lang;
 /** The CharacterData class encapsulates the large tables found in
     Java.lang.Character. */
 
-class CharacterData02 {
+class CharacterData02 extends CharacterData {
     /* The character properties are currently encoded into 32 bits in the following manner:
         1 bit   mirrored property
         4 bits  directionality property
@@ -51,95 +66,69 @@ class CharacterData02 {
         The encoding of character properties is subject to change at any time.
      */
 
-    static int getProperties(int ch) {
-		char offset = (char)ch;
+    int getProperties(int ch) {
+	char offset = (char)ch;
         int props = A[Y[X[offset>>5]|((offset>>1)&0xF)]|(offset&0x1)];
         return props;
     }
 
-    static int getType(int ch) {
+    int getPropertiesEx(int ch) {
+        char offset = (char)ch;
+        int props = B[Y[X[offset>>5]|((offset>>1)&0xF)]|(offset&0x1)];
+        return props;
+    }
+
+    boolean isOtherLowercase(int ch) {
+        int props = getPropertiesEx(ch);
+        return (props & 0x0001) != 0;
+    }
+
+    boolean isOtherUppercase(int ch) {
+        int props = getPropertiesEx(ch);
+        return (props & 0x0002) != 0;
+    }
+
+    boolean isOtherAlphabetic(int ch) {
+        int props = getPropertiesEx(ch);
+        return (props & 0x0004) != 0;
+    }
+
+    boolean isIdeographic(int ch) {
+        int props = getPropertiesEx(ch);
+        return (props & 0x0010) != 0;
+    }
+
+    int getType(int ch) {
         int props = getProperties(ch);
         return (props & 0x1F);
     }
 
-    static boolean isLowerCase(int ch) {
-        int type = getType(ch);
-        return (type == Character.LOWERCASE_LETTER);
-    }
-
-    static boolean isUpperCase(int ch) {
-        int type = getType(ch);
-        return (type == Character.UPPERCASE_LETTER);
-    }
-
-    static boolean isTitleCase(int ch) {
-        int type = getType(ch);
-        return (type == Character.TITLECASE_LETTER);
-    }
-
-    static boolean isDigit(int ch) {
-        int type = getType(ch);
-        return (type == Character.DECIMAL_DIGIT_NUMBER);
-    }
-
-    static boolean isDefined(int ch) {
-        int type = getType(ch);
-        return (type != Character.UNASSIGNED);
-    }
-
-    static boolean isLetter(int ch) {
-        int type = getType(ch);
-        return (((((1 << Character.UPPERCASE_LETTER) |
-            (1 << Character.LOWERCASE_LETTER) |
-            (1 << Character.TITLECASE_LETTER) |
-            (1 << Character.MODIFIER_LETTER) |
-            (1 << Character.OTHER_LETTER)) >> type) & 1) != 0);
-    }
-
-    static boolean isLetterOrDigit(int ch) {
-        int type = getType(ch);
-        return (((((1 << Character.UPPERCASE_LETTER) |
-            (1 << Character.LOWERCASE_LETTER) |
-            (1 << Character.TITLECASE_LETTER) |
-            (1 << Character.MODIFIER_LETTER) |
-            (1 << Character.OTHER_LETTER) |
-            (1 << Character.DECIMAL_DIGIT_NUMBER)) >> type) & 1) != 0);
-    }
-
-    static boolean isSpaceChar(int ch) {
-        int type = getType(ch);
-        return (((((1 << Character.SPACE_SEPARATOR) |
-            (1 << Character.LINE_SEPARATOR) |
-            (1 << Character.PARAGRAPH_SEPARATOR)) >> type) & 1) != 0);
-    }
-
-
-    static boolean isJavaIdentifierStart(int ch) {
+    boolean isJavaIdentifierStart(int ch) {
         int props = getProperties(ch);
         return ((props & 0x00007000) >= 0x00005000);
     }
 
-    static boolean isJavaIdentifierPart(int ch) {
+    boolean isJavaIdentifierPart(int ch) {
         int props = getProperties(ch);
         return ((props & 0x00003000) != 0);
     }
 
-    static boolean isUnicodeIdentifierStart(int ch) {
+    boolean isUnicodeIdentifierStart(int ch) {
         int props = getProperties(ch);
         return ((props & 0x00007000) == 0x00007000);
     }
 
-    static boolean isUnicodeIdentifierPart(int ch) {
+    boolean isUnicodeIdentifierPart(int ch) {
         int props = getProperties(ch);
         return ((props & 0x00001000) != 0);
     }
 
-    static boolean isIdentifierIgnorable(int ch) {
+    boolean isIdentifierIgnorable(int ch) {
         int props = getProperties(ch);
         return ((props & 0x00007000) == 0x00001000);
     }
 
-    static int toLowerCase(int ch) {
+    int toLowerCase(int ch) {
         int mapChar = ch;
         int val = getProperties(ch);
 
@@ -150,7 +139,7 @@ class CharacterData02 {
         return mapChar;
     }
 
-    static int toUpperCase(int ch) {
+    int toUpperCase(int ch) {
         int mapChar = ch;
         int val = getProperties(ch);
 
@@ -161,7 +150,7 @@ class CharacterData02 {
         return mapChar;
     }
 
-    static int toTitleCase(int ch) {
+    int toTitleCase(int ch) {
         int mapChar = ch;
         int val = getProperties(ch);
 
@@ -191,7 +180,7 @@ class CharacterData02 {
         return mapChar;
     }
 
-    static int digit(int ch, int radix) {
+    int digit(int ch, int radix) {
         int value = -1;
         if (radix >= Character.MIN_RADIX && radix <= Character.MAX_RADIX) {
             int val = getProperties(ch);
@@ -207,7 +196,7 @@ class CharacterData02 {
         return (value < radix) ? value : -1;
     }
 
-    static int getNumericValue(int ch) {
+    int getNumericValue(int ch) {
         int val = getProperties(ch);
         int retval = -1;
 
@@ -229,11 +218,11 @@ class CharacterData02 {
         return retval;
     }
 
-    static boolean isWhitespace(int ch) {
+    boolean isWhitespace(int ch) {
         return (getProperties(ch) & 0x00007000) == 0x00004000;
     }
 
-    static byte getDirectionality(int ch) {
+    byte getDirectionality(int ch) {
         int val = getProperties(ch);
         byte directionality = (byte)((val & 0x78000000) >> 27);
         if (directionality == 0xF ) {
@@ -242,16 +231,15 @@ class CharacterData02 {
         return directionality;
     }
 
-    static boolean isMirrored(int ch) {
+    boolean isMirrored(int ch) {
         return (getProperties(ch) & 0x80000000) != 0;
     }
 
-	// may need to implement for JSR 204
-    // static int toUpperCaseEx(int ch);
-    // static char[] toUpperCaseCharArray(int ch);
+    static final CharacterData instance = new CharacterData02();
+    private CharacterData02() {};
 
     // The following tables and code generated using:
-  // java GenerateCharacter -plane 2 -template ../../tools/GenerateCharacter/CharacterData02.java.template -spec ../../tools/GenerateCharacter/UnicodeData.txt -specialcasing ../../tools/GenerateCharacter/SpecialCasing.txt -o /BUILD_AREA/jdk6/control/build/linux-i586/gensrc/java/lang/CharacterData02.java -string -usecharforbyte 11 4 1
+  // java GenerateCharacter -plane 2 -template ../../tools/GenerateCharacter/CharacterData02.java.template -spec ../../tools/UnicodeData/UnicodeData.txt -specialcasing ../../tools/UnicodeData/SpecialCasing.txt -proplist ../../tools/UnicodeData/PropList.txt -o /HUDSON/workspace/jdk7-2-build-linux-i586-product/jdk7/build/linux-i586/gensrc/java/lang/CharacterData02.java -string -usecharforbyte 11 4 1
   // The X table has 2048 entries for a total of 4096 bytes.
 
   static final char X[] = (
@@ -325,7 +313,14 @@ class CharacterData02 {
     "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
     "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
     "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
-    "\000\000\000\000\020\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
+    "\000\000\000\000\020\040\000\000\000\000\000\000\000\000\000\000\000\000\000"+
+    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
+    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
+    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
+    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
+    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
+    "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
+    "\000\000\060\000\000\000\000\000\000\100\040\040\040\040\040\040\040\040\040"+
     "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
     "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
     "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
@@ -352,40 +347,41 @@ class CharacterData02 {
     "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
     "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
     "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
-    "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
-    "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
-    "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
-    "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
-    "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
-    "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
-    "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
-    "\040\040\040\040\040\040\040\040\000\000\000\000\000\000\000\000\000\000\000"+
-    "\000\000\000\000\000\060\040\040\040\040\040\040\040\040\040\040\040\040\040"+
+    "\040\040\040\040\040\040\040\040\000\000\000\000\120\000\000\000\000\000\000"+
+    "\000\000\000\000\000\100\040\040\040\040\040\040\040\040\040\040\040\040\040"+
     "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040"+
     "\040\040\040\040\040\040\040\040\040\040\040\040\040\040\040").toCharArray();
 
-  // The Y table has 64 entries for a total of 128 bytes.
+  // The Y table has 96 entries for a total of 192 bytes.
 
   static final char Y[] = (
     "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"+
     "\000\000\000\000\000\000\000\000\002\004\004\004\004\004\004\004\004\004\004"+
     "\004\004\004\004\004\004\004\004\004\004\000\000\000\000\000\000\000\000\000"+
-    "\000\000\000\000\000\000\004").toCharArray();
+    "\000\002\004\004\004\004\004\000\000\000\000\000\000\000\000\000\000\000\000"+
+    "\000\000\000\004\000\000\000\000\000\000\000\000\006\000\000\000\000\000\000"+
+    "\000").toCharArray();
 
-  // The A table has 6 entries for a total of 24 bytes.
+  // The A table has 8 entries for a total of 32 bytes.
 
-  static final int A[] = new int[6];
+  static final int A[] = new int[8];
   static final String A_DATA =
-    "\000\u7005\000\u7005\000\u7005\u7800\000\u7800\000\u7800\000";
+    "\000\u7005\000\u7005\000\u7005\u7800\000\u7800\000\u7800\000\000\u7725\000"+
+    "\u7005";
 
-  // In all, the character property tables require 4248 bytes.
+  // The B table has 8 entries for a total of 16 bytes.
+
+  static final char B[] = (
+    "\020\020\020\000\000\000\020\020").toCharArray();
+
+  // In all, the character property tables require 4320 bytes.
 
     static {
                 { // THIS CODE WAS AUTOMATICALLY CREATED BY GenerateCharacter:
             char[] data = A_DATA.toCharArray();
-            assert (data.length == (6 * 2));
+            assert (data.length == (8 * 2));
             int i = 0, j = 0;
-            while (i < (6 * 2)) {
+            while (i < (8 * 2)) {
                 int entry = data[i++] << 16;
                 A[j++] = entry | data[i++];
             }

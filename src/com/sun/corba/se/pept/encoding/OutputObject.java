@@ -1,8 +1,26 @@
 /*
- * @(#)OutputObject.java	1.13 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.pept.encoding;
@@ -18,7 +36,7 @@ import com.sun.corba.se.pept.protocol.MessageMediator;
  *
  * <p> The implementation of an <code>OutputObject</code> contains the
  * encoded data.  When the presentation block gives programming language
- * typed data to 
+ * typed data to
  * <code>OutputObject</code>, the
  * implementation of <code>OutputObject</code> is responsible for converting
  * that data to the encoded representation of the data for a particular
@@ -35,9 +53,9 @@ import com.sun.corba.se.pept.protocol.MessageMediator;
  *
  * @author Harold Carr
 */
-public interface OutputObject 
+public interface OutputObject
 {
-    public void setMessageMediator(MessageMediator messageMediator);    
+    public void setMessageMediator(MessageMediator messageMediator);
 
     public MessageMediator getMessageMediator();
 

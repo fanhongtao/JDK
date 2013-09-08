@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +23,8 @@
 package com.sun.org.apache.xml.internal.serializer;
 
 /**
- * This class is a stack frame that consists of 
- * information about the element currently being processed 
+ * This class is a stack frame that consists of
+ * information about the element currently being processed
  * by a serializer. Consider this example:
  * <pre>
  *   <A>
@@ -29,23 +33,23 @@ package com.sun.org.apache.xml.internal.serializer;
  *     <B2>
  *     </B2>
  *   <A>
- * </pre> 
- * 
- * A stack frame will be pushed for "A" at depth 1, 
+ * </pre>
+ *
+ * A stack frame will be pushed for "A" at depth 1,
  * then another one for "B1" at depth 2.
- * Then "B1" stackframe is popped.  When the stack frame for "B2" is 
+ * Then "B1" stackframe is popped.  When the stack frame for "B2" is
  * pushed, this implementation re-uses the old stack fram object used
  * by "B1" to be efficient at not creating too many of these object.
- * 
+ *
  * This is by no means a public class, and neither are its fields or methods,
  * they are all helper fields for a serializer.
- * 
+ *
  * The purpose of this class is to be more consistent with pushing information
  * when a new element is being serialized and more quickly restoring the old
  * information about the parent element with a simple pop() when the
  * child element is done.  Previously there was some redundant and error-prone
  * calculations going on to retore information.
- * 
+ *
  * @xsl.usage internal
  */
 final class ElemContext
@@ -77,20 +81,20 @@ final class ElemContext
 
     /** If the element is in the cdata-section-names list
      * then the value is true. If it is true the text children of the element
-     * should be output in CDATA section blocks. 
+     * should be output in CDATA section blocks.
      */
     boolean m_isCdataSection;
 
     /** True if the current element has output escaping disabled.
-     * This is true for SCRIPT and STYLE elements. 
+     * This is true for SCRIPT and STYLE elements.
      */
     boolean m_isRaw = false;
 
     /** The next element "stack frame". This value will only be
      * set once as deeper stack frames are not deleted when popped off,
      * but are rather re-used when a push is required.
-     * 
-     * This makes for very fast pushing and popping of stack frames 
+     *
+     * This makes for very fast pushing and popping of stack frames
      * because very few stack frame objects are ever created, they are
      * mostly re-used.  This re-use saves object creation but it also means
      * that connections between the frames via m_next and m_prev
@@ -110,7 +114,7 @@ final class ElemContext
     boolean m_startTagOpen = false;
 
     /**
-     * Constructor to create the root of the element contexts. 
+     * Constructor to create the root of the element contexts.
      *
      */
     ElemContext()
@@ -123,11 +127,11 @@ final class ElemContext
 
     /**
      * Constructor to create the "stack frame" for a given element depth.
-     * 
+     *
      * This implementation will re-use the context at each depth. If
      * a documents deepest element depth is N then there will be (N+1)
      * such objects created, no more than that.
-     * 
+     *
      * @param previous The "stack frame" corresponding to the new
      * elements parent element.
      */
@@ -151,7 +155,7 @@ final class ElemContext
     }
 
     /**
-     * This method pushes an element "stack frame" 
+     * This method pushes an element "stack frame"
      * but with no initialization of values in that frame.
      * This method is used for optimization purposes, like when pushing
      * a stack frame for an HTML "IMG" tag which has no children and
@@ -177,15 +181,15 @@ final class ElemContext
         frame.m_startTagOpen = true;
         return frame;
     }
-    
+
     /**
      * Push an element context on the stack. This context keeps track of
      * information gathered about the element.
-     * @param uri The URI for the namespace for the element name, 
+     * @param uri The URI for the namespace for the element name,
      * can be null if it is not yet known.
-     * @param localName The local name of the element (no prefix),  
+     * @param localName The local name of the element (no prefix),
      * can be null.
-     * @param qName The qualified name (with prefix, if any) 
+     * @param qName The qualified name (with prefix, if any)
      * of the element, this parameter is required.
      */
     final ElemContext push(
@@ -211,7 +215,7 @@ final class ElemContext
         frame.m_startTagOpen = true;
 
         // is_Raw is already set in the HTML startElement() method
-        // frame.m_isRaw = false; 
+        // frame.m_isRaw = false;
         return frame;
     }
 }

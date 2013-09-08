@@ -1,8 +1,26 @@
 /*
- * @(#)CertificateNotYetValidException.java	1.11 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -14,7 +32,6 @@ package java.security.cert;
  * validity period.
  *
  * @author Hemma Prafullchandra
- * 1.11
  */
 public class CertificateNotYetValidException extends CertificateException {
 
@@ -33,7 +50,7 @@ public class CertificateNotYetValidException extends CertificateException {
      * Constructs a CertificateNotYetValidException with the specified detail
      * message. A detail message is a String that describes this
      * particular exception.
-     *   
+     *
      * @param message the detail message.
      */
     public CertificateNotYetValidException(String message) {

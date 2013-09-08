@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -57,7 +61,7 @@ package com.sun.org.apache.bcel.internal.classfile;
 import  com.sun.org.apache.bcel.internal.Constants;
 import  java.io.*;
 
-/** 
+/**
  * This class represents the table of exceptions that are thrown by a
  * method. This attribute may be used once per method.  The name of
  * this class is <em>ExceptionTable</em> for historical reasons; The
@@ -65,7 +69,6 @@ import  java.io.*;
  * attribute using the name <em>Exceptions</em> (which is inconsistent
  * with the other classes).
  *
- * @version $Id: ExceptionTable.java,v 1.1.2.1 2005/07/31 23:46:29 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Code
  */
@@ -79,7 +82,7 @@ public final class ExceptionTable extends Attribute {
    */
   public ExceptionTable(ExceptionTable c) {
     this(c.getNameIndex(), c.getLength(), c.getExceptionIndexTable(),
-	 c.getConstantPool());
+         c.getConstantPool());
   }
 
   /**
@@ -88,9 +91,9 @@ public final class ExceptionTable extends Attribute {
    * @param exception_index_table Table of indices in constant pool
    * @param constant_pool Array of constants
    */
-  public ExceptionTable(int        name_index, int length, 
-			int[]      exception_index_table,
-			ConstantPool constant_pool)
+  public ExceptionTable(int        name_index, int length,
+                        int[]      exception_index_table,
+                        ConstantPool constant_pool)
   {
     super(Constants.ATTR_EXCEPTIONS, name_index, length, constant_pool);
     setExceptionIndexTable(exception_index_table);
@@ -105,7 +108,7 @@ public final class ExceptionTable extends Attribute {
    * @throws IOException
    */
   ExceptionTable(int name_index, int length, DataInputStream file,
-		 ConstantPool constant_pool) throws IOException
+                 ConstantPool constant_pool) throws IOException
   {
     this(name_index, length, (int[])null, constant_pool);
 
@@ -132,7 +135,7 @@ public final class ExceptionTable extends Attribute {
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     super.dump(file);
@@ -143,11 +146,11 @@ public final class ExceptionTable extends Attribute {
 
   /**
    * @return Array of indices into constant pool of thrown exceptions.
-   */  
+   */
   public final int[] getExceptionIndexTable() {return exception_index_table;}
   /**
    * @return Length of exception table.
-   */  
+   */
   public final int getNumberOfExceptions() { return number_of_exceptions; }
 
   /**
@@ -157,8 +160,8 @@ public final class ExceptionTable extends Attribute {
     String[] names = new String[number_of_exceptions];
     for(int i=0; i < number_of_exceptions; i++)
       names[i] = constant_pool.getConstantString(exception_index_table[i],
-						 Constants.CONSTANT_Class).
-	replace('/', '.');
+                                                 Constants.CONSTANT_Class).
+        replace('/', '.');
     return names;
   }
 
@@ -173,21 +176,21 @@ public final class ExceptionTable extends Attribute {
   }
   /**
    * @return String representation, i.e., a list of thrown exceptions.
-   */ 
+   */
   public final String toString() {
     StringBuffer buf = new StringBuffer("");
     String       str;
 
     for(int i=0; i < number_of_exceptions; i++) {
       str = constant_pool.getConstantString(exception_index_table[i],
-					    Constants.CONSTANT_Class);
+                                            Constants.CONSTANT_Class);
       buf.append(Utility.compactClassName(str, false));
 
       if(i < number_of_exceptions - 1)
-	buf.append(", ");
+        buf.append(", ");
     }
 
-    return buf.toString();    
+    return buf.toString();
   }
 
   /**

@@ -1,8 +1,26 @@
 /*
- * @(#)CallbackHandler.java	1.19 05/11/17
+ * Copyright (c) 1999, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.security.auth.callback;
@@ -13,9 +31,9 @@ package javax.security.auth.callback;
  * the application to retrieve specific authentication data,
  * such as usernames and passwords, or to display certain information,
  * such as error and warning messages.
- * 
+ *
  * <p> CallbackHandlers are implemented in an application-dependent fashion.
- * For example, implementations for an application with a graphical user 
+ * For example, implementations for an application with a graphical user
  * interface (GUI) may pop up windows to prompt for requested information
  * or to display error messages.  An implementation may also choose to obtain
  * requested information from an alternate source without asking the end user.
@@ -49,7 +67,6 @@ package javax.security.auth.callback;
  * <p> All default handler implementations must provide a public
  * zero-argument constructor.
  *
- * @version 1.19, 11/17/05
  */
 public interface CallbackHandler {
 
@@ -69,67 +86,67 @@ public interface CallbackHandler {
      * public void handle(Callback[] callbacks)
      * throws IOException, UnsupportedCallbackException {
      *
-     *	 for (int i = 0; i < callbacks.length; i++) {
-     *	    if (callbacks[i] instanceof TextOutputCallback) {
-     * 
-     *		// display the message according to the specified type
-     *		TextOutputCallback toc = (TextOutputCallback)callbacks[i];
-     *		switch (toc.getMessageType()) {
-     *		case TextOutputCallback.INFORMATION:
-     *		    System.out.println(toc.getMessage());
-     *		    break;
-     *		case TextOutputCallback.ERROR:
-     *		    System.out.println("ERROR: " + toc.getMessage());
-     *		    break;
-     *		case TextOutputCallback.WARNING:
-     *		    System.out.println("WARNING: " + toc.getMessage());
-     *		    break;
-     *		default:
-     *		    throw new IOException("Unsupported message type: " +
-     *					toc.getMessageType());
-     *		}
+     *   for (int i = 0; i < callbacks.length; i++) {
+     *      if (callbacks[i] instanceof TextOutputCallback) {
      *
-     *	    } else if (callbacks[i] instanceof NameCallback) {
-     * 
-     *		// prompt the user for a username
-     *		NameCallback nc = (NameCallback)callbacks[i];
-     * 
-     *		// ignore the provided defaultName
-     *		System.err.print(nc.getPrompt());
-     *		System.err.flush();
-     *		nc.setName((new BufferedReader
-     *			(new InputStreamReader(System.in))).readLine());
+     *          // display the message according to the specified type
+     *          TextOutputCallback toc = (TextOutputCallback)callbacks[i];
+     *          switch (toc.getMessageType()) {
+     *          case TextOutputCallback.INFORMATION:
+     *              System.out.println(toc.getMessage());
+     *              break;
+     *          case TextOutputCallback.ERROR:
+     *              System.out.println("ERROR: " + toc.getMessage());
+     *              break;
+     *          case TextOutputCallback.WARNING:
+     *              System.out.println("WARNING: " + toc.getMessage());
+     *              break;
+     *          default:
+     *              throw new IOException("Unsupported message type: " +
+     *                                  toc.getMessageType());
+     *          }
      *
-     *	    } else if (callbacks[i] instanceof PasswordCallback) {
-     * 
-     *		// prompt the user for sensitive information
-     *		PasswordCallback pc = (PasswordCallback)callbacks[i];
-     *		System.err.print(pc.getPrompt());
-     *		System.err.flush();
-     *		pc.setPassword(readPassword(System.in));
-     * 
-     *	    } else {
-     *		throw new UnsupportedCallbackException
-     *			(callbacks[i], "Unrecognized Callback");
-     *	    }
-     *	 }
+     *      } else if (callbacks[i] instanceof NameCallback) {
+     *
+     *          // prompt the user for a username
+     *          NameCallback nc = (NameCallback)callbacks[i];
+     *
+     *          // ignore the provided defaultName
+     *          System.err.print(nc.getPrompt());
+     *          System.err.flush();
+     *          nc.setName((new BufferedReader
+     *                  (new InputStreamReader(System.in))).readLine());
+     *
+     *      } else if (callbacks[i] instanceof PasswordCallback) {
+     *
+     *          // prompt the user for sensitive information
+     *          PasswordCallback pc = (PasswordCallback)callbacks[i];
+     *          System.err.print(pc.getPrompt());
+     *          System.err.flush();
+     *          pc.setPassword(readPassword(System.in));
+     *
+     *      } else {
+     *          throw new UnsupportedCallbackException
+     *                  (callbacks[i], "Unrecognized Callback");
+     *      }
+     *   }
      * }
-     *  
+     *
      * // Reads user password from given input stream.
      * private char[] readPassword(InputStream in) throws IOException {
-     *    // insert code to read a user password from the input stream 
+     *    // insert code to read a user password from the input stream
      * }
      * </pre>
      *
      * @param callbacks an array of <code>Callback</code> objects provided
-     *		by an underlying security service which contains
-     *		the information requested to be retrieved or displayed.
+     *          by an underlying security service which contains
+     *          the information requested to be retrieved or displayed.
      *
      * @exception java.io.IOException if an input or output error occurs. <p>
      *
      * @exception UnsupportedCallbackException if the implementation of this
-     *		method does not support one or more of the Callbacks
-     *		specified in the <code>callbacks</code> parameter.
+     *          method does not support one or more of the Callbacks
+     *          specified in the <code>callbacks</code> parameter.
      */
     void handle(Callback[] callbacks)
     throws java.io.IOException, UnsupportedCallbackException;

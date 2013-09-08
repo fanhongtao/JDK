@@ -1,8 +1,26 @@
 /*
- * @(#)MidiSystem.java	1.68 06/05/02
+ * Copyright (c) 1999, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sound.midi;
@@ -29,6 +47,8 @@ import javax.sound.midi.spi.MidiDeviceProvider;
 import com.sun.media.sound.JDK13Services;
 import com.sun.media.sound.ReferenceCountingDevice;
 import com.sun.media.sound.AutoConnectSequencer;
+import com.sun.media.sound.MidiDeviceReceiverEnvelope;
+import com.sun.media.sound.MidiDeviceTransmitterEnvelope;
 
 
 /**
@@ -139,7 +159,6 @@ import com.sun.media.sound.AutoConnectSequencer;
  * If that fails, too, a <code>MidiUnavailableException</code>
  * is thrown.
  *
- * @version 1.68, 06/05/02
  * @author Kara Kytle
  * @author Florian Bomers
  * @author Matthias Pfisterer
@@ -165,18 +184,18 @@ public class MidiSystem {
      * an array of length 0 is returned.
      */
     public static MidiDevice.Info[] getMidiDeviceInfo() {
-	List allInfos = new ArrayList();
-	List providers = getMidiDeviceProviders();
+        List allInfos = new ArrayList();
+        List providers = getMidiDeviceProviders();
 
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
-	    MidiDevice.Info[] tmpinfo = provider.getDeviceInfo();
-	    for (int j = 0; j < tmpinfo.length; j++) {
-		allInfos.add( tmpinfo[j] );
-	    }
-	}
-	MidiDevice.Info[] infosArray = (MidiDevice.Info[]) allInfos.toArray(new MidiDevice.Info[0]);
-	return infosArray;
+        for(int i = 0; i < providers.size(); i++) {
+            MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
+            MidiDevice.Info[] tmpinfo = provider.getDeviceInfo();
+            for (int j = 0; j < tmpinfo.length; j++) {
+                allInfos.add( tmpinfo[j] );
+            }
+        }
+        MidiDevice.Info[] infosArray = (MidiDevice.Info[]) allInfos.toArray(new MidiDevice.Info[0]);
+        return infosArray;
     }
 
 
@@ -192,22 +211,24 @@ public class MidiSystem {
      * @see #getMidiDeviceInfo
      */
     public static MidiDevice getMidiDevice(MidiDevice.Info info) throws MidiUnavailableException {
-	List providers = getMidiDeviceProviders();
+        List providers = getMidiDeviceProviders();
 
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
-	    if (provider.isDeviceSupported(info)) {
-		MidiDevice device = provider.getDevice(info);
-		return device;
-	    }
-	}
-	throw new IllegalArgumentException("Requested device not installed: " + info);
+        for(int i = 0; i < providers.size(); i++) {
+            MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
+            if (provider.isDeviceSupported(info)) {
+                MidiDevice device = provider.getDevice(info);
+                return device;
+            }
+        }
+        throw new IllegalArgumentException("Requested device not installed: " + info);
     }
 
 
     /**
      * Obtains a MIDI receiver from an external MIDI port
      * or other default device.
+     * The returned receiver always implements
+     * the {@code MidiDeviceReceiver} interface.
      *
      * <p>If the system property
      * <code>javax.sound.midi.Receiver</code>
@@ -217,6 +238,12 @@ public class MidiSystem {
      *
      * If a suitable MIDI port is not available, the Receiver is
      * retrieved from an installed synthesizer.
+     *
+     * <p>If a native receiver provided by the default device does not implement
+     * the {@code MidiDeviceReceiver} interface, it will be wrapped in a
+     * wrapper class that implements the {@code MidiDeviceReceiver} interface.
+     * The corresponding {@code Receiver} method calls will be forwarded
+     * to the native receiver.
      *
      * <p>If this method returns successfully, the {@link
      * javax.sound.midi.MidiDevice MidiDevice} the
@@ -236,21 +263,26 @@ public class MidiSystem {
      *         or no device providing receivers is installed in the system
      */
     public static Receiver getReceiver() throws MidiUnavailableException {
-	// may throw MidiUnavailableException
-	MidiDevice device = getDefaultDeviceWrapper(Receiver.class);
-	Receiver receiver;
-	if (device instanceof ReferenceCountingDevice) {
-	    receiver = ((ReferenceCountingDevice) device).getReceiverReferenceCounting();
-	} else {
-	    receiver = device.getReceiver();
-	}
-	return receiver;
+        // may throw MidiUnavailableException
+        MidiDevice device = getDefaultDeviceWrapper(Receiver.class);
+        Receiver receiver;
+        if (device instanceof ReferenceCountingDevice) {
+            receiver = ((ReferenceCountingDevice) device).getReceiverReferenceCounting();
+        } else {
+            receiver = device.getReceiver();
+        }
+        if (!(receiver instanceof MidiDeviceReceiver)) {
+            receiver = new MidiDeviceReceiverEnvelope(device, receiver);
+        }
+        return receiver;
     }
 
 
     /**
      * Obtains a MIDI transmitter from an external MIDI port
      * or other default source.
+     * The returned transmitter always implements
+     * the {@code MidiDeviceTransmitter} interface.
      *
      * <p>If the system property
      * <code>javax.sound.midi.Transmitter</code>
@@ -258,7 +290,13 @@ public class MidiSystem {
      * it is used to identify the device that provides the default transmitter.
      * For details, refer to the {@link MidiSystem class description}.
      *
-     * If this method returns successfully, the {@link
+     * <p>If a native transmitter provided by the default device does not implement
+     * the {@code MidiDeviceTransmitter} interface, it will be wrapped in a
+     * wrapper class that implements the {@code MidiDeviceTransmitter} interface.
+     * The corresponding {@code Transmitter} method calls will be forwarded
+     * to the native transmitter.
+     *
+     * <p>If this method returns successfully, the {@link
      * javax.sound.midi.MidiDevice MidiDevice} the
      * <code>Transmitter</code> belongs to is opened implicitly, if it
      * is not already open. It is possible to close an implicitly
@@ -276,15 +314,18 @@ public class MidiSystem {
      *         or no device providing transmitters is installed in the system
      */
     public static Transmitter getTransmitter() throws MidiUnavailableException {
-	// may throw MidiUnavailableException
-	MidiDevice device = getDefaultDeviceWrapper(Transmitter.class);
-	Transmitter transmitter;
-	if (device instanceof ReferenceCountingDevice) {
-	    transmitter = ((ReferenceCountingDevice) device).getTransmitterReferenceCounting();
-	} else {
-	    transmitter = device.getTransmitter();
-	}
-	return transmitter;
+        // may throw MidiUnavailableException
+        MidiDevice device = getDefaultDeviceWrapper(Transmitter.class);
+        Transmitter transmitter;
+        if (device instanceof ReferenceCountingDevice) {
+            transmitter = ((ReferenceCountingDevice) device).getTransmitterReferenceCounting();
+        } else {
+            transmitter = device.getTransmitter();
+        }
+        if (!(transmitter instanceof MidiDeviceTransmitter)) {
+            transmitter = new MidiDeviceTransmitterEnvelope(device, transmitter);
+        }
+        return transmitter;
     }
 
 
@@ -303,8 +344,8 @@ public class MidiSystem {
      *         or no synthesizer is installed in the system
      */
     public static Synthesizer getSynthesizer() throws MidiUnavailableException {
-	// may throw MidiUnavailableException
-	return (Synthesizer) getDefaultDeviceWrapper(Synthesizer.class);
+        // may throw MidiUnavailableException
+        return (Synthesizer) getDefaultDeviceWrapper(Synthesizer.class);
     }
 
 
@@ -345,11 +386,11 @@ public class MidiSystem {
      * @see #getReceiver
      */
     public static Sequencer getSequencer() throws MidiUnavailableException {
-	return getSequencer(true);
+        return getSequencer(true);
     }
- 
- 
- 
+
+
+
     /**
      * Obtains the default <code>Sequencer</code>, optionally
      * connected to a default device.
@@ -394,74 +435,67 @@ public class MidiSystem {
      * @since 1.5
      */
     public static Sequencer getSequencer(boolean connected)
-	throws MidiUnavailableException {
-	Sequencer seq = (Sequencer) getDefaultDeviceWrapper(Sequencer.class);
+        throws MidiUnavailableException {
+        Sequencer seq = (Sequencer) getDefaultDeviceWrapper(Sequencer.class);
 
-	if (connected) {
-	    // IMPORTANT: this code needs to be synch'ed with 
-	    //            all AutoConnectSequencer instances,
-	    //            (e.g. RealTimeSequencer) because the 
-	    //            same algorithm for synth retrieval
-	    //            needs to be used!
+        if (connected) {
+            // IMPORTANT: this code needs to be synch'ed with
+            //            all AutoConnectSequencer instances,
+            //            (e.g. RealTimeSequencer) because the
+            //            same algorithm for synth retrieval
+            //            needs to be used!
 
-	    Receiver rec = null;
-	    MidiUnavailableException mue = null;
+            Receiver rec = null;
+            MidiUnavailableException mue = null;
 
-	    // first try to connect to the default synthesizer
-	    try {
-		Synthesizer synth = getSynthesizer();
-		if (synth instanceof ReferenceCountingDevice) {
-		    rec = ((ReferenceCountingDevice) synth).getReceiverReferenceCounting();
-		    // only use MixerSynth if it could successfully load a soundbank
-		    if (synth.getClass().toString().contains("com.sun.media.sound.MixerSynth")
-			&& (synth.getDefaultSoundbank() == null)) {
-			// don't use this receiver if no soundbank available
-			rec = null;
-			synth.close();
-		    }
-		} else {
-		    synth.open();
-		    try {
-			rec = synth.getReceiver();
-		    } finally {
-			// make sure that the synth is properly closed
-			if (rec == null) {
-			    synth.close();
-			}
-		    }
-		}
-	    } catch (MidiUnavailableException e) {
-		// something went wrong with synth
-		if (e instanceof MidiUnavailableException) {
-		    mue = (MidiUnavailableException) e;
-		}
-	    }
-	    if (rec == null) {
-		// then try to connect to the default Receiver
-		try {
-		    rec = MidiSystem.getReceiver();
-		} catch (Exception e) {
-		    // something went wrong. Nothing to do then!
-		    if (e instanceof MidiUnavailableException) {
-			mue = (MidiUnavailableException) e;
-		    }
-		}
-	    }
-	    if (rec != null) {
-		seq.getTransmitter().setReceiver(rec);
-		if (seq instanceof AutoConnectSequencer) {
-		    ((AutoConnectSequencer) seq).setAutoConnect(rec);
-		}
-	    } else {
-		if (mue != null) {
-		    throw mue;
-		}
-		throw new MidiUnavailableException("no receiver available");
-	    }
-	}
-	return seq;
+            // first try to connect to the default synthesizer
+            try {
+                Synthesizer synth = getSynthesizer();
+                if (synth instanceof ReferenceCountingDevice) {
+                    rec = ((ReferenceCountingDevice) synth).getReceiverReferenceCounting();
+                } else {
+                    synth.open();
+                    try {
+                        rec = synth.getReceiver();
+                    } finally {
+                        // make sure that the synth is properly closed
+                        if (rec == null) {
+                            synth.close();
+                        }
+                    }
+                }
+            } catch (MidiUnavailableException e) {
+                // something went wrong with synth
+                if (e instanceof MidiUnavailableException) {
+                    mue = (MidiUnavailableException) e;
+                }
+            }
+            if (rec == null) {
+                // then try to connect to the default Receiver
+                try {
+                    rec = MidiSystem.getReceiver();
+                } catch (Exception e) {
+                    // something went wrong. Nothing to do then!
+                    if (e instanceof MidiUnavailableException) {
+                        mue = (MidiUnavailableException) e;
+                    }
+                }
+            }
+            if (rec != null) {
+                seq.getTransmitter().setReceiver(rec);
+                if (seq instanceof AutoConnectSequencer) {
+                    ((AutoConnectSequencer) seq).setAutoConnect(rec);
+                }
+            } else {
+                if (mue != null) {
+                    throw mue;
+                }
+                throw new MidiUnavailableException("no receiver available");
+            }
+        }
+        return seq;
     }
- 
+
 
 
 
@@ -484,22 +518,22 @@ public class MidiSystem {
      * @see InputStream#mark
      */
     public static Soundbank getSoundbank(InputStream stream)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	SoundbankReader sp = null;
-	Soundbank s = null;
+        SoundbankReader sp = null;
+        Soundbank s = null;
 
-	List providers = getSoundbankReaders();
+        List providers = getSoundbankReaders();
 
-	for(int i = 0; i < providers.size(); i++) {
-	    sp = (SoundbankReader)providers.get(i);
-	    s = sp.getSoundbank(stream);
+        for(int i = 0; i < providers.size(); i++) {
+            sp = (SoundbankReader)providers.get(i);
+            s = sp.getSoundbank(stream);
 
-	    if( s!= null) {
-		return s;
-	    }
-	}
-	throw new InvalidMidiDataException("cannot get soundbank from stream");
+            if( s!= null) {
+                return s;
+            }
+        }
+        throw new InvalidMidiDataException("cannot get soundbank from stream");
 
     }
 
@@ -515,22 +549,22 @@ public class MidiSystem {
      * @throws IOException if an I/O error occurred when loading the soundbank
      */
     public static Soundbank getSoundbank(URL url)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	SoundbankReader sp = null;
-	Soundbank s = null;
+        SoundbankReader sp = null;
+        Soundbank s = null;
 
-	List providers = getSoundbankReaders();
+        List providers = getSoundbankReaders();
 
-	for(int i = 0; i < providers.size(); i++) {
-	    sp = (SoundbankReader)providers.get(i);
-	    s = sp.getSoundbank(url);
+        for(int i = 0; i < providers.size(); i++) {
+            sp = (SoundbankReader)providers.get(i);
+            s = sp.getSoundbank(url);
 
-	    if( s!= null) {
-		return s;
-	    }
-	}
-	throw new InvalidMidiDataException("cannot get soundbank from stream");
+            if( s!= null) {
+                return s;
+            }
+        }
+        throw new InvalidMidiDataException("cannot get soundbank from stream");
 
     }
 
@@ -547,22 +581,22 @@ public class MidiSystem {
      * @throws IOException if an I/O error occurred when loading the soundbank
      */
     public static Soundbank getSoundbank(File file)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	SoundbankReader sp = null;
-	Soundbank s = null;
+        SoundbankReader sp = null;
+        Soundbank s = null;
 
-	List providers = getSoundbankReaders();
+        List providers = getSoundbankReaders();
 
-	for(int i = 0; i < providers.size(); i++) {
-	    sp = (SoundbankReader)providers.get(i);
-	    s = sp.getSoundbank(file);
+        for(int i = 0; i < providers.size(); i++) {
+            sp = (SoundbankReader)providers.get(i);
+            s = sp.getSoundbank(file);
 
-	    if( s!= null) {
-		return s;
-	    }
-	}
-	throw new InvalidMidiDataException("cannot get soundbank from stream");
+            if( s!= null) {
+                return s;
+            }
+        }
+        throw new InvalidMidiDataException("cannot get soundbank from stream");
     }
 
 
@@ -600,26 +634,26 @@ public class MidiSystem {
      * @see InputStream#mark
      */
     public static MidiFileFormat getMidiFileFormat(InputStream stream)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	List providers = getMidiFileReaders();
-	MidiFileFormat format = null;
+        List providers = getMidiFileReaders();
+        MidiFileFormat format = null;
 
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiFileReader reader = (MidiFileReader) providers.get(i);
-	    try {
-		format = reader.getMidiFileFormat( stream ); // throws IOException
-		break;
-	    } catch (InvalidMidiDataException e) {
-		continue;
-	    }
-	}
+        for(int i = 0; i < providers.size(); i++) {
+            MidiFileReader reader = (MidiFileReader) providers.get(i);
+            try {
+                format = reader.getMidiFileFormat( stream ); // throws IOException
+                break;
+            } catch (InvalidMidiDataException e) {
+                continue;
+            }
+        }
 
-	if( format==null ) {
-	    throw new InvalidMidiDataException("input stream is not a supported file type");
-	} else {
-	    return format;
-	}
+        if( format==null ) {
+            throw new InvalidMidiDataException("input stream is not a supported file type");
+        } else {
+            return format;
+        }
     }
 
 
@@ -646,26 +680,26 @@ public class MidiSystem {
      * @see #getMidiFileFormat(File)
      */
     public static MidiFileFormat getMidiFileFormat(URL url)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	List providers = getMidiFileReaders();
-	MidiFileFormat format = null;
+        List providers = getMidiFileReaders();
+        MidiFileFormat format = null;
 
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiFileReader reader = (MidiFileReader) providers.get(i);
-	    try {
-		format = reader.getMidiFileFormat( url ); // throws IOException
-		break;
-	    } catch (InvalidMidiDataException e) {
-		continue;
-	    }
-	}
+        for(int i = 0; i < providers.size(); i++) {
+            MidiFileReader reader = (MidiFileReader) providers.get(i);
+            try {
+                format = reader.getMidiFileFormat( url ); // throws IOException
+                break;
+            } catch (InvalidMidiDataException e) {
+                continue;
+            }
+        }
 
-	if( format==null ) {
-	    throw new InvalidMidiDataException("url is not a supported file type");
-	} else {
-	    return format;
-	}
+        if( format==null ) {
+            throw new InvalidMidiDataException("url is not a supported file type");
+        } else {
+            return format;
+        }
     }
 
 
@@ -692,26 +726,26 @@ public class MidiSystem {
      * @see #getMidiFileFormat(URL)
      */
     public static MidiFileFormat getMidiFileFormat(File file)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	List providers = getMidiFileReaders();
-	MidiFileFormat format = null;
+        List providers = getMidiFileReaders();
+        MidiFileFormat format = null;
 
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiFileReader reader = (MidiFileReader) providers.get(i);
-	    try {
-		format = reader.getMidiFileFormat( file ); // throws IOException
-		break;
-	    } catch (InvalidMidiDataException e) {
-		continue;
-	    }
-	}
+        for(int i = 0; i < providers.size(); i++) {
+            MidiFileReader reader = (MidiFileReader) providers.get(i);
+            try {
+                format = reader.getMidiFileFormat( file ); // throws IOException
+                break;
+            } catch (InvalidMidiDataException e) {
+                continue;
+            }
+        }
 
-	if( format==null ) {
-	    throw new InvalidMidiDataException("file is not a supported file type");
-	} else {
-	    return format;
-	}
+        if( format==null ) {
+            throw new InvalidMidiDataException("file is not a supported file type");
+        } else {
+            return format;
+        }
     }
 
 
@@ -747,26 +781,26 @@ public class MidiSystem {
      * @see InputStream#mark
      */
     public static Sequence getSequence(InputStream stream)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	List providers = getMidiFileReaders();
-	Sequence sequence = null;
+        List providers = getMidiFileReaders();
+        Sequence sequence = null;
 
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiFileReader reader = (MidiFileReader) providers.get(i);
-	    try {
-		sequence = reader.getSequence( stream ); // throws IOException
-		break;
-	    } catch (InvalidMidiDataException e) {
-		continue;
-	    }
-	}
+        for(int i = 0; i < providers.size(); i++) {
+            MidiFileReader reader = (MidiFileReader) providers.get(i);
+            try {
+                sequence = reader.getSequence( stream ); // throws IOException
+                break;
+            } catch (InvalidMidiDataException e) {
+                continue;
+            }
+        }
 
-	if( sequence==null ) {
-	    throw new InvalidMidiDataException("could not get sequence from input stream");
-	} else {
-	    return sequence;
-	}
+        if( sequence==null ) {
+            throw new InvalidMidiDataException("could not get sequence from input stream");
+        } else {
+            return sequence;
+        }
     }
 
 
@@ -791,26 +825,26 @@ public class MidiSystem {
      * @throws IOException if an I/O exception occurs while accessing the URL
      */
     public static Sequence getSequence(URL url)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	List providers = getMidiFileReaders();
-	Sequence sequence = null;
+        List providers = getMidiFileReaders();
+        Sequence sequence = null;
 
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiFileReader reader = (MidiFileReader) providers.get(i);
-	    try {
-		sequence = reader.getSequence( url ); // throws IOException
-		break;
-	    } catch (InvalidMidiDataException e) {
-		continue;
-	    }
-	}
+        for(int i = 0; i < providers.size(); i++) {
+            MidiFileReader reader = (MidiFileReader) providers.get(i);
+            try {
+                sequence = reader.getSequence( url ); // throws IOException
+                break;
+            } catch (InvalidMidiDataException e) {
+                continue;
+            }
+        }
 
-	if( sequence==null ) {
-	    throw new InvalidMidiDataException("could not get sequence from URL");
-	} else {
-	    return sequence;
-	}
+        if( sequence==null ) {
+            throw new InvalidMidiDataException("could not get sequence from URL");
+        } else {
+            return sequence;
+        }
     }
 
 
@@ -835,26 +869,26 @@ public class MidiSystem {
      * @throws IOException if an I/O exception occurs
      */
     public static Sequence getSequence(File file)
-	throws InvalidMidiDataException, IOException {
+        throws InvalidMidiDataException, IOException {
 
-	List providers = getMidiFileReaders();
-	Sequence sequence = null;
+        List providers = getMidiFileReaders();
+        Sequence sequence = null;
 
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiFileReader reader = (MidiFileReader) providers.get(i);
-	    try {
-		sequence = reader.getSequence( file ); // throws IOException
-		break;
-	    } catch (InvalidMidiDataException e) {
-		continue;
-	    }
-	}
+        for(int i = 0; i < providers.size(); i++) {
+            MidiFileReader reader = (MidiFileReader) providers.get(i);
+            try {
+                sequence = reader.getSequence( file ); // throws IOException
+                break;
+            } catch (InvalidMidiDataException e) {
+                continue;
+            }
+        }
 
-	if( sequence==null ) {
-	    throw new InvalidMidiDataException("could not get sequence from file");
-	} else {
-	    return sequence;
-	}
+        if( sequence==null ) {
+            throw new InvalidMidiDataException("could not get sequence from file");
+        } else {
+            return sequence;
+        }
     }
 
 
@@ -866,26 +900,26 @@ public class MidiSystem {
      */
     public static int[] getMidiFileTypes() {
 
-	List providers = getMidiFileWriters();
-	Set allTypes = new HashSet();
+        List providers = getMidiFileWriters();
+        Set allTypes = new HashSet();
 
-	// gather from all the providers
+        // gather from all the providers
 
-	for (int i = 0; i < providers.size(); i++ ) {
-	    MidiFileWriter writer = (MidiFileWriter) providers.get(i);
-	    int[] types = writer.getMidiFileTypes();
-	    for (int j = 0; j < types.length; j++ ) {
-		allTypes.add(new Integer(types[j]));
-	    }
-	}
-	int resultTypes[] = new int[allTypes.size()];
-	int index = 0;
-	Iterator iterator = allTypes.iterator();
-	while (iterator.hasNext()) {
-	    Integer integer = (Integer) iterator.next();
-	    resultTypes[index++] = integer.intValue();
-	}
-	return resultTypes;
+        for (int i = 0; i < providers.size(); i++ ) {
+            MidiFileWriter writer = (MidiFileWriter) providers.get(i);
+            int[] types = writer.getMidiFileTypes();
+            for (int j = 0; j < types.length; j++ ) {
+                allTypes.add(new Integer(types[j]));
+            }
+        }
+        int resultTypes[] = new int[allTypes.size()];
+        int index = 0;
+        Iterator iterator = allTypes.iterator();
+        while (iterator.hasNext()) {
+            Integer integer = (Integer) iterator.next();
+            resultTypes[index++] = integer.intValue();
+        }
+        return resultTypes;
     }
 
 
@@ -898,15 +932,15 @@ public class MidiSystem {
      */
     public static boolean isFileTypeSupported(int fileType) {
 
-	List providers = getMidiFileWriters();
+        List providers = getMidiFileWriters();
 
-	for (int i = 0; i < providers.size(); i++ ) {
-	    MidiFileWriter writer = (MidiFileWriter) providers.get(i);
-	    if( writer.isFileTypeSupported(fileType)) {
-		return true;
-	    }
-	}
-	return false;
+        for (int i = 0; i < providers.size(); i++ ) {
+            MidiFileWriter writer = (MidiFileWriter) providers.get(i);
+            if( writer.isFileTypeSupported(fileType)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -920,26 +954,26 @@ public class MidiSystem {
      */
     public static int[] getMidiFileTypes(Sequence sequence) {
 
-	List providers = getMidiFileWriters();
-	Set allTypes = new HashSet();
+        List providers = getMidiFileWriters();
+        Set allTypes = new HashSet();
 
-	// gather from all the providers
+        // gather from all the providers
 
-	for (int i = 0; i < providers.size(); i++ ) {
-	    MidiFileWriter writer = (MidiFileWriter) providers.get(i);
-	    int[] types = writer.getMidiFileTypes(sequence);
-	    for (int j = 0; j < types.length; j++ ) {
-		allTypes.add(new Integer(types[j]));
-	    }
-	}
-	int resultTypes[] = new int[allTypes.size()];
-	int index = 0;
-	Iterator iterator = allTypes.iterator();
-	while (iterator.hasNext()) {
-	    Integer integer = (Integer) iterator.next();
-	    resultTypes[index++] = integer.intValue();
-	}
-	return resultTypes;
+        for (int i = 0; i < providers.size(); i++ ) {
+            MidiFileWriter writer = (MidiFileWriter) providers.get(i);
+            int[] types = writer.getMidiFileTypes(sequence);
+            for (int j = 0; j < types.length; j++ ) {
+                allTypes.add(new Integer(types[j]));
+            }
+        }
+        int resultTypes[] = new int[allTypes.size()];
+        int index = 0;
+        Iterator iterator = allTypes.iterator();
+        while (iterator.hasNext()) {
+            Integer integer = (Integer) iterator.next();
+            resultTypes[index++] = integer.intValue();
+        }
+        return resultTypes;
     }
 
 
@@ -954,15 +988,15 @@ public class MidiSystem {
      */
     public static boolean isFileTypeSupported(int fileType, Sequence sequence) {
 
-	List providers = getMidiFileWriters();
+        List providers = getMidiFileWriters();
 
-	for (int i = 0; i < providers.size(); i++ ) {
-	    MidiFileWriter writer = (MidiFileWriter) providers.get(i);
-	    if( writer.isFileTypeSupported(fileType,sequence)) {
-		return true;
-	    }
-	}
-	return false;
+        for (int i = 0; i < providers.size(); i++ ) {
+            MidiFileWriter writer = (MidiFileWriter) providers.get(i);
+            if( writer.isFileTypeSupported(fileType,sequence)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -977,26 +1011,26 @@ public class MidiSystem {
      * @throws IllegalArgumentException if the file format is not supported by
      * the system
      * @see #isFileTypeSupported(int, Sequence)
-     * @see	#getMidiFileTypes(Sequence)
+     * @see     #getMidiFileTypes(Sequence)
      */
     public static int write(Sequence in, int fileType, OutputStream out) throws IOException {
 
-	List providers = getMidiFileWriters();
-	//$$fb 2002-04-17: Fix for 4635287: Standard MidiFileWriter cannot write empty Sequences
-	int bytesWritten = -2;
+        List providers = getMidiFileWriters();
+        //$$fb 2002-04-17: Fix for 4635287: Standard MidiFileWriter cannot write empty Sequences
+        int bytesWritten = -2;
 
-	for (int i = 0; i < providers.size(); i++ ) {
-	    MidiFileWriter writer = (MidiFileWriter) providers.get(i);
-	    if( writer.isFileTypeSupported( fileType, in ) ) {
+        for (int i = 0; i < providers.size(); i++ ) {
+            MidiFileWriter writer = (MidiFileWriter) providers.get(i);
+            if( writer.isFileTypeSupported( fileType, in ) ) {
 
-		bytesWritten = writer.write(in, fileType, out);
-		break;
-	    }
-	}
-	if (bytesWritten == -2) {
-	    throw new IllegalArgumentException("MIDI file type is not supported");
-	}
-	return bytesWritten;
+                bytesWritten = writer.write(in, fileType, out);
+                break;
+            }
+        }
+        if (bytesWritten == -2) {
+            throw new IllegalArgumentException("MIDI file type is not supported");
+        }
+        return bytesWritten;
     }
 
 
@@ -1011,26 +1045,26 @@ public class MidiSystem {
      * @throws IllegalArgumentException if the file type is not supported by
      * the system
      * @see #isFileTypeSupported(int, Sequence)
-     * @see	#getMidiFileTypes(Sequence)
+     * @see     #getMidiFileTypes(Sequence)
      */
     public static int write(Sequence in, int type, File out) throws IOException {
 
-	List providers = getMidiFileWriters();
-	//$$fb 2002-04-17: Fix for 4635287: Standard MidiFileWriter cannot write empty Sequences
-	int bytesWritten = -2;
+        List providers = getMidiFileWriters();
+        //$$fb 2002-04-17: Fix for 4635287: Standard MidiFileWriter cannot write empty Sequences
+        int bytesWritten = -2;
 
-	for (int i = 0; i < providers.size(); i++ ) {
-	    MidiFileWriter writer = (MidiFileWriter) providers.get(i);
-	    if( writer.isFileTypeSupported( type, in ) ) {
+        for (int i = 0; i < providers.size(); i++ ) {
+            MidiFileWriter writer = (MidiFileWriter) providers.get(i);
+            if( writer.isFileTypeSupported( type, in ) ) {
 
-		bytesWritten = writer.write(in, type, out);
-		break;
-	    }
-	}
-	if (bytesWritten == -2) {
-	    throw new IllegalArgumentException("MIDI file type is not supported");
-	}
-	return bytesWritten;
+                bytesWritten = writer.write(in, type, out);
+                break;
+            }
+        }
+        if (bytesWritten == -2) {
+            throw new IllegalArgumentException("MIDI file type is not supported");
+        }
+        return bytesWritten;
     }
 
 
@@ -1038,22 +1072,22 @@ public class MidiSystem {
     // HELPER METHODS
 
     private static List getMidiDeviceProviders() {
-	return getProviders(MidiDeviceProvider.class);
+        return getProviders(MidiDeviceProvider.class);
     }
 
 
     private static List getSoundbankReaders() {
-	return getProviders(SoundbankReader.class);
+        return getProviders(SoundbankReader.class);
     }
 
 
     private static List getMidiFileWriters() {
-	return getProviders(MidiFileWriter.class);
+        return getProviders(MidiFileWriter.class);
     }
 
 
     private static List getMidiFileReaders() {
-	return getProviders(MidiFileReader.class);
+        return getProviders(MidiFileReader.class);
     }
 
 
@@ -1071,14 +1105,14 @@ public class MidiSystem {
      * @throws  MidiUnavalableException on failure.
      */
     private static MidiDevice getDefaultDeviceWrapper(Class deviceClass)
-	throws MidiUnavailableException{
-	try {
-	    return getDefaultDevice(deviceClass);
-	} catch (IllegalArgumentException iae) {
-	    MidiUnavailableException mae = new MidiUnavailableException();
-	    mae.initCause(iae);
-	    throw mae;
-	}
+        throws MidiUnavailableException{
+        try {
+            return getDefaultDevice(deviceClass);
+        } catch (IllegalArgumentException iae) {
+            MidiUnavailableException mae = new MidiUnavailableException();
+            mae.initCause(iae);
+            throw mae;
+        }
     }
 
 
@@ -1090,94 +1124,94 @@ public class MidiSystem {
      * @throws  IllegalArgumentException on failure.
      */
     private static MidiDevice getDefaultDevice(Class deviceClass) {
-	List providers = getMidiDeviceProviders();
-	String providerClassName = JDK13Services.getDefaultProviderClassName(deviceClass);
-	String instanceName = JDK13Services.getDefaultInstanceName(deviceClass);
-	MidiDevice device;
+        List providers = getMidiDeviceProviders();
+        String providerClassName = JDK13Services.getDefaultProviderClassName(deviceClass);
+        String instanceName = JDK13Services.getDefaultInstanceName(deviceClass);
+        MidiDevice device;
 
-	if (providerClassName != null) {
-	    MidiDeviceProvider defaultProvider = getNamedProvider(providerClassName, providers);
-	    if (defaultProvider != null) {
-		if (instanceName != null) {
-		    device = getNamedDevice(instanceName, defaultProvider, deviceClass);
-		    if (device != null) {
-			return device;
-		    }
-		}
-		device = getFirstDevice(defaultProvider, deviceClass);
-		if (device != null) {
-		    return device;
-		}
-	    }
-	}
+        if (providerClassName != null) {
+            MidiDeviceProvider defaultProvider = getNamedProvider(providerClassName, providers);
+            if (defaultProvider != null) {
+                if (instanceName != null) {
+                    device = getNamedDevice(instanceName, defaultProvider, deviceClass);
+                    if (device != null) {
+                        return device;
+                    }
+                }
+                device = getFirstDevice(defaultProvider, deviceClass);
+                if (device != null) {
+                    return device;
+                }
+            }
+        }
 
-	/* Provider class not specified or cannot be found, or
-	   provider class specified, and no appropriate device available or
-	   provider class and instance specified and instance cannot be found or is not appropriate */
-	if (instanceName != null) {
-	    device = getNamedDevice(instanceName, providers, deviceClass);
-	    if (device != null) {
-		return device;
-	    }
-	}
+        /* Provider class not specified or cannot be found, or
+           provider class specified, and no appropriate device available or
+           provider class and instance specified and instance cannot be found or is not appropriate */
+        if (instanceName != null) {
+            device = getNamedDevice(instanceName, providers, deviceClass);
+            if (device != null) {
+                return device;
+            }
+        }
 
-	/* No default are specified, or if something is specified, everything
-	   failed. */
-	device = getFirstDevice(providers, deviceClass);
-	if (device != null) {
-	    return device;
-	}
-	throw new IllegalArgumentException("Requested device not installed");
+        /* No default are specified, or if something is specified, everything
+           failed. */
+        device = getFirstDevice(providers, deviceClass);
+        if (device != null) {
+            return device;
+        }
+        throw new IllegalArgumentException("Requested device not installed");
     }
 
 
 
     /** Return a MidiDeviceProcider of a given class from the list of
-	MidiDeviceProviders.
+        MidiDeviceProviders.
 
-	@param providerClassName The class name of the provider to be returned.
-	@param provider The list of MidiDeviceProviders that is searched.
-	@return A MidiDeviceProvider of the requested class, or null if none
-	is found.
+        @param providerClassName The class name of the provider to be returned.
+        @param provider The list of MidiDeviceProviders that is searched.
+        @return A MidiDeviceProvider of the requested class, or null if none
+        is found.
     */
     private static MidiDeviceProvider getNamedProvider(String providerClassName, List providers) {
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
-	    if (provider.getClass().getName().equals(providerClassName)) {
-		return provider;
-	    }
-	}
-	return null;
+        for(int i = 0; i < providers.size(); i++) {
+            MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
+            if (provider.getClass().getName().equals(providerClassName)) {
+                return provider;
+            }
+        }
+        return null;
     }
 
 
     /** Return a MidiDevice with a given name from a given MidiDeviceProvider.
-	@param deviceName The name of the MidiDevice to be returned.
-	@param provider The MidiDeviceProvider to check for MidiDevices.
-	@param deviceClass The requested device type, one of Synthesizer.class,
-	Sequencer.class, Receiver.class or Transmitter.class.
+        @param deviceName The name of the MidiDevice to be returned.
+        @param provider The MidiDeviceProvider to check for MidiDevices.
+        @param deviceClass The requested device type, one of Synthesizer.class,
+        Sequencer.class, Receiver.class or Transmitter.class.
 
-	@return A MidiDevice matching the requirements, or null if none is found.
+        @return A MidiDevice matching the requirements, or null if none is found.
     */
     private static MidiDevice getNamedDevice(String deviceName,
-					     MidiDeviceProvider provider,
-					     Class deviceClass) {
-	MidiDevice device;
-	// try to get MIDI port
-	device = getNamedDevice(deviceName, provider, deviceClass,
-				 false, false);
-	if (device != null) {
-	    return device;
-	}
+                                             MidiDeviceProvider provider,
+                                             Class deviceClass) {
+        MidiDevice device;
+        // try to get MIDI port
+        device = getNamedDevice(deviceName, provider, deviceClass,
+                                 false, false);
+        if (device != null) {
+            return device;
+        }
 
-	if (deviceClass == Receiver.class) {
-	    // try to get Synthesizer
-	    device = getNamedDevice(deviceName, provider, deviceClass,
-				     true, false);
-	    if (device != null) {
-		return device;
-	    }
-	}
+        if (deviceClass == Receiver.class) {
+            // try to get Synthesizer
+            device = getNamedDevice(deviceName, provider, deviceClass,
+                                     true, false);
+            if (device != null) {
+                return device;
+            }
+        }
 
         return null;
     }
@@ -1192,245 +1226,245 @@ public class MidiSystem {
       @return A MidiDevice matching the requirements, or null if none is found.
      */
     private static MidiDevice getNamedDevice(String deviceName,
-					     MidiDeviceProvider provider,
-					     Class deviceClass,
-					     boolean allowSynthesizer,
-					     boolean allowSequencer) {
-	MidiDevice.Info[] infos = provider.getDeviceInfo();
-	for (int i = 0; i < infos.length; i++) {
-	    if (infos[i].getName().equals(deviceName)) {
-		MidiDevice device = provider.getDevice(infos[i]);
-		if (isAppropriateDevice(device, deviceClass,
-					allowSynthesizer, allowSequencer)) {
-		    return device;
-		}
-	    }
-	}
-	return null;
-    }
-
-
-    /** Return a MidiDevice with a given name from a list of
-	MidiDeviceProviders.
-	@param deviceName The name of the MidiDevice to be returned.
-	@param providers The List of MidiDeviceProviders to check for
-	MidiDevices.
-	@param deviceClass The requested device type, one of Synthesizer.class,
-	Sequencer.class, Receiver.class or Transmitter.class.
-	@return A Mixer matching the requirements, or null if none is found.
-    */
-    private static MidiDevice getNamedDevice(String deviceName,
-					     List providers,
-					     Class deviceClass) {
-	MidiDevice device;
-	// try to get MIDI port
-	device = getNamedDevice(deviceName, providers, deviceClass,
-				 false, false);
-	if (device != null) {
-	    return device;
-	}
-
-	if (deviceClass == Receiver.class) {
-	    // try to get Synthesizer
-	    device = getNamedDevice(deviceName, providers, deviceClass,
-				     true, false);
-	    if (device != null) {
-		return device;
-	    }
-	}
-
+                                             MidiDeviceProvider provider,
+                                             Class deviceClass,
+                                             boolean allowSynthesizer,
+                                             boolean allowSequencer) {
+        MidiDevice.Info[] infos = provider.getDeviceInfo();
+        for (int i = 0; i < infos.length; i++) {
+            if (infos[i].getName().equals(deviceName)) {
+                MidiDevice device = provider.getDevice(infos[i]);
+                if (isAppropriateDevice(device, deviceClass,
+                                        allowSynthesizer, allowSequencer)) {
+                    return device;
+                }
+            }
+        }
         return null;
     }
 
 
     /** Return a MidiDevice with a given name from a list of
-	MidiDeviceProviders.
-	@param deviceName The name of the MidiDevice to be returned.
-	@param providers The List of MidiDeviceProviders to check for
-	MidiDevices.
-	@param deviceClass The requested device type, one of Synthesizer.class,
-	Sequencer.class, Receiver.class or Transmitter.class.
-	@return A Mixer matching the requirements, or null if none is found.
+        MidiDeviceProviders.
+        @param deviceName The name of the MidiDevice to be returned.
+        @param providers The List of MidiDeviceProviders to check for
+        MidiDevices.
+        @param deviceClass The requested device type, one of Synthesizer.class,
+        Sequencer.class, Receiver.class or Transmitter.class.
+        @return A Mixer matching the requirements, or null if none is found.
+    */
+    private static MidiDevice getNamedDevice(String deviceName,
+                                             List providers,
+                                             Class deviceClass) {
+        MidiDevice device;
+        // try to get MIDI port
+        device = getNamedDevice(deviceName, providers, deviceClass,
+                                 false, false);
+        if (device != null) {
+            return device;
+        }
+
+        if (deviceClass == Receiver.class) {
+            // try to get Synthesizer
+            device = getNamedDevice(deviceName, providers, deviceClass,
+                                     true, false);
+            if (device != null) {
+                return device;
+            }
+        }
+
+        return null;
+    }
+
+
+    /** Return a MidiDevice with a given name from a list of
+        MidiDeviceProviders.
+        @param deviceName The name of the MidiDevice to be returned.
+        @param providers The List of MidiDeviceProviders to check for
+        MidiDevices.
+        @param deviceClass The requested device type, one of Synthesizer.class,
+        Sequencer.class, Receiver.class or Transmitter.class.
+        @return A Mixer matching the requirements, or null if none is found.
      */
     private static MidiDevice getNamedDevice(String deviceName,
-					     List providers,
-					     Class deviceClass,
-					     boolean allowSynthesizer,
-					     boolean allowSequencer) {
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
-	    MidiDevice device = getNamedDevice(deviceName, provider,
-					       deviceClass,
-					       allowSynthesizer,
-					       allowSequencer);
-	    if (device != null) {
-		return device;
-	    }
-	}
-	return null;
+                                             List providers,
+                                             Class deviceClass,
+                                             boolean allowSynthesizer,
+                                             boolean allowSequencer) {
+        for(int i = 0; i < providers.size(); i++) {
+            MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
+            MidiDevice device = getNamedDevice(deviceName, provider,
+                                               deviceClass,
+                                               allowSynthesizer,
+                                               allowSequencer);
+            if (device != null) {
+                return device;
+            }
+        }
+        return null;
     }
 
 
     /** From a given MidiDeviceProvider, return the first appropriate device.
-	@param provider The MidiDeviceProvider to check for MidiDevices.
-	@param deviceClass The requested device type, one of Synthesizer.class,
-	Sequencer.class, Receiver.class or Transmitter.class.
-	@return A MidiDevice is considered appropriate, or null if no
-	appropriate device is found.
+        @param provider The MidiDeviceProvider to check for MidiDevices.
+        @param deviceClass The requested device type, one of Synthesizer.class,
+        Sequencer.class, Receiver.class or Transmitter.class.
+        @return A MidiDevice is considered appropriate, or null if no
+        appropriate device is found.
     */
     private static MidiDevice getFirstDevice(MidiDeviceProvider provider,
-					     Class deviceClass) {
-	MidiDevice device;
-	// try to get MIDI port
-	device = getFirstDevice(provider, deviceClass,
-				false, false);
-	if (device != null) {
-	    return device;
-	}
+                                             Class deviceClass) {
+        MidiDevice device;
+        // try to get MIDI port
+        device = getFirstDevice(provider, deviceClass,
+                                false, false);
+        if (device != null) {
+            return device;
+        }
 
-	if (deviceClass == Receiver.class) {
-	    // try to get Synthesizer
-	    device = getFirstDevice(provider, deviceClass,
-				    true, false);
-	    if (device != null) {
-		return device;
-	    }
-	}
+        if (deviceClass == Receiver.class) {
+            // try to get Synthesizer
+            device = getFirstDevice(provider, deviceClass,
+                                    true, false);
+            if (device != null) {
+                return device;
+            }
+        }
 
         return null;
     }
 
 
     /** From a given MidiDeviceProvider, return the first appropriate device.
-	@param provider The MidiDeviceProvider to check for MidiDevices.
-	@param deviceClass The requested device type, one of Synthesizer.class,
-	Sequencer.class, Receiver.class or Transmitter.class.
-	@return A MidiDevice is considered appropriate, or null if no
-	appropriate device is found.
+        @param provider The MidiDeviceProvider to check for MidiDevices.
+        @param deviceClass The requested device type, one of Synthesizer.class,
+        Sequencer.class, Receiver.class or Transmitter.class.
+        @return A MidiDevice is considered appropriate, or null if no
+        appropriate device is found.
      */
     private static MidiDevice getFirstDevice(MidiDeviceProvider provider,
-					     Class deviceClass,
-					     boolean allowSynthesizer,
-					     boolean allowSequencer) {
-	MidiDevice.Info[] infos = provider.getDeviceInfo();
-	for (int j = 0; j < infos.length; j++) {
-	    MidiDevice device = provider.getDevice(infos[j]);
-	    if (isAppropriateDevice(device, deviceClass,
-				    allowSynthesizer, allowSequencer)) {
-		return device;
-	    }
-	}
-	return null;
+                                             Class deviceClass,
+                                             boolean allowSynthesizer,
+                                             boolean allowSequencer) {
+        MidiDevice.Info[] infos = provider.getDeviceInfo();
+        for (int j = 0; j < infos.length; j++) {
+            MidiDevice device = provider.getDevice(infos[j]);
+            if (isAppropriateDevice(device, deviceClass,
+                                    allowSynthesizer, allowSequencer)) {
+                return device;
+            }
+        }
+        return null;
     }
 
 
     /** From a List of MidiDeviceProviders, return the first appropriate
-	MidiDevice.
-	@param providers The List of MidiDeviceProviders to search.
-	@param deviceClass The requested device type, one of Synthesizer.class,
-	Sequencer.class, Receiver.class or Transmitter.class.
-	@return A MidiDevice that is considered appropriate, or null
-	if none is found.
+        MidiDevice.
+        @param providers The List of MidiDeviceProviders to search.
+        @param deviceClass The requested device type, one of Synthesizer.class,
+        Sequencer.class, Receiver.class or Transmitter.class.
+        @return A MidiDevice that is considered appropriate, or null
+        if none is found.
     */
     private static MidiDevice getFirstDevice(List providers,
-					     Class deviceClass) {
-	MidiDevice device;
-	// try to get MIDI port
-	device = getFirstDevice(providers, deviceClass,
-				false, false);
-	if (device != null) {
-	    return device;
-	}
+                                             Class deviceClass) {
+        MidiDevice device;
+        // try to get MIDI port
+        device = getFirstDevice(providers, deviceClass,
+                                false, false);
+        if (device != null) {
+            return device;
+        }
 
-	if (deviceClass == Receiver.class) {
-	    // try to get Synthesizer
-	    device = getFirstDevice(providers, deviceClass,
-				    true, false);
-	    if (device != null) {
-		return device;
-	    }
-	}
+        if (deviceClass == Receiver.class) {
+            // try to get Synthesizer
+            device = getFirstDevice(providers, deviceClass,
+                                    true, false);
+            if (device != null) {
+                return device;
+            }
+        }
 
         return null;
     }
 
 
     /** From a List of MidiDeviceProviders, return the first appropriate
-	MidiDevice.
-	@param providers The List of MidiDeviceProviders to search.
-	@param deviceClass The requested device type, one of Synthesizer.class,
-	Sequencer.class, Receiver.class or Transmitter.class.
-	@return A MidiDevice that is considered appropriate, or null
-	if none is found.
+        MidiDevice.
+        @param providers The List of MidiDeviceProviders to search.
+        @param deviceClass The requested device type, one of Synthesizer.class,
+        Sequencer.class, Receiver.class or Transmitter.class.
+        @return A MidiDevice that is considered appropriate, or null
+        if none is found.
      */
     private static MidiDevice getFirstDevice(List providers,
-					     Class deviceClass,
-					     boolean allowSynthesizer,
-					     boolean allowSequencer) {
-	for(int i = 0; i < providers.size(); i++) {
-	    MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
-	    MidiDevice device = getFirstDevice(provider, deviceClass,
-					       allowSynthesizer,
-					       allowSequencer);
-	    if (device != null) {
-		return device;
-	    }
-	}
-	return null;
+                                             Class deviceClass,
+                                             boolean allowSynthesizer,
+                                             boolean allowSequencer) {
+        for(int i = 0; i < providers.size(); i++) {
+            MidiDeviceProvider provider = (MidiDeviceProvider) providers.get(i);
+            MidiDevice device = getFirstDevice(provider, deviceClass,
+                                               allowSynthesizer,
+                                               allowSequencer);
+            if (device != null) {
+                return device;
+            }
+        }
+        return null;
     }
 
 
     /** Checks if a MidiDevice is appropriate.
-	If deviceClass is Synthesizer or Sequencer, a device implementing
-	the respective interface is considered appropriate. If deviceClass
-	is Receiver or Transmitter, a device is considered appropriate if
-	it implements neither Synthesizer nor Transmitter, and if it can
-	provide at least one Receiver or Transmitter, respectively.
+        If deviceClass is Synthesizer or Sequencer, a device implementing
+        the respective interface is considered appropriate. If deviceClass
+        is Receiver or Transmitter, a device is considered appropriate if
+        it implements neither Synthesizer nor Transmitter, and if it can
+        provide at least one Receiver or Transmitter, respectively.
 
-	@param device the MidiDevice to test
-	@param allowSynthesizer if true, Synthesizers are considered
-	appropriate. Otherwise only pure MidiDevices are considered
-	appropriate (unless allowSequencer is true). This flag only has an
-	effect for deviceClass Receiver and Transmitter. For other device
-	classes (Sequencer and Synthesizer), this flag has no effect. 
-	@param allowSequencer if true, Sequencers are considered
-	appropriate. Otherwise only pure MidiDevices are considered
-	appropriate (unless allowSynthesizer is true). This flag only has an
-	effect for deviceClass Receiver and Transmitter. For other device
-	classes (Sequencer and Synthesizer), this flag has no effect. 
-	@return true if the device is considered appropriate according to the
-	rules given above, false otherwise.
+        @param device the MidiDevice to test
+        @param allowSynthesizer if true, Synthesizers are considered
+        appropriate. Otherwise only pure MidiDevices are considered
+        appropriate (unless allowSequencer is true). This flag only has an
+        effect for deviceClass Receiver and Transmitter. For other device
+        classes (Sequencer and Synthesizer), this flag has no effect.
+        @param allowSequencer if true, Sequencers are considered
+        appropriate. Otherwise only pure MidiDevices are considered
+        appropriate (unless allowSynthesizer is true). This flag only has an
+        effect for deviceClass Receiver and Transmitter. For other device
+        classes (Sequencer and Synthesizer), this flag has no effect.
+        @return true if the device is considered appropriate according to the
+        rules given above, false otherwise.
     */
     private static boolean isAppropriateDevice(MidiDevice device,
-					       Class deviceClass,
-					       boolean allowSynthesizer,
-					       boolean allowSequencer) {
-	if (deviceClass.isInstance(device)) {
-	    // This clause is for deviceClass being either Synthesizer
-	    // or Sequencer.
-	    return true;
-	} else {
-	    // Now the case that deviceClass is Transmitter or
-	    // Receiver. If neither allowSynthesizer nor allowSequencer is
-	    // true, we require device instances to be
-	    // neither Synthesizer nor Sequencer, since we only want
-	    // devices representing MIDI ports.
-	    // Otherwise, the respective type is accepted, too
-	    if ( (! (device instanceof Sequencer) &&
-		  ! (device instanceof Synthesizer) ) ||
-		 ((device instanceof Sequencer) && allowSequencer) ||
-		 ((device instanceof Synthesizer) && allowSynthesizer)) {
-		// And of cource, the device has to be able to provide
-		// Receivers or Transmitters.
-		if ((deviceClass == Receiver.class &&
-		     device.getMaxReceivers() != 0) ||
-		    (deviceClass == Transmitter.class &&
-		     device.getMaxTransmitters() != 0)) {
-		    return true;
-		}
-	    }
-	}
-	return false;
+                                               Class deviceClass,
+                                               boolean allowSynthesizer,
+                                               boolean allowSequencer) {
+        if (deviceClass.isInstance(device)) {
+            // This clause is for deviceClass being either Synthesizer
+            // or Sequencer.
+            return true;
+        } else {
+            // Now the case that deviceClass is Transmitter or
+            // Receiver. If neither allowSynthesizer nor allowSequencer is
+            // true, we require device instances to be
+            // neither Synthesizer nor Sequencer, since we only want
+            // devices representing MIDI ports.
+            // Otherwise, the respective type is accepted, too
+            if ( (! (device instanceof Sequencer) &&
+                  ! (device instanceof Synthesizer) ) ||
+                 ((device instanceof Sequencer) && allowSequencer) ||
+                 ((device instanceof Synthesizer) && allowSynthesizer)) {
+                // And of cource, the device has to be able to provide
+                // Receivers or Transmitters.
+                if ((deviceClass == Receiver.class &&
+                     device.getMaxReceivers() != 0) ||
+                    (deviceClass == Transmitter.class &&
+                     device.getMaxTransmitters() != 0)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 
@@ -1441,6 +1475,6 @@ public class MidiSystem {
      * If no providers are available, a List of length 0 will be returned.
      */
     private static List getProviders(Class providerClass) {
-	return JDK13Services.getProviders(providerClass);
+        return JDK13Services.getProviders(providerClass);
     }
 }

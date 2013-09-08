@@ -1,8 +1,26 @@
 /*
- * @(#)ValueExp.java	4.23 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -53,7 +71,7 @@ package javax.management;
   But it's not really clear what numberAttr should do if it finds that the
   attribute is not in fact a Number.
  */
-public interface ValueExp extends java.io.Serializable { 
+public interface ValueExp extends java.io.Serializable {
 
     /**
      * Applies the ValueExp on a MBean.
@@ -64,12 +82,12 @@ public interface ValueExp extends java.io.Serializable {
      *
      * @exception BadStringOperationException
      * @exception BadBinaryOpValueExpException
-     * @exception BadAttributeValueExpException 
+     * @exception BadAttributeValueExpException
      * @exception InvalidApplicationException
-     */   
+     */
     public ValueExp apply(ObjectName name)
-	    throws BadStringOperationException, BadBinaryOpValueExpException,
-		   BadAttributeValueExpException, InvalidApplicationException;
+            throws BadStringOperationException, BadBinaryOpValueExpException,
+                   BadAttributeValueExpException, InvalidApplicationException;
 
     /**
      * Sets the MBean server on which the query is to be performed.

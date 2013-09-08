@@ -1,8 +1,26 @@
 /*
- * @(#)TypeMismatch.java	1.14 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -11,7 +29,7 @@ package org.omg.CORBA.DynAnyPackage;
 /**
  * TypeMismatch is thrown by dynamic any accessor methods when
  * type of the actual contents do not match what is trying to be
- * accessed.  
+ * accessed.
  */
 public final class TypeMismatch
     extends org.omg.CORBA.UserException {
@@ -20,7 +38,7 @@ public final class TypeMismatch
      * Constructs a <code>TypeMismatch</code> object.
      */
     public TypeMismatch() {
-	super();
+        super();
     }
 
     /**
@@ -29,6 +47,6 @@ public final class TypeMismatch
      * regarding the exception.
      */
     public TypeMismatch(String reason) {
-	super(reason);
+        super(reason);
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)Attribute.java	4.25 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -18,16 +36,16 @@ import java.io.Serializable;
  *
  * @since 1.5
  */
-public class Attribute implements Serializable   { 
+public class Attribute implements Serializable   {
 
     /* Serial version */
     private static final long serialVersionUID = 2484220110589082382L;
-    
+
     /**
      * @serial Attribute name.
      */
     private String name;
-    
+
     /**
      * @serial Attribute value
      */
@@ -40,16 +58,16 @@ public class Attribute implements Serializable   {
      * @param name A String containing the name of the attribute to be created. Cannot be null.
      * @param value The Object which is assigned to the attribute. This object must be of the same type as the attribute.
      *
-     */   
-    public Attribute(String name, Object value) { 
+     */
+    public Attribute(String name, Object value) {
 
-	if (name == null) {
-	    throw new RuntimeOperationsException(new IllegalArgumentException("Attribute name cannot be null "));
-	}
+        if (name == null) {
+            throw new RuntimeOperationsException(new IllegalArgumentException("Attribute name cannot be null "));
+        }
 
-	this.name = name;
-	this.value = value;
-    } 
+        this.name = name;
+        this.value = value;
+    }
 
 
     /**
@@ -57,19 +75,19 @@ public class Attribute implements Serializable   {
      *
      * @return the name of the attribute.
      */
-    public String getName()  { 
-	return name;
-    } 
-    
+    public String getName()  {
+        return name;
+    }
+
     /**
      * Returns an Object that is the value of this attribute.
      *
      * @return the value of the attribute.
      */
-    public Object getValue()  { 
-	return value;
-    } 
-    
+    public Object getValue()  {
+        return value;
+    }
+
     /**
      * Compares the current Attribute Object with another Attribute Object.
      *
@@ -77,24 +95,24 @@ public class Attribute implements Serializable   {
      *
      * @return  True if the two Attribute objects are equal, otherwise false.
      */
-    
-    
-    public boolean equals(Object object)  { 
-	if (!(object instanceof Attribute)) {
-	    return false;
-	}    
-	Attribute val = (Attribute) object;
 
-	if (value == null) {
-	    if (val.getValue() == null) {
-		return name.equals(val.getName());
-	    } else {
-		return false;
-	    }
-	}
 
-	return ((name.equals(val.getName())) && 
-		(value.equals(val.getValue())));
+    public boolean equals(Object object)  {
+        if (!(object instanceof Attribute)) {
+            return false;
+        }
+        Attribute val = (Attribute) object;
+
+        if (value == null) {
+            if (val.getValue() == null) {
+                return name.equals(val.getName());
+            } else {
+                return false;
+            }
+        }
+
+        return ((name.equals(val.getName())) &&
+                (value.equals(val.getValue())));
     }
 
     /**
@@ -112,6 +130,6 @@ public class Attribute implements Serializable   {
      * same string if and only if they are equal.
      */
     public String toString() {
-	return getName() + " = " + getValue();
-    }   
+        return getName() + " = " + getValue();
+    }
  }

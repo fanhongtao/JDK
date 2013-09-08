@@ -1,47 +1,74 @@
 /*
- * @(#)SynthListUI.java	1.13 06/03/16
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.synth;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
-import javax.swing.text.Position;
-
 import java.awt.*;
-import java.awt.event.*;
-import java.awt.datatransfer.Transferable;
-import java.awt.dnd.*;
-
-import java.util.ArrayList;
-import java.util.TooManyListenersException;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
-import sun.swing.plaf.synth.SynthUI;
 
 /**
- * Synth's ListUI.
+ * Provides the Synth L&F UI delegate for
+ * {@link javax.swing.JList}.
  *
- * @version 1.13, 03/16/06
  * @author Scott Violet
+ * @since 1.7
  */
-class SynthListUI extends BasicListUI implements PropertyChangeListener,
-                               SynthUI {
+public class SynthListUI extends BasicListUI
+                         implements PropertyChangeListener, SynthUI {
     private SynthStyle style;
     private boolean useListColors;
     private boolean useUIBorder;
 
+    /**
+     * Creates a new UI object for the given component.
+     *
+     * @param list component to create UI object for
+     * @return the UI object
+     */
     public static ComponentUI createUI(JComponent list) {
         return new SynthListUI();
     }
 
+    /**
+     * Notifies this UI delegate to repaint the specified component.
+     * This method paints the component background, then calls
+     * the {@link #paint} method.
+     *
+     * <p>In general, this method does not need to be overridden by subclasses.
+     * All Look and Feel rendering code should reside in the {@code paint} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint
+     */
+    @Override
     public void update(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -52,27 +79,47 @@ class SynthListUI extends BasicListUI implements PropertyChangeListener,
         paint(g, c);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
         context.getPainter().paintListBorder(context, g, x, y, w, h);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installListeners() {
         super.installListeners();
         list.addPropertyChangeListener(this);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (SynthLookAndFeel.shouldUpdateStyle(e)) {
             updateStyle((JList)e.getSource());
         }
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallListeners() {
         super.uninstallListeners();
         list.removePropertyChangeListener(this);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installDefaults() {
         if (list.getCellRenderer() == null ||
                  (list.getCellRenderer() instanceof UIResource)) {
@@ -118,6 +165,10 @@ class SynthListUI extends BasicListUI implements PropertyChangeListener,
         context.dispose();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallDefaults() {
         super.uninstallDefaults();
 
@@ -128,6 +179,10 @@ class SynthListUI extends BasicListUI implements PropertyChangeListener,
         style = null;
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public SynthContext getContext(JComponent c) {
         return getContext(c, getComponentState(c));
     }
@@ -137,27 +192,23 @@ class SynthListUI extends BasicListUI implements PropertyChangeListener,
                     SynthLookAndFeel.getRegion(c), style, state);
     }
 
-    private Region getRegion(JComponent c) {
-        return SynthLookAndFeel.getRegion(c);
-    }
-
     private int getComponentState(JComponent c) {
         return SynthLookAndFeel.getComponentState(c);
     }
 
 
     private class SynthListCellRenderer extends DefaultListCellRenderer.UIResource {
-        public String getName() {
+        @Override public String getName() {
             return "List.cellRenderer";
         }
 
-        public void setBorder(Border b) {
+        @Override public void setBorder(Border b) {
             if (useUIBorder || b instanceof SynthBorder) {
                 super.setBorder(b);
             }
         }
 
-        public Component getListCellRendererComponent(JList list, Object value,
+        @Override public Component getListCellRendererComponent(JList list, Object value,
                   int index, boolean isSelected, boolean cellHasFocus) {
             if (!useListColors && (isSelected || cellHasFocus)) {
                 SynthLookAndFeel.setSelectedUI((SynthLabelUI)SynthLookAndFeel.
@@ -167,13 +218,13 @@ class SynthListUI extends BasicListUI implements PropertyChangeListener,
             else {
                 SynthLookAndFeel.resetSelectedUI();
             }
-            
+
             super.getListCellRendererComponent(list, value, index,
                                                isSelected, cellHasFocus);
             return this;
         }
 
-        public void paint(Graphics g) {
+        @Override public void paint(Graphics g) {
             super.paint(g);
             SynthLookAndFeel.resetSelectedUI();
         }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +23,7 @@
 package com.sun.org.apache.xpath.internal;
 
 /**
- * Classes that implement this interface own an expression, which 
+ * Classes that implement this interface own an expression, which
  * can be rewritten.
  */
 public interface ExpressionOwner
@@ -40,4 +44,3 @@ public interface ExpressionOwner
 
 
 }
-

@@ -1,16 +1,34 @@
 /*
- * @(#)INVALID_TRANSACTION.java	1.24 06/04/21
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
  * Exception  thrown
- * when the request carried an invalid transaction context. 
- * For example, this exception could be raised if an error 
+ * when the request carried an invalid transaction context.
+ * For example, this exception could be raised if an error
  * occurred when trying to register a resource.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -18,7 +36,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version 1.5, 09/09/97
  * @since   JDK1.2
  *
  */
@@ -29,7 +46,7 @@ public final class INVALID_TRANSACTION extends SystemException {
      * of 0 and a completion state of COMPLETED_NO.
      */
     public INVALID_TRANSACTION() {
-	this("");
+        this("");
     }
 
     /**

@@ -1,14 +1,32 @@
 /*
- * @(#)BAD_CONTEXT.java	1.35 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * Exception thrown when an operation is invoked by a client but the passed 
+ * Exception thrown when an operation is invoked by a client but the passed
  * context does not contain the context values required by the operation.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -16,7 +34,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version  1.17, 09/09/97
  * @since    JDK1.2
  */
 
@@ -28,7 +45,7 @@ public final class BAD_CONTEXT extends SystemException {
      * of 0 and a completion state of COMPLETED_NO.
      */
     public BAD_CONTEXT() {
-	this("");
+        this("");
     }
 
     /**
@@ -38,7 +55,7 @@ public final class BAD_CONTEXT extends SystemException {
      * @param s a <code>String</code> object containing a detail message
      */
     public BAD_CONTEXT(String s) {
-	this(s, 0, CompletionStatus.COMPLETED_NO);
+        this(s, 0, CompletionStatus.COMPLETED_NO);
     }
 
     /**

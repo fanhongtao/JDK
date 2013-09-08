@@ -1,63 +1,83 @@
 /*
- * @(#)MBeanServerFactory.java	1.61 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
 
 import com.sun.jmx.defaults.JmxProperties;
-import com.sun.jmx.interceptor.DefaultMBeanServerInterceptor;
+import static com.sun.jmx.defaults.JmxProperties.JMX_INITIAL_BUILDER;
+import static com.sun.jmx.defaults.JmxProperties.MBEANSERVER_LOGGER;
 import com.sun.jmx.mbeanserver.GetPropertyAction;
-import com.sun.jmx.trace.Trace;
 import java.security.AccessController;
 import java.security.Permission;
 import java.util.ArrayList;
+import java.util.logging.Level;
 import javax.management.loading.ClassLoaderRepository;
+
 
 /**
  * <p>Provides MBean server references.  There are no instances of
  * this class.</p>
  *
  * <p>Since JMX 1.2 this class makes it possible to replace the default
- * MBeanServer implementation. This is done using the 
+ * MBeanServer implementation. This is done using the
  * {@link javax.management.MBeanServerBuilder} class.
  * The class of the initial MBeanServerBuilder to be
- * instantiated can be specified through the 
- * <b>javax.management.builder.initial</b> system property. 
- * The specified class must be a public subclass of 
+ * instantiated can be specified through the
+ * <b>javax.management.builder.initial</b> system property.
+ * The specified class must be a public subclass of
  * {@link javax.management.MBeanServerBuilder}, and must have a public
  * empty constructor.
  * <p>By default, if no value for that property is specified, an instance of
- * {@link 
- * javax.management.MBeanServerBuilder javax.management.MBeanServerBuilder} 
- * is created. Otherwise, the MBeanServerFactory attempts to load the 
- * specified class using 
- * {@link java.lang.Thread#getContextClassLoader() 
- *   Thread.currentThread().getContextClassLoader()}, or if that is null, 
+ * {@link
+ * javax.management.MBeanServerBuilder javax.management.MBeanServerBuilder}
+ * is created. Otherwise, the MBeanServerFactory attempts to load the
+ * specified class using
+ * {@link java.lang.Thread#getContextClassLoader()
+ *   Thread.currentThread().getContextClassLoader()}, or if that is null,
  * {@link java.lang.Class#forName(java.lang.String) Class.forName()}. Then
- * it creates an initial instance of that Class using 
+ * it creates an initial instance of that Class using
  * {@link java.lang.Class#newInstance()}. If any checked exception
- * is raised during this process (e.g. 
- * {@link java.lang.ClassNotFoundException}, 
- * {@link java.lang.InstantiationException}) the MBeanServerFactory 
+ * is raised during this process (e.g.
+ * {@link java.lang.ClassNotFoundException},
+ * {@link java.lang.InstantiationException}) the MBeanServerFactory
  * will propagate this exception from within a RuntimeException.</p>
  *
- * <p>The <b>javax.management.builder.initial</b> system property is 
+ * <p>The <b>javax.management.builder.initial</b> system property is
  * consulted every time a new MBeanServer needs to be created, and the
  * class pointed to by that property is loaded. If that class is different
  * from that of the current MBeanServerBuilder, then a new MBeanServerBuilder
- * is created. Otherwise, the MBeanServerFactory may create a new 
+ * is created. Otherwise, the MBeanServerFactory may create a new
  * MBeanServerBuilder or reuse the current one.</p>
  *
- * <p>If the class pointed to by the property cannot be 
+ * <p>If the class pointed to by the property cannot be
  * loaded, or does not correspond to a valid subclass of MBeanServerBuilder
  * then an exception is propagated, and no MBeanServer can be created until
  * the <b>javax.management.builder.initial</b> system property is reset to
  * valid value.</p>
- * 
- * <p>The MBeanServerBuilder makes it possible to wrap the MBeanServers 
+ *
+ * <p>The MBeanServerBuilder makes it possible to wrap the MBeanServers
  * returned by the default MBeanServerBuilder implementation, for the purpose
  * of e.g. adding an additional security layer.</p>
  *
@@ -70,44 +90,41 @@ public class MBeanServerFactory {
      * default public constructor.
      */
     private MBeanServerFactory() {
-	
+
     }
 
     /**
      * The builder that will be used to construct MBeanServers.
      *
-     * @since.unbundled JMX 1.2
      **/
     private static MBeanServerBuilder builder = null;
 
     /**
      * Provide a new {@link javax.management.MBeanServerBuilder}.
      * @param builder The new MBeanServerBuilder that will be used to
-     *        create {@link javax.management.MBeanServer}s. 
+     *        create {@link javax.management.MBeanServer}s.
      * @exception IllegalArgumentException if the given builder is null.
      *
-     * @exception SecurityException if there is a SecurityManager and 
+     * @exception SecurityException if there is a SecurityManager and
      * the caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("setMBeanServerBuilder")</code>.
      *
-     * @since.unbundled JMX 1.2
      **/
-    // public static synchronized void 
+    // public static synchronized void
     //    setMBeanServerBuilder(MBeanServerBuilder builder) {
     //    checkPermission("setMBeanServerBuilder");
     //    MBeanServerFactory.builder = builder;
     // }
-    
+
     /**
      * Get the current {@link javax.management.MBeanServerBuilder}.
      *
      * @return the current {@link javax.management.MBeanServerBuilder}.
      *
-     * @exception SecurityException if there is a SecurityManager and 
+     * @exception SecurityException if there is a SecurityManager and
      * the caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("getMBeanServerBuilder")</code>.
      *
-     * @since.unbundled JMX 1.2
      **/
     // public static synchronized MBeanServerBuilder getMBeanServerBuilder() {
     //     checkPermission("getMBeanServerBuilder");
@@ -126,14 +143,14 @@ public class MBeanServerFactory {
      * <code>createMBeanServer</code> methods, or if
      * <code>releaseMBeanServer</code> was already called on it.
      *
-     * @exception SecurityException if there is a SecurityManager and 
+     * @exception SecurityException if there is a SecurityManager and
      * the caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("releaseMBeanServer")</code>.
      */
     public static void releaseMBeanServer(MBeanServer mbeanServer) {
-	checkPermission("releaseMBeanServer");
+        checkPermission("releaseMBeanServer");
 
-	removeMBeanServer(mbeanServer);
+        removeMBeanServer(mbeanServer);
     }
 
     /**
@@ -153,7 +170,7 @@ public class MBeanServerFactory {
      *
      * @return the newly created MBeanServer.
      *
-     * @exception SecurityException if there is a SecurityManager and the 
+     * @exception SecurityException if there is a SecurityManager and the
      * caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("createMBeanServer")</code>.
      *
@@ -171,7 +188,7 @@ public class MBeanServerFactory {
      * MBeanServerBuilder}.
      */
     public static MBeanServer createMBeanServer() {
-	return createMBeanServer(null);
+        return createMBeanServer(null);
     }
 
     /**
@@ -190,7 +207,7 @@ public class MBeanServerFactory {
      *
      * @return the newly created MBeanServer.
      *
-     * @exception SecurityException if there is a SecurityManager and 
+     * @exception SecurityException if there is a SecurityManager and
      * the caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("createMBeanServer")</code>.
      *
@@ -208,11 +225,11 @@ public class MBeanServerFactory {
      * MBeanServerBuilder}.
      */
     public static MBeanServer createMBeanServer(String domain)  {
-	checkPermission("createMBeanServer");
+        checkPermission("createMBeanServer");
 
-	final MBeanServer mBeanServer = newMBeanServer(domain);
-	addMBeanServer(mBeanServer);
-	return mBeanServer;
+        final MBeanServer mBeanServer = newMBeanServer(domain);
+        addMBeanServer(mBeanServer);
+        return mBeanServer;
     }
 
     /**
@@ -234,7 +251,7 @@ public class MBeanServerFactory {
      *
      * @return the newly created MBeanServer.
      *
-     * @exception SecurityException if there is a SecurityManager and the 
+     * @exception SecurityException if there is a SecurityManager and the
      * caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("newMBeanServer")</code>.
      *
@@ -252,7 +269,7 @@ public class MBeanServerFactory {
      * MBeanServerBuilder}.
      */
     public static MBeanServer newMBeanServer() {
-	return newMBeanServer(null);
+        return newMBeanServer(null);
     }
 
     /**
@@ -273,7 +290,7 @@ public class MBeanServerFactory {
      *
      * @return the newly created MBeanServer.
      *
-     * @exception SecurityException if there is a SecurityManager and the 
+     * @exception SecurityException if there is a SecurityManager and the
      * caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("newMBeanServer")</code>.
      *
@@ -291,31 +308,31 @@ public class MBeanServerFactory {
      * MBeanServerBuilder}.
      */
     public static MBeanServer newMBeanServer(String domain)  {
-	checkPermission("newMBeanServer");
+        checkPermission("newMBeanServer");
 
-	// Get the builder. Creates a new one if necessary.
-	//
-	final MBeanServerBuilder mbsBuilder = getNewMBeanServerBuilder();
-	// Returned value cannot be null.  NullPointerException if violated.
+        // Get the builder. Creates a new one if necessary.
+        //
+        final MBeanServerBuilder mbsBuilder = getNewMBeanServerBuilder();
+        // Returned value cannot be null.  NullPointerException if violated.
 
-	synchronized(mbsBuilder) {
-	    final MBeanServerDelegate delegate  = 
-		mbsBuilder.newMBeanServerDelegate();
-	    if (delegate == null) {
-		final String msg =
-		    "MBeanServerBuilder.newMBeanServerDelegate() " +
-		    "returned null";
-		throw new JMRuntimeException(msg);
-	    }
-	    final MBeanServer mbeanServer =
-		mbsBuilder.newMBeanServer(domain,null,delegate);
-	    if (mbeanServer == null) {
-		final String msg =
-		    "MBeanServerBuilder.newMBeanServer() returned null";
-		throw new JMRuntimeException(msg);
-	    }
-	    return mbeanServer;
-	}
+        synchronized(mbsBuilder) {
+            final MBeanServerDelegate delegate  =
+                    mbsBuilder.newMBeanServerDelegate();
+            if (delegate == null) {
+                final String msg =
+                        "MBeanServerBuilder.newMBeanServerDelegate() " +
+                        "returned null";
+                throw new JMRuntimeException(msg);
+            }
+            final MBeanServer mbeanServer =
+                    mbsBuilder.newMBeanServer(domain,null,delegate);
+            if (mbeanServer == null) {
+                final String msg =
+                        "MBeanServerBuilder.newMBeanServer() returned null";
+                throw new JMRuntimeException(msg);
+            }
+            return mbeanServer;
+        }
     }
 
     /**
@@ -333,65 +350,67 @@ public class MBeanServerFactory {
      *
      * @return A list of MBeanServer objects.
      *
-     * @exception SecurityException if there is a SecurityManager and the 
+     * @exception SecurityException if there is a SecurityManager and the
      * caller's permissions do not include or imply <code>{@link
      * MBeanServerPermission}("findMBeanServer")</code>.
      */
     public synchronized static
-	    ArrayList<MBeanServer> findMBeanServer(String agentId) {
+            ArrayList<MBeanServer> findMBeanServer(String agentId) {
 
-	checkPermission("findMBeanServer");
+        checkPermission("findMBeanServer");
 
-	if (agentId == null)
-	    return new ArrayList<MBeanServer>(mBeanServerList);
+        if (agentId == null)
+            return new ArrayList<MBeanServer>(mBeanServerList);
 
-	ArrayList<MBeanServer> result = new ArrayList<MBeanServer>();
-	for (MBeanServer mbs : mBeanServerList) {
-	    String name = mBeanServerName(mbs);
-	    if (agentId.equals(name))
-		result.add(mbs);
-	}
-	return result;
+        ArrayList<MBeanServer> result = new ArrayList<MBeanServer>();
+        for (MBeanServer mbs : mBeanServerList) {
+            String name = mBeanServerId(mbs);
+            if (agentId.equals(name))
+                result.add(mbs);
+        }
+        return result;
     }
 
     /**
      * Return the ClassLoaderRepository used by the given MBeanServer.
-     * This method is equivalent to {@link MBeanServer#getClassLoaderRepository() server.getClassLoaderRepository()}.
+     * This method is equivalent to {@link
+     * MBeanServer#getClassLoaderRepository() server.getClassLoaderRepository()}.
      * @param server The MBeanServer under examination. Since JMX 1.2,
      * if <code>server</code> is <code>null</code>, the result is a
      * {@link NullPointerException}.  This behavior differs from what
      * was implemented in JMX 1.1 - where the possibility to use
      * <code>null</code> was deprecated.
      * @return The Class Loader Repository used by the given MBeanServer.
-     * @exception SecurityException if there is a SecurityManager and 
+     * @exception SecurityException if there is a SecurityManager and
      * the caller's permissions do not include or imply <code>{@link
      * MBeanPermission}("getClassLoaderRepository")</code>.
      *
      * @exception NullPointerException if <code>server</code> is null.
      *
-     * @since.unbundled JMX 1.1
      **/
     public static ClassLoaderRepository getClassLoaderRepository(
-					    MBeanServer server) {
-	return server.getClassLoaderRepository(); 
+            MBeanServer server) {
+        return server.getClassLoaderRepository();
     }
 
-    private static String mBeanServerName(MBeanServer mbs) {
-	try {
-	    return (String) mbs.getAttribute(MBeanServerDelegate.DELEGATE_NAME,
-                                             "MBeanServerId");
-	} catch (JMException e) {
-	    return null;
-	}
+    private static String mBeanServerId(MBeanServer mbs) {
+        try {
+            return (String) mbs.getAttribute(MBeanServerDelegate.DELEGATE_NAME,
+                    "MBeanServerId");
+        } catch (JMException e) {
+            JmxProperties.MISC_LOGGER.finest(
+                    "Ignoring exception while getting MBeanServerId: "+e);
+            return null;
+        }
     }
 
     private static void checkPermission(String action)
-	    throws SecurityException {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    Permission perm = new MBeanServerPermission(action);
-	    sm.checkPermission(perm);
-	}
+    throws SecurityException {
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            Permission perm = new MBeanServerPermission(action);
+            sm.checkPermission(perm);
+        }
     }
 
     private static synchronized void addMBeanServer(MBeanServer mbs) {
@@ -399,98 +418,107 @@ public class MBeanServerFactory {
     }
 
     private static synchronized void removeMBeanServer(MBeanServer mbs) {
-	boolean removed = mBeanServerList.remove(mbs);
-	if (!removed) {
-	    trace("removeMBeanServer", "MBeanServer was not in list!");
-	    throw new IllegalArgumentException("MBeanServer was not in list!");
-	}
+        boolean removed = mBeanServerList.remove(mbs);
+        if (!removed) {
+            MBEANSERVER_LOGGER.logp(Level.FINER,
+                    MBeanServerFactory.class.getName(),
+                    "removeMBeanServer(MBeanServer)",
+                    "MBeanServer was not in list!");
+            throw new IllegalArgumentException("MBeanServer was not in list!");
+        }
     }
 
     private static final ArrayList<MBeanServer> mBeanServerList =
-	new ArrayList<MBeanServer>();
+            new ArrayList<MBeanServer>();
 
     /**
      * Load the builder class through the context class loader.
      * @param builderClassName The name of the builder class.
      **/
-    private static Class loadBuilderClass(String builderClassName) 
-	    throws ClassNotFoundException {
-	final ClassLoader loader = 
-	    Thread.currentThread().getContextClassLoader();
+    private static Class<?> loadBuilderClass(String builderClassName)
+    throws ClassNotFoundException {
+        final ClassLoader loader =
+                Thread.currentThread().getContextClassLoader();
 
-	if (loader != null) {
-	    // Try with context class loader
-	    return loader.loadClass(builderClassName);
-	} 
+        if (loader != null) {
+            // Try with context class loader
+            return loader.loadClass(builderClassName);
+        }
 
-	// No context class loader? Try with Class.forName()
-	return Class.forName(builderClassName);  
+        // No context class loader? Try with Class.forName()
+        return Class.forName(builderClassName);
     }
 
     /**
-     * Creates the initial builder according to the 
+     * Creates the initial builder according to the
      * javax.management.builder.initial System property - if specified.
      * If any checked exception needs to be thrown, it is embedded in
      * a JMRuntimeException.
      **/
-    private static MBeanServerBuilder newBuilder(Class builderClass) {
-	try {
-	    final Object builder = builderClass.newInstance();
-	    return (MBeanServerBuilder)builder;
-	} catch (RuntimeException x) {
-	    throw x;
-	} catch (Exception x) {
-	    final String msg =
-               "Failed to instantiate a MBeanServerBuilder from " +
-	       builderClass + ": " + x;
-	    throw new JMRuntimeException(msg, x);
-	}
+    private static MBeanServerBuilder newBuilder(Class<?> builderClass) {
+        try {
+            final Object abuilder = builderClass.newInstance();
+            return (MBeanServerBuilder)abuilder;
+        } catch (RuntimeException x) {
+            throw x;
+        } catch (Exception x) {
+            final String msg =
+                    "Failed to instantiate a MBeanServerBuilder from " +
+                    builderClass + ": " + x;
+            throw new JMRuntimeException(msg, x);
+        }
     }
 
     /**
-     * Instantiate a new builder according to the 
+     * Instantiate a new builder according to the
      * javax.management.builder.initial System property - if needed.
      **/
     private static synchronized void checkMBeanServerBuilder() {
-	try {
-	    GetPropertyAction act =
-		new GetPropertyAction(JmxProperties.JMX_INITIAL_BUILDER);
-	    String builderClassName = AccessController.doPrivileged(act);
+        try {
+            GetPropertyAction act =
+                    new GetPropertyAction(JMX_INITIAL_BUILDER);
+            String builderClassName = AccessController.doPrivileged(act);
 
-	    try {
-		final Class newBuilderClass;
-		if (builderClassName == null || builderClassName.length() == 0)
-		    newBuilderClass = MBeanServerBuilder.class;
-		else
-		    newBuilderClass = loadBuilderClass(builderClassName);
+            try {
+                final Class<?> newBuilderClass;
+                if (builderClassName == null || builderClassName.length() == 0)
+                    newBuilderClass = MBeanServerBuilder.class;
+                else
+                    newBuilderClass = loadBuilderClass(builderClassName);
 
-		// Check whether a new builder needs to be created
-		if (builder != null) {
-		    final Class builderClass = builder.getClass();
-		    if (newBuilderClass == builderClass)
-			return; // no need to create a new builder...
-		} 
+                // Check whether a new builder needs to be created
+                if (builder != null) {
+                    final Class<?> builderClass = builder.getClass();
+                    if (newBuilderClass == builderClass)
+                        return; // no need to create a new builder...
+                }
 
-		// Create a new builder 
-		builder = newBuilder(newBuilderClass);	    
-	    } catch (ClassNotFoundException x) {
-		final String msg =
-		    "Failed to load MBeanServerBuilder class " +
-		    builderClassName + ": " + x;
-		throw new JMRuntimeException(msg, x);
-	    }
-	} catch (RuntimeException x) {
-	    debug("checkMBeanServerBuilder",
-		  "Failed to instantiate MBeanServerBuilder: " + x +
-		  "\n\t\tCheck the value of the " + 
-		  JmxProperties.JMX_INITIAL_BUILDER + " property." );
-	    throw x;
-	}
+                // Create a new builder
+                builder = newBuilder(newBuilderClass);
+            } catch (ClassNotFoundException x) {
+                final String msg =
+                        "Failed to load MBeanServerBuilder class " +
+                        builderClassName + ": " + x;
+                throw new JMRuntimeException(msg, x);
+            }
+        } catch (RuntimeException x) {
+            if (MBEANSERVER_LOGGER.isLoggable(Level.FINEST)) {
+                StringBuilder strb = new StringBuilder()
+                .append("Failed to instantiate MBeanServerBuilder: ").append(x)
+                .append("\n\t\tCheck the value of the ")
+                .append(JMX_INITIAL_BUILDER).append(" property.");
+                MBEANSERVER_LOGGER.logp(Level.FINEST,
+                        MBeanServerFactory.class.getName(),
+                        "checkMBeanServerBuilder",
+                        strb.toString());
+            }
+            throw x;
+        }
     }
 
     /**
      * Get the current {@link javax.management.MBeanServerBuilder},
-     * as specified by the current value of the 
+     * as specified by the current value of the
      * javax.management.builder.initial property.
      *
      * This method consults the property and instantiates a new builder
@@ -498,39 +526,17 @@ public class MBeanServerFactory {
      *
      * @return the new current {@link javax.management.MBeanServerBuilder}.
      *
-     * @exception SecurityException if there is a SecurityManager and 
+     * @exception SecurityException if there is a SecurityManager and
      * the caller's permissions do not make it possible to instantiate
      * a new builder.
      * @exception JMRuntimeException if the builder instantiation
-     *   fails with a checked exception - 
+     *   fails with a checked exception -
      *   {@link java.lang.ClassNotFoundException} etc...
      *
-     * @since.unbundled JMX 1.2
      **/
     private static synchronized MBeanServerBuilder getNewMBeanServerBuilder() {
-	checkMBeanServerBuilder();
-	return builder;
+        checkMBeanServerBuilder();
+        return builder;
     }
 
-    /** Private Stuff **/
-    private static void trace(String method, String message) {
-	if (Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_MBEANSERVER)) {
-	    Trace.send(Trace.LEVEL_TRACE, Trace.INFO_MBEANSERVER,
-		       MBeanServerFactory.class.getName(), method, message);
-	}
-    }
-    /** Private Stuff **/
-    private static void debug(String method, String message) {
-	if (Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_MBEANSERVER)) {
-	    Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MBEANSERVER,
-		       MBeanServerFactory.class.getName(), method, message);
-	}
-    }
-    /** Private Stuff **/
-    private static void error(String method, String message) {
-	if (Trace.isSelected(Trace.LEVEL_ERROR, Trace.INFO_MBEANSERVER)) {
-	    Trace.send(Trace.LEVEL_ERROR, Trace.INFO_MBEANSERVER,
-		       MBeanServerFactory.class.getName(), method, message);
-	}
-    }
 }

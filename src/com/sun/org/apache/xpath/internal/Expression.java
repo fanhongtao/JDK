@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +64,7 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
   {
     return false;
   }
-  
+
 //  /**
 //   * Set the location where this expression was built from.
 //   *
@@ -135,7 +139,7 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
 
   /**
    * Execute an expression in the XPath runtime context, and return the
-   * result of the expression, but tell that a "safe" object doesn't have 
+   * result of the expression, but tell that a "safe" object doesn't have
    * to be returned.  The default implementation just calls execute(xctxt).
    *
    *
@@ -150,7 +154,7 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
   public XObject execute(XPathContext xctxt, boolean destructiveOK)
     throws javax.xml.transform.TransformerException
   {
-  	return execute(xctxt);
+        return execute(xctxt);
   }
 
 
@@ -220,7 +224,7 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
   public int asNode(XPathContext xctxt)
           throws javax.xml.transform.TransformerException
   {
-  	DTMIterator iter = execute(xctxt).iter();
+        DTMIterator iter = execute(xctxt).iter();
     return iter.nextNode();
   }
 
@@ -254,7 +258,7 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
       xctxt.popCurrentNodeAndExpression();
     }
   }
-  
+
   /**
    * Given an select expression and a context, evaluate the XPath
    * and return the resulting iterator, but do not clone.
@@ -315,10 +319,10 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
   }
 
   /**
-   * Tell if this expression returns a stable number that will not change during 
-   * iterations within the expression.  This is used to determine if a proximity 
+   * Tell if this expression returns a stable number that will not change during
+   * iterations within the expression.  This is used to determine if a proximity
    * position predicate can indicate that no more searching has to occur.
-   * 
+   *
    *
    * @return true if the expression represents a stable number.
    */
@@ -339,33 +343,33 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
    * NEEDSDOC @param globalsSize
    */
   public abstract void fixupVariables(java.util.Vector vars, int globalsSize);
-  
+
   /**
-   * Compare this object with another object and see 
+   * Compare this object with another object and see
    * if they are equal, include the sub heararchy.
-   * 
+   *
    * @param expr Another expression object.
    * @return true if this objects class and the expr
-   * object's class are the same, and the data contained 
+   * object's class are the same, and the data contained
    * within both objects are considered equal.
    */
   public abstract boolean deepEquals(Expression expr);
-  
+
   /**
-   * This is a utility method to tell if the passed in 
+   * This is a utility method to tell if the passed in
    * class is the same class as this.  It is to be used by
-   * the deepEquals method.  I'm bottlenecking it here 
-   * because I'm not totally confident that comparing the 
+   * the deepEquals method.  I'm bottlenecking it here
+   * because I'm not totally confident that comparing the
    * class objects is the best way to do this.
-   * @return true of the passed in class is the exact same 
+   * @return true of the passed in class is the exact same
    * class as this class.
    */
   protected final boolean isSameClass(Expression expr)
   {
-  	if(null == expr)
-  	  return false;
-  	  
-  	return (getClass() == expr.getClass());
+        if(null == expr)
+          return false;
+
+        return (getClass() == expr.getClass());
   }
 
   /**
@@ -452,54 +456,54 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
       eh.fatalError(te);
     }
   }
-  
+
   /**
    * Get the first non-Expression parent of this node.
    * @return null or first ancestor that is not an Expression.
    */
   public ExpressionNode getExpressionOwner()
   {
-  	ExpressionNode parent = exprGetParent();
-  	while((null != parent) && (parent instanceof Expression))
-  		parent = parent.exprGetParent();
-  	return parent;
+        ExpressionNode parent = exprGetParent();
+        while((null != parent) && (parent instanceof Expression))
+                parent = parent.exprGetParent();
+        return parent;
   }
-  
+
   //=============== ExpressionNode methods ================
-  
+
   /** This pair of methods are used to inform the node of its
     parent. */
   public void exprSetParent(ExpressionNode n)
   {
-  	assertion(n != this, "Can not parent an expression to itself!");
-  	m_parent = n;
+        assertion(n != this, "Can not parent an expression to itself!");
+        m_parent = n;
   }
-  
+
   public ExpressionNode exprGetParent()
   {
-  	return m_parent;
+        return m_parent;
   }
 
   /** This method tells the node to add its argument to the node's
     list of children.  */
   public void exprAddChild(ExpressionNode n, int i)
   {
-  	assertion(false, "exprAddChild method not implemented!");
+        assertion(false, "exprAddChild method not implemented!");
   }
 
   /** This method returns a child node.  The children are numbered
      from zero, left to right. */
   public ExpressionNode exprGetChild(int i)
   {
-  	return null;
+        return null;
   }
 
   /** Return the number of children the node has. */
   public int exprGetNumChildren()
   {
-  	return 0;
+        return 0;
   }
-  
+
   //=============== SourceLocator methods ================
 
   /**
@@ -515,9 +519,9 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
    */
   public String getPublicId()
   {
-  	if(null == m_parent)
-  	  return null;
-  	return m_parent.getPublicId();
+        if(null == m_parent)
+          return null;
+        return m_parent.getPublicId();
   }
 
   /**
@@ -536,9 +540,9 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
    */
   public String getSystemId()
   {
-  	if(null == m_parent)
-  	  return null;
-  	return m_parent.getSystemId();
+        if(null == m_parent)
+          return null;
+        return m_parent.getSystemId();
   }
 
   /**
@@ -558,9 +562,9 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
    */
   public int getLineNumber()
   {
-  	if(null == m_parent)
-  	  return 0;
-  	return m_parent.getLineNumber();
+        if(null == m_parent)
+          return 0;
+        return m_parent.getLineNumber();
   }
 
   /**
@@ -580,8 +584,8 @@ public abstract class Expression implements java.io.Serializable, ExpressionNode
    */
   public int getColumnNumber()
   {
-  	if(null == m_parent)
-  	  return 0;
-  	return m_parent.getColumnNumber();
+        if(null == m_parent)
+          return 0;
+        return m_parent.getColumnNumber();
   }
 }

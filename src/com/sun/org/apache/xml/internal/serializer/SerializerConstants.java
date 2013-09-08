@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,9 +50,9 @@ interface SerializerConstants
     static final String XML_PREFIX = "xml";
     static final String XMLNS_PREFIX = "xmlns";
     static final String XMLNS_URI = "http://www.w3.org/2000/xmlns/";
-   
+
     public static final String DEFAULT_SAX_SERIALIZER="com.sun.org.apache.xml.internal.serializer.ToXMLSAXHandler";
-    
+
     /**
      * Define the XML version.
      */

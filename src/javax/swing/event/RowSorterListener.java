@@ -1,8 +1,26 @@
 /*
- * @(#)RowSorterListener.java	1.2 05/11/17
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.event;
 
@@ -10,7 +28,6 @@ package javax.swing.event;
  * <code>RowSorterListener</code>s are notified of changes to a
  * <code>RowSorter</code>.
  *
- * @version 1.2 11/17/05
  * @see javax.swing.RowSorter
  * @since 1.6
  */

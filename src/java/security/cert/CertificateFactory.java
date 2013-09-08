@@ -1,8 +1,26 @@
 /*
- * @(#)CertificateFactory.java	1.32 06/04/21
+ * Copyright (c) 1998, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -73,11 +91,28 @@ import sun.security.jca.GetInstance.Instance;
  * }
  * </pre>
  *
+ * <p> Every implementation of the Java platform is required to support the
+ * following standard <code>CertificateFactory</code> type:
+ * <ul>
+ * <li><tt>X.509</tt></li>
+ * </ul>
+ * and the following standard <code>CertPath</code> encodings:
+ * <ul>
+ * <li><tt>PKCS7</tt></li>
+ * <li><tt>PkiPath</tt></li>
+ * </ul>
+ * The type and encodings are described in the <a href=
+ * "{@docRoot}/../technotes/guides/security/StandardNames.html#CertificateFactory">
+ * CertificateFactory section</a> and the <a href=
+ * "{@docRoot}/../technotes/guides/security/StandardNames.html#CertPathEncodings">
+ * CertPath Encodings section</a> of the
+ * Java Cryptography Architecture Standard Algorithm Name Documentation.
+ * Consult the release documentation for your implementation to see if any
+ * other types or encodings are supported.
+ *
  * @author Hemma Prafullchandra
  * @author Jan Luehe
  * @author Sean Mullan
- *
- * @version 1.32, 04/21/06
  *
  * @see Certificate
  * @see X509Certificate
@@ -108,11 +143,11 @@ public class CertificateFactory {
      * @param type the certificate type.
      */
     protected CertificateFactory(CertificateFactorySpi certFacSpi,
-				 Provider provider, String type)
+                                 Provider provider, String type)
     {
-	this.certFacSpi = certFacSpi;
-	this.provider = provider;
-	this.type = type;
+        this.certFacSpi = certFacSpi;
+        this.provider = provider;
+        this.type = type;
     }
 
     /**
@@ -129,29 +164,29 @@ public class CertificateFactory {
      * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param type the name of the requested certificate type.
-     * See Appendix A in the <a href=
-     * "../../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
-     * Java Cryptography Architecture API Specification &amp; Reference </a>
+     * See the CertificateFactory section in the <a href=
+     * "{@docRoot}/../technotes/guides/security/StandardNames.html#CertificateFactory">
+     * Java Cryptography Architecture Standard Algorithm Name Documentation</a>
      * for information about standard certificate types.
      *
      * @return a certificate factory object for the specified type.
      *
      * @exception CertificateException if no Provider supports a
-     *		CertificateFactorySpi implementation for the
-     *		specified type.
+     *          CertificateFactorySpi implementation for the
+     *          specified type.
      *
      * @see java.security.Provider
      */
     public static final CertificateFactory getInstance(String type)
-	    throws CertificateException {
-	try {
-	    Instance instance = GetInstance.getInstance("CertificateFactory", 
-	    	CertificateFactorySpi.class, type);
-	    return new CertificateFactory((CertificateFactorySpi)instance.impl,
-	    	instance.provider, type);
-	} catch (NoSuchAlgorithmException e) {
-	    throw new CertificateException(type + " not found", e);
-	}
+            throws CertificateException {
+        try {
+            Instance instance = GetInstance.getInstance("CertificateFactory",
+                CertificateFactorySpi.class, type);
+            return new CertificateFactory((CertificateFactorySpi)instance.impl,
+                instance.provider, type);
+        } catch (NoSuchAlgorithmException e) {
+            throw new CertificateException(type + " not found", e);
+        }
     }
 
     /**
@@ -167,9 +202,9 @@ public class CertificateFactory {
      * the {@link Security#getProviders() Security.getProviders()} method.
      *
      * @param type the certificate type.
-     * See Appendix A in the <a href=
-     * "../../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
-     * Java Cryptography Architecture API Specification &amp; Reference </a>
+     * See the CertificateFactory section in the <a href=
+     * "{@docRoot}/../technotes/guides/security/StandardNames.html#CertificateFactory">
+     * Java Cryptography Architecture Standard Algorithm Name Documentation</a>
      * for information about standard certificate types.
      *
      * @param provider the name of the provider.
@@ -177,28 +212,28 @@ public class CertificateFactory {
      * @return a certificate factory object for the specified type.
      *
      * @exception CertificateException if a CertificateFactorySpi
-     *		implementation for the specified algorithm is not
-     *		available from the specified provider.
+     *          implementation for the specified algorithm is not
+     *          available from the specified provider.
      *
      * @exception NoSuchProviderException if the specified provider is not
-     *		registered in the security provider list.
+     *          registered in the security provider list.
      *
      * @exception IllegalArgumentException if the provider name is null
-     *		or empty.
+     *          or empty.
      *
      * @see java.security.Provider
      */
     public static final CertificateFactory getInstance(String type,
-	    String provider) throws CertificateException,
-	    NoSuchProviderException {
-	try {
-	    Instance instance = GetInstance.getInstance("CertificateFactory",
-	    	CertificateFactorySpi.class, type, provider);
-	    return new CertificateFactory((CertificateFactorySpi)instance.impl,
-	    	instance.provider, type);
-	} catch (NoSuchAlgorithmException e) {
-	    throw new CertificateException(type + " not found", e);
-	}
+            String provider) throws CertificateException,
+            NoSuchProviderException {
+        try {
+            Instance instance = GetInstance.getInstance("CertificateFactory",
+                CertificateFactorySpi.class, type, provider);
+            return new CertificateFactory((CertificateFactorySpi)instance.impl,
+                instance.provider, type);
+        } catch (NoSuchAlgorithmException e) {
+            throw new CertificateException(type + " not found", e);
+        }
     }
 
     /**
@@ -211,45 +246,44 @@ public class CertificateFactory {
      * does not have to be registered in the provider list.
      *
      * @param type the certificate type.
-     * See Appendix A in the <a href=
-     * "../../../../technotes/guides/security/crypto/CryptoSpec.html#AppA">
-     * Java Cryptography Architecture API Specification &amp; Reference </a>
+     * See the CertificateFactory section in the <a href=
+     * "{@docRoot}/../technotes/guides/security/StandardNames.html#CertificateFactory">
+     * Java Cryptography Architecture Standard Algorithm Name Documentation</a>
      * for information about standard certificate types.
-
      * @param provider the provider.
      *
      * @return a certificate factory object for the specified type.
      *
      * @exception CertificateException if a CertificateFactorySpi
-     *		implementation for the specified algorithm is not available
-     *		from the specified Provider object.
+     *          implementation for the specified algorithm is not available
+     *          from the specified Provider object.
      *
      * @exception IllegalArgumentException if the <code>provider</code> is
-     *		null.
+     *          null.
      *
      * @see java.security.Provider
      *
      * @since 1.4
      */
     public static final CertificateFactory getInstance(String type,
-	    Provider provider) throws CertificateException {
-	try {
-	    Instance instance = GetInstance.getInstance("CertificateFactory",
-	    	CertificateFactorySpi.class, type, provider);
-	    return new CertificateFactory((CertificateFactorySpi)instance.impl, 
-	    	instance.provider, type);
-	} catch (NoSuchAlgorithmException e) {
-	    throw new CertificateException(type + " not found", e);
-	}
-    }    
-	    
+            Provider provider) throws CertificateException {
+        try {
+            Instance instance = GetInstance.getInstance("CertificateFactory",
+                CertificateFactorySpi.class, type, provider);
+            return new CertificateFactory((CertificateFactorySpi)instance.impl,
+                instance.provider, type);
+        } catch (NoSuchAlgorithmException e) {
+            throw new CertificateException(type + " not found", e);
+        }
+    }
+
     /**
      * Returns the provider of this certificate factory.
      *
      * @return the provider of this certificate factory.
      */
     public final Provider getProvider() {
-	return this.provider;
+        return this.provider;
     }
 
     /**
@@ -260,7 +294,7 @@ public class CertificateFactory {
      * certificate factory.
      */
     public final String getType() {
-	return this.type;
+        return this.type;
     }
 
     /**
@@ -284,12 +318,12 @@ public class CertificateFactory {
      * <p>Note that if the given input stream does not support
      * {@link java.io.InputStream#mark(int) mark} and
      * {@link java.io.InputStream#reset() reset}, this method will
-     * consume the entire input stream. Otherwise, each call to this 
+     * consume the entire input stream. Otherwise, each call to this
      * method consumes one certificate and the read position of the
      * input stream is positioned to the next available byte after
      * the inherent end-of-certificate marker. If the data in the input stream
      * does not contain an inherent end-of-certificate marker (other
-     * than EOF) and there is trailing data after the certificate is parsed, a 
+     * than EOF) and there is trailing data after the certificate is parsed, a
      * <code>CertificateException</code> is thrown.
      *
      * @param inStream an input stream with the certificate data.
@@ -302,19 +336,19 @@ public class CertificateFactory {
     public final Certificate generateCertificate(InputStream inStream)
         throws CertificateException
     {
-	return certFacSpi.engineGenerateCertificate(inStream);
+        return certFacSpi.engineGenerateCertificate(inStream);
     }
 
     /**
-     * Returns an iteration of the <code>CertPath</code> encodings supported 
-     * by this certificate factory, with the default encoding first. See 
-     * Appendix A in the 
-     * <a href="../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
-     * Java Certification Path API Programmer's Guide</a> for information about 
-     * standard encoding names and their formats. 
+     * Returns an iteration of the <code>CertPath</code> encodings supported
+     * by this certificate factory, with the default encoding first. See
+     * the CertPath Encodings section in the <a href=
+     * "{@docRoot}/../technotes/guides/security/StandardNames.html#CertPathEncodings">
+     * Java Cryptography Architecture Standard Algorithm Name Documentation</a>
+     * for information about standard encoding names and their formats.
      * <p>
-     * Attempts to modify the returned <code>Iterator</code> via its 
-     * <code>remove</code> method result in an 
+     * Attempts to modify the returned <code>Iterator</code> via its
+     * <code>remove</code> method result in an
      * <code>UnsupportedOperationException</code>.
      *
      * @return an <code>Iterator</code> over the names of the supported
@@ -347,9 +381,10 @@ public class CertificateFactory {
     /**
      * Generates a <code>CertPath</code> object and initializes it with
      * the data read from the <code>InputStream</code> inStream. The data
-     * is assumed to be in the specified encoding. See Appendix A in the 
-     * <a href="../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
-     * Java Certification Path API Programmer's Guide</a>
+     * is assumed to be in the specified encoding. See
+     * the CertPath Encodings section in the <a href=
+     * "{@docRoot}/../technotes/guides/security/StandardNames.html#CertPathEncodings">
+     * Java Cryptography Architecture Standard Algorithm Name Documentation</a>
      * for information about standard encoding names and their formats.
      *
      * @param inStream an <code>InputStream</code> containing the data
@@ -381,7 +416,7 @@ public class CertificateFactory {
      * @since 1.4
      */
     public final CertPath
-	generateCertPath(List<? extends Certificate> certificates)
+        generateCertPath(List<? extends Certificate> certificates)
         throws CertificateException
     {
         return(certFacSpi.engineGenerateCertPath(certificates));
@@ -423,8 +458,8 @@ public class CertificateFactory {
      * @exception CertificateException on parsing errors.
      */
     public final Collection<? extends Certificate> generateCertificates
-	    (InputStream inStream) throws CertificateException {
-	return certFacSpi.engineGenerateCertificates(inStream);
+            (InputStream inStream) throws CertificateException {
+        return certFacSpi.engineGenerateCertificates(inStream);
     }
 
     /**
@@ -441,12 +476,12 @@ public class CertificateFactory {
      * <p>Note that if the given input stream does not support
      * {@link java.io.InputStream#mark(int) mark} and
      * {@link java.io.InputStream#reset() reset}, this method will
-     * consume the entire input stream. Otherwise, each call to this 
+     * consume the entire input stream. Otherwise, each call to this
      * method consumes one CRL and the read position of the input stream
-     * is positioned to the next available byte after the the inherent 
+     * is positioned to the next available byte after the inherent
      * end-of-CRL marker. If the data in the
      * input stream does not contain an inherent end-of-CRL marker (other
-     * than EOF) and there is trailing data after the CRL is parsed, a 
+     * than EOF) and there is trailing data after the CRL is parsed, a
      * <code>CRLException</code> is thrown.
      *
      * @param inStream an input stream with the CRL data.
@@ -459,7 +494,7 @@ public class CertificateFactory {
     public final CRL generateCRL(InputStream inStream)
         throws CRLException
     {
-	return certFacSpi.engineGenerateCRL(inStream);
+        return certFacSpi.engineGenerateCRL(inStream);
     }
 
     /**
@@ -496,7 +531,7 @@ public class CertificateFactory {
      * @exception CRLException on parsing errors.
      */
     public final Collection<? extends CRL> generateCRLs(InputStream inStream)
-	    throws CRLException {
-	return certFacSpi.engineGenerateCRLs(inStream);
+            throws CRLException {
+        return certFacSpi.engineGenerateCRLs(inStream);
     }
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +58,6 @@ import com.sun.org.apache.regexp.internal.RESyntaxException;
  * @see RECompiler
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
- * @version $Id: recompile.java,v 1.1.2.1 2005/08/01 00:02:56 jeffsuttor Exp $
  */
 public class recompile
 {
@@ -85,7 +88,7 @@ public class recompile
                 String instructions = name + "PatternInstructions";
 
                 // Output program as a nice, formatted character array
-                System.out.print("\n    // Pre-compiled regular expression '" + pattern + "'\n" 
+                System.out.print("\n    // Pre-compiled regular expression '" + pattern + "'\n"
                                  + "    private static char[] " + instructions + " = \n    {");
 
                 // Compile program for pattern

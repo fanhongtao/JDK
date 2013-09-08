@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,13 +61,12 @@ package com.sun.org.apache.bcel.internal.generic;
 import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.ExceptionConstants;
 
-/** 
+/**
  * GETSTATIC - Fetch static field from class
  * <PRE>Stack: ..., -&gt; ..., value</PRE>
  * OR
  * <PRE>Stack: ..., -&gt; ..., value.word1, value.word2</PRE>
  *
- * @version $Id: GETSTATIC.java,v 1.1.2.1 2005/07/31 23:45:28 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class GETSTATIC extends FieldInstruction implements PushInstruction, ExceptionThrower {
@@ -83,8 +86,8 @@ public class GETSTATIC extends FieldInstruction implements PushInstruction, Exce
     Class[] cs = new Class[1 + ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length];
 
     System.arraycopy(ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION, 0,
-		     cs, 0, ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length);
-    cs[ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length] = 
+                     cs, 0, ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length);
+    cs[ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length] =
       ExceptionConstants.INCOMPATIBLE_CLASS_CHANGE_ERROR;
 
     return cs;

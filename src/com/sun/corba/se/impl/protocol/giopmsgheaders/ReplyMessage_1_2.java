@@ -1,8 +1,26 @@
 /*
- * @(#)ReplyMessage_1_2.java	1.24 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -34,7 +52,6 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
  * This implements the GIOP 1.2 Reply header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public final class ReplyMessage_1_2 extends Message_1_2
@@ -51,13 +68,13 @@ public final class ReplyMessage_1_2 extends Message_1_2
     private int minorCode = (int) 0;
     private CompletionStatus completionStatus = null;
     private short addrDisposition = KeyAddr.value; // default;
-    
+
     // Constructors
 
     ReplyMessage_1_2(ORB orb) {
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
     }
 
     ReplyMessage_1_2(ORB orb, int _request_id, int _reply_status,
@@ -65,8 +82,8 @@ public final class ReplyMessage_1_2 extends Message_1_2
         super(Message.GIOPBigMagic, GIOPVersion.V1_2, FLAG_NO_FRAG_BIG_ENDIAN,
             Message.GIOPReply, 0);
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
         request_id = _request_id;
         reply_status = _reply_status;
         service_contexts = _service_contexts;
@@ -86,7 +103,7 @@ public final class ReplyMessage_1_2 extends Message_1_2
     public short getAddrDisposition() {
         return this.addrDisposition;
     }
-    
+
     public ServiceContexts getServiceContexts() {
         return this.service_contexts;
     }
@@ -96,7 +113,7 @@ public final class ReplyMessage_1_2 extends Message_1_2
     }
 
     public SystemException getSystemException(String message) {
-	return MessageBase.getSystemException(
+        return MessageBase.getSystemException(
             exClassName, minorCode, completionStatus, message, wrapper);
     }
 
@@ -105,7 +122,7 @@ public final class ReplyMessage_1_2 extends Message_1_2
     }
 
     public void setIOR( IOR ior ) {
-	this.ior = ior;
+        this.ior = ior;
     }
 
     // IO methods
@@ -115,7 +132,7 @@ public final class ReplyMessage_1_2 extends Message_1_2
         this.request_id = istream.read_ulong();
         this.reply_status = istream.read_long();
         isValidReplyStatus(this.reply_status); // raises exception on error
-        this.service_contexts 
+        this.service_contexts
             = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream);
 
         // CORBA formal 00-11-0 15.4.2.2 GIOP 1.2 body must be
@@ -146,8 +163,8 @@ public final class ReplyMessage_1_2 extends Message_1_2
                 this.completionStatus = CompletionStatus.COMPLETED_MAYBE;
                 break;
             default:
-		throw wrapper.badCompletionStatusInReply( 
-		    CompletionStatus.COMPLETED_MAYBE, new Integer(status) );
+                throw wrapper.badCompletionStatusInReply(
+                    CompletionStatus.COMPLETED_MAYBE, new Integer(status) );
             }
 
         } else if (this.reply_status == USER_EXCEPTION) {
@@ -155,12 +172,12 @@ public final class ReplyMessage_1_2 extends Message_1_2
         } else if ( (this.reply_status == LOCATION_FORWARD) ||
                 (this.reply_status == LOCATION_FORWARD_PERM) ){
             CDRInputStream cdr = (CDRInputStream) istream;
-	    this.ior = IORFactories.makeIOR( cdr ) ;
+            this.ior = IORFactories.makeIOR( cdr ) ;
         }  else if (this.reply_status == NEEDS_ADDRESSING_MODE) {
             // read GIOP::AddressingDisposition from body and resend the
             // original request using the requested addressing mode. The
             // resending is transparent to the client program.
-            this.addrDisposition = AddressingDispositionHelper.read(istream);            
+            this.addrDisposition = AddressingDispositionHelper.read(istream);
         }
     }
 
@@ -171,12 +188,12 @@ public final class ReplyMessage_1_2 extends Message_1_2
         super.write(ostream);
         ostream.write_ulong(this.request_id);
         ostream.write_long(this.reply_status);
-    	if (this.service_contexts != null) {
-	        service_contexts.write(
+        if (this.service_contexts != null) {
+                service_contexts.write(
                 (org.omg.CORBA_2_3.portable.OutputStream) ostream,
                 GIOPVersion.V1_2);
-	    } else {
-	        ServiceContexts.writeNullServiceContext(
+            } else {
+                ServiceContexts.writeNullServiceContext(
                 (org.omg.CORBA_2_3.portable.OutputStream) ostream);
         }
 
@@ -186,7 +203,7 @@ public final class ReplyMessage_1_2 extends Message_1_2
         // during body construction, would insert a header padding, such that
         // the body is aligned on an 8-octet boundary.
         ((CDROutputStream)ostream).setHeaderPadding(true);
-        
+
     }
 
     // Static methods
@@ -201,9 +218,9 @@ public final class ReplyMessage_1_2 extends Message_1_2
         case NEEDS_ADDRESSING_MODE :
             break;
         default :
-	    ORBUtilSystemException localWrapper = ORBUtilSystemException.get( 
-		CORBALogDomains.RPC_PROTOCOL ) ;
-	    throw localWrapper.illegalReplyStatus( CompletionStatus.COMPLETED_MAYBE);
+            ORBUtilSystemException localWrapper = ORBUtilSystemException.get(
+                CORBALogDomains.RPC_PROTOCOL ) ;
+            throw localWrapper.illegalReplyStatus( CompletionStatus.COMPLETED_MAYBE);
         }
     }
 

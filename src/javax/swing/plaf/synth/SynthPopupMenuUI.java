@@ -1,74 +1,68 @@
 /*
- * @(#)SynthPopupMenuUI.java	1.23 05/11/17
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.synth;
 
 import javax.swing.*;
-import javax.swing.event.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
-import javax.swing.border.*;
-
-import java.applet.Applet;
-
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.KeyboardFocusManager;
-import java.awt.Window;
-import java.awt.event.*;
-import java.awt.AWTEvent;
-import java.awt.Toolkit;
-
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
-import java.util.*;
-import sun.swing.plaf.synth.SynthUI;
-
 /**
- * Synth's PopupMenuUI.
+ * Provides the Synth L&F UI delegate for
+ * {@link javax.swing.JPopupMenu}.
  *
- * @version 1.23, 11/17/05
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
+ * @since 1.7
  */
-class SynthPopupMenuUI extends BasicPopupMenuUI implements
-                PropertyChangeListener, SynthUI {
-    /**
-     * Maximum size of the text portion of the children menu items.
-     */
-    private int maxTextWidth;
-
-    /**
-     * Maximum size of the text for the acclerator portion of the children
-     * menu items.
-     */
-    private int maxAcceleratorWidth;
-
-    /*
-     * Maximum icon and text offsets of the children menu items.
-     */
-    private int maxTextOffset;
-    private int maxIconOffset;
-
+public class SynthPopupMenuUI extends BasicPopupMenuUI
+                              implements PropertyChangeListener, SynthUI {
     private SynthStyle style;
 
+    /**
+     * Creates a new UI object for the given component.
+     *
+     * @param x component to create UI object for
+     * @return the UI object
+     */
     public static ComponentUI createUI(JComponent x) {
-	return new SynthPopupMenuUI();
+        return new SynthPopupMenuUI();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void installDefaults() {
-	if (popupMenu.getLayout() == null ||
-	    popupMenu.getLayout() instanceof UIResource) {
-	    popupMenu.setLayout(new DefaultMenuLayout(
-                                    popupMenu, BoxLayout.Y_AXIS));
+        if (popupMenu.getLayout() == null ||
+            popupMenu.getLayout() instanceof UIResource) {
+            popupMenu.setLayout(new SynthMenuLayout(popupMenu, BoxLayout.Y_AXIS));
         }
         updateStyle(popupMenu);
     }
@@ -86,11 +80,19 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
         context.dispose();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installListeners() {
         super.installListeners();
         popupMenu.addPropertyChangeListener(this);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallDefaults() {
         SynthContext context = getContext(popupMenu, ENABLED);
 
@@ -103,11 +105,19 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
         }
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallListeners() {
         super.uninstallListeners();
         popupMenu.removePropertyChangeListener(this);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public SynthContext getContext(JComponent c) {
         return getContext(c, getComponentState(c));
     }
@@ -117,81 +127,23 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
                     SynthLookAndFeel.getRegion(c), style, state);
     }
 
-    private Region getRegion(JComponent c) {
-        return SynthLookAndFeel.getRegion(c);
-    }
-
     private int getComponentState(JComponent c) {
         return SynthLookAndFeel.getComponentState(c);
     }
 
     /**
-     * Resets the max text and accerator widths, 
-     * text and icon offsets.
-     */
-    void resetAlignmentHints() {
-        maxTextWidth = maxAcceleratorWidth
-                     = maxTextOffset = maxIconOffset = 0;
-    }
-
-    /**
-     * Adjusts the width needed to display the maximum menu item string.
+     * Notifies this UI delegate to repaint the specified component.
+     * This method paints the component background, then calls
+     * the {@link #paint(SynthContext,Graphics)} method.
      *
-     * @param width Text width.
-     * @return max width
-     */
-    int adjustTextWidth(int width) {
-        maxTextWidth = Math.max(maxTextWidth, width);
-        return maxTextWidth;
-    }
-
-    /**
-     * Adjusts the width needed to display the maximum accelerator.
+     * <p>In general, this method does not need to be overridden by subclasses.
+     * All Look and Feel rendering code should reside in the {@code paint} method.
      *
-     * @param width Text width.
-     * @return max width
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
      */
-    int adjustAcceleratorWidth(int width) {
-        maxAcceleratorWidth = Math.max(maxAcceleratorWidth, width);
-        return maxAcceleratorWidth;
-    }
-
-    /**
-     * Maximum size to display text of children menu items.
-     */
-    int getMaxTextWidth() {
-        return maxTextWidth;
-    }
-
-    /**
-     * Maximum size needed to display accelerators of children menu items.
-     */
-    int getMaxAcceleratorWidth() {
-        return maxAcceleratorWidth;
-    }
-
-    /**
-     * Adjusts the text offset needed to align text horizontally.
-     *
-     * @param offset Text offset
-     * @return max offset
-     */
-    int adjustTextOffset(int offset) {
-        maxTextOffset = Math.max(maxTextOffset, offset);
-        return maxTextOffset;
-    }
-
-   /**
-    * Adjusts the icon offset needed to align icons horizontally
-    *
-    * @param offset Icon offset
-    * @return max offset
-    */
-    int adjustIconOffset(int offset) {
-        maxIconOffset = Math.max(maxIconOffset, offset);
-        return maxIconOffset;
-    }
-
+    @Override
     public void update(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -202,6 +154,16 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
         context.dispose();
     }
 
+    /**
+     * Paints the specified component according to the Look and Feel.
+     * <p>This method is not used by Synth Look and Feel.
+     * Painting is handled by the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void paint(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -209,14 +171,29 @@ class SynthPopupMenuUI extends BasicPopupMenuUI implements
         context.dispose();
     }
 
+    /**
+     * Paints the specified component. This implementation does nothing.
+     *
+     * @param context context for the component being painted
+     * @param g the {@code Graphics} object used for painting
+     * @see #update(Graphics,JComponent)
+     */
     protected void paint(SynthContext context, Graphics g) {
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
         context.getPainter().paintPopupMenuBorder(context, g, x, y, w, h);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (SynthLookAndFeel.shouldUpdateStyle(e)) {
             updateStyle(popupMenu);

@@ -1,8 +1,26 @@
 /*
- * @(#)BMPMetadata.java	1.4 05/11/17 14:14:58
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.bmp;
@@ -231,11 +249,11 @@ public class BMPMetadata extends IIOMetadata implements BMPConstants {
             IIOMetadataNode subNode = new IIOMetadataNode("PixelAspectRatio");
             subNode.setAttribute("value", "" + ratio);
             node.appendChild(subNode);
-            
+
             subNode = new IIOMetadataNode("HorizontalPhysicalPixelSpacing");
             subNode.setAttribute("value", "" + (1 / xPixelsPerMeter * 1000));
             node.appendChild(subNode);
-            
+
             subNode = new IIOMetadataNode("VerticalPhysicalPixelSpacing");
             subNode.setAttribute("value", "" + (1 / yPixelsPerMeter * 1000));
             node.appendChild(subNode);

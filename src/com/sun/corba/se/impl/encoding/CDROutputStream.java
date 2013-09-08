@@ -1,8 +1,26 @@
 /*
- * @(#)CDROutputStream.java	1.29 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -45,26 +63,26 @@ public abstract class CDROutputStream
     // We can move this out somewhere later.  For now, it serves its purpose
     // to create a concrete CDR delegate based on the GIOP version.
     private static class OutputStreamFactory {
-        
+
         public static CDROutputStreamBase newOutputStream(
-	        ORB orb, GIOPVersion version, byte encodingVersion) {
+                ORB orb, GIOPVersion version, byte encodingVersion) {
             switch(version.intValue()) {
                 case GIOPVersion.VERSION_1_0:
                     return new CDROutputStream_1_0();
                 case GIOPVersion.VERSION_1_1:
                     return new CDROutputStream_1_1();
-	    case GIOPVersion.VERSION_1_2:
-		if (encodingVersion != Message.CDR_ENC_VERSION) {
-		    return 
-			new IDLJavaSerializationOutputStream(encodingVersion);
-		}
-		return new CDROutputStream_1_2();
-	    default:
-		    ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
-			CORBALogDomains.RPC_ENCODING ) ;
+            case GIOPVersion.VERSION_1_2:
+                if (encodingVersion != Message.CDR_ENC_VERSION) {
+                    return
+                        new IDLJavaSerializationOutputStream(encodingVersion);
+                }
+                return new CDROutputStream_1_2();
+            default:
+                    ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
+                        CORBALogDomains.RPC_ENCODING ) ;
                     // REVISIT - what is appropriate?  INTERNAL exceptions
                     // are really hard to track later.
-		    throw wrapper.unsupportedGiopVersion( version ) ;
+                    throw wrapper.unsupportedGiopVersion( version ) ;
             }
         }
     }
@@ -80,32 +98,32 @@ public abstract class CDROutputStream
 
     public CDROutputStream(ORB orb,
                            GIOPVersion version,
-			   byte encodingVersion,
-			   boolean littleEndian,
-			   BufferManagerWrite bufferManager,
+                           byte encodingVersion,
+                           boolean littleEndian,
+                           BufferManagerWrite bufferManager,
                            byte streamFormatVersion,
                            boolean usePooledByteBuffers)
     {
         impl = OutputStreamFactory.newOutputStream(orb, version,
-						   encodingVersion);
+                                                   encodingVersion);
         impl.init(orb, littleEndian, bufferManager,
-		  streamFormatVersion, usePooledByteBuffers);
+                  streamFormatVersion, usePooledByteBuffers);
 
         impl.setParent(this);
-	this.orb = orb ;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_ENCODING ) ;
+        this.orb = orb ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_ENCODING ) ;
     }
 
     public CDROutputStream(ORB orb,
                            GIOPVersion version,
-			   byte encodingVersion,
-			   boolean littleEndian,
-			   BufferManagerWrite bufferManager,
+                           byte encodingVersion,
+                           boolean littleEndian,
+                           BufferManagerWrite bufferManager,
                            byte streamFormatVersion)
     {
-        this(orb, version, encodingVersion, littleEndian, 
-	     bufferManager, streamFormatVersion, true);
+        this(orb, version, encodingVersion, littleEndian,
+             bufferManager, streamFormatVersion, true);
     }
 
     // org.omg.CORBA.portable.OutputStream
@@ -209,13 +227,13 @@ public abstract class CDROutputStream
     public final void write(int b) throws java.io.IOException {
         impl.write(b);
     }
-    
+
     public final void write_fixed(java.math.BigDecimal value) {
         impl.write_fixed(value);
     }
 
     public final void write_Context(org.omg.CORBA.Context ctx,
-			      org.omg.CORBA.ContextList contexts) {
+                              org.omg.CORBA.ContextList contexts) {
         impl.write_Context(ctx, contexts);
     }
 
@@ -236,7 +254,7 @@ public abstract class CDROutputStream
         impl.write_value(value, repository_id);
     }
 
-    public final void write_value(java.io.Serializable value, 
+    public final void write_value(java.io.Serializable value,
                             org.omg.CORBA.portable.BoxedValueHelper factory) {
         impl.write_value(value, factory);
     }
@@ -276,7 +294,7 @@ public abstract class CDROutputStream
     }
 
     public void writeTo(java.io.OutputStream s)
-	throws IOException 
+        throws IOException
     {
         impl.writeTo(s);
     }

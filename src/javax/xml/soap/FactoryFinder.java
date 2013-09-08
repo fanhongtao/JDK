@@ -1,6 +1,6 @@
 /*
- * Copyright 1997-2008 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
  *
@@ -22,13 +22,6 @@
  *
  *
  */
-/*
- * $Id: FactoryFinder.java,v 1.6 2005/04/05 22:28:12 mk125090 Exp $
- * $Revision: 1.6 $
- * $Date: 2005/04/05 22:28:12 $
- */
-
-
 
 package javax.xml.soap;
 
@@ -39,7 +32,7 @@ import java.util.Properties;
 class FactoryFinder {
 
     /**
-     * Creates an instance of the specified class using the specified 
+     * Creates an instance of the specified class using the specified
      * <code>ClassLoader</code> object.
      *
      * @exception SOAPException if the given class could not be found
@@ -80,10 +73,11 @@ class FactoryFinder {
      *                              a system property
      * @exception SOAPException if there is a SOAP error
      */
-    static Object find(String factoryId)
+    static Object find(String factId)
         throws SOAPException
     {
-        ClassLoader classLoader;
+        final ClassLoader classLoader;
+        final String factoryId = factId;
         try {
             classLoader = Thread.currentThread().getContextClassLoader();
         } catch (Exception x) {
@@ -105,7 +99,7 @@ class FactoryFinder {
             String javah=System.getProperty( "java.home" );
             String configFile = javah + File.separator +
                 "lib" + File.separator + "jaxm.properties";
-            File f=new File( configFile );
+            final File f=new File( configFile );
             if( f.exists()) {
                 Properties props=new Properties();
                 props.load( new FileInputStream(f));
@@ -124,11 +118,11 @@ class FactoryFinder {
             } else {
                 is=classLoader.getResourceAsStream(serviceId);
             }
-        
+
             if( is!=null ) {
                 BufferedReader rd =
                     new BufferedReader(new InputStreamReader(is, "UTF-8"));
-        
+
                 String factoryClassName = rd.readLine();
                 rd.close();
 

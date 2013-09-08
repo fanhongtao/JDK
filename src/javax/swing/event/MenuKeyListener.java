@@ -1,8 +1,26 @@
 /*
- * @(#)MenuKeyListener.java	1.10 05/11/17
+ * Copyright (c) 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.event;
 
@@ -13,7 +31,6 @@ import java.util.EventListener;
 /**
  * MenuKeyListener
  *
- * @version 1.10 11/17/05
  * @author Georges Saab
  */
 public interface MenuKeyListener extends EventListener {
@@ -33,4 +50,3 @@ public interface MenuKeyListener extends EventListener {
      */
     void menuKeyReleased(MenuKeyEvent e);
 }
-

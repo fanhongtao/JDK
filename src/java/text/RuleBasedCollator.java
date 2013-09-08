@@ -1,8 +1,26 @@
 /*
- * @(#)RuleBasedCollator.java	1.41 06/03/07
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -58,7 +76,7 @@ import java.util.Locale;
  *        characters are desired, you can put them in single quotes
  *        (e.g. ampersand => '&'). Note that unquoted white space characters
  *        are ignored; e.g. <code>b c</code> is treated as <code>bc</code>.
- *    <LI><strong>Modifier</strong>: There are currently two modifiers that 
+ *    <LI><strong>Modifier</strong>: There are currently two modifiers that
  *        turn on special collation rules.
  *        <UL Type=square>
  *            <LI>'@' : Turns on backwards sorting of accents (secondary
@@ -105,7 +123,7 @@ import java.util.Locale;
  * </pre>
  * </blockquote>
  * Either the text-argument must already be present in the sequence, or some
- * initial substring of the text-argument must be present. (e.g. "a &lt; b &amp; ae &lt; 
+ * initial substring of the text-argument must be present. (e.g. "a &lt; b &amp; ae &lt;
  * e" is valid since "a" is present in the sequence before "ae" is reset). In
  * this latter case, "ae" is not entered and treated as a single character;
  * instead, "e" is sorted as if it were expanded to two characters: "a"
@@ -159,14 +177,18 @@ import java.util.Locale;
  * </UL>
  * If you produce one of these errors, a <code>RuleBasedCollator</code> throws
  * a <code>ParseException</code>.
- * 
+ *
  * <p><strong>Examples</strong>
  * <p>Simple:     "&lt; a &lt; b &lt; c &lt; d"
- * <p>Norwegian:  "&lt; a,A&lt; b,B&lt; c,C&lt; d,D&lt; e,E&lt; f,F&lt; g,G&lt; h,H&lt; i,I&lt; j,J
- *                 &lt; k,K&lt; l,L&lt; m,M&lt; n,N&lt; o,O&lt; p,P&lt; q,Q&lt; r,R&lt; s,S&lt; t,T
- *                 &lt; u,U&lt; v,V&lt; w,W&lt; x,X&lt; y,Y&lt; z,Z
- *                 &lt; &#92;u00E5=a&#92;u030A,&#92;u00C5=A&#92;u030A
- *                 ;aa,AA&lt; &#92;u00E6,&#92;u00C6&lt; &#92;u00F8,&#92;u00D8"
+ * <p>Norwegian:  "&lt; a, A &lt; b, B &lt; c, C &lt; d, D &lt; e, E &lt; f, F
+ *                 &lt; g, G &lt; h, H &lt; i, I &lt; j, J &lt; k, K &lt; l, L
+ *                 &lt; m, M &lt; n, N &lt; o, O &lt; p, P &lt; q, Q &lt; r, R
+ *                 &lt; s, S &lt; t, T &lt; u, U &lt; v, V &lt; w, W &lt; x, X
+ *                 &lt; y, Y &lt; z, Z
+ *                 &lt; &#92;u00E6, &#92;u00C6
+ *                 &lt; &#92;u00F8, &#92;u00D8
+ *                 &lt; &#92;u00E5 = a&#92;u030A, &#92;u00C5 = A&#92;u030A;
+ *                      aa, AA"
  *
  * <p>
  * To create a <code>RuleBasedCollator</code> object with specialized
@@ -181,11 +203,14 @@ import java.util.Locale;
  * Or:
  * <blockquote>
  * <pre>
- * String Norwegian = "&lt; a,A&lt; b,B&lt; c,C&lt; d,D&lt; e,E&lt; f,F&lt; g,G&lt; h,H&lt; i,I&lt; j,J" +
- *                 "&lt; k,K&lt; l,L&lt; m,M&lt; n,N&lt; o,O&lt; p,P&lt; q,Q&lt; r,R&lt; s,S&lt; t,T" +
- *                 "&lt; u,U&lt; v,V&lt; w,W&lt; x,X&lt; y,Y&lt; z,Z" +
- *                 "&lt; &#92;u00E5=a&#92;u030A,&#92;u00C5=A&#92;u030A" +
- *                 ";aa,AA&lt; &#92;u00E6,&#92;u00C6&lt; &#92;u00F8,&#92;u00D8";
+ * String Norwegian = "&lt; a, A &lt; b, B &lt; c, C &lt; d, D &lt; e, E &lt; f, F &lt; g, G &lt; h, H &lt; i, I" +
+ *                    "&lt; j, J &lt; k, K &lt; l, L &lt; m, M &lt; n, N &lt; o, O &lt; p, P &lt; q, Q &lt; r, R" +
+ *                    "&lt; s, S &lt; t, T &lt; u, U &lt; v, V &lt; w, W &lt; x, X &lt; y, Y &lt; z, Z" +
+ *                    "&lt; &#92;u00E6, &#92;u00C6" +     // Latin letter ae & AE
+ *                    "&lt; &#92;u00F8, &#92;u00D8" +     // Latin letter o & O with stroke
+ *                    "&lt; &#92;u00E5 = a&#92;u030A," +  // Latin letter a with ring above
+ *                    "  &#92;u00C5 = A&#92;u030A;" +  // Latin letter A with ring above
+ *                    "  aa, AA";
  * RuleBasedCollator myNorwegian = new RuleBasedCollator(Norwegian);
  * </pre>
  * </blockquote>
@@ -216,7 +241,6 @@ import java.util.Locale;
  *
  * @see        Collator
  * @see        CollationElementIterator
- * @version    1.25 07/24/98
  * @author     Helena Shih, Laura Werner, Richard Gillam
  */
 public class RuleBasedCollator extends Collator{
@@ -318,9 +342,15 @@ public class RuleBasedCollator extends Collator{
      * collation rules.  Returns information about whether a string is less
      * than, greater than or equal to another string in a language.
      * This can be overriden in a subclass.
+     *
+     * @exception NullPointerException if <code>source</code> or <code>target</code> is null.
      */
     public synchronized int compare(String source, String target)
     {
+        if (source == null || target == null) {
+            throw new NullPointerException();
+        }
+
         // The basic algorithm here is that we use CollationElementIterators
         // to step through both the source and target strings.  We compare each
         // collation element in the source string against the corresponding one
@@ -649,7 +679,7 @@ public class RuleBasedCollator extends Collator{
 
         if (getStrength() == IDENTICAL) {
             primResult.append((char)0);
-            int mode = getDecomposition(); 
+            int mode = getDecomposition();
             if (mode == CANONICAL_DECOMPOSITION) {
                 primResult.append(Normalizer.normalize(source, Normalizer.Form.NFD));
             } else if (mode == FULL_DECOMPOSITION) {
@@ -731,4 +761,3 @@ public class RuleBasedCollator extends Collator{
     private CollationElementIterator sourceCursor = null;
     private CollationElementIterator targetCursor = null;
 }
-

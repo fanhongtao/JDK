@@ -1,8 +1,26 @@
 /*
- * @(#)SpecialMethod.java	1.26 05/11/17
+ * Copyright (c) 1998, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol ;
@@ -31,121 +49,120 @@ public abstract class SpecialMethod {
     public abstract boolean isNonExistentMethod() ;
     public abstract String getName();
     public abstract CorbaMessageMediator invoke(java.lang.Object servant,
-						CorbaMessageMediator request,
-						byte[] objectId,
-						ObjectAdapter objectAdapter);
+                                                CorbaMessageMediator request,
+                                                byte[] objectId,
+                                                ObjectAdapter objectAdapter);
 
     public static final SpecialMethod getSpecialMethod(String operation) {
-	for(int i = 0; i < methods.length; i++)
-	    if (methods[i].getName().equals(operation))
-		return methods[i];
-	return null;
+        for(int i = 0; i < methods.length; i++)
+            if (methods[i].getName().equals(operation))
+                return methods[i];
+        return null;
     }
 
     static SpecialMethod[] methods = {
-	new IsA(),
-	new GetInterface(),
-	new NonExistent(),
-	new NotExistent()
+        new IsA(),
+        new GetInterface(),
+        new NonExistent(),
+        new NotExistent()
     };
 }
 
 class NonExistent extends SpecialMethod {
-    public boolean isNonExistentMethod() 
+    public boolean isNonExistentMethod()
     {
-	return true ;
+        return true ;
     }
 
-    public String getName() {		// _non_existent
-	return "_non_existent";
+    public String getName() {           // _non_existent
+        return "_non_existent";
     }
 
     public CorbaMessageMediator invoke(java.lang.Object servant,
-				       CorbaMessageMediator request,
-				       byte[] objectId,
-				       ObjectAdapter objectAdapter)
+                                       CorbaMessageMediator request,
+                                       byte[] objectId,
+                                       ObjectAdapter objectAdapter)
     {
-	boolean result = (servant == null) || (servant instanceof NullServant) ;
-	CorbaMessageMediator response =
-	    request.getProtocolHandler().createResponse(request, null);
-	((OutputStream)response.getOutputObject()).write_boolean(result);
-	return response;
+        boolean result = (servant == null) || (servant instanceof NullServant) ;
+        CorbaMessageMediator response =
+            request.getProtocolHandler().createResponse(request, null);
+        ((OutputStream)response.getOutputObject()).write_boolean(result);
+        return response;
     }
 }
 
 class NotExistent extends NonExistent {
-    public String getName() {		// _not_existent
-	return "_not_existent";
+    public String getName() {           // _not_existent
+        return "_not_existent";
     }
 }
 
-class IsA extends SpecialMethod  {	// _is_a
-    public boolean isNonExistentMethod() 
+class IsA extends SpecialMethod  {      // _is_a
+    public boolean isNonExistentMethod()
     {
-	return false ;
+        return false ;
     }
 
     public String getName() {
-	return "_is_a";
+        return "_is_a";
     }
     public CorbaMessageMediator invoke(java.lang.Object servant,
-				       CorbaMessageMediator request,
-				       byte[] objectId,
-				       ObjectAdapter objectAdapter)
+                                       CorbaMessageMediator request,
+                                       byte[] objectId,
+                                       ObjectAdapter objectAdapter)
     {
-	if ((servant == null) || (servant instanceof NullServant)) {
-	    ORB orb = (ORB)request.getBroker() ;
-	    ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
-		CORBALogDomains.OA_INVOCATION ) ;
+        if ((servant == null) || (servant instanceof NullServant)) {
+            ORB orb = (ORB)request.getBroker() ;
+            ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
+                CORBALogDomains.OA_INVOCATION ) ;
 
-	    return request.getProtocolHandler().createSystemExceptionResponse(
-		request, wrapper.badSkeleton(), null);
-	}
-	
-	String[] ids = objectAdapter.getInterfaces( servant, objectId );
-	String clientId = 
-	    ((InputStream)request.getInputObject()).read_string();
-	boolean answer = false;
-	for(int i = 0; i < ids.length; i++)
-	    if (ids[i].equals(clientId)) {
-    		answer = true;
-    		break;
-	    }
-	    
-	CorbaMessageMediator response =
-	    request.getProtocolHandler().createResponse(request, null);
-	((OutputStream)response.getOutputObject()).write_boolean(answer);
-	return response;
+            return request.getProtocolHandler().createSystemExceptionResponse(
+                request, wrapper.badSkeleton(), null);
+        }
+
+        String[] ids = objectAdapter.getInterfaces( servant, objectId );
+        String clientId =
+            ((InputStream)request.getInputObject()).read_string();
+        boolean answer = false;
+        for(int i = 0; i < ids.length; i++)
+            if (ids[i].equals(clientId)) {
+                answer = true;
+                break;
+            }
+
+        CorbaMessageMediator response =
+            request.getProtocolHandler().createResponse(request, null);
+        ((OutputStream)response.getOutputObject()).write_boolean(answer);
+        return response;
     }
 }
 
-class GetInterface extends SpecialMethod  {	// _get_interface
-    public boolean isNonExistentMethod() 
+class GetInterface extends SpecialMethod  {     // _get_interface
+    public boolean isNonExistentMethod()
     {
-	return false ;
+        return false ;
     }
 
     public String getName() {
-	return "_interface";
+        return "_interface";
     }
     public CorbaMessageMediator invoke(java.lang.Object servant,
-				       CorbaMessageMediator request,
-				       byte[] objectId,
-				       ObjectAdapter objectAdapter)
+                                       CorbaMessageMediator request,
+                                       byte[] objectId,
+                                       ObjectAdapter objectAdapter)
     {
-	ORB orb = (ORB)request.getBroker() ;
-	ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.OA_INVOCATION ) ;
+        ORB orb = (ORB)request.getBroker() ;
+        ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.OA_INVOCATION ) ;
 
-	if ((servant == null) || (servant instanceof NullServant)) {
-	    return request.getProtocolHandler().createSystemExceptionResponse(
-		request, wrapper.badSkeleton(), null);
-	} else {
-	    return request.getProtocolHandler().createSystemExceptionResponse(
-		request, wrapper.getinterfaceNotImplemented(), null);
-	}
+        if ((servant == null) || (servant instanceof NullServant)) {
+            return request.getProtocolHandler().createSystemExceptionResponse(
+                request, wrapper.badSkeleton(), null);
+        } else {
+            return request.getProtocolHandler().createSystemExceptionResponse(
+                request, wrapper.getinterfaceNotImplemented(), null);
+        }
     }
 }
 
 // End of file.
-

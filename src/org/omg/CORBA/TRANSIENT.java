@@ -1,18 +1,36 @@
 /*
- * @(#)TRANSIENT.java	1.33 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * Exception  thrown when the ORB attempted to reach an object and failed. 
+ * Exception  thrown when the ORB attempted to reach an object and failed.
  * It is not an indication that an object does not exist. Instead, it simply
- * means that no further determination of an object's status was possible 
- * because it could not be reached. This exception is raised if an attempt 
- * to establish a connection fails, for example, because the server or the 
+ * means that no further determination of an object's status was possible
+ * because it could not be reached. This exception is raised if an attempt
+ * to establish a connection fails, for example, because the server or the
  * implementation repository is down.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -20,7 +38,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.17 09/09/97
  */
 
 public final class TRANSIENT extends SystemException {

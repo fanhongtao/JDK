@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +57,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
             throws javax.xml.transform.TransformerException
   {
     super(compiler, opPos, analysis, shouldLoadWalkers);
-    
+
     int firstStepPos = compiler.getFirstChildPos(opPos);
 
     if (shouldLoadWalkers)
@@ -62,7 +66,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
       m_lastUsedWalker = m_firstWalker;
     }
   }
-  
+
   /**
    * Create a WalkingIterator object.
    *
@@ -74,9 +78,9 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
 
     super(nscontext);
   }
-  
-  
-  /** 
+
+
+  /**
    * Get the analysis bits for this walker, as defined in the WalkerFactory.
    * @return One of WalkerFactory#BIT_DESCENDANT, etc.
    */
@@ -84,7 +88,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
   {
     int bits = 0;
     if (null != m_firstWalker)
-    {    	
+    {
       AxesWalker walker = m_firstWalker;
 
       while (null != walker)
@@ -92,11 +96,11 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
         int bit = walker.getAnalysisBits();
         bits |= bit;
         walker = walker.getNextWalker();
-      }       
+      }
     }
     return bits;
   }
-  
+
   /**
    * Get a cloned WalkingIterator that holds the same
    * position as this iterator.
@@ -119,7 +123,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
 
     return clone;
   }
-  
+
   /**
    * Reset the iterator.
    */
@@ -136,7 +140,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
     }
 
   }
-  
+
   /**
    * Initialize the context values for this expression
    * after it is cloned.
@@ -148,14 +152,14 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
   {
 
     super.setRoot(context, environment);
-    
+
     if(null != m_firstWalker)
     {
       m_firstWalker.setRoot(context);
       m_lastUsedWalker = m_firstWalker;
     }
   }
-  
+
   /**
    *  Returns the next node in the set and advances the position of the
    * iterator in the set. After a NodeIterator is created, the first call
@@ -165,16 +169,16 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
    */
   public int nextNode()
   {
-  	if(m_foundLast)
-  		return DTM.NULL;
+        if(m_foundLast)
+                return DTM.NULL;
 
-    // If the variable stack position is not -1, we'll have to 
-    // set our position in the variable stack, so our variable access 
-    // will be correct.  Iterators that are at the top level of the 
-    // expression need to reset the variable stack, while iterators 
+    // If the variable stack position is not -1, we'll have to
+    // set our position in the variable stack, so our variable access
+    // will be correct.  Iterators that are at the top level of the
+    // expression need to reset the variable stack, while iterators
     // in predicates do not need to, and should not, since their execution
-    // may be much later than top-level iterators.  
-    // m_varStackPos is set in setRoot, which is called 
+    // may be much later than top-level iterators.
+    // m_varStackPos is set in setRoot, which is called
     // from the execute method.
     if (-1 == m_stackFrame)
     {
@@ -198,7 +202,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
     }
   }
 
-  
+
   /**
    * Get the head of the walker list.
    *
@@ -210,10 +214,10 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
   {
     return m_firstWalker;
   }
-  
+
   /**
    * Set the head of the walker list.
-   * 
+   *
    * @param walker Should be a valid AxesWalker.
    * @xsl.usage advanced
    */
@@ -244,7 +248,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
   {
     return m_lastUsedWalker;
   }
-  
+
   /**
    *  Detaches the iterator from the set which it iterated over, releasing
    * any computational resources and placing the iterator in the INVALID
@@ -253,31 +257,31 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
    * exception INVALID_STATE_ERR.
    */
   public void detach()
-  {   
+  {
     if(m_allowDetach)
     {
-	  	AxesWalker walker = m_firstWalker; 
-	    while (null != walker)
-	    {
-	      walker.detach();
-	      walker = walker.getNextWalker();
-	    }
-	
-	    m_lastUsedWalker = null;
-	    
-	    // Always call the superclass detach last!
-	    super.detach();
+                AxesWalker walker = m_firstWalker;
+            while (null != walker)
+            {
+              walker.detach();
+              walker = walker.getNextWalker();
+            }
+
+            m_lastUsedWalker = null;
+
+            // Always call the superclass detach last!
+            super.detach();
     }
   }
-  
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -292,22 +296,22 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
       walker = walker.getNextWalker();
     }
   }
-  
+
   /**
    * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	 	if(visitor.visitLocationPath(owner, this))
-  	 	{
-  	 		if(null != m_firstWalker)
-  	 		{
-  	 			m_firstWalker.callVisitors(this, visitor);
-  	 		}
-  	 	}
+                if(visitor.visitLocationPath(owner, this))
+                {
+                        if(null != m_firstWalker)
+                        {
+                                m_firstWalker.callVisitors(this, visitor);
+                        }
+                }
   }
 
-  
+
   /** The last used step walker in the walker list.
    *  @serial */
   protected AxesWalker m_lastUsedWalker;
@@ -329,10 +333,10 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
    */
   public void setExpression(Expression exp)
   {
-  	exp.exprSetParent(this);
-  	m_firstWalker = (AxesWalker)exp;
+        exp.exprSetParent(this);
+        m_firstWalker = (AxesWalker)exp;
   }
-  
+
     /**
      * @see Expression#deepEquals(Expression)
      */
@@ -346,13 +350,13 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
       while ((null != walker1) && (null != walker2))
       {
         if(!walker1.deepEquals(walker2))
-        	return false;
+                return false;
         walker1 = walker1.getNextWalker();
         walker2 = walker2.getNextWalker();
       }
-      
+
       if((null != walker1) || (null != walker2))
-      	return false;
+        return false;
 
       return true;
     }

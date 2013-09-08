@@ -1,20 +1,37 @@
 /*
- * @(#)IllegalPathStateException.java	1.13 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.geom;
 
 /**
- * The <code>IllegalPathStateException</code> represents an 
- * exception that is thrown if an operation is performed on a path 
+ * The <code>IllegalPathStateException</code> represents an
+ * exception that is thrown if an operation is performed on a path
  * that is in an illegal state with respect to the particular
- * operation being performed, such as appending a path segment 
+ * operation being performed, such as appending a path segment
  * to a {@link GeneralPath} without an initial moveto.
  *
- * @version 	1.13, 11/17/05
  */
 
 public class IllegalPathStateException extends RuntimeException {
@@ -29,7 +46,7 @@ public class IllegalPathStateException extends RuntimeException {
 
     /**
      * Constructs an <code>IllegalPathStateException</code> with the
-     * specified detail message. 
+     * specified detail message.
      * @param   s   the detail message
      * @since   1.2
      */

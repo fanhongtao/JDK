@@ -1,8 +1,26 @@
 /*
- * @(#)Autoscroller.java	1.17 06/04/06
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing;
@@ -16,7 +34,6 @@ import java.awt.event.*;
  * that receive the events to do the actual scrolling in response to the
  * mouse dragged events.
  *
- * @version 1.17 04/06/06
  * @author Dave Moore
  * @author Scott Violet
  */
@@ -127,9 +144,9 @@ class Autoscroller implements ActionListener {
         }
         if (stop) {
             _stop(component);
-	} else {
+        } else {
             start(component, e);
-	}
+        }
     }
 
     //

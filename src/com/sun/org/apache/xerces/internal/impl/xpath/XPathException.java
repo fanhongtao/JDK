@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +22,18 @@ package com.sun.org.apache.xerces.internal.impl.xpath;
 
 /**
  * XPath exception.
- * 
+ *
  * @xerces.internal
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XPathException.java,v 1.2.6.1 2005/09/06 11:46:30 neerajbj Exp $
  */
-public class XPathException 
+public class XPathException
     extends Exception {
 
     /** Serialization version. */
     static final long serialVersionUID = -948482312169512085L;
-    
+
     // Data
 
     // hold the value of the key this Exception refers to.

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,9 +26,9 @@ import com.sun.org.apache.xml.internal.serializer.utils.StringToIntTable;
 
 /**
  * This class has a series of flags (bit values) that describe an HTML element
- * 
+ *
  * This class is public because XSLTC uses it, it is not a public API.
- * 
+ *
  * @xsl.usage internal
  */
 public final class ElemDesc
@@ -103,7 +107,7 @@ public final class ElemDesc
 
     /** Bit position if this element type is a header element (i.e. HEAD). */
     static final int HEADELEM = (1 << 22);
-    
+
     /** Bit position if this element is the "HTML" element */
     private static final int HTMLELEM = (1 << 23);
 

@@ -1,16 +1,34 @@
 /*
- * @(#)AccessibleValue.java	1.16 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.accessibility;
 
 /**
- * The AccessibleValue interface should be supported by any object 
- * that supports a numerical value (e.g., a scroll bar).  This interface 
- * provides the standard mechanism for an assistive technology to determine 
+ * The AccessibleValue interface should be supported by any object
+ * that supports a numerical value (e.g., a scroll bar).  This interface
+ * provides the standard mechanism for an assistive technology to determine
  * and set the numerical value as well as get the minimum and maximum values.
  * Applications can determine
  * if an object supports the AccessibleValue interface by first
@@ -24,8 +42,7 @@ package javax.accessibility;
  * @see AccessibleContext
  * @see AccessibleContext#getAccessibleValue
  *
- * @version     1.9 10/12/99 15:41:54
- * @author	Peter Korn
+ * @author      Peter Korn
  * @author      Hans Muller
  * @author      Willie Walker
  */
@@ -58,7 +75,7 @@ public interface AccessibleValue {
     /**
      * Get the minimum value of this object as a Number.
      *
-     * @return Minimum value of the object; null if this object does not 
+     * @return Minimum value of the object; null if this object does not
      * have a minimum value
      * @see #getMaximumAccessibleValue
      */
@@ -67,7 +84,7 @@ public interface AccessibleValue {
     /**
      * Get the maximum value of this object as a Number.
      *
-     * @return Maximum value of the object; null if this object does not 
+     * @return Maximum value of the object; null if this object does not
      * have a maximum value
      * @see #getMinimumAccessibleValue
      */

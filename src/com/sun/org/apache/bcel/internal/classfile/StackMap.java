@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -66,7 +70,6 @@ import  java.io.*;
  * within the Code attribute of a method. See CLDC specification
  * 5.3.1.2
  *
- * @version $Id: StackMap.java,v 1.1.2.1 2005/07/31 23:46:28 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Code
  * @see     StackMapEntry
@@ -83,13 +86,13 @@ public final class StackMap extends Attribute implements Node {
    * @param constant_pool Array of constants
    */
   public StackMap(int name_index, int length,  StackMapEntry[] map,
-		  ConstantPool constant_pool)
+                  ConstantPool constant_pool)
   {
     super(Constants.ATTR_STACK_MAP, name_index, length, constant_pool);
 
     setStackMap(map);
   }
-   
+
   /**
    * Construct object from file stream.
    * @param name_index Index of name
@@ -99,7 +102,7 @@ public final class StackMap extends Attribute implements Node {
    * @param constant_pool Array of constants
    */
   StackMap(int name_index, int length, DataInputStream file,
-	   ConstantPool constant_pool) throws IOException
+           ConstantPool constant_pool) throws IOException
   {
     this(name_index, length, (StackMapEntry[])null, constant_pool);
 
@@ -115,19 +118,19 @@ public final class StackMap extends Attribute implements Node {
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     super.dump(file);
     file.writeShort(map_length);
     for(int i=0; i < map_length; i++)
       map[i].dump(file);
-  }    
-   
+  }
+
   /**
    * @return Array of stack map entries
-   */  
-  public final StackMapEntry[] getStackMap() { return map; }    
+   */
+  public final StackMapEntry[] getStackMap() { return map; }
 
   /**
    * @param map Array of stack map entries
@@ -140,7 +143,7 @@ public final class StackMap extends Attribute implements Node {
 
   /**
    * @return String representation.
-   */ 
+   */
   public final String toString() {
     StringBuffer buf = new StringBuffer("StackMap(");
 
@@ -148,12 +151,12 @@ public final class StackMap extends Attribute implements Node {
       buf.append(map[i].toString());
 
       if(i < map_length - 1)
-	buf.append(", ");
+        buf.append(", ");
     }
 
     buf.append(')');
-	
-    return buf.toString();    
+
+    return buf.toString();
   }
 
   /**

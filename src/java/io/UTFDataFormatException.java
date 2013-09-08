@@ -1,8 +1,26 @@
 /*
- * @(#)UTFDataFormatException.java	1.14 05/11/17
+ * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -19,7 +37,6 @@ package java.io;
  * which modified UTF-8 strings are read and written.
  *
  * @author  Frank Yellin
- * @version 1.14, 11/17/05
  * @see     java.io.DataInput
  * @see     java.io.DataInputStream#readUTF(java.io.DataInput)
  * @see     java.io.IOException
@@ -27,12 +44,14 @@ package java.io;
  */
 public
 class UTFDataFormatException extends IOException {
+    private static final long serialVersionUID = 420743449228280612L;
+
     /**
      * Constructs a <code>UTFDataFormatException</code> with
      * <code>null</code> as its error detail message.
      */
     public UTFDataFormatException() {
-	super();
+        super();
     }
 
     /**
@@ -45,6 +64,6 @@ class UTFDataFormatException extends IOException {
      * @param   s   the detail message.
      */
     public UTFDataFormatException(String s) {
-	super(s);
+        super(s);
     }
 }

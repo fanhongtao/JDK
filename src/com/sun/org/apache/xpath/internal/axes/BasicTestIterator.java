@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +29,8 @@ import com.sun.org.apache.xml.internal.utils.PrefixResolver;
 import com.sun.org.apache.xpath.internal.compiler.Compiler;
 
 /**
- * Base for iterators that handle predicates.  Does the basic next 
- * node logic, so all the derived iterator has to do is get the 
+ * Base for iterators that handle predicates.  Does the basic next
+ * node logic, so all the derived iterator has to do is get the
  * next node.
  */
 public abstract class BasicTestIterator extends LocPathIterator
@@ -71,15 +75,15 @@ public abstract class BasicTestIterator extends LocPathIterator
           throws javax.xml.transform.TransformerException
   {
     super(compiler, opPos, analysis, false);
-    
+
     int firstStepPos = compiler.getFirstChildPos(opPos);
     int whatToShow = compiler.getWhatToShow(firstStepPos);
 
     if ((0 == (whatToShow
-               & (DTMFilter.SHOW_ATTRIBUTE 
-               | DTMFilter.SHOW_NAMESPACE 
+               & (DTMFilter.SHOW_ATTRIBUTE
+               | DTMFilter.SHOW_NAMESPACE
                | DTMFilter.SHOW_ELEMENT
-               | DTMFilter.SHOW_PROCESSING_INSTRUCTION))) 
+               | DTMFilter.SHOW_PROCESSING_INSTRUCTION)))
                || (whatToShow == DTMFilter.SHOW_ALL))
       initNodeTest(whatToShow);
     else
@@ -112,7 +116,7 @@ public abstract class BasicTestIterator extends LocPathIterator
     super(compiler, opPos, analysis, shouldLoadWalkers);
   }
 
-	
+
   /**
    * Get the next node via getNextXXX.  Bottlenecked for derived class override.
    * @return The next node on the axis, or DTM.NULL.
@@ -128,20 +132,20 @@ public abstract class BasicTestIterator extends LocPathIterator
    *   <code>null</code> if there are no more members in that set.
    */
   public int nextNode()
-  {      
-  	if(m_foundLast)
-  	{
-  		m_lastFetched = DTM.NULL;
-  		return DTM.NULL;
-  	}
-  		
+  {
+        if(m_foundLast)
+        {
+                m_lastFetched = DTM.NULL;
+                return DTM.NULL;
+        }
+
     if(DTM.NULL == m_lastFetched)
     {
       resetProximityPositions();
     }
 
     int next;
-    
+
     com.sun.org.apache.xpath.internal.VariableStack vars;
     int savedStart;
     if (-1 != m_stackFrame)
@@ -159,13 +163,13 @@ public abstract class BasicTestIterator extends LocPathIterator
       vars = null;
       savedStart = 0;
     }
-    
+
     try
     {
       do
       {
         next = getNextNode();
-  
+
         if (DTM.NULL != next)
         {
           if(DTMIterator.FILTER_ACCEPT == acceptNode(next))
@@ -177,16 +181,16 @@ public abstract class BasicTestIterator extends LocPathIterator
           break;
       }
       while (next != DTM.NULL);
-  
+
       if (DTM.NULL != next)
       {
-      	m_pos++;
+        m_pos++;
         return next;
       }
       else
       {
         m_foundLast = true;
-  
+
         return DTM.NULL;
       }
     }
@@ -199,13 +203,13 @@ public abstract class BasicTestIterator extends LocPathIterator
       }
     }
   }
-  
+
   /**
    *  Get a cloned Iterator that is reset to the beginning
    *  of the query.
-   * 
+   *
    *  @return A cloned NodeIterator set of the start of the query.
-   * 
+   *
    *  @throws CloneNotSupportedException
    */
   public DTMIterator cloneWithReset() throws CloneNotSupportedException
@@ -220,4 +224,3 @@ public abstract class BasicTestIterator extends LocPathIterator
 
 
 }
-

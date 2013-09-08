@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +20,6 @@
  */
 package com.sun.org.apache.xml.internal.security.keys.content;
 
-
-
-
 import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureException;
 import com.sun.org.apache.xml.internal.security.transforms.Transforms;
@@ -29,17 +30,13 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-
 /**
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class RetrievalMethod extends SignatureElementProxy
         implements KeyInfoContent {
 
-   /** {@link java.util.logging} logging facility */
-    static java.util.logging.Logger log = 
-        java.util.logging.Logger.getLogger(RetrievalMethod.class.getName());
    //J-
     /** DSA retrieval */
    public static final String TYPE_DSA     = Constants.SignatureSpecNS + "DSAKeyValue";
@@ -106,7 +103,7 @@ public class RetrievalMethod extends SignatureElementProxy
    /**
     * Method getURI
     *
-    * 
+    *
     * @return URI string
     */
    public String getURI() {
@@ -129,7 +126,7 @@ public class RetrievalMethod extends SignatureElementProxy
 
       try {
        Element transformsElem =
-             XMLUtils.selectDsNode(this._constructionElement,                                                
+             XMLUtils.selectDsNode(this._constructionElement.getFirstChild(),
                                                 Constants
                                                    ._TAG_TRANSFORMS, 0);
 
@@ -142,7 +139,7 @@ public class RetrievalMethod extends SignatureElementProxy
          throw new XMLSecurityException("empty", ex);
       }
    }
-   
+
    /** @inheritDoc */
    public String getBaseLocalName() {
       return Constants._TAG_RETRIEVALMETHOD;

@@ -1,8 +1,26 @@
 /*
- * @(#)StatisticMonitoredAttribute.java	1.4 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.monitoring;
 
@@ -10,7 +28,7 @@ import java.util.*;
 
 /**
  * <p>
- * 
+ *
  * @author Hemanth Puttaswamy
  * </p>
  * <p>
@@ -24,12 +42,12 @@ public class StatisticMonitoredAttribute extends MonitoredAttributeBase {
 
     // Every StatisticMonitoredAttribute will have a StatisticAccumulator. User
     // will use Statisticsaccumulator to accumulate the samples associated with
-    // this Monitored Attribute 
-    private StatisticsAccumulator statisticsAccumulator; 
+    // this Monitored Attribute
+    private StatisticsAccumulator statisticsAccumulator;
 
     // Mutex is passed from the user class which is providing the sample values.
     // getValue() and clearState() is synchronized on this user provided mutex
-    private Object  mutex; 
+    private Object  mutex;
 
 
   ///////////////////////////////////////
@@ -43,20 +61,20 @@ public class StatisticMonitoredAttribute extends MonitoredAttributeBase {
  * readonly attribute.
  * </p>
  * <p>
- * 
+ *
  * @param name Of this attribute
  * </p>
  * <p>
- * @return a StatisticMonitoredAttribute 
+ * @return a StatisticMonitoredAttribute
  * </p>
  * <p>
- * @param desc should provide a good description on the kind of statistics 
+ * @param desc should provide a good description on the kind of statistics
  * collected, a good example is "Connection Response Time Stats will Provide the
  * detailed stats based on the samples provided from every request completion
  * time"
  * </p>
  * <p>
- * @param s is the StatisticsAcumulator that user will use to accumulate the 
+ * @param s is the StatisticsAcumulator that user will use to accumulate the
  * samples and this Attribute Object will get the computed statistics values
  * from.
  * </p>
@@ -64,11 +82,11 @@ public class StatisticMonitoredAttribute extends MonitoredAttributeBase {
  * @param mutex using which clearState() and getValue() calls need to be locked.
  * </p>
  */
-    public  StatisticMonitoredAttribute(String name, String desc, 
-        StatisticsAccumulator s, Object mutex) 
-    {        
+    public  StatisticMonitoredAttribute(String name, String desc,
+        StatisticsAccumulator s, Object mutex)
+    {
         super( name );
-        MonitoredAttributeInfoFactory f = 
+        MonitoredAttributeInfoFactory f =
             MonitoringFactories.getMonitoredAttributeInfoFactory();
         MonitoredAttributeInfo maInfo = f.createMonitoredAttributeInfo(
                 desc, String.class, false, true );
@@ -76,7 +94,7 @@ public class StatisticMonitoredAttribute extends MonitoredAttributeBase {
         this.setMonitoredAttributeInfo( maInfo );
         this.statisticsAccumulator = s;
         this.mutex = mutex;
-    } // end StatisticMonitoredAttribute        
+    } // end StatisticMonitoredAttribute
 
 
 
@@ -84,7 +102,7 @@ public class StatisticMonitoredAttribute extends MonitoredAttributeBase {
  *  Gets the value from the StatisticsAccumulator, the value will be a formatted
  *  String with the computed statistics based on the samples accumulated in the
  *  Statistics Accumulator.
- */ 
+ */
     public Object getValue( ) {
         synchronized( mutex ) {
             return statisticsAccumulator.getValue( );
@@ -110,6 +128,3 @@ public class StatisticMonitoredAttribute extends MonitoredAttributeBase {
         return statisticsAccumulator;
     }
 } // end StatisticMonitoredAttribute
-
-
-

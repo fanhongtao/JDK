@@ -1,16 +1,32 @@
 /*
- * @(#)OutputStreamHook.java	1.14 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.io;
@@ -33,76 +49,76 @@ public abstract class OutputStreamHook extends ObjectOutputStream
      */
     private class HookPutFields extends ObjectOutputStream.PutField
     {
-	private Hashtable fields = new Hashtable();
+        private Hashtable fields = new Hashtable();
 
-	/**
-	 * Put the value of the named boolean field into the persistent field.
-	 */
-	public void put(String name, boolean value){
-	    fields.put(name, new Boolean(value));
-	}
-		
-	/**
-	 * Put the value of the named char field into the persistent fields.
-	 */
-	public void put(String name, char value){
-	    fields.put(name, new Character(value));
-	}
-		
-	/**
-	 * Put the value of the named byte field into the persistent fields.
-	 */
-	public void put(String name, byte value){
-	    fields.put(name, new Byte(value));
-	}
-		
-	/**
-	 * Put the value of the named short field into the persistent fields.
-	 */
-	public void put(String name, short value){
-	    fields.put(name, new Short(value));
-	}
-		
-	/**
-	 * Put the value of the named int field into the persistent fields.
-	 */
-	public void put(String name, int value){
-	    fields.put(name, new Integer(value));
-	}
-		
-	/**
-	 * Put the value of the named long field into the persistent fields.
-	 */
-	public void put(String name, long value){
-	    fields.put(name, new Long(value));
-	}
-		
-	/**
-	 * Put the value of the named float field into the persistent fields.
-	 *
-	 */
-	public void put(String name, float value){
-	    fields.put(name, new Float(value));
-	}
-		
-	/**
-	 * Put the value of the named double field into the persistent field.
-	 */
-	public void put(String name, double value){
-	    fields.put(name, new Double(value));
-	}
-		
-	/**
-	 * Put the value of the named Object field into the persistent field.
-	 */
-	public void put(String name, Object value){
-	    fields.put(name, value);
-	}
-		
-	/**
-	 * Write the data and fields to the specified ObjectOutput stream.
-	 */
-	public void write(ObjectOutput out) throws IOException {
+        /**
+         * Put the value of the named boolean field into the persistent field.
+         */
+        public void put(String name, boolean value){
+            fields.put(name, new Boolean(value));
+        }
+
+        /**
+         * Put the value of the named char field into the persistent fields.
+         */
+        public void put(String name, char value){
+            fields.put(name, new Character(value));
+        }
+
+        /**
+         * Put the value of the named byte field into the persistent fields.
+         */
+        public void put(String name, byte value){
+            fields.put(name, new Byte(value));
+        }
+
+        /**
+         * Put the value of the named short field into the persistent fields.
+         */
+        public void put(String name, short value){
+            fields.put(name, new Short(value));
+        }
+
+        /**
+         * Put the value of the named int field into the persistent fields.
+         */
+        public void put(String name, int value){
+            fields.put(name, new Integer(value));
+        }
+
+        /**
+         * Put the value of the named long field into the persistent fields.
+         */
+        public void put(String name, long value){
+            fields.put(name, new Long(value));
+        }
+
+        /**
+         * Put the value of the named float field into the persistent fields.
+         *
+         */
+        public void put(String name, float value){
+            fields.put(name, new Float(value));
+        }
+
+        /**
+         * Put the value of the named double field into the persistent field.
+         */
+        public void put(String name, double value){
+            fields.put(name, new Double(value));
+        }
+
+        /**
+         * Put the value of the named Object field into the persistent field.
+         */
+        public void put(String name, Object value){
+            fields.put(name, value);
+        }
+
+        /**
+         * Write the data and fields to the specified ObjectOutput stream.
+         */
+        public void write(ObjectOutput out) throws IOException {
             OutputStreamHook hook = (OutputStreamHook)out;
 
             ObjectStreamField[] osfields = hook.getFieldsNoCopy();
@@ -116,30 +132,30 @@ public abstract class OutputStreamHook extends ObjectOutputStream
 
                 hook.writeField(osfields[i], value);
             }
-	}
+        }
     }
 
     abstract void writeField(ObjectStreamField field, Object value) throws IOException;
 
     public OutputStreamHook()
-	throws java.io.IOException {
-	super();
-		
+        throws java.io.IOException {
+        super();
+
     }
 
     public void defaultWriteObject() throws IOException {
 
         writeObjectState.defaultWriteObject(this);
 
-	defaultWriteObjectDelegate();
+        defaultWriteObjectDelegate();
     }
 
     public abstract void defaultWriteObjectDelegate();
-	
+
     public ObjectOutputStream.PutField putFields()
-	throws IOException {
-	putFields = new HookPutFields();
-	return putFields;
+        throws IOException {
+        putFields = new HookPutFields();
+        return putFields;
     }
 
     // Stream format version, saved/restored during recursive calls
@@ -156,7 +172,7 @@ public abstract class OutputStreamHook extends ObjectOutputStream
     // User uses PutFields to simulate default data.
     // See java.io.ObjectOutputStream.PutFields
     public void writeFields()
-	throws IOException {
+        throws IOException {
 
         writeObjectState.defaultWriteObject(this);
 
@@ -169,13 +185,13 @@ public abstract class OutputStreamHook extends ObjectOutputStream
 
 
     // The following is a State pattern implementation of what
-    // should be done when a Serializable has a 
+    // should be done when a Serializable has a
     // writeObject method.  This was especially necessary for
     // RMI-IIOP stream format version 2.  Please see the
     // state diagrams in the docs directory of the workspace.
 
     protected WriteObjectState writeObjectState = NOT_IN_WRITE_OBJECT;
-    
+
     protected void setState(WriteObjectState newState) {
         writeObjectState = newState;
     }
@@ -198,14 +214,14 @@ public abstract class OutputStreamHook extends ObjectOutputStream
     protected static final WriteObjectState IN_WRITE_OBJECT = new InWriteObjectState();
     protected static final WriteObjectState WROTE_DEFAULT_DATA = new WroteDefaultDataState();
     protected static final WriteObjectState WROTE_CUSTOM_DATA = new WroteCustomDataState();
-    
+
     protected static class InWriteObjectState extends WriteObjectState {
 
         public void enterWriteObject(OutputStreamHook stream) throws IOException {
-	    // XXX I18N, logging needed.
+            // XXX I18N, logging needed.
             throw new IOException("Internal state failure: Entered writeObject twice");
         }
-        
+
         public void exitWriteObject(OutputStreamHook stream) throws IOException {
 
             // We didn't write any data, so write the
@@ -245,7 +261,7 @@ public abstract class OutputStreamHook extends ObjectOutputStream
     }
 
     protected static class WroteDefaultDataState extends InWriteObjectState {
-        
+
         public void exitWriteObject(OutputStreamHook stream) throws IOException {
 
             // We only wrote default data, so if in stream format
@@ -253,12 +269,12 @@ public abstract class OutputStreamHook extends ObjectOutputStream
             // is no optional data
             if (stream.getStreamFormatVersion() == 2)
                 stream.getOrbStream().write_long(0);
-            
+
             stream.setState(NOT_IN_WRITE_OBJECT);
         }
 
         public void defaultWriteObject(OutputStreamHook stream) throws IOException {
-	    // XXX I18N, logging needed.
+            // XXX I18N, logging needed.
             throw new IOException("Called defaultWriteObject/writeFields twice");
         }
 
@@ -268,7 +284,7 @@ public abstract class OutputStreamHook extends ObjectOutputStream
             // If in stream format version 2, put the fake valuetype
             // header.
             stream.beginOptionalCustomData();
-            
+
             stream.setState(WROTE_CUSTOM_DATA);
         }
     }
@@ -285,7 +301,7 @@ public abstract class OutputStreamHook extends ObjectOutputStream
         }
 
         public void defaultWriteObject(OutputStreamHook stream) throws IOException {
-	    // XXX I18N, logging needed.
+            // XXX I18N, logging needed.
             throw new IOException("Cannot call defaultWriteObject/writeFields after writing custom data in RMI-IIOP");
         }
 

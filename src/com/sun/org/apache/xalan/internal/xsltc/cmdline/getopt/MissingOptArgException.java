@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,15 +21,15 @@
  * $Id: MissingOptArgException.java,v 1.2.4.1 2005/08/31 11:49:21 pvedula Exp $
  */
 
-package com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt; 
+package com.sun.org.apache.xalan.internal.xsltc.cmdline.getopt;
 
 
 /**
- * @author G Todd Miller 
+ * @author G Todd Miller
  */
 class MissingOptArgException extends GetOptsException{
     static final long serialVersionUID = -1972471465394544822L;
     public MissingOptArgException(String msg){
-	super(msg);
+        super(msg);
     }
 }

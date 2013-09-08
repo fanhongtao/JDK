@@ -1,8 +1,26 @@
 /*
- * @(#)StructMember.java	1.23 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * File: ./org/omg/CORBA/StructMember.java
@@ -14,17 +32,17 @@
 package org.omg.CORBA;
 
 /**
- * Describes a member of an IDL <code>struct</code> in the 
+ * Describes a member of an IDL <code>struct</code> in the
  * Interface Repository, including
- * the  name of the <code>struct</code> member, the type of 
+ * the  name of the <code>struct</code> member, the type of
  * the <code>struct</code> member, and
- * the typedef that represents the IDL type of the 
+ * the typedef that represents the IDL type of the
  * <code>struct</code> member
  * described the <code>struct</code> member object.
  */
 public final class StructMember implements org.omg.CORBA.portable.IDLEntity {
 
-    //	instance variables
+    //  instance variables
 
     /**
      * The name of the struct member described by
@@ -46,7 +64,7 @@ public final class StructMember implements org.omg.CORBA.portable.IDLEntity {
      * @serial
      */
     public org.omg.CORBA.IDLType type_def;
-    //	constructors
+    //  constructors
 
     /**
      * Constructs a default <code>StructMember</code> object.
@@ -64,8 +82,8 @@ public final class StructMember implements org.omg.CORBA.portable.IDLEntity {
      *        of the struct member
      */
     public StructMember(String __name, org.omg.CORBA.TypeCode __type, org.omg.CORBA.IDLType __type_def) {
-	name = __name;
-	type = __type;
-	type_def = __type_def;
+        name = __name;
+        type = __type;
+        type_def = __type_def;
     }
 }

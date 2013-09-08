@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -54,11 +58,10 @@ package com.sun.org.apache.bcel.internal.generic;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * D2L - Convert double to long
  * <PRE>Stack: ..., value.word1, value.word2 -&gt; ..., result.word1, result.word2</PRE>
  *
- * @version $Id: D2L.java,v 1.1.2.1 2005/07/31 23:45:14 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class D2L extends ConversionInstruction {

@@ -1,12 +1,29 @@
 /*
- * @(#)MonitoringManager.java	1.6 09/02/23
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.monitoring;
 
-import java.io.Closeable ;
 import com.sun.corba.se.spi.orb.ORB;
 import com.sun.corba.se.spi.monitoring.MonitoredObject;
 import java.util.*;
@@ -18,11 +35,11 @@ import java.util.*;
  * Monitored Objects and Attributes can be added and traversed.
  * </p>
  * <p>
- * 
+ *
  * @author Hemanth Puttaswamy
  * </p>
  */
-public interface MonitoringManager extends Closeable {
+public interface MonitoringManager {
 
   ///////////////////////////////////////
   // operations
@@ -33,7 +50,7 @@ public interface MonitoringManager extends Closeable {
  * Objects exposing various Monitorable Attributes of Various modules.
  * </p>
  * <p>
- * 
+ *
  * @param MonitoredObject ...
  * </p>
  */
@@ -44,7 +61,7 @@ public interface MonitoringManager extends Closeable {
  * MBean. This will result in triaging initialize to all the
  * MonitoredObjects and it's Monitored Attributes.
  * </p>
- * 
+ *
  */
     public void clearState();
 

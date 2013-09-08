@@ -1,8 +1,26 @@
 /*
- * @(#)AlternateIIOPAddressComponentImpl.java	1.21 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior.iiop;
@@ -26,42 +44,42 @@ public class AlternateIIOPAddressComponentImpl extends TaggedComponentBase
 
     public boolean equals( Object obj )
     {
-	if (!(obj instanceof AlternateIIOPAddressComponentImpl))
-	    return false ;
+        if (!(obj instanceof AlternateIIOPAddressComponentImpl))
+            return false ;
 
-	AlternateIIOPAddressComponentImpl other = 
-	    (AlternateIIOPAddressComponentImpl)obj ;
+        AlternateIIOPAddressComponentImpl other =
+            (AlternateIIOPAddressComponentImpl)obj ;
 
-	return addr.equals( other.addr ) ;
+        return addr.equals( other.addr ) ;
     }
-     
-    public int hashCode() 
+
+    public int hashCode()
     {
-	return addr.hashCode() ;
+        return addr.hashCode() ;
     }
 
     public String toString()
     {
-	return "AlternateIIOPAddressComponentImpl[addr=" + addr + "]" ;
+        return "AlternateIIOPAddressComponentImpl[addr=" + addr + "]" ;
     }
 
-    public AlternateIIOPAddressComponentImpl( IIOPAddress addr ) 
+    public AlternateIIOPAddressComponentImpl( IIOPAddress addr )
     {
-	this.addr = addr ;
+        this.addr = addr ;
     }
-    
+
     public IIOPAddress getAddress()
     {
-	return addr ;
+        return addr ;
     }
 
-    public void writeContents(OutputStream os) 
+    public void writeContents(OutputStream os)
     {
-	addr.write( os ) ;
+        addr.write( os ) ;
     }
-    
-    public int getId() 
+
+    public int getId()
     {
-	return TAG_ALTERNATE_IIOP_ADDRESS.value ; // 3 in CORBA 2.3.1 13.6.3
+        return TAG_ALTERNATE_IIOP_ADDRESS.value ; // 3 in CORBA 2.3.1 13.6.3
     }
 }

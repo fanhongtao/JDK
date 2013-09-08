@@ -1,8 +1,26 @@
 /*
- * @(#)MonitoredObject.java	1.5 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.monitoring;
 
@@ -30,8 +48,8 @@ public interface MonitoredObject {
  * <p>
  * Gets the name of this MonitoredObject
  * </p><p>
- * 
- * @return a String with name of this Monitored Object 
+ *
+ * @return a String with name of this Monitored Object
  * </p>
  */
     public String getName();
@@ -39,28 +57,28 @@ public interface MonitoredObject {
  * <p>
  * Gets the description of MonitoredObject
  * </p><p>
- * 
+ *
  * @return a String with Monitored Object Description.
  * </p>
  */
     public String getDescription();
 /**
  * <p>
- * This method will add a child Monitored Object to this Monitored Object. 
+ * This method will add a child Monitored Object to this Monitored Object.
  * </p>
  * <p>
  * </p>
  */
-    public void addChild( MonitoredObject m );   
+    public void addChild( MonitoredObject m );
 /**
  * <p>
- * This method will remove child Monitored Object identified by the given name 
+ * This method will remove child Monitored Object identified by the given name
  * </p>
  * <p>
  * @param name of the ChildMonitored Object
  * </p>
  */
-    public void removeChild( String name );   
+    public void removeChild( String name );
 
 /**
  * <p>
@@ -69,7 +87,7 @@ public interface MonitoredObject {
  * like orb.connectionmanager
  * </p>
  * <p>
- * 
+ *
  * @return a MonitoredObject identified by the given name
  * </p>
  * <p>
@@ -80,10 +98,10 @@ public interface MonitoredObject {
 /**
  * <p>
  * Gets all the Children registered under this instance of Monitored
- * Object. 
+ * Object.
  * </p>
  * <p>
- * 
+ *
  * @return Collection of immediate Children associated with this MonitoredObject.
  * </p>
  */
@@ -102,7 +120,7 @@ public interface MonitoredObject {
  * call gets parent and returns null if the Monitored Object is the root.
  * </p>
  * <p>
- * 
+ *
  * @return a MonitoredObject which is a Parent of this Monitored Object instance
  * </p>
  */
@@ -113,7 +131,7 @@ public interface MonitoredObject {
  * Adds the attribute with the given name.
  * </p>
  * <p>
- * 
+ *
  * </p>
  * <p>
  * @param value is the MonitoredAttribute which will be set as one of the
@@ -126,21 +144,21 @@ public interface MonitoredObject {
  * Removes the attribute with the given name.
  * </p>
  * <p>
- * 
+ *
  * </p>
  * <p>
  * @param name is the MonitoredAttribute name
  * </p>
  */
     public void removeAttribute(String name);
-  
+
 /**
  * <p>
  * Gets the Monitored Object registered by the given name
  * </p>
- * 
+ *
  * <p>
- * @return a MonitoredAttribute identified by the given name 
+ * @return a MonitoredAttribute identified by the given name
  * </p>
  * <p>
  * @param name of the attribute
@@ -154,7 +172,7 @@ public interface MonitoredObject {
  * getChild() or getChildren() call.
  * </p>
  * <p>
- * 
+ *
  * @return Collection of all the Attributes for this MonitoredObject
  * </p>
  */
@@ -166,7 +184,7 @@ public interface MonitoredObject {
  * Monitored Object. The call to clearState will be initiated from
  * CORBAMBean.startMonitoring() call.
  * </p>
- * 
+ *
  */
     public void clearState();
 

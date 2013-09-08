@@ -1,8 +1,36 @@
 /*
- * @(#)NavigableMap.java	1.6 06/05/10
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea and Josh Bloch with assistance from members of JCP
+ * JSR-166 Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util;
@@ -270,7 +298,7 @@ public interface NavigableMap<K,V> extends SortedMap<K,V> {
      * Returns a view of the portion of this map whose keys range from
      * {@code fromKey} to {@code toKey}.  If {@code fromKey} and
      * {@code toKey} are equal, the returned map is empty unless
-     * {@code fromExclusive} and {@code toExclusive} are both true.  The
+     * {@code fromInclusive} and {@code toInclusive} are both true.  The
      * returned map is backed by this map, so changes in the returned map are
      * reflected in this map, and vice-versa.  The returned map supports all
      * optional map operations that this map supports.

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,10 +56,10 @@ public class ChildIterator extends LocPathIterator
     // This iterator matches all kinds of nodes
     initNodeTest(DTMFilter.SHOW_ALL);
   }
-  
+
   /**
-   * Return the first node out of the nodeset, if this expression is 
-   * a nodeset expression.  This is the default implementation for 
+   * Return the first node out of the nodeset, if this expression is
+   * a nodeset expression.  This is the default implementation for
    * nodesets.
    * <p>WARNING: Do not mutate this class from this function!</p>
    * @param xctxt The XPath runtime context.
@@ -65,9 +69,9 @@ public class ChildIterator extends LocPathIterator
     throws javax.xml.transform.TransformerException
   {
     int current = xctxt.getCurrentNode();
-    
+
     DTM dtm = xctxt.getDTM(current);
-    
+
     return dtm.getFirstChild(current);
   }
 
@@ -81,8 +85,8 @@ public class ChildIterator extends LocPathIterator
    */
   public int nextNode()
   {
-  	if(m_foundLast)
-  		return DTM.NULL;
+        if(m_foundLast)
+                return DTM.NULL;
 
     int next;
 
@@ -103,11 +107,11 @@ public class ChildIterator extends LocPathIterator
       return DTM.NULL;
     }
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()

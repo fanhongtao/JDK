@@ -1,8 +1,26 @@
 /*
- * @(#)CodingErrorAction.java	1.7 05/11/17
+ * Copyright (c) 2001, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.charset;
@@ -19,7 +37,6 @@ package java.nio.charset;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.7, 05/11/17
  * @since 1.4
  */
 
@@ -28,7 +45,7 @@ public class CodingErrorAction {
     private String name;
 
     private CodingErrorAction(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     /**
@@ -36,7 +53,7 @@ public class CodingErrorAction {
      * erroneous input and resuming the coding operation.  </p>
      */
     public static final CodingErrorAction IGNORE
-	= new CodingErrorAction("IGNORE");
+        = new CodingErrorAction("IGNORE");
 
     /**
      * Action indicating that a coding error is to be handled by dropping the
@@ -44,7 +61,7 @@ public class CodingErrorAction {
      * buffer, and resuming the coding operation.  </p>
      */
     public static final CodingErrorAction REPLACE
-	= new CodingErrorAction("REPLACE");
+        = new CodingErrorAction("REPLACE");
 
     /**
      * Action indicating that a coding error is to be reported, either by
@@ -53,7 +70,7 @@ public class CodingErrorAction {
      * implementing the coding process.
      */
     public static final CodingErrorAction REPORT
-	= new CodingErrorAction("REPORT");
+        = new CodingErrorAction("REPORT");
 
     /**
      * Returns a string describing this action.  </p>
@@ -61,7 +78,7 @@ public class CodingErrorAction {
      * @return  A descriptive string
      */
     public String toString() {
-	return name;
+        return name;
     }
 
 }

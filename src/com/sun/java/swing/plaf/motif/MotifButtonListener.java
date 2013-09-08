@@ -1,10 +1,28 @@
 /*
- * @(#)MotifButtonListener.java	1.19 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 
 package com.sun.java.swing.plaf.motif;
 
@@ -18,7 +36,6 @@ import javax.swing.event.*;
  * Button Listener
  * <p>
  *
- * @version 1.19 11/17/05
  * @author Rich Schiavi
  */
 public class MotifButtonListener extends BasicButtonListener {
@@ -27,8 +44,6 @@ public class MotifButtonListener extends BasicButtonListener {
     }
 
     protected void checkOpacity(AbstractButton b) {
-	b.setOpaque( false );
+        b.setOpaque( false );
     }
 }
-
-

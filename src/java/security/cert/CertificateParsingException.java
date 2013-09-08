@@ -1,8 +1,26 @@
 /*
- * @(#)CertificateParsingException.java	1.13 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -13,7 +31,6 @@ package java.security.cert;
  * are found in the Certificate.
  *
  * @author Hemma Prafullchandra
- * 1.13
  */
 public class CertificateParsingException extends CertificateException {
 
@@ -32,7 +49,7 @@ public class CertificateParsingException extends CertificateException {
      * Constructs a CertificateParsingException with the specified detail
      * message. A detail message is a String that describes this
      * particular exception.
-     *   
+     *
      * @param message the detail message.
      */
     public CertificateParsingException(String message) {

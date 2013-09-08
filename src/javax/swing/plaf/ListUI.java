@@ -1,8 +1,26 @@
 /*
- * @(#)ListUI.java	1.15 06/07/11
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf;
@@ -15,7 +33,6 @@ import java.awt.Rectangle;
 /**
  * The {@code JList} pluggable look and feel delegate.
  *
- * @version 1.15 07/11/06
  * @author Hans Muller
  */
 
@@ -36,7 +53,7 @@ public abstract class ListUI extends ComponentUI
     public abstract int locationToIndex(JList list, Point location);
 
 
-    /** 
+    /**
      * Returns the origin in the given {@code JList}, of the specified item,
      * in the list's coordinate system.
      * Returns {@code null} if the index isn't valid.
@@ -48,7 +65,7 @@ public abstract class ListUI extends ComponentUI
     public abstract Point indexToLocation(JList list, int index);
 
 
-    /** 
+    /**
      * Returns the bounding rectangle, in the given list's coordinate system,
      * for the range of cells specified by the two indices.
      * The indices can be supplied in any order.

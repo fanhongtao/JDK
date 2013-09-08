@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,12 +29,12 @@ package com.sun.org.apache.xml.internal.utils;
 public class Constants
 {
 
-  /** 
+  /**
    * Mnemonics for standard XML Namespace URIs, as Java Strings:
    * <ul>
    * <li>S_XMLNAMESPACEURI (http://www.w3.org/XML/1998/namespace) is the
    * URI permanantly assigned to the "xml:" prefix. This is used for some
-   * features built into the XML specification itself, such as xml:space 
+   * features built into the XML specification itself, such as xml:space
    * and xml:lang. It was defined by the W3C's XML Namespaces spec.</li>
    * <li>S_XSLNAMESPACEURL (http://www.w3.org/1999/XSL/Transform) is the
    * URI which indicates that a name may be an XSLT directive. In most
@@ -43,12 +47,12 @@ public class Constants
    * XSLT Recommendation, so what it really signifies is a badly obsolete
    * stylesheet.</li>
    * </ul> */
-  public static final String 
-	S_XMLNAMESPACEURI = "http://www.w3.org/XML/1998/namespace", 
-	S_XSLNAMESPACEURL = "http://www.w3.org/1999/XSL/Transform", 
-	S_OLDXSLNAMESPACEURL = "http://www.w3.org/XSL/Transform/1.0";
+  public static final String
+        S_XMLNAMESPACEURI = "http://www.w3.org/XML/1998/namespace",
+        S_XSLNAMESPACEURL = "http://www.w3.org/1999/XSL/Transform",
+        S_OLDXSLNAMESPACEURL = "http://www.w3.org/XSL/Transform/1.0";
 
-  /** Authorship mnemonics, as Java Strings. Not standardized, 
+  /** Authorship mnemonics, as Java Strings. Not standardized,
    * as far as I know.
    * <ul>
    * <li>S_VENDOR -- the name of the organization/individual who published
@@ -57,29 +61,29 @@ public class Constants
    * information about this publisher and product.</li>
    * </ul>
    */
-  public static final String 
-	S_VENDOR = "Apache Software Foundation", 
-	S_VENDORURL = "http://xml.apache.org";
+  public static final String
+        S_VENDOR = "Apache Software Foundation",
+        S_VENDORURL = "http://xml.apache.org";
 
-  /** S_BUILTIN_EXTENSIONS_URL is a mnemonic for the XML Namespace 
+  /** S_BUILTIN_EXTENSIONS_URL is a mnemonic for the XML Namespace
    *(http://xml.apache.org/xalan) predefined to signify Xalan's
-   * built-in XSLT Extensions. When used in stylesheets, this is often 
+   * built-in XSLT Extensions. When used in stylesheets, this is often
    * bound to the "xalan:" prefix.
    */
-  public static final String 
-    S_BUILTIN_EXTENSIONS_URL = "http://xml.apache.org/xalan"; 
+  public static final String
+    S_BUILTIN_EXTENSIONS_URL = "http://xml.apache.org/xalan";
 
   /**
    * The old built-in extension url. It is still supported for
    * backward compatibility.
    */
-  public static final String 
-    S_BUILTIN_OLD_EXTENSIONS_URL = "http://xml.apache.org/xslt"; 
-  
+  public static final String
+    S_BUILTIN_OLD_EXTENSIONS_URL = "http://xml.apache.org/xslt";
+
   /**
    * Xalan extension namespaces.
    */
-  public static final String 
+  public static final String
     // The old namespace for Java extension
     S_EXTENSIONS_OLD_JAVA_URL = "http://xml.apache.org/xslt/java",
     // The new namespace for Java extension
@@ -89,7 +93,7 @@ public class Constants
     S_EXTENSIONS_REDIRECT_URL = "http://xml.apache.org/xalan/redirect",
     S_EXTENSIONS_PIPE_URL = "http://xml.apache.org/xalan/PipeDocument",
     S_EXTENSIONS_SQL_URL = "http://xml.apache.org/xalan/sql";
-  
+
   /**
    * EXSLT extension namespaces.
    */
@@ -101,8 +105,8 @@ public class Constants
     S_EXSLT_FUNCTIONS_URL = "http://exslt.org/functions",
     S_EXSLT_DYNAMIC_URL = "http://exslt.org/dynamic",
     S_EXSLT_STRINGS_URL = "http://exslt.org/strings";
-    
-    
+
+
   /**
    * The minimum version of XSLT supported by this processor.
    */

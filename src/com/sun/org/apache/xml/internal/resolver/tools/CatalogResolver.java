@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // CatalogResolver.java - A SAX EntityResolver/JAXP URI Resolver
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,7 +61,6 @@ import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class CatalogResolver implements EntityResolver, URIResolver {
   /** Make the parser Namespace aware? */
@@ -128,31 +131,31 @@ public class CatalogResolver implements EntityResolver, URIResolver {
 
     if (systemId != null) {
       try {
-	resolved = catalog.resolveSystem(systemId);
+        resolved = catalog.resolveSystem(systemId);
       } catch (MalformedURLException me) {
-	catalogManager.debug.message(1, "Malformed URL exception trying to resolve",
-		      publicId);
-	resolved = null;
+        catalogManager.debug.message(1, "Malformed URL exception trying to resolve",
+                      publicId);
+        resolved = null;
       } catch (IOException ie) {
-	catalogManager.debug.message(1, "I/O exception trying to resolve", publicId);
-	resolved = null;
+        catalogManager.debug.message(1, "I/O exception trying to resolve", publicId);
+        resolved = null;
       }
     }
 
     if (resolved == null) {
       if (publicId != null) {
-	try {
-	  resolved = catalog.resolvePublic(publicId, systemId);
-	} catch (MalformedURLException me) {
-	  catalogManager.debug.message(1, "Malformed URL exception trying to resolve",
-			publicId);
-	} catch (IOException ie) {
-	  catalogManager.debug.message(1, "I/O exception trying to resolve", publicId);
-	}
+        try {
+          resolved = catalog.resolvePublic(publicId, systemId);
+        } catch (MalformedURLException me) {
+          catalogManager.debug.message(1, "Malformed URL exception trying to resolve",
+                        publicId);
+        } catch (IOException ie) {
+          catalogManager.debug.message(1, "I/O exception trying to resolve", publicId);
+        }
       }
 
       if (resolved != null) {
-	catalogManager.debug.message(2, "Resolved public", publicId, resolved);
+        catalogManager.debug.message(2, "Resolved public", publicId, resolved);
       }
     } else {
       catalogManager.debug.message(2, "Resolved system", systemId, resolved);
@@ -193,28 +196,28 @@ public class CatalogResolver implements EntityResolver, URIResolver {
 
     if (resolved != null) {
       try {
-	InputSource iSource = new InputSource(resolved);
-	iSource.setPublicId(publicId);
+        InputSource iSource = new InputSource(resolved);
+        iSource.setPublicId(publicId);
 
-	// Ideally this method would not attempt to open the
-	// InputStream, but there is a bug (in Xerces, at least)
-	// that causes the parser to mistakenly open the wrong
-	// system identifier if the returned InputSource does
-	// not have a byteStream.
-	//
-	// It could be argued that we still shouldn't do this here,
-	// but since the purpose of calling the entityResolver is
-	// almost certainly to open the input stream, it seems to
-	// do little harm.
-	//
-	URL url = new URL(resolved);
-	InputStream iStream = url.openStream();
-	iSource.setByteStream(iStream);
+        // Ideally this method would not attempt to open the
+        // InputStream, but there is a bug (in Xerces, at least)
+        // that causes the parser to mistakenly open the wrong
+        // system identifier if the returned InputSource does
+        // not have a byteStream.
+        //
+        // It could be argued that we still shouldn't do this here,
+        // but since the purpose of calling the entityResolver is
+        // almost certainly to open the input stream, it seems to
+        // do little harm.
+        //
+        URL url = new URL(resolved);
+        InputStream iStream = url.openStream();
+        iSource.setByteStream(iStream);
 
-	return iSource;
+        return iSource;
       } catch (Exception e) {
-	catalogManager.debug.message(1, "Failed to create InputSource", resolved);
-	return null;
+        catalogManager.debug.message(1, "Failed to create InputSource", resolved);
+        return null;
       }
     }
 
@@ -243,27 +246,27 @@ public class CatalogResolver implements EntityResolver, URIResolver {
 
     if (result == null) {
       try {
-	URL url = null;
+        URL url = null;
 
-	if (base==null) {
-	  url = new URL(uri);
-	  result = url.toString();
-	} else {
-	  URL baseURL = new URL(base);
-	  url = (href.length()==0 ? baseURL : new URL(baseURL, uri));
-	  result = url.toString();
-	}
+        if (base==null) {
+          url = new URL(uri);
+          result = url.toString();
+        } else {
+          URL baseURL = new URL(base);
+          url = (href.length()==0 ? baseURL : new URL(baseURL, uri));
+          result = url.toString();
+        }
       } catch (java.net.MalformedURLException mue) {
-	// try to make an absolute URI from the current base
-	String absBase = makeAbsolute(base);
-	if (!absBase.equals(base)) {
-	  // don't bother if the absBase isn't different!
-	  return resolve(href, absBase);
-	} else {
-	  throw new TransformerException("Malformed URL "
-					 + href + "(base " + base + ")",
-					 mue);
-	}
+        // try to make an absolute URI from the current base
+        String absBase = makeAbsolute(base);
+        if (!absBase.equals(base)) {
+          // don't bother if the absBase isn't different!
+          return resolve(href, absBase);
+        } else {
+          throw new TransformerException("Malformed URL "
+                                         + href + "(base " + base + ")",
+                                         mue);
+        }
       }
     }
 
@@ -302,13 +305,13 @@ public class CatalogResolver implements EntityResolver, URIResolver {
       SAXParserFactory spFactory = SAXParserFactory.newInstance();
       spFactory.setNamespaceAware(true);
       try {
-	reader = spFactory.newSAXParser().getXMLReader();
+        reader = spFactory.newSAXParser().getXMLReader();
       }
       catch (ParserConfigurationException ex) {
-	throw new TransformerException(ex);
+        throw new TransformerException(ex);
       }
       catch (SAXException ex) {
-	throw new TransformerException(ex);
+        throw new TransformerException(ex);
       }
     }
     reader.setEntityResolver(this);
@@ -326,11 +329,11 @@ public class CatalogResolver implements EntityResolver, URIResolver {
       return url.toString();
     } catch (MalformedURLException mue) {
       try {
-	URL fileURL = FileURL.makeURL(uri);
-	return fileURL.toString();
+        URL fileURL = FileURL.makeURL(uri);
+        return fileURL.toString();
       } catch (MalformedURLException mue2) {
-	// bail
-	return uri;
+        // bail
+        return uri;
       }
     }
   }

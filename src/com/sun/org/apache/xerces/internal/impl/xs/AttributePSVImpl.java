@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,11 +32,10 @@ import com.sun.org.apache.xerces.internal.xs.XSConstants;
 /**
  * Attribute PSV infoset augmentations implementation.
  * The PSVI information for attributes will be available at the startElement call.
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Elena Litani IBM
- * @version $Id: AttributePSVImpl.java,v 1.2.6.1 2005/09/09 07:30:49 sunithareddy Exp $
  */
 public class AttributePSVImpl implements AttributePSVI {
 
@@ -42,13 +45,13 @@ public class AttributePSVImpl implements AttributePSVI {
     /** type of attribute, simpleType */
     protected XSTypeDefinition fTypeDecl = null;
 
-    /** If this attribute was explicitly given a 
+    /** If this attribute was explicitly given a
      * value in the original document, this is false; otherwise, it is true */
     protected boolean fSpecified = false;
 
     /** schema normalized value property */
     protected String fNormalizedValue = null;
-    
+
     /** schema actual value */
     protected Object fActualValue = null;
 
@@ -99,7 +102,7 @@ public class AttributePSVImpl implements AttributePSVI {
     }
 
     /**
-     * [schema specified] 
+     * [schema specified]
      * @see <a href="http://www.w3.org/TR/xmlschema-1/#e-schema_specified">XML Schema Part 1: Structures [schema specified]</a>
      * @return true - value was specified in schema, false - value comes from the infoset
      */
@@ -148,7 +151,7 @@ public class AttributePSVImpl implements AttributePSVI {
 
     /**
      * An item isomorphic to the type definition used to validate this element.
-     * 
+     *
      * @return  a type declaration
      */
     public XSTypeDefinition getTypeDefinition() {
@@ -161,7 +164,7 @@ public class AttributePSVImpl implements AttributePSVI {
      * is a simple thype definition with {variety} union, then an item isomorphic
      * to that member of the union's {member type definitions} which actually
      * validated the element item's normalized value.
-     * 
+     *
      * @return  a simple type declaration
      */
     public XSSimpleTypeDefinition getMemberTypeDefinition() {
@@ -171,13 +174,13 @@ public class AttributePSVImpl implements AttributePSVI {
     /**
      * An item isomorphic to the attribute declaration used to validate
      * this attribute.
-     * 
+     *
      * @return  an attribute declaration
      */
     public XSAttributeDeclaration getAttributeDeclaration() {
         return fDeclaration;
     }
-    
+
     /* (non-Javadoc)
      * @see com.sun.org.apache.xerces.internal.xs.ItemPSVI#getActualNormalizedValue()
      */
@@ -200,7 +203,7 @@ public class AttributePSVImpl implements AttributePSVI {
     }
 
     /**
-     * Reset() 
+     * Reset()
      */
     public void reset() {
         fNormalizedValue = null;

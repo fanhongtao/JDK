@@ -1,19 +1,35 @@
 /*
- * @(#)PortableRemoteObjectDelegate.java	1.13 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
-package javax.rmi.CORBA;	
+package javax.rmi.CORBA;
 
 import java.rmi.RemoteException;
 import java.rmi.NoSuchObjectException;
@@ -26,7 +42,7 @@ import java.rmi.Remote;
  * methods of <code>javax.rmi.PortableRemoteObject</code>.
  *
  * Delegates are enabled by providing the delegate's class name as the
- * value of the 
+ * value of the
  * <code>javax.rmi.CORBA.PortableRemoteObjectClass</code>
  * system property.
  *
@@ -38,31 +54,31 @@ public interface PortableRemoteObjectDelegate {
      * Delegation call for {@link javax.rmi.PortableRemoteObject#exportObject}.
      */
     void exportObject(Remote obj)
-	throws RemoteException;
+        throws RemoteException;
 
     /**
      * Delegation call for {@link javax.rmi.PortableRemoteObject#toStub}.
      */
-    Remote toStub (Remote obj)   
-	throws NoSuchObjectException;
+    Remote toStub (Remote obj)
+        throws NoSuchObjectException;
 
     /**
      * Delegation call for {@link javax.rmi.PortableRemoteObject#unexportObject}.
      */
-    void unexportObject(Remote obj) 
-	throws NoSuchObjectException;
+    void unexportObject(Remote obj)
+        throws NoSuchObjectException;
 
     /**
      * Delegation call for {@link javax.rmi.PortableRemoteObject#narrow}.
      */
     java.lang.Object narrow (java.lang.Object narrowFrom,
-				    java.lang.Class narrowTo)
-	throws ClassCastException;
+                                    java.lang.Class narrowTo)
+        throws ClassCastException;
 
     /**
      * Delegation call for {@link javax.rmi.PortableRemoteObject#connect}.
      */
     void connect (Remote target, Remote source)
-	throws RemoteException;
+        throws RemoteException;
 
-}                                            
+}

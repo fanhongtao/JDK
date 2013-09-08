@@ -1,8 +1,26 @@
 /*
- * @(#)ExpandVetoException.java	1.11 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.tree;
@@ -16,7 +34,6 @@ import javax.swing.event.TreeExpansionEvent;
  * in <em>The Java Tutorial</em>
  * for further information and examples.
  *
- * @version 1.11 11/17/05
  * @author Scott Violet
  */
 public class ExpandVetoException extends Exception {
@@ -30,7 +47,7 @@ public class ExpandVetoException extends Exception {
      */
 
     public ExpandVetoException(TreeExpansionEvent event) {
-	this(event, null);
+        this(event, null);
     }
 
     /**
@@ -40,7 +57,7 @@ public class ExpandVetoException extends Exception {
      * @param message  a String containing the message
      */
     public ExpandVetoException(TreeExpansionEvent event, String message) {
-	super(message);
-	this.event = event;
+        super(message);
+        this.event = event;
     }
 }

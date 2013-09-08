@@ -1,16 +1,34 @@
 /*
- * @(#)KeyManagementException.java	1.19 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
 
 /**
  * This is the general key management exception for all operations
- * dealing with key management. Examples of subclasses of 
- * KeyManagementException that developers might create for 
+ * dealing with key management. Examples of subclasses of
+ * KeyManagementException that developers might create for
  * giving more detailed information could include:
  *
  * <ul>
@@ -19,7 +37,6 @@ package java.security;
  * <li>ExpiredKeyException
  * </ul>
  *
- * @version 1.19 05/11/17
  * @author Benjamin Renaud
  *
  * @see Key
@@ -36,18 +53,18 @@ public class KeyManagementException extends KeyException {
      * exception.
      */
     public KeyManagementException() {
-	super();
+        super();
     }
 
      /**
      * Constructs a KeyManagementException with the specified detail
      * message. A detail message is a String that describes this
-     * particular exception.  
+     * particular exception.
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
    public KeyManagementException(String msg) {
-	super(msg);
+        super(msg);
     }
 
     /**

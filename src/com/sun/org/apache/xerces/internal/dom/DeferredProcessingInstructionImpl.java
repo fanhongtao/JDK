@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,14 +24,13 @@ package com.sun.org.apache.xerces.internal.dom;
  * Processing Instructions (PIs) permit documents to carry
  * processor-specific information alongside their actual content. PIs
  * are most common in XML, but they are supported in HTML as well.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: DeferredProcessingInstructionImpl.java,v 1.2.6.1 2005/08/31 10:44:21 sunithareddy Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public class DeferredProcessingInstructionImpl
-    extends ProcessingInstructionImpl 
+    extends ProcessingInstructionImpl
     implements DeferredNode {
 
     //
@@ -36,7 +39,7 @@ public class DeferredProcessingInstructionImpl
 
     /** Serialization version. */
     static final long serialVersionUID = -4643577954293565388L;
-    
+
     //
     // Data
     //
@@ -49,7 +52,7 @@ public class DeferredProcessingInstructionImpl
     //
 
     /**
-     * This is the deferred constructor. Only the fNodeIndex is given here. 
+     * This is the deferred constructor. Only the fNodeIndex is given here.
      * All other data, can be requested from the ownerDocument via the index.
      */
     DeferredProcessingInstructionImpl(DeferredDocumentImpl ownerDocument,

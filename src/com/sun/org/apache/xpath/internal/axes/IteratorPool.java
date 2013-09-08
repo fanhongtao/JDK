@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,9 +53,9 @@ public class IteratorPool implements java.io.Serializable
     m_orig = original;
     m_freeStack = new Vector();
   }
-  
+
   /**
-   * Get an instance of the given object in this pool 
+   * Get an instance of the given object in this pool
    *
    * @return An instance of the given object
    */
@@ -75,9 +79,9 @@ public class IteratorPool implements java.io.Serializable
       return result;
     }
   }
-  
+
   /**
-   * Get an instance of the given object in this pool 
+   * Get an instance of the given object in this pool
    *
    * @return An instance of the given object
    */
@@ -109,7 +113,7 @@ public class IteratorPool implements java.io.Serializable
   }
 
   /**
-   * Add an instance of the given object to the pool  
+   * Add an instance of the given object to the pool
    *
    *
    * @param obj Object to add.

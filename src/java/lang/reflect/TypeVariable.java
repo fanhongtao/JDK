@@ -1,8 +1,26 @@
 /*
- * @(#)TypeVariable.java	1.5 05/11/30
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.reflect;
@@ -16,13 +34,13 @@ package java.lang.reflect;
  * requires the resolution (see JVMS 5) of the ith enclosing class of T,
  * for i = 0 to n, inclusive. Creating a type variable must not cause the
  * creation of its bounds. Repeated creation of a type variable has no effect.
- * 
+ *
  * <p>Multiple objects may be instantiated at run-time to
  * represent a given type variable. Even though a type variable is
  * created only once, this does not imply any requirement to cache
  * instances representing the type variable. However, all instances
  * representing a type variable must be equal() to each other.
- * As a consequence, users of type variables must not rely on the identity 
+ * As a consequence, users of type variables must not rely on the identity
  * of instances of classes implementing this interface.
  *
  * @param <D> the type of generic declaration that declared the
@@ -32,9 +50,9 @@ package java.lang.reflect;
  */
 public interface TypeVariable<D extends GenericDeclaration> extends Type {
     /**
-     * Returns an array of <tt>Type</tt> objects representing the 
+     * Returns an array of {@code Type} objects representing the
      * upper bound(s) of this type variable.  Note that if no upper bound is
-     * explicitly declared, the upper bound is <tt>Object</tt>.
+     * explicitly declared, the upper bound is {@code Object}.
      *
      * <p>For each upper bound B: <ul> <li>if B is a parameterized
      * type or a type variable, it is created, (see {@link
@@ -44,16 +62,16 @@ public interface TypeVariable<D extends GenericDeclaration> extends Type {
      *
      * @throws TypeNotPresentException  if any of the
      *     bounds refers to a non-existent type declaration
-     * @throws MalformedParameterizedTypeException if any of the 
-     *     bounds refer to a parameterized type that cannot be instantiated 
+     * @throws MalformedParameterizedTypeException if any of the
+     *     bounds refer to a parameterized type that cannot be instantiated
      *     for any reason
-     * @return an array of <tt>Type</tt>s representing the upper
+     * @return an array of {@code Type}s representing the upper
      *     bound(s) of this type variable
     */
     Type[] getBounds();
 
     /**
-     * Returns the <tt>GenericDeclaration</tt> object representing the 
+     * Returns the {@code GenericDeclaration} object representing the
      * generic declaration declared this type variable.
      *
      * @return the generic declaration declared for this type variable.
@@ -69,4 +87,3 @@ public interface TypeVariable<D extends GenericDeclaration> extends Type {
      */
     String getName();
 }
-

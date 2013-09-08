@@ -1,30 +1,40 @@
 /*
- * @(#)DefaultLoaderRepository.java	1.19 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.loading;
 
-
-// Java import
-
-import java.security.AccessController;
-import java.security.Permission;
+import static com.sun.jmx.defaults.JmxProperties.MBEANSERVER_LOGGER;
 import java.util.Iterator;
 import java.util.List;
-
-// JMX import
+import java.util.logging.Level;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
-import javax.management.loading.ClassLoaderRepository;
-
-import com.sun.jmx.trace.Trace;
 
 /**
  * <p>Keeps the list of Class Loaders registered in the MBean Server.
- * It provides the necessary methods to load classes using the registered 
+ * It provides the necessary methods to load classes using the registered
  * Class Loaders.</p>
  *
  * <p>This deprecated class is maintained for compatibility.  In
@@ -36,8 +46,8 @@ import com.sun.jmx.trace.Trace;
  * one.  It is strongly recommended that code referencing
  * <code>DefaultLoaderRepository</code> be rewritten.</p>
  *
- * @deprecated Use 
- * {@link javax.management.MBeanServer#getClassLoaderRepository()}} 
+ * @deprecated Use
+ * {@link javax.management.MBeanServer#getClassLoaderRepository()}}
  * instead.
  *
  * @since 1.5
@@ -45,10 +55,8 @@ import com.sun.jmx.trace.Trace;
 @Deprecated
 public class DefaultLoaderRepository {
 
-    private static final String dbgTag = "DefaultLoaderRepository";
-
     /**
-     * Go through the list of class loaders and try to load the requested 
+     * Go through the list of class loaders and try to load the requested
      * class.
      * The method will stop as soon as the class is found. If the class
      * is not found the method will throw a <CODE>ClassNotFoundException</CODE>
@@ -58,18 +66,20 @@ public class DefaultLoaderRepository {
      *
      * @return the loaded class.
      *
-     * @exception ClassNotFoundException The specified class could not be 
+     * @exception ClassNotFoundException The specified class could not be
      *            found.
      */
-    public static Class loadClass(String className)  
-	throws ClassNotFoundException {
-	debug("loadClass",className);
-	return load(null, className);
+    public static Class<?> loadClass(String className)
+        throws ClassNotFoundException {
+        MBEANSERVER_LOGGER.logp(Level.FINEST,
+                DefaultLoaderRepository.class.getName(),
+                "loadClass", className);
+        return load(null, className);
     }
 
     /**
-     * Go through the list of class loaders but exclude the given 
-     * class loader, then try to load 
+     * Go through the list of class loaders but exclude the given
+     * class loader, then try to load
      * the requested class.
      * The method will stop as soon as the class is found. If the class
      * is not found the method will throw a <CODE>ClassNotFoundException</CODE>
@@ -80,57 +90,31 @@ public class DefaultLoaderRepository {
      *
      * @return the loaded class.
      *
-     * @exception ClassNotFoundException The specified class could not be 
+     * @exception ClassNotFoundException The specified class could not be
      *    found.
      */
-    public static Class loadClassWithout(ClassLoader loader,
-					 String className) 
-	throws ClassNotFoundException {
-	debug("loadClassWithout",className);
-	return load(loader, className);
+    public static Class<?> loadClassWithout(ClassLoader loader,
+                                         String className)
+        throws ClassNotFoundException {
+        MBEANSERVER_LOGGER.logp(Level.FINEST,
+                DefaultLoaderRepository.class.getName(),
+                "loadClassWithout", className);
+        return load(loader, className);
     }
 
-    private static Class load(ClassLoader without, String className)
-	    throws ClassNotFoundException {
-	final List mbsList = MBeanServerFactory.findMBeanServer(null);
+    private static Class<?> load(ClassLoader without, String className)
+            throws ClassNotFoundException {
+        final List<MBeanServer> mbsList = MBeanServerFactory.findMBeanServer(null);
 
-	for (Iterator it = mbsList.iterator(); it.hasNext(); ) {
-	    MBeanServer mbs = (MBeanServer) it.next();
-	    ClassLoaderRepository clr = mbs.getClassLoaderRepository();
-	    try {
-		return clr.loadClassWithout(without, className);
-	    } catch (ClassNotFoundException e) {
-		// OK : Try with next one...
-	    }
-	}
-	throw new ClassNotFoundException(className);
-    }
-    
-    // TRACES & DEBUG
-    //---------------
-
-    private static boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_MBEANSERVER);
+        for (MBeanServer mbs : mbsList) {
+            ClassLoaderRepository clr = mbs.getClassLoaderRepository();
+            try {
+                return clr.loadClassWithout(without, className);
+            } catch (ClassNotFoundException e) {
+                // OK : Try with next one...
+            }
+        }
+        throw new ClassNotFoundException(className);
     }
 
-    private static void trace(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_MBEANSERVER, clz, func, info);
-    }
-
-    private static void trace(String func, String info) {
-        trace(dbgTag, func, info);
-    }
-
-    private static boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_MBEANSERVER);
-    }
-
-    private static void debug(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MBEANSERVER, clz, func, info);
-    }
-
-    private static void debug(String func, String info) {
-        debug(dbgTag, func, info);
-    }
- 
  }

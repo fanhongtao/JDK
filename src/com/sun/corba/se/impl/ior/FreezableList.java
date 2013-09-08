@@ -1,8 +1,26 @@
 /*
- * @(#)FreezableList.java	1.14 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior ;
@@ -15,7 +33,7 @@ import java.util.Iterator ;
 
 import com.sun.corba.se.spi.ior.MakeImmutable ;
 
-/** Simple class that delegates all List operations to 
+/** Simple class that delegates all List operations to
 * another list.  It also can be frozen, which means that
 * a number of operations can be performed on the list,
 * and then the list can be made immutable, so that no
@@ -28,97 +46,97 @@ public class FreezableList extends AbstractList {
 
     public boolean equals( Object obj )
     {
-	if (obj == null)
-	    return false ;
+        if (obj == null)
+            return false ;
 
-	if (!(obj instanceof FreezableList))
-	    return false ;
+        if (!(obj instanceof FreezableList))
+            return false ;
 
-	FreezableList other = (FreezableList)obj ;
+        FreezableList other = (FreezableList)obj ;
 
-	return delegate.equals( other.delegate ) &&
-	    (immutable == other.immutable) ;
+        return delegate.equals( other.delegate ) &&
+            (immutable == other.immutable) ;
     }
 
     public int hashCode()
     {
-	return delegate.hashCode() ;
+        return delegate.hashCode() ;
     }
 
     public FreezableList( List delegate, boolean immutable  )
     {
-	this.delegate = delegate ;
-	this.immutable = immutable ;
+        this.delegate = delegate ;
+        this.immutable = immutable ;
     }
 
     public FreezableList( List delegate )
     {
-	this( delegate, false ) ;
+        this( delegate, false ) ;
     }
 
     public void makeImmutable()
     {
-	immutable = true ;
+        immutable = true ;
     }
 
     public boolean isImmutable()
     {
-	return immutable ;
+        return immutable ;
     }
 
     public void makeElementsImmutable()
     {
-	Iterator iter = iterator() ;
-	while (iter.hasNext()) {
-	    Object obj = iter.next() ;
-	    if (obj instanceof MakeImmutable) {
-		MakeImmutable element = (MakeImmutable)obj ;
-		element.makeImmutable() ;
-	    }
-	}
+        Iterator iter = iterator() ;
+        while (iter.hasNext()) {
+            Object obj = iter.next() ;
+            if (obj instanceof MakeImmutable) {
+                MakeImmutable element = (MakeImmutable)obj ;
+                element.makeImmutable() ;
+            }
+        }
     }
 
     // Methods overridden from AbstractList
 
     public int size()
     {
-	return delegate.size() ;
+        return delegate.size() ;
     }
 
     public Object get(int index)
     {
-	return delegate.get(index) ;
+        return delegate.get(index) ;
     }
 
     public Object set(int index, Object element)
     {
-	if (immutable)
-	    throw new UnsupportedOperationException() ;
+        if (immutable)
+            throw new UnsupportedOperationException() ;
 
-	return delegate.set(index, element) ;
+        return delegate.set(index, element) ;
     }
 
     public void add(int index, Object element)
     {
-	if (immutable)
-	    throw new UnsupportedOperationException() ;
+        if (immutable)
+            throw new UnsupportedOperationException() ;
 
-	delegate.add(index, element) ;
+        delegate.add(index, element) ;
     }
 
     public Object remove(int index)
     {
-	if (immutable)
-	    throw new UnsupportedOperationException() ;
+        if (immutable)
+            throw new UnsupportedOperationException() ;
 
-	return delegate.remove(index) ;
+        return delegate.remove(index) ;
     }
 
     // We also override subList so that the result is a FreezableList.
     public List subList(int fromIndex, int toIndex)
     {
-	List list = delegate.subList(fromIndex, toIndex) ;
-	List result = new FreezableList( list, immutable ) ;
-	return result ;
+        List list = delegate.subList(fromIndex, toIndex) ;
+        List result = new FreezableList( list, immutable ) ;
+        return result ;
     }
 }

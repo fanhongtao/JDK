@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // Resolver.java - Represents an extension of OASIS Open Catalog files.
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,7 +45,6 @@ import javax.xml.parsers.SAXParserFactory;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class Resolver extends Catalog {
   /**
@@ -88,11 +91,11 @@ public class Resolver extends Catalog {
     SAXCatalogReader saxReader = new SAXCatalogReader(spf);
 
     saxReader.setCatalogParser(null, "XMLCatalog",
-			       "com.sun.org.apache.xml.internal.resolver.readers.XCatalogReader");
+                               "com.sun.org.apache.xml.internal.resolver.readers.XCatalogReader");
 
     saxReader.setCatalogParser(OASISXMLCatalogReader.namespaceName,
-			       "catalog",
-			       "com.sun.org.apache.xml.internal.resolver.readers.ExtendedXMLCatalogReader");
+                               "catalog",
+                               "com.sun.org.apache.xml.internal.resolver.readers.ExtendedXMLCatalogReader");
 
     addReader("application/xml", saxReader);
 
@@ -164,26 +167,26 @@ public class Resolver extends Catalog {
     while (en.hasMoreElements()) {
       CatalogEntry e = (CatalogEntry) en.nextElement();
       if (e.getEntryType() == RESOLVER) {
-	resolved = resolveExternalSystem(uri, e.getEntryArg(0));
-	if (resolved != null) {
-	  return resolved;
-	}
+        resolved = resolveExternalSystem(uri, e.getEntryArg(0));
+        if (resolved != null) {
+          return resolved;
+        }
       } else if (e.getEntryType() == URISUFFIX) {
-	String suffix = e.getEntryArg(0);
-	String result = e.getEntryArg(1);
+        String suffix = e.getEntryArg(0);
+        String result = e.getEntryArg(1);
 
-	if (suffix.length() <= uri.length()
-	    && uri.substring(uri.length()-suffix.length()).equals(suffix)) {
-	  return result;
-	}
+        if (suffix.length() <= uri.length()
+            && uri.substring(uri.length()-suffix.length()).equals(suffix)) {
+          return result;
+        }
       }
     }
 
     // Otherwise, look in the subordinate catalogs
     return resolveSubordinateCatalogs(Catalog.URI,
-				      null,
-				      null,
-				      uri);
+                                      null,
+                                      null,
+                                      uri);
   }
 
   /**
@@ -221,25 +224,25 @@ public class Resolver extends Catalog {
     while (en.hasMoreElements()) {
       CatalogEntry e = (CatalogEntry) en.nextElement();
       if (e.getEntryType() == RESOLVER) {
-	resolved = resolveExternalSystem(systemId, e.getEntryArg(0));
-	if (resolved != null) {
-	  return resolved;
-	}
+        resolved = resolveExternalSystem(systemId, e.getEntryArg(0));
+        if (resolved != null) {
+          return resolved;
+        }
       } else if (e.getEntryType() == SYSTEMSUFFIX) {
-	String suffix = e.getEntryArg(0);
-	String result = e.getEntryArg(1);
+        String suffix = e.getEntryArg(0);
+        String result = e.getEntryArg(1);
 
-	if (suffix.length() <= systemId.length()
-	    && systemId.substring(systemId.length()-suffix.length()).equals(suffix)) {
-	  return result;
-	}
+        if (suffix.length() <= systemId.length()
+            && systemId.substring(systemId.length()-suffix.length()).equals(suffix)) {
+          return result;
+        }
       }
     }
 
     return resolveSubordinateCatalogs(Catalog.SYSTEM,
-				      null,
-				      null,
-				      systemId);
+                                      null,
+                                      null,
+                                      systemId);
   }
 
   /**
@@ -271,7 +274,7 @@ public class Resolver extends Catalog {
    * match is not found in the catalog, instead null is returned
    * to indicate that no match was found.
    */
-  public String resolvePublic(String publicId, String systemId) 
+  public String resolvePublic(String publicId, String systemId)
     throws MalformedURLException, IOException {
 
     String resolved = super.resolvePublic(publicId, systemId);
@@ -283,24 +286,24 @@ public class Resolver extends Catalog {
     while (en.hasMoreElements()) {
       CatalogEntry e = (CatalogEntry) en.nextElement();
       if (e.getEntryType() == RESOLVER) {
-	if (systemId != null) {
-	  resolved = resolveExternalSystem(systemId,
-					   e.getEntryArg(0));
-	  if (resolved != null) {
-	    return resolved;
-	  }
-	}
-	resolved = resolveExternalPublic(publicId, e.getEntryArg(0));
-	if (resolved != null) {
-	  return resolved;
-	}
+        if (systemId != null) {
+          resolved = resolveExternalSystem(systemId,
+                                           e.getEntryArg(0));
+          if (resolved != null) {
+            return resolved;
+          }
+        }
+        resolved = resolveExternalPublic(publicId, e.getEntryArg(0));
+        if (resolved != null) {
+          return resolved;
+        }
       }
     }
 
     return resolveSubordinateCatalogs(Catalog.PUBLIC,
-				      null,
-				      publicId,
-				      systemId);
+                                      null,
+                                      publicId,
+                                      systemId);
   }
 
     /**
@@ -312,13 +315,13 @@ public class Resolver extends Catalog {
      * @return The system identifier to use for the systemId.
      */
     protected String resolveExternalSystem(String systemId, String resolver)
-	throws MalformedURLException, IOException {
-	Resolver r = queryResolver(resolver, "i2l", systemId, null);
-	if (r != null) {
-	    return r.resolveSystem(systemId);
-	} else {
-	    return null;
-	}
+        throws MalformedURLException, IOException {
+        Resolver r = queryResolver(resolver, "i2l", systemId, null);
+        if (r != null) {
+            return r.resolveSystem(systemId);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -330,13 +333,13 @@ public class Resolver extends Catalog {
      * @return The system identifier to use for the systemId.
      */
     protected String resolveExternalPublic(String publicId, String resolver)
-	throws MalformedURLException, IOException {
-	Resolver r = queryResolver(resolver, "fpi2l", publicId, null);
-	if (r != null) {
-	    return r.resolvePublic(publicId, null);
-	} else {
-	    return null;
-	}
+        throws MalformedURLException, IOException {
+        Resolver r = queryResolver(resolver, "fpi2l", publicId, null);
+        if (r != null) {
+            return r.resolvePublic(publicId, null);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -350,49 +353,49 @@ public class Resolver extends Catalog {
      * @return The Resolver constructed.
      */
     protected Resolver queryResolver(String resolver,
-				     String command,
-				     String arg1,
-				     String arg2) {
-	InputStream iStream = null;
-	String RFC2483 = resolver + "?command=" + command 
-	    + "&format=tr9401&uri=" + arg1 
-	    + "&uri2=" + arg2;
-	String line = null;
+                                     String command,
+                                     String arg1,
+                                     String arg2) {
+        InputStream iStream = null;
+        String RFC2483 = resolver + "?command=" + command
+            + "&format=tr9401&uri=" + arg1
+            + "&uri2=" + arg2;
+        String line = null;
 
-	try {
-	    URL url = new URL(RFC2483);
+        try {
+            URL url = new URL(RFC2483);
 
-	    URLConnection urlCon = url.openConnection();
+            URLConnection urlCon = url.openConnection();
 
-	    urlCon.setUseCaches(false);
+            urlCon.setUseCaches(false);
 
-	    Resolver r = (Resolver) newCatalog();
+            Resolver r = (Resolver) newCatalog();
 
-	    String cType = urlCon.getContentType();
+            String cType = urlCon.getContentType();
 
-	    // I don't care about the character set or subtype
-	    if (cType.indexOf(";") > 0) {
-		cType = cType.substring(0, cType.indexOf(";"));
-	    }
+            // I don't care about the character set or subtype
+            if (cType.indexOf(";") > 0) {
+                cType = cType.substring(0, cType.indexOf(";"));
+            }
 
-	    r.parseCatalog(cType, urlCon.getInputStream());
+            r.parseCatalog(cType, urlCon.getInputStream());
 
-	    return r;
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.UNPARSEABLE) {
-	    catalogManager.debug.message(1, "Unparseable catalog: " + RFC2483);
-	  } else if (cex.getExceptionType()
-		     == CatalogException.UNKNOWN_FORMAT) {
-	    catalogManager.debug.message(1, "Unknown catalog format: " + RFC2483);
-	  }
-	  return null;
-	} catch (MalformedURLException mue) {
-	    catalogManager.debug.message(1, "Malformed resolver URL: " + RFC2483);
-	    return null;
-	} catch (IOException ie) {
-	    catalogManager.debug.message(1, "I/O Exception opening resolver: " + RFC2483);
-	    return null;
-	}
+            return r;
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.UNPARSEABLE) {
+            catalogManager.debug.message(1, "Unparseable catalog: " + RFC2483);
+          } else if (cex.getExceptionType()
+                     == CatalogException.UNKNOWN_FORMAT) {
+            catalogManager.debug.message(1, "Unknown catalog format: " + RFC2483);
+          }
+          return null;
+        } catch (MalformedURLException mue) {
+            catalogManager.debug.message(1, "Malformed resolver URL: " + RFC2483);
+            return null;
+        } catch (IOException ie) {
+            catalogManager.debug.message(1, "I/O Exception opening resolver: " + RFC2483);
+            return null;
+        }
     }
 
     /**
@@ -403,12 +406,12 @@ public class Resolver extends Catalog {
      * @return The vector vec, with appvec's elements appended to it
      */
     private Vector appendVector(Vector vec, Vector appvec) {
-	if (appvec != null) {
-	    for (int count = 0; count < appvec.size(); count++) {
-		vec.addElement(appvec.elementAt(count));
-	    }
-	}
-	return vec;
+        if (appvec != null) {
+            for (int count = 0; count < appvec.size(); count++) {
+                vec.addElement(appvec.elementAt(count));
+            }
+        }
+        return vec;
     }
 
     /**
@@ -419,22 +422,22 @@ public class Resolver extends Catalog {
      * @return A vector of URNs that map to the systemId.
      */
     public Vector resolveAllSystemReverse(String systemId)
-	throws MalformedURLException, IOException {
-	Vector resolved = new Vector();
+        throws MalformedURLException, IOException {
+        Vector resolved = new Vector();
 
-	// If there's a SYSTEM entry in this catalog, use it
-	if (systemId != null) {
-	    Vector localResolved = resolveLocalSystemReverse(systemId);
-	    resolved = appendVector(resolved, localResolved);
-	}
+        // If there's a SYSTEM entry in this catalog, use it
+        if (systemId != null) {
+            Vector localResolved = resolveLocalSystemReverse(systemId);
+            resolved = appendVector(resolved, localResolved);
+        }
 
-	// Otherwise, look in the subordinate catalogs
-	Vector subResolved = resolveAllSubordinateCatalogs(SYSTEMREVERSE,
-							   null,
-							   null,
-							   systemId);
+        // Otherwise, look in the subordinate catalogs
+        Vector subResolved = resolveAllSubordinateCatalogs(SYSTEMREVERSE,
+                                                           null,
+                                                           null,
+                                                           systemId);
 
-	return appendVector(resolved, subResolved);
+        return appendVector(resolved, subResolved);
     }
 
     /**
@@ -445,13 +448,13 @@ public class Resolver extends Catalog {
      * @return A (single) URN that maps to the systemId.
      */
     public String resolveSystemReverse(String systemId)
-	throws MalformedURLException, IOException {
-	Vector resolved = resolveAllSystemReverse(systemId);
-	if (resolved != null && resolved.size() > 0) {
-	    return (String) resolved.elementAt(0);
-	} else {
-	    return null;
-	}
+        throws MalformedURLException, IOException {
+        Vector resolved = resolveAllSystemReverse(systemId);
+        if (resolved != null && resolved.size() > 0) {
+            return (String) resolved.elementAt(0);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -482,27 +485,27 @@ public class Resolver extends Catalog {
      * @throws IOException Error reading subordinate catalog file.
      */
     public Vector resolveAllSystem(String systemId)
-	throws MalformedURLException, IOException {
-	Vector resolutions = new Vector();
+        throws MalformedURLException, IOException {
+        Vector resolutions = new Vector();
 
-	// If there are SYSTEM entries in this catalog, start with them
-	if (systemId != null) {
-	    Vector localResolutions = resolveAllLocalSystem(systemId);
-	    resolutions = appendVector(resolutions, localResolutions);
-	}
+        // If there are SYSTEM entries in this catalog, start with them
+        if (systemId != null) {
+            Vector localResolutions = resolveAllLocalSystem(systemId);
+            resolutions = appendVector(resolutions, localResolutions);
+        }
 
-	// Then look in the subordinate catalogs
-	Vector subResolutions = resolveAllSubordinateCatalogs(SYSTEM,
-							      null,
-							      null,
-							      systemId);
-	resolutions = appendVector(resolutions, subResolutions);
+        // Then look in the subordinate catalogs
+        Vector subResolutions = resolveAllSubordinateCatalogs(SYSTEM,
+                                                              null,
+                                                              null,
+                                                              systemId);
+        resolutions = appendVector(resolutions, subResolutions);
 
-	if (resolutions.size() > 0) {
-	    return resolutions;
-	} else {
-	    return null;
-	}
+        if (resolutions.size() > 0) {
+            return resolutions;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -517,24 +520,24 @@ public class Resolver extends Catalog {
      * @return A vector of the mapped system identifiers or null
      */
     private Vector resolveAllLocalSystem(String systemId) {
-	Vector map = new Vector();
-	String osname = System.getProperty("os.name");
-	boolean windows = (osname.indexOf("Windows") >= 0);
-	Enumeration en = catalogEntries.elements();
-	while (en.hasMoreElements()) {
-	    CatalogEntry e = (CatalogEntry) en.nextElement();
-	    if (e.getEntryType() == SYSTEM
-		&& (e.getEntryArg(0).equals(systemId)
-		    || (windows
-			&& e.getEntryArg(0).equalsIgnoreCase(systemId)))) {
-		map.addElement(e.getEntryArg(1));
-	    }
-	}
-	if (map.size() == 0) {
-	    return null;
-	} else {
-	    return map;
-	}
+        Vector map = new Vector();
+        String osname = System.getProperty("os.name");
+        boolean windows = (osname.indexOf("Windows") >= 0);
+        Enumeration en = catalogEntries.elements();
+        while (en.hasMoreElements()) {
+            CatalogEntry e = (CatalogEntry) en.nextElement();
+            if (e.getEntryType() == SYSTEM
+                && (e.getEntryArg(0).equals(systemId)
+                    || (windows
+                        && e.getEntryArg(0).equalsIgnoreCase(systemId)))) {
+                map.addElement(e.getEntryArg(1));
+            }
+        }
+        if (map.size() == 0) {
+            return null;
+        } else {
+            return map;
+        }
     }
 
     /**
@@ -545,24 +548,24 @@ public class Resolver extends Catalog {
      * @return A vector of URNs that map to the systemId.
      */
     private Vector resolveLocalSystemReverse(String systemId) {
-	Vector map = new Vector();
-	String osname = System.getProperty("os.name");
-	boolean windows = (osname.indexOf("Windows") >= 0);
-	Enumeration en = catalogEntries.elements();
-	while (en.hasMoreElements()) {
-	    CatalogEntry e = (CatalogEntry) en.nextElement();
-	    if (e.getEntryType() == SYSTEM
-		&& (e.getEntryArg(1).equals(systemId)
-		    || (windows
-			&& e.getEntryArg(1).equalsIgnoreCase(systemId)))) {
-		map.addElement(e.getEntryArg(0));
-	    }
-	}
-	if (map.size() == 0) {
-	    return null;
-	} else {
-	    return map;
-	}
+        Vector map = new Vector();
+        String osname = System.getProperty("os.name");
+        boolean windows = (osname.indexOf("Windows") >= 0);
+        Enumeration en = catalogEntries.elements();
+        while (en.hasMoreElements()) {
+            CatalogEntry e = (CatalogEntry) en.nextElement();
+            if (e.getEntryType() == SYSTEM
+                && (e.getEntryArg(1).equals(systemId)
+                    || (windows
+                        && e.getEntryArg(1).equalsIgnoreCase(systemId)))) {
+                map.addElement(e.getEntryArg(0));
+            }
+        }
+        if (map.size() == 0) {
+            return null;
+        } else {
+            return map;
+        }
     }
 
     /**
@@ -594,98 +597,94 @@ public class Resolver extends Catalog {
      * to indicate that no match was found.
      */
     private synchronized Vector resolveAllSubordinateCatalogs(int entityType,
-					      String entityName,
-					      String publicId,
-					      String systemId)
-	throws MalformedURLException, IOException {
+                                              String entityName,
+                                              String publicId,
+                                              String systemId)
+        throws MalformedURLException, IOException {
 
-	Vector resolutions = new Vector();
+        Vector resolutions = new Vector();
 
-	for (int catPos = 0; catPos < catalogs.size(); catPos++) {
-	    Resolver c = null;
+        for (int catPos = 0; catPos < catalogs.size(); catPos++) {
+            Resolver c = null;
 
-	    try {
-		c = (Resolver) catalogs.elementAt(catPos);
-	    } catch (ClassCastException e) {
-		String catfile = (String) catalogs.elementAt(catPos);
-		c = (Resolver) newCatalog();
+            try {
+                c = (Resolver) catalogs.elementAt(catPos);
+            } catch (ClassCastException e) {
+                String catfile = (String) catalogs.elementAt(catPos);
+                c = (Resolver) newCatalog();
 
-		try {
-		    c.parseCatalog(catfile);
-		} catch (MalformedURLException mue) {
-		    catalogManager.debug.message(1, "Malformed Catalog URL", catfile);
-		} catch (FileNotFoundException fnfe) {
-		    catalogManager.debug.message(1, "Failed to load catalog, file not found",
-			  catfile);
-		} catch (IOException ioe) {
-		    catalogManager.debug.message(1, "Failed to load catalog, I/O error", catfile);
-		}
+                try {
+                    c.parseCatalog(catfile);
+                } catch (MalformedURLException mue) {
+                    catalogManager.debug.message(1, "Malformed Catalog URL", catfile);
+                } catch (FileNotFoundException fnfe) {
+                    catalogManager.debug.message(1, "Failed to load catalog, file not found",
+                          catfile);
+                } catch (IOException ioe) {
+                    catalogManager.debug.message(1, "Failed to load catalog, I/O error", catfile);
+                }
 
-		catalogs.setElementAt(c, catPos);
-	    }
+                catalogs.setElementAt(c, catPos);
+            }
 
-	    String resolved = null;
+            String resolved = null;
 
-	    // Ok, now what are we supposed to call here?
-	    if (entityType == DOCTYPE) {
-		resolved = c.resolveDoctype(entityName,
-					    publicId,
-					    systemId);
-		if (resolved != null) {
-		    // Only find one DOCTYPE resolution
-		    resolutions.addElement(resolved);
-		    return resolutions;
-		}
-	    } else if (entityType == DOCUMENT) {
-		resolved = c.resolveDocument();
-		if (resolved != null) {
-		    // Only find one DOCUMENT resolution
-		    resolutions.addElement(resolved);
-		    return resolutions;
-		}
-	    } else if (entityType == ENTITY) {
-		resolved = c.resolveEntity(entityName,
-					   publicId,
-					   systemId);
-		if (resolved != null) {
-		    // Only find one ENTITY resolution
-		    resolutions.addElement(resolved);
-		    return resolutions;
-		}
-	    } else if (entityType == NOTATION) {
-		resolved = c.resolveNotation(entityName,
-					     publicId,
-					     systemId);
-		if (resolved != null) {
-		    // Only find one NOTATION resolution
-		    resolutions.addElement(resolved);
-		    return resolutions;
-		}
-	    } else if (entityType == PUBLIC) {
-		resolved = c.resolvePublic(publicId, systemId);
-		if (resolved != null) {
-		    // Only find one PUBLIC resolution
-		    resolutions.addElement(resolved);
-		    return resolutions;
-		}
-	    } else if (entityType == SYSTEM) {
-		Vector localResolutions = c.resolveAllSystem(systemId);
-		resolutions = appendVector(resolutions, localResolutions);
-		break;
-	    } else if (entityType == SYSTEMREVERSE) {
-		Vector localResolutions = c.resolveAllSystemReverse(systemId);
-		resolutions = appendVector(resolutions, localResolutions);
-	    }
-	}
+            // Ok, now what are we supposed to call here?
+            if (entityType == DOCTYPE) {
+                resolved = c.resolveDoctype(entityName,
+                                            publicId,
+                                            systemId);
+                if (resolved != null) {
+                    // Only find one DOCTYPE resolution
+                    resolutions.addElement(resolved);
+                    return resolutions;
+                }
+            } else if (entityType == DOCUMENT) {
+                resolved = c.resolveDocument();
+                if (resolved != null) {
+                    // Only find one DOCUMENT resolution
+                    resolutions.addElement(resolved);
+                    return resolutions;
+                }
+            } else if (entityType == ENTITY) {
+                resolved = c.resolveEntity(entityName,
+                                           publicId,
+                                           systemId);
+                if (resolved != null) {
+                    // Only find one ENTITY resolution
+                    resolutions.addElement(resolved);
+                    return resolutions;
+                }
+            } else if (entityType == NOTATION) {
+                resolved = c.resolveNotation(entityName,
+                                             publicId,
+                                             systemId);
+                if (resolved != null) {
+                    // Only find one NOTATION resolution
+                    resolutions.addElement(resolved);
+                    return resolutions;
+                }
+            } else if (entityType == PUBLIC) {
+                resolved = c.resolvePublic(publicId, systemId);
+                if (resolved != null) {
+                    // Only find one PUBLIC resolution
+                    resolutions.addElement(resolved);
+                    return resolutions;
+                }
+            } else if (entityType == SYSTEM) {
+                Vector localResolutions = c.resolveAllSystem(systemId);
+                resolutions = appendVector(resolutions, localResolutions);
+                break;
+            } else if (entityType == SYSTEMREVERSE) {
+                Vector localResolutions = c.resolveAllSystemReverse(systemId);
+                resolutions = appendVector(resolutions, localResolutions);
+            }
+        }
 
-	if (resolutions != null) {
-	    return resolutions;
-	} else {
-	    return null;
-	}
+        if (resolutions != null) {
+            return resolutions;
+        } else {
+            return null;
+        }
     }
 }
-
-
-
-

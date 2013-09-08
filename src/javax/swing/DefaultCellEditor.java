@@ -1,15 +1,33 @@
 /*
- * @(#)DefaultCellEditor.java	1.53 08/02/04
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing;
 
 import java.awt.Component;
 import java.awt.event.*;
-import java.awt.AWTEvent;
+import java.beans.ConstructorProperties;
 import java.lang.Boolean;
 import javax.swing.table.*;
 import javax.swing.event.*;
@@ -29,13 +47,12 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.53 02/04/08
  * @author Alan Chung
  * @author Philip Milne
  */
 
-public class DefaultCellEditor extends AbstractCellEditor 
-    implements TableCellEditor, TreeCellEditor { 
+public class DefaultCellEditor extends AbstractCellEditor
+    implements TableCellEditor, TreeCellEditor {
 
 //
 //  Instance Variables
@@ -64,19 +81,20 @@ public class DefaultCellEditor extends AbstractCellEditor
      *
      * @param textField  a <code>JTextField</code> object
      */
+    @ConstructorProperties({"component"})
     public DefaultCellEditor(final JTextField textField) {
         editorComponent = textField;
-	this.clickCountToStart = 2;
+        this.clickCountToStart = 2;
         delegate = new EditorDelegate() {
             public void setValue(Object value) {
-		textField.setText((value != null) ? value.toString() : "");
+                textField.setText((value != null) ? value.toString() : "");
             }
 
-	    public Object getCellEditorValue() {
-		return textField.getText();
-	    }
+            public Object getCellEditorValue() {
+                return textField.getText();
+            }
         };
-	textField.addActionListener(delegate);
+        textField.addActionListener(delegate);
     }
 
     /**
@@ -87,22 +105,22 @@ public class DefaultCellEditor extends AbstractCellEditor
     public DefaultCellEditor(final JCheckBox checkBox) {
         editorComponent = checkBox;
         delegate = new EditorDelegate() {
-            public void setValue(Object value) { 
-            	boolean selected = false; 
-		if (value instanceof Boolean) {
-		    selected = ((Boolean)value).booleanValue();
-		}
-		else if (value instanceof String) {
-		    selected = value.equals("true");
-		}
-		checkBox.setSelected(selected);
+            public void setValue(Object value) {
+                boolean selected = false;
+                if (value instanceof Boolean) {
+                    selected = ((Boolean)value).booleanValue();
+                }
+                else if (value instanceof String) {
+                    selected = value.equals("true");
+                }
+                checkBox.setSelected(selected);
             }
 
-	    public Object getCellEditorValue() {
-		return Boolean.valueOf(checkBox.isSelected());
-	    }
+            public Object getCellEditorValue() {
+                return Boolean.valueOf(checkBox.isSelected());
+            }
         };
-	checkBox.addActionListener(delegate);
+        checkBox.addActionListener(delegate);
         checkBox.setRequestFocusEnabled(false);
     }
 
@@ -114,33 +132,33 @@ public class DefaultCellEditor extends AbstractCellEditor
      */
     public DefaultCellEditor(final JComboBox comboBox) {
         editorComponent = comboBox;
-	comboBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
+        comboBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
         delegate = new EditorDelegate() {
-	    public void setValue(Object value) {
-		comboBox.setSelectedItem(value);
+            public void setValue(Object value) {
+                comboBox.setSelectedItem(value);
             }
 
-	    public Object getCellEditorValue() {
-		return comboBox.getSelectedItem();
-	    }
-                
-            public boolean shouldSelectCell(EventObject anEvent) { 
-                if (anEvent instanceof MouseEvent) { 
+            public Object getCellEditorValue() {
+                return comboBox.getSelectedItem();
+            }
+
+            public boolean shouldSelectCell(EventObject anEvent) {
+                if (anEvent instanceof MouseEvent) {
                     MouseEvent e = (MouseEvent)anEvent;
                     return e.getID() != MouseEvent.MOUSE_DRAGGED;
                 }
                 return true;
             }
-	    public boolean stopCellEditing() {
-		if (comboBox.isEditable()) {
-		    // Commit edited value.
-		    comboBox.actionPerformed(new ActionEvent(
-				     DefaultCellEditor.this, 0, ""));
-		}
-		return super.stopCellEditing();
-	    }
+            public boolean stopCellEditing() {
+                if (comboBox.isEditable()) {
+                    // Commit edited value.
+                    comboBox.actionPerformed(new ActionEvent(
+                                     DefaultCellEditor.this, 0, ""));
+                }
+                return super.stopCellEditing();
+            }
         };
-	comboBox.addActionListener(delegate);
+        comboBox.addActionListener(delegate);
     }
 
     /**
@@ -149,7 +167,7 @@ public class DefaultCellEditor extends AbstractCellEditor
      * @return the editor <code>Component</code>
      */
     public Component getComponent() {
-	return editorComponent;
+        return editorComponent;
     }
 
 //
@@ -163,7 +181,7 @@ public class DefaultCellEditor extends AbstractCellEditor
      * @see #getClickCountToStart
      */
     public void setClickCountToStart(int count) {
-	clickCountToStart = count;
+        clickCountToStart = count;
     }
 
     /**
@@ -171,12 +189,12 @@ public class DefaultCellEditor extends AbstractCellEditor
      * @return the number of clicks needed to start editing
      */
     public int getClickCountToStart() {
-	return clickCountToStart;
+        return clickCountToStart;
     }
 
 //
-//  Override the implementations of the superclass, forwarding all methods 
-//  from the CellEditor interface to our delegate. 
+//  Override the implementations of the superclass, forwarding all methods
+//  from the CellEditor interface to our delegate.
 //
 
     /**
@@ -193,17 +211,17 @@ public class DefaultCellEditor extends AbstractCellEditor
      * the <code>delegate</code>.
      * @see EditorDelegate#isCellEditable(EventObject)
      */
-    public boolean isCellEditable(EventObject anEvent) { 
-	return delegate.isCellEditable(anEvent); 
+    public boolean isCellEditable(EventObject anEvent) {
+        return delegate.isCellEditable(anEvent);
     }
-    
+
     /**
      * Forwards the message from the <code>CellEditor</code> to
      * the <code>delegate</code>.
      * @see EditorDelegate#shouldSelectCell(EventObject)
      */
-    public boolean shouldSelectCell(EventObject anEvent) { 
-	return delegate.shouldSelectCell(anEvent); 
+    public boolean shouldSelectCell(EventObject anEvent) {
+        return delegate.shouldSelectCell(anEvent);
     }
 
     /**
@@ -212,7 +230,7 @@ public class DefaultCellEditor extends AbstractCellEditor
      * @see EditorDelegate#stopCellEditing
      */
     public boolean stopCellEditing() {
-	return delegate.stopCellEditing();
+        return delegate.stopCellEditing();
     }
 
     /**
@@ -221,7 +239,7 @@ public class DefaultCellEditor extends AbstractCellEditor
      * @see EditorDelegate#cancelCellEditing
      */
     public void cancelCellEditing() {
-	delegate.cancelCellEditing();
+        delegate.cancelCellEditing();
     }
 
 //
@@ -230,14 +248,14 @@ public class DefaultCellEditor extends AbstractCellEditor
 
     /** Implements the <code>TreeCellEditor</code> interface. */
     public Component getTreeCellEditorComponent(JTree tree, Object value,
-						boolean isSelected,
-						boolean expanded,
-						boolean leaf, int row) {
-	String         stringValue = tree.convertValueToText(value, isSelected,
-					    expanded, leaf, row, false);
+                                                boolean isSelected,
+                                                boolean expanded,
+                                                boolean leaf, int row) {
+        String         stringValue = tree.convertValueToText(value, isSelected,
+                                            expanded, leaf, row, false);
 
-	delegate.setValue(stringValue);
-	return editorComponent;
+        delegate.setValue(stringValue);
+        return editorComponent;
     }
 
 //
@@ -245,8 +263,8 @@ public class DefaultCellEditor extends AbstractCellEditor
 //
     /** Implements the <code>TableCellEditor</code> interface. */
     public Component getTableCellEditorComponent(JTable table, Object value,
-						 boolean isSelected,
-						 int row, int column) {
+                                                 boolean isSelected,
+                                                 int row, int column) {
         delegate.setValue(value);
         if (editorComponent instanceof JCheckBox) {
             //in order to avoid a "flashing" effect when clicking a checkbox
@@ -268,7 +286,7 @@ public class DefaultCellEditor extends AbstractCellEditor
                 editorComponent.setOpaque(false);
             }
         }
-	return editorComponent;
+        return editorComponent;
     }
 
 
@@ -285,7 +303,7 @@ public class DefaultCellEditor extends AbstractCellEditor
         protected Object value;
 
        /**
-        * Returns the value of this cell. 
+        * Returns the value of this cell.
         * @return the value of this cell
         */
         public Object getCellEditorValue() {
@@ -293,12 +311,12 @@ public class DefaultCellEditor extends AbstractCellEditor
         }
 
        /**
-        * Sets the value of this cell. 
+        * Sets the value of this cell.
         * @param value the new value of this cell
         */
-    	public void setValue(Object value) { 
-	    this.value = value; 
-	}
+        public void setValue(Object value) {
+            this.value = value;
+        }
 
        /**
         * Returns true if <code>anEvent</code> is <b>not</b> a
@@ -312,22 +330,22 @@ public class DefaultCellEditor extends AbstractCellEditor
         * @see #shouldSelectCell
         */
         public boolean isCellEditable(EventObject anEvent) {
-	    if (anEvent instanceof MouseEvent) { 
-		return ((MouseEvent)anEvent).getClickCount() >= clickCountToStart;
-	    }
-	    return true;
-	}
-    	
+            if (anEvent instanceof MouseEvent) {
+                return ((MouseEvent)anEvent).getClickCount() >= clickCountToStart;
+            }
+            return true;
+        }
+
        /**
         * Returns true to indicate that the editing cell may
         * be selected.
         *
         * @param   anEvent         the event
-        * @return  true 
+        * @return  true
         * @see #isCellEditable
         */
-        public boolean shouldSelectCell(EventObject anEvent) { 
-            return true; 
+        public boolean shouldSelectCell(EventObject anEvent) {
+            return true;
         }
 
        /**
@@ -336,26 +354,26 @@ public class DefaultCellEditor extends AbstractCellEditor
         * @param anEvent          the event
         */
         public boolean startCellEditing(EventObject anEvent) {
-	    return true;
-	}
+            return true;
+        }
 
        /**
         * Stops editing and
         * returns true to indicate that editing has stopped.
         * This method calls <code>fireEditingStopped</code>.
         *
-        * @return  true 
+        * @return  true
         */
-        public boolean stopCellEditing() { 
-	    fireEditingStopped(); 
-	    return true;
-	}
+        public boolean stopCellEditing() {
+            fireEditingStopped();
+            return true;
+        }
 
        /**
         * Cancels editing.  This method calls <code>fireEditingCanceled</code>.
         */
-       public void cancelCellEditing() { 
-	   fireEditingCanceled(); 
+       public void cancelCellEditing() {
+           fireEditingCanceled();
        }
 
        /**
@@ -365,7 +383,7 @@ public class DefaultCellEditor extends AbstractCellEditor
         */
         public void actionPerformed(ActionEvent e) {
             DefaultCellEditor.this.stopCellEditing();
-	}
+        }
 
        /**
         * When an item's state changes, editing is ended.
@@ -373,8 +391,8 @@ public class DefaultCellEditor extends AbstractCellEditor
         * @see #stopCellEditing
         */
         public void itemStateChanged(ItemEvent e) {
-	    DefaultCellEditor.this.stopCellEditing();
-	}
+            DefaultCellEditor.this.stopCellEditing();
+        }
     }
 
 } // End of class JCellEditor

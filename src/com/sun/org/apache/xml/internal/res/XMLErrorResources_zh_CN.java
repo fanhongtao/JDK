@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +92,7 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
   public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
 
 
-  /*
+  /* 
    * Message keys
    */
   public static final String ER_FUNCTION_NOT_SUPPORTED = "ER_FUNCTION_NOT_SUPPORTED";
@@ -144,14 +148,15 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
   public static final String ER_SYSTEMID_UNKNOWN = "ER_SYSTEMID_UNKNOWN";
   public static final String ER_LOCATION_UNKNOWN = "ER_LOCATION_UNKNOWN";
   public static final String ER_PREFIX_MUST_RESOLVE = "ER_PREFIX_MUST_RESOLVE";
-  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";
+  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";  
   public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT";
-  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";
-  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";
-  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";
-  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";
-  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";
-  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";
+  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";  
+  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";  
+  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";  
+  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";  
+  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";  
+  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";  
+  public static final String ER_NAME_CANT_START_WITH_COLON = "ER_NAME_CANT_START_WITH_COLON";
 
   // Message keys used by the serializer
   public static final String ER_RESOURCE_COULD_NOT_FIND = "ER_RESOURCE_COULD_NOT_FIND";
@@ -166,6 +171,7 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
   public static final String ER_COULD_NOT_LOAD_METHOD_PROPERTY = "ER_COULD_NOT_LOAD_METHOD_PROPERTY";
   public static final String ER_SERIALIZER_NOT_CONTENTHANDLER = "ER_SERIALIZER_NOT_CONTENTHANDLER";
   public static final String ER_ILLEGAL_ATTRIBUTE_POSITION = "ER_ILLEGAL_ATTRIBUTE_POSITION";
+  public static final String ER_ILLEGAL_CHARACTER = "ER_ILLEGAL_CHARACTER";
 
   /*
    * Now fill in the message text.
@@ -175,232 +181,229 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
 
   // Error messages...
 
-  /**
-   * Get the lookup table for error messages
-   *
-   * @return The association list.
-   */
-  public Object[][] getContents()
-  {
-    return new Object[][] {
+  /** The lookup table for error messages.   */
+  private static final Object[][] _contents = {
 
   /** Error message ID that has a null message, but takes in a single object.    */
     {"ER0000" , "{0}" },
-
-    { ER_FUNCTION_NOT_SUPPORTED,
-      "\u4e0d\u652f\u6301\u51fd\u6570\uff01"},
+ 
+    { ER_FUNCTION_NOT_SUPPORTED, 
+      "\u4E0D\u652F\u6301\u8BE5\u51FD\u6570!"},
 
     { ER_CANNOT_OVERWRITE_CAUSE,
-      "\u65e0\u6cd5\u8986\u76d6\u539f\u56e0"},
+      "\u65E0\u6CD5\u8986\u76D6\u539F\u56E0"},
 
     { ER_NO_DEFAULT_IMPL,
-      "\u627e\u4e0d\u5230\u7f3a\u7701\u5b9e\u73b0"},
+      "\u627E\u4E0D\u5230\u9ED8\u8BA4\u5B9E\u73B0 "},
 
     { ER_CHUNKEDINTARRAY_NOT_SUPPORTED,
-      "\u5f53\u524d\u4e0d\u652f\u6301 ChunkedIntArray({0})"},
+      "\u5F53\u524D\u4E0D\u652F\u6301 ChunkedIntArray({0})"},
 
     { ER_OFFSET_BIGGER_THAN_SLOT,
-      "\u504f\u79fb\u5927\u4e8e\u69fd"},
+      "\u504F\u79FB\u91CF\u5927\u4E8E\u63D2\u69FD"},
 
     { ER_COROUTINE_NOT_AVAIL,
-      "\u534f\u540c\u7a0b\u5e8f\u4e0d\u53ef\u7528\uff0cid={0}"},
-
+      "Coroutine \u4E0D\u53EF\u7528, id={0}"},
+    
     { ER_COROUTINE_CO_EXIT,
-      "CoroutineManager \u63a5\u6536\u5230 co_exit() \u8bf7\u6c42"},
+      "CoroutineManager \u6536\u5230 co_exit() \u8BF7\u6C42"},
 
     { ER_COJOINROUTINESET_FAILED,
-      "co_joinCoroutineSet() \u5931\u8d25"},
+      "co_joinCoroutineSet() \u5931\u8D25"},
 
     { ER_COROUTINE_PARAM,
-      "\u534f\u540c\u7a0b\u5e8f\u53c2\u6570\u9519\u8bef\uff08{0}\uff09"},
+      "Coroutine \u53C2\u6570\u9519\u8BEF ({0})"},
 
     { ER_PARSER_DOTERMINATE_ANSWERS,
-      "\n\u610f\u5916\uff1a\u89e3\u6790\u5668 doTerminate \u5e94\u7b54 {0}"},
+      "\n\u610F\u5916: \u8BED\u6CD5\u5206\u6790\u5668\u5BF9\u7B54\u590D{0}\u6267\u884C doTerminate"},
 
     { ER_NO_PARSE_CALL_WHILE_PARSING,
-      "\u5206\u6790\u65f6\u53ef\u80fd\u6ca1\u6709\u8c03\u7528 parse"},
+      "\u65E0\u6CD5\u5728\u6267\u884C\u8BED\u6CD5\u5206\u6790\u65F6\u8C03\u7528 parse"},
 
     { ER_TYPED_ITERATOR_AXIS_NOT_IMPLEMENTED,
-      "\u9519\u8bef\uff1a\u6ca1\u6709\u5b9e\u73b0\u4e3a\u8f74 {0} \u8f93\u5165\u7684\u8fed\u4ee3\u5668"},
+      "\u9519\u8BEF: \u672A\u5B9E\u73B0\u8F74{0}\u7684\u7C7B\u578B\u5316\u8FED\u4EE3\u5668"},
 
     { ER_ITERATOR_AXIS_NOT_IMPLEMENTED,
-      "\u9519\u8bef\uff1a\u6ca1\u6709\u5b9e\u73b0\u8f74 {0} \u7684\u8fed\u4ee3\u5668"},
+      "\u9519\u8BEF: \u672A\u5B9E\u73B0\u8F74{0}\u7684\u8FED\u4EE3\u5668 "},
 
     { ER_ITERATOR_CLONE_NOT_SUPPORTED,
-      "\u4e0d\u652f\u6301\u8fed\u4ee3\u5668\u514b\u9686"},
+      "\u4E0D\u652F\u6301\u514B\u9686\u8FED\u4EE3\u5668"},
 
     { ER_UNKNOWN_AXIS_TYPE,
-      "\u672a\u77e5\u7684\u8f74\u904d\u5386\u7c7b\u578b\uff1a{0}"},
+      "\u8F74\u904D\u5386\u7C7B\u578B\u672A\u77E5: {0}"},
 
     { ER_AXIS_NOT_SUPPORTED,
-      "\u4e0d\u652f\u6301\u8f74\u904d\u5386\u7a0b\u5e8f\uff1a{0}"},
+      "\u4E0D\u652F\u6301\u8F74\u904D\u5386\u7A0B\u5E8F: {0}"},
 
     { ER_NO_DTMIDS_AVAIL,
-      "\u65e0\u66f4\u591a\u7684 DTM \u6807\u8bc6\u53ef\u7528"},
+      "\u65E0\u6CD5\u4F7F\u7528\u66F4\u591A DTM ID"},
 
     { ER_NOT_SUPPORTED,
-      "\u4e0d\u652f\u6301\uff1a{0}"},
-
+      "\u4E0D\u652F\u6301: {0}"},
+    
     { ER_NODE_NON_NULL,
-      "\u8282\u70b9\u5bf9\u4e8e getDTMHandleFromNode \u5fc5\u987b\u662f\u975e\u7a7a\u7684"},
+      "getDTMHandleFromNode \u7684\u8282\u70B9\u5FC5\u987B\u4E3A\u975E\u7A7A\u503C"},
 
     { ER_COULD_NOT_RESOLVE_NODE,
-      "\u65e0\u6cd5\u5c06\u8282\u70b9\u89e3\u6790\u5230\u53e5\u67c4"},
+      "\u65E0\u6CD5\u5C06\u8282\u70B9\u89E3\u6790\u4E3A\u53E5\u67C4"},
 
     { ER_STARTPARSE_WHILE_PARSING,
-       "\u5206\u6790\u65f6\u53ef\u80fd\u6ca1\u6709\u8c03\u7528 startParse"},
+       "\u65E0\u6CD5\u5728\u6267\u884C\u8BED\u6CD5\u5206\u6790\u65F6\u8C03\u7528 startParse"},
 
     { ER_STARTPARSE_NEEDS_SAXPARSER,
-       "startParse \u9700\u8981\u975e\u7a7a\u7684 SAXParser"},
+       "startParse \u9700\u8981\u975E\u7A7A SAXParser"},
 
     { ER_COULD_NOT_INIT_PARSER,
-       "\u65e0\u6cd5\u7528\u4ee5\u4e0b\u5de5\u5177\u521d\u59cb\u5316\u89e3\u6790\u5668"},
+       "\u65E0\u6CD5\u4F7F\u7528\u4EE5\u4E0B\u5BF9\u8C61\u521D\u59CB\u5316\u8BED\u6CD5\u5206\u6790\u5668"},
 
     { ER_EXCEPTION_CREATING_POOL,
-       "\u4e3a\u6c60\u521b\u5efa\u65b0\u5b9e\u4f8b\u65f6\u53d1\u751f\u5f02\u5e38"},
+       "\u4E3A\u6C60\u521B\u5EFA\u65B0\u5B9E\u4F8B\u65F6\u51FA\u73B0\u5F02\u5E38\u9519\u8BEF"},
 
     { ER_PATH_CONTAINS_INVALID_ESCAPE_SEQUENCE,
-       "\u8def\u5f84\u5305\u542b\u65e0\u6548\u7684\u8f6c\u4e49\u5e8f\u5217"},
+       "\u8DEF\u5F84\u5305\u542B\u65E0\u6548\u7684\u8F6C\u4E49\u5E8F\u5217"},
 
     { ER_SCHEME_REQUIRED,
-       "\u6a21\u5f0f\u662f\u5fc5\u9700\u7684\uff01"},
-
+       "\u65B9\u6848\u662F\u5FC5\u9700\u7684!"},
+    
     { ER_NO_SCHEME_IN_URI,
-       "\u5728 URI \u4e2d\u627e\u4e0d\u5230\u6a21\u5f0f\uff1a{0}"},
+       "\u5728 URI \u4E2D\u627E\u4E0D\u5230\u65B9\u6848: {0}"},
 
     { ER_NO_SCHEME_INURI,
-       "URI \u4e2d\u672a\u627e\u5230\u6a21\u5f0f"},
+       "\u5728 URI \u4E2D\u627E\u4E0D\u5230\u65B9\u6848"},
 
     { ER_PATH_INVALID_CHAR,
-       "\u8def\u5f84\u5305\u542b\u975e\u6cd5\u5b57\u7b26\uff1a{0}"},
+       "\u8DEF\u5F84\u5305\u542B\u65E0\u6548\u5B57\u7B26: {0}"},
 
     { ER_SCHEME_FROM_NULL_STRING,
-       "\u65e0\u6cd5\u4ece\u7a7a\u5b57\u7b26\u4e32\u8bbe\u7f6e\u6a21\u5f0f"},
+       "\u65E0\u6CD5\u4ECE\u7A7A\u5B57\u7B26\u4E32\u8BBE\u7F6E\u65B9\u6848"},
 
     { ER_SCHEME_NOT_CONFORMANT,
-       "\u6a21\u5f0f\u4e0d\u4e00\u81f4\u3002"},
+       "\u65B9\u6848\u4E0D\u4E00\u81F4\u3002"},
 
     { ER_HOST_ADDRESS_NOT_WELLFORMED,
-       "\u4e3b\u673a\u4e0d\u662f\u683c\u5f0f\u826f\u597d\u7684\u5730\u5740"},
+       "\u4E3B\u673A\u4E0D\u662F\u683C\u5F0F\u826F\u597D\u7684\u5730\u5740"},
 
     { ER_PORT_WHEN_HOST_NULL,
-       "\u4e3b\u673a\u4e3a\u7a7a\u65f6\uff0c\u65e0\u6cd5\u8bbe\u7f6e\u7aef\u53e3"},
+       "\u4E3B\u673A\u4E3A\u7A7A\u65F6, \u65E0\u6CD5\u8BBE\u7F6E\u7AEF\u53E3"},
 
     { ER_INVALID_PORT,
-       "\u65e0\u6548\u7684\u7aef\u53e3\u53f7"},
+       "\u65E0\u6548\u7684\u7AEF\u53E3\u53F7"},
 
     { ER_FRAG_FOR_GENERIC_URI,
-       "\u53ea\u80fd\u4e3a\u4e00\u822c URI \u8bbe\u7f6e\u7247\u6bb5"},
+       "\u53EA\u80FD\u4E3A\u4E00\u822C URI \u8BBE\u7F6E\u7247\u6BB5"},
 
     { ER_FRAG_WHEN_PATH_NULL,
-       "\u8def\u5f84\u4e3a\u7a7a\u65f6\uff0c\u65e0\u6cd5\u8bbe\u7f6e\u7247\u6bb5"},
+       "\u8DEF\u5F84\u4E3A\u7A7A\u65F6, \u65E0\u6CD5\u8BBE\u7F6E\u7247\u6BB5"},
 
     { ER_FRAG_INVALID_CHAR,
-       "\u7247\u6bb5\u5305\u542b\u65e0\u6548\u7684\u5b57\u7b26"},
+       "\u7247\u6BB5\u5305\u542B\u65E0\u6548\u7684\u5B57\u7B26"},
 
     { ER_PARSER_IN_USE,
-      "\u89e3\u6790\u5668\u5df2\u5728\u4f7f\u7528"},
+      "\u8BED\u6CD5\u5206\u6790\u5668\u5DF2\u5728\u4F7F\u7528"},
 
     { ER_CANNOT_CHANGE_WHILE_PARSING,
-      "\u5206\u6790\u65f6\u65e0\u6cd5\u66f4\u6539 {0} {1}"},
-
+      "\u65E0\u6CD5\u5728\u8FDB\u884C\u8BED\u6CD5\u5206\u6790\u65F6\u66F4\u6539{0} {1}"},
+   
     { ER_SELF_CAUSATION_NOT_PERMITTED,
-      "\u4e0d\u5141\u8bb8\u81ea\u6210\u56e0\u679c\u5173\u7cfb"},
+      "\u4E0D\u5141\u8BB8\u4F7F\u7528\u81EA\u56E0"},
 
     { ER_NO_USERINFO_IF_NO_HOST,
-      "\u5982\u679c\u6ca1\u6709\u6307\u5b9a\u4e3b\u673a\uff0c\u5219\u4e0d\u53ef\u4ee5\u6307\u5b9a Userinfo"},
+      "\u5982\u679C\u6CA1\u6709\u6307\u5B9A\u4E3B\u673A, \u5219\u4E0D\u53EF\u4EE5\u6307\u5B9A Userinfo"},
 
     { ER_NO_PORT_IF_NO_HOST,
-      "\u5982\u679c\u6ca1\u6709\u6307\u5b9a\u4e3b\u673a\uff0c\u5219\u4e0d\u53ef\u4ee5\u6307\u5b9a\u7aef\u53e3"},
+      "\u5982\u679C\u6CA1\u6709\u6307\u5B9A\u4E3B\u673A, \u5219\u4E0D\u53EF\u4EE5\u6307\u5B9A\u7AEF\u53E3"},
 
-    { ER_NO_QUERY_STRING_IN_PATH,
-      "\u8def\u5f84\u548c\u67e5\u8be2\u5b57\u7b26\u4e32\u4e2d\u4e0d\u80fd\u6307\u5b9a\u67e5\u8be2\u5b57\u7b26\u4e32"},
+    { ER_NO_QUERY_STRING_IN_PATH, 
+      "\u8DEF\u5F84\u548C\u67E5\u8BE2\u5B57\u7B26\u4E32\u4E2D\u4E0D\u80FD\u6307\u5B9A\u67E5\u8BE2\u5B57\u7B26\u4E32"},
 
     { ER_NO_FRAGMENT_STRING_IN_PATH,
-      "\u8def\u5f84\u548c\u7247\u6bb5\u4e2d\u90fd\u65e0\u6cd5\u6307\u5b9a\u7247\u6bb5"},
+      "\u8DEF\u5F84\u548C\u7247\u6BB5\u4E2D\u90FD\u65E0\u6CD5\u6307\u5B9A\u7247\u6BB5"},
 
-    { ER_CANNOT_INIT_URI_EMPTY_PARMS,
-      "\u65e0\u6cd5\u4ee5\u7a7a\u53c2\u6570\u521d\u59cb\u5316 URI"},
+    { ER_CANNOT_INIT_URI_EMPTY_PARMS, 
+      "\u65E0\u6CD5\u4EE5\u7A7A\u53C2\u6570\u521D\u59CB\u5316 URI"},
 
     { ER_METHOD_NOT_SUPPORTED,
-      "\u5c1a\u4e0d\u652f\u6301\u65b9\u6cd5"},
-
+      "\u5C1A\u4E0D\u652F\u6301\u8BE5\u65B9\u6CD5 "},
+    
     { ER_INCRSAXSRCFILTER_NOT_RESTARTABLE,
-      "\u5f53\u524d\u4e0d\u53ef\u91cd\u65b0\u542f\u52a8 IncrementalSAXSource_Filter"},
+      "\u5F53\u524D\u65E0\u6CD5\u91CD\u65B0\u542F\u52A8 IncrementalSAXSource_Filter"},
 
     { ER_XMLRDR_NOT_BEFORE_STARTPARSE,
-      "XMLReader \u4e0d\u5728 startParse \u8bf7\u6c42\u4e4b\u524d"},
+      "XMLReader \u4E0D\u5728 startParse \u8BF7\u6C42\u4E4B\u524D"},
 
     { ER_AXIS_TRAVERSER_NOT_SUPPORTED,
-      "\u4e0d\u652f\u6301\u8f74\u904d\u5386\u7a0b\u5e8f\uff1a{0}"},
+      "\u4E0D\u652F\u6301\u8F74\u904D\u5386\u7A0B\u5E8F: {0}"},
 
     { ER_ERRORHANDLER_CREATED_WITH_NULL_PRINTWRITER,
-      "\u4ee5\u7a7a\u7684 PrintWriter \u521b\u5efa\u4e86 ListingErrorHandler\uff01"},
+      "\u4F7F\u7528\u7A7A PrintWriter \u521B\u5EFA\u4E86 ListingErrorHandler!"},
 
     { ER_SYSTEMID_UNKNOWN,
-      "SystemId \u672a\u77e5"},
+      "SystemId \u672A\u77E5"},
 
     { ER_LOCATION_UNKNOWN,
-      "\u9519\u8bef\u4f4d\u7f6e\u672a\u77e5"},
+      "\u9519\u8BEF\u6240\u5728\u7684\u4F4D\u7F6E\u672A\u77E5"},
 
     { ER_PREFIX_MUST_RESOLVE,
-      "\u524d\u7f00\u5fc5\u987b\u89e3\u6790\u4e3a\u540d\u79f0\u7a7a\u95f4\uff1a{0}"},
+      "\u524D\u7F00\u5FC5\u987B\u89E3\u6790\u4E3A\u540D\u79F0\u7A7A\u95F4: {0}"},
 
     { ER_CREATEDOCUMENT_NOT_SUPPORTED,
-      "XPathContext \u4e2d\u4e0d\u652f\u6301 createDocument ()\uff01"},
+      "XPathContext \u4E2D\u4E0D\u652F\u6301 createDocument()!"},
 
     { ER_CHILD_HAS_NO_OWNER_DOCUMENT,
-      "\u5b50\u5c5e\u6027\u6ca1\u6709\u6240\u6709\u8005\u6587\u6863\uff01"},
+      "\u5C5E\u6027\u5B50\u7EA7\u6CA1\u6709\u6240\u6709\u8005\u6587\u6863!"},
 
     { ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT,
-      "\u5b50\u5c5e\u6027\u6ca1\u6709\u6240\u6709\u8005\u6587\u6863\u5143\u7d20\uff01"},
+      "\u5C5E\u6027\u5B50\u7EA7\u6CA1\u6709\u6240\u6709\u8005\u6587\u6863\u5143\u7D20!"},
 
     { ER_CANT_OUTPUT_TEXT_BEFORE_DOC,
-      "\u8b66\u544a\uff1a\u65e0\u6cd5\u8f93\u51fa document \u5143\u7d20\u524d\u7684\u6587\u672c\uff01\u5ffd\u7565..."},
+      "\u8B66\u544A: \u65E0\u6CD5\u8F93\u51FA\u6587\u6863\u5143\u7D20\u4E4B\u524D\u7684\u6587\u672C! \u5C06\u5FFD\u7565..."},
 
     { ER_CANT_HAVE_MORE_THAN_ONE_ROOT,
-      "DOM \u4e0a\u4e0d\u80fd\u6709\u591a\u4e2a\u6839\uff01"},
+      "DOM \u4E0A\u4E0D\u80FD\u6709\u591A\u4E2A\u6839!"},
 
     { ER_ARG_LOCALNAME_NULL,
-       "\u81ea\u53d8\u91cf\u201clocalName\u201d\u4e3a\u7a7a"},
-
+       "\u53C2\u6570 'localName' \u4E3A\u7A7A\u503C"},
+ 
     // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
     // The localname is the portion after the optional colon; the message indicates
     // that there is a problem with that part of the QNAME.
     { ER_ARG_LOCALNAME_INVALID,
-       "QNAME \u4e2d\u7684\u672c\u5730\u540d\u5e94\u5f53\u662f\u6709\u6548\u7684 NCName"},
+       "QNAME \u4E2D\u7684\u672C\u5730\u540D\u79F0\u5E94\u4E3A\u6709\u6548 NCName"},
 
     // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
     // The prefix is the portion before the optional colon; the message indicates
     // that there is a problem with that part of the QNAME.
     { ER_ARG_PREFIX_INVALID,
-       "QNAME \u4e2d\u7684\u524d\u7f00\u5e94\u5f53\u662f\u6709\u6548\u7684 NCName"},
-
-    { "BAD_CODE", "createMessage \u7684\u53c2\u6570\u8d85\u51fa\u8303\u56f4"},
-    { "FORMAT_FAILED", "\u5728 messageFormat \u8c03\u7528\u8fc7\u7a0b\u4e2d\u629b\u51fa\u7684\u5f02\u5e38"},
-    { "line", "\u884c\u53f7"},
-    { "column","\u5217\u53f7"},
-
+       "QNAME \u4E2D\u7684\u524D\u7F00\u5E94\u4E3A\u6709\u6548 NCName"},
+       
+    { ER_NAME_CANT_START_WITH_COLON,
+      "\u540D\u79F0\u4E0D\u80FD\u4EE5\u5192\u53F7\u5F00\u5934"},
+       
+    { "BAD_CODE", "createMessage \u7684\u53C2\u6570\u8D85\u51FA\u8303\u56F4"},
+    { "FORMAT_FAILED", "\u8C03\u7528 messageFormat \u65F6\u629B\u51FA\u5F02\u5E38\u9519\u8BEF"},
+    { "line", "\u884C\u53F7"},
+    { "column","\u5217\u53F7"},
+    
     {ER_SERIALIZER_NOT_CONTENTHANDLER,
-      "\u4e32\u884c\u5668\u7c7b\u201c{0}\u201d\u4e0d\u5b9e\u73b0 org.xml.sax.ContentHandler."},
-
+      "\u4E32\u884C\u5668\u7C7B ''{0}'' \u4E0D\u5B9E\u73B0 org.xml.sax.ContentHandler\u3002"},
+    
     {ER_RESOURCE_COULD_NOT_FIND,
-      "\u627e\u4e0d\u5230\u8d44\u6e90 [ {0} ]\u3002\n {1}" },
-
+      "\u627E\u4E0D\u5230\u8D44\u6E90 [ {0} ]\u3002\n {1}" },
+    
     {ER_RESOURCE_COULD_NOT_LOAD,
-      "\u8d44\u6e90 [ {0} ] \u65e0\u6cd5\u88c5\u5165\uff1a{1} \n {2} \t {3}" },
-
+      "\u8D44\u6E90 [ {0} ] \u65E0\u6CD5\u52A0\u8F7D: {1} \n {2} \t {3}" },
+    
     {ER_BUFFER_SIZE_LESSTHAN_ZERO,
-      "\u7f13\u51b2\u533a\u5927\u5c0f <=0" },
-
+      "\u7F13\u51B2\u533A\u5927\u5C0F <=0" },
+    
     {ER_INVALID_UTF16_SURROGATE,
-      "\u68c0\u6d4b\u5230\u65e0\u6548\u7684 UTF-16 \u66ff\u4ee3\u8005\uff1a{0}\uff1f" },
-
+      "\u68C0\u6D4B\u5230\u65E0\u6548\u7684 UTF-16 \u4EE3\u7406: {0}?" },
+    
     {ER_OIERROR,
-      "IO \u9519\u8bef" },
-
+      "IO \u9519\u8BEF" },
+    
     {ER_ILLEGAL_ATTRIBUTE_POSITION,
-      "\u5728\u751f\u6210\u5b50\u8282\u70b9\u4e4b\u540e\u6216\u5728\u751f\u6210\u5143\u7d20\u4e4b\u524d\u65e0\u6cd5\u6dfb\u52a0\u5c5e\u6027 {0}\u3002\u5c06\u5ffd\u7565\u5c5e\u6027\u3002"},
+      "\u5728\u751F\u6210\u5B50\u8282\u70B9\u4E4B\u540E\u6216\u5728\u751F\u6210\u5143\u7D20\u4E4B\u524D\u65E0\u6CD5\u6DFB\u52A0\u5C5E\u6027 {0}\u3002\u5C06\u5FFD\u7565\u5C5E\u6027\u3002"},
 
       /*
        * Note to translators:  The stylesheet contained a reference to a
@@ -408,7 +411,7 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
        * text is the name of the prefix.
        */
     {ER_NAMESPACE_PREFIX,
-      "\u6ca1\u6709\u8bf4\u660e\u540d\u79f0\u7a7a\u95f4\u524d\u7f00\u201c{0}\u201d\u3002" },
+      "\u6CA1\u6709\u8BF4\u660E\u540D\u79F0\u7A7A\u95F4\u524D\u7F00 ''{0}''\u3002" },
       /*
        * Note to translators:  This message is reported if the stylesheet
        * being processed attempted to construct an XML document with an
@@ -416,7 +419,7 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
        * specifies the name of the attribute.
        */
     {ER_STRAY_ATTRIBUTE,
-      "\u5c5e\u6027\u201c{0}\u201d\u5728\u5143\u7d20\u5916\u3002" },
+      "\u5C5E\u6027 ''{0}'' \u5728\u5143\u7D20\u5916\u90E8\u3002" },
 
       /*
        * Note to translators:  As with the preceding message, a namespace
@@ -426,17 +429,29 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
        * namespace declaration.
        */
     {ER_STRAY_NAMESPACE,
-      "\u540d\u79f0\u7a7a\u95f4\u8bf4\u660e\u201c{0}\u201d=\u201c{1}\u201d\u5728\u5143\u7d20\u5916\u3002" },
+      "\u540D\u79F0\u7A7A\u95F4\u58F0\u660E ''{0}''=''{1}'' \u5728\u5143\u7D20\u5916\u90E8\u3002" },
 
     {ER_COULD_NOT_LOAD_RESOURCE,
-      "\u65e0\u6cd5\u88c5\u5165\u201c{0}\u201d\uff08\u68c0\u67e5 CLASSPATH\uff09\uff0c\u73b0\u5728\u53ea\u4f7f\u7528\u7f3a\u7701\u503c"},
+      "\u65E0\u6CD5\u52A0\u8F7D ''{0}'' (\u68C0\u67E5 CLASSPATH), \u73B0\u5728\u53EA\u4F7F\u7528\u9ED8\u8BA4\u503C"},
 
+    { ER_ILLEGAL_CHARACTER,
+       "\u5C1D\u8BD5\u8F93\u51FA\u672A\u4EE5{1}\u7684\u6307\u5B9A\u8F93\u51FA\u7F16\u7801\u8868\u793A\u7684\u6574\u6570\u503C {0} \u7684\u5B57\u7B26\u3002"},
+    
     {ER_COULD_NOT_LOAD_METHOD_PROPERTY,
-      "\u65e0\u6cd5\u4e3a\u8f93\u51fa\u65b9\u6cd5\u201c{1}\u201d\u88c5\u8f7d\u5c5e\u6027\u6587\u4ef6\u201c{0}\u201d\uff08\u68c0\u67e5 CLASSPATH\uff09" }
-
-
+      "\u65E0\u6CD5\u4E3A\u8F93\u51FA\u65B9\u6CD5 ''{1}'' \u52A0\u8F7D\u5C5E\u6027\u6587\u4EF6 ''{0}'' (\u68C0\u67E5 CLASSPATH)" }
+    
+  
   };
-  }
+
+  /**
+   * Get the association list.
+   *
+   * @return The association list.
+   */
+ 
+    protected Object[][] getContents() {
+        return _contents;
+    }
 
   /**
    *   Return a named ResourceBundle for a particular locale.  This method mimics the behavior
@@ -468,7 +483,7 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
         // Since we can't find the localized property file,
         // fall back to en_US.
         return (XMLErrorResources) ResourceBundle.getBundle(className,
-                new Locale("zh", "CN"));
+                new Locale("en", "US"));
       }
       catch (MissingResourceException e2)
       {
@@ -476,7 +491,7 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
         // Now we are really in trouble.
         // very bad, definitely very bad...not going to get very far
         throw new MissingResourceException(
-          "\u65e0\u6cd5\u88c5\u5165\u4efb\u4f55\u8d44\u6e90\u5305\u3002", className, "");
+          "Could not load any resource bundles.", className, "");
       }
     }
   }
@@ -500,5 +515,5 @@ public class XMLErrorResources_zh_CN extends ListResourceBundle
 
     return suffix;
   }
-
+  
 }

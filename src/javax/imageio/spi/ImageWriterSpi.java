@@ -1,8 +1,26 @@
 /*
- * @(#)ImageWriterSpi.java	1.40 09/04/29
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.spi;
@@ -54,15 +72,17 @@ import javax.imageio.stream.ImageOutputStream;
  * @see javax.imageio.ImageTypeSpecifier
  * @see javax.imageio.ImageWriter
  *
- * @version 0.5
  */
 public abstract class ImageWriterSpi extends ImageReaderWriterSpi {
 
     /**
      * A single-element array, initially containing
-     * <code>ImageInputStream.class</code>, to be returned from
-     * <code>getInputTypes</code>.
+     * <code>ImageOutputStream.class</code>, to be returned from
+     * <code>getOutputTypes</code>.
+     * @deprecated Instead of using this field, directly create
+     * the equivalent array <code>{ ImageOutputStream.class }<code>.
      */
+    @Deprecated
     public static final Class[] STANDARD_OUTPUT_TYPE =
         { ImageOutputStream.class };
 
@@ -146,7 +166,7 @@ public abstract class ImageWriterSpi extends ImageReaderWriterSpi {
      * object can use trees described by the standard metadata format.
      * @param nativeImageMetadataFormatName a
      * <code>String</code>, or <code>null</code>, to be returned from
-     * <code>getNativeImageMetadataFormatName</code>. 
+     * <code>getNativeImageMetadataFormatName</code>.
      * @param nativeImageMetadataFormatClassName a
      * <code>String</code>, or <code>null</code>, to be used to instantiate
      * a metadata format object to be returned from
@@ -320,10 +340,10 @@ public abstract class ImageWriterSpi extends ImageReaderWriterSpi {
      *
      * <p> The default implementation simply returns
      * <code>createWriterInstance(null)</code>.
-     *     
+     *
      * @return an <code>ImageWriter</code> instance.
      *
-     * @exception IOException if an error occurs during loading, 
+     * @exception IOException if an error occurs during loading,
      * or initialization of the writer class, or during instantiation
      * or initialization of the writer object.
      */
@@ -361,7 +381,7 @@ public abstract class ImageWriterSpi extends ImageReaderWriterSpi {
 
     /**
      * Returns <code>true</code> if the <code>ImageWriter</code> object
-     * passed in is an instance of the <code>ImageWriter</code> 
+     * passed in is an instance of the <code>ImageWriter</code>
      * associated with this service provider.
      *
      * @param writer an <code>ImageWriter</code> instance.
@@ -371,7 +391,7 @@ public abstract class ImageWriterSpi extends ImageReaderWriterSpi {
      * @exception IllegalArgumentException if <code>writer</code> is
      * <code>null</code>.
      */
-    public boolean isOwnWriter(ImageWriter writer) { 
+    public boolean isOwnWriter(ImageWriter writer) {
         if (writer == null) {
             throw new IllegalArgumentException("writer == null!");
         }

@@ -1,8 +1,26 @@
 /*
- * @(#)AbstractListModel.java	1.35 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing;
@@ -24,10 +42,11 @@ import java.util.EventListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.35 11/17/05
+ * @param <E> the type of the elements of this model
+ *
  * @author Hans Muller
  */
-public abstract class AbstractListModel implements ListModel, Serializable
+public abstract class AbstractListModel<E> implements ListModel<E>, Serializable
 {
     protected EventListenerList listenerList = new EventListenerList();
 
@@ -37,20 +56,20 @@ public abstract class AbstractListModel implements ListModel, Serializable
      * to the data model occurs.
      *
      * @param l the <code>ListDataListener</code> to be added
-     */  
+     */
     public void addListDataListener(ListDataListener l) {
-	listenerList.add(ListDataListener.class, l);
+        listenerList.add(ListDataListener.class, l);
     }
 
 
     /**
-     * Removes a listener from the list that's notified each time a 
+     * Removes a listener from the list that's notified each time a
      * change to the data model occurs.
      *
      * @param l the <code>ListDataListener</code> to be removed
-     */  
+     */
     public void removeListDataListener(ListDataListener l) {
-	listenerList.remove(ListDataListener.class, l);
+        listenerList.remove(ListDataListener.class, l);
     }
 
 
@@ -61,15 +80,14 @@ public abstract class AbstractListModel implements ListModel, Serializable
      * @return all of this model's <code>ListDataListener</code>s,
      *         or an empty array if no list data listeners
      *         are currently registered
-     * 
+     *
      * @see #addListDataListener
      * @see #removeListDataListener
-     * 
+     *
      * @since 1.4
      */
     public ListDataListener[] getListDataListeners() {
-        return (ListDataListener[])listenerList.getListeners(
-                ListDataListener.class);
+        return listenerList.getListeners(ListDataListener.class);
     }
 
 
@@ -80,7 +98,7 @@ public abstract class AbstractListModel implements ListModel, Serializable
      * are specified by the closed interval index0, index1 -- the endpoints
      * are included.  Note that
      * index0 need not be less than or equal to index1.
-     * 
+     *
      * @param source the <code>ListModel</code> that changed, typically "this"
      * @param index0 one end of the new interval
      * @param index1 the other end of the new interval
@@ -89,17 +107,17 @@ public abstract class AbstractListModel implements ListModel, Serializable
      */
     protected void fireContentsChanged(Object source, int index0, int index1)
     {
-	Object[] listeners = listenerList.getListenerList();
-	ListDataEvent e = null;
+        Object[] listeners = listenerList.getListenerList();
+        ListDataEvent e = null;
 
-	for (int i = listeners.length - 2; i >= 0; i -= 2) {
-	    if (listeners[i] == ListDataListener.class) {
-		if (e == null) {
-		    e = new ListDataEvent(source, ListDataEvent.CONTENTS_CHANGED, index0, index1);
-		}
-		((ListDataListener)listeners[i+1]).contentsChanged(e);
-	    }	       
-	}
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ListDataListener.class) {
+                if (e == null) {
+                    e = new ListDataEvent(source, ListDataEvent.CONTENTS_CHANGED, index0, index1);
+                }
+                ((ListDataListener)listeners[i+1]).contentsChanged(e);
+            }
+        }
     }
 
 
@@ -110,7 +128,7 @@ public abstract class AbstractListModel implements ListModel, Serializable
      * are specified by a closed interval index0, index1 -- the enpoints
      * are included.  Note that
      * index0 need not be less than or equal to index1.
-     * 
+     *
      * @param source the <code>ListModel</code> that changed, typically "this"
      * @param index0 one end of the new interval
      * @param index1 the other end of the new interval
@@ -119,27 +137,27 @@ public abstract class AbstractListModel implements ListModel, Serializable
      */
     protected void fireIntervalAdded(Object source, int index0, int index1)
     {
-	Object[] listeners = listenerList.getListenerList();
-	ListDataEvent e = null;
+        Object[] listeners = listenerList.getListenerList();
+        ListDataEvent e = null;
 
-	for (int i = listeners.length - 2; i >= 0; i -= 2) {
-	    if (listeners[i] == ListDataListener.class) {
-		if (e == null) {
-		    e = new ListDataEvent(source, ListDataEvent.INTERVAL_ADDED, index0, index1);
-		}
-		((ListDataListener)listeners[i+1]).intervalAdded(e);
-	    }	       
-	}
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ListDataListener.class) {
+                if (e == null) {
+                    e = new ListDataEvent(source, ListDataEvent.INTERVAL_ADDED, index0, index1);
+                }
+                ((ListDataListener)listeners[i+1]).intervalAdded(e);
+            }
+        }
     }
 
 
     /**
      * <code>AbstractListModel</code> subclasses must call this method
-     * <b>after</b> one or more elements are removed from the model. 
+     * <b>after</b> one or more elements are removed from the model.
      * <code>index0</code> and <code>index1</code> are the end points
      * of the interval that's been removed.  Note that <code>index0</code>
      * need not be less than or equal to <code>index1</code>.
-     * 
+     *
      * @param source the <code>ListModel</code> that changed, typically "this"
      * @param index0 one end of the removed interval,
      *               including <code>index0</code>
@@ -150,17 +168,17 @@ public abstract class AbstractListModel implements ListModel, Serializable
      */
     protected void fireIntervalRemoved(Object source, int index0, int index1)
     {
-	Object[] listeners = listenerList.getListenerList();
-	ListDataEvent e = null;
+        Object[] listeners = listenerList.getListenerList();
+        ListDataEvent e = null;
 
-	for (int i = listeners.length - 2; i >= 0; i -= 2) {
-	    if (listeners[i] == ListDataListener.class) {
-		if (e == null) {
-		    e = new ListDataEvent(source, ListDataEvent.INTERVAL_REMOVED, index0, index1);
-		}
-		((ListDataListener)listeners[i+1]).intervalRemoved(e);
-	    }	       
-	}
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ListDataListener.class) {
+                if (e == null) {
+                    e = new ListDataEvent(source, ListDataEvent.INTERVAL_REMOVED, index0, index1);
+                }
+                ((ListDataListener)listeners[i+1]).intervalRemoved(e);
+            }
+        }
     }
 
     /**
@@ -199,6 +217,6 @@ public abstract class AbstractListModel implements ListModel, Serializable
      * @since 1.3
      */
     public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
-	return listenerList.getListeners(listenerType); 
+        return listenerList.getListeners(listenerType);
     }
 }

@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002, 2003,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,13 +23,12 @@ package com.sun.org.apache.xerces.internal.util;
 import com.sun.org.apache.xerces.internal.xni.XMLResourceIdentifier;
 
 /**
- * The XMLResourceIdentifierImpl class is an implementation of the 
+ * The XMLResourceIdentifierImpl class is an implementation of the
  * XMLResourceIdentifier interface which defines the location identity
  * of a resource.
  *
- * @author Andy Clark 
+ * @author Andy Clark
  *
- * @version $Id: XMLResourceIdentifierImpl.java,v 1.2.6.1 2005/09/05 09:00:29 neerajbj Exp $
  */
 public class XMLResourceIdentifierImpl
     implements XMLResourceIdentifier {
@@ -157,7 +160,7 @@ public class XMLResourceIdentifierImpl
         return fLiteralSystemId;
     } // getLiteralSystemId():String
 
-    /** 
+    /**
      * Returns the base URI against which the literal SystemId is to be resolved.
      */
     public String getBaseSystemId() {

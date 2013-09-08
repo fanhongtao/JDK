@@ -1,8 +1,26 @@
 /*
- * @(#)MessageHandler.java	1.7 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
 
@@ -31,9 +49,9 @@ public interface MessageHandler
     void handleInput(RequestMessage_1_2 header) throws IOException;
 
     // Reply
-    void handleInput(ReplyMessage_1_0 header) throws IOException; 
+    void handleInput(ReplyMessage_1_0 header) throws IOException;
     void handleInput(ReplyMessage_1_1 header) throws IOException;
-    void handleInput(ReplyMessage_1_2 header) throws IOException; 
+    void handleInput(ReplyMessage_1_2 header) throws IOException;
 
     // LocateRequest
     void handleInput(LocateRequestMessage_1_0 header) throws IOException;
@@ -52,4 +70,3 @@ public interface MessageHandler
     // CancelRequest
     void handleInput(CancelRequestMessage header) throws IOException;
 }
-

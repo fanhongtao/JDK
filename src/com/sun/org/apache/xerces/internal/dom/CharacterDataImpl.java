@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,10 +35,9 @@ import org.w3c.dom.NodeList;
  * <p>
  * This class doesn't directly support mutation events, however, it notifies
  * the document when mutations are performed so that the document class do so.
- * 
- * @xerces.internal 
  *
- * @version $Id: CharacterDataImpl.java,v 1.2.6.1 2005/08/30 11:34:20 sunithareddy Exp $
+ * @xerces.internal
+ *
  * @since  PR-DOM-Level-1-19980818.
  */
 public abstract class CharacterDataImpl
@@ -90,43 +93,43 @@ public abstract class CharacterDataImpl
         return data;
     }
 
-   /** Convenience wrapper for calling setNodeValueInternal when 
-     * we are not performing a replacement operation  
+   /** Convenience wrapper for calling setNodeValueInternal when
+     * we are not performing a replacement operation
      */
     protected void setNodeValueInternal (String value) {
-    	setNodeValueInternal(value, false);
+        setNodeValueInternal(value, false);
     }
-    
+
     /** This function added so that we can distinguish whether
      *  setNodeValue has been called from some other DOM functions.
      *  or by the client.<p>
-     *  This is important, because we do one type of Range fix-up, 
+     *  This is important, because we do one type of Range fix-up,
      *  from the high-level functions in CharacterData, and another
      *  type if the client simply calls setNodeValue(value).
      */
     protected void setNodeValueInternal(String value, boolean replace) {
-        
+
         CoreDocumentImpl ownerDocument = ownerDocument();
-        
+
         if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
-        
+
         // revisit: may want to set the value in ownerDocument.
         // Default behavior, overridden in some subclasses
         if (needsSyncData()) {
             synchronizeData();
         }
-        
+
         // keep old value for document notification
         String oldvalue = this.data;
-        
+
         // notify document
         ownerDocument.modifyingCharacterData(this, replace);
-        
+
         this.data = value;
-        
+
         // notify document
         ownerDocument.modifiedCharacterData(this, oldvalue, value, replace);
     }
@@ -149,11 +152,11 @@ public abstract class CharacterDataImpl
 
     /**
      * Retrieve character data currently stored in this node.
-     * 
+     *
      * @throws DOMExcpetion(DOMSTRING_SIZE_ERR) In some implementations,
      * the stored data may exceed the permitted length of strings. If so,
      * getData() will throw this DOMException advising the user to
-     * instead retrieve the data in chunks via the substring() operation.  
+     * instead retrieve the data in chunks via the substring() operation.
      */
     public String getData() {
         if (needsSyncData()) {
@@ -162,28 +165,28 @@ public abstract class CharacterDataImpl
         return data;
     }
 
-    /** 
+    /**
      * Report number of characters currently stored in this node's
-     * data. It may be 0, meaning that the value is an empty string. 
+     * data. It may be 0, meaning that the value is an empty string.
      */
-    public int getLength() {   
+    public int getLength() {
         if (needsSyncData()) {
             synchronizeData();
         }
         return data.length();
-    }  
+    }
 
-    /** 
+    /**
      * Concatenate additional characters onto the end of the data
      * stored in this node. Note that this, and insert(), are the paths
      * by which a DOM could wind up accumulating more data than the
      * language's strings can easily handle. (See above discussion.)
-     * 
+     *
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if node is readonly.
      */
     public void appendData(String data) {
 
-    	if (isReadOnly()) {
+        if (isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
@@ -193,7 +196,7 @@ public abstract class CharacterDataImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-        
+
         setNodeValue(this.data + data);
 
     } // appendData(String)
@@ -203,20 +206,20 @@ public abstract class CharacterDataImpl
      * DOMException if the offset is beyond the end of the
      * string. However, a deletion _count_ that exceeds the available
      * data is accepted as a delete-to-end request.
-     * 
+     *
      * @throws DOMException(INDEX_SIZE_ERR) if offset is negative or
      * greater than length, or if count is negative.
-     * 
+     *
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if node is
-     * readonly.  
+     * readonly.
      */
-    public void deleteData(int offset, int count) 
+    public void deleteData(int offset, int count)
         throws DOMException {
-    	
-    	internalDeleteData(offset, count, false);
+
+        internalDeleteData(offset, count, false);
     } // deleteData(int,int)
 
-    
+
     /** NON-DOM INTERNAL: Within DOM actions, we sometimes need to be able
      * to control which mutation events are spawned. This version of the
      * deleteData operation allows us to do so. It is not intended
@@ -224,30 +227,30 @@ public abstract class CharacterDataImpl
      */
     void internalDeleteData (int offset, int count, boolean replace)
     throws DOMException {
-        
+
         CoreDocumentImpl ownerDocument = ownerDocument();
         if (ownerDocument.errorChecking) {
             if (isReadOnly()) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
                 throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
             }
-            
+
             if (count < 0) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null);
                 throw new DOMException(DOMException.INDEX_SIZE_ERR, msg);
             }
         }
-        
+
         if (needsSyncData()) {
             synchronizeData();
         }
         int tailLength = Math.max(data.length() - count - offset, 0);
         try {
             String value = data.substring(0, offset) +
-            (tailLength > 0 ? data.substring(offset + count, offset + count + tailLength) : "");            
-            
-            setNodeValueInternal(value, replace);      
-            
+            (tailLength > 0 ? data.substring(offset + count, offset + count + tailLength) : "");
+
+            setNodeValueInternal(value, replace);
+
             // notify document
             ownerDocument.deletedText(this, offset, count);
         }
@@ -255,7 +258,7 @@ public abstract class CharacterDataImpl
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null);
             throw new DOMException(DOMException.INDEX_SIZE_ERR, msg);
         }
-        
+
     } // internalDeleteData(int,int,boolean)
 
     /**
@@ -265,17 +268,17 @@ public abstract class CharacterDataImpl
      * @throws DOMException(INDEX_SIZE_ERR) if offset is negative or
      * greater than length.
      *
-     * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if node is readonly.  
+     * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if node is readonly.
      */
-    public void insertData(int offset, String data) 
+    public void insertData(int offset, String data)
         throws DOMException {
 
-    	internalInsertData(offset, data, false);
-        
+        internalInsertData(offset, data, false);
+
     } // insertData(int,int)
-    
-    
-    
+
+
+
     /** NON-DOM INTERNAL: Within DOM actions, we sometimes need to be able
      * to control which mutation events are spawned. This version of the
      * insertData operation allows us to do so. It is not intended
@@ -283,24 +286,24 @@ public abstract class CharacterDataImpl
      */
     void internalInsertData (int offset, String data, boolean replace)
     throws DOMException {
-        
+
         CoreDocumentImpl ownerDocument = ownerDocument();
-        
+
         if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
-        
+
         if (needsSyncData()) {
             synchronizeData();
         }
         try {
             String value =
                 new StringBuffer(this.data).insert(offset, data).toString();
-            
-            
+
+
             setNodeValueInternal(value, replace);
-            
+
             // notify document
             ownerDocument.insertedText(this, offset, data.length());
         }
@@ -308,86 +311,86 @@ public abstract class CharacterDataImpl
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null);
             throw new DOMException(DOMException.INDEX_SIZE_ERR, msg);
         }
-        
+
     } // internalInsertData(int,String,boolean)
 
-    
-    
+
+
     /**
      * Replace a series of characters at the specified (zero-based)
      * offset with a new string, NOT necessarily of the same
      * length. Convenience method, equivalent to a delete followed by an
      * insert. Throws a DOMException if the specified offset is beyond
      * the end of the existing data.
-     * 
+     *
      * @param offset       The offset at which to begin replacing.
-     * 
-     * @param count        The number of characters to remove, 
+     *
+     * @param count        The number of characters to remove,
      * interpreted as in the delete() method.
-     * 
+     *
      * @param data         The new string to be inserted at offset in place of
      * the removed data. Note that the entire string will
      * be inserted -- the count parameter does not affect
      * insertion, and the new data may be longer or shorter
      * than the substring it replaces.
-     * 
+     *
      * @throws DOMException(INDEX_SIZE_ERR) if offset is negative or
      * greater than length, or if count is negative.
-     * 
+     *
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if node is
-     * readonly.  
+     * readonly.
      */
-    public void replaceData(int offset, int count, String data) 
+    public void replaceData(int offset, int count, String data)
     throws DOMException {
-        
+
         CoreDocumentImpl ownerDocument = ownerDocument();
-        
+
         // The read-only check is done by deleteData()
         // ***** This could be more efficient w/r/t Mutation Events,
         // specifically by aggregating DOMAttrModified and
-        // DOMSubtreeModified. But mutation events are 
+        // DOMSubtreeModified. But mutation events are
         // underspecified; I don't feel compelled
         // to deal with it right now.
         if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
-        
+
         if (needsSyncData()) {
             synchronizeData();
         }
-        
+
         //notify document
         ownerDocument.replacingData(this);
-        
+
         // keep old value for document notification
         String oldvalue = this.data;
-        
+
         internalDeleteData(offset, count, true);
         internalInsertData(offset, data, true);
-        
+
         ownerDocument.replacedCharacterData(this, oldvalue, this.data);
-        
+
     } // replaceData(int,int,String)
 
     /**
      * Store character data into this node.
-     * 
+     *
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if node is readonly.
      */
-    public void setData(String value) 
+    public void setData(String value)
         throws DOMException {
         setNodeValue(value);
     }
 
-    /** 
+    /**
      * Substring is more than a convenience function. In some
      * implementations of the DOM, where the stored data may exceed the
      * length that can be returned in a single string, the only way to
      * read it all is to extract it in chunks via this method.
      *
      * @param offset        Zero-based offset of first character to retrieve.
-     * @param count Number of characters to retrieve. 
+     * @param count Number of characters to retrieve.
      *
      * If the sum of offset and count exceeds the length, all characters
      * to end of data are returned.
@@ -398,15 +401,15 @@ public abstract class CharacterDataImpl
      * @throws DOMException(WSTRING_SIZE_ERR) In some implementations,
      * count may exceed the permitted length of strings. If so,
      * substring() will throw this DOMException advising the user to
-     * instead retrieve the data in smaller chunks.  
+     * instead retrieve the data in smaller chunks.
      */
-    public String substringData(int offset, int count) 
+    public String substringData(int offset, int count)
         throws DOMException {
 
         if (needsSyncData()) {
             synchronizeData();
         }
-        
+
         int length = data.length();
         if (count < 0 || offset < 0 || offset > length - 1) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null);

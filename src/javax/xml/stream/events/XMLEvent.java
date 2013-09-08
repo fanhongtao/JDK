@@ -1,3 +1,31 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream.events;
 
 import java.io.Writer;
@@ -5,11 +33,11 @@ import javax.xml.namespace.QName;
 /**
  * This is the base event interface for handling markup events.
  * Events are value objects that are used to communicate the
- * XML 1.0 InfoSet to the Application.  Events may be cached 
+ * XML 1.0 InfoSet to the Application.  Events may be cached
  * and referenced after the parse has completed.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see javax.xml.stream.XMLEventReader
  * @see Characters
  * @see ProcessingInstruction
@@ -23,7 +51,7 @@ import javax.xml.namespace.QName;
  * @since 1.6
  */
 public interface XMLEvent extends javax.xml.stream.XMLStreamConstants {
- 
+
   /**
    * Returns an integer code for this event.
    * @see #START_ELEMENT
@@ -40,7 +68,7 @@ public interface XMLEvent extends javax.xml.stream.XMLStreamConstants {
   public int getEventType();
 
   /**
-   * Return the location of this event.  The Location 
+   * Return the location of this event.  The Location
    * returned from this method is non-volatile and
    * will retain its information.
    * @see javax.xml.stream.Location
@@ -132,20 +160,19 @@ public interface XMLEvent extends javax.xml.stream.XMLStreamConstants {
    * This method will write the XMLEvent as per the XML 1.0 specification as Unicode characters.
    * No indentation or whitespace should be outputted.
    *
-   * Any user defined event type SHALL have this method 
+   * Any user defined event type SHALL have this method
    * called when being written to on an output stream.
-   * Built in Event types MUST implement this method, 
-   * but implementations MAY choose not call these methods 
-   * for optimizations reasons when writing out built in 
-   * Events to an output stream. 
-   * The output generated MUST be equivalent in terms of the 
+   * Built in Event types MUST implement this method,
+   * but implementations MAY choose not call these methods
+   * for optimizations reasons when writing out built in
+   * Events to an output stream.
+   * The output generated MUST be equivalent in terms of the
    * infoset expressed.
-   * 
+   *
    * @param writer The writer that will output the data
    * @throws XMLStreamException if there is a fatal error writing the event
    */
-  public void writeAsEncodedUnicode(Writer writer) 
+  public void writeAsEncodedUnicode(Writer writer)
     throws javax.xml.stream.XMLStreamException;
 
 }
-

@@ -1,8 +1,26 @@
 /*
- * @(#)FormatConversionProvider.java	1.30 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sound.sampled.spi;
@@ -28,7 +46,6 @@ import javax.sound.sampled.AudioInputStream;
  * the stream returned by one of the <code>getAudioInputStream</code> methods.
  *
  * @author Kara Kytle
- * @version 1.30, 05/11/17
  * @since 1.3
  */
 public abstract class FormatConversionProvider {
@@ -39,8 +56,9 @@ public abstract class FormatConversionProvider {
     /**
      * Obtains the set of source format encodings from which format
      * conversion services are provided by this provider.
-     * @return array of source format encodings.  The array will always
-     * have a length of at least 1.
+     * @return array of source format encodings. If for some reason provider
+     * does not provide any conversion services, an array of length 0 is
+     * returned.
      */
     public abstract AudioFormat.Encoding[] getSourceEncodings();
 
@@ -48,8 +66,9 @@ public abstract class FormatConversionProvider {
     /**
      * Obtains the set of target format encodings to which format
      * conversion services are provided by this provider.
-     * @return array of target format encodings.  The array will always
-     * have a length of at least 1.
+     * @return array of target format encodings. If for some reason provider
+     * does not provide any conversion services, an array of length 0 is
+     * returned.
      */
     public abstract AudioFormat.Encoding[] getTargetEncodings();
 
@@ -62,14 +81,14 @@ public abstract class FormatConversionProvider {
      */
     public boolean isSourceEncodingSupported(AudioFormat.Encoding sourceEncoding){
 
-	AudioFormat.Encoding sourceEncodings[] = getSourceEncodings();
+        AudioFormat.Encoding sourceEncodings[] = getSourceEncodings();
 
-	for(int i=0; i<sourceEncodings.length; i++) {
-	    if( sourceEncoding.equals( sourceEncodings[i]) ) {
-		return true;
-	    }
-	}
-	return false;
+        for(int i=0; i<sourceEncodings.length; i++) {
+            if( sourceEncoding.equals( sourceEncodings[i]) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -81,14 +100,14 @@ public abstract class FormatConversionProvider {
      */
     public boolean isTargetEncodingSupported(AudioFormat.Encoding targetEncoding){
 
-	AudioFormat.Encoding targetEncodings[] = getTargetEncodings();
+        AudioFormat.Encoding targetEncodings[] = getTargetEncodings();
 
-	for(int i=0; i<targetEncodings.length; i++) {
-	    if( targetEncoding.equals( targetEncodings[i]) ) {
-		return true;
-	    }
-	}
-	return false;
+        for(int i=0; i<targetEncodings.length; i++) {
+            if( targetEncoding.equals( targetEncodings[i]) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -111,14 +130,14 @@ public abstract class FormatConversionProvider {
      */
     public boolean isConversionSupported(AudioFormat.Encoding targetEncoding, AudioFormat sourceFormat){
 
-	AudioFormat.Encoding targetEncodings[] = getTargetEncodings(sourceFormat);
+        AudioFormat.Encoding targetEncodings[] = getTargetEncodings(sourceFormat);
 
-	for(int i=0; i<targetEncodings.length; i++) {
-	    if( targetEncoding.equals( targetEncodings[i]) ) {
-		return true;
-	    }
-	}
-	return false;
+        for(int i=0; i<targetEncodings.length; i++) {
+            if( targetEncoding.equals( targetEncodings[i]) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -141,14 +160,14 @@ public abstract class FormatConversionProvider {
      */
     public boolean isConversionSupported(AudioFormat targetFormat, AudioFormat sourceFormat){
 
-	AudioFormat targetFormats[] = getTargetFormats( targetFormat.getEncoding(), sourceFormat );
+        AudioFormat targetFormats[] = getTargetFormats( targetFormat.getEncoding(), sourceFormat );
 
-	for(int i=0; i<targetFormats.length; i++) {
-	    if( targetFormat.matches( targetFormats[i] ) ) {
-		return true;
-	    }
-	}
-	return false;
+        for(int i=0; i<targetFormats.length; i++) {
+            if( targetFormat.matches( targetFormats[i] ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

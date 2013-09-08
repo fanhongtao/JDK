@@ -1,8 +1,26 @@
 /*
- * @(#)GIFImageWriterSpi.java	1.3 09/04/29
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.gif;
@@ -18,7 +36,7 @@ import com.sun.imageio.plugins.common.PaletteBuilder;
 
 public class GIFImageWriterSpi extends ImageWriterSpi {
 
-    private static final String vendorName = "Sun Microsystems, Inc.";
+    private static final String vendorName = "Oracle Corporation";
 
     private static final String version = "1.0";
 

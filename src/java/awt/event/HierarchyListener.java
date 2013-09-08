@@ -1,8 +1,26 @@
 /*
- * @(#)HierarchyListener.java	1.9 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -14,7 +32,7 @@ import java.util.EventListener;
  * The class that is interested in processing a hierarchy changed event
  * should implement this interface.
  * The listener object created from that class is then registered with a
- * Component using the Component's <code>addHierarchyListener</code> 
+ * Component using the Component's <code>addHierarchyListener</code>
  * method. When the hierarchy to which the Component belongs changes, the
  * <code>hierarchyChanged</code> method in the listener object is invoked,
  * and the <code>HierarchyEvent</code> is passed to it.
@@ -24,10 +42,9 @@ import java.util.EventListener;
  * that GUI layout, displayability, and visibility work properly regardless
  * of whether a program registers a <code>HierarchyListener</code> or not.
  *
- * @author	David Mendenhall
- * @version	1.9, 11/17/05
- * @see		HierarchyEvent
- * @since 	1.3
+ * @author      David Mendenhall
+ * @see         HierarchyEvent
+ * @since       1.3
  */
 public interface HierarchyListener extends EventListener {
     /**

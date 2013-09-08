@@ -1,3 +1,31 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream;
 import javax.xml.stream.events.*;
 import javax.xml.namespace.NamespaceContext;
@@ -6,8 +34,8 @@ import java.util.Iterator;
 /**
  * This interface defines a utility class for creating instances of
  * XMLEvents
- * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @version 1.2
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see javax.xml.stream.events.StartElement
  * @see javax.xml.stream.events.EndElement
  * @see javax.xml.stream.events.ProcessingInstruction
@@ -34,6 +62,39 @@ public abstract class XMLEventFactory {
   }
 
   /**
+   * Create a new instance of the factory. 
+   * This static method creates a new factory instance. 
+   * This method uses the following ordered lookup procedure to determine 
+   * the XMLEventFactory implementation class to load: 
+   *   Use the javax.xml.stream.XMLEventFactory system property. 
+   *   Use the properties file "lib/stax.properties" in the JRE directory. 
+   *     This configuration file is in standard java.util.Properties format 
+   *     and contains the fully qualified name of the implementation class 
+   *     with the key being the system property defined above. 
+   *   Use the Services API (as detailed in the JAR specification), if available, 
+   *     to determine the classname. The Services API will look for a classname 
+   *     in the file META-INF/services/javax.xml.stream.XMLEventFactory in jars 
+   *     available to the runtime. 
+   *   Platform default XMLEventFactory instance. 
+   *   
+   *   Once an application has obtained a reference to a XMLEventFactory it 
+   *   can use the factory to configure and obtain stream instances.   
+   *   
+   *   Note that this is a new method that replaces the deprecated newInstance() method.  
+   *     No changes in behavior are defined by this replacement method relative to 
+   *     the deprecated method.
+   *     
+   * @throws FactoryConfigurationError if an instance of this factory cannot be loaded
+   */
+  public static XMLEventFactory newFactory()
+    throws FactoryConfigurationError
+  {
+    return (XMLEventFactory) FactoryFinder.find(
+      "javax.xml.stream.XMLEventFactory",
+      "com.sun.xml.internal.stream.events.XMLEventFactoryImpl");
+  }
+
+  /**
    * Create a new instance of the factory 
    *
    * @param factoryId             Name of the factory to find, same as
@@ -41,8 +102,41 @@ public abstract class XMLEventFactory {
    * @param classLoader           classLoader to use
    * @return the factory implementation
    * @throws FactoryConfigurationError if an instance of this factory cannot be loaded
+   * 
+   * @deprecated  This method has been deprecated to maintain API consistency.
+   *              All newInstance methods have been replaced with corresponding
+   *              newFactory methods. The replacement {@link
+   *              #newFactory(java.lang.String, java.lang.ClassLoader)}
+   *              method defines no changes in behavior.
    */
   public static XMLEventFactory newInstance(String factoryId,
+          ClassLoader classLoader)
+          throws FactoryConfigurationError {
+      try {
+          //do not fallback if given classloader can't find the class, throw exception
+          return (XMLEventFactory) FactoryFinder.newInstance(factoryId, classLoader, false);
+      } catch (FactoryFinder.ConfigurationError e) {
+          throw new FactoryConfigurationError(e.getException(),
+                  e.getMessage());
+      }
+  }
+
+  /**
+   * Create a new instance of the factory.  
+   * If the classLoader argument is null, then the ContextClassLoader is used.   
+   * 
+   * Note that this is a new method that replaces the deprecated 
+   *   newInstance(String factoryId, ClassLoader classLoader) method.  
+   * No changes in behavior are defined by this replacement method relative 
+   * to the deprecated method.
+   *              
+   * @param factoryId             Name of the factory to find, same as
+   *                              a property name
+   * @param classLoader           classLoader to use
+   * @return the factory implementation
+   * @throws FactoryConfigurationError if an instance of this factory cannot be loaded
+   */
+  public static XMLEventFactory newFactory(String factoryId,
           ClassLoader classLoader)
           throws FactoryConfigurationError {
       try {

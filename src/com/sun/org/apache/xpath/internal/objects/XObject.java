@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +53,7 @@ public class XObject extends Expression implements Serializable, Cloneable
 
   /**
    * The java object which this object wraps.
-   *  @serial  
+   *  @serial
    */
   protected Object m_obj;  // This may be NULL!!!
 
@@ -66,7 +70,11 @@ public class XObject extends Expression implements Serializable, Cloneable
    */
   public XObject(Object obj)
   {
-    m_obj = obj;
+    setObject(obj);
+  }
+
+  protected void setObject(Object obj) {
+      m_obj = obj;
   }
 
   /**
@@ -86,9 +94,9 @@ public class XObject extends Expression implements Serializable, Cloneable
 
   /**
    * Specify if it's OK for detach to release the iterator for reuse.
-   * This function should be called with a value of false for objects that are 
+   * This function should be called with a value of false for objects that are
    * stored in variables.
-   * Calling this with a value of false on a XNodeSet will cause the nodeset 
+   * Calling this with a value of false on a XNodeSet will cause the nodeset
    * to be cached.
    *
    * @param allowRelease true if it is OK for detach to release this iterator
@@ -117,10 +125,10 @@ public class XObject extends Expression implements Serializable, Cloneable
       allowDetachToRelease(true);
       detach();
 
-      m_obj = null;
+      setObject(null);
     }
   }
-  
+
   /**
    * Reset for fresh reuse.
    */
@@ -146,8 +154,8 @@ public class XObject extends Expression implements Serializable, Cloneable
   }
 
   /**
-   * Create the right XObject based on the type of the object passed.  This 
-   * function can not make an XObject that exposes DOM Nodes, NodeLists, and 
+   * Create the right XObject based on the type of the object passed.  This
+   * function can not make an XObject that exposes DOM Nodes, NodeLists, and
    * NodeIterators to the XSLT stylesheet as node-sets.
    *
    * @param val The java object which this object will wrap.
@@ -158,10 +166,10 @@ public class XObject extends Expression implements Serializable, Cloneable
   {
     return XObjectFactory.create(val);
   }
-  
+
   /**
    * Create the right XObject based on the type of the object passed.
-   * This function <emph>can</emph> make an XObject that exposes DOM Nodes, NodeLists, and 
+   * This function <emph>can</emph> make an XObject that exposes DOM Nodes, NodeLists, and
    * NodeIterators to the XSLT stylesheet as node-sets.
    *
    * @param val The java object which this object will wrap.
@@ -234,12 +242,12 @@ public class XObject extends Expression implements Serializable, Cloneable
 
     return 0.0;
   }
-  
+
   /**
-   * Cast result object to a number, but allow side effects, such as the 
+   * Cast result object to a number, but allow side effects, such as the
    * incrementing of an iterator.
    *
-   * @return numeric value of the string conversion from the 
+   * @return numeric value of the string conversion from the
    * next node in the NodeSetDTM, or NAN if no node was found
    */
   public double numWithSideEffects()  throws javax.xml.transform.TransformerException
@@ -262,9 +270,9 @@ public class XObject extends Expression implements Serializable, Cloneable
 
     return false;
   }
-  
+
   /**
-   * Cast result object to a boolean, but allow side effects, such as the 
+   * Cast result object to a boolean, but allow side effects, such as the
    * incrementing of an iterator.
    *
    * @return True if there is a next node in the nodeset
@@ -330,7 +338,7 @@ public class XObject extends Expression implements Serializable, Cloneable
 
     return result;
   }
-  
+
   /**
    * Cast result object to a result tree fragment.
    *
@@ -360,8 +368,8 @@ public class XObject extends Expression implements Serializable, Cloneable
 
     return docFrag;
   }
-  
-  
+
+
   /**
    * For functions to override.
    *
@@ -408,7 +416,7 @@ public class XObject extends Expression implements Serializable, Cloneable
 
     return null;
   }
-  
+
   /**
    * Get a fresh copy of the object.  For use with variables.
    *
@@ -419,7 +427,7 @@ public class XObject extends Expression implements Serializable, Cloneable
     return this;
   }
 
-  
+
   /**
    * Cast result object to a nodelist. Always issues an error.
    *
@@ -435,7 +443,7 @@ public class XObject extends Expression implements Serializable, Cloneable
 
     return null;
   }
-  
+
   /**
    * Cast result object to a nodelist. Always issues an error.
    *
@@ -532,9 +540,9 @@ public class XObject extends Expression implements Serializable, Cloneable
           throws javax.xml.transform.TransformerException
   {
 
-    // In order to handle the 'all' semantics of 
-    // nodeset comparisons, we always call the 
-    // nodeset function.  Because the arguments 
+    // In order to handle the 'all' semantics of
+    // nodeset comparisons, we always call the
+    // nodeset function.  Because the arguments
     // are backwards, we call the opposite comparison
     // function.
     if (obj2.getType() == XObject.CLASS_NODESET)
@@ -556,9 +564,9 @@ public class XObject extends Expression implements Serializable, Cloneable
           throws javax.xml.transform.TransformerException
   {
 
-    // In order to handle the 'all' semantics of 
-    // nodeset comparisons, we always call the 
-    // nodeset function.  Because the arguments 
+    // In order to handle the 'all' semantics of
+    // nodeset comparisons, we always call the
+    // nodeset function.  Because the arguments
     // are backwards, we call the opposite comparison
     // function.
     if (obj2.getType() == XObject.CLASS_NODESET)
@@ -580,9 +588,9 @@ public class XObject extends Expression implements Serializable, Cloneable
           throws javax.xml.transform.TransformerException
   {
 
-    // In order to handle the 'all' semantics of 
-    // nodeset comparisons, we always call the 
-    // nodeset function.  Because the arguments 
+    // In order to handle the 'all' semantics of
+    // nodeset comparisons, we always call the
+    // nodeset function.  Because the arguments
     // are backwards, we call the opposite comparison
     // function.
     if (obj2.getType() == XObject.CLASS_NODESET)
@@ -604,9 +612,9 @@ public class XObject extends Expression implements Serializable, Cloneable
           throws javax.xml.transform.TransformerException
   {
 
-    // In order to handle the 'all' semantics of 
-    // nodeset comparisons, we always call the 
-    // nodeset function.  Because the arguments 
+    // In order to handle the 'all' semantics of
+    // nodeset comparisons, we always call the
+    // nodeset function.  Because the arguments
     // are backwards, we call the opposite comparison
     // function.
     if (obj2.getType() == XObject.CLASS_NODESET)
@@ -627,8 +635,8 @@ public class XObject extends Expression implements Serializable, Cloneable
   public boolean equals(XObject obj2)
   {
 
-    // In order to handle the 'all' semantics of 
-    // nodeset comparisons, we always call the 
+    // In order to handle the 'all' semantics of
+    // nodeset comparisons, we always call the
     // nodeset function.
     if (obj2.getType() == XObject.CLASS_NODESET)
       return obj2.equals(this);
@@ -656,8 +664,8 @@ public class XObject extends Expression implements Serializable, Cloneable
           throws javax.xml.transform.TransformerException
   {
 
-    // In order to handle the 'all' semantics of 
-    // nodeset comparisons, we always call the 
+    // In order to handle the 'all' semantics of
+    // nodeset comparisons, we always call the
     // nodeset function.
     if (obj2.getType() == XObject.CLASS_NODESET)
       return obj2.notEquals(this);
@@ -694,17 +702,17 @@ public class XObject extends Expression implements Serializable, Cloneable
 
     String fmsg = XSLMessages.createXPATHMessage(msg, args);
 
-    // boolean shouldThrow = support.problem(m_support.XPATHPROCESSOR, 
+    // boolean shouldThrow = support.problem(m_support.XPATHPROCESSOR,
     //                                      m_support.ERROR,
-    //                                      null, 
+    //                                      null,
     //                                      null, fmsg, 0, 0);
     // if(shouldThrow)
     {
       throw new XPathException(fmsg, this);
     }
   }
-  
-  
+
+
   /**
    * XObjects should not normally need to fix up variables.
    */
@@ -725,7 +733,7 @@ public class XObject extends Expression implements Serializable, Cloneable
   {
     fsb.append(str());
   }
-  
+
   /**
    * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
@@ -740,13 +748,13 @@ public class XObject extends Expression implements Serializable, Cloneable
   {
   	if(!isSameClass(expr))
   		return false;
-  		
-  	// If equals at the expression level calls deepEquals, I think we're 
-  	// still safe from infinite recursion since this object overrides 
+
+  	// If equals at the expression level calls deepEquals, I think we're
+  	// still safe from infinite recursion since this object overrides
   	// equals.  I hope.
   	if(!this.equals((XObject)expr))
   		return false;
-  		
+
   	return true;
   }
 

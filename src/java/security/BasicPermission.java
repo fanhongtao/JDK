@@ -1,20 +1,36 @@
 /*
- * @(#)BasicPermission.java	1.44 05/11/17
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
 
 import java.security.*;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Collections;
-import java.util.StringTokenizer;
 import java.io.ObjectStreamField;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
@@ -46,14 +62,7 @@ import java.io.IOException;
  * @see java.security.Permission
  * @see java.security.Permissions
  * @see java.security.PermissionCollection
- * @see java.lang.RuntimePermission
- * @see java.security.SecurityPermission
- * @see java.util.PropertyPermission
- * @see java.awt.AWTPermission
- * @see java.net.NetPermission
  * @see java.lang.SecurityManager
- *
- * @version 1.44 05/11/17
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -78,37 +87,36 @@ implements java.io.Serializable
      * initialize a BasicPermission object. Common to all constructors.
      *
      */
-
     private void init(String name)
     {
-	if (name == null)
-	    throw new NullPointerException("name can't be null");
+        if (name == null)
+            throw new NullPointerException("name can't be null");
 
-	int len = name.length();
-	    
-	if (len == 0) {
-	    throw new IllegalArgumentException("name can't be empty");
-	}
+        int len = name.length();
 
-	char last = name.charAt(len - 1);
+        if (len == 0) {
+            throw new IllegalArgumentException("name can't be empty");
+        }
 
-	// Is wildcard or ends with ".*"?
-	if (last == '*' && (len == 1 || name.charAt(len - 2) == '.')) {
-	    wildcard = true;
-	    if (len == 1) {
-		path = "";
-	    } else {
-		path = name.substring(0, len - 1);
-	    }
-	} else {
-	    if (name.equals("exitVM")) {
-		wildcard = true;
-		path = "exitVM.";
-		exitVM = true;
-	    } else {
-		path = name;
-	    }
-	}
+        char last = name.charAt(len - 1);
+
+        // Is wildcard or ends with ".*"?
+        if (last == '*' && (len == 1 || name.charAt(len - 2) == '.')) {
+            wildcard = true;
+            if (len == 1) {
+                path = "";
+            } else {
+                path = name.substring(0, len - 1);
+            }
+        } else {
+            if (name.equals("exitVM")) {
+                wildcard = true;
+                path = "exitVM.";
+                exitVM = true;
+            } else {
+                path = name;
+            }
+        }
     }
 
     /**
@@ -125,8 +133,8 @@ implements java.io.Serializable
 
     public BasicPermission(String name)
     {
-	super(name);
-	init(name);
+        super(name);
+        init(name);
     }
 
 
@@ -143,8 +151,8 @@ implements java.io.Serializable
      */
     public BasicPermission(String name, String actions)
     {
-	super(name);
-	init(name);
+        super(name);
+        init(name);
     }
 
     /**
@@ -165,29 +173,29 @@ implements java.io.Serializable
      * implied by this permission, false otherwise.
      */
     public boolean implies(Permission p) {
-	if ((p == null) || (p.getClass() != getClass()))
-	    return false;
+        if ((p == null) || (p.getClass() != getClass()))
+            return false;
 
-	BasicPermission that = (BasicPermission) p;
+        BasicPermission that = (BasicPermission) p;
 
-	if (this.wildcard) {
-	    if (that.wildcard) {
-		// one wildcard can imply another
-		return that.path.startsWith(path);
-	    } else {
-		// make sure ap.path is longer so a.b.* doesn't imply a.b
-		return (that.path.length() > this.path.length()) &&
-		    that.path.startsWith(this.path);
-	    }
-	} else {
-	    if (that.wildcard) {
-		// a non-wildcard can't imply a wildcard
-		return false;
-	    }
-	    else {
-		return this.path.equals(that.path);
-	    }
-	}
+        if (this.wildcard) {
+            if (that.wildcard) {
+                // one wildcard can imply another
+                return that.path.startsWith(path);
+            } else {
+                // make sure ap.path is longer so a.b.* doesn't imply a.b
+                return (that.path.length() > this.path.length()) &&
+                    that.path.startsWith(this.path);
+            }
+        } else {
+            if (that.wildcard) {
+                // a non-wildcard can't imply a wildcard
+                return false;
+            }
+            else {
+                return this.path.equals(that.path);
+            }
+        }
     }
 
     /**
@@ -196,19 +204,19 @@ implements java.io.Serializable
      * and has the same name as this object.
      * <P>
      * @param obj the object we are testing for equality with this object.
-     * @return true if <i>obj</i> is a BasicPermission, and has the same name
-     *  as this BasicPermission object, false otherwise.
+     * @return true if <i>obj</i>'s class is the same as this object's class
+     *  and has the same name as this BasicPermission object, false otherwise.
      */
     public boolean equals(Object obj) {
-	if (obj == this)
-	    return true;
+        if (obj == this)
+            return true;
 
-	if ((obj == null) || (obj.getClass() != getClass()))
-	    return false;
+        if ((obj == null) || (obj.getClass() != getClass()))
+            return false;
 
-	BasicPermission bp = (BasicPermission) obj;
+        BasicPermission bp = (BasicPermission) obj;
 
-	return getCanonicalName().equals(bp.getCanonicalName());
+        return getName().equals(bp.getName());
     }
 
 
@@ -220,9 +228,8 @@ implements java.io.Serializable
      *
      * @return a hash code value for this object.
      */
-
     public int hashCode() {
-	return this.getCanonicalName().hashCode();
+        return this.getName().hashCode();
     }
 
     /**
@@ -234,15 +241,12 @@ implements java.io.Serializable
      */
     public String getActions()
     {
-	return "";
+        return "";
     }
 
     /**
      * Returns a new PermissionCollection object for storing BasicPermission
      * objects.
-     * <p>
-     * A BasicPermissionCollection stores a collection of
-     * BasicPermission permissions.
      *
      * <p>BasicPermission objects must be stored in a manner that allows them
      * to be inserted in any order, but that also enables the
@@ -252,33 +256,32 @@ implements java.io.Serializable
      * @return a new PermissionCollection object suitable for
      * storing BasicPermissions.
      */
-
     public PermissionCollection newPermissionCollection() {
-	return new BasicPermissionCollection();
+        return new BasicPermissionCollection(this.getClass());
     }
 
     /**
      * readObject is called to restore the state of the BasicPermission from
-     * a stream. 
+     * a stream.
      */
     private void readObject(ObjectInputStream s)
          throws IOException, ClassNotFoundException
     {
-	s.defaultReadObject();
-	// init is called to initialize the rest of the values.
-	init(getCanonicalName());
+        s.defaultReadObject();
+        // init is called to initialize the rest of the values.
+        init(getName());
     }
 
     /**
-     * Returns the canonical name of this BasicPermission. 
-     * All internal invocations of getName should invoke this method, so 
-     * that the pre-JDK 1.6 "exitVM" and current "exitVM.*" permission are 
+     * Returns the canonical name of this BasicPermission.
+     * All internal invocations of getName should invoke this method, so
+     * that the pre-JDK 1.6 "exitVM" and current "exitVM.*" permission are
      * equivalent in equals/hashCode methods.
      *
      * @return the canonical name of this BasicPermission.
      */
     final String getCanonicalName() {
-	return exitVM ? "exitVM.*" : getName();
+        return exitVM ? "exitVM.*" : getName();
     }
 }
 
@@ -296,7 +299,6 @@ implements java.io.Serializable
  * @see java.security.Permissions
  * @see java.security.PermissionsImpl
  *
- * @version 1.44 11/17/05
  *
  * @author Roland Schemers
  *
@@ -310,12 +312,12 @@ implements java.io.Serializable
 
     private static final long serialVersionUID = 739301742472979399L;
 
-    /** 
+    /**
       * Key is name, value is permission. All permission objects in
       * collection must be of the same type.
       * Not serialized; see serialization section at end of class.
       */
-    private transient Map perms;
+    private transient Map<String, Permission> perms;
 
     /**
      * This is set to <code>true</code> if this BasicPermissionCollection
@@ -323,7 +325,7 @@ implements java.io.Serializable
      *
      * @see #serialPersistentFields
      */
-    private boolean all_allowed; 
+    private boolean all_allowed;
 
     /**
      * The class to which all BasicPermissions in this
@@ -338,9 +340,10 @@ implements java.io.Serializable
      *
      */
 
-    public BasicPermissionCollection() {
-	perms = new HashMap(11);
-	all_allowed = false;
+    public BasicPermissionCollection(Class clazz) {
+        perms = new HashMap<String, Permission>(11);
+        all_allowed = false;
+        permClass = clazz;
     }
 
     /**
@@ -351,9 +354,9 @@ implements java.io.Serializable
      *
      * @exception IllegalArgumentException - if the permission is not a
      *                                       BasicPermission, or if
-     *					     the permission is not of the
-     *					     same Class as the other
-     *					     permissions in this collection.
+     *                                       the permission is not of the
+     *                                       same Class as the other
+     *                                       permissions in this collection.
      *
      * @exception SecurityException - if this BasicPermissionCollection object
      *                                has been marked readonly
@@ -361,33 +364,35 @@ implements java.io.Serializable
 
     public void add(Permission permission)
     {
-	if (! (permission instanceof BasicPermission))
-	    throw new IllegalArgumentException("invalid permission: "+
-					       permission);
-	if (isReadOnly())
-	    throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
+        if (! (permission instanceof BasicPermission))
+            throw new IllegalArgumentException("invalid permission: "+
+                                               permission);
+        if (isReadOnly())
+            throw new SecurityException("attempt to add a Permission to a readonly PermissionCollection");
 
-	BasicPermission bp = (BasicPermission) permission;
+        BasicPermission bp = (BasicPermission) permission;
 
-	if (perms.size() == 0) {
-	    // adding first permission
-	    permClass = bp.getClass();
-	} else {
-	    // make sure we only add new BasicPermissions of the same class
-	    if (bp.getClass() != permClass)
-		throw new IllegalArgumentException("invalid permission: " +
-						permission);
-	}
+        // make sure we only add new BasicPermissions of the same class
+        // Also check null for compatibility with deserialized form from
+        // previous versions.
+        if (permClass == null) {
+            // adding first permission
+            permClass = bp.getClass();
+        } else {
+            if (bp.getClass() != permClass)
+                throw new IllegalArgumentException("invalid permission: " +
+                                                permission);
+        }
 
-	synchronized (this) {
-	    perms.put(bp.getCanonicalName(), permission);
-	}
+        synchronized (this) {
+            perms.put(bp.getCanonicalName(), permission);
+        }
 
-	// No sync on all_allowed; staleness OK
-	if (!all_allowed) {
-	    if (bp.getCanonicalName().equals("*"))
-		all_allowed = true;
-	}
+        // No sync on all_allowed; staleness OK
+        if (!all_allowed) {
+            if (bp.getCanonicalName().equals("*"))
+                all_allowed = true;
+        }
     }
 
     /**
@@ -402,60 +407,60 @@ implements java.io.Serializable
 
     public boolean implies(Permission permission)
     {
-	if (! (permission instanceof BasicPermission))
-   		return false;
+        if (! (permission instanceof BasicPermission))
+                return false;
 
-	BasicPermission bp = (BasicPermission) permission;
+        BasicPermission bp = (BasicPermission) permission;
 
-	// random subclasses of BasicPermission do not imply each other
-	if (bp.getClass() != permClass)
-	    return false;
+        // random subclasses of BasicPermission do not imply each other
+        if (bp.getClass() != permClass)
+            return false;
 
-	// short circuit if the "*" Permission was added
-	if (all_allowed)
-	    return true;
+        // short circuit if the "*" Permission was added
+        if (all_allowed)
+            return true;
 
-	// strategy:
-	// Check for full match first. Then work our way up the
-	// path looking for matches on a.b..*
+        // strategy:
+        // Check for full match first. Then work our way up the
+        // path looking for matches on a.b..*
 
-	String path = bp.getCanonicalName();
-	//System.out.println("check "+path);
+        String path = bp.getCanonicalName();
+        //System.out.println("check "+path);
 
-	Permission x;
+        Permission x;
 
-	synchronized (this) {
-	    x = (Permission) perms.get(path);
-	}
+        synchronized (this) {
+            x = perms.get(path);
+        }
 
-	if (x != null) {
-	    // we have a direct hit!
-	    return x.implies(permission);
-	}
+        if (x != null) {
+            // we have a direct hit!
+            return x.implies(permission);
+        }
 
-	// work our way up the tree...
-	int last, offset;
+        // work our way up the tree...
+        int last, offset;
 
-	offset = path.length()-1;
+        offset = path.length()-1;
 
-	while ((last = path.lastIndexOf(".", offset)) != -1) {
+        while ((last = path.lastIndexOf(".", offset)) != -1) {
 
-	    path = path.substring(0, last+1) + "*";
-	    //System.out.println("check "+path);
+            path = path.substring(0, last+1) + "*";
+            //System.out.println("check "+path);
 
-	    synchronized (this) {
-		x = (Permission) perms.get(path);
-	    }
+            synchronized (this) {
+                x = perms.get(path);
+            }
 
-	    if (x != null) {
-		return x.implies(permission);
-	    }
-	    offset = last -1;
-	}
+            if (x != null) {
+                return x.implies(permission);
+            }
+            offset = last -1;
+        }
 
-	// we don't have to check for "*" as it was already checked
-	// at the top (all_allowed), so we just return false
-	return false;
+        // we don't have to check for "*" as it was already checked
+        // at the top (all_allowed), so we just return false
+        return false;
     }
 
     /**
@@ -465,11 +470,11 @@ implements java.io.Serializable
      * @return an enumeration of all the BasicPermission objects.
      */
 
-    public Enumeration elements() {
+    public Enumeration<Permission> elements() {
         // Convert Iterator of Map values into an Enumeration
-	synchronized (this) {
-	    return Collections.enumeration(perms.values());
-	}
+        synchronized (this) {
+            return Collections.enumeration(perms.values());
+        }
     }
 
     // Need to maintain serialization interoperability with earlier releases,
@@ -493,8 +498,8 @@ implements java.io.Serializable
      */
     private static final ObjectStreamField[] serialPersistentFields = {
         new ObjectStreamField("permissions", Hashtable.class),
-	new ObjectStreamField("all_allowed", Boolean.TYPE),
-	new ObjectStreamField("permClass", Class.class),
+        new ObjectStreamField("all_allowed", Boolean.TYPE),
+        new ObjectStreamField("permClass", Class.class),
     };
 
     /**
@@ -506,20 +511,21 @@ implements java.io.Serializable
      * and permClass unchanged.
      */
     private void writeObject(ObjectOutputStream out) throws IOException {
-	// Don't call out.defaultWriteObject()
+        // Don't call out.defaultWriteObject()
 
-	// Copy perms into a Hashtable
-	Hashtable permissions = new Hashtable(perms.size()*2);
+        // Copy perms into a Hashtable
+        Hashtable<String, Permission> permissions =
+                new Hashtable<>(perms.size()*2);
 
-	synchronized (this) {
-	    permissions.putAll(perms);
-	}
+        synchronized (this) {
+            permissions.putAll(perms);
+        }
 
-	// Write out serializable fields
+        // Write out serializable fields
         ObjectOutputStream.PutField pfields = out.putFields();
-	pfields.put("all_allowed", all_allowed);
+        pfields.put("all_allowed", all_allowed);
         pfields.put("permissions", permissions);
-	pfields.put("permClass", permClass);
+        pfields.put("permClass", permClass);
         out.writeFields();
     }
 
@@ -528,31 +534,32 @@ implements java.io.Serializable
      * BasicPermissionCollection from a stream.
      */
     private void readObject(java.io.ObjectInputStream in)
-	 throws IOException, ClassNotFoundException
+         throws IOException, ClassNotFoundException
     {
-	// Don't call defaultReadObject()
+        // Don't call defaultReadObject()
 
-	// Read in serialized fields
-	ObjectInputStream.GetField gfields = in.readFields();
+        // Read in serialized fields
+        ObjectInputStream.GetField gfields = in.readFields();
 
-	// Get permissions
-	Hashtable permissions = (Hashtable)gfields.get("permissions", null);
-	perms = new HashMap(permissions.size()*2);
-	perms.putAll(permissions);
+        // Get permissions
+        Hashtable<String, Permission> permissions =
+                (Hashtable<String, Permission>)gfields.get("permissions", null);
+        perms = new HashMap<String, Permission>(permissions.size()*2);
+        perms.putAll(permissions);
 
-	// Get all_allowed
-	all_allowed = gfields.get("all_allowed", false);
+        // Get all_allowed
+        all_allowed = gfields.get("all_allowed", false);
 
-	// Get permClass
-	permClass = (Class) gfields.get("permClass", null);
+        // Get permClass
+        permClass = (Class) gfields.get("permClass", null);
 
-	if (permClass == null) {
-	    // set permClass
-	    Enumeration e = permissions.elements();
-	    if (e.hasMoreElements()) {
-		Permission p = (Permission)e.nextElement();
-		permClass = p.getClass();
-	    }
-	}
+        if (permClass == null) {
+            // set permClass
+            Enumeration<Permission> e = permissions.elements();
+            if (e.hasMoreElements()) {
+                Permission p = e.nextElement();
+                permClass = p.getClass();
+            }
+        }
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)IIOParamController.java	1.13 05/11/17
+ * Copyright (c) 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio;
@@ -77,7 +95,6 @@ package javax.imageio;
  * @see IIOParam#hasController
  * @see IIOParam#activateController
  *
- * @version 0.5
  */
 public interface IIOParamController {
 
@@ -93,7 +110,7 @@ public interface IIOParamController {
      *
      * @return <code>true</code> if the <code>IIOParam</code> has been
      * modified, <code>false</code> otherwise.
-     * 
+     *
      * @exception IllegalArgumentException if <code>param</code> is
      * <code>null</code> or is not an instance of the correct class.
      */

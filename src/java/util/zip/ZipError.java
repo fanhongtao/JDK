@@ -1,8 +1,26 @@
 /*
- * @(#)ZipError.java	1.1 06/07/31
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.zip;
@@ -11,7 +29,6 @@ package java.util.zip;
  * Signals that an unrecoverable error has occurred.
  *
  * @author  Dave Bristor
- * @version 1.1, 07/31/06
  * @since   1.6
  */
 public class ZipError extends InternalError {

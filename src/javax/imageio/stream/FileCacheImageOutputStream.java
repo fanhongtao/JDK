@@ -1,15 +1,31 @@
 /*
- * @(#)FileCacheImageOutputStream.java	1.27 09/04/29
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.stream;
 
-import java.io.DataInput;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
@@ -20,7 +36,6 @@ import com.sun.imageio.stream.StreamCloser;
  * output to a regular <code>OutputStream</code>.  A file is used to
  * cache data until it is flushed to the output stream.
  *
- * @version 0.5
  */
 public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
 
@@ -29,7 +44,7 @@ public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
     private File cacheFile;
 
     private RandomAccessFile cache;
-    
+
     // Pos after last (rightmost) byte written
     private long maxStreamPos = 0L;
 
@@ -49,7 +64,7 @@ public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
      * <code>File.createTempFile</code> for details).
      *
      * @param stream an <code>OutputStream</code> to write to.
-     * @param cacheDir a <code>File</code> indicating where the 
+     * @param cacheDir a <code>File</code> indicating where the
      * cache file should be created, or <code>null</code> to use the
      * system directory.
      *
@@ -199,7 +214,7 @@ public class FileCacheImageOutputStream extends ImageOutputStreamImpl {
     }
 
     /**
-     * Closes this <code>FileCacheImageOututStream</code>.  All
+     * Closes this <code>FileCacheImageOutputStream</code>.  All
      * pending data is flushed to the output, and the cache file
      * is closed and removed.  The destination <code>OutputStream</code>
      * is not closed.

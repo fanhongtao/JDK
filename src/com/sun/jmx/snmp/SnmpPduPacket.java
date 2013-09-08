@@ -1,27 +1,20 @@
 /*
- * @(#)file      SnmpPduPacket.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.15
- * @(#)date      06/11/29
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 // Copyright (c) 1995-96 by Cisco Systems, Inc.
 
 package com.sun.jmx.snmp;
 
-
 import java.io.Serializable;
 import java.net.InetAddress;
-
 
 /**
  * Is the fully decoded representation of an SNMP packet.
  * <P>
  * You will not usually need to use this class, except if you
- * decide to implement your own 
+ * decide to implement your own
  * {@link com.sun.jmx.snmp.SnmpPduFactory SnmpPduFactory} object.
  * <P>
  * Classes are derived from <CODE>SnmpPduPacket</CODE> to
@@ -29,17 +22,15 @@ import java.net.InetAddress;
  * ({@link com.sun.jmx.snmp.SnmpPduRequest SnmpPduRequest},
  * {@link com.sun.jmx.snmp.SnmpPduTrap SnmpPduTrap},
  * {@link com.sun.jmx.snmp.SnmpPduBulk SnmpPduBulk}).
- * <BR>The <CODE>SnmpPduPacket</CODE> class defines the attributes 
+ * <BR>The <CODE>SnmpPduPacket</CODE> class defines the attributes
  * common to every form of SNMP packets.
- * 
- * 
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ *
+ *
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  * @see SnmpMessage
  * @see SnmpPduFactory
  *
- * @version     4.15     11/17/05
- * @author      Sun Microsystems, Inc
  */
 
 public abstract class SnmpPduPacket extends SnmpPdu implements Serializable {
@@ -48,4 +39,3 @@ public abstract class SnmpPduPacket extends SnmpPdu implements Serializable {
      */
     public byte[] community ;
 }
-

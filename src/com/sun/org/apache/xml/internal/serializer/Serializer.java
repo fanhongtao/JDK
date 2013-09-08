@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,55 +39,55 @@ import org.xml.sax.ContentHandler;
  * <p>
  * Here is an example using the asContentHandler() method:
  * <pre>
- * java.util.Properties props = 
+ * java.util.Properties props =
  *   OutputPropertiesFactory.getDefaultMethodProperties(Method.TEXT);
  * Serializer ser = SerializerFactory.getSerializer(props);
- * java.io.PrintStream ostream = System.out; 
+ * java.io.PrintStream ostream = System.out;
  * ser.setOutputStream(ostream);
- * 
+ *
  * // Provide the SAX input events
  * ContentHandler handler = ser.asContentHandler();
  * handler.startDocument();
  * char[] chars = { 'a', 'b', 'c' };
  * handler.characters(chars, 0, chars.length);
  * handler.endDocument();
- * 
+ *
  * ser.reset(); // get ready to use the serializer for another document
  *              // of the same output method (TEXT).
  * </pre>
- * 
+ *
  * <p>
- * As an alternate to supplying a series of SAX events as input through the 
- * ContentHandler interface, the input to serialize may be given as a DOM. 
+ * As an alternate to supplying a series of SAX events as input through the
+ * ContentHandler interface, the input to serialize may be given as a DOM.
  * <p>
  * For example:
  * <pre>
  * org.w3c.dom.Document     inputDoc;
  * com.sun.org.apache.xml.internal.serializer.Serializer   ser;
  * java.io.Writer owriter;
- * 
- * java.util.Properties props = 
+ *
+ * java.util.Properties props =
  *   OutputPropertiesFactory.getDefaultMethodProperties(Method.XML);
  * Serializer ser = SerializerFactory.getSerializer(props);
  * owriter = ...;  // create a writer to serialize the document to
  * ser.setWriter( owriter );
- * 
+ *
  * inputDoc = ...; // create the DOM document to be serialized
  * DOMSerializer dser = ser.asDOMSerializer(); // a DOM will be serialized
  * dser.serialize(inputDoc); // serialize the DOM, sending output to owriter
- * 
+ *
  * ser.reset(); // get ready to use the serializer for another document
  *              // of the same output method.
  * </pre>
- * 
+ *
  * This interface is a public API.
- * 
+ *
  * @see Method
  * @see OutputPropertiesFactory
  * @see SerializerFactory
  * @see DOMSerializer
  * @see ContentHandler
- * 
+ *
  * @xsl.usage general
  */
 public interface Serializer {
@@ -118,7 +122,7 @@ public interface Serializer {
      * <p>
      * The encoding specified for the output {@link Properties} must be
      * identical to the output format used with the writer.
-     * 
+     *
      * <p>
      * Only one of setWriter() or setOutputStream() should be called.
      *
@@ -142,20 +146,20 @@ public interface Serializer {
      * <p>
      * The standard property keys supported are: "method", "version", "encoding",
      * "omit-xml-declaration", "standalone", doctype-public",
-     * "doctype-system", "cdata-section-elements", "indent", "media-type". 
+     * "doctype-system", "cdata-section-elements", "indent", "media-type".
      * These property keys and their values are described in the XSLT recommendation,
      * see {@link <a href="http://www.w3.org/TR/1999/REC-xslt-19991116"> XSLT 1.0 recommendation</a>}
      * <p>
      * The non-standard property keys supported are defined in {@link OutputPropertiesFactory}.
      *
      * <p>
-     * This method can be called multiple times before a document is serialized. Each 
-     * time it is called more, or over-riding property values, can be specified. One 
+     * This method can be called multiple times before a document is serialized. Each
+     * time it is called more, or over-riding property values, can be specified. One
      * property value that can not be changed is that of the "method" property key.
      * <p>
      * The value of the "cdata-section-elements" property key is a whitespace
-     * separated list of elements. If the element is in a namespace then 
-     * value is passed in this format: {uri}localName 
+     * separated list of elements. If the element is in a namespace then
+     * value is passed in this format: {uri}localName
      * <p>
      * If the "cdata-section-elements" key is specified on multiple calls
      * to this method the set of elements specified in the value
@@ -180,7 +184,7 @@ public interface Serializer {
      * If the serializer does not support the {@link ContentHandler}
      * interface, it will return null.
      * <p>
-     * In principle only one of asDOMSerializer() or asContentHander() 
+     * In principle only one of asDOMSerializer() or asContentHander()
      * should be called.
      *
      * @return A {@link ContentHandler} interface into this serializer,
@@ -196,7 +200,7 @@ public interface Serializer {
      * If the serializer does not support the {@link DOMSerializer}
      * interface, it should return null.
      * <p>
-     * In principle only one of asDOMSerializer() or asContentHander() 
+     * In principle only one of asDOMSerializer() or asContentHander()
      * should be called.
      *
      * @return A {@link DOMSerializer} interface into this serializer,
@@ -206,7 +210,7 @@ public interface Serializer {
     public DOMSerializer asDOMSerializer() throws IOException;
 
     /**
-     * This method resets the serializer. 
+     * This method resets the serializer.
      * If this method returns true, the
      * serializer may be used for subsequent serialization of new
      * documents. It is possible to change the output format and
@@ -217,4 +221,3 @@ public interface Serializer {
      */
     public boolean reset();
 }
-

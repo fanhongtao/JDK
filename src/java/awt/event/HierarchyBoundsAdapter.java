@@ -1,8 +1,26 @@
 /*
- * @(#)HierarchyBoundsAdapter.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -19,16 +37,15 @@ package java.awt.event;
  * about.)
  * <p>
  * Create a listener object using your class and then register it with a
- * Component using the Component's <code>addHierarchyBoundsListener</code> 
+ * Component using the Component's <code>addHierarchyBoundsListener</code>
  * method. When the hierarchy to which the Component belongs changes by
  * resize or movement of an ancestor, the relevant method in the listener
  * object is invoked, and the <code>HierarchyEvent</code> is passed to it.
  *
- * @author	David Mendenhall
- * @version	1.8, 11/17/05
- * @see		HierarchyBoundsListener
- * @see		HierarchyEvent
- * @since 	1.3
+ * @author      David Mendenhall
+ * @see         HierarchyBoundsListener
+ * @see         HierarchyEvent
+ * @since       1.3
  */
 public abstract class HierarchyBoundsAdapter implements HierarchyBoundsListener
 {

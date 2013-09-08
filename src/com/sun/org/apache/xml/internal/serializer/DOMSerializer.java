@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,8 +30,8 @@ import org.w3c.dom.Node;
  * Interface for a DOM serializer implementation.
  * <p>
  * The DOMSerializer is a facet of a serializer and is obtained from the
- * asDOMSerializer() method of the Serializer interface. 
- * A serializer may or may not support a DOM serializer, if it does not then the 
+ * asDOMSerializer() method of the Serializer interface.
+ * A serializer may or may not support a DOM serializer, if it does not then the
  * return value from asDOMSerializer() is null.
  * <p>
  * Example:
@@ -35,7 +39,7 @@ import org.w3c.dom.Node;
  * Document     doc;
  * Serializer   ser;
  * OutputStream os;
- * 
+ *
  * ser = ...;
  * os = ...;
  *
@@ -43,9 +47,9 @@ import org.w3c.dom.Node;
  * DOMSerialzier dser = ser.asDOMSerializer();
  * dser.serialize(doc);
  * </pre>
- * 
+ *
  * @see Serializer
- * 
+ *
  * @xsl.usage general
  *
  */
@@ -54,7 +58,7 @@ public interface DOMSerializer
     /**
      * Serializes the DOM node. Throws an exception only if an I/O
      * exception occured while serializing.
-     * 
+     *
      * This interface is a public API.
      *
      * @param node the DOM node to serialize

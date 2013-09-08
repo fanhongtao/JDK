@@ -1,8 +1,26 @@
 /*
- * @(#)SocketFactoryContactInfoListIteratorImpl.java	1.12 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.legacy.connection;
@@ -28,9 +46,9 @@ public class SocketFactoryContactInfoListIteratorImpl
 
     public SocketFactoryContactInfoListIteratorImpl(
         ORB orb,
-	CorbaContactInfoList corbaContactInfoList)
+        CorbaContactInfoList corbaContactInfoList)
     {
-	super(orb, corbaContactInfoList, null, null);
+        super(orb, corbaContactInfoList, null, null);
     }
 
     ////////////////////////////////////////////////////
@@ -40,25 +58,25 @@ public class SocketFactoryContactInfoListIteratorImpl
 
     public boolean hasNext()
     {
-	return true;
+        return true;
     }
 
     public Object next()
     {
-	if (contactInfoList.getEffectiveTargetIOR().getProfile().isLocal()){
-	    return new SharedCDRContactInfoImpl(
-		orb, contactInfoList,
-		contactInfoList.getEffectiveTargetIOR(),
-		orb.getORBData().getGIOPAddressDisposition());
-	} else {
-	    // REVISIT:
-	    // on comm_failure maybe need to give IOR instead of located.
-	    return new SocketFactoryContactInfoImpl(
-	        orb, contactInfoList,
-		contactInfoList.getEffectiveTargetIOR(),
-		orb.getORBData().getGIOPAddressDisposition(),
-		socketInfoCookie);
-	}
+        if (contactInfoList.getEffectiveTargetIOR().getProfile().isLocal()){
+            return new SharedCDRContactInfoImpl(
+                orb, contactInfoList,
+                contactInfoList.getEffectiveTargetIOR(),
+                orb.getORBData().getGIOPAddressDisposition());
+        } else {
+            // REVISIT:
+            // on comm_failure maybe need to give IOR instead of located.
+            return new SocketFactoryContactInfoImpl(
+                orb, contactInfoList,
+                contactInfoList.getEffectiveTargetIOR(),
+                orb.getORBData().getGIOPAddressDisposition(),
+                socketInfoCookie);
+        }
     }
 
     ////////////////////////////////////////////////////
@@ -66,33 +84,33 @@ public class SocketFactoryContactInfoListIteratorImpl
     // pept.ContactInfoListIterator
     //
 
-    public boolean reportException(ContactInfo contactInfo, 
-				   RuntimeException ex)
+    public boolean reportException(ContactInfo contactInfo,
+                                   RuntimeException ex)
     {
-	this.failureContactInfo = (CorbaContactInfo)contactInfo;
-	this.failureException = ex;
-	if (ex instanceof org.omg.CORBA.COMM_FAILURE) {
+        this.failureContactInfo = (CorbaContactInfo)contactInfo;
+        this.failureException = ex;
+        if (ex instanceof org.omg.CORBA.COMM_FAILURE) {
 
-	    if (ex.getCause() instanceof GetEndPointInfoAgainException) {
-		socketInfoCookie = 
-		    ((GetEndPointInfoAgainException) ex.getCause())
-		    .getEndPointInfo();
-		return true;
-	    }
+            if (ex.getCause() instanceof GetEndPointInfoAgainException) {
+                socketInfoCookie =
+                    ((GetEndPointInfoAgainException) ex.getCause())
+                    .getEndPointInfo();
+                return true;
+            }
 
-	    SystemException se = (SystemException) ex;
-	    if (se.completed == CompletionStatus.COMPLETED_NO) {
-		if (contactInfoList.getEffectiveTargetIOR() !=
-		    contactInfoList.getTargetIOR()) 
+            SystemException se = (SystemException) ex;
+            if (se.completed == CompletionStatus.COMPLETED_NO) {
+                if (contactInfoList.getEffectiveTargetIOR() !=
+                    contactInfoList.getTargetIOR())
                 {
-		    // retry from root ior
+                    // retry from root ior
                     contactInfoList.setEffectiveTargetIOR(
                         contactInfoList.getTargetIOR());
-		    return true;
-		}
-	    }
-	}
-	return false;
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
 

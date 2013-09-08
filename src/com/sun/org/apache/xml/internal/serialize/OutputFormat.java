@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,7 +54,6 @@ import org.w3c.dom.html.HTMLDocument;
  * </ul>
  *
  *
- * @version $Revision: 1.2.6.1 $ $Date: 2005/09/09 07:26:16 $
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  *         <a href="mailto:visco@intalio.com">Keith Visco</a>
  * @see Serializer
@@ -230,11 +233,11 @@ public class OutputFormat
      * specify otherwise, or specify the default behavior.
      */
     private boolean _preserve = false;
-	/** If true, an empty string valued attribute is output as "". If false and
-	 * and we are using the HTMLSerializer, then only the attribute name is 
-	 * serialized. Defaults to false for backwards compatibility.
-	 */
-	private boolean _preserveEmptyAttributes = false;
+        /** If true, an empty string valued attribute is output as "". If false and
+         * and we are using the HTMLSerializer, then only the attribute name is
+         * serialized. Defaults to false for backwards compatibility.
+         */
+        private boolean _preserveEmptyAttributes = false;
 
     /**
      * Constructs a new output format with the default values.
@@ -804,17 +807,17 @@ public class OutputFormat
         else
             _lineWidth = lineWidth;
     }
-	/**
-	 * Returns the preserveEmptyAttribute flag. If flag is false, then'
-	 * attributes with empty string values are output as the attribute 
-	 * name only (in HTML mode).
-	 * @return preserve the preserve flag
-	 */	public boolean getPreserveEmptyAttributes () {		return _preserveEmptyAttributes;	}	/**
-	 * Sets the preserveEmptyAttribute flag. If flag is false, then'
-	 * attributes with empty string values are output as the attribute 
-	 * name only (in HTML mode).
-	 * @param preserve the preserve flag
-	 */	public void setPreserveEmptyAttributes (boolean preserve) {		_preserveEmptyAttributes = preserve;	}
+        /**
+         * Returns the preserveEmptyAttribute flag. If flag is false, then'
+         * attributes with empty string values are output as the attribute
+         * name only (in HTML mode).
+         * @return preserve the preserve flag
+         */     public boolean getPreserveEmptyAttributes () {          return _preserveEmptyAttributes;        }       /**
+         * Sets the preserveEmptyAttribute flag. If flag is false, then'
+         * attributes with empty string values are output as the attribute
+         * name only (in HTML mode).
+         * @param preserve the preserve flag
+         */     public void setPreserveEmptyAttributes (boolean preserve) {             _preserveEmptyAttributes = preserve;    }
 
     /**
      * Returns the last printable character based on the selected
@@ -904,7 +907,7 @@ public class OutputFormat
            return doctype.getPublicId();
            } catch ( Error except ) {  }
            }
-        
+
         if ( doc instanceof HTMLDocument )
             return DTD.XHTMLPublicId;
         return null;
@@ -928,7 +931,7 @@ public class OutputFormat
            return doctype.getSystemId();
            } catch ( Error except ) { }
            }
-        
+
         if ( doc instanceof HTMLDocument )
             return DTD.XHTMLSystemId;
         return null;
@@ -956,4 +959,3 @@ public class OutputFormat
 
 
 }
-

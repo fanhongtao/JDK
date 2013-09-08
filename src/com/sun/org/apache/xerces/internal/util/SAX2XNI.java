@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -71,8 +75,8 @@ import org.xml.sax.SAXException;
 
 /**
  * Receves SAX {@link ContentHandler} events
- * and produces the equivalent {@link XMLDocumentHandler} events. 
- * 
+ * and produces the equivalent {@link XMLDocumentHandler} events.
+ *
  * @author
  *     Kohsuke Kawaguchi (kohsuke.kawaguchi@sun.com)
  */
@@ -80,12 +84,12 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
     public SAX2XNI( XMLDocumentHandler core ) {
         this.fCore = core;
     }
-    
+
     private XMLDocumentHandler fCore;
 
     private final NamespaceSupport nsContext = new NamespaceSupport();
     private final SymbolTable symbolTable = new SymbolTable();
-    
+
 
     public void setDocumentHandler(XMLDocumentHandler handler) {
         fCore = handler;
@@ -94,8 +98,8 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
     public XMLDocumentHandler getDocumentHandler() {
         return fCore;
     }
-    
-    
+
+
     //
     //
     // ContentHandler implementation
@@ -104,7 +108,7 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
     public void startDocument() throws SAXException {
         try {
             nsContext.reset();
-            
+
             XMLLocator xmlLocator;
             if(locator==null)
                 // some SAX source doesn't provide a locator,
@@ -114,7 +118,7 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
                 xmlLocator=new SimpleLocator(null,null,-1,-1);
             else
                 xmlLocator=new LocatorWrapper(locator);
-            
+
             fCore.startDocument(
                     xmlLocator,
                     null,
@@ -124,7 +128,7 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
             throw e.exception;
         }
     }
-    
+
     public void endDocument() throws SAXException {
         try {
             fCore.endDocument(null);
@@ -132,7 +136,7 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
             throw e.exception;
         }
     }
-    
+
     public void startElement( String uri, String local, String qname, Attributes att ) throws SAXException {
         try {
             fCore.startElement(createQName(uri,local,qname),createAttributes(att),null);
@@ -140,7 +144,7 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
             throw e.exception;
         }
     }
-    
+
     public void endElement( String uri, String local, String qname ) throws SAXException {
         try {
             fCore.endElement(createQName(uri,local,qname),null);
@@ -148,7 +152,7 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
             throw e.exception;
         }
     }
-    
+
     public void characters( char[] buf, int offset, int len ) throws SAXException {
         try {
             fCore.characters(new XMLString(buf,offset,len),null);
@@ -156,7 +160,7 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
             throw e.exception;
         }
     }
-    
+
     public void ignorableWhitespace( char[] buf, int offset, int len ) throws SAXException {
         try {
             fCore.ignorableWhitespace(new XMLString(buf,offset,len),null);
@@ -164,16 +168,16 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
             throw e.exception;
         }
     }
-    
+
     public void startPrefixMapping( String prefix, String uri ) {
         nsContext.pushContext();
         nsContext.declarePrefix(prefix,uri);
     }
-    
+
     public void endPrefixMapping( String prefix ) {
         nsContext.popContext();
     }
-    
+
     public void processingInstruction( String target, String data ) throws SAXException {
         try {
             fCore.processingInstruction(
@@ -182,20 +186,20 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
             throw e.exception;
         }
     }
-    
+
     public void skippedEntity( String name ) {
     }
-    
+
     private Locator locator;
     public void setDocumentLocator( Locator _loc ) {
         this.locator = _loc;
     }
-    
+
     /** Creates a QName object. */
     private QName createQName(String uri, String local, String raw) {
 
         int idx = raw.indexOf(':');
-        
+
         if( local.length()==0 ) {
             // if naemspace processing is turned off, local could be "".
             // in that case, treat everything to be in the no namespace.
@@ -205,19 +209,19 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
             else
                 local = raw.substring(idx+1);
         }
-        
+
         String prefix;
         if (idx < 0)
             prefix = null;
         else
             prefix = raw.substring(0, idx);
-        
+
         if (uri != null && uri.length() == 0)
             uri = null; // XNI uses null whereas SAX uses the empty string
-        
+
         return new QName(symbolize(prefix), symbolize(local), symbolize(raw), symbolize(uri));
     }
-    
+
     /** Symbolizes the specified string. */
     private String symbolize(String s) {
         if (s == null)
@@ -225,19 +229,19 @@ public class SAX2XNI implements ContentHandler, XMLDocumentSource {
         else
             return symbolTable.addSymbol(s);
     }
-    
+
     private XMLString createXMLString(String str) {
         // with my patch
         // return new XMLString(str);
-        
+
         // for now
         return new XMLString(str.toCharArray(), 0, str.length());
     }
-    
-    
+
+
     /** only one instance of XMLAttributes is used. */
     private final XMLAttributes xa = new XMLAttributesImpl();
-    
+
     /** Creates an XMLAttributes object. */
     private XMLAttributes createAttributes(Attributes att) {
         xa.removeAllAttributes();

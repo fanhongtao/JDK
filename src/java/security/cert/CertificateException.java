@@ -1,8 +1,26 @@
 /*
- * @(#)CertificateException.java	1.34 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -13,7 +31,6 @@ import java.security.GeneralSecurityException;
  * This exception indicates one of a variety of certificate problems.
  *
  * @author Hemma Prafullchandra
- * @version 1.34
  * @see Certificate
  */
 public class CertificateException extends GeneralSecurityException {
@@ -22,7 +39,7 @@ public class CertificateException extends GeneralSecurityException {
 
     /**
      * Constructs a certificate exception with no detail message. A detail
-     * message is a String that describes this particular exception. 
+     * message is a String that describes this particular exception.
      */
     public CertificateException() {
         super();
@@ -33,7 +50,7 @@ public class CertificateException extends GeneralSecurityException {
      * message. A detail message is a String that describes this
      * particular exception.
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public CertificateException(String msg) {
         super(msg);

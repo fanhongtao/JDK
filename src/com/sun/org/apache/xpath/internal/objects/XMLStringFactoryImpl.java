@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +74,7 @@ public class XMLStringFactoryImpl extends XMLStringFactory
   {
     return new XStringForFSB(fsb, start, length);
   }
-  
+
   /**
    * Create a XMLString from a FastStringBuffer.
    *
@@ -85,10 +89,10 @@ public class XMLStringFactoryImpl extends XMLStringFactory
   {
     return new XStringForChars(string, start, length);
   }
-  
+
   /**
    * Get a cheap representation of an empty string.
-   * 
+   *
    * @return An non-null reference to an XMLString that represents "".
    */
   public XMLString emptystr()

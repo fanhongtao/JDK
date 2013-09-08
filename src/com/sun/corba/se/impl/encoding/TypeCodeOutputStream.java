@@ -1,8 +1,26 @@
 /*
- * @(#)TypeCodeOutputStream.java	1.13 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.encoding;
@@ -43,7 +61,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
-public final class TypeCodeOutputStream extends EncapsOutputStream 
+public final class TypeCodeOutputStream extends EncapsOutputStream
 {
     private OutputStream enclosure = null;
     private Map typeMap = null;
@@ -60,7 +78,7 @@ public final class TypeCodeOutputStream extends EncapsOutputStream
     public org.omg.CORBA.portable.InputStream create_input_stream()
     {
         //return new TypeCodeInputStream((ORB)orb(), getByteBuffer(), getIndex(), isLittleEndian());
-        TypeCodeInputStream tcis 
+        TypeCodeInputStream tcis
             = new TypeCodeInputStream((ORB)orb(), getByteBuffer(), getIndex(), isLittleEndian(), getGIOPVersion());
         //if (TypeCodeImpl.debug) {
             //System.out.println("Created TypeCodeInputStream " + tcis + " with no parent");
@@ -125,7 +143,7 @@ public final class TypeCodeOutputStream extends EncapsOutputStream
 
     public int getPositionForID(String id) {
         if (typeMap == null)
-	    throw wrapper.refTypeIndirType( CompletionStatus.COMPLETED_NO ) ;
+            throw wrapper.refTypeIndirType( CompletionStatus.COMPLETED_NO ) ;
         //if (TypeCodeImpl.debug) System.out.println("Getting position " + ((Integer)typeMap.get(id)).intValue() +
             //" for id " + id);
         return ((Integer)typeMap.get(id)).intValue();
@@ -178,11 +196,11 @@ public final class TypeCodeOutputStream extends EncapsOutputStream
     }
 
     public TypeCodeOutputStream createEncapsulation(org.omg.CORBA.ORB _orb) {
-	TypeCodeOutputStream encap = new TypeCodeOutputStream((ORB)_orb, isLittleEndian());
-	encap.setEnclosingOutputStream(this);
+        TypeCodeOutputStream encap = new TypeCodeOutputStream((ORB)_orb, isLittleEndian());
+        encap.setEnclosingOutputStream(this);
         encap.makeEncapsulation();
         //if (TypeCodeImpl.debug) System.out.println("Created TypeCodeOutputStream " + encap + " with parent " + this);
-	return encap;
+        return encap;
     }
 
     protected void makeEncapsulation() {
@@ -207,7 +225,7 @@ public final class TypeCodeOutputStream extends EncapsOutputStream
         int topPos = getTopLevelPosition();
         //if (TypeCodeImpl.debug) System.out.println("TypeCodeOutputStream.getRealIndex using getTopLevelPosition " +
             //topPos + " instead of getPosition " + getPosition());
-	return topPos;
+        return topPos;
     }
 /*
     protected void printBuffer() {

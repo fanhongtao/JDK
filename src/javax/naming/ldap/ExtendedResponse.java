@@ -1,15 +1,33 @@
 /*
- * @(#)ExtendedResponse.java	1.8 05/11/17
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.ldap;
 
 /**
   * This interface represents an LDAP extended operation response as defined in
-  * <A HREF="ftp://ftp.isi.edu/in-notes/rfc2251.txt">RFC 2251</A>.
+  * <A HREF="http://www.ietf.org/rfc/rfc2251.txt">RFC 2251</A>.
   * <pre>
   *     ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
   *          COMPONENTS OF LDAPResult,
@@ -40,14 +58,13 @@ package javax.naming.ldap;
   * A program would use then these classes as follows:
   *<blockquote><pre>
   * GetTimeResponse resp =
-  * 	(GetTimeResponse) ectx.extendedOperation(new GetTimeRequest());
+  *     (GetTimeResponse) ectx.extendedOperation(new GetTimeRequest());
   * java.util.Date now = resp.getDate();
   *</pre></blockquote>
-  * 
+  *
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author Vincent Ryan
-  * @version 1.8 05/11/17
   *
   * @see ExtendedRequest
   * @since 1.3
@@ -60,7 +77,7 @@ public interface ExtendedResponse extends java.io.Serializable {
       * The LDAP protocol specifies that the response object identifier is optional.
       * If the server does not send it, the response will contain no ID (i.e. null).
       *
-      * @return	A possibly null object identifier string representing the LDAP
+      * @return A possibly null object identifier string representing the LDAP
       *         <tt>ExtendedResponse.responseName</tt> component.
       */
     public String getID();

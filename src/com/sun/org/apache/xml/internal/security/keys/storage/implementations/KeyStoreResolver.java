@@ -1,4 +1,7 @@
-
+/*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 /*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
@@ -17,8 +20,6 @@
  */
 package com.sun.org.apache.xml.internal.security.keys.storage.implementations;
 
-
-
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
@@ -33,7 +34,7 @@ import com.sun.org.apache.xml.internal.security.keys.storage.StorageResolverSpi;
  * Makes the Certificates from a JAVA {@link KeyStore} object available to the
  * {@link com.sun.org.apache.xml.internal.security.keys.storage.StorageResolver}.
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class KeyStoreResolver extends StorageResolverSpi {
 
@@ -62,10 +63,10 @@ public class KeyStoreResolver extends StorageResolverSpi {
    /**
     * Class KeyStoreIterator
     *
-    * @author $Author: raul $
-    * @version $Revision: 1.7 $
+    * @author $Author: mullan $
+    * @version $Revision: 1.5 $
     */
-   class KeyStoreIterator implements Iterator {
+   static class KeyStoreIterator implements Iterator {
 
       /** Field _keyStore */
       KeyStore _keyStore = null;

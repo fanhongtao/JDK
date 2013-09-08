@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +57,7 @@ public class FunctionDef1Arg extends FunctionOneArg
     return (null == m_arg0)
            ? xctxt.getCurrentNode() : m_arg0.asNode(xctxt);
   }
-  
+
   /**
    * Tell if the expression is a nodeset expression.
    * @return true if the expression can be represented as a nodeset.
@@ -89,10 +93,10 @@ public class FunctionDef1Arg extends FunctionOneArg
         DTM dtm = xctxt.getDTM(currentNode);
         return dtm.getStringValue(currentNode);
       }
-      
+
     }
     else
-      return m_arg0.execute(xctxt).xstr();   
+      return m_arg0.execute(xctxt).xstr();
   }
 
   /**
@@ -123,7 +127,7 @@ public class FunctionDef1Arg extends FunctionOneArg
         XMLString str = dtm.getStringValue(currentNode);
         return str.toDouble();
       }
-      
+
     }
     else
       return m_arg0.execute(xctxt).num();

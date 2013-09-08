@@ -1,8 +1,26 @@
 /*
- * @(#)ClientInvocationInfo.java	1.17 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.pept.protocol;
@@ -14,20 +32,20 @@ import java.util.Iterator;
 /**
  * @author Harold Carr
  */
-public interface ClientInvocationInfo 
+public interface ClientInvocationInfo
 {
     public Iterator getContactInfoListIterator();
-    
+
     public void setContactInfoListIterator(Iterator contactInfoListIterator);
-    
+
     public boolean isRetryInvocation();
-    
+
     public void setIsRetryInvocation(boolean isRetryInvocation);
-    
+
     public int getEntryCount();
-    
+
     public void incrementEntryCount();
-    
+
     public void decrementEntryCount();
 
     public void setClientRequestDispatcher(ClientRequestDispatcher clientRequestDispatcher);

@@ -1,6 +1,26 @@
 /*
- * Copyright 2003 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.bind;
@@ -8,23 +28,22 @@ package javax.xml.bind;
 /**
  * This exception indicates that an error has occurred while performing
  * a validate operation.
- * 
+ *
  * <p>
  * The <tt>ValidationEventHandler</tt> can cause this exception to be thrown
- * during the validate operations.  See 
+ * during the validate operations.  See
  * {@link ValidationEventHandler#handleEvent(ValidationEvent)
  * ValidationEventHandler.handleEvent(ValidationEvent)}.
  *
  * @author <ul><li>Ryan Shoemaker, Sun Microsystems, Inc.</li></ul>
- * @version $Revision: 1.2 $
  * @see JAXBException
  * @see Validator
  * @since JAXB1.0
  */
 public class ValidationException extends JAXBException {
 
-    /** 
-     * Construct an ValidationException with the specified detail message.  The 
+    /**
+     * Construct an ValidationException with the specified detail message.  The
      * errorCode and linkedException will default to null.
      *
      * @param message a description of the exception
@@ -33,8 +52,8 @@ public class ValidationException extends JAXBException {
         this( message, null, null );
     }
 
-    /** 
-     * Construct an ValidationException with the specified detail message and vendor 
+    /**
+     * Construct an ValidationException with the specified detail message and vendor
      * specific errorCode.  The linkedException will default to null.
      *
      * @param message a description of the exception
@@ -44,7 +63,7 @@ public class ValidationException extends JAXBException {
         this( message, errorCode, null );
     }
 
-    /** 
+    /**
      * Construct an ValidationException with a linkedException.  The detail message and
      * vendor specific errorCode will default to null.
      *
@@ -54,8 +73,8 @@ public class ValidationException extends JAXBException {
         this( null, null, exception );
     }
 
-    /** 
-     * Construct an ValidationException with the specified detail message and 
+    /**
+     * Construct an ValidationException with the specified detail message and
      * linkedException.  The errorCode will default to null.
      *
      * @param message a description of the exception
@@ -65,8 +84,8 @@ public class ValidationException extends JAXBException {
         this( message, null, exception );
     }
 
-    /** 
-     * Construct an ValidationException with the specified detail message, vendor 
+    /**
+     * Construct an ValidationException with the specified detail message, vendor
      * specific errorCode, and linkedException.
      *
      * @param message a description of the exception

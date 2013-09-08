@@ -1,8 +1,26 @@
 /*
- * @(#)DGC.java	1.16 05/11/17
+ * Copyright (c) 1996, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.rmi.dgc;
 
@@ -68,7 +86,7 @@ public interface DGC extends Remote {
      * such leases expire. When the client no longer has any
      * references to a specific remote object, it must schedule a
      * clean call for the object ID associated with the reference.
-     * 
+     *
      * @param ids IDs of objects to mark as referenced by calling client
      * @param sequenceNum sequence number
      * @param lease requested lease
@@ -76,7 +94,7 @@ public interface DGC extends Remote {
      * @throws RemoteException if dirty call fails
      */
     Lease dirty(ObjID[] ids, long sequenceNum, Lease lease)
-	throws RemoteException;
+        throws RemoteException;
 
     /**
      * The clean call removes the 'vmid' from the reference list of
@@ -85,7 +103,7 @@ public interface DGC extends Remote {
      * true, then the clean call is a result of a failed dirty call,
      * thus the sequence number for the client 'vmid' needs to be
      * remembered.
-     * 
+     *
      * @param ids IDs of objects to mark as unreferenced by calling client
      * @param sequenceNum sequence number
      * @param vmid client VMID
@@ -93,5 +111,5 @@ public interface DGC extends Remote {
      * @throws RemoteException if clean call fails
      */
     void clean(ObjID[] ids, long sequenceNum, VMID vmid, boolean strong)
-	throws RemoteException;
+        throws RemoteException;
 }

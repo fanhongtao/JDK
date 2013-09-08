@@ -1,14 +1,29 @@
 /*
- * @(#)NotificationListener.java	4.17 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
-
-
-import java.util.EventListener;
 
 
 /**
@@ -16,20 +31,18 @@ import java.util.EventListener;
  *
  * @since 1.5
  */
-public interface NotificationListener extends java.util.EventListener   { 
+public interface NotificationListener extends java.util.EventListener   {
 
     /**
     * Invoked when a JMX notification occurs.
     * The implementation of this method should return as soon as possible, to avoid
     * blocking its notification broadcaster.
     *
-    * @param notification The notification.    
-    * @param handback An opaque object which helps the listener to associate information
-    * regarding the MBean emitter. This object is passed to the MBean during the
-    * addListener call and resent, without modification, to the listener. The MBean object 
-    * should not use or modify the object. 
-    *
+    * @param notification The notification.
+    * @param handback An opaque object which helps the listener to associate
+    * information regarding the MBean emitter. This object is passed to the
+    * addNotificationListener call and resent, without modification, to the
+    * listener.
     */
-    public void handleNotification(Notification notification, Object handback) ;
+    public void handleNotification(Notification notification, Object handback);
 }
-

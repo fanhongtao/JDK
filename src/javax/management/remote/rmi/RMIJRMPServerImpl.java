@@ -1,8 +1,26 @@
 /*
- * @(#)RMIJRMPServerImpl.java	1.28 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.remote.rmi;
@@ -20,6 +38,9 @@ import java.util.Collections;
 import javax.security.auth.Subject;
 
 import com.sun.jmx.remote.internal.RMIExporter;
+import com.sun.jmx.remote.util.EnvHelp;
+import sun.rmi.server.UnicastServerRef;
+import sun.rmi.server.UnicastServerRef2;
 
 /**
  * <p>An {@link RMIServer} object that is exported through JRMP and that
@@ -29,7 +50,6 @@ import com.sun.jmx.remote.internal.RMIExporter;
  * @see RMIServerImpl
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public class RMIJRMPServerImpl extends RMIServerImpl {
     /**
@@ -58,44 +78,59 @@ public class RMIJRMPServerImpl extends RMIServerImpl {
                              RMIClientSocketFactory csf,
                              RMIServerSocketFactory ssf,
                              Map<String,?> env)
-	    throws IOException {
+            throws IOException {
 
         super(env);
 
-	if (port < 0)
-	    throw new IllegalArgumentException("Negative port: " + port);
+        if (port < 0)
+            throw new IllegalArgumentException("Negative port: " + port);
 
         this.port = port;
         this.csf = csf;
         this.ssf = ssf;
-	this.env = (env == null) ? Collections.EMPTY_MAP : env;
+        this.env = (env == null) ? Collections.<String, Object>emptyMap() : env;
     }
 
     protected void export() throws IOException {
-	export(this);
+        export(this);
     }
 
     private void export(Remote obj) throws RemoteException {
-	RMIExporter exporter =
-	    (RMIExporter) env.get(RMIExporter.EXPORTER_ATTRIBUTE);
-	if (exporter == null)
-	    UnicastRemoteObject.exportObject(obj, port, csf, ssf);
-	else
-	    exporter.exportObject(obj, port, csf, ssf);
+        final RMIExporter exporter =
+            (RMIExporter) env.get(RMIExporter.EXPORTER_ATTRIBUTE);
+        final boolean daemon = EnvHelp.isServerDaemon(env);
+
+        if (daemon && exporter != null) {
+            throw new IllegalArgumentException("If "+EnvHelp.JMX_SERVER_DAEMON+
+                    " is specified as true, "+RMIExporter.EXPORTER_ATTRIBUTE+
+                    " cannot be used to specify an exporter!");
+        }
+
+        if (daemon) {
+            if (csf == null && ssf == null) {
+                new UnicastServerRef(port).exportObject(obj, null, true);
+            } else {
+                new UnicastServerRef2(port, csf, ssf).exportObject(obj, null, true);
+            }
+        } else if (exporter != null) {
+            exporter.exportObject(obj, port, csf, ssf);
+        } else {
+            UnicastRemoteObject.exportObject(obj, port, csf, ssf);
+        }
     }
 
     private void unexport(Remote obj, boolean force)
-	    throws NoSuchObjectException {
-	RMIExporter exporter =
-	    (RMIExporter) env.get(RMIExporter.EXPORTER_ATTRIBUTE);
-	if (exporter == null)
-	    UnicastRemoteObject.unexportObject(obj, force);
-	else
-	    exporter.unexportObject(obj, force);
+            throws NoSuchObjectException {
+        RMIExporter exporter =
+            (RMIExporter) env.get(RMIExporter.EXPORTER_ATTRIBUTE);
+        if (exporter == null)
+            UnicastRemoteObject.unexportObject(obj, force);
+        else
+            exporter.unexportObject(obj, force);
     }
 
     protected String getProtocol() {
-	return "rmi";
+        return "rmi";
     }
 
     /**
@@ -129,15 +164,15 @@ public class RMIJRMPServerImpl extends RMIServerImpl {
      * object cannot be created or exported.
      */
     protected RMIConnection makeClient(String connectionId, Subject subject)
-	    throws IOException {
+            throws IOException {
 
-	if (connectionId == null)
-	    throw new NullPointerException("Null connectionId");
+        if (connectionId == null)
+            throw new NullPointerException("Null connectionId");
 
         RMIConnection client =
             new RMIConnectionImpl(this, connectionId, getDefaultClassLoader(),
-				  subject, env);
-	export(client);
+                                  subject, env);
+        export(client);
         return client;
     }
 
@@ -160,5 +195,5 @@ public class RMIJRMPServerImpl extends RMIServerImpl {
     private final int port;
     private final RMIClientSocketFactory csf;
     private final RMIServerSocketFactory ssf;
-    private final Map env;
+    private final Map<String, ?> env;
 }

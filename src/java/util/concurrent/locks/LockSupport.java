@@ -1,8 +1,36 @@
 /*
- * @(#)LockSupport.java	1.12 06/03/30
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent.locks;
@@ -172,8 +200,8 @@ public class LockSupport {
      * <li>Some other thread invokes {@link #unpark unpark} with the
      * current thread as the target; or
      *
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts} the current
-     * thread; or
+     * <li>Some other thread {@linkplain Thread#interrupt interrupts}
+     * the current thread; or
      *
      * <li>The specified waiting time elapses; or
      *
@@ -247,10 +275,14 @@ public class LockSupport {
      * snapshot -- the thread may have since unblocked or blocked on a
      * different blocker object.
      *
+     * @param t the thread
      * @return the blocker
+     * @throws NullPointerException if argument is null
      * @since 1.6
      */
     public static Object getBlocker(Thread t) {
+        if (t == null)
+            throw new NullPointerException();
         return unsafe.getObjectVolatile(t, parkBlockerOffset);
     }
 

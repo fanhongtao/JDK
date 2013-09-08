@@ -1,8 +1,26 @@
 /*
- * @(#)POACurrent.java	1.18 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.oa.poa;
@@ -26,16 +44,16 @@ import com.sun.corba.se.impl.logging.POASystemException ;
 // XXX Needs to be turned into LocalObjectImpl.
 
 public class POACurrent extends org.omg.CORBA.portable.ObjectImpl
-    implements org.omg.PortableServer.Current 
+    implements org.omg.PortableServer.Current
 {
     private ORB orb;
     private POASystemException wrapper ;
 
     public POACurrent(ORB orb)
     {
-	this.orb = orb;
-	wrapper = POASystemException.get( orb,
-	    CORBALogDomains.OA_INVOCATION ) ;
+        this.orb = orb;
+        wrapper = POASystemException.get( orb,
+            CORBALogDomains.OA_INVOCATION ) ;
     }
 
     public String[] _ids()
@@ -50,21 +68,21 @@ public class POACurrent extends org.omg.CORBA.portable.ObjectImpl
     //
 
     public POA get_POA()
-        throws 
-	    NoContext
+        throws
+            NoContext
     {
         POA poa = (POA)(peekThrowNoContext().oa());
-	throwNoContextIfNull(poa);
-	return poa;
+        throwNoContextIfNull(poa);
+        return poa;
     }
 
     public byte[] get_object_id()
-        throws 
-	    NoContext
+        throws
+            NoContext
     {
-	byte[] objectid = peekThrowNoContext().id();
-	throwNoContextIfNull(objectid);
-	return objectid;
+        byte[] objectid = peekThrowNoContext().id();
+        throwNoContextIfNull(objectid);
+        return objectid;
     }
 
     //
@@ -74,46 +92,46 @@ public class POACurrent extends org.omg.CORBA.portable.ObjectImpl
     public ObjectAdapter getOA()
     {
         ObjectAdapter oa = peekThrowInternal().oa();
-	throwInternalIfNull(oa);
-	return oa;
+        throwInternalIfNull(oa);
+        return oa;
     }
 
     public byte[] getObjectId()
     {
-	byte[] objectid = peekThrowInternal().id();
-	throwInternalIfNull(objectid);
-	return objectid;
+        byte[] objectid = peekThrowInternal().id();
+        throwInternalIfNull(objectid);
+        return objectid;
     }
 
     Servant getServant()
     {
-	Servant servant = (Servant)(peekThrowInternal().getServantContainer());
-	// If is OK for the servant to be null.
-	// This could happen if POAImpl.getServant is called but
-	// POAImpl.internalGetServant throws an exception.
-	return servant;
+        Servant servant = (Servant)(peekThrowInternal().getServantContainer());
+        // If is OK for the servant to be null.
+        // This could happen if POAImpl.getServant is called but
+        // POAImpl.internalGetServant throws an exception.
+        return servant;
     }
 
     CookieHolder getCookieHolder()
     {
-	CookieHolder cookieHolder = peekThrowInternal().getCookieHolder();
-	throwInternalIfNull(cookieHolder);
-	return cookieHolder;
+        CookieHolder cookieHolder = peekThrowInternal().getCookieHolder();
+        throwInternalIfNull(cookieHolder);
+        return cookieHolder;
     }
 
     // This is public so we can test the stack balance.
-    // It is not a security hole since this same info can be obtained from 
+    // It is not a security hole since this same info can be obtained from
     // PortableInterceptors.
     public String getOperation()
     {
-	String operation = peekThrowInternal().getOperation();
-	throwInternalIfNull(operation);
-	return operation;
+        String operation = peekThrowInternal().getOperation();
+        throwInternalIfNull(operation);
+        return operation;
     }
 
     void setServant(Servant servant)
     {
-	peekThrowInternal().setServant( servant );
+        peekThrowInternal().setServant( servant );
     }
 
     //
@@ -121,44 +139,44 @@ public class POACurrent extends org.omg.CORBA.portable.ObjectImpl
     //
 
     private OAInvocationInfo peekThrowNoContext()
-	throws
-	    NoContext
+        throws
+            NoContext
     {
-	OAInvocationInfo invocationInfo = null;
-	try {
-	    invocationInfo = orb.peekInvocationInfo() ;
-	} catch (EmptyStackException e) {
-	    throw new NoContext();
-	}
-	return invocationInfo;
+        OAInvocationInfo invocationInfo = null;
+        try {
+            invocationInfo = orb.peekInvocationInfo() ;
+        } catch (EmptyStackException e) {
+            throw new NoContext();
+        }
+        return invocationInfo;
     }
 
     private OAInvocationInfo peekThrowInternal()
     {
-	OAInvocationInfo invocationInfo = null;
-	try {
-	    invocationInfo = orb.peekInvocationInfo() ;
-	} catch (EmptyStackException e) {
-	    // The completion status is maybe because this could happen
-	    // after the servant has been invoked.
-	    throw wrapper.poacurrentUnbalancedStack( e ) ;
-	}
-	return invocationInfo;
+        OAInvocationInfo invocationInfo = null;
+        try {
+            invocationInfo = orb.peekInvocationInfo() ;
+        } catch (EmptyStackException e) {
+            // The completion status is maybe because this could happen
+            // after the servant has been invoked.
+            throw wrapper.poacurrentUnbalancedStack( e ) ;
+        }
+        return invocationInfo;
     }
 
     private void throwNoContextIfNull(Object o)
-	throws
-	    NoContext
+        throws
+            NoContext
     {
-	if ( o == null ) {
-	    throw new NoContext();
-	}
+        if ( o == null ) {
+            throw new NoContext();
+        }
     }
 
     private void throwInternalIfNull(Object o)
     {
-	if ( o == null ) {
-	    throw wrapper.poacurrentNullField( CompletionStatus.COMPLETED_MAYBE ) ;
-	}
+        if ( o == null ) {
+            throw wrapper.poacurrentNullField( CompletionStatus.COMPLETED_MAYBE ) ;
+        }
     }
 }

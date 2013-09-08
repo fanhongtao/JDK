@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,7 +91,7 @@ public class XStringForFSB extends XString
   {
     return ((FastStringBuffer) m_obj);
   }
-  
+
   /**
    * Cast result object to a string.
    *
@@ -116,7 +120,7 @@ public class XStringForFSB extends XString
 //  static java.util.Hashtable xtable = new java.util.Hashtable();
 
   /**
-   * Since this object is incomplete without the length and the offset, we 
+   * Since this object is incomplete without the length and the offset, we
    * have to convert to a string when this function is called.
    *
    * @return The java String representation of this object.
@@ -334,7 +338,7 @@ public class XStringForFSB extends XString
       return true;
     }
     if(obj2.getType() == XObject.CLASS_NUMBER)
-    	return obj2.equals(this);
+        return obj2.equals(this);
 
     String str = obj2.str();
     int n = m_length;
@@ -418,12 +422,12 @@ public class XStringForFSB extends XString
 
     if (null == obj2)
       return false;
-      
-    if(obj2 instanceof XNumber)
-    	return obj2.equals(this);
 
-      // In order to handle the 'all' semantics of 
-      // nodeset comparisons, we always call the 
+    if(obj2 instanceof XNumber)
+        return obj2.equals(this);
+
+      // In order to handle the 'all' semantics of
+      // nodeset comparisons, we always call the
       // nodeset function.
     else if (obj2 instanceof XNodeSet)
       return obj2.equals(this);
@@ -560,7 +564,7 @@ public class XStringForFSB extends XString
     // causes us to create a string, but at this point
     // this only seems to get called in key processing.
     // Maybe we can live with it?
-    
+
 /*
     int h = m_hash;
 
@@ -934,13 +938,13 @@ public class XStringForFSB extends XString
    * converting it to double. The advantage of running in native
    * machine code -- perhaps even microcode, on some systems -- may
    * more than make up for the cost of allocating and discarding the
-   * additional object. We need to benchmark this. 
+   * additional object. We need to benchmark this.
    *
    * %OPT% More importantly, we need to decide whether we _care_ about
    * the performance of this operation. Does XString.toDouble constitute
    * any measurable percentage of our typical runtime? I suspect not!
    *
-   * @return A double value representation of the string, or return Double.NaN 
+   * @return A double value representation of the string, or return Double.NaN
    * if the string can not be converted.  */
   public double toDouble()
   {
@@ -949,14 +953,14 @@ public class XStringForFSB extends XString
     int i;
     char c;
     String valueString = fsb().getString(m_start,m_length);
-    
+
     // The following are permitted in the Double.valueOf, but not by the XPath spec:
     // - a plus sign
     // - The use of e or E to indicate exponents
     // - trailing f, F, d, or D
     // See function comments; not sure if this is slower than actually doing the
     // conversion ourselves (as was before).
-    
+
     for (i=0;i<m_length;i++)
       if (!XMLCharacterRecognizer.isWhiteSpace(valueString.charAt(i)))
         break;
@@ -967,13 +971,13 @@ public class XStringForFSB extends XString
       c = valueString.charAt(i);
       if (c != '.' && (c < '0' || c > '9'))
         break;
-    }   	    	
+    }
     for (;i<m_length;i++)
       if (!XMLCharacterRecognizer.isWhiteSpace(valueString.charAt(i)))
         break;
     if (i != m_length)
       return Double.NaN;
-    	
+
     try {
       return new Double(valueString).doubleValue();
     } catch (NumberFormatException nfe) {

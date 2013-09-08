@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +21,8 @@
 package com.sun.org.apache.xerces.internal.jaxp.validation;
 
 import java.io.IOException;
-import java.util.Locale;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
@@ -28,7 +32,9 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
 
+import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
 import com.sun.org.apache.xerces.internal.xs.AttributePSVI;
 import com.sun.org.apache.xerces.internal.xs.ElementPSVI;
@@ -45,7 +51,7 @@ import org.xml.sax.SAXNotSupportedException;
  * @author <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
  * @author Michael Glavassevich, IBM
  * @author <a href="mailto:Sunitha.Reddy@Sun.com">Sunitha Reddy</a>
- * @version $Id: ValidatorImpl.java,v 1.3 2005/09/26 13:02:52 sunithareddy Exp $
+ * @version $Id: ValidatorImpl.java,v 1.10 2010-11-01 04:40:08 joehw Exp $
  */
 final class ValidatorImpl extends Validator implements PSVIProvider {
     
@@ -76,6 +82,9 @@ final class ValidatorImpl extends Validator implements PSVIProvider {
     
     /** Flag for tracking whether the resource resolver changed since last reset. */
     private boolean fResourceResolverChanged = false;
+    
+    /** Support current-element-node property */
+    private static final String CURRENT_ELEMENT_NODE = Constants.XERCES_PROPERTY_PREFIX + Constants.CURRENT_ELEMENT_NODE_PROPERTY;
     
     public ValidatorImpl(XSGrammarPoolContainer grammarContainer) {
         fComponentManager = new XMLSchemaValidatorComponentManager(grammarContainer);
@@ -115,12 +124,12 @@ final class ValidatorImpl extends Validator implements PSVIProvider {
         }
         // Source parameter cannot be null.
         else if (source == null) {
-            throw new NullPointerException(JAXPValidationMessageFormatter.formatMessage(Locale.getDefault(), 
+            throw new NullPointerException(JAXPValidationMessageFormatter.formatMessage(fComponentManager.getLocale(),
                     "SourceParameterNull", null));
         }
         // Source parameter must be a SAXSource, DOMSource or StreamSource
         else {
-            throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(Locale.getDefault(), 
+            throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(fComponentManager.getLocale(),
                     "SourceNotAccepted", new Object [] {source.getClass().getName()}));
         }
     }
@@ -153,10 +162,10 @@ final class ValidatorImpl extends Validator implements PSVIProvider {
         }
         catch (XMLConfigurationException e) {
             final String identifier = e.getIdentifier();
-            final String key = e.getType() == XMLConfigurationException.NOT_RECOGNIZED ?
+            final String key = e.getType() == Status.NOT_RECOGNIZED ?
                     "feature-not-recognized" : "feature-not-supported";
             throw new SAXNotRecognizedException(
-                    SAXMessageFormatter.formatMessage(Locale.getDefault(), 
+                    SAXMessageFormatter.formatMessage(fComponentManager.getLocale(),
                     key, new Object [] {identifier}));
         }
     }
@@ -171,11 +180,20 @@ final class ValidatorImpl extends Validator implements PSVIProvider {
         }
         catch (XMLConfigurationException e) {
             final String identifier = e.getIdentifier();
-            final String key = e.getType() == XMLConfigurationException.NOT_RECOGNIZED ?
-                    "feature-not-recognized" : "feature-not-supported";
+            final String key;
+            if (e.getType() == Status.NOT_ALLOWED) {
+                //for now, the identifier can only be (XMLConstants.FEATURE_SECURE_PROCESSING)
+                throw new SAXNotSupportedException(
+                    SAXMessageFormatter.formatMessage(fComponentManager.getLocale(),
+                    "jaxp-secureprocessing-feature", null));                    
+            } else if (e.getType() == Status.NOT_RECOGNIZED) {
+                key = "feature-not-recognized";
+            } else {
+                key = "feature-not-supported";
+            }
             throw new SAXNotRecognizedException(
-                    SAXMessageFormatter.formatMessage(Locale.getDefault(), 
-                    key, new Object [] {identifier}));
+                    SAXMessageFormatter.formatMessage(fComponentManager.getLocale(),
+                    key, new Object [] {identifier}));            
         }
         fConfigurationChanged = true;
     }
@@ -185,15 +203,19 @@ final class ValidatorImpl extends Validator implements PSVIProvider {
         if (name == null) {
             throw new NullPointerException();
         }
+        //Support current-element-node; return current node if DOMSource is used.
+        if (CURRENT_ELEMENT_NODE.equals(name)) { 
+            return (fDOMValidatorHelper != null) ? fDOMValidatorHelper.getCurrentElement() : null; 
+        } 
         try {
             return fComponentManager.getProperty(name);
         }
         catch (XMLConfigurationException e) {
             final String identifier = e.getIdentifier();
-            final String key = e.getType() == XMLConfigurationException.NOT_RECOGNIZED ?
+            final String key = e.getType() == Status.NOT_RECOGNIZED ?
                     "property-not-recognized" : "property-not-supported";
             throw new SAXNotRecognizedException(
-                    SAXMessageFormatter.formatMessage(Locale.getDefault(), 
+                    SAXMessageFormatter.formatMessage(fComponentManager.getLocale(),
                     key, new Object [] {identifier}));
         }
     }
@@ -208,10 +230,10 @@ final class ValidatorImpl extends Validator implements PSVIProvider {
         }
         catch (XMLConfigurationException e) {
             final String identifier = e.getIdentifier();
-            final String key = e.getType() == XMLConfigurationException.NOT_RECOGNIZED ?
+            final String key = e.getType() == Status.NOT_RECOGNIZED ?
                     "property-not-recognized" : "property-not-supported";
             throw new SAXNotRecognizedException(
-                    SAXMessageFormatter.formatMessage(Locale.getDefault(), 
+                    SAXMessageFormatter.formatMessage(fComponentManager.getLocale(),
                     key, new Object [] {identifier}));
         }
         fConfigurationChanged = true;

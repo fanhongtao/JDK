@@ -1,8 +1,26 @@
 /*
- * @(#)CoderMalfunctionError.java	1.6 05/11/17
+ * Copyright (c) 2001, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.charset;
@@ -14,13 +32,14 @@ package java.nio.charset;
  * encodeLoop} method of a {@link CharsetEncoder}, throws an unexpected
  * exception.
  *
- * @version 1.6, 05/11/17
  * @since 1.4
  */
 
 public class CoderMalfunctionError
     extends Error
 {
+
+    private static final long serialVersionUID = -1151412348057794301L;
 
     /**
      * Initializes an instance of this class.
@@ -29,7 +48,7 @@ public class CoderMalfunctionError
      *         The unexpected exception that was thrown
      */
     public CoderMalfunctionError(Exception cause) {
-	super(cause);
+        super(cause);
     }
 
 }

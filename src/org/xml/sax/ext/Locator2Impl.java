@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // Locator2Impl.java - extended LocatorImpl
 // http://www.saxproject.org
 // Public Domain: no warranty.
@@ -22,12 +47,11 @@ import org.xml.sax.helpers.LocatorImpl;
  *
  * @since SAX 2.0.2
  * @author David Brownell
- * @version TBS
  */
 public class Locator2Impl extends LocatorImpl implements Locator2
 {
-    private String	encoding;
-    private String	version;
+    private String      encoding;
+    private String      version;
 
 
     /**
@@ -41,32 +65,32 @@ public class Locator2Impl extends LocatorImpl implements Locator2
      * Copy an existing Locator or Locator2 object.
      * If the object implements Locator2, values of the
      * <em>encoding</em> and <em>version</em>strings are copied,
-     * otherwise they set to <em>null</em>. 
+     * otherwise they set to <em>null</em>.
      *
      * @param locator The existing Locator object.
      */
     public Locator2Impl (Locator locator)
     {
-	super (locator);
-	if (locator instanceof Locator2) {
-	    Locator2	l2 = (Locator2) locator;
+        super (locator);
+        if (locator instanceof Locator2) {
+            Locator2    l2 = (Locator2) locator;
 
-	    version = l2.getXMLVersion ();
-	    encoding = l2.getEncoding ();
-	}
+            version = l2.getXMLVersion ();
+            encoding = l2.getEncoding ();
+        }
     }
 
     ////////////////////////////////////////////////////////////////////
     // Locator2 method implementations
     ////////////////////////////////////////////////////////////////////
-    
+
     /**
      * Returns the current value of the version property.
      *
      * @see #setXMLVersion
      */
     public String getXMLVersion ()
-	{ return version; }
+        { return version; }
 
     /**
      * Returns the current value of the encoding property.
@@ -74,13 +98,13 @@ public class Locator2Impl extends LocatorImpl implements Locator2
      * @see #setEncoding
      */
     public String getEncoding ()
-	{ return encoding; }
+        { return encoding; }
 
 
     ////////////////////////////////////////////////////////////////////
-    // Setters 
+    // Setters
     ////////////////////////////////////////////////////////////////////
-    
+
     /**
      * Assigns the current value of the version property.
      *
@@ -88,7 +112,7 @@ public class Locator2Impl extends LocatorImpl implements Locator2
      * @see #getXMLVersion
      */
     public void setXMLVersion (String version)
-	{ this.version = version; }
+        { this.version = version; }
 
     /**
      * Assigns the current value of the encoding property.
@@ -97,5 +121,5 @@ public class Locator2Impl extends LocatorImpl implements Locator2
      * @see #getEncoding
      */
     public void setEncoding (String encoding)
-	{ this.encoding = encoding; }
+        { this.encoding = encoding; }
 }

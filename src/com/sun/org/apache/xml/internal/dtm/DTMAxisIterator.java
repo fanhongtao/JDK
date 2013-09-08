@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,19 +36,19 @@ public interface DTMAxisIterator extends Cloneable
    *
    * @return The next node handle in the iteration, or END.
    */
-  public int next();  
-  
+  public int next();
+
 
   /**
    * Resets the iterator to the last start node.
    *
-   * @return A DTMAxisIterator, which may or may not be the same as this 
+   * @return A DTMAxisIterator, which may or may not be the same as this
    *         iterator.
    */
   public DTMAxisIterator reset();
 
   /**
-   * @return the number of nodes in this iterator.  This may be an expensive 
+   * @return the number of nodes in this iterator.  This may be an expensive
    * operation when called the first time.
    */
   public int getLast();
@@ -88,11 +92,11 @@ public interface DTMAxisIterator extends Cloneable
   public boolean isReverse();
 
   /**
-   * @return a deep copy of this iterator. The clone should not be reset 
+   * @return a deep copy of this iterator. The clone should not be reset
    * from its current position.
    */
   public DTMAxisIterator cloneIterator();
-  
+
   /**
    * Set if restartable.
    */
@@ -100,7 +104,7 @@ public interface DTMAxisIterator extends Cloneable
 
   /**
    * Return the node at the given position.
-   * 
+   *
    * @param position The position
    * @return The node at the given position.
    */

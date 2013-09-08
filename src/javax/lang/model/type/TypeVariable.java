@@ -1,8 +1,26 @@
 /*
- * @(#)TypeVariable.java	1.4 06/07/31
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.type;
@@ -20,13 +38,12 @@ import javax.lang.model.util.Types;
  * type, method, or constructor.
  * A type variable may also be declared implicitly, as by
  * the capture conversion of a wildcard type argument
- * (see chapter 5 of <i>The Java Language Specification, Third
- * Edition</i>).
+ * (see chapter 5 of
+ * <cite>The Java&trade; Language Specification</cite>).
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/07/31
  * @see TypeParameterElement
  * @since 1.6
  */

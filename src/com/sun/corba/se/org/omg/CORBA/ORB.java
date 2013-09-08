@@ -1,8 +1,26 @@
 /*
- * @(#)ORB.java	1.5 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.org.omg.CORBA ;
@@ -15,21 +33,21 @@ import org.omg.CORBA.ORBPackage.InvalidName ;
 * until there is an official Java language mapping for the
 * method.
 */
-abstract public class ORB extends org.omg.CORBA_2_3.ORB 
+abstract public class ORB extends org.omg.CORBA_2_3.ORB
 {
     /**
      * If this operation is called with an id, <code>"Y"</code>, and an
      * object, <code>YY</code>, then a subsequent call to
      * <code>ORB.resolve_initial_references( "Y" )</code> will
      * return object <code>YY</code>.
-     *   
+     *
      * @param id The ID by which the initial reference will be known.
      * @param obj The initial reference itself.
      * @throws InvalidName if this operation is called with an empty string id
      *     or this operation is called with an id that is already registered,
      *     including the default names defined by OMG.
      * @throws BAD_PARAM if the obj parameter is null.
-     */  
+     */
     public void register_initial_reference( String id,
                                             org.omg.CORBA.Object obj )
         throws InvalidName

@@ -1,8 +1,26 @@
 /*
- * @(#)TypeCode.java	1.51 03/01/23
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -99,7 +117,7 @@ import org.omg.CORBA.portable.IDLEntity;
  * These methods may be invoked on <code>objref</code>, <code>struct</code>,
  * <code>union</code>, <code>enum</code>,
  * <code>alias</code>, <code>exception</code>, <code>value</code>,
- * <code>value_box</code>, <code>native</code>, 
+ * <code>value_box</code>, <code>native</code>,
  * and <code>abstract_interface</code>:
  * <UL>
  * <LI><code>id</code>
@@ -148,7 +166,6 @@ import org.omg.CORBA.portable.IDLEntity;
  * on a <code>struct</code> <code>TypeCode</code> to be permitted
  * on an <code>exception</code> <code>TypeCode</code> as well. <p>
  *
- * @version 1.25 09/09/97
  */
 public abstract class TypeCode implements IDLEntity {
 
@@ -158,33 +175,33 @@ public abstract class TypeCode implements IDLEntity {
      * they are interchangeable and give identical results when
      * <code>TypeCode</code> operations are applied to them.
      *
-     * @param tc 		the <code>TypeCode</code> object to compare against
-     * @return 		<code>true</code> if the type codes are equal;
+     * @param tc                the <code>TypeCode</code> object to compare against
+     * @return          <code>true</code> if the type codes are equal;
      *                <code>false</code> otherwise
      */
 
     public abstract boolean equal(TypeCode tc);
 
     /**
-	 * Tests to see if the given <code>TypeCode</code> object is 
-	 * equivalent to this <code>TypeCode</code> object.
-	 * <P>
-	 * 
-	 *
-	 * @param tc the typecode to compare with this typecode
-	 *
-	 * @return <code>true</code> if the given typecode is equivalent to
-	 *         this typecode; <code>false</code> otherwise
-     * 
+         * Tests to see if the given <code>TypeCode</code> object is
+         * equivalent to this <code>TypeCode</code> object.
+         * <P>
+         *
+         *
+         * @param tc the typecode to compare with this typecode
+         *
+         * @return <code>true</code> if the given typecode is equivalent to
+         *         this typecode; <code>false</code> otherwise
+     *
      */
     public abstract boolean equivalent(TypeCode tc);
 
     /**
      * Strips out all optional name and member name fields,
      * but leaves all alias typecodes intact.
-	 * @return a <code>TypeCode</code> object with optional name and 
-	 *         member name fields stripped out, except for alias typecodes,
-	 *         which are left intact
+         * @return a <code>TypeCode</code> object with optional name and
+         *         member name fields stripped out, except for alias typecodes,
+         *         which are left intact
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
      */
@@ -199,9 +216,9 @@ public abstract class TypeCode implements IDLEntity {
      * The method <code>kind</code> may be invoked on any
      * <code>TypeCode</code> object.
      *
-     * @return	the <code>TCKind</code> instance indicating the
+     * @return  the <code>TCKind</code> instance indicating the
      *            value of the <code>kind</code> field of this
-     * 			<code>TypeCode</code> object
+     *                  <code>TypeCode</code> object
      */
 
     public abstract TCKind kind();
@@ -222,7 +239,7 @@ public abstract class TypeCode implements IDLEntity {
      * also always have a RepositoryId. If there is no RepositoryId, the
      * method can return an empty string.
      *
-     * @return		the RepositoryId for this <code>TypeCode</code> object
+     * @return          the RepositoryId for this <code>TypeCode</code> object
      *                or an empty string if there is no RepositoryID
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on an inappropriate kind of<code>TypeCode</code>
@@ -245,7 +262,7 @@ public abstract class TypeCode implements IDLEntity {
      * boxed valuetype, native, and abstract interface
      * <code>TypeCode</code> objects.
      *
-     * @return		the name identifying this <code>TypeCode</code> object
+     * @return          the name identifying this <code>TypeCode</code> object
      *                or an empty string
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on an inappropriate kind of<code>TypeCode</code>
@@ -263,7 +280,7 @@ public abstract class TypeCode implements IDLEntity {
      * Java IDL extends the CORBA specification to allow this method to
      * operate on exceptions as well.
      *
-     * @return		the number of members constituting the type described
+     * @return          the number of members constituting the type described
      *                by this <code>TypeCode</code> object
      *
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
@@ -285,19 +302,19 @@ public abstract class TypeCode implements IDLEntity {
      * Java IDL extends the CORBA specification to allow this method to
      * operate on exceptions as well.
      *
-     * @param index	index of the member for which a name is being reqested
-     * @return		simple name of the member identified by the
-     *			index or an empty string
+     * @param index     index of the member for which a name is being reqested
+     * @return          simple name of the member identified by the
+     *                  index or an empty string
      * @throws org.omg.CORBA.TypeCodePackage.Bounds if the index is equal
      *            to or greater than
-     *			the number of members constituting the type
+     *                  the number of members constituting the type
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on an inappropriate kind of <code>TypeCode</code>
      *           object
      */
 
     public abstract String member_name(int index)
-	throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds;
+        throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds;
 
     /**
      * Retrieves the <code>TypeCode</code> object describing the type
@@ -308,20 +325,20 @@ public abstract class TypeCode implements IDLEntity {
      * Java IDL extends the CORBA specification to allow this method to
      * operate on exceptions as well.
      *
-     * @param index	index of the member for which type information
+     * @param index     index of the member for which type information
      *                is begin requested
-     * @return		the <code>TypeCode</code> object describing the
+     * @return          the <code>TypeCode</code> object describing the
      *                member at the given index
      * @throws org.omg.CORBA.TypeCodePackage.Bounds if the index is
      *                equal to or greater than
-     *			    the number of members constituting the type
+     *                      the number of members constituting the type
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on an inappropriate kind of <code>TypeCode</code>
      *           object
      */
 
     public abstract TypeCode member_type(int index)
-	throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds;
+        throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds;
 
     /**
      * Retrieves the label of the union member
@@ -331,21 +348,21 @@ public abstract class TypeCode implements IDLEntity {
      * The method <code>member_label</code> can only be invoked on union
      * <code>TypeCode</code> objects.
      *
-     * @param index	index of the union member for which the
+     * @param index     index of the union member for which the
      *                label is being requested
-     * @return		an <code>Any</code> object describing the label of
+     * @return          an <code>Any</code> object describing the label of
      *                the requested union member or the zero octet for
      *                the default member
      * @throws org.omg.CORBA.TypeCodePackage.Bounds if the index is
      *                equal to or greater than
-     *			    the number of members constituting the union
+     *                      the number of members constituting the union
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on a non-union <code>TypeCode</code>
      *           object
      */
 
     public abstract Any member_label(int index)
-	throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds;
+        throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds;
 
     /**
      * Returns a <code>TypeCode</code> object describing
@@ -353,7 +370,7 @@ public abstract class TypeCode implements IDLEntity {
      * The method <code>discriminator_type</code> can be invoked only
      * on union <code>TypeCode</code> objects.
      *
-     * @return		the <code>TypeCode</code> object describing
+     * @return          the <code>TypeCode</code> object describing
      *                the non-default member labels
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on a non-union <code>TypeCode</code>
@@ -361,7 +378,7 @@ public abstract class TypeCode implements IDLEntity {
      */
 
     public abstract TypeCode discriminator_type()
-	throws BadKind;
+        throws BadKind;
 
     /**
      * Returns the index of the
@@ -370,8 +387,8 @@ public abstract class TypeCode implements IDLEntity {
      * The method <code>default_index</code> can be invoked only on union
      * <code>TypeCode</code> objects.
      *
-     * @return		the index of the default member, or -1 if
-     *			there is no default member
+     * @return          the index of the default member, or -1 if
+     *                  there is no default member
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on a non-union <code>TypeCode</code>
      *           object
@@ -389,8 +406,8 @@ public abstract class TypeCode implements IDLEntity {
      * The method <code>length</code> can be invoked on string, sequence, and
      * array <code>TypeCode</code> objects.
      *
-     * @return		the bound for strings and sequences, or the
-     *			    number of elements for arrays
+     * @return          the bound for strings and sequences, or the
+     *                      number of elements for arrays
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on an inappropriate kind of <code>TypeCode</code>
      *           object
@@ -411,9 +428,9 @@ public abstract class TypeCode implements IDLEntity {
      * The method <code>content_type</code> can be invoked on sequence, array,
      * alias, and boxed valuetype <code>TypeCode</code> objects.
      *
-     * @return	a <code>TypeCode</code> object representing
+     * @return  a <code>TypeCode</code> object representing
      *            the element type for sequences and arrays, the
-     *		original type for aliases, or the
+     *          original type for aliases, or the
      *            boxed type for boxed valuetypes.
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if the method
      *           is invoked on an inappropriate kind of <code>TypeCode</code>
@@ -424,32 +441,32 @@ public abstract class TypeCode implements IDLEntity {
 
 
     /**
-	 * Returns the number of digits in the fixed type described by this
-	 * <code>TypeCode</code> object. For example, the typecode for
-	 * the number 3000.275d could be <code>fixed<7,3></code>, where
-	 * 7 is the precision and 3 is the scale.
-	 *
-	 * @return the total number of digits
+         * Returns the number of digits in the fixed type described by this
+         * <code>TypeCode</code> object. For example, the typecode for
+         * the number 3000.275d could be <code>fixed<7,3></code>, where
+         * 7 is the precision and 3 is the scale.
+         *
+         * @return the total number of digits
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if this method
      *           is invoked on an inappropriate kind of <code>TypeCode</code>
      *           object
-	 *
+         *
      */
     public abstract short fixed_digits() throws BadKind ;
 
     /**
-	 * Returns the scale of the fixed type described by this 
-	 * <code>TypeCode</code> object. A positive number indicates the
-	 * number of digits to the right of the decimal point. 
-	 * For example, the number 3000d could have the
-	 * typecode <code>fixed<4,0></code>, where the first number is
-	 * the precision and the second number is the scale.
-	 * A negative number is also possible and adds zeroes to the
-	 * left of the decimal point.  In this case, <code>fixed<1,-3></code>,
-	 * could be the typecode for the number 3000d.
-	 *
-	 * @return the scale of the fixed type that this
-	 *         <code>TypeCode</code> object describes
+         * Returns the scale of the fixed type described by this
+         * <code>TypeCode</code> object. A positive number indicates the
+         * number of digits to the right of the decimal point.
+         * For example, the number 3000d could have the
+         * typecode <code>fixed<4,0></code>, where the first number is
+         * the precision and the second number is the scale.
+         * A negative number is also possible and adds zeroes to the
+         * left of the decimal point.  In this case, <code>fixed<1,-3></code>,
+         * could be the typecode for the number 3000d.
+         *
+         * @return the scale of the fixed type that this
+         *         <code>TypeCode</code> object describes
      * @throws org.omg.CORBA.TypeCodePackage.BadKind if this method
      *           is invoked on an inappropriate kind of <code>TypeCode</code>
      *           object
@@ -471,11 +488,11 @@ public abstract class TypeCode implements IDLEntity {
      *           is invoked on a non-value type <code>TypeCode</code>
      *           object
      * @throws org.omg.CORBA.TypeCodePackage.Bounds
-     *           if the given index is out of bounds 
+     *           if the given index is out of bounds
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
      */
-    
+
     abstract public short member_visibility(int index)
         throws BadKind, org.omg.CORBA.TypeCodePackage.Bounds ;
 
@@ -495,7 +512,7 @@ public abstract class TypeCode implements IDLEntity {
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
      */
-    
+
     abstract public short type_modifier() throws BadKind ;
 
     /**
@@ -511,6 +528,6 @@ public abstract class TypeCode implements IDLEntity {
      * @see <a href="package-summary.html#unimpl"><code>CORBA</code> package
      *      comments for unimplemented features</a>
      */
-    
+
     abstract public TypeCode concrete_base_type() throws BadKind ;
 }

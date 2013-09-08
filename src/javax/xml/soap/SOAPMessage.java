@@ -1,6 +1,6 @@
 /*
- * Copyright 1997-2008 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
  *
@@ -22,12 +22,6 @@
  *
  *
  */
-/*
- * $Id: SOAPMessage.java,v 1.22 2005/08/17 08:13:01 vj135062 Exp $
- * $Revision: 1.22 $
- * $Date: 2005/08/17 08:13:01 $
- */
-
 
 package javax.xml.soap;
 import java.io.OutputStream;
@@ -109,13 +103,13 @@ import javax.activation.DataHandler;
  */
 public abstract class SOAPMessage {
     /**
-	 * Specifies the character type encoding for the SOAP Message. Valid values
-	 * include "utf-8" and "utf-16". See vendor documentation for additional
-	 * supported values. The default is "utf-8".
-	 *
-	 * @see SOAPMessage#setProperty(String, Object) SOAPMessage.setProperty
-	 * @since SAAJ 1.2
-	 */
+         * Specifies the character type encoding for the SOAP Message. Valid values
+         * include "utf-8" and "utf-16". See vendor documentation for additional
+         * supported values. The default is "utf-8".
+         *
+         * @see SOAPMessage#setProperty(String, Object) SOAPMessage.setProperty
+         * @since SAAJ 1.2
+         */
     public static final String CHARACTER_SET_ENCODING =
         "javax.xml.soap.character-set-encoding";
 
@@ -151,81 +145,81 @@ public abstract class SOAPMessage {
     public abstract String getContentDescription();
 
     /**
-	 * Gets the SOAP part of this <code>SOAPMessage</code> object.
-	 * <P>
-	 * <code>SOAPMessage</code> object contains one or more attachments, the
-	 * SOAP Part must be the first MIME body part in the message.
-	 *
-	 * @return the <code>SOAPPart</code> object for this <code>SOAPMessage</code>
-	 *         object
-	 */
+         * Gets the SOAP part of this <code>SOAPMessage</code> object.
+         * <P>
+         * <code>SOAPMessage</code> object contains one or more attachments, the
+         * SOAP Part must be the first MIME body part in the message.
+         *
+         * @return the <code>SOAPPart</code> object for this <code>SOAPMessage</code>
+         *         object
+         */
     public abstract SOAPPart getSOAPPart();
 
     /**
-	 * Gets the SOAP Body contained in this <code>SOAPMessage</code> object.
-	 * <p>
-	 *
-	 * @return the <code>SOAPBody</code> object contained by this <code>SOAPMessage</code>
-	 *         object
-	 * @exception SOAPException
-	 *               if the SOAP Body does not exist or cannot be retrieved
-	 * @since SAAJ 1.2
-	 */
+         * Gets the SOAP Body contained in this <code>SOAPMessage</code> object.
+         * <p>
+         *
+         * @return the <code>SOAPBody</code> object contained by this <code>SOAPMessage</code>
+         *         object
+         * @exception SOAPException
+         *               if the SOAP Body does not exist or cannot be retrieved
+         * @since SAAJ 1.2
+         */
     public SOAPBody getSOAPBody() throws SOAPException {
         throw new UnsupportedOperationException("getSOAPBody must be overridden by all subclasses of SOAPMessage");
     }
 
     /**
-	 * Gets the SOAP Header contained in this <code>SOAPMessage</code>
-	 * object.
-	 * <p>
-	 *
-	 * @return the <code>SOAPHeader</code> object contained by this <code>SOAPMessage</code>
-	 *         object
-	 * @exception SOAPException
-	 *               if the SOAP Header does not exist or cannot be retrieved
-	 * @since SAAJ 1.2
-	 */
+         * Gets the SOAP Header contained in this <code>SOAPMessage</code>
+         * object.
+         * <p>
+         *
+         * @return the <code>SOAPHeader</code> object contained by this <code>SOAPMessage</code>
+         *         object
+         * @exception SOAPException
+         *               if the SOAP Header does not exist or cannot be retrieved
+         * @since SAAJ 1.2
+         */
     public SOAPHeader getSOAPHeader() throws SOAPException {
         throw new UnsupportedOperationException("getSOAPHeader must be overridden by all subclasses of SOAPMessage");
     }
 
     /**
-	 * Removes all <code>AttachmentPart</code> objects that have been added
-	 * to this <code>SOAPMessage</code> object.
-	 * <P>
-	 * This method does not touch the SOAP part.
-	 */
+         * Removes all <code>AttachmentPart</code> objects that have been added
+         * to this <code>SOAPMessage</code> object.
+         * <P>
+         * This method does not touch the SOAP part.
+         */
     public abstract void removeAllAttachments();
 
     /**
-	 * Gets a count of the number of attachments in this message. This count
-	 * does not include the SOAP part.
-	 *
-	 * @return the number of <code>AttachmentPart</code> objects that are
-	 *         part of this <code>SOAPMessage</code> object
-	 */
+         * Gets a count of the number of attachments in this message. This count
+         * does not include the SOAP part.
+         *
+         * @return the number of <code>AttachmentPart</code> objects that are
+         *         part of this <code>SOAPMessage</code> object
+         */
     public abstract int countAttachments();
 
     /**
-	 * Retrieves all the <code>AttachmentPart</code> objects that are part of
-	 * this <code>SOAPMessage</code> object.
-	 *
-	 * @return an iterator over all the attachments in this message
-	 */
+         * Retrieves all the <code>AttachmentPart</code> objects that are part of
+         * this <code>SOAPMessage</code> object.
+         *
+         * @return an iterator over all the attachments in this message
+         */
     public abstract Iterator getAttachments();
 
     /**
-	 * Retrieves all the <code>AttachmentPart</code> objects that have header
-	 * entries that match the specified headers. Note that a returned
-	 * attachment could have headers in addition to those specified.
-	 *
-	 * @param headers
-	 *           a <code>MimeHeaders</code> object containing the MIME
-	 *           headers for which to search
-	 * @return an iterator over all attachments that have a header that matches
-	 *         one of the given headers
-	 */
+         * Retrieves all the <code>AttachmentPart</code> objects that have header
+         * entries that match the specified headers. Note that a returned
+         * attachment could have headers in addition to those specified.
+         *
+         * @param headers
+         *           a <code>MimeHeaders</code> object containing the MIME
+         *           headers for which to search
+         * @return an iterator over all attachments that have a header that matches
+         *         one of the given headers
+         */
     public abstract Iterator getAttachments(MimeHeaders headers);
 
     /**
@@ -249,7 +243,7 @@ public abstract class SOAPMessage {
      * {@link <a href="http://www.w3.org/TR/SOAP-attachments#SOAPReferenceToAttachements">SOAP Messages with Attachments</a>},
      * or via a single <code>Text</code> child node containing a URI as
      * described in the WS-I Attachments Profile 1.0 for elements of schema
-     * type <i>ref:swaRef</i>({@link <a href=http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html">ref:swaRef</a>}).  These two mechanisms must be supported.
+     * type {@link <a href="http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html">ref:swaRef</a>}.  These two mechanisms must be supported.
      * The support for references via <code>href</code> attribute also implies that
      * this method should also be supported on an element that is an
      * <i>xop:Include</i> element (
@@ -338,9 +332,9 @@ public abstract class SOAPMessage {
      * @return a new <code>AttachmentPart</code> object that contains the
      *         given data
      * @exception IllegalArgumentException
-     *               may be thrown if the contentType does not match the type 
-     *               of the content object, or if there was no 
-     *               <code>DataContentHandler</code> object for the given 
+     *               may be thrown if the contentType does not match the type
+     *               of the content object, or if there was no
+     *               <code>DataContentHandler</code> object for the given
      *               content object
      * @see javax.activation.DataHandler
      * @see javax.activation.DataContentHandler
@@ -393,7 +387,7 @@ public abstract class SOAPMessage {
      * those messages that have attachments, <code>writeTo</code> writes a
      * MIME-encoded byte stream.
      * <P>
-     * Note that this method does not write the transport-specific MIME Headers 
+     * Note that this method does not write the transport-specific MIME Headers
      * of the Message
      *
      * @param out

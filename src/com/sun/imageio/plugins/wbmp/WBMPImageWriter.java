@@ -1,8 +1,26 @@
 /*
- * @(#)WBMPImageWriter.java	1.3 03/09/20 21:28:34
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.wbmp;
@@ -291,7 +309,7 @@ public class WBMPImageWriter extends ImageWriter {
     private void checkSampleModel(SampleModel sm) {
         int type = sm.getDataType();
         if (type < DataBuffer.TYPE_BYTE || type > DataBuffer.TYPE_INT
-	    || sm.getNumBands() != 1 || sm.getSampleSize(0) != 1)
+            || sm.getNumBands() != 1 || sm.getSampleSize(0) != 1)
             throw new IllegalArgumentException(I18N.getString("WBMPImageWriter2"));
     }
 }

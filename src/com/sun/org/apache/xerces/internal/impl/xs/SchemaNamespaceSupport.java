@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,15 +25,14 @@ import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
 /**
  * This class customizes the behaviour of the util.NamespaceSupport
  * class in order to easily implement some features that we need for
- * efficient schema handling.  It will not be generally useful.  
+ * efficient schema handling.  It will not be generally useful.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: SchemaNamespaceSupport.java,v 1.2.6.1 2005/09/09 07:30:50 sunithareddy Exp $
  */
-public class SchemaNamespaceSupport 
+public class SchemaNamespaceSupport
     extends NamespaceSupport {
 
     public SchemaNamespaceSupport () {
@@ -47,7 +50,7 @@ public class SchemaNamespaceSupport
             fContext = new int[fCurrentContext+1];
         System.arraycopy(nSupport.fContext, 0, fContext, 0, fCurrentContext+1);
     } // end constructor
-    
+
     /**
      * This method takes a set of Strings, as stored in a
      * NamespaceSupport object, and "fools" the object into thinking
@@ -74,7 +77,7 @@ public class SchemaNamespaceSupport
         fNamespaceSize = newSize;
     } // setEffectiveContext(String):void
 
-    /** 
+    /**
      * This method returns an array of Strings, as would be stored in
      * a NamespaceSupport object.  This array contains all
      * declarations except those at the global level.
@@ -99,7 +102,7 @@ public class SchemaNamespaceSupport
     } // getEffectiveLocalContext():String
 
     // This method removes from this object all the namespaces
-    // returned by getEffectiveLocalContext. 
+    // returned by getEffectiveLocalContext.
     public void makeGlobal() {
         if (fCurrentContext >= 3) {
             fCurrentContext = 3;

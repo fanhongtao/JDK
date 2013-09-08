@@ -1,8 +1,26 @@
 /*
- * @(#)SocketFactoryContactInfoListImpl.java	1.6 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.legacy.connection;
@@ -17,19 +35,19 @@ import com.sun.corba.se.impl.transport.CorbaContactInfoListIteratorImpl;
 /**
  * @author Harold Carr
  */
-public class SocketFactoryContactInfoListImpl 
+public class SocketFactoryContactInfoListImpl
     extends
-	CorbaContactInfoListImpl
+        CorbaContactInfoListImpl
 {
     // XREVISIT - is this used?
     public SocketFactoryContactInfoListImpl(ORB orb)
     {
-	super(orb);
+        super(orb);
     }
 
     public SocketFactoryContactInfoListImpl(ORB orb, IOR targetIOR)
     {
-	super(orb, targetIOR);
+        super(orb, targetIOR);
     }
 
     ////////////////////////////////////////////////////
@@ -39,7 +57,7 @@ public class SocketFactoryContactInfoListImpl
 
     public Iterator iterator()
     {
-	return new SocketFactoryContactInfoListIteratorImpl(orb, this);
+        return new SocketFactoryContactInfoListIteratorImpl(orb, this);
     }
 }
 

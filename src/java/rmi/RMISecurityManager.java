@@ -1,8 +1,26 @@
 /*
- * @(#)RMISecurityManager.java	1.32 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi;
@@ -31,7 +49,6 @@ import java.security.*;
  * System.setSecurityManager(new SecurityManager());
  * </pre>
  *
- * @version 1.32, 11/17/05
  * @author  Roger Riggs
  * @author  Peter Jones
  * @since JDK1.1

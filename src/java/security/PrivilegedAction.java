@@ -1,8 +1,26 @@
 /*
- * @(#)PrivilegedAction.java	1.11 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -27,9 +45,9 @@ public interface PrivilegedAction<T> {
      * <code>AccessController.doPrivileged</code> after enabling privileges.
      *
      * @return a class-dependent value that may represent the results of the
-     *	       computation. Each class that implements
+     *         computation. Each class that implements
      *         <code>PrivilegedAction</code>
-     *	       should document what (if anything) this value represents.
+     *         should document what (if anything) this value represents.
      * @see AccessController#doPrivileged(PrivilegedAction)
      * @see AccessController#doPrivileged(PrivilegedAction,
      *                                     AccessControlContext)

@@ -1,11 +1,26 @@
 /*
- * @(#)file      SnmpProperties.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.11
- * @(#)lastedit      05/11/17
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.snmp.defaults;
@@ -22,10 +37,8 @@ import java.util.Enumeration;
  * This class reads a file containing the property list defined for Java DMK
  * and adds all the read properties to the list of system properties.
  *
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
- * @version     1.11     11/17/05
- * @author      Sun Microsystems, Inc
  *
  * @since 1.5
  */
@@ -47,10 +60,10 @@ public class SnmpProperties {
         InputStream is = new FileInputStream(file);
         props.load(is);
         is.close();
-	for (final Enumeration e = props.keys(); e.hasMoreElements() ; ) {
-	    final String key = (String) e.nextElement();
-	    System.setProperty(key,props.getProperty(key));
-	}
+        for (final Enumeration e = props.keys(); e.hasMoreElements() ; ) {
+            final String key = (String) e.nextElement();
+            System.setProperty(key,props.getProperty(key));
+        }
     }
 
     // PUBLIC STATIC VARIABLES
@@ -104,7 +117,7 @@ public class SnmpProperties {
      * Property Name: <B>jmx.specification.name</B>
      */
      public static final String JMX_SPEC_NAME = "jmx.specification.name";
-    
+
     /**
      * References the property that specifies the version of the JMX
      * specification implemented by this product.
@@ -112,7 +125,7 @@ public class SnmpProperties {
      * Property Name: <B>jmx.specification.version</B>
      */
      public static final String JMX_SPEC_VERSION = "jmx.specification.version";
-    
+
     /**
      * References the property that specifies the vendor of the JMX
      * specification implemented by this product.
@@ -120,7 +133,7 @@ public class SnmpProperties {
      * Property Name: <B>jmx.specification.vendor</B>
      */
      public static final String JMX_SPEC_VENDOR = "jmx.specification.vendor";
-    
+
     /**
      * References the property that specifies the full name of this product
      * implementing the  JMX specification.
@@ -128,7 +141,7 @@ public class SnmpProperties {
      * Property Name: <B>jmx.implementation.name</B>
      */
     public static final String JMX_IMPL_NAME = "jmx.implementation.name";
-    
+
     /**
      * References the property that specifies the name of the vendor of this product
      * implementing the  JMX specification.
@@ -136,7 +149,7 @@ public class SnmpProperties {
      * Property Name: <B>jmx.implementation.vendor</B>
      */
     public static final String JMX_IMPL_VENDOR = "jmx.implementation.vendor";
-    
+
     /**
      * References the property that specifies the version of this product
      * implementing the  JMX specification.

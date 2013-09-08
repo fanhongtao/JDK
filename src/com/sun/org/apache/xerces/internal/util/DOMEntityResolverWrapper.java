@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,9 +42,8 @@ import java.io.StringReader;
  * @see LSResourceResolver
  *
  * @author Gopal Sharma, SUN MicroSystems Inc.
- * @author Elena Litani, IBM 
+ * @author Elena Litani, IBM
  * @author Ramesh Mandava, Sun Microsystems
- * @version $Id: DOMEntityResolverWrapper.java,v 1.2.6.1 2005/09/05 07:44:37 neerajbj Exp $
  */
 public class DOMEntityResolverWrapper
     implements XMLEntityResolver {
@@ -51,7 +54,7 @@ public class DOMEntityResolverWrapper
 
     /** XML 1.0 type constant according to DOM L3 LS CR spec "http://www.w3.org/TR/2003/CR-DOM-Level-3-LS-20031107" */
     private static final String XML_TYPE = "http://www.w3.org/TR/REC-xml";
-    
+
     /** XML Schema constant according to DOM L3 LS CR spec "http://www.w3.org/TR/2003/CR-DOM-Level-3-LS-20031107" */
     private static final String XSD_TYPE = "http://www.w3.org/2001/XMLSchema";
 
@@ -87,12 +90,12 @@ public class DOMEntityResolverWrapper
     //
     // XMLEntityResolver methods
     //
-    
+
     /**
      * Resolves an external parsed entity. If the entity cannot be
      * resolved, this method should return null.
      *
-     * @param resourceIdentifier	description of the resource to be revsoved
+     * @param resourceIdentifier        description of the resource to be revsoved
      * @throws XNIException Thrown on general error.
      * @throws IOException  Thrown if resolved entity stream cannot be
      *                      opened or some other i/o error occurs.
@@ -130,10 +133,10 @@ public class DOMEntityResolverWrapper
                  * An LSParser looks at inputs specified in LSInput in
                  * the following order: characterStream, byteStream,
                  * stringData, systemId, publicId.
-                 */          
+                 */
                 XMLInputSource xmlInputSource =
                     new XMLInputSource(publicId, systemId, baseSystemId);
-                
+
                 if (charStream != null) {
                     xmlInputSource.setCharacterStream(charStream);
                 }
@@ -152,7 +155,7 @@ public class DOMEntityResolverWrapper
         return null;
 
     } // resolveEntity(String,String,String):XMLInputSource
-    
+
     /** Determines the type of resource being resolved **/
     private String getType(XMLResourceIdentifier resourceIdentifier) {
         if (resourceIdentifier instanceof XMLGrammarDescription) {
@@ -163,5 +166,5 @@ public class DOMEntityResolverWrapper
         }
         return XML_TYPE;
     } // getType(XMLResourceIdentifier):String
-    
+
 } // DOMEntityResolverWrapper

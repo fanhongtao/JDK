@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,10 +49,10 @@ public class XMLMessages
 
   /** String to use if the message format operation failed.  */
   protected static final String FORMAT_FAILED = "FORMAT_FAILED";
-    
+
   /**
    * Set the Locale object to use.
-   * 
+   *
    * @param locale non-null reference to Locale object.
    */
    public void setLocale(Locale locale)
@@ -58,14 +62,14 @@ public class XMLMessages
 
   /**
    * Get the Locale object that is being used.
-   * 
+   *
    * @return non-null reference to Locale object.
    */
   public Locale getLocale()
   {
     return fLocale;
   }
-    
+
   /**
    * Creates a message from the specified key and replacement
    * arguments, localized to the given locale.
@@ -80,7 +84,7 @@ public class XMLMessages
   {
     if (XMLBundle == null)
       XMLBundle = loadResourceBundle(XML_ERROR_RESOURCES);
-    
+
     if (XMLBundle != null)
     {
       return createMsg(XMLBundle, msgKey, args);
@@ -101,7 +105,7 @@ public class XMLMessages
    * @return The formatted message string.
    */
   public static final String createMsg(ListResourceBundle fResourceBundle,
-	String msgKey, Object args[])  //throws Exception
+        String msgKey, Object args[])  //throws Exception
   {
 
     String fmsg = null;
@@ -162,7 +166,7 @@ public class XMLMessages
    */
   public static ListResourceBundle loadResourceBundle(String className)
           throws MissingResourceException
-  {    
+  {
     Locale locale = Locale.getDefault();
 
     try

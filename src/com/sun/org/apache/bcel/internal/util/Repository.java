@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -62,13 +66,12 @@ import com.sun.org.apache.bcel.internal.classfile.JavaClass;
  * Repository.setRepository method.
  *
  * @see com.sun.org.apache.bcel.internal.Repository
- * @version $Id: Repository.java,v 1.1.2.1 2005/07/31 23:46:58 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @author David Dixon-Peugh
  */
 public interface Repository extends java.io.Serializable {
   /**
-   * Store the provided class under "clazz.getClassName()" 
+   * Store the provided class under "clazz.getClassName()"
    */
   public void storeClass(JavaClass clazz);
 
@@ -76,7 +79,7 @@ public interface Repository extends java.io.Serializable {
    * Remove class from repository
    */
   public void removeClass(JavaClass clazz);
-    
+
   /**
    * Find the class with the name provided, if the class
    * isn't there, return NULL.
@@ -93,13 +96,10 @@ public interface Repository extends java.io.Serializable {
   /**
    * Find the JavaClass instance for the given run-time class object
    */
-  public JavaClass loadClass(Class clazz) 
+  public JavaClass loadClass(Class clazz)
     throws java.lang.ClassNotFoundException;
 
   /** Clear all entries from cache.
    */
   public void clear();
 }
-
-
-

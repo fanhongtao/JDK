@@ -1,21 +1,34 @@
 /*
- * @(#)Monitor.java	4.60 08/12/17
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.monitor;
 
+import static com.sun.jmx.defaults.JmxProperties.MONITOR_LOGGER;
 import com.sun.jmx.mbeanserver.GetPropertyAction;
-import com.sun.jmx.remote.util.EnvHelp;
-import com.sun.jmx.trace.Trace;
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
+import com.sun.jmx.mbeanserver.Introspector;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -34,6 +47,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.IntrospectionException;
@@ -47,7 +61,6 @@ import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import static javax.management.monitor.MonitorNotification.*;
-import javax.management.openmbean.CompositeData;
 
 /**
  * Defines the part common to all monitor MBeans.
@@ -56,8 +69,6 @@ import javax.management.openmbean.CompositeData;
  * granularity period. A gauge value (derived gauge) is derived from the values
  * of the observed attribute.
  *
- * @version     4.60     12/17/08
- * @author      Sun Microsystems, Inc
  *
  * @since 1.5
  */
@@ -194,14 +205,16 @@ public abstract class Monitor
             try {
                 maximumPoolSizeTmp = Integer.parseInt(maximumPoolSizeStr);
             } catch (NumberFormatException e) {
-                if (isTraceOn()) {
-                    trace("Monitor", "<static initializer>",
-                          "Wrong value for " + maximumPoolSizeSysProp +
-                          " system property: " + e);
-                    trace("Monitor", "<static initializer>",
-                          maximumPoolSizeSysProp + " defaults to 10.");
-                    maximumPoolSizeTmp = 10;
+                if (MONITOR_LOGGER.isLoggable(Level.FINER)) {
+                    MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                            "<static initializer>",
+                            "Wrong value for " + maximumPoolSizeSysProp +
+                            " system property", e);
+                    MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                            "<static initializer>",
+                            maximumPoolSizeSysProp + " defaults to 10");
                 }
+                maximumPoolSizeTmp = 10;
             }
             if (maximumPoolSizeTmp < 1) {
                 maximumPoolSize = 1;
@@ -242,7 +255,6 @@ public abstract class Monitor
     /**
      * The number of valid components in the vector of observed objects.
      *
-     * @since.unbundled JMX 1.2
      */
     protected int elementCount = 0;
 
@@ -262,7 +274,6 @@ public abstract class Monitor
      * corresponding notification has already been sent for the MBean
      * being monitored.</p>
      *
-     * @since.unbundled JMX 1.2
      */
     protected int alreadyNotifieds[] = new int[capacityIncrement];
 
@@ -324,7 +335,7 @@ public abstract class Monitor
      * @deprecated No replacement.
      */
     @Deprecated
-    protected String dbgTag = "Monitor";
+    protected String dbgTag = Monitor.class.getName();
 
     /*
      * ------------------------------------------
@@ -354,34 +365,8 @@ public abstract class Monitor
     /**
      * Constant used to initialize all the numeric values.
      */
-    static final Integer INTEGER_ZERO = new Integer(0);
+    static final Integer INTEGER_ZERO = 0;
 
-    // TRACES & DEBUG
-    //---------------
-
-    static boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_MONITOR);
-    }
-
-    static void trace(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_MONITOR, clz, func, info);
-    }
-
-    void trace(String func, String info) {
-        trace(dbgTag, func, info);
-    }
-
-    static boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_MONITOR);
-    }
-
-    static void debug(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MONITOR, clz, func, info);
-    }
-
-    void debug(String func, String info) {
-        debug(dbgTag, func, info);
-    }
 
     /*
      * ------------------------------------------
@@ -406,10 +391,9 @@ public abstract class Monitor
     public ObjectName preRegister(MBeanServer server, ObjectName name)
         throws Exception {
 
-        if (isTraceOn()) {
-            trace("preRegister",
-                  "initialize the reference on the MBean server");
-        }
+        MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                "preRegister(MBeanServer, ObjectName)",
+                "initialize the reference on the MBean server");
 
         this.server = server;
         return name;
@@ -435,9 +419,8 @@ public abstract class Monitor
      */
     public void preDeregister() throws Exception {
 
-        if (isTraceOn()) {
-            trace("preDeregister", "stop the monitor");
-        }
+        MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                "preDeregister()", "stop the monitor");
 
         // Stop the Monitor.
         //
@@ -515,7 +498,6 @@ public abstract class Monitor
      * @param object The object to observe.
      * @exception IllegalArgumentException The specified object is null.
      *
-     * @since.unbundled JMX 1.2
      */
     public synchronized void addObservedObject(ObjectName object)
         throws IllegalArgumentException {
@@ -547,7 +529,6 @@ public abstract class Monitor
      *
      * @param object The object to remove.
      *
-     * @since.unbundled JMX 1.2
      */
     public synchronized void removeObservedObject(ObjectName object) {
         // Check for null object.
@@ -573,7 +554,6 @@ public abstract class Monitor
      * @return <CODE>true</CODE> if the specified object is present,
      * <CODE>false</CODE> otherwise.
      *
-     * @since.unbundled JMX 1.2
      */
     public synchronized boolean containsObservedObject(ObjectName object) {
         return getObservedObject(object) != null;
@@ -584,7 +564,6 @@ public abstract class Monitor
      *
      * @return The objects being observed.
      *
-     * @since.unbundled JMX 1.2
      */
     public synchronized ObjectName[] getObservedObjects() {
         ObjectName[] names = new ObjectName[observedObjects.size()];
@@ -714,15 +693,13 @@ public abstract class Monitor
      * Starts the monitor.
      */
     void doStart() {
-        if (isTraceOn()) {
-            trace("start", "start the monitor");
-        }
+            MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                "doStart()", "start the monitor");
 
         synchronized (this) {
             if (isActive()) {
-                if (isTraceOn()) {
-                    trace("start", "the monitor is already active");
-                }
+                MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                        "doStart()", "the monitor is already active");
                 return;
             }
 
@@ -752,15 +729,13 @@ public abstract class Monitor
      * Stops the monitor.
      */
     void doStop() {
-        if (isTraceOn()) {
-            trace("stop", "stop the monitor");
-        }
+        MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                "doStop()", "stop the monitor");
 
         synchronized (this) {
             if (!isActive()) {
-                if (isTraceOn()) {
-                    trace("stop", "the monitor is not active");
-                }
+                MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                        "doStop()", "the monitor is not active");
                 return;
             }
 
@@ -808,7 +783,6 @@ public abstract class Monitor
      *
      * @return The derived gauge timestamp of the specified object.
      *
-     * @since.unbundled JMX 1.2
      */
     synchronized long getDerivedGaugeTimeStamp(ObjectName object) {
         final ObservedObject o = getObservedObject(object);
@@ -895,41 +869,10 @@ public abstract class Monitor
         if (isComplexTypeAttribute) {
             Object v = value;
             for (String attr : remainingAttributes)
-                v = introspect(object, attr, v);
+                v = Introspector.elementFromComplex(v, attr);
             return (Comparable<?>) v;
         } else {
             return (Comparable<?>) value;
-        }
-    }
-
-    Object introspect(ObjectName object,
-                      String attribute,
-                      Object value)
-        throws AttributeNotFoundException {
-        try {
-            if (value.getClass().isArray() && attribute.equals("length")) {
-                return Array.getLength(value);
-            } else if (value instanceof CompositeData) {
-                return ((CompositeData) value).get(attribute);
-            } else {
-                // Java Beans introspection
-                //
-                BeanInfo bi = Introspector.getBeanInfo(value.getClass());
-                PropertyDescriptor[] pds = bi.getPropertyDescriptors();
-                for (PropertyDescriptor pd : pds)
-                    if (pd.getName().equals(attribute))
-                        return pd.getReadMethod().invoke(value);
-                throw new AttributeNotFoundException(
-                    "Could not find the getter method for the property " +
-                    attribute + " using the Java Beans introspector");
-            }
-        } catch (InvocationTargetException e) {
-            throw new IllegalArgumentException(e);
-        } catch (AttributeNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw EnvHelp.initCause(
-                new AttributeNotFoundException(e.getMessage()), e);
         }
     }
 
@@ -1146,11 +1089,13 @@ public abstract class Monitor
         if (!isActive())
             return;
 
-        if (isTraceOn())
-            trace("sendNotification", "send notification: " +
-                  "\n\tNotification observed object = " + object +
-                  "\n\tNotification observed attribute = " + observedAttribute +
-                  "\n\tNotification derived gauge = " + derGauge);
+        if (MONITOR_LOGGER.isLoggable(Level.FINER)) {
+            MONITOR_LOGGER.logp(Level.FINER, Monitor.class.getName(),
+                    "sendNotification", "send notification: " +
+                    "\n\tNotification observed object = " + object +
+                    "\n\tNotification observed attribute = " + observedAttribute +
+                    "\n\tNotification derived gauge = " + derGauge);
+        }
 
         long seqno = sequenceNumber.getAndIncrement();
 
@@ -1176,12 +1121,12 @@ public abstract class Monitor
      */
     private void monitor(ObservedObject o, int index, int an[]) {
 
-        String attribute = null;
+        String attribute;
         String notifType = null;
         String msg = null;
         Object derGauge = null;
         Object trigger = null;
-        ObjectName object = null;
+        ObjectName object;
         Comparable<?> value = null;
         MonitorNotification alarm = null;
 
@@ -1218,9 +1163,8 @@ public abstract class Monitor
                     setAlreadyNotified(
                         o, index, OBSERVED_ATTRIBUTE_TYPE_ERROR_NOTIFIED, an);
                     msg = "The observed attribute value is null.";
-                    if (isDebugOn()) {
-                        debug("monitor", msg);
-                    }
+                    MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                            "monitor", msg);
                 }
         } catch (NullPointerException np_ex) {
             if (isAlreadyNotified(o, RUNTIME_ERROR_NOTIFIED))
@@ -1232,10 +1176,10 @@ public abstract class Monitor
                     "The monitor must be registered in the MBean " +
                     "server or an MBeanServerConnection must be " +
                     "explicitly supplied.";
-                if (isDebugOn()) {
-                    debug("monitor", msg);
-                    debug("monitor", np_ex.toString());
-                }
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", msg);
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", np_ex.toString());
             }
         } catch (InstanceNotFoundException inf_ex) {
             if (isAlreadyNotified(o, OBSERVED_OBJECT_ERROR_NOTIFIED))
@@ -1247,10 +1191,10 @@ public abstract class Monitor
                 msg =
                     "The observed object must be accessible in " +
                     "the MBeanServerConnection.";
-                if (isDebugOn()) {
-                    debug("monitor", msg);
-                    debug("monitor", inf_ex.toString());
-                }
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", msg);
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", inf_ex.toString());
             }
         } catch (AttributeNotFoundException anf_ex) {
             if (isAlreadyNotified(o, OBSERVED_ATTRIBUTE_ERROR_NOTIFIED))
@@ -1262,10 +1206,10 @@ public abstract class Monitor
                 msg =
                     "The observed attribute must be accessible in " +
                     "the observed object.";
-                if (isDebugOn()) {
-                    debug("monitor", msg);
-                    debug("monitor", anf_ex.toString());
-                }
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", msg);
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", anf_ex.toString());
             }
         } catch (MBeanException mb_ex) {
             if (isAlreadyNotified(o, RUNTIME_ERROR_NOTIFIED))
@@ -1274,10 +1218,10 @@ public abstract class Monitor
                 notifType = RUNTIME_ERROR;
                 setAlreadyNotified(o, index, RUNTIME_ERROR_NOTIFIED, an);
                 msg = mb_ex.getMessage() == null ? "" : mb_ex.getMessage();
-                if (isDebugOn()) {
-                    debug("monitor", msg);
-                    debug("monitor", mb_ex.toString());
-                }
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", msg);
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", mb_ex.toString());
             }
         } catch (ReflectionException ref_ex) {
             if (isAlreadyNotified(o, RUNTIME_ERROR_NOTIFIED)) {
@@ -1286,10 +1230,10 @@ public abstract class Monitor
                 notifType = RUNTIME_ERROR;
                 setAlreadyNotified(o, index, RUNTIME_ERROR_NOTIFIED, an);
                 msg = ref_ex.getMessage() == null ? "" : ref_ex.getMessage();
-                if (isDebugOn()) {
-                    debug("monitor", msg);
-                    debug("monitor", ref_ex.toString());
-                }
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", msg);
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", ref_ex.toString());
             }
         } catch (IOException io_ex) {
             if (isAlreadyNotified(o, RUNTIME_ERROR_NOTIFIED))
@@ -1298,10 +1242,10 @@ public abstract class Monitor
                 notifType = RUNTIME_ERROR;
                 setAlreadyNotified(o, index, RUNTIME_ERROR_NOTIFIED, an);
                 msg = io_ex.getMessage() == null ? "" : io_ex.getMessage();
-                if (isDebugOn()) {
-                    debug("monitor", msg);
-                    debug("monitor", io_ex.toString());
-                }
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", msg);
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", io_ex.toString());
             }
         } catch (RuntimeException rt_ex) {
             if (isAlreadyNotified(o, RUNTIME_ERROR_NOTIFIED))
@@ -1310,10 +1254,10 @@ public abstract class Monitor
                 notifType = RUNTIME_ERROR;
                 setAlreadyNotified(o, index, RUNTIME_ERROR_NOTIFIED, an);
                 msg = rt_ex.getMessage() == null ? "" : rt_ex.getMessage();
-                if (isDebugOn()) {
-                    debug("monitor", msg);
-                    debug("monitor", rt_ex.toString());
-                }
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", msg);
+                MONITOR_LOGGER.logp(Level.FINEST, Monitor.class.getName(),
+                        "monitor", rt_ex.toString());
             }
         }
 
@@ -1353,10 +1297,10 @@ public abstract class Monitor
                         msg =
                             "The observed attribute value does not " +
                             "implement the Comparable interface.";
-                        if (isDebugOn()) {
-                            debug("monitor", msg);
-                            debug("monitor", e.toString());
-                        }
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", msg);
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", e.toString());
                     }
                 } catch (AttributeNotFoundException e) {
                     if (isAlreadyNotified(o, OBSERVED_ATTRIBUTE_ERROR_NOTIFIED))
@@ -1368,10 +1312,10 @@ public abstract class Monitor
                         msg =
                             "The observed attribute must be accessible in " +
                             "the observed object.";
-                        if (isDebugOn()) {
-                            debug("monitor", msg);
-                            debug("monitor", e.toString());
-                        }
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", msg);
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", e.toString());
                     }
                 } catch (RuntimeException e) {
                     if (isAlreadyNotified(o, RUNTIME_ERROR_NOTIFIED))
@@ -1381,10 +1325,10 @@ public abstract class Monitor
                         setAlreadyNotified(o, index,
                             RUNTIME_ERROR_NOTIFIED, an);
                         msg = e.getMessage() == null ? "" : e.getMessage();
-                        if (isDebugOn()) {
-                            debug("monitor", msg);
-                            debug("monitor", e.toString());
-                        }
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", msg);
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", e.toString());
                     }
                 }
             }
@@ -1402,9 +1346,8 @@ public abstract class Monitor
                         setAlreadyNotified(o, index,
                             OBSERVED_ATTRIBUTE_TYPE_ERROR_NOTIFIED, an);
                         msg = "The observed attribute type is not valid.";
-                        if (isDebugOn()) {
-                            debug("monitor", msg);
-                        }
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", msg);
                     }
                 }
             }
@@ -1420,9 +1363,8 @@ public abstract class Monitor
                         setAlreadyNotified(o, index,
                             THRESHOLD_ERROR_NOTIFIED, an);
                         msg = "The threshold type is not valid.";
-                        if (isDebugOn()) {
-                            debug("monitor", msg);
-                        }
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", msg);
                     }
                 }
             }
@@ -1439,9 +1381,8 @@ public abstract class Monitor
                         notifType = RUNTIME_ERROR;
                         setAlreadyNotified(o, index,
                             RUNTIME_ERROR_NOTIFIED, an);
-                        if (isDebugOn()) {
-                            debug("monitor", msg);
-                        }
+                        MONITOR_LOGGER.logp(Level.FINEST,
+                                Monitor.class.getName(), "monitor", msg);
                     }
                 }
             }
@@ -1482,7 +1423,7 @@ public abstract class Monitor
                              trigger,
                              object,
                              true);
-        
+
         // Notify monitor alarms
         //
         if (alarm != null && alarm.getType() != null)
@@ -1497,7 +1438,7 @@ public abstract class Monitor
 
     /**
      * Cleanup the scheduler and monitor tasks futures.
-     */ 
+     */
     private synchronized void cleanupFutures() {
         if (schedulerFuture != null) {
             schedulerFuture.cancel(false);
@@ -1676,7 +1617,7 @@ public abstract class Monitor
         final ThreadGroup group;
         final AtomicInteger threadNumber = new AtomicInteger(1);
         final String namePrefix;
-        final String nameSuffix = "]";
+        static final String nameSuffix = "]";
 
         public DaemonThreadFactory(String poolName) {
             SecurityManager s = System.getSecurityManager();

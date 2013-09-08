@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -56,10 +60,9 @@ package com.sun.org.apache.bcel.internal.generic;
 import java.io.*;
 import com.sun.org.apache.bcel.internal.util.ByteSequence;
 
-/** 
+/**
  * LOOKUPSWITCH - Switch with unordered set of values
  *
- * @version $Id: LOOKUPSWITCH.java,v 1.1.2.1 2005/07/31 23:45:25 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see SWITCH
  */
@@ -71,11 +74,11 @@ public class LOOKUPSWITCH extends Select {
   LOOKUPSWITCH() {}
 
   public LOOKUPSWITCH(int[] match, InstructionHandle[] targets,
-		      InstructionHandle target) {
+                      InstructionHandle target) {
     super(com.sun.org.apache.bcel.internal.Constants.LOOKUPSWITCH, match, targets, target);
-    
+
     length = (short)(9 + match_length * 8); /* alignment remainder assumed
-					     * 0 here, until dump time. */
+                                             * 0 here, until dump time. */
     fixed_length = length;
   }
 
@@ -103,7 +106,7 @@ public class LOOKUPSWITCH extends Select {
     match_length = bytes.readInt();
     fixed_length = (short)(9 + match_length * 8);
     length       = (short)(fixed_length + padding);
-	  
+
     match   = new int[match_length];
     indices = new int[match_length];
     targets = new InstructionHandle[match_length];

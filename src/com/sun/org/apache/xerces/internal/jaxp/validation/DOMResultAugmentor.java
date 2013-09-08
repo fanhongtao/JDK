@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,26 +55,25 @@ import org.w3c.dom.Text;
 
 /**
  * <p>DOM result augmentor.</p>
- * 
+ *
  * @author Michael Glavassevich, IBM
- * @version $Id: DOMResultAugmentor.java,v 1.1.4.1 2005/09/05 11:36:24 sunithareddy Exp $
  */
 final class DOMResultAugmentor implements DOMDocumentHandler {
 
     //
     // Data
     //
-    
+
     private DOMValidatorHelper fDOMValidatorHelper;
-    
+
     private Document fDocument;
     private CoreDocumentImpl fDocumentImpl;
     private boolean fStorePSVI;
-    
+
     private boolean fIgnoreChars;
-    
+
     private final QName fAttributeQName = new QName();
-    
+
     public DOMResultAugmentor(DOMValidatorHelper helper) {
         fDOMValidatorHelper = helper;
     }
@@ -123,14 +126,14 @@ final class DOMResultAugmentor implements DOMDocumentHandler {
             Augmentations augs) throws XNIException {
         final Element currentElement = (Element) fDOMValidatorHelper.getCurrentElement();
         final NamedNodeMap attrMap = currentElement.getAttributes();
-        
+
         final int oldLength = attrMap.getLength();
         // If it's a Xerces DOM store type information for attributes, set idness, etc..
         if (fDocumentImpl != null) {
             AttrImpl attr;
             for (int i = 0; i < oldLength; ++i) {
                 attr = (AttrImpl) attrMap.item(i);
-                
+
                 // write type information to this attribute
                 AttributePSVI attrPSVI = (AttributePSVI) attributes.getAugmentations(i).getItem (Constants.ATTRIBUTE_PSVI);
                 if (attrPSVI != null) {
@@ -140,7 +143,7 @@ final class DOMResultAugmentor implements DOMDocumentHandler {
                 }
             }
         }
-        
+
         final int newLength = attributes.getLength();
         // Add default/fixed attributes
         if (newLength > oldLength) {
@@ -154,10 +157,10 @@ final class DOMResultAugmentor implements DOMDocumentHandler {
             else {
                 for (int i = oldLength; i < newLength; ++i) {
                     attributes.getName(i, fAttributeQName);
-                    AttrImpl attr = (AttrImpl) fDocumentImpl.createAttributeNS(fAttributeQName.uri, 
+                    AttrImpl attr = (AttrImpl) fDocumentImpl.createAttributeNS(fAttributeQName.uri,
                             fAttributeQName.rawname, fAttributeQName.localpart);
                     attr.setValue(attributes.getValue(i));
-                    
+
                     // write type information to this attribute
                     AttributePSVI attrPSVI = (AttributePSVI) attributes.getAugmentations(i).getItem (Constants.ATTRIBUTE_PSVI);
                     if (attrPSVI != null) {
@@ -231,7 +234,7 @@ final class DOMResultAugmentor implements DOMDocumentHandler {
     public XMLDocumentSource getDocumentSource() {
         return null;
     }
-    
+
     /** Returns whether the given attribute is an ID type. **/
     private boolean processAttributePSVI(AttrImpl attr, AttributePSVI attrPSVI) {
         if (fStorePSVI) {

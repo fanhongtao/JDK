@@ -1,8 +1,26 @@
 /*
- * @(#)Calendar.java	1.89 08/08/21
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -33,6 +51,8 @@ import java.security.PrivilegedExceptionAction;
 import java.security.ProtectionDomain;
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import sun.util.BuddhistCalendar;
 import sun.util.calendar.ZoneInfo;
 import sun.util.resources.LocaleData;
@@ -101,7 +121,7 @@ import sun.util.resources.LocaleData;
  * calculating its time or calendar field values if any out-of-range field
  * value has been set.
  *
- * <h4>First Week</h4>
+ * <h4><a name="first_week">First Week</a></h4>
  *
  * <code>Calendar</code> defines a locale-specific seven day week using two
  * parameters: the first day of the week and the minimal days in first week
@@ -182,10 +202,10 @@ import sun.util.resources.LocaleData;
  * to format dates.
  *
  * <h4>Field Manipulation</h4>
- * 
+ *
  * The calendar fields can be changed using three methods:
  * <code>set()</code>, <code>add()</code>, and <code>roll()</code>.</p>
- * 
+ *
  * <p><strong><code>set(f, value)</code></strong> changes calendar field
  * <code>f</code> to <code>value</code>.  In addition, it sets an
  * internal member variable to indicate that calendar field <code>f</code> has
@@ -201,7 +221,7 @@ import sun.util.resources.LocaleData;
  * the call to the <code>set</code> method
  * after the calendar fields have been recomputed. The specifics are determined by
  * the concrete calendar class.</p>
- * 
+ *
  * <p><em>Example</em>: Consider a <code>GregorianCalendar</code>
  * originally set to August 31, 1999. Calling <code>set(Calendar.MONTH,
  * Calendar.SEPTEMBER)</code> sets the date to September 31,
@@ -210,11 +230,11 @@ import sun.util.resources.LocaleData;
  * call to <code>set(Calendar.DAY_OF_MONTH, 30)</code> before the call to
  * <code>getTime()</code> sets the date to September 30, 1999, since
  * no recomputation occurs after <code>set()</code> itself.</p>
- * 
+ *
  * <p><strong><code>add(f, delta)</code></strong> adds <code>delta</code>
  * to field <code>f</code>.  This is equivalent to calling <code>set(f,
  * get(f) + delta)</code> with two adjustments:</p>
- * 
+ *
  * <blockquote>
  *   <p><strong>Add rule 1</strong>. The value of field <code>f</code>
  *   after the call minus the value of field <code>f</code> before the
@@ -222,7 +242,7 @@ import sun.util.resources.LocaleData;
  *   field <code>f</code>. Overflow occurs when a field value exceeds its
  *   range and, as a result, the next larger field is incremented or
  *   decremented and the field value is adjusted back into its range.</p>
- * 
+ *
  *   <p><strong>Add rule 2</strong>. If a smaller field is expected to be
  *   invariant, but it is impossible for it to be equal to its
  *   prior value because of changes in its minimum or maximum after field
@@ -234,11 +254,11 @@ import sun.util.resources.LocaleData;
  *   that are not expected to be invariant. The calendar system
  *   determines what fields are expected to be invariant.</p>
  * </blockquote>
- * 
+ *
  * <p>In addition, unlike <code>set()</code>, <code>add()</code> forces
  * an immediate recomputation of the calendar's milliseconds and all
  * fields.</p>
- * 
+ *
  * <p><em>Example</em>: Consider a <code>GregorianCalendar</code>
  * originally set to August 31, 1999. Calling <code>add(Calendar.MONTH,
  * 13)</code> sets the calendar to September 30, 2000. <strong>Add rule
@@ -250,21 +270,21 @@ import sun.util.resources.LocaleData;
  * it is a smaller field, <code>DAY_OF_WEEK</code> is not adjusted by
  * rule 2, since it is expected to change when the month changes in a
  * <code>GregorianCalendar</code>.</p>
- * 
+ *
  * <p><strong><code>roll(f, delta)</code></strong> adds
  * <code>delta</code> to field <code>f</code> without changing larger
  * fields. This is equivalent to calling <code>add(f, delta)</code> with
  * the following adjustment:</p>
- * 
+ *
  * <blockquote>
  *   <p><strong>Roll rule</strong>. Larger fields are unchanged after the
  *   call. A larger field represents a larger unit of
  *   time. <code>DAY_OF_MONTH</code> is a larger field than
  *   <code>HOUR</code>.</p>
  * </blockquote>
- * 
+ *
  * <p><em>Example</em>: See {@link java.util.GregorianCalendar#roll(int, int)}.
- * 
+ *
  * <p><strong>Usage model</strong>. To motivate the behavior of
  * <code>add()</code> and <code>roll()</code>, consider a user interface
  * component with increment and decrement buttons for the month, day, and
@@ -284,7 +304,6 @@ import sun.util.resources.LocaleData;
  * @see          GregorianCalendar
  * @see          TimeZone
  * @see          java.text.DateFormat
- * @version      1.89, 08/21/08
  * @author Mark Davis, David Goldsmith, Chen-Lieh Huang, Alan Liu
  * @since JDK1.1
  */
@@ -535,7 +554,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 
     /**
      * Field number for <code>get</code> and <code>set</code> indicating the
-     * daylight savings offset in milliseconds.
+     * daylight saving offset in milliseconds.
      * <p>
      * This field reflects the correct daylight saving offset value of
      * the time zone of this <code>Calendar</code> if the
@@ -820,7 +839,8 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * Cache to hold the firstDayOfWeek and minimalDaysInFirstWeek
      * of a Locale.
      */
-    private static Hashtable<Locale, int[]> cachedLocaleData = new Hashtable<Locale, int[]>(3);
+    private static final ConcurrentMap<Locale, int[]> cachedLocaleData
+        = new ConcurrentHashMap<Locale, int[]>(3);
 
     // Special values of stamp[]
     /**
@@ -863,7 +883,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     //     areFieldsSet, and isTimeSet become transient, and isSet[] is
     //     removed. In JDK 1.1.6 we write a format compatible with version 2.
     static final int        currentSerialVersion = 1;
-    
+
     /**
      * The version of the serialized data on the stream.  Possible values:
      * <dl>
@@ -890,24 +910,24 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     static final long       serialVersionUID = -1807547505821590642L;
 
     // Mask values for calendar fields
-    final static int ERA_MASK		= (1 << ERA);
-    final static int YEAR_MASK		= (1 << YEAR);
-    final static int MONTH_MASK		= (1 << MONTH);
-    final static int WEEK_OF_YEAR_MASK	= (1 << WEEK_OF_YEAR);
-    final static int WEEK_OF_MONTH_MASK	= (1 << WEEK_OF_MONTH);
-    final static int DAY_OF_MONTH_MASK	= (1 << DAY_OF_MONTH);
-    final static int DATE_MASK		= DAY_OF_MONTH_MASK;
-    final static int DAY_OF_YEAR_MASK	= (1 << DAY_OF_YEAR);
-    final static int DAY_OF_WEEK_MASK	= (1 << DAY_OF_WEEK);
-    final static int DAY_OF_WEEK_IN_MONTH_MASK	= (1 << DAY_OF_WEEK_IN_MONTH);
-    final static int AM_PM_MASK		= (1 << AM_PM);
-    final static int HOUR_MASK		= (1 << HOUR);
-    final static int HOUR_OF_DAY_MASK	= (1 << HOUR_OF_DAY);
-    final static int MINUTE_MASK	= (1 << MINUTE);
-    final static int SECOND_MASK	= (1 << SECOND);
-    final static int MILLISECOND_MASK	= (1 << MILLISECOND);
-    final static int ZONE_OFFSET_MASK	= (1 << ZONE_OFFSET);
-    final static int DST_OFFSET_MASK	= (1 << DST_OFFSET);
+    final static int ERA_MASK           = (1 << ERA);
+    final static int YEAR_MASK          = (1 << YEAR);
+    final static int MONTH_MASK         = (1 << MONTH);
+    final static int WEEK_OF_YEAR_MASK  = (1 << WEEK_OF_YEAR);
+    final static int WEEK_OF_MONTH_MASK = (1 << WEEK_OF_MONTH);
+    final static int DAY_OF_MONTH_MASK  = (1 << DAY_OF_MONTH);
+    final static int DATE_MASK          = DAY_OF_MONTH_MASK;
+    final static int DAY_OF_YEAR_MASK   = (1 << DAY_OF_YEAR);
+    final static int DAY_OF_WEEK_MASK   = (1 << DAY_OF_WEEK);
+    final static int DAY_OF_WEEK_IN_MONTH_MASK  = (1 << DAY_OF_WEEK_IN_MONTH);
+    final static int AM_PM_MASK         = (1 << AM_PM);
+    final static int HOUR_MASK          = (1 << HOUR);
+    final static int HOUR_OF_DAY_MASK   = (1 << HOUR_OF_DAY);
+    final static int MINUTE_MASK        = (1 << MINUTE);
+    final static int SECOND_MASK        = (1 << SECOND);
+    final static int MILLISECOND_MASK   = (1 << MILLISECOND);
+    final static int ZONE_OFFSET_MASK   = (1 << ZONE_OFFSET);
+    final static int DST_OFFSET_MASK    = (1 << DST_OFFSET);
 
     /**
      * Constructs a Calendar with the default time zone
@@ -916,8 +936,8 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     protected Calendar()
     {
-        this(TimeZone.getDefaultRef(), Locale.getDefault());
-	sharedZone = true;
+        this(TimeZone.getDefaultRef(), Locale.getDefault(Locale.Category.FORMAT));
+        sharedZone = true;
     }
 
     /**
@@ -945,22 +965,22 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     public static Calendar getInstance()
     {
-        Calendar cal = createCalendar(TimeZone.getDefaultRef(), Locale.getDefault());
-	cal.sharedZone = true;
-	return cal;
+        Calendar cal = createCalendar(TimeZone.getDefaultRef(), Locale.getDefault(Locale.Category.FORMAT));
+        cal.sharedZone = true;
+        return cal;
     }
 
     /**
      * Gets a calendar using the specified time zone and default locale.
      * The <code>Calendar</code> returned is based on the current time
-     * in the given time zone with the default locale. 
+     * in the given time zone with the default locale.
      *
      * @param zone the time zone to use
      * @return a Calendar.
      */
     public static Calendar getInstance(TimeZone zone)
     {
-        return createCalendar(zone, Locale.getDefault());
+        return createCalendar(zone, Locale.getDefault(Locale.Category.FORMAT));
     }
 
     /**
@@ -974,8 +994,8 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     public static Calendar getInstance(Locale aLocale)
     {
         Calendar cal = createCalendar(TimeZone.getDefaultRef(), aLocale);
-	cal.sharedZone = true;
-	return cal;
+        cal.sharedZone = true;
+        return cal;
     }
 
     /**
@@ -988,27 +1008,38 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @return a Calendar.
      */
     public static Calendar getInstance(TimeZone zone,
-				       Locale aLocale)
+                                       Locale aLocale)
     {
-	return createCalendar(zone, aLocale);
+        return createCalendar(zone, aLocale);
     }
 
     private static Calendar createCalendar(TimeZone zone,
-					   Locale aLocale)
+                                           Locale aLocale)
     {
-	// If the specified locale is a Thai locale, returns a BuddhistCalendar
-	// instance.
-	if ("th".equals(aLocale.getLanguage())
-	    && ("TH".equals(aLocale.getCountry()))) {
-	    return new sun.util.BuddhistCalendar(zone, aLocale);
-	} else if ("JP".equals(aLocale.getVariant())
-		   && "JP".equals(aLocale.getCountry())
-		   && "ja".equals(aLocale.getLanguage())) {
-	    return new JapaneseImperialCalendar(zone, aLocale);
-	}	    
+        Calendar cal = null;
 
-	// else create the default calendar
-        return new GregorianCalendar(zone, aLocale);	
+        String caltype = aLocale.getUnicodeLocaleType("ca");
+        if (caltype == null) {
+            // Calendar type is not specified.
+            // If the specified locale is a Thai locale,
+            // returns a BuddhistCalendar instance.
+            if ("th".equals(aLocale.getLanguage())
+                    && ("TH".equals(aLocale.getCountry()))) {
+                cal = new BuddhistCalendar(zone, aLocale);
+            } else {
+                cal = new GregorianCalendar(zone, aLocale);
+            }
+        } else if (caltype.equals("japanese")) {
+            cal = new JapaneseImperialCalendar(zone, aLocale);
+        } else if (caltype.equals("buddhist")) {
+            cal = new BuddhistCalendar(zone, aLocale);
+        } else {
+            // Unsupported calendar type.
+            // Use Gregorian calendar as a fallback.
+            cal = new GregorianCalendar(zone, aLocale);
+        }
+
+        return cal;
     }
 
     /**
@@ -1076,7 +1107,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     }
 
     /**
-     * Returns this Calendar's time value in milliseconds. 
+     * Returns this Calendar's time value in milliseconds.
      *
      * @return the current time as UTC milliseconds from the epoch.
      * @see #getTime()
@@ -1084,8 +1115,8 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     public long getTimeInMillis() {
         if (!isTimeSet) {
-	    updateTime();
-	}
+            updateTime();
+        }
         return time;
     }
 
@@ -1097,16 +1128,16 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @see #getTimeInMillis()
      */
     public void setTimeInMillis(long millis) {
-	// If we don't need to recalculate the calendar field values,
-	// do nothing.
-	if (time == millis && isTimeSet && areFieldsSet && areAllFieldsSet
-	    && (zone instanceof ZoneInfo) && !((ZoneInfo)zone).isDirty()) {
-	    return;
-	}
+        // If we don't need to recalculate the calendar field values,
+        // do nothing.
+        if (time == millis && isTimeSet && areFieldsSet && areAllFieldsSet
+            && (zone instanceof ZoneInfo) && !((ZoneInfo)zone).isDirty()) {
+            return;
+        }
         time = millis;
         isTimeSet = true;
         areFieldsSet = false;
-	computeFields();
+        computeFields();
         areAllFieldsSet = areFieldsSet = true;
     }
 
@@ -1129,7 +1160,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     public int get(int field)
     {
         complete();
-	return internalGet(field);
+        return internalGet(field);
     }
 
     /**
@@ -1178,17 +1209,19 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     public void set(int field, int value)
     {
-	if (isLenient() && areFieldsSet && !areAllFieldsSet) {
-	    computeFields();
-	}
-	internalSet(field, value);
+        // If the fields are partially normalized, calculate all the
+        // fields before changing any fields.
+        if (areFieldsSet && !areAllFieldsSet) {
+            computeFields();
+        }
+        internalSet(field, value);
         isTimeSet = false;
-	areFieldsSet = false;
+        areFieldsSet = false;
         isSet[field] = true;
         stamp[field] = nextStamp++;
-	if (nextStamp == Integer.MAX_VALUE) {
-	    adjustStamp();
-	}
+        if (nextStamp == Integer.MAX_VALUE) {
+            adjustStamp();
+        }
     }
 
     /**
@@ -1283,10 +1316,10 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     public final void clear()
     {
-	for (int i = 0; i < fields.length; ) {
-	    stamp[i] = fields[i] = 0; // UNSET == 0
-	    isSet[i++] = false;
-	}
+        for (int i = 0; i < fields.length; ) {
+            stamp[i] = fields[i] = 0; // UNSET == 0
+            isSet[i++] = false;
+        }
         areAllFieldsSet = areFieldsSet = false;
         isTimeSet = false;
     }
@@ -1314,12 +1347,12 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     public final void clear(int field)
     {
-	fields[field] = 0;
-	stamp[field] = UNSET;
-	isSet[field] = false;
+        fields[field] = 0;
+        stamp[field] = UNSET;
+        isSet[field] = false;
 
-	areAllFieldsSet = areFieldsSet = false;
-	isTimeSet = false;
+        areAllFieldsSet = areFieldsSet = false;
+        isTimeSet = false;
     }
 
     /**
@@ -1377,20 +1410,20 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @since 1.6
      */
     public String getDisplayName(int field, int style, Locale locale) {
-	if (!checkDisplayNameParams(field, style, ALL_STYLES, LONG, locale,
-				    ERA_MASK|MONTH_MASK|DAY_OF_WEEK_MASK|AM_PM_MASK)) {
-	    return null;
-	}
+        if (!checkDisplayNameParams(field, style, ALL_STYLES, LONG, locale,
+                                    ERA_MASK|MONTH_MASK|DAY_OF_WEEK_MASK|AM_PM_MASK)) {
+            return null;
+        }
 
-	DateFormatSymbols symbols = DateFormatSymbols.getInstance(locale);
-	String[] strings = getFieldStrings(field, style, symbols);
-	if (strings != null) {
-	    int fieldValue = get(field);
-	    if (fieldValue < strings.length) {
-		return strings[fieldValue];
-	    }
-	}
-	return null;
+        DateFormatSymbols symbols = DateFormatSymbols.getInstance(locale);
+        String[] strings = getFieldStrings(field, style, symbols);
+        if (strings != null) {
+            int fieldValue = get(field);
+            if (fieldValue < strings.length) {
+                return strings[fieldValue];
+            }
+        }
+        return null;
     }
 
     /**
@@ -1437,79 +1470,79 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @since 1.6
      */
     public Map<String, Integer> getDisplayNames(int field, int style, Locale locale) {
-	if (!checkDisplayNameParams(field, style, ALL_STYLES, LONG, locale,
-				    ERA_MASK|MONTH_MASK|DAY_OF_WEEK_MASK|AM_PM_MASK)) {
-	    return null;
-	}
+        if (!checkDisplayNameParams(field, style, ALL_STYLES, LONG, locale,
+                                    ERA_MASK|MONTH_MASK|DAY_OF_WEEK_MASK|AM_PM_MASK)) {
+            return null;
+        }
 
-	// ALL_STYLES
-	if (style == ALL_STYLES) {
-	    Map<String,Integer> shortNames = getDisplayNamesImpl(field, SHORT, locale);
-	    if (field == ERA || field == AM_PM) {
-		return shortNames;
-	    }
-	    Map<String,Integer> longNames = getDisplayNamesImpl(field, LONG, locale);
-	    if (shortNames == null) {
-		return longNames;
-	    }
-	    if (longNames != null) {
-		shortNames.putAll(longNames);
-	    }
-	    return shortNames;
-	}
+        // ALL_STYLES
+        if (style == ALL_STYLES) {
+            Map<String,Integer> shortNames = getDisplayNamesImpl(field, SHORT, locale);
+            if (field == ERA || field == AM_PM) {
+                return shortNames;
+            }
+            Map<String,Integer> longNames = getDisplayNamesImpl(field, LONG, locale);
+            if (shortNames == null) {
+                return longNames;
+            }
+            if (longNames != null) {
+                shortNames.putAll(longNames);
+            }
+            return shortNames;
+        }
 
-	// SHORT or LONG
-	return getDisplayNamesImpl(field, style, locale);
+        // SHORT or LONG
+        return getDisplayNamesImpl(field, style, locale);
     }
 
     private Map<String,Integer> getDisplayNamesImpl(int field, int style, Locale locale) {
-	DateFormatSymbols symbols = DateFormatSymbols.getInstance(locale);
-	String[] strings = getFieldStrings(field, style, symbols);
-	if (strings != null) {
-	    Map<String,Integer> names = new HashMap<String,Integer>();
-	    for (int i = 0; i < strings.length; i++) {
-		if (strings[i].length() == 0) {
-		    continue;
-		}
-		names.put(strings[i], i);
-	    }
-	    return names;
-	}
-	return null;
+        DateFormatSymbols symbols = DateFormatSymbols.getInstance(locale);
+        String[] strings = getFieldStrings(field, style, symbols);
+        if (strings != null) {
+            Map<String,Integer> names = new HashMap<String,Integer>();
+            for (int i = 0; i < strings.length; i++) {
+                if (strings[i].length() == 0) {
+                    continue;
+                }
+                names.put(strings[i], i);
+            }
+            return names;
+        }
+        return null;
     }
 
     boolean checkDisplayNameParams(int field, int style, int minStyle, int maxStyle,
-				   Locale locale, int fieldMask) {
-	if (field < 0 || field >= fields.length ||
-	    style < minStyle || style > maxStyle) {
-	    throw new IllegalArgumentException();
-	}
-	if (locale == null) {
-	    throw new NullPointerException();
-	}
-	return isFieldSet(fieldMask, field);
+                                   Locale locale, int fieldMask) {
+        if (field < 0 || field >= fields.length ||
+            style < minStyle || style > maxStyle) {
+            throw new IllegalArgumentException();
+        }
+        if (locale == null) {
+            throw new NullPointerException();
+        }
+        return isFieldSet(fieldMask, field);
     }
 
     private String[] getFieldStrings(int field, int style, DateFormatSymbols symbols) {
-	String[] strings = null;
-	switch (field) {
-	case ERA:
-	    strings = symbols.getEras();
-	    break;
+        String[] strings = null;
+        switch (field) {
+        case ERA:
+            strings = symbols.getEras();
+            break;
 
-	case MONTH:
-	    strings = (style == LONG) ? symbols.getMonths() : symbols.getShortMonths();
-	    break;
+        case MONTH:
+            strings = (style == LONG) ? symbols.getMonths() : symbols.getShortMonths();
+            break;
 
-	case DAY_OF_WEEK:
-	    strings = (style == LONG) ? symbols.getWeekdays() : symbols.getShortWeekdays();
-	    break;
+        case DAY_OF_WEEK:
+            strings = (style == LONG) ? symbols.getWeekdays() : symbols.getShortWeekdays();
+            break;
 
-	case AM_PM:
-	    strings = symbols.getAmPmStrings();
-	    break;
-	}
-	return strings;
+        case AM_PM:
+            strings = symbols.getAmPmStrings();
+            break;
+        }
+        return strings;
     }
 
     /**
@@ -1522,7 +1555,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     protected void complete()
     {
         if (!isTimeSet)
-	    updateTime();
+            updateTime();
         if (!areFieldsSet || !areAllFieldsSet) {
             computeFields(); // fills in unset fields
             areAllFieldsSet = areFieldsSet = true;
@@ -1543,7 +1576,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @see #setFieldsComputed(int)
      */
     final boolean isExternallySet(int field) {
-	return stamp[field] >= MINIMUM_USER_STAMP;
+        return stamp[field] >= MINIMUM_USER_STAMP;
     }
 
     /**
@@ -1553,13 +1586,13 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @return a bit mask indicating set state fields
      */
     final int getSetStateFields() {
-	int mask = 0;
-	for (int i = 0; i < fields.length; i++) {
-	    if (stamp[i] != UNSET) {
-		mask |= 1 << i;
-	    }
-	}
-	return mask;
+        int mask = 0;
+        for (int i = 0; i < fields.length; i++) {
+            if (stamp[i] != UNSET) {
+                mask |= 1 << i;
+            }
+        }
+        return mask;
     }
 
     /**
@@ -1576,25 +1609,25 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @see #selectFields()
      */
     final void setFieldsComputed(int fieldMask) {
-	if (fieldMask == ALL_FIELDS) {
-	    for (int i = 0; i < fields.length; i++) {
-		stamp[i] = COMPUTED;
-		isSet[i] = true;
-	    }
-	    areFieldsSet = areAllFieldsSet = true;
-	} else {
-	    for (int i = 0; i < fields.length; i++) {
-		if ((fieldMask & 1) == 1) {
-		    stamp[i] = COMPUTED;
-		    isSet[i] = true;
-		} else {
-		    if (areAllFieldsSet && !isSet[i]) {
-			areAllFieldsSet = false;
-		    }
-		}
-		fieldMask >>>= 1;
-	    }
-	}
+        if (fieldMask == ALL_FIELDS) {
+            for (int i = 0; i < fields.length; i++) {
+                stamp[i] = COMPUTED;
+                isSet[i] = true;
+            }
+            areFieldsSet = areAllFieldsSet = true;
+        } else {
+            for (int i = 0; i < fields.length; i++) {
+                if ((fieldMask & 1) == 1) {
+                    stamp[i] = COMPUTED;
+                    isSet[i] = true;
+                } else {
+                    if (areAllFieldsSet && !isSet[i]) {
+                        areAllFieldsSet = false;
+                    }
+                }
+                fieldMask >>>= 1;
+            }
+        }
     }
 
     /**
@@ -1613,20 +1646,20 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @see #selectFields()
      */
     final void setFieldsNormalized(int fieldMask) {
-	if (fieldMask != ALL_FIELDS) {
-	    for (int i = 0; i < fields.length; i++) {
-		if ((fieldMask & 1) == 0) {
-		    stamp[i] = fields[i] = 0; // UNSET == 0
-		    isSet[i] = false;
-		}
-		fieldMask >>= 1;
-	    }
-	}
+        if (fieldMask != ALL_FIELDS) {
+            for (int i = 0; i < fields.length; i++) {
+                if ((fieldMask & 1) == 0) {
+                    stamp[i] = fields[i] = 0; // UNSET == 0
+                    isSet[i] = false;
+                }
+                fieldMask >>= 1;
+            }
+        }
 
-	// Some or all of the fields are in sync with the
-	// milliseconds, but the stamp values are not normalized yet.
+        // Some or all of the fields are in sync with the
+        // milliseconds, but the stamp values are not normalized yet.
         areFieldsSet = true;
-	areAllFieldsSet = false;
+        areAllFieldsSet = false;
     }
 
     /**
@@ -1634,7 +1667,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * value or fully in sync but not stamp values are not normalized yet.
      */
     final boolean isPartiallyNormalized() {
-	return areFieldsSet && !areAllFieldsSet;
+        return areFieldsSet && !areAllFieldsSet;
     }
 
     /**
@@ -1642,14 +1675,14 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * value.
      */
     final boolean isFullyNormalized() {
-	return areFieldsSet && areAllFieldsSet;
+        return areFieldsSet && areAllFieldsSet;
     }
 
     /**
      * Marks this Calendar as not sync'd.
      */
     final void setUnnormalized() {
-	areFieldsSet = areAllFieldsSet = false;
+        areFieldsSet = areAllFieldsSet = false;
     }
 
     /**
@@ -1657,7 +1690,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * <code>fieldMask</code>.
      */
     static final boolean isFieldSet(int fieldMask, int field) {
-	return (fieldMask & (1 << field)) != 0;
+        return (fieldMask & (1 << field)) != 0;
     }
 
     /**
@@ -1682,17 +1715,17 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @see #setInternallySetState(int)
      */
     final int selectFields() {
-	// This implementation has been taken from the GregorianCalendar class.
+        // This implementation has been taken from the GregorianCalendar class.
 
-	// The YEAR field must always be used regardless of its SET
-	// state because YEAR is a mandatory field to determine the date
-	// and the default value (EPOCH_YEAR) may change through the
-	// normalization process.
-	int fieldMask = YEAR_MASK;
+        // The YEAR field must always be used regardless of its SET
+        // state because YEAR is a mandatory field to determine the date
+        // and the default value (EPOCH_YEAR) may change through the
+        // normalization process.
+        int fieldMask = YEAR_MASK;
 
-	if (stamp[ERA] != UNSET) {
-	    fieldMask |= ERA_MASK;
-	}
+        if (stamp[ERA] != UNSET) {
+            fieldMask |= ERA_MASK;
+        }
         // Find the most recent group of fields specifying the day within
         // the year.  These may be any of the following combinations:
         //   MONTH + DAY_OF_MONTH
@@ -1715,17 +1748,17 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 
         int bestStamp = domStamp;
         if (womStamp > bestStamp) {
-	    bestStamp = womStamp;
-	}
+            bestStamp = womStamp;
+        }
         if (dowimStamp > bestStamp) {
-	    bestStamp = dowimStamp;
-	}
+            bestStamp = dowimStamp;
+        }
         if (doyStamp > bestStamp) {
-	    bestStamp = doyStamp;
-	}
+            bestStamp = doyStamp;
+        }
         if (woyStamp > bestStamp) {
-	    bestStamp = woyStamp;
-	}
+            bestStamp = woyStamp;
+        }
 
         /* No complete combination exists.  Look for WEEK_OF_MONTH,
          * DAY_OF_WEEK_IN_MONTH, or WEEK_OF_YEAR alone.  Treat DAY_OF_WEEK alone
@@ -1749,36 +1782,46 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
         if (bestStamp == domStamp ||
            (bestStamp == womStamp && stamp[WEEK_OF_MONTH] >= stamp[WEEK_OF_YEAR]) ||
            (bestStamp == dowimStamp && stamp[DAY_OF_WEEK_IN_MONTH] >= stamp[WEEK_OF_YEAR])) {
-	    fieldMask |= MONTH_MASK;
+            fieldMask |= MONTH_MASK;
             if (bestStamp == domStamp) {
-		fieldMask |= DAY_OF_MONTH_MASK;
+                fieldMask |= DAY_OF_MONTH_MASK;
             } else {
-		assert (bestStamp == womStamp || bestStamp == dowimStamp);
+                assert (bestStamp == womStamp || bestStamp == dowimStamp);
                 if (dowStamp != UNSET) {
-		    fieldMask |= DAY_OF_WEEK_MASK;
+                    fieldMask |= DAY_OF_WEEK_MASK;
                 }
-                if (bestStamp == womStamp) {
-		    fieldMask |= WEEK_OF_MONTH_MASK;
+                if (womStamp == dowimStamp) {
+                    // When they are equal, give the priority to
+                    // WEEK_OF_MONTH for compatibility.
+                    if (stamp[WEEK_OF_MONTH] >= stamp[DAY_OF_WEEK_IN_MONTH]) {
+                        fieldMask |= WEEK_OF_MONTH_MASK;
+                    } else {
+                        fieldMask |= DAY_OF_WEEK_IN_MONTH_MASK;
+                    }
                 } else {
-		    assert (bestStamp == dowimStamp);
-		    if (stamp[DAY_OF_WEEK_IN_MONTH] != UNSET) {
-			fieldMask |= DAY_OF_WEEK_IN_MONTH_MASK;
-		    }
-		}
-	    }
+                    if (bestStamp == womStamp) {
+                        fieldMask |= WEEK_OF_MONTH_MASK;
+                    } else {
+                        assert (bestStamp == dowimStamp);
+                        if (stamp[DAY_OF_WEEK_IN_MONTH] != UNSET) {
+                            fieldMask |= DAY_OF_WEEK_IN_MONTH_MASK;
+                        }
+                    }
+                }
+            }
         } else {
             assert (bestStamp == doyStamp || bestStamp == woyStamp ||
-		    bestStamp == UNSET);
+                    bestStamp == UNSET);
             if (bestStamp == doyStamp) {
-		fieldMask |= DAY_OF_YEAR_MASK;
+                fieldMask |= DAY_OF_YEAR_MASK;
             } else {
-		assert (bestStamp == woyStamp);
+                assert (bestStamp == woyStamp);
                 if (dowStamp != UNSET) {
-		    fieldMask |= DAY_OF_WEEK_MASK;
+                    fieldMask |= DAY_OF_WEEK_MASK;
                 }
-		fieldMask |= WEEK_OF_YEAR_MASK;
-	    }
-	}
+                fieldMask |= WEEK_OF_YEAR_MASK;
+            }
+        }
 
         // Find the best set of fields specifying the time of day.  There
         // are only two possibilities here; the HOUR_OF_DAY or the
@@ -1787,39 +1830,39 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
         int hourStamp = aggregateStamp(stamp[HOUR], stamp[AM_PM]);
         bestStamp = (hourStamp > hourOfDayStamp) ? hourStamp : hourOfDayStamp;
 
-	// if bestStamp is still UNSET, then take HOUR or AM_PM. (See 4846659)
-	if (bestStamp == UNSET) {
-	    bestStamp = Math.max(stamp[HOUR], stamp[AM_PM]);
-	}
+        // if bestStamp is still UNSET, then take HOUR or AM_PM. (See 4846659)
+        if (bestStamp == UNSET) {
+            bestStamp = Math.max(stamp[HOUR], stamp[AM_PM]);
+        }
 
         // Hours
         if (bestStamp != UNSET) {
             if (bestStamp == hourOfDayStamp) {
-		fieldMask |= HOUR_OF_DAY_MASK;
+                fieldMask |= HOUR_OF_DAY_MASK;
             } else {
-		fieldMask |= HOUR_MASK;
-		if (stamp[AM_PM] != UNSET) {
-		    fieldMask |= AM_PM_MASK;
-		}
+                fieldMask |= HOUR_MASK;
+                if (stamp[AM_PM] != UNSET) {
+                    fieldMask |= AM_PM_MASK;
+                }
             }
         }
-	if (stamp[MINUTE] != UNSET) {
-	    fieldMask |= MINUTE_MASK;
-	}
-	if (stamp[SECOND] != UNSET) {
-	    fieldMask |= SECOND_MASK;
-	}
-	if (stamp[MILLISECOND] != UNSET) {
-	    fieldMask |= MILLISECOND_MASK;
-	}
-	if (stamp[ZONE_OFFSET] >= MINIMUM_USER_STAMP) {
-		fieldMask |= ZONE_OFFSET_MASK;
-	}
-	if (stamp[DST_OFFSET] >= MINIMUM_USER_STAMP) {
-	    fieldMask |= DST_OFFSET_MASK;
-	}
+        if (stamp[MINUTE] != UNSET) {
+            fieldMask |= MINUTE_MASK;
+        }
+        if (stamp[SECOND] != UNSET) {
+            fieldMask |= SECOND_MASK;
+        }
+        if (stamp[MILLISECOND] != UNSET) {
+            fieldMask |= MILLISECOND_MASK;
+        }
+        if (stamp[ZONE_OFFSET] >= MINIMUM_USER_STAMP) {
+                fieldMask |= ZONE_OFFSET_MASK;
+        }
+        if (stamp[DST_OFFSET] >= MINIMUM_USER_STAMP) {
+            fieldMask |= DST_OFFSET_MASK;
+        }
 
-	return fieldMask;
+        return fieldMask;
     }
 
     /**
@@ -1829,9 +1872,9 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * aggregate is the later of the two stamps.
      */
     private static final int aggregateStamp(int stamp_a, int stamp_b) {
-	if (stamp_a == UNSET || stamp_b == UNSET) {
-	    return UNSET;
-	}
+        if (stamp_a == UNSET || stamp_b == UNSET) {
+            return UNSET;
+        }
         return (stamp_a > stamp_b) ? stamp_a : stamp_b;
     }
 
@@ -1860,35 +1903,35 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-	try {
-	    Calendar that = (Calendar)obj;
-	    return compareTo(getMillisOf(that)) == 0 &&
-		lenient == that.lenient &&
-		firstDayOfWeek == that.firstDayOfWeek &&
-		minimalDaysInFirstWeek == that.minimalDaysInFirstWeek &&
-		zone.equals(that.zone);
-	} catch (Exception e) {
-	    // Note: GregorianCalendar.computeTime throws
-	    // IllegalArgumentException if the ERA value is invalid
-	    // even it's in lenient mode.
-	}
-	return false;
+        try {
+            Calendar that = (Calendar)obj;
+            return compareTo(getMillisOf(that)) == 0 &&
+                lenient == that.lenient &&
+                firstDayOfWeek == that.firstDayOfWeek &&
+                minimalDaysInFirstWeek == that.minimalDaysInFirstWeek &&
+                zone.equals(that.zone);
+        } catch (Exception e) {
+            // Note: GregorianCalendar.computeTime throws
+            // IllegalArgumentException if the ERA value is invalid
+            // even it's in lenient mode.
+        }
+        return false;
     }
 
     /**
      * Returns a hash code for this calendar.
      *
-     * @return a hash code value for this object. 
+     * @return a hash code value for this object.
      * @since 1.2
      */
     public int hashCode() {
-	// 'otheritems' represents the hash code for the previous versions.
-	int otheritems = (lenient ? 1 : 0)
+        // 'otheritems' represents the hash code for the previous versions.
+        int otheritems = (lenient ? 1 : 0)
             | (firstDayOfWeek << 1)
             | (minimalDaysInFirstWeek << 4)
             | (zone.hashCode() << 7);
-	long t = getMillisOf(this);
-	return (int) t ^ (int)(t >> 32) ^ otheritems;
+        long t = getMillisOf(this);
+        return (int) t ^ (int)(t >> 32) ^ otheritems;
     }
 
     /**
@@ -1905,11 +1948,11 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @return <code>true</code> if the time of this
      * <code>Calendar</code> is before the time represented by
      * <code>when</code>; <code>false</code> otherwise.
-     * @see	#compareTo(Calendar)
+     * @see     #compareTo(Calendar)
      */
     public boolean before(Object when) {
-	return when instanceof Calendar
-	    && compareTo((Calendar)when) < 0;
+        return when instanceof Calendar
+            && compareTo((Calendar)when) < 0;
     }
 
     /**
@@ -1926,11 +1969,11 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @return <code>true</code> if the time of this <code>Calendar</code> is
      * after the time represented by <code>when</code>; <code>false</code>
      * otherwise.
-     * @see	#compareTo(Calendar)
+     * @see     #compareTo(Calendar)
      */
     public boolean after(Object when) {
-	return when instanceof Calendar
-	    && compareTo((Calendar)when) > 0;
+        return when instanceof Calendar
+            && compareTo((Calendar)when) > 0;
     }
 
     /**
@@ -1953,7 +1996,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * @since   1.5
      */
     public int compareTo(Calendar anotherCalendar) {
-	return compareTo(getMillisOf(anotherCalendar));
+        return compareTo(getMillisOf(anotherCalendar));
     }
 
     /**
@@ -1970,8 +2013,8 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     abstract public void add(int field, int amount);
 
     /**
-     * Adds or subtracts (up/down) a single unit of time on the given time 
-     * field without changing larger fields. For example, to roll the current 
+     * Adds or subtracts (up/down) a single unit of time on the given time
+     * field without changing larger fields. For example, to roll the current
      * date up by one day, you can achieve it by calling:
      * <p>roll(Calendar.DATE, true).
      * When rolling on the year or Calendar.YEAR field, it will roll the year
@@ -2030,7 +2073,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     public void setTimeZone(TimeZone value)
     {
         zone = value;
-	sharedZone = false;
+        sharedZone = false;
         /* Recompute the fields from the time using the new zone.  This also
          * works if isTimeSet is false (after a call to set()).  In that case
          * the time will be computed from the fields using the new zone, then
@@ -2050,12 +2093,12 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     public TimeZone getTimeZone()
     {
-	// If the TimeZone object is shared by other Calendar instances, then
-	// create a clone.
-	if (sharedZone) {
-	    zone = (TimeZone) zone.clone();
-	    sharedZone = false;
-	}
+        // If the TimeZone object is shared by other Calendar instances, then
+        // create a clone.
+        if (sharedZone) {
+            zone = (TimeZone) zone.clone();
+            sharedZone = false;
+        }
         return zone;
     }
 
@@ -2063,14 +2106,14 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * Returns the time zone (without cloning).
      */
     TimeZone getZone() {
-	return zone;
+        return zone;
     }
 
     /**
      * Sets the sharedZone flag to <code>shared</code>.
      */
     void setZoneShared(boolean shared) {
-	sharedZone = shared;
+        sharedZone = shared;
     }
 
     /**
@@ -2112,11 +2155,11 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     public void setFirstDayOfWeek(int value)
     {
-	if (firstDayOfWeek == value) {
-	    return;
-	}
+        if (firstDayOfWeek == value) {
+            return;
+        }
         firstDayOfWeek = value;
-	invalidateWeekFields();
+        invalidateWeekFields();
     }
 
     /**
@@ -2145,10 +2188,10 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     public void setMinimalDaysInFirstWeek(int value)
     {
         if (minimalDaysInFirstWeek == value) {
-	    return;
-	}
+            return;
+        }
         minimalDaysInFirstWeek = value;
-	invalidateWeekFields();
+        invalidateWeekFields();
     }
 
     /**
@@ -2164,6 +2207,101 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     public int getMinimalDaysInFirstWeek()
     {
         return minimalDaysInFirstWeek;
+    }
+
+    /**
+     * Returns whether this {@code Calendar} supports week dates.
+     *
+     * <p>The default implementation of this method returns {@code false}.
+     *
+     * @return {@code true} if this {@code Calendar} supports week dates;
+     *         {@code false} otherwise.
+     * @see #getWeekYear()
+     * @see #setWeekDate(int,int,int)
+     * @see #getWeeksInWeekYear()
+     * @since 1.7
+     */
+    public boolean isWeekDateSupported() {
+        return false;
+    }
+
+    /**
+     * Returns the week year represented by this {@code Calendar}. The
+     * week year is in sync with the week cycle. The {@linkplain
+     * #getFirstDayOfWeek() first day of the first week} is the first
+     * day of the week year.
+     *
+     * <p>The default implementation of this method throws an
+     * {@link UnsupportedOperationException}.
+     *
+     * @return the week year of this {@code Calendar}
+     * @exception UnsupportedOperationException
+     *            if any week year numbering isn't supported
+     *            in this {@code Calendar}.
+     * @see #isWeekDateSupported()
+     * @see #getFirstDayOfWeek()
+     * @see #getMinimalDaysInFirstWeek()
+     * @since 1.7
+     */
+    public int getWeekYear() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Sets the date of this {@code Calendar} with the the given date
+     * specifiers - week year, week of year, and day of week.
+     *
+     * <p>Unlike the {@code set} method, all of the calendar fields
+     * and {@code time} values are calculated upon return.
+     *
+     * <p>If {@code weekOfYear} is out of the valid week-of-year range
+     * in {@code weekYear}, the {@code weekYear} and {@code
+     * weekOfYear} values are adjusted in lenient mode, or an {@code
+     * IllegalArgumentException} is thrown in non-lenient mode.
+     *
+     * <p>The default implementation of this method throws an
+     * {@code UnsupportedOperationException}.
+     *
+     * @param weekYear   the week year
+     * @param weekOfYear the week number based on {@code weekYear}
+     * @param dayOfWeek  the day of week value: one of the constants
+     *                   for the {@link #DAY_OF_WEEK} field: {@link
+     *                   #SUNDAY}, ..., {@link #SATURDAY}.
+     * @exception IllegalArgumentException
+     *            if any of the given date specifiers is invalid
+     *            or any of the calendar fields are inconsistent
+     *            with the given date specifiers in non-lenient mode
+     * @exception UnsupportedOperationException
+     *            if any week year numbering isn't supported in this
+     *            {@code Calendar}.
+     * @see #isWeekDateSupported()
+     * @see #getFirstDayOfWeek()
+     * @see #getMinimalDaysInFirstWeek()
+     * @since 1.7
+     */
+    public void setWeekDate(int weekYear, int weekOfYear, int dayOfWeek) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the number of weeks in the week year represented by this
+     * {@code Calendar}.
+     *
+     * <p>The default implementation of this method throws an
+     * {@code UnsupportedOperationException}.
+     *
+     * @return the number of weeks in the week year.
+     * @exception UnsupportedOperationException
+     *            if any week year numbering isn't supported in this
+     *            {@code Calendar}.
+     * @see #WEEK_OF_YEAR
+     * @see #isWeekDateSupported()
+     * @see #getWeekYear()
+     * @see #getActualMaximum(int)
+     * @since 1.7
+     */
+    public int getWeeksInWeekYear() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -2364,11 +2502,11 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
             other.fields = new int[FIELD_COUNT];
             other.isSet = new boolean[FIELD_COUNT];
             other.stamp = new int[FIELD_COUNT];
-	    for (int i = 0; i < FIELD_COUNT; i++) {
-		other.fields[i] = fields[i];
-		other.stamp[i] = stamp[i];
-		other.isSet[i] = isSet[i];
-	    }
+            for (int i = 0; i < FIELD_COUNT; i++) {
+                other.fields[i] = fields[i];
+                other.stamp[i] = stamp[i];
+                other.isSet[i] = isSet[i];
+            }
             other.zone = (TimeZone) zone.clone();
             return other;
         }
@@ -2394,25 +2532,25 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * equal to or greater then <code>FIELD_COUNT</code>.
      */
     static final String getFieldName(int field) {
-	return FIELD_NAME[field];
+        return FIELD_NAME[field];
     }
 
     /**
-     * Return a string representation of this calendar. This method 
-     * is intended to be used only for debugging purposes, and the 
-     * format of the returned string may vary between implementations. 
+     * Return a string representation of this calendar. This method
+     * is intended to be used only for debugging purposes, and the
+     * format of the returned string may vary between implementations.
      * The returned string may be empty but may not be <code>null</code>.
-     * 
+     *
      * @return  a string representation of this calendar.
      */
     public String toString() {
-	// NOTE: BuddhistCalendar.toString() interprets the string
-	// produced by this method so that the Gregorian year number
-	// is substituted by its B.E. year value. It relies on
-	// "...,YEAR=<year>,..." or "...,YEAR=?,...".
+        // NOTE: BuddhistCalendar.toString() interprets the string
+        // produced by this method so that the Gregorian year number
+        // is substituted by its B.E. year value. It relies on
+        // "...,YEAR=<year>,..." or "...,YEAR=?,...".
         StringBuilder buffer = new StringBuilder(800);
         buffer.append(getClass().getName()).append('[');
-	appendValue(buffer, "time", isTimeSet, time);
+        appendValue(buffer, "time", isTimeSet, time);
         buffer.append(",areFieldsSet=").append(areFieldsSet);
         buffer.append(",areAllFieldsSet=").append(areAllFieldsSet);
         buffer.append(",lenient=").append(lenient);
@@ -2421,7 +2559,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
         appendValue(buffer, ",minimalDaysInFirstWeek", true, (long) minimalDaysInFirstWeek);
         for (int i = 0; i < FIELD_COUNT; ++i) {
             buffer.append(',');
-	    appendValue(buffer, FIELD_NAME[i], isSet(i), (long) fields[i]);
+            appendValue(buffer, FIELD_NAME[i], isSet(i), (long) fields[i]);
         }
         buffer.append(']');
         return buffer.toString();
@@ -2430,12 +2568,12 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     // =======================privates===============================
 
     private static final void appendValue(StringBuilder sb, String item, boolean valid, long value) {
-	sb.append(item).append('=');
-	if (valid) {
-	    sb.append(value);
-	} else {
-	    sb.append('?');
-	}
+        sb.append(item).append('=');
+        if (valid) {
+            sb.append(value);
+        } else {
+            sb.append('?');
+        }
     }
 
     /**
@@ -2446,17 +2584,17 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     private void setWeekCountData(Locale desiredLocale)
     {
-	/* try to get the Locale data from the cache */
-	int[] data = cachedLocaleData.get(desiredLocale);
-	if (data == null) {  /* cache miss */
-	    ResourceBundle bundle = LocaleData.getCalendarData(desiredLocale);
-	    data = new int[2];
-	    data[0] = Integer.parseInt(bundle.getString("firstDayOfWeek"));
-	    data[1] = Integer.parseInt(bundle.getString("minimalDaysInFirstWeek"));
-	    cachedLocaleData.put(desiredLocale, data);
-	}
-	firstDayOfWeek = data[0];
-	minimalDaysInFirstWeek = data[1];
+        /* try to get the Locale data from the cache */
+        int[] data = cachedLocaleData.get(desiredLocale);
+        if (data == null) {  /* cache miss */
+            ResourceBundle bundle = LocaleData.getCalendarData(desiredLocale);
+            data = new int[2];
+            data[0] = Integer.parseInt(bundle.getString("firstDayOfWeek"));
+            data[1] = Integer.parseInt(bundle.getString("minimalDaysInFirstWeek"));
+            cachedLocaleData.putIfAbsent(desiredLocale, data);
+        }
+        firstDayOfWeek = data[0];
+        minimalDaysInFirstWeek = data[1];
     }
 
     /**
@@ -2466,23 +2604,23 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     private void updateTime() {
         computeTime();
-	// The areFieldsSet and areAllFieldsSet values are no longer
-	// controlled here (as of 1.5).
+        // The areFieldsSet and areAllFieldsSet values are no longer
+        // controlled here (as of 1.5).
         isTimeSet = true;
     }
 
     private int compareTo(long t) {
-	long thisTime = getMillisOf(this);
-	return (thisTime > t) ? 1 : (thisTime == t) ? 0 : -1;
+        long thisTime = getMillisOf(this);
+        return (thisTime > t) ? 1 : (thisTime == t) ? 0 : -1;
     }
 
     private static final long getMillisOf(Calendar calendar) {
-	if (calendar.isTimeSet) {
-	    return calendar.time;
-	}
-	Calendar cal = (Calendar) calendar.clone();
-	cal.setLenient(true);
-	return cal.getTimeInMillis();
+        if (calendar.isTimeSet) {
+            return calendar.time;
+        }
+        Calendar cal = (Calendar) calendar.clone();
+        cal.setLenient(true);
+        return cal.getTimeInMillis();
     }
 
     /**
@@ -2490,34 +2628,34 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      * is set to the next stamp value upon the return.
      */
     private final void adjustStamp() {
-	int max = MINIMUM_USER_STAMP;
-	int newStamp = MINIMUM_USER_STAMP;
+        int max = MINIMUM_USER_STAMP;
+        int newStamp = MINIMUM_USER_STAMP;
 
-	for (;;) {
-	    int min = Integer.MAX_VALUE;
-	    for (int i = 0; i < stamp.length; i++) {
-		int v = stamp[i];
-		if (v >= newStamp && min > v) {
-		    min = v;
-		}
-		if (max < v) {
-		    max = v;
-		}
-	    }
-	    if (max != min && min == Integer.MAX_VALUE) {
-		break;
-	    }
-	    for (int i = 0; i < stamp.length; i++) {
-		if (stamp[i] == min) {
-		    stamp[i] = newStamp;
-		}
-	    }
-	    newStamp++;
-	    if (min == max) {
-		break;
-	    }
-	}
-	nextStamp = newStamp;
+        for (;;) {
+            int min = Integer.MAX_VALUE;
+            for (int i = 0; i < stamp.length; i++) {
+                int v = stamp[i];
+                if (v >= newStamp && min > v) {
+                    min = v;
+                }
+                if (max < v) {
+                    max = v;
+                }
+            }
+            if (max != min && min == Integer.MAX_VALUE) {
+                break;
+            }
+            for (int i = 0; i < stamp.length; i++) {
+                if (stamp[i] == min) {
+                    stamp[i] = newStamp;
+                }
+            }
+            newStamp++;
+            if (min == max) {
+                break;
+            }
+        }
+        nextStamp = newStamp;
     }
 
     /**
@@ -2526,32 +2664,32 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
      */
     private void invalidateWeekFields()
     {
-	if (stamp[WEEK_OF_MONTH] != COMPUTED &&
-	    stamp[WEEK_OF_YEAR] != COMPUTED) {
-	    return;
-	}
+        if (stamp[WEEK_OF_MONTH] != COMPUTED &&
+            stamp[WEEK_OF_YEAR] != COMPUTED) {
+            return;
+        }
 
-	// We have to check the new values of these fields after changing
-	// firstDayOfWeek and/or minimalDaysInFirstWeek. If the field values
-	// have been changed, then set the new values. (4822110)
-	Calendar cal = (Calendar) clone();
-	cal.setLenient(true);
-	cal.clear(WEEK_OF_MONTH);
-	cal.clear(WEEK_OF_YEAR);
+        // We have to check the new values of these fields after changing
+        // firstDayOfWeek and/or minimalDaysInFirstWeek. If the field values
+        // have been changed, then set the new values. (4822110)
+        Calendar cal = (Calendar) clone();
+        cal.setLenient(true);
+        cal.clear(WEEK_OF_MONTH);
+        cal.clear(WEEK_OF_YEAR);
 
-	if (stamp[WEEK_OF_MONTH] == COMPUTED) {
-	    int weekOfMonth = cal.get(WEEK_OF_MONTH);
-	    if (fields[WEEK_OF_MONTH] != weekOfMonth) {
-		fields[WEEK_OF_MONTH] = weekOfMonth;
-	    }
-	}
+        if (stamp[WEEK_OF_MONTH] == COMPUTED) {
+            int weekOfMonth = cal.get(WEEK_OF_MONTH);
+            if (fields[WEEK_OF_MONTH] != weekOfMonth) {
+                fields[WEEK_OF_MONTH] = weekOfMonth;
+            }
+        }
 
-	if (stamp[WEEK_OF_YEAR] == COMPUTED) {
-	    int weekOfYear = cal.get(WEEK_OF_YEAR);
-	    if (fields[WEEK_OF_YEAR] != weekOfYear) {
-		fields[WEEK_OF_YEAR] = weekOfYear;
-	    }
-	}
+        if (stamp[WEEK_OF_YEAR] == COMPUTED) {
+            int weekOfYear = cal.get(WEEK_OF_YEAR);
+            if (fields[WEEK_OF_YEAR] != weekOfYear) {
+                fields[WEEK_OF_YEAR] = weekOfYear;
+            }
+        }
     }
 
     /**
@@ -2579,41 +2717,41 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
             catch (IllegalArgumentException e) {}
         }
 
-	// If this Calendar has a ZoneInfo, save it and set a
-	// SimpleTimeZone equivalent (as a single DST schedule) for
-	// backward compatibility.
-	TimeZone savedZone = null;
-	if (zone instanceof ZoneInfo) {
-	    SimpleTimeZone stz = ((ZoneInfo)zone).getLastRuleInstance();
-	    if (stz == null) {
-		stz = new SimpleTimeZone(zone.getRawOffset(), zone.getID());
-	    }
-	    savedZone = zone;
-	    zone = stz;
-	}
+        // If this Calendar has a ZoneInfo, save it and set a
+        // SimpleTimeZone equivalent (as a single DST schedule) for
+        // backward compatibility.
+        TimeZone savedZone = null;
+        if (zone instanceof ZoneInfo) {
+            SimpleTimeZone stz = ((ZoneInfo)zone).getLastRuleInstance();
+            if (stz == null) {
+                stz = new SimpleTimeZone(zone.getRawOffset(), zone.getID());
+            }
+            savedZone = zone;
+            zone = stz;
+        }
 
         // Write out the 1.1 FCS object.
         stream.defaultWriteObject();
 
-	// Write out the ZoneInfo object
-	// 4802409: we write out even if it is null, a temporary workaround
-	// the real fix for bug 4844924 in corba-iiop
-	stream.writeObject(savedZone);
-	if (savedZone != null) {
-	    zone = savedZone;
-	}
+        // Write out the ZoneInfo object
+        // 4802409: we write out even if it is null, a temporary workaround
+        // the real fix for bug 4844924 in corba-iiop
+        stream.writeObject(savedZone);
+        if (savedZone != null) {
+            zone = savedZone;
+        }
     }
 
     private static class CalendarAccessControlContext {
-	private static final AccessControlContext INSTANCE;
-	static {
-	    RuntimePermission perm = new RuntimePermission("accessClassInPackage.sun.util.calendar");
-	    PermissionCollection perms = perm.newPermissionCollection();
-	    perms.add(perm);
-	    INSTANCE = new AccessControlContext(new ProtectionDomain[] {
-						    new ProtectionDomain(null, perms)
-						});
-	}
+        private static final AccessControlContext INSTANCE;
+        static {
+            RuntimePermission perm = new RuntimePermission("accessClassInPackage.sun.util.calendar");
+            PermissionCollection perms = perm.newPermissionCollection();
+            perms.add(perm);
+            INSTANCE = new AccessControlContext(new ProtectionDomain[] {
+                                                    new ProtectionDomain(null, perms)
+                                                });
+        }
     }
 
     /**
@@ -2622,7 +2760,7 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
     private void readObject(ObjectInputStream stream)
          throws IOException, ClassNotFoundException
     {
-	final ObjectInputStream input = stream;
+        final ObjectInputStream input = stream;
         input.defaultReadObject();
 
         stamp = new int[FIELD_COUNT];
@@ -2644,43 +2782,43 @@ public abstract class Calendar implements Serializable, Cloneable, Comparable<Ca
 
         serialVersionOnStream = currentSerialVersion;
 
-	// If there's a ZoneInfo object, use it for zone.
-	ZoneInfo zi = null;
-	try {
-	    zi = AccessController.doPrivileged(
- 		    new PrivilegedExceptionAction<ZoneInfo>() {
-			public ZoneInfo run() throws Exception {
-			    return (ZoneInfo) input.readObject();
-			}
-		    },
-		    CalendarAccessControlContext.INSTANCE);
-	} catch (PrivilegedActionException pae) {
-	    Exception e = pae.getException();
-	    if (!(e instanceof OptionalDataException)) {
-		if (e instanceof RuntimeException) {
-		    throw (RuntimeException) e;
-		} else if (e instanceof IOException) {
-		    throw (IOException) e;
-		} else if (e instanceof ClassNotFoundException) {
-		    throw (ClassNotFoundException) e;
-		}
-		throw new RuntimeException(e);
-	    }
-	}
-	if (zi != null) {
-	    zone = zi;
-	}
+        // If there's a ZoneInfo object, use it for zone.
+        ZoneInfo zi = null;
+        try {
+            zi = AccessController.doPrivileged(
+                    new PrivilegedExceptionAction<ZoneInfo>() {
+                        public ZoneInfo run() throws Exception {
+                            return (ZoneInfo) input.readObject();
+                        }
+                    },
+                    CalendarAccessControlContext.INSTANCE);
+        } catch (PrivilegedActionException pae) {
+            Exception e = pae.getException();
+            if (!(e instanceof OptionalDataException)) {
+                if (e instanceof RuntimeException) {
+                    throw (RuntimeException) e;
+                } else if (e instanceof IOException) {
+                    throw (IOException) e;
+                } else if (e instanceof ClassNotFoundException) {
+                    throw (ClassNotFoundException) e;
+                }
+                throw new RuntimeException(e);
+            }
+        }
+        if (zi != null) {
+            zone = zi;
+        }
 
-	// If the deserialized object has a SimpleTimeZone, try to
-	// replace it with a ZoneInfo equivalent (as of 1.4) in order
-	// to be compatible with the SimpleTimeZone-based
-	// implementation as much as possible.
-	if (zone instanceof SimpleTimeZone) {
-	    String id = zone.getID();
-	    TimeZone tz = TimeZone.getTimeZone(id);
-	    if (tz != null && tz.hasSameRules(zone) && tz.getID().equals(id)) {
-		zone = tz;
-	    }
-	}
+        // If the deserialized object has a SimpleTimeZone, try to
+        // replace it with a ZoneInfo equivalent (as of 1.4) in order
+        // to be compatible with the SimpleTimeZone-based
+        // implementation as much as possible.
+        if (zone instanceof SimpleTimeZone) {
+            String id = zone.getID();
+            TimeZone tz = TimeZone.getTimeZone(id);
+            if (tz != null && tz.hasSameRules(zone) && tz.getID().equals(id)) {
+                zone = tz;
+            }
+        }
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)BasicTextPaneUI.java	1.70 05/11/17
+ * Copyright (c) 1997, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.basic;
 
@@ -28,7 +46,6 @@ import javax.swing.border.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.70 11/17/05
  */
 public class BasicTextPaneUI extends BasicEditorPaneUI {
 
@@ -46,7 +63,7 @@ public class BasicTextPaneUI extends BasicEditorPaneUI {
      * Creates a new BasicTextPaneUI.
      */
     public BasicTextPaneUI() {
-	super();
+        super();
     }
 
     /**
@@ -57,7 +74,7 @@ public class BasicTextPaneUI extends BasicEditorPaneUI {
      * @return the name ("TextPane")
      */
     protected String getPropertyPrefix() {
-	return "TextPane";
+        return "TextPane";
     }
 
     public void installUI(JComponent c) {
@@ -76,6 +93,6 @@ public class BasicTextPaneUI extends BasicEditorPaneUI {
      * @param evt the property change event
      */
     protected void propertyChange(PropertyChangeEvent evt) {
-	super.propertyChange(evt);
+        super.propertyChange(evt);
     }
 }

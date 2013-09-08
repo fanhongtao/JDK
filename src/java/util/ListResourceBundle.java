@@ -1,8 +1,26 @@
 /*
- * @(#)ListResourceBundle.java	1.30 05/11/17
+ * Copyright (c) 1996, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -51,10 +69,10 @@ import sun.util.ResourceBundleEnumeration;
  * Keys are case-sensitive.
  * <blockquote>
  * <pre>
- * 
+ *
  * public class MyResources extends ListResourceBundle {
  *     protected Object[][] getContents() {
- *         return new Object[][] = {
+ *         return new Object[][] {
  *         // LOCALIZE THIS
  *             {"s1", "The disk \"{1}\" contains {0}."},  // MessageFormat pattern
  *             {"s2", "1"},                               // location of {0} in pattern
@@ -124,7 +142,7 @@ public abstract class ListResourceBundle extends ResourceBundle {
         if (lookup == null) {
             loadLookup();
         }
-        
+
         ResourceBundle parent = this.parent;
         return new ResourceBundleEnumeration(lookup.keySet(),
                 (parent != null) ? parent.getKeys() : null);
@@ -140,10 +158,10 @@ public abstract class ListResourceBundle extends ResourceBundle {
      * @see #keySet()
      */
     protected Set<String> handleKeySet() {
-	if (lookup == null) {
-	    loadLookup();
-	}
-	return lookup.keySet();
+        if (lookup == null) {
+            loadLookup();
+        }
+        return lookup.keySet();
     }
 
     /**
@@ -169,7 +187,7 @@ public abstract class ListResourceBundle extends ResourceBundle {
             return;
 
         Object[][] contents = getContents();
-        HashMap<String,Object> temp = new HashMap<String,Object>(contents.length);
+        HashMap<String,Object> temp = new HashMap<>(contents.length);
         for (int i = 0; i < contents.length; ++i) {
             // key must be non-null String, value must be non-null
             String key = (String) contents[i][0];

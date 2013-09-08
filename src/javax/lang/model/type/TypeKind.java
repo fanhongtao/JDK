@@ -1,8 +1,26 @@
 /*
- * @(#)TypeKind.java	1.5 06/07/11
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.type;
@@ -18,7 +36,6 @@ package javax.lang.model.type;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.5 06/07/11
  * @see TypeMirror
  * @since 1.6
  */
@@ -120,7 +137,14 @@ public enum TypeKind {
      * An implementation-reserved type.
      * This is not the type you are looking for.
      */
-    OTHER;
+    OTHER,
+
+    /**
+      * A union type.
+      *
+      * @since 1.7
+      */
+    UNION;
 
     /**
      * Returns {@code true} if this kind corresponds to a primitive
@@ -128,19 +152,19 @@ public enum TypeKind {
      * @return {@code true} if this kind corresponds to a primitive type
      */
     public boolean isPrimitive() {
-	switch(this) {
-	case BOOLEAN:
-	case BYTE:
-	case SHORT:
-	case INT:
-	case LONG:
-	case CHAR:
-	case FLOAT:
-	case DOUBLE:
-	    return true;
-	    
-	default:
-	    return false;
-	}
+        switch(this) {
+        case BOOLEAN:
+        case BYTE:
+        case SHORT:
+        case INT:
+        case LONG:
+        case CHAR:
+        case FLOAT:
+        case DOUBLE:
+            return true;
+
+        default:
+            return false;
+        }
     }
 }

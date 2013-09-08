@@ -1,8 +1,26 @@
 /*
- * @(#)ImageReaderWriterSpi.java	1.22 05/11/17
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.spi;
@@ -26,7 +44,6 @@ import javax.imageio.stream.ImageInputStream;
  * @see ImageReaderSpi
  * @see ImageWriterSpi
  *
- * @version 0.5
  */
 public abstract class ImageReaderWriterSpi extends IIOServiceProvider {
 
@@ -52,9 +69,9 @@ public abstract class ImageReaderWriterSpi extends IIOServiceProvider {
     /**
      * A <code>String</code> containing the name of the associated
      * plug-in class, initially <code>null</code>.
-     */ 
+     */
     protected String pluginClassName = null;
-   
+
     /**
      * A boolean indicating whether this plug-in supports the
      * standard metadata format for stream metadata, initially
@@ -171,7 +188,7 @@ public abstract class ImageReaderWriterSpi extends IIOServiceProvider {
      * object can use trees described by the standard metadata format.
      * @param nativeImageMetadataFormatName a
      * <code>String</code>, or <code>null</code>, to be returned from
-     * <code>getNativeImageMetadataFormatName</code>. 
+     * <code>getNativeImageMetadataFormatName</code>.
      * @param nativeImageMetadataFormatClassName a
      * <code>String</code>, or <code>null</code>, to be used to instantiate
      * a metadata format object to be returned from
@@ -233,10 +250,10 @@ public abstract class ImageReaderWriterSpi extends IIOServiceProvider {
         }
         this.pluginClassName = pluginClassName;
 
-        this.supportsStandardStreamMetadataFormat = 
+        this.supportsStandardStreamMetadataFormat =
             supportsStandardStreamMetadataFormat;
         this.nativeStreamMetadataFormatName = nativeStreamMetadataFormatName;
-        this.nativeStreamMetadataFormatClassName = 
+        this.nativeStreamMetadataFormatClassName =
             nativeStreamMetadataFormatClassName;
         // If length == 0, leave it null
         if (extraStreamMetadataFormatNames != null &&
@@ -250,10 +267,10 @@ public abstract class ImageReaderWriterSpi extends IIOServiceProvider {
             this.extraStreamMetadataFormatClassNames =
                 (String[])extraStreamMetadataFormatClassNames.clone();
         }
-        this.supportsStandardImageMetadataFormat = 
+        this.supportsStandardImageMetadataFormat =
             supportsStandardImageMetadataFormat;
         this.nativeImageMetadataFormatName = nativeImageMetadataFormatName;
-        this.nativeImageMetadataFormatClassName = 
+        this.nativeImageMetadataFormatClassName =
             nativeImageMetadataFormatClassName;
         // If length == 0, leave it null
         if (extraImageMetadataFormatNames != null &&
@@ -557,7 +574,7 @@ public abstract class ImageReaderWriterSpi extends IIOServiceProvider {
         }
         String formatClassName = null;
         if (formatName.equals(nativeName)) {
-            formatClassName = nativeClassName; 
+            formatClassName = nativeClassName;
         } else if (extraNames != null) {
             for (int i = 0; i < extraNames.length; i++) {
                 if (formatName.equals(extraNames[i])) {
@@ -575,7 +592,7 @@ public abstract class ImageReaderWriterSpi extends IIOServiceProvider {
             Method meth = cls.getMethod("getInstance");
             return (IIOMetadataFormat) meth.invoke(null);
         } catch (Exception e) {
-            RuntimeException ex = 
+            RuntimeException ex =
                 new IllegalStateException ("Can't obtain format");
             ex.initCause(e);
             throw ex;

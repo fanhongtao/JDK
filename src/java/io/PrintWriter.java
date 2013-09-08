@@ -1,14 +1,36 @@
-/**
- * @(#)PrintWriter.java	1.43 06/08/07
+/*
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
 
+import java.util.Objects;
 import java.util.Formatter;
 import java.util.Locale;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.UnsupportedCharsetException;
 
 /**
  * Prints formatted representations of objects to a text-output stream.  This
@@ -26,10 +48,9 @@ import java.util.Locale;
  * constructors may.  The client may inquire as to whether any errors have
  * occurred by invoking {@link #checkError checkError()}.
  *
- * @version 	1.43, 08/07/06
- * @author	Frank Yellin
- * @author	Mark Reinhold
- * @since	JDK1.1
+ * @author      Frank Yellin
+ * @author      Mark Reinhold
+ * @since       JDK1.1
  */
 
 public class PrintWriter extends Writer {
@@ -42,7 +63,7 @@ public class PrintWriter extends Writer {
      */
     protected Writer out;
 
-    private boolean autoFlush = false;
+    private final boolean autoFlush;
     private boolean trouble = false;
     private Formatter formatter;
     private PrintStream psOut = null;
@@ -51,7 +72,24 @@ public class PrintWriter extends Writer {
      * Line separator string.  This is the value of the line.separator
      * property at the moment that the stream was created.
      */
-    private String lineSeparator;
+    private final String lineSeparator;
+
+    /**
+     * Returns a charset object for the given charset name.
+     * @throws NullPointerException          is csn is null
+     * @throws UnsupportedEncodingException  if the charset is not supported
+     */
+    private static Charset toCharset(String csn)
+        throws UnsupportedEncodingException
+    {
+        Objects.requireNonNull(csn, "charsetName");
+        try {
+            return Charset.forName(csn);
+        } catch (IllegalCharsetNameException|UnsupportedCharsetException unused) {
+            // UnsupportedEncodingException should be thrown
+            throw new UnsupportedEncodingException(csn);
+        }
+    }
 
     /**
      * Creates a new PrintWriter, without automatic line flushing.
@@ -59,7 +97,7 @@ public class PrintWriter extends Writer {
      * @param  out        A character-output stream
      */
     public PrintWriter (Writer out) {
-	this(out, false);
+        this(out, false);
     }
 
     /**
@@ -71,12 +109,12 @@ public class PrintWriter extends Writer {
      *                    flush the output buffer
      */
     public PrintWriter(Writer out,
-		       boolean autoFlush) {
-	super(out);
-	this.out = out;
-	this.autoFlush = autoFlush;
-	lineSeparator = (String) java.security.AccessController.doPrivileged(
-               new sun.security.action.GetPropertyAction("line.separator"));
+                       boolean autoFlush) {
+        super(out);
+        this.out = out;
+        this.autoFlush = autoFlush;
+        lineSeparator = java.security.AccessController.doPrivileged(
+            new sun.security.action.GetPropertyAction("line.separator"));
     }
 
     /**
@@ -90,7 +128,7 @@ public class PrintWriter extends Writer {
      * @see java.io.OutputStreamWriter#OutputStreamWriter(java.io.OutputStream)
      */
     public PrintWriter(OutputStream out) {
-	this(out, false);
+        this(out, false);
     }
 
     /**
@@ -107,12 +145,12 @@ public class PrintWriter extends Writer {
      * @see java.io.OutputStreamWriter#OutputStreamWriter(java.io.OutputStream)
      */
     public PrintWriter(OutputStream out, boolean autoFlush) {
-	this(new BufferedWriter(new OutputStreamWriter(out)), autoFlush);
+        this(new BufferedWriter(new OutputStreamWriter(out)), autoFlush);
 
-	// save print stream for error propagation
-	if (out instanceof java.io.PrintStream) { 
-	    psOut = (PrintStream) out;
-	}
+        // save print stream for error propagation
+        if (out instanceof java.io.PrintStream) {
+            psOut = (PrintStream) out;
+        }
     }
 
     /**
@@ -143,8 +181,16 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter(String fileName) throws FileNotFoundException {
-	this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName))),
-	     false);
+        this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName))),
+             false);
+    }
+
+    /* Private constructor */
+    private PrintWriter(Charset charset, File file)
+        throws FileNotFoundException
+    {
+        this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset)),
+             false);
     }
 
     /**
@@ -181,10 +227,9 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter(String fileName, String csn)
-	throws FileNotFoundException, UnsupportedEncodingException
+        throws FileNotFoundException, UnsupportedEncodingException
     {
-	this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName), csn)),
-	     false);
+        this(toCharset(csn), new File(fileName));
     }
 
     /**
@@ -215,8 +260,8 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter(File file) throws FileNotFoundException {
-	this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file))),
-	     false);
+        this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file))),
+             false);
     }
 
     /**
@@ -253,16 +298,15 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter(File file, String csn)
-	throws FileNotFoundException, UnsupportedEncodingException
+        throws FileNotFoundException, UnsupportedEncodingException
     {
-	this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), csn)),
-	     false);
+        this(toCharset(csn), file);
     }
 
     /** Checks to make sure that the stream has not been closed */
     private void ensureOpen() throws IOException {
-	if (out == null)
-	    throw new IOException("Stream closed");
+        if (out == null)
+            throw new IOException("Stream closed");
     }
 
     /**
@@ -270,15 +314,15 @@ public class PrintWriter extends Writer {
      * @see #checkError()
      */
     public void flush() {
-	try {
-	    synchronized (lock) {
-		ensureOpen();
-		out.flush();
-	    }
-	}
-	catch (IOException x) {
-	    trouble = true;
-	}
+        try {
+            synchronized (lock) {
+                ensureOpen();
+                out.flush();
+            }
+        }
+        catch (IOException x) {
+            trouble = true;
+        }
     }
 
     /**
@@ -288,37 +332,37 @@ public class PrintWriter extends Writer {
      * @see #checkError()
      */
     public void close() {
-	try {
-	    synchronized (lock) {
-		if (out == null)
-		    return;
-		out.close();
-		out = null;
-	    }
-	}
-	catch (IOException x) {
-	    trouble = true;
-	}
+        try {
+            synchronized (lock) {
+                if (out == null)
+                    return;
+                out.close();
+                out = null;
+            }
+        }
+        catch (IOException x) {
+            trouble = true;
+        }
     }
 
     /**
      * Flushes the stream if it's not closed and checks its error state.
      *
      * @return <code>true</code> if the print stream has encountered an error,
-     * 		either on the underlying output stream or during a format
-     *		conversion.
+     *          either on the underlying output stream or during a format
+     *          conversion.
      */
     public boolean checkError() {
-	if (out != null) {
-	    flush();
-	}
-	if (out instanceof java.io.PrintWriter) {
-	    PrintWriter pw = (PrintWriter) out; 
-	    return pw.checkError();
-	} else if (psOut != null) {
-	    return psOut.checkError();
-	}
-	return trouble;
+        if (out != null) {
+            flush();
+        }
+        if (out instanceof java.io.PrintWriter) {
+            PrintWriter pw = (PrintWriter) out;
+            return pw.checkError();
+        } else if (psOut != null) {
+            return psOut.checkError();
+        }
+        return trouble;
     }
 
     /**
@@ -329,7 +373,7 @@ public class PrintWriter extends Writer {
      * #clearError()} is invoked.
      */
     protected void setError() {
-	trouble = true;
+        trouble = true;
     }
 
     /**
@@ -344,7 +388,7 @@ public class PrintWriter extends Writer {
     protected void clearError() {
         trouble = false;
     }
- 
+
     /*
      * Exception-catching, synchronized output operations,
      * which also implement the write() methods of Writer
@@ -355,18 +399,18 @@ public class PrintWriter extends Writer {
      * @param c int specifying a character to be written.
      */
     public void write(int c) {
-	try {
-	    synchronized (lock) {
-		ensureOpen();
-		out.write(c);
-	    }
-	}
-	catch (InterruptedIOException x) {
-	    Thread.currentThread().interrupt();
-	}
-	catch (IOException x) {
-	    trouble = true;
-	}
+        try {
+            synchronized (lock) {
+                ensureOpen();
+                out.write(c);
+            }
+        }
+        catch (InterruptedIOException x) {
+            Thread.currentThread().interrupt();
+        }
+        catch (IOException x) {
+            trouble = true;
+        }
     }
 
     /**
@@ -376,18 +420,18 @@ public class PrintWriter extends Writer {
      * @param len Number of characters to write
      */
     public void write(char buf[], int off, int len) {
-	try {
-	    synchronized (lock) {
-		ensureOpen();
-		out.write(buf, off, len);
-	    }
-	}
-	catch (InterruptedIOException x) {
-	    Thread.currentThread().interrupt();
-	}
-	catch (IOException x) {
-	    trouble = true;
-	}
+        try {
+            synchronized (lock) {
+                ensureOpen();
+                out.write(buf, off, len);
+            }
+        }
+        catch (InterruptedIOException x) {
+            Thread.currentThread().interrupt();
+        }
+        catch (IOException x) {
+            trouble = true;
+        }
     }
 
     /**
@@ -396,7 +440,7 @@ public class PrintWriter extends Writer {
      * @param buf Array of characters to be written
      */
     public void write(char buf[]) {
-	write(buf, 0, buf.length);
+        write(buf, 0, buf.length);
     }
 
     /**
@@ -406,18 +450,18 @@ public class PrintWriter extends Writer {
      * @param len Number of characters to write
      */
     public void write(String s, int off, int len) {
-	try {
-	    synchronized (lock) {
-		ensureOpen();
-		out.write(s, off, len);
-	    }
-	}
-	catch (InterruptedIOException x) {
-	    Thread.currentThread().interrupt();
-	}
-	catch (IOException x) {
-	    trouble = true;
-	}
+        try {
+            synchronized (lock) {
+                ensureOpen();
+                out.write(s, off, len);
+            }
+        }
+        catch (InterruptedIOException x) {
+            Thread.currentThread().interrupt();
+        }
+        catch (IOException x) {
+            trouble = true;
+        }
     }
 
     /**
@@ -426,24 +470,24 @@ public class PrintWriter extends Writer {
      * @param s String to be written
      */
     public void write(String s) {
-	write(s, 0, s.length());
+        write(s, 0, s.length());
     }
 
     private void newLine() {
-	try {
-	    synchronized (lock) {
-		ensureOpen();
-		out.write(lineSeparator);
-		if (autoFlush)
-		    out.flush();
-	    }
-	}
-	catch (InterruptedIOException x) {
-	    Thread.currentThread().interrupt();
-	}
-	catch (IOException x) {
-	    trouble = true;
-	}
+        try {
+            synchronized (lock) {
+                ensureOpen();
+                out.write(lineSeparator);
+                if (autoFlush)
+                    out.flush();
+            }
+        }
+        catch (InterruptedIOException x) {
+            Thread.currentThread().interrupt();
+        }
+        catch (IOException x) {
+            trouble = true;
+        }
     }
 
     /* Methods that do not terminate lines */
@@ -458,7 +502,7 @@ public class PrintWriter extends Writer {
      * @param      b   The <code>boolean</code> to be printed
      */
     public void print(boolean b) {
-	write(b ? "true" : "false");
+        write(b ? "true" : "false");
     }
 
     /**
@@ -470,7 +514,7 @@ public class PrintWriter extends Writer {
      * @param      c   The <code>char</code> to be printed
      */
     public void print(char c) {
-	write(c);
+        write(c);
     }
 
     /**
@@ -484,7 +528,7 @@ public class PrintWriter extends Writer {
      * @see        java.lang.Integer#toString(int)
      */
     public void print(int i) {
-	write(String.valueOf(i));
+        write(String.valueOf(i));
     }
 
     /**
@@ -498,7 +542,7 @@ public class PrintWriter extends Writer {
      * @see        java.lang.Long#toString(long)
      */
     public void print(long l) {
-	write(String.valueOf(l));
+        write(String.valueOf(l));
     }
 
     /**
@@ -512,7 +556,7 @@ public class PrintWriter extends Writer {
      * @see        java.lang.Float#toString(float)
      */
     public void print(float f) {
-	write(String.valueOf(f));
+        write(String.valueOf(f));
     }
 
     /**
@@ -526,7 +570,7 @@ public class PrintWriter extends Writer {
      * @see        java.lang.Double#toString(double)
      */
     public void print(double d) {
-	write(String.valueOf(d));
+        write(String.valueOf(d));
     }
 
     /**
@@ -540,7 +584,7 @@ public class PrintWriter extends Writer {
      * @throws  NullPointerException  If <code>s</code> is <code>null</code>
      */
     public void print(char s[]) {
-	write(s);
+        write(s);
     }
 
     /**
@@ -553,10 +597,10 @@ public class PrintWriter extends Writer {
      * @param      s   The <code>String</code> to be printed
      */
     public void print(String s) {
-	if (s == null) {
-	    s = "null";
-	}
-	write(s);
+        if (s == null) {
+            s = "null";
+        }
+        write(s);
     }
 
     /**
@@ -570,7 +614,7 @@ public class PrintWriter extends Writer {
      * @see        java.lang.Object#toString()
      */
     public void print(Object obj) {
-	write(String.valueOf(obj));
+        write(String.valueOf(obj));
     }
 
     /* Methods that do terminate lines */
@@ -582,7 +626,7 @@ public class PrintWriter extends Writer {
      * character (<code>'\n'</code>).
      */
     public void println() {
-	newLine();
+        newLine();
     }
 
     /**
@@ -593,10 +637,10 @@ public class PrintWriter extends Writer {
      * @param x the <code>boolean</code> value to be printed
      */
     public void println(boolean x) {
-	synchronized (lock) {
-	    print(x);
-	    println();
-	}
+        synchronized (lock) {
+            print(x);
+            println();
+        }
     }
 
     /**
@@ -607,10 +651,10 @@ public class PrintWriter extends Writer {
      * @param x the <code>char</code> value to be printed
      */
     public void println(char x) {
-	synchronized (lock) {
-	    print(x);
-	    println();
-	}
+        synchronized (lock) {
+            print(x);
+            println();
+        }
     }
 
     /**
@@ -621,10 +665,10 @@ public class PrintWriter extends Writer {
      * @param x the <code>int</code> value to be printed
      */
     public void println(int x) {
-	synchronized (lock) {
-	    print(x);
-	    println();
-	}
+        synchronized (lock) {
+            print(x);
+            println();
+        }
     }
 
     /**
@@ -635,10 +679,10 @@ public class PrintWriter extends Writer {
      * @param x the <code>long</code> value to be printed
      */
     public void println(long x) {
-	synchronized (lock) {
-	    print(x);
-	    println();
-	}
+        synchronized (lock) {
+            print(x);
+            println();
+        }
     }
 
     /**
@@ -649,10 +693,10 @@ public class PrintWriter extends Writer {
      * @param x the <code>float</code> value to be printed
      */
     public void println(float x) {
-	synchronized (lock) {
-	    print(x);
-	    println();
-	}
+        synchronized (lock) {
+            print(x);
+            println();
+        }
     }
 
     /**
@@ -663,10 +707,10 @@ public class PrintWriter extends Writer {
      * @param x the <code>double</code> value to be printed
      */
     public void println(double x) {
-	synchronized (lock) {
-	    print(x);
-	    println();
-	}
+        synchronized (lock) {
+            print(x);
+            println();
+        }
     }
 
     /**
@@ -677,10 +721,10 @@ public class PrintWriter extends Writer {
      * @param x the array of <code>char</code> values to be printed
      */
     public void println(char x[]) {
-	synchronized (lock) {
-	    print(x);
-	    println();
-	}
+        synchronized (lock) {
+            print(x);
+            println();
+        }
     }
 
     /**
@@ -691,10 +735,10 @@ public class PrintWriter extends Writer {
      * @param x the <code>String</code> value to be printed
      */
     public void println(String x) {
-	synchronized (lock) {
-	    print(x);
-	    println();
-	}
+        synchronized (lock) {
+            print(x);
+            println();
+        }
     }
 
     /**
@@ -707,11 +751,11 @@ public class PrintWriter extends Writer {
      * @param x  The <code>Object</code> to be printed.
      */
     public void println(Object x) {
-	String s = String.valueOf(x);
-	synchronized (lock) {
-	    print(s);
-	    println();
-	}
+        String s = String.valueOf(x);
+        synchronized (lock) {
+            print(s);
+            println();
+        }
     }
 
     /**
@@ -735,8 +779,8 @@ public class PrintWriter extends Writer {
      *         extra arguments are ignored.  The number of arguments is
      *         variable and may be zero.  The maximum number of arguments is
      *         limited by the maximum dimension of a Java array as defined by
-     *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
-     *         Virtual Machine Specification</a>.  The behaviour on a
+     *         <cite>The Java&trade; Virtual Machine Specification</cite>.
+     *         The behaviour on a
      *         <tt>null</tt> argument depends on the <a
      *         href="../util/Formatter.html#syntax">conversion</a>.
      *
@@ -757,7 +801,7 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter printf(String format, Object ... args) {
-	return format(format, args);
+        return format(format, args);
     }
 
     /**
@@ -786,8 +830,8 @@ public class PrintWriter extends Writer {
      *         extra arguments are ignored.  The number of arguments is
      *         variable and may be zero.  The maximum number of arguments is
      *         limited by the maximum dimension of a Java array as defined by
-     *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
-     *         Virtual Machine Specification</a>.  The behaviour on a
+     *         <cite>The Java&trade; Virtual Machine Specification</cite>.
+     *         The behaviour on a
      *         <tt>null</tt> argument depends on the <a
      *         href="../util/Formatter.html#syntax">conversion</a>.
      *
@@ -808,7 +852,7 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter printf(Locale l, String format, Object ... args) {
-	return format(l, format, args);
+        return format(l, format, args);
     }
 
     /**
@@ -830,8 +874,8 @@ public class PrintWriter extends Writer {
      *         extra arguments are ignored.  The number of arguments is
      *         variable and may be zero.  The maximum number of arguments is
      *         limited by the maximum dimension of a Java array as defined by
-     *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
-     *         Virtual Machine Specification</a>.  The behaviour on a
+     *         <cite>The Java&trade; Virtual Machine Specification</cite>.
+     *         The behaviour on a
      *         <tt>null</tt> argument depends on the <a
      *         href="../util/Formatter.html#syntax">conversion</a>.
      *
@@ -852,22 +896,22 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter format(String format, Object ... args) {
-	try {
-	    synchronized (lock) {
-		ensureOpen();
-		if ((formatter == null)
-		    || (formatter.locale() != Locale.getDefault()))
-		    formatter = new Formatter(this);
-		formatter.format(Locale.getDefault(), format, args);
-		if (autoFlush)
-		    out.flush();
-	    }
-	} catch (InterruptedIOException x) {
-	    Thread.currentThread().interrupt();
-	} catch (IOException x) {
-	    trouble = true;
-	}
-	return this;
+        try {
+            synchronized (lock) {
+                ensureOpen();
+                if ((formatter == null)
+                    || (formatter.locale() != Locale.getDefault()))
+                    formatter = new Formatter(this);
+                formatter.format(Locale.getDefault(), format, args);
+                if (autoFlush)
+                    out.flush();
+            }
+        } catch (InterruptedIOException x) {
+            Thread.currentThread().interrupt();
+        } catch (IOException x) {
+            trouble = true;
+        }
+        return this;
     }
 
     /**
@@ -890,8 +934,8 @@ public class PrintWriter extends Writer {
      *         extra arguments are ignored.  The number of arguments is
      *         variable and may be zero.  The maximum number of arguments is
      *         limited by the maximum dimension of a Java array as defined by
-     *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
-     *         Virtual Machine Specification</a>.  The behaviour on a
+     *         <cite>The Java&trade; Virtual Machine Specification</cite>.
+     *         The behaviour on a
      *         <tt>null</tt> argument depends on the <a
      *         href="../util/Formatter.html#syntax">conversion</a>.
      *
@@ -912,21 +956,21 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter format(Locale l, String format, Object ... args) {
-	try {
-	    synchronized (lock) {
-		ensureOpen();
-		if ((formatter == null) || (formatter.locale() != l))
-		    formatter = new Formatter(this, l);
-		formatter.format(l, format, args);
-		if (autoFlush)
-		    out.flush();
-	    }
-	} catch (InterruptedIOException x) {
-	    Thread.currentThread().interrupt();
-	} catch (IOException x) {
-	    trouble = true;
-	}
-	return this;
+        try {
+            synchronized (lock) {
+                ensureOpen();
+                if ((formatter == null) || (formatter.locale() != l))
+                    formatter = new Formatter(this, l);
+                formatter.format(l, format, args);
+                if (autoFlush)
+                    out.flush();
+            }
+        } catch (InterruptedIOException x) {
+            Thread.currentThread().interrupt();
+        } catch (IOException x) {
+            trouble = true;
+        }
+        return this;
     }
 
     /**
@@ -954,11 +998,11 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter append(CharSequence csq) {
-	if (csq == null)
-	    write("null");
-	else
-	    write(csq.toString());
-    	return this;
+        if (csq == null)
+            write("null");
+        else
+            write(csq.toString());
+        return this;
     }
 
     /**
@@ -994,11 +1038,11 @@ public class PrintWriter extends Writer {
      * @since  1.5
      */
     public PrintWriter append(CharSequence csq, int start, int end) {
-	CharSequence cs = (csq == null ? "null" : csq);
-	write(cs.subSequence(start, end).toString());
-    	return this;
+        CharSequence cs = (csq == null ? "null" : csq);
+        write(cs.subSequence(start, end).toString());
+        return this;
     }
-    
+
     /**
      * Appends the specified character to this writer.
      *
@@ -1016,7 +1060,7 @@ public class PrintWriter extends Writer {
      * @since 1.5
      */
     public PrintWriter append(char c) {
-	write(c);
-	return this;
+        write(c);
+        return this;
     }
 }

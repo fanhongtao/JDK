@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -92,20 +96,16 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  * @author Arnaud  Le Hors, IBM
  * @author Eric Ye, IBM
  *
- * @version $Id: XML11DocumentScannerImpl.java,v 1.2 2005/08/16 22:51:38 jeffsuttor Exp $
+ * @version $Id: XML11DocumentScannerImpl.java,v 1.5 2010/08/04 20:59:09 joehw Exp $
  */
 public class XML11DocumentScannerImpl
     extends XMLDocumentScannerImpl {
 
-
-    /** Array of 3 strings. */
-    private String[] fStrings = new String[3];
-
     
     /** String buffer. */
-    private XMLStringBuffer fStringBuffer = new XMLStringBuffer();
-    private XMLStringBuffer fStringBuffer2 = new XMLStringBuffer();
-    private XMLStringBuffer fStringBuffer3 = new XMLStringBuffer();
+    private final XMLStringBuffer fStringBuffer = new XMLStringBuffer();
+    private final XMLStringBuffer fStringBuffer2 = new XMLStringBuffer();
+    private final XMLStringBuffer fStringBuffer3 = new XMLStringBuffer();
 
     //
     // Constructors
@@ -380,7 +380,7 @@ public class XML11DocumentScannerImpl
                         }
                     }
                 }
-                else if (c != -1 && XML11Char.isXML11Invalid(c)) {
+                else if (c != -1 && isInvalidLiteral(c)) {
                     reportFatalError("InvalidCharInAttValue",
                                      new Object[] {eleName, atName, Integer.toString(c, 16)});
                     fEntityScanner.scanChar();

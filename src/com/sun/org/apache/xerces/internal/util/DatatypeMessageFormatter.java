@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,38 +29,37 @@ import java.util.ResourceBundle;
  * <p>Used to format JAXP 1.3 Datatype API error messages using a specified locale.</p>
  *
  * @author  Neeraj Bajaj, Sun Microsystems
- * @version $Id: DatatypeMessageFormatter.java,v 1.2.6.1 2005/09/05 07:48:52 neerajbj Exp $
  */
 public class DatatypeMessageFormatter {
-    
+
     private static final String BASE_NAME = "com.sun.org.apache.xerces.internal.impl.msg.DatatypeMessages";
-    
+
     /**
      * Formats a message with the specified arguments using the given
      * locale information.
-     * 
+     *
      * @param locale    The locale of the message.
      * @param key       The message key.
      * @param arguments The message replacement text arguments. The order
      *                  of the arguments must match that of the placeholders
      *                  in the actual message.
-     * 
+     *
      * @return          the formatted message.
      *
      * @throws MissingResourceException Thrown if the message with the
      *                                  specified key cannot be found.
      */
-    public static String formatMessage(Locale locale, 
+    public static String formatMessage(Locale locale,
         String key, Object[] arguments)
         throws MissingResourceException {
 
         ResourceBundle resourceBundle = null;
         if (locale != null) {
-            resourceBundle = 
+            resourceBundle =
                 PropertyResourceBundle.getBundle(BASE_NAME, locale);
         }
         else {
-            resourceBundle = 
+            resourceBundle =
                 PropertyResourceBundle.getBundle(BASE_NAME);
         }
 
@@ -67,14 +70,14 @@ public class DatatypeMessageFormatter {
             if (arguments != null) {
                 try {
                     msg = java.text.MessageFormat.format(msg, arguments);
-                } 
+                }
                 catch (Exception e) {
                     msg = resourceBundle.getString("FormatFailed");
                     msg += " " + resourceBundle.getString(key);
                 }
-            } 
+            }
         }
-        
+
         // error
         catch (MissingResourceException e) {
             msg = resourceBundle.getString("BadMessageKey");

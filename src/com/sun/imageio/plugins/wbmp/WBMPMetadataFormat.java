@@ -1,8 +1,26 @@
 /*
- * @(#)WBMPMetadataFormat.java	1.4 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.wbmp;
@@ -35,8 +53,8 @@ public class WBMPMetadataFormat extends IIOMetadataFormatImpl {
                      DATATYPE_INTEGER, true, null,
                      "1", "65535", true, true);
     }
-        
-    
+
+
 
     public boolean canNodeAppear(String elementName,
                                  ImageTypeSpecifier imageType) {

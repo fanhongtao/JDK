@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -230,11 +234,17 @@ final class Step extends RelativeLocationPath {
      * onto the stack.
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
+	translateStep(classGen, methodGen, hasPredicates() ? _predicates.size() - 1 : -1);
+    }
+
+    private void translateStep(ClassGenerator classGen,
+			       MethodGenerator methodGen,
+			       int predicateIndex) {
 	final ConstantPoolGen cpg = classGen.getConstantPool();
 	final InstructionList il = methodGen.getInstructionList();
 
-	if (hasPredicates()) {
-	    translatePredicates(classGen, methodGen);
+	if (predicateIndex >= 0) {
+	    translatePredicates(classGen, methodGen, predicateIndex);
 	} else {
             int star = 0;
             String name = null;
@@ -356,18 +366,18 @@ final class Step extends RelativeLocationPath {
      * a filter and a closure (call to translate on the predicate) and "this". 
      */
     public void translatePredicates(ClassGenerator classGen,
-				    MethodGenerator methodGen) {
+				    MethodGenerator methodGen,
+				    int predicateIndex) {
 	final ConstantPoolGen cpg = classGen.getConstantPool();
 	final InstructionList il = methodGen.getInstructionList();
 
 	int idx = 0;
 
-	if (_predicates.size() == 0) {
-	    translate(classGen, methodGen);
+	if (predicateIndex < 0) {
+	    translateStep(classGen, methodGen, predicateIndex);
 	}
 	else {
-	    final Predicate predicate = (Predicate)_predicates.lastElement();
-	    _predicates.remove(predicate);
+	    final Predicate predicate = (Predicate) _predicates.get(predicateIndex--);
 
 	    // Special case for predicates that can use the NodeValueIterator
 	    // instead of an auxiliary class. Certain path/predicates pairs
@@ -383,7 +393,7 @@ final class Step extends RelativeLocationPath {
 		// If the predicate's Step is simply '.' we translate this Step
 		// and place the node test on top of the resulting iterator
 		if (step.isAbbreviatedDot()) {
-		    translate(classGen, methodGen);
+		    translateStep(classGen, methodGen, predicateIndex);
 		    il.append(new ICONST(DOM.RETURN_CURRENT));
 		}
 		// Otherwise we create a parent location path with this Step and
@@ -396,7 +406,8 @@ final class Step extends RelativeLocationPath {
 			path.typeCheck(getParser().getSymbolTable());
 		    }
 		    catch (TypeCheckError e) { }
-		    path.translate(classGen, methodGen);
+		    translateStep(classGen, methodGen, predicateIndex);
+		    path.translateStep(classGen, methodGen);
 		    il.append(new ICONST(DOM.RETURN_PARENT));
 		}
 		predicate.translate(classGen, methodGen);
@@ -409,7 +420,7 @@ final class Step extends RelativeLocationPath {
 	    else if (predicate.isNthDescendant()) {
 		il.append(methodGen.loadDOM());
 		// il.append(new ICONST(NodeTest.ELEMENT));
-		il.append(new ICONST(predicate.getPosType()));
+                il.append(new PUSH(cpg, predicate.getPosType()));
 		predicate.translate(classGen, methodGen);
 		il.append(new ICONST(0));
 		idx = cpg.addInterfaceMethodref(DOM_INTF,
@@ -432,7 +443,7 @@ final class Step extends RelativeLocationPath {
                 // constructor first, store them in temporary variables, create
                 // the object and reload the arguments from the temporaries to
                 // avoid the problem.
-		translatePredicates(classGen, methodGen); // recursive call
+		translatePredicates(classGen, methodGen, predicateIndex); // recursive call
                 LocalVariableGen iteratorTemp
                         = methodGen.addLocalVariable("step_tmp1",
                                          Util.getJCRefType(NODE_ITERATOR_SIG),
@@ -471,7 +482,7 @@ final class Step extends RelativeLocationPath {
                 // constructor first, store them in temporary variables, create
                 // the object and reload the arguments from the temporaries to
                 // avoid the problem.
-		translatePredicates(classGen, methodGen); // recursive call
+		translatePredicates(classGen, methodGen, predicateIndex); // recursive call
                 LocalVariableGen iteratorTemp
                         = methodGen.addLocalVariable("step_tmp1",
                                          Util.getJCRefType(NODE_ITERATOR_SIG),

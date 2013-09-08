@@ -1,8 +1,26 @@
 /*
- * @(#)UnexpectedException.java	1.13 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi;
@@ -12,8 +30,7 @@ package java.rmi;
  * remote method call receives, as a result of the call, a checked
  * exception that is not among the checked exception types declared in the
  * <code>throws</code> clause of the method in the remote interface.
- * 
- * @version 1.13, 11/17/05
+ *
  * @author  Roger Riggs
  * @since   JDK1.1
  */
@@ -30,7 +47,7 @@ public class UnexpectedException extends RemoteException {
      * @since JDK1.1
      */
     public UnexpectedException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -42,6 +59,6 @@ public class UnexpectedException extends RemoteException {
      * @since JDK1.1
      */
     public UnexpectedException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

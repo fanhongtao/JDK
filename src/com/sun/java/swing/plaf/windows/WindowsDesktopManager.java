@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsDesktopManager.java	1.21 06/05/10
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -19,7 +37,7 @@ import java.util.Vector;
 import java.lang.ref.WeakReference;
 
 /**
- * This class implements a DesktopManager which more closely follows 
+ * This class implements a DesktopManager which more closely follows
  * the MDI model than the DefaultDesktopManager.  Unlike the
  * DefaultDesktopManager policy, MDI requires that the selected
  * and activated child frames are the same, and that that frame
@@ -31,10 +49,9 @@ import java.lang.ref.WeakReference;
  * and another window is selected, that new window will be maximized.
  *
  * @see javax.swing.DefaultDesktopManager
- * @version 1.21 05/10/06
  * @author Thomas Ball
  */
-public class WindowsDesktopManager extends DefaultDesktopManager 
+public class WindowsDesktopManager extends DefaultDesktopManager
         implements java.io.Serializable, javax.swing.plaf.UIResource {
 
     /* The frame which is currently selected/activated.
@@ -43,16 +60,16 @@ public class WindowsDesktopManager extends DefaultDesktopManager
     private WeakReference<JInternalFrame> currentFrameRef;
 
     public void activateFrame(JInternalFrame f) {
-        JInternalFrame currentFrame = currentFrameRef != null ? 
+        JInternalFrame currentFrame = currentFrameRef != null ?
             currentFrameRef.get() : null;
         try {
             super.activateFrame(f);
             if (currentFrame != null && f != currentFrame) {
-                // If the current frame is maximized, transfer that 
+                // If the current frame is maximized, transfer that
                 // attribute to the frame being activated.
                 if (currentFrame.isMaximum() &&
-		    (f.getClientProperty("JInternalFrame.frameType") !=
-		    "optionDialog") ) {
+                    (f.getClientProperty("JInternalFrame.frameType") !=
+                    "optionDialog") ) {
                     //Special case.  If key binding was used to select next
                     //frame instead of minimizing the icon via the minimize
                     //icon.
@@ -79,7 +96,7 @@ public class WindowsDesktopManager extends DefaultDesktopManager
             }
         } catch (PropertyVetoException e) {}
         if (f != currentFrame) {
-            currentFrameRef = new WeakReference(f);
+            currentFrameRef = new WeakReference<JInternalFrame>(f);
         }
     }
 

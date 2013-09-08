@@ -1,8 +1,26 @@
 /*
- * @(#)Collection.java	1.55 06/04/21
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -42,7 +60,8 @@ package java.util;
  * but is not required to, throw the exception if the collection to be added
  * is empty.
  *
- * <p>Some collection implementations have restrictions on the elements that
+ * <p><a name="optional-restrictions"/>
+ * Some collection implementations have restrictions on the elements that
  * they may contain.  For example, some implementations prohibit null elements,
  * and some have restrictions on the types of their elements.  Attempting to
  * add an ineligible element throws an unchecked exception, typically
@@ -85,22 +104,23 @@ package java.util;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * @param <E> the type of elements in this collection
+ *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.55, 04/21/06
- * @see	    Set
- * @see	    List
- * @see	    Map
- * @see	    SortedSet
- * @see	    SortedMap
- * @see	    HashSet
- * @see	    TreeSet
- * @see	    ArrayList
- * @see	    LinkedList
- * @see	    Vector
+ * @see     Set
+ * @see     List
+ * @see     Map
+ * @see     SortedSet
+ * @see     SortedMap
+ * @see     HashSet
+ * @see     TreeSet
+ * @see     ArrayList
+ * @see     LinkedList
+ * @see     Vector
  * @see     Collections
- * @see	    Arrays
- * @see	    AbstractCollection
+ * @see     Arrays
+ * @see     AbstractCollection
  * @since 1.2
  */
 
@@ -133,9 +153,11 @@ public interface Collection<E> extends Iterable<E> {
      * @return <tt>true</tt> if this collection contains the specified
      *         element
      * @throws ClassCastException if the type of the specified element
-     *         is incompatible with this collection (optional)
+     *         is incompatible with this collection
+     *         (<a href="#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         collection does not permit null elements (optional)
+     *         collection does not permit null elements
+     *         (<a href="#optional-restrictions">optional</a>)
      */
     boolean contains(Object o);
 
@@ -260,9 +282,11 @@ public interface Collection<E> extends Iterable<E> {
      * @param o element to be removed from this collection, if present
      * @return <tt>true</tt> if an element was removed as a result of this call
      * @throws ClassCastException if the type of the specified element
-     * 	       is incompatible with this collection (optional)
+     *         is incompatible with this collection
+     *         (<a href="#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         collection does not permit null elements (optional)
+     *         collection does not permit null elements
+     *         (<a href="#optional-restrictions">optional</a>)
      * @throws UnsupportedOperationException if the <tt>remove</tt> operation
      *         is not supported by this collection
      */
@@ -277,13 +301,16 @@ public interface Collection<E> extends Iterable<E> {
      *
      * @param  c collection to be checked for containment in this collection
      * @return <tt>true</tt> if this collection contains all of the elements
-     *	       in the specified collection
+     *         in the specified collection
      * @throws ClassCastException if the types of one or more elements
      *         in the specified collection are incompatible with this
-     *         collection (optional)
+     *         collection
+     *         (<a href="#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified collection contains one
      *         or more null elements and this collection does not permit null
-     *         elements (optional), or if the specified collection is null
+     *         elements
+     *         (<a href="#optional-restrictions">optional</a>),
+     *         or if the specified collection is null.
      * @see    #contains(Object)
      */
     boolean containsAll(Collection<?> c);
@@ -327,10 +354,13 @@ public interface Collection<E> extends Iterable<E> {
      *         is not supported by this collection
      * @throws ClassCastException if the types of one or more elements
      *         in this collection are incompatible with the specified
-     *         collection (optional)
+     *         collection
+     *         (<a href="#optional-restrictions">optional</a>)
      * @throws NullPointerException if this collection contains one or more
      *         null elements and the specified collection does not support
-     *         null elements (optional), or if the specified collection is null
+     *         null elements
+     *         (<a href="#optional-restrictions">optional</a>),
+     *         or if the specified collection is null
      * @see #remove(Object)
      * @see #contains(Object)
      */
@@ -348,10 +378,13 @@ public interface Collection<E> extends Iterable<E> {
      *         is not supported by this collection
      * @throws ClassCastException if the types of one or more elements
      *         in this collection are incompatible with the specified
-     *         collection (optional)
+     *         collection
+     *         (<a href="#optional-restrictions">optional</a>)
      * @throws NullPointerException if this collection contains one or more
      *         null elements and the specified collection does not permit null
-     *         elements (optional), or if the specified collection is null
+     *         elements
+     *         (<a href="#optional-restrictions">optional</a>),
+     *         or if the specified collection is null
      * @see #remove(Object)
      * @see #contains(Object)
      */
@@ -410,7 +443,7 @@ public interface Collection<E> extends Iterable<E> {
      * contract for the <tt>Object.hashCode</tt> method, programmers should
      * take note that any class that overrides the <tt>Object.equals</tt>
      * method must also override the <tt>Object.hashCode</tt> method in order
-     * to satisfy the general contract for the <tt>Object.hashCode</tt>method.
+     * to satisfy the general contract for the <tt>Object.hashCode</tt> method.
      * In particular, <tt>c1.equals(c2)</tt> implies that
      * <tt>c1.hashCode()==c2.hashCode()</tt>.
      *

@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -57,12 +61,13 @@
 
 package com.sun.org.apache.xerces.internal.impl.dtd;
 
+import java.util.ArrayList;
+import java.util.Vector;
+
 import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarDescription;
 import com.sun.org.apache.xerces.internal.xni.XMLResourceIdentifier;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
-
 import com.sun.org.apache.xerces.internal.util.XMLResourceIdentifierImpl;
-import java.util.Vector;
 
 /**
  * All information specific to DTD grammars.  
@@ -70,7 +75,7 @@ import java.util.Vector;
  * @xerces.internal
  * 
  * @author Neil Graham, IBM
- * @version $Id: XMLDTDDescription.java,v 1.1.2.1 2005/08/01 03:36:44 jeffsuttor Exp $
+ * @version $Id: XMLDTDDescription.java,v 1.4 2010/08/11 07:18:38 joehw Exp $
  */
 public class XMLDTDDescription extends XMLResourceIdentifierImpl
         implements com.sun.org.apache.xerces.internal.xni.grammars.XMLDTDDescription {
@@ -83,7 +88,7 @@ public class XMLDTDDescription extends XMLResourceIdentifierImpl
 
     // if we don't know the root name, this stores all elements that
     // could serve; fPossibleRoots and fRootName cannot both be non-null
-    protected Vector fPossibleRoots = null;
+    protected ArrayList fPossibleRoots = null;
 
     // Constructors:
     public XMLDTDDescription(XMLResourceIdentifier id, String rootName) {
@@ -113,7 +118,7 @@ public class XMLDTDDescription extends XMLResourceIdentifierImpl
         return XMLGrammarDescription.XML_DTD;
     } // getGrammarType():  String
 
-    /** 
+    /**
      * @return the root name of this DTD or null if root name is unknown
      */
     public String getRootName() {
@@ -127,12 +132,17 @@ public class XMLDTDDescription extends XMLResourceIdentifierImpl
     }
 
     /** Set possible roots **/
-    public void setPossibleRoots(Vector possibleRoots) {
+    public void setPossibleRoots(ArrayList possibleRoots) {
         fPossibleRoots = possibleRoots;
-    } 
+    }
+
+    /** Set possible roots **/
+    public void setPossibleRoots(Vector possibleRoots) {
+        fPossibleRoots = (possibleRoots != null) ? new ArrayList(possibleRoots) : null;
+    }
 
     /**
-     * Compares this grammar with the given grammar. Currently, we compare 
+     * Compares this grammar with the given grammar. Currently, we compare
      * as follows:
      * - if grammar type not equal return false immediately
      * - try and find a common root name:
@@ -140,57 +150,66 @@ public class XMLDTDDescription extends XMLResourceIdentifierImpl
      *    - else if one has a root, examine other's possible root's for a match;
      *    - else try all combinations
      *  - test fExpandedSystemId and fPublicId as above
-     * 
+     *
      * @param desc The description of the grammar to be compared with
      * @return     True if they are equal, else false
      */
     public boolean equals(Object desc) {
-        if(!(desc instanceof XMLGrammarDescription)) return false;
+        if (!(desc instanceof XMLGrammarDescription)) return false;
     	if (!getGrammarType().equals(((XMLGrammarDescription)desc).getGrammarType())) {
     	    return false;
     	}
         // assume it's a DTDDescription
         XMLDTDDescription dtdDesc = (XMLDTDDescription)desc;
-        if(fRootName != null) {
-            if((dtdDesc.fRootName) != null && !dtdDesc.fRootName.equals(fRootName)) {
-                return false;
-            } else if(dtdDesc.fPossibleRoots != null && !dtdDesc.fPossibleRoots.contains(fRootName)) {
+        if (fRootName != null) {
+            if ((dtdDesc.fRootName) != null && !dtdDesc.fRootName.equals(fRootName)) {
                 return false;
             }
-        } else if(fPossibleRoots != null) {
-            if(dtdDesc.fRootName != null) {
-                if(!fPossibleRoots.contains(dtdDesc.fRootName)) { 
+            else if (dtdDesc.fPossibleRoots != null && !dtdDesc.fPossibleRoots.contains(fRootName)) {
+                return false;
+            }
+        }
+        else if (fPossibleRoots != null) {
+            if (dtdDesc.fRootName != null) {
+                if (!fPossibleRoots.contains(dtdDesc.fRootName)) {
                     return false;
                 }
-            } else if(dtdDesc.fPossibleRoots == null) {
+            }
+            else if (dtdDesc.fPossibleRoots == null) {
                 return false;
-            } else {
+            }
+            else {
                 boolean found = false;
-                for(int i = 0; i<fPossibleRoots.size(); i++) {
-                    String root = (String)fPossibleRoots.elementAt(i);
+                final int size = fPossibleRoots.size();
+                for (int i = 0; i < size; ++i) {
+                    String root = (String) fPossibleRoots.get(i);
                     found = dtdDesc.fPossibleRoots.contains(root);
-                    if(found) break;
+                    if (found) break;
                 }
-                if(!found) return false;
+                if (!found) return false;
             }
         }
         // if we got this far we've got a root match... try other two fields,
         // since so many different DTD's have roots in common:
-        if(fExpandedSystemId != null) {
-            if(!fExpandedSystemId.equals(dtdDesc.fExpandedSystemId)) 
+        if (fExpandedSystemId != null) {
+            if (!fExpandedSystemId.equals(dtdDesc.fExpandedSystemId)) {
                 return false;
-        } 
-        else if(dtdDesc.fExpandedSystemId != null)
+            }
+        }
+        else if (dtdDesc.fExpandedSystemId != null) {
             return false;
-        if(fPublicId != null) {
-            if(!fPublicId.equals(dtdDesc.fPublicId)) 
+        }
+        if (fPublicId != null) {
+            if (!fPublicId.equals(dtdDesc.fPublicId)) {
                 return false;
-        } 
-        else if(dtdDesc.fPublicId != null)
+            }
+        }
+        else if (dtdDesc.fPublicId != null) {
             return false;
+        }
     	return true;
     }
-    
+
     /**
      * Returns the hash code of this grammar
      * Because our .equals method is so complex, we just return a very
@@ -198,10 +217,12 @@ public class XMLDTDDescription extends XMLResourceIdentifierImpl
      * @return The hash code
      */
     public int hashCode() {
-        if(fExpandedSystemId != null)
+        if (fExpandedSystemId != null) {
             return fExpandedSystemId.hashCode();
-        if(fPublicId != null)
+        }
+        if (fPublicId != null) {
             return fPublicId.hashCode();
+        }
         // give up; hope .equals can handle it:
         return 0;
     }

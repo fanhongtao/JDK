@@ -1,8 +1,26 @@
 /*
- * @(#)ServerNotActiveException.java	1.14 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.server;
@@ -13,7 +31,6 @@ package java.rmi.server;
  * the getClientHost method is called outside of servicing a remote
  * method call.
  *
- * @version 1.14, 11/17/05
  * @author  Roger Riggs
  * @since   JDK1.1
  * @see java.rmi.server.RemoteServer#getClientHost()
@@ -37,8 +54,8 @@ public class ServerNotActiveException extends java.lang.Exception {
      * @param s the detail message.
      * @since JDK1.1
      */
-    public ServerNotActiveException(String s) 
+    public ServerNotActiveException(String s)
     {
-	super(s);
+        super(s);
     }
 }

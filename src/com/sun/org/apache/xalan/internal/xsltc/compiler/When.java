@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,38 +42,38 @@ final class When extends Instruction {
     private boolean _ignore = false;
 
     public void display(int indent) {
-	indent(indent);
-	Util.println("When");
-	indent(indent + IndentIncrement);
-	System.out.print("test ");
-	Util.println(_test.toString());
-	displayContents(indent + IndentIncrement);
+        indent(indent);
+        Util.println("When");
+        indent(indent + IndentIncrement);
+        System.out.print("test ");
+        Util.println(_test.toString());
+        displayContents(indent + IndentIncrement);
     }
-		
+
     public Expression getTest() {
-	return _test;
+        return _test;
     }
 
     public boolean ignore() {
-	return(_ignore);
+        return(_ignore);
     }
 
     public void parseContents(Parser parser) {
-	_test = parser.parseExpression(this, "test", null);
+        _test = parser.parseExpression(this, "test", null);
 
-	// Ignore xsl:if when test is false (function-available() and
-	// element-available())
-	Object result = _test.evaluateAtCompileTime();
-	if (result != null && result instanceof Boolean) {
-	    _ignore = !((Boolean) result).booleanValue();
-	}
+        // Ignore xsl:if when test is false (function-available() and
+        // element-available())
+        Object result = _test.evaluateAtCompileTime();
+        if (result != null && result instanceof Boolean) {
+            _ignore = !((Boolean) result).booleanValue();
+        }
 
-	parseChildren(parser);
+        parseChildren(parser);
 
-	// Make sure required attribute(s) have been set
-	if (_test.isDummy()) {
-	    reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "test");
-	}
+        // Make sure required attribute(s) have been set
+        if (_test.isDummy()) {
+            reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "test");
+        }
     }
 
     /**
@@ -80,16 +84,16 @@ final class When extends Instruction {
      * this non-available element.
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	// Type-check the test expression
-	if (_test.typeCheck(stable) instanceof BooleanType == false) {
-	    _test = new CastExpr(_test, Type.Boolean);
-	}
-	// Type-check the contents (if necessary)
-	if (!_ignore) {
-	    typeCheckContents(stable);
-	}
+        // Type-check the test expression
+        if (_test.typeCheck(stable) instanceof BooleanType == false) {
+            _test = new CastExpr(_test, Type.Boolean);
+        }
+        // Type-check the contents (if necessary)
+        if (!_ignore) {
+            typeCheckContents(stable);
+        }
 
-	return Type.Void;
+        return Type.Void;
     }
 
     /**
@@ -97,7 +101,7 @@ final class When extends Instruction {
      * translate the "test" expression and and contents of this element.
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ErrorMsg msg = new ErrorMsg(ErrorMsg.STRAY_WHEN_ERR, this);
-	getParser().reportError(Constants.ERROR, msg);
+        final ErrorMsg msg = new ErrorMsg(ErrorMsg.STRAY_WHEN_ERR, this);
+        getParser().reportError(Constants.ERROR, msg);
     }
 }

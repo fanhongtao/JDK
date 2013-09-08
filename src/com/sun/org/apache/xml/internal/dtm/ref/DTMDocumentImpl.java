@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,17 +75,17 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
         // Same as {@link DTMConstructor.IDENT_DOC_DEFAULT}
         protected static final int DOCHANDLE_MASK = -1 - NODEHANDLE_MASK;
 
-        int m_docHandle = NULL;		 // masked document handle for this dtm document
-        int m_docElement = NULL;	 // nodeHandle to the root of the actual dtm doc content
+        int m_docHandle = NULL;          // masked document handle for this dtm document
+        int m_docElement = NULL;         // nodeHandle to the root of the actual dtm doc content
 
         // Context for parse-and-append operations
-        int currentParent = 0;			// current parent - default is document root
-        int previousSibling = 0;		// previous sibling - no previous sibling
-        protected int m_currentNode = -1;		// current node
+        int currentParent = 0;                  // current parent - default is document root
+        int previousSibling = 0;                // previous sibling - no previous sibling
+        protected int m_currentNode = -1;               // current node
 
         // The tree under construction can itself be used as
         // the element stack, so m_elemStack isn't needed.
-        //protected Stack m_elemStack = new Stack();	 // element stack
+        //protected Stack m_elemStack = new Stack();     // element stack
 
         private boolean previousSiblingWasParent = false;
         // Local cache for record-at-a-time fetch
@@ -159,7 +163,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
         public DTMDocumentImpl(DTMManager mgr, int documentNumber,
                                DTMWSFilter whiteSpaceFilter,
                                XMLStringFactory xstringfactory){
-                initDocument(documentNumber);	 // clear nodes and document handle
+                initDocument(documentNumber);    // clear nodes and document handle
                 m_xsf = xstringfactory;
         }
 
@@ -211,7 +215,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
                 if (previousSiblingWasParent)
                         nodes.writeEntry(previousSibling,2,slotnumber);
 
-                previousSiblingWasParent = false;	// Set the default; endElement overrides
+                previousSiblingWasParent = false;       // Set the default; endElement overrides
 
                 return slotnumber;
         }
@@ -628,357 +632,357 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
                 done = false;
         }
 
-// 	/**
-// 	 * Receive hint of the end of a document.
-// 	 *
-// 	 * <p>The content handler will invoke this method only once, and it will
-// 	 * be the last method invoked during the parse.  The handler shall not
-// 	 * not invoke this method until it has either abandoned parsing
-// 	 * (because of an unrecoverable error) or reached the end of
-// 	 * input.</p>
-// 	 */
-// 	public void documentEnd()
-// 	{
-// 		done = true;
-// 		// %TBD% may need to notice the last slot number and slot count to avoid
-// 		// residual data from provious use of this DTM
-// 	}
+//      /**
+//       * Receive hint of the end of a document.
+//       *
+//       * <p>The content handler will invoke this method only once, and it will
+//       * be the last method invoked during the parse.  The handler shall not
+//       * not invoke this method until it has either abandoned parsing
+//       * (because of an unrecoverable error) or reached the end of
+//       * input.</p>
+//       */
+//      public void documentEnd()
+//      {
+//              done = true;
+//              // %TBD% may need to notice the last slot number and slot count to avoid
+//              // residual data from provious use of this DTM
+//      }
 
-// 	/**
-// 	 * Receive notification of the beginning of a document.
-// 	 *
-// 	 * <p>The SAX parser will invoke this method only once, before any
-// 	 * other methods in this interface.</p>
-// 	 */
-// 	public void reset()
-// 	{
+//      /**
+//       * Receive notification of the beginning of a document.
+//       *
+//       * <p>The SAX parser will invoke this method only once, before any
+//       * other methods in this interface.</p>
+//       */
+//      public void reset()
+//      {
 
-// 		// %TBD% reset slot 0 to indicate ChunkedIntArray reuse or wait for
-// 		//       the next initDocument().
-// 		m_docElement = NULL;	 // reset nodeHandle to the root of the actual dtm doc content
-// 		initDocument(0);
-// 	}
+//              // %TBD% reset slot 0 to indicate ChunkedIntArray reuse or wait for
+//              //       the next initDocument().
+//              m_docElement = NULL;     // reset nodeHandle to the root of the actual dtm doc content
+//              initDocument(0);
+//      }
 
-// 	/**
-// 	 * Factory method; creates an Element node in this document.
-// 	 *
-// 	 * The node created will be chained according to its natural order of request
-// 	 * received.  %TBD% It can be rechained later via the optional DTM writable interface.
-// 	 *
-// 	 * <p>The XML content handler will invoke endElement() method after all
-// 	 * of the element's content are processed in order to give DTM the indication
-// 	 * to prepare and patch up parent and sibling node pointers.</p>
-// 	 *
-// 	 * <p>The following interface for createElement will use an index value corresponds
-// 	 * to the symbol entry in the DTMDStringPool based symbol tables.</p>
-// 	 *
-// 	 * @param nsIndex The namespace of the node
-// 	 * @param nameIndex The element name.
-// 	 * @see #endElement
-// 	 * @see org.xml.sax.Attributes
-// 	 * @return nodeHandle int of the element created
-// 	 */
-// 	public int createElement(int nsIndex, int nameIndex, Attributes atts)
-// 	{
-// 		// do document root node creation here on the first element, create nodes for
-// 		// this element and its attributes, store the element, namespace, and attritute
-// 		// name indexes to the nodes array, keep track of the current node and parent
-// 		// element used
+//      /**
+//       * Factory method; creates an Element node in this document.
+//       *
+//       * The node created will be chained according to its natural order of request
+//       * received.  %TBD% It can be rechained later via the optional DTM writable interface.
+//       *
+//       * <p>The XML content handler will invoke endElement() method after all
+//       * of the element's content are processed in order to give DTM the indication
+//       * to prepare and patch up parent and sibling node pointers.</p>
+//       *
+//       * <p>The following interface for createElement will use an index value corresponds
+//       * to the symbol entry in the DTMDStringPool based symbol tables.</p>
+//       *
+//       * @param nsIndex The namespace of the node
+//       * @param nameIndex The element name.
+//       * @see #endElement
+//       * @see org.xml.sax.Attributes
+//       * @return nodeHandle int of the element created
+//       */
+//      public int createElement(int nsIndex, int nameIndex, Attributes atts)
+//      {
+//              // do document root node creation here on the first element, create nodes for
+//              // this element and its attributes, store the element, namespace, and attritute
+//              // name indexes to the nodes array, keep track of the current node and parent
+//              // element used
 
-// 		// W0  High:  Namespace  Low:  Node Type
-// 		int w0 = (nsIndex << 16) | ELEMENT_NODE;
-// 		// W1: Parent
-// 		int w1 = currentParent;
-// 		// W2: Next  (initialized as 0)
-// 		int w2 = 0;
-// 		// W3: Tagname
-// 		int w3 = nameIndex;
-// 		//int ourslot = nodes.appendSlot(w0, w1, w2, w3);
-// 		int ourslot = appendNode(w0, w1, w2, w3);
-// 		currentParent = ourslot;
-// 		previousSibling = 0;
-// 		setAttributes(atts);
+//              // W0  High:  Namespace  Low:  Node Type
+//              int w0 = (nsIndex << 16) | ELEMENT_NODE;
+//              // W1: Parent
+//              int w1 = currentParent;
+//              // W2: Next  (initialized as 0)
+//              int w2 = 0;
+//              // W3: Tagname
+//              int w3 = nameIndex;
+//              //int ourslot = nodes.appendSlot(w0, w1, w2, w3);
+//              int ourslot = appendNode(w0, w1, w2, w3);
+//              currentParent = ourslot;
+//              previousSibling = 0;
+//              setAttributes(atts);
 
-// 		// set the root element pointer when creating the first element node
-// 		if (m_docElement == NULL)
-// 			m_docElement = ourslot;
-// 		return (m_docHandle | ourslot);
-// 	}
+//              // set the root element pointer when creating the first element node
+//              if (m_docElement == NULL)
+//                      m_docElement = ourslot;
+//              return (m_docHandle | ourslot);
+//      }
 
-// 	// Factory method to create an Element node not associated with a given name space
-// 	// using String value parameters passed in from a content handler or application
-// 	/**
-// 	 * Factory method; creates an Element node not associated with a given name space in this document.
-// 	 *
-// 	 * The node created will be chained according to its natural order of request
-// 	 * received.  %TBD% It can be rechained later via the optional DTM writable interface.
-// 	 *
-// 	 * <p>The XML content handler or application will invoke endElement() method after all
-// 	 * of the element's content are processed in order to give DTM the indication
-// 	 * to prepare and patch up parent and sibling node pointers.</p>
-// 	 *
-// 	 * <p>The following parameters for createElement contains raw string values for name
-// 	 * symbols used in an Element node.</p>
-// 	 *
-// 	 * @param name String the element name, including the prefix if any.
-// 	 * @param atts The attributes attached to the element, if any.
-// 	 * @see #endElement
-// 	 * @see org.xml.sax.Attributes
-// 	 */
-// 	public int createElement(String name, Attributes atts)
-// 	{
-// 		// This method wraps around the index valued interface of the createElement interface.
-// 		// The raw string values are stored into the current DTM name symbol tables.  The method
-// 		// method will then use the index values returned to invoke the other createElement()
-// 		// onverted to index values modified to match a
-// 		// method.
-// 		int nsIndex = NULL;
-// 		int nameIndex = m_localNames.stringToIndex(name);
-// 		// note - there should be no prefix separator in the name because it is not associated
-// 		// with a name space
+//      // Factory method to create an Element node not associated with a given name space
+//      // using String value parameters passed in from a content handler or application
+//      /**
+//       * Factory method; creates an Element node not associated with a given name space in this document.
+//       *
+//       * The node created will be chained according to its natural order of request
+//       * received.  %TBD% It can be rechained later via the optional DTM writable interface.
+//       *
+//       * <p>The XML content handler or application will invoke endElement() method after all
+//       * of the element's content are processed in order to give DTM the indication
+//       * to prepare and patch up parent and sibling node pointers.</p>
+//       *
+//       * <p>The following parameters for createElement contains raw string values for name
+//       * symbols used in an Element node.</p>
+//       *
+//       * @param name String the element name, including the prefix if any.
+//       * @param atts The attributes attached to the element, if any.
+//       * @see #endElement
+//       * @see org.xml.sax.Attributes
+//       */
+//      public int createElement(String name, Attributes atts)
+//      {
+//              // This method wraps around the index valued interface of the createElement interface.
+//              // The raw string values are stored into the current DTM name symbol tables.  The method
+//              // method will then use the index values returned to invoke the other createElement()
+//              // onverted to index values modified to match a
+//              // method.
+//              int nsIndex = NULL;
+//              int nameIndex = m_localNames.stringToIndex(name);
+//              // note - there should be no prefix separator in the name because it is not associated
+//              // with a name space
 
-// 		return createElement(nsIndex, nameIndex, atts);
-// 	}
+//              return createElement(nsIndex, nameIndex, atts);
+//      }
 
-// 	// Factory method to create an Element node associated with a given name space
-// 	// using String value parameters passed in from a content handler or application
-// 	/**
-// 	 * Factory method; creates an Element node associated with a given name space in this document.
-// 	 *
-// 	 * The node created will be chained according to its natural order of request
-// 	 * received.  %TBD% It can be rechained later via the optional DTM writable interface.
-// 	 *
-// 	 * <p>The XML content handler or application will invoke endElement() method after all
-// 	 * of the element's content are processed in order to give DTM the indication
-// 	 * to prepare and patch up parent and sibling node pointers.</p>
-// 	 *
-// 	 * <p>The following parameters for createElementNS contains raw string values for name
-// 	 * symbols used in an Element node.</p>
-// 	 *
-// 	 * @param ns String the namespace of the node
-// 	 * @param name String the element name, including the prefix if any.
-// 	 * @param atts The attributes attached to the element, if any.
-// 	 * @see #endElement
-// 	 * @see org.xml.sax.Attributes
-// 	 */
-// 	public int createElementNS(String ns, String name, Attributes atts)
-// 	{
-// 		// This method wraps around the index valued interface of the createElement interface.
-// 		// The raw string values are stored into the current DTM name symbol tables.  The method
-// 		// method will then use the index values returned to invoke the other createElement()
-// 		// onverted to index values modified to match a
-// 		// method.
-// 		int nsIndex = m_nsNames.stringToIndex(ns);
-// 		int nameIndex = m_localNames.stringToIndex(name);
-// 		// The prefixIndex is not needed by the indexed interface of the createElement method
-// 		int prefixSep = name.indexOf(":");
-// 		int prefixIndex = m_prefixNames.stringToIndex(name.substring(0, prefixSep));
-// 		return createElement(nsIndex, nameIndex, atts);
-// 	}
+//      // Factory method to create an Element node associated with a given name space
+//      // using String value parameters passed in from a content handler or application
+//      /**
+//       * Factory method; creates an Element node associated with a given name space in this document.
+//       *
+//       * The node created will be chained according to its natural order of request
+//       * received.  %TBD% It can be rechained later via the optional DTM writable interface.
+//       *
+//       * <p>The XML content handler or application will invoke endElement() method after all
+//       * of the element's content are processed in order to give DTM the indication
+//       * to prepare and patch up parent and sibling node pointers.</p>
+//       *
+//       * <p>The following parameters for createElementNS contains raw string values for name
+//       * symbols used in an Element node.</p>
+//       *
+//       * @param ns String the namespace of the node
+//       * @param name String the element name, including the prefix if any.
+//       * @param atts The attributes attached to the element, if any.
+//       * @see #endElement
+//       * @see org.xml.sax.Attributes
+//       */
+//      public int createElementNS(String ns, String name, Attributes atts)
+//      {
+//              // This method wraps around the index valued interface of the createElement interface.
+//              // The raw string values are stored into the current DTM name symbol tables.  The method
+//              // method will then use the index values returned to invoke the other createElement()
+//              // onverted to index values modified to match a
+//              // method.
+//              int nsIndex = m_nsNames.stringToIndex(ns);
+//              int nameIndex = m_localNames.stringToIndex(name);
+//              // The prefixIndex is not needed by the indexed interface of the createElement method
+//              int prefixSep = name.indexOf(":");
+//              int prefixIndex = m_prefixNames.stringToIndex(name.substring(0, prefixSep));
+//              return createElement(nsIndex, nameIndex, atts);
+//      }
 
-// 	/**
-// 	 * Receive an indication for the end of an element.
-// 	 *
-// 	 * <p>The XML content handler will invoke this method at the end of every
-// 	 * element in the XML document to give hint its time to pop up the current
-// 	 * element and parent and patch up parent and sibling pointers if necessary
-// 	 *
-// 	 * <p>%tbd% The following interface may need to be modified to match a
-// 	 * coordinated access to the DTMDStringPool based symbol tables.</p>
-// 		 *
-// 	 * @param ns the namespace of the element
-// 	 * @param name The element name
-// 	 */
-// 	public void endElement(String ns, String name)
-// 	{
-// 		// pop up the stacks
+//      /**
+//       * Receive an indication for the end of an element.
+//       *
+//       * <p>The XML content handler will invoke this method at the end of every
+//       * element in the XML document to give hint its time to pop up the current
+//       * element and parent and patch up parent and sibling pointers if necessary
+//       *
+//       * <p>%tbd% The following interface may need to be modified to match a
+//       * coordinated access to the DTMDStringPool based symbol tables.</p>
+//               *
+//       * @param ns the namespace of the element
+//       * @param name The element name
+//       */
+//      public void endElement(String ns, String name)
+//      {
+//              // pop up the stacks
 
-// 		//
-// 		if (previousSiblingWasParent)
-// 			nodes.writeEntry(previousSibling, 2, NULL);
+//              //
+//              if (previousSiblingWasParent)
+//                      nodes.writeEntry(previousSibling, 2, NULL);
 
-// 		// Pop parentage
-// 		previousSibling = currentParent;
-// 		nodes.readSlot(currentParent, gotslot);
-// 		currentParent = gotslot[1] & 0xFFFF;
+//              // Pop parentage
+//              previousSibling = currentParent;
+//              nodes.readSlot(currentParent, gotslot);
+//              currentParent = gotslot[1] & 0xFFFF;
 
-// 		// The element just being finished will be
-// 		// the previous sibling for the next operation
-// 		previousSiblingWasParent = true;
+//              // The element just being finished will be
+//              // the previous sibling for the next operation
+//              previousSiblingWasParent = true;
 
-// 		// Pop a level of namespace table
-// 		// namespaceTable.removeLastElem();
-// 	}
+//              // Pop a level of namespace table
+//              // namespaceTable.removeLastElem();
+//      }
 
-// 	/**
-// 	 * Creates attributes for the current node.
-// 	 *
-// 	 * @param atts Attributes to be created.
-// 	 */
-// 	void setAttributes(Attributes atts) {
-// 		int atLength = (null == atts) ? 0 : atts.getLength();
-// 		for (int i=0; i < atLength; i++) {
-// 			String qname = atts.getQName(i);
-// 			createAttribute(atts.getQName(i), atts.getValue(i));
-// 		}
-// 	}
+//      /**
+//       * Creates attributes for the current node.
+//       *
+//       * @param atts Attributes to be created.
+//       */
+//      void setAttributes(Attributes atts) {
+//              int atLength = (null == atts) ? 0 : atts.getLength();
+//              for (int i=0; i < atLength; i++) {
+//                      String qname = atts.getQName(i);
+//                      createAttribute(atts.getQName(i), atts.getValue(i));
+//              }
+//      }
 
-// 	/**
-// 	 * Appends an attribute to the document.
-// 	 * @param qname Qualified Name of the attribute
-// 	 * @param value Value of the attribute
-// 	 * @return Handle of node
-// 	 */
-// 	public int createAttribute(String qname, String value) {
-// 		int colonpos = qname.indexOf(":");
-// 		String attName = qname.substring(colonpos+1);
-// 		int w0 = 0;
-// 		if (colonpos > 0) {
-// 			String prefix = qname.substring(0, colonpos);
-// 			if (prefix.equals("xml")) {
-// 				//w0 = ATTRIBUTE_NODE |
-// 				//	(com.sun.org.apache.xalan.internal.templates.Constants.S_XMLNAMESPACEURI << 16);
-// 			} else {
-// 				//w0 = ATTRIBUTE_NODE |
-// 			}
-// 		} else {
-// 			w0 = ATTRIBUTE_NODE;
-// 		}
-// 		// W1:  Parent
-// 		int w1 = currentParent;
-// 		// W2:  Next (not yet resolved)
-// 		int w2 = 0;
-// 		// W3:  Tag name
-// 		int w3 = m_localNames.stringToIndex(attName);
-// 		// Add node
-// 		int ourslot = appendNode(w0, w1, w2, w3);
-// 		previousSibling = ourslot;	// Should attributes be previous siblings
+//      /**
+//       * Appends an attribute to the document.
+//       * @param qname Qualified Name of the attribute
+//       * @param value Value of the attribute
+//       * @return Handle of node
+//       */
+//      public int createAttribute(String qname, String value) {
+//              int colonpos = qname.indexOf(":");
+//              String attName = qname.substring(colonpos+1);
+//              int w0 = 0;
+//              if (colonpos > 0) {
+//                      String prefix = qname.substring(0, colonpos);
+//                      if (prefix.equals("xml")) {
+//                              //w0 = ATTRIBUTE_NODE |
+//                              //      (com.sun.org.apache.xalan.internal.templates.Constants.S_XMLNAMESPACEURI << 16);
+//                      } else {
+//                              //w0 = ATTRIBUTE_NODE |
+//                      }
+//              } else {
+//                      w0 = ATTRIBUTE_NODE;
+//              }
+//              // W1:  Parent
+//              int w1 = currentParent;
+//              // W2:  Next (not yet resolved)
+//              int w2 = 0;
+//              // W3:  Tag name
+//              int w3 = m_localNames.stringToIndex(attName);
+//              // Add node
+//              int ourslot = appendNode(w0, w1, w2, w3);
+//              previousSibling = ourslot;      // Should attributes be previous siblings
 
-// 		// W0: Node Type
-// 		w0 = TEXT_NODE;
-// 		// W1: Parent
-// 		w1 = ourslot;
-// 		// W2: Start Position within buffer
-// 		w2 = m_char.length();
-// 		m_char.append(value);
-// 		// W3: Length
-// 		w3 = m_char.length() - w2;
-// 		appendNode(w0, w1, w2, w3);
-// 		charStringStart=m_char.length();
-// 		charStringLength = 0;
-// 		//previousSibling = ourslot;
-// 		// Attrs are Parents
-// 		previousSiblingWasParent = true;
-// 		return (m_docHandle | ourslot);
-// 	}
+//              // W0: Node Type
+//              w0 = TEXT_NODE;
+//              // W1: Parent
+//              w1 = ourslot;
+//              // W2: Start Position within buffer
+//              w2 = m_char.length();
+//              m_char.append(value);
+//              // W3: Length
+//              w3 = m_char.length() - w2;
+//              appendNode(w0, w1, w2, w3);
+//              charStringStart=m_char.length();
+//              charStringLength = 0;
+//              //previousSibling = ourslot;
+//              // Attrs are Parents
+//              previousSiblingWasParent = true;
+//              return (m_docHandle | ourslot);
+//      }
 
-// 	/**
-// 	 * Factory method; creates a Text node in this document.
-// 	 *
-// 	 * The node created will be chained according to its natural order of request
-// 	 * received.  %TBD% It can be rechained later via the optional DTM writable interface.
-// 	 *
-// 	 * @param text String The characters text string from the XML document.
-// 	 * @return int DTM node-number of the text node created
-// 	 */
-// 	public int createTextNode(String text)
-// 	throws DTMException
-// 	{
-// 		// wraps around the index value based createTextNode method
-// 		return createTextNode(text.toCharArray(), 0, text.length());
-// 	}
+//      /**
+//       * Factory method; creates a Text node in this document.
+//       *
+//       * The node created will be chained according to its natural order of request
+//       * received.  %TBD% It can be rechained later via the optional DTM writable interface.
+//       *
+//       * @param text String The characters text string from the XML document.
+//       * @return int DTM node-number of the text node created
+//       */
+//      public int createTextNode(String text)
+//      throws DTMException
+//      {
+//              // wraps around the index value based createTextNode method
+//              return createTextNode(text.toCharArray(), 0, text.length());
+//      }
 
-// 	/**
-// 	 * Factory method; creates a Text node in this document.
-// 	 *
-// 	 * The node created will be chained according to its natural order of request
-// 	 * received.  %TBD% It can be rechained later via the optional DTM writable interface.
-// 	 *
-// 	 * %REVIEW% for text normalization issues, unless we are willing to
-// 	 * insist that all adjacent text must be merged before this method
-// 	 * is called.
-// 	 *
-// 	 * @param ch The characters from the XML document.
-// 	 * @param start The start position in the array.
-// 	 * @param length The number of characters to read from the array.
-// 	 */
-// 	public int createTextNode(char ch[], int start, int length)
-// 	throws DTMException
-// 	{
-// 		m_char.append(ch, start, length);		// store the chunk to the text/comment string table
+//      /**
+//       * Factory method; creates a Text node in this document.
+//       *
+//       * The node created will be chained according to its natural order of request
+//       * received.  %TBD% It can be rechained later via the optional DTM writable interface.
+//       *
+//       * %REVIEW% for text normalization issues, unless we are willing to
+//       * insist that all adjacent text must be merged before this method
+//       * is called.
+//       *
+//       * @param ch The characters from the XML document.
+//       * @param start The start position in the array.
+//       * @param length The number of characters to read from the array.
+//       */
+//      public int createTextNode(char ch[], int start, int length)
+//      throws DTMException
+//      {
+//              m_char.append(ch, start, length);               // store the chunk to the text/comment string table
 
-// 		// create a Text Node
-// 		// %TBD% may be possible to combine with appendNode()to replace the next chunk of code
-// 		int w0 = TEXT_NODE;
-// 		// W1: Parent
-// 		int w1 = currentParent;
-// 		// W2: Start position within m_char
-// 		int w2 = charStringStart;
-// 		// W3: Length of the full string
-// 		int w3 = length;
-// 		int ourslot = appendNode(w0, w1, w2, w3);
-// 		previousSibling = ourslot;
+//              // create a Text Node
+//              // %TBD% may be possible to combine with appendNode()to replace the next chunk of code
+//              int w0 = TEXT_NODE;
+//              // W1: Parent
+//              int w1 = currentParent;
+//              // W2: Start position within m_char
+//              int w2 = charStringStart;
+//              // W3: Length of the full string
+//              int w3 = length;
+//              int ourslot = appendNode(w0, w1, w2, w3);
+//              previousSibling = ourslot;
 
-// 		charStringStart=m_char.length();
-// 		charStringLength = 0;
-// 		return (m_docHandle | ourslot);
-// 	}
+//              charStringStart=m_char.length();
+//              charStringLength = 0;
+//              return (m_docHandle | ourslot);
+//      }
 
-// 	/**
-// 	 * Factory method; creates a Comment node in this document.
-// 	 *
-// 	 * The node created will be chained according to its natural order of request
-// 	 * received.  %TBD% It can be rechained later via the optional DTM writable interface.
-// 	 *
-// 	 * @param text String The characters text string from the XML document.
-// 	 * @return int DTM node-number of the text node created
-// 	 */
-// 	public int createComment(String text)
-// 	throws DTMException
-// 	{
-// 		// wraps around the index value based createTextNode method
-// 		return createComment(text.toCharArray(), 0, text.length());
-// 	}
+//      /**
+//       * Factory method; creates a Comment node in this document.
+//       *
+//       * The node created will be chained according to its natural order of request
+//       * received.  %TBD% It can be rechained later via the optional DTM writable interface.
+//       *
+//       * @param text String The characters text string from the XML document.
+//       * @return int DTM node-number of the text node created
+//       */
+//      public int createComment(String text)
+//      throws DTMException
+//      {
+//              // wraps around the index value based createTextNode method
+//              return createComment(text.toCharArray(), 0, text.length());
+//      }
 
-// 	/**
-// 	 * Factory method; creates a Comment node in this document.
-// 	 *
-// 	 * The node created will be chained according to its natural order of request
-// 	 * received.  %TBD% It can be rechained later via the optional DTM writable interface.
-// 	 *
-// 	 * @param ch An array holding the characters in the comment.
-// 	 * @param start The starting position in the array.
-// 	 * @param length The number of characters to use from the array.
-// 	 * @see DTMException
-// 	 */
-// 	public int createComment(char ch[], int start, int length)
-// 	throws DTMException
-// 	{
-// 		m_char.append(ch, start, length);		// store the comment string to the text/comment string table
+//      /**
+//       * Factory method; creates a Comment node in this document.
+//       *
+//       * The node created will be chained according to its natural order of request
+//       * received.  %TBD% It can be rechained later via the optional DTM writable interface.
+//       *
+//       * @param ch An array holding the characters in the comment.
+//       * @param start The starting position in the array.
+//       * @param length The number of characters to use from the array.
+//       * @see DTMException
+//       */
+//      public int createComment(char ch[], int start, int length)
+//      throws DTMException
+//      {
+//              m_char.append(ch, start, length);               // store the comment string to the text/comment string table
 
-// 		// create a Comment Node
-// 		// %TBD% may be possible to combine with appendNode()to replace the next chunk of code
-// 		int w0 = COMMENT_NODE;
-// 		// W1: Parent
-// 		int w1 = currentParent;
-// 		// W2: Start position within m_char
-// 		int w2 = charStringStart;
-// 		// W3: Length of the full string
-// 		int w3 = length;
-// 		int ourslot = appendNode(w0, w1, w2, w3);
-// 		previousSibling = ourslot;
+//              // create a Comment Node
+//              // %TBD% may be possible to combine with appendNode()to replace the next chunk of code
+//              int w0 = COMMENT_NODE;
+//              // W1: Parent
+//              int w1 = currentParent;
+//              // W2: Start position within m_char
+//              int w2 = charStringStart;
+//              // W3: Length of the full string
+//              int w3 = length;
+//              int ourslot = appendNode(w0, w1, w2, w3);
+//              previousSibling = ourslot;
 
-// 		charStringStart=m_char.length();
-// 		charStringLength = 0;
-// 		return (m_docHandle | ourslot);
-// 	}
+//              charStringStart=m_char.length();
+//              charStringLength = 0;
+//              return (m_docHandle | ourslot);
+//      }
 
-// 	// Counters to keep track of the current text string being accumulated with respect
-// 	// to the text/comment string table: charStringStart should point to the starting
-// 	// offset of the string in the table and charStringLength the acccumulated length when
-// 	// appendAccumulatedText starts, and reset to the end of the table and 0 at the end
-// 	// of appendAccumulatedText for the next set of characters receives
-// 	int charStringStart=0,charStringLength=0;
+//      // Counters to keep track of the current text string being accumulated with respect
+//      // to the text/comment string table: charStringStart should point to the starting
+//      // offset of the string in the table and charStringLength the acccumulated length when
+//      // appendAccumulatedText starts, and reset to the end of the table and 0 at the end
+//      // of appendAccumulatedText for the next set of characters receives
+//      int charStringStart=0,charStringLength=0;
 
         // ========= Document Navigation Functions =========
 
@@ -1020,7 +1024,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
                                 (type == ENTITY_REFERENCE_NODE)) {
 
                         // In case when Document root is given
-                        //	if (nodeHandle == 0) nodeHandle = 1;
+                        //      if (nodeHandle == 0) nodeHandle = 1;
                         // %TBD% Probably was a mistake.
                         // If someone explicitly asks for first child
                         // of Document, I would expect them to want
@@ -1583,13 +1587,13 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
         */
         private static final String[] fixednames=
         {
-                null,null,							// nothing, Element
-                null,"#text",						// Attr, Text
-                "#cdata_section",null,	// CDATA, EntityReference
-                null,null,							// Entity, PI
-                "#comment","#document",	// Comment, Document
+                null,null,                                                      // nothing, Element
+                null,"#text",                                           // Attr, Text
+                "#cdata_section",null,  // CDATA, EntityReference
+                null,null,                                                      // Entity, PI
+                "#comment","#document", // Comment, Document
                 null,"#document-fragment", // Doctype, DocumentFragment
-                null};									// Notation
+                null};                                                                  // Notation
 
         /**
          * Given a node handle, return its DOM-style node name. This will
@@ -1697,16 +1701,16 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
         public String getNodeValue(int nodeHandle)
         {
                 nodes.readSlot(nodeHandle, gotslot);
-                int nodetype=gotslot[0] & 0xFF;		// ###zaj use mask to get node type
+                int nodetype=gotslot[0] & 0xFF;         // ###zaj use mask to get node type
                 String value=null;
 
-                switch (nodetype) {			// ###zaj todo - document nodetypes
+                switch (nodetype) {                     // ###zaj todo - document nodetypes
                 case ATTRIBUTE_NODE:
                         nodes.readSlot(nodeHandle+1, gotslot);
                 case TEXT_NODE:
                 case COMMENT_NODE:
                 case CDATA_SECTION_NODE:
-                        value=m_char.getString(gotslot[2], gotslot[3]);		//###zaj
+                        value=m_char.getString(gotslot[2], gotslot[3]);         //###zaj
                         break;
                 case PROCESSING_INSTRUCTION_NODE:
                 case ELEMENT_NODE:
@@ -2205,7 +2209,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
     int w3 = namespaceIndex;
     // Add node
     int ourslot = appendNode(w0, w1, w2, w3);
-    previousSibling = ourslot;	// Should attributes be previous siblings
+    previousSibling = ourslot;  // Should attributes be previous siblings
     previousSiblingWasParent = false;
     return ;//(m_docHandle | ourslot);
   }
@@ -2243,7 +2247,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
     /**/System.out.println("set w3="+w3+" "+(w3>>16)+"/"+(w3&0xffff));
     // Add node
     int ourslot = appendNode(w0, w1, w2, w3);
-    previousSibling = ourslot;	// Should attributes be previous siblings
+    previousSibling = ourslot;  // Should attributes be previous siblings
 
     // Attribute's content is currently appended as a Text Node
 
@@ -2339,7 +2343,7 @@ implements DTM, org.xml.sax.ContentHandler, org.xml.sax.ext.LexicalHandler
 
     // %TBD% reset slot 0 to indicate ChunkedIntArray reuse or wait for
     //       the next initDocument().
-    m_docElement = NULL;	 // reset nodeHandle to the root of the actual dtm doc content
+    m_docElement = NULL;         // reset nodeHandle to the root of the actual dtm doc content
     initDocument(0);
   }
 

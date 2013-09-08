@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +42,7 @@ public abstract class ExsltBase
   protected static String toString(Node n)
   {
     if (n instanceof DTMNodeProxy)
-  	 return ((DTMNodeProxy)n).getStringValue();
+         return ((DTMNodeProxy)n).getStringValue();
     else
     {
       String value = n.getNodeValue();
@@ -57,7 +61,7 @@ public abstract class ExsltBase
         return value;
     }
   }
-  
+
   /**
    * Convert the string value of a Node to a number.
    * Return NaN if the string is not a valid number.
@@ -75,7 +79,7 @@ public abstract class ExsltBase
     }
     catch (NumberFormatException e)
     {
-      d= Double.NaN;  		
+      d= Double.NaN;
     }
     return d;
   }

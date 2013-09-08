@@ -1,8 +1,26 @@
 /*
- * @(#)CredentialException.java	1.4 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.security.auth.login;
@@ -10,7 +28,6 @@ package javax.security.auth.login;
 /**
  * A generic credential exception.
  *
- * @version 1.4, 11/17/05
  * @since 1.5
  */
 public class CredentialException extends LoginException {
@@ -22,7 +39,7 @@ public class CredentialException extends LoginException {
      * message is a String that describes this particular exception.
      */
     public CredentialException() {
-	super();
+        super();
     }
 
     /**
@@ -35,6 +52,6 @@ public class CredentialException extends LoginException {
      * @param msg the detail message.
      */
     public CredentialException(String msg) {
-	super(msg);
+        super(msg);
     }
 }

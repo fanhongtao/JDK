@@ -1,16 +1,32 @@
 /*
- * @(#)RequestImpl.java	1.91 05/11/17
+ * Copyright (c) 1996, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.corba;
@@ -50,33 +66,33 @@ import com.sun.corba.se.spi.logging.CORBALogDomains;
 import com.sun.corba.se.impl.logging.ORBUtilSystemException;
 import com.sun.corba.se.impl.corba.AsynchInvoke;
 
-public class RequestImpl 
+public class RequestImpl
     extends Request
 {
     ///////////////////////////////////////////////////////////////////////////
     // data members
 
     protected org.omg.CORBA.Object _target;
-    protected String    	 _opName;
-    protected NVList 		 _arguments;
-    protected ExceptionList	 _exceptions;
-    private NamedValue		 _result;
-    protected Environment	 _env;
-    private Context		 _ctx;
-    private ContextList		 _ctxList;
-    protected ORB		 _orb;
+    protected String             _opName;
+    protected NVList             _arguments;
+    protected ExceptionList      _exceptions;
+    private NamedValue           _result;
+    protected Environment        _env;
+    private Context              _ctx;
+    private ContextList          _ctxList;
+    protected ORB                _orb;
     private ORBUtilSystemException _wrapper;
 
     // invocation-specific stuff
-    protected boolean 		 _isOneWay	= false;
-    private int[]		 _paramCodes;
-    private long[]		 _paramLongs;
-    private java.lang.Object[] 	 _paramObjects;
+    protected boolean            _isOneWay      = false;
+    private int[]                _paramCodes;
+    private long[]               _paramLongs;
+    private java.lang.Object[]   _paramObjects;
 
-    // support for deferred invocations. 
+    // support for deferred invocations.
     // protected instead of private since it needs to be set by the
     // thread object doing the asynchronous invocation.
-    protected boolean 		 gotResponse 	= false;
+    protected boolean            gotResponse    = false;
 
     ///////////////////////////////////////////////////////////////////////////
     // constructor
@@ -84,24 +100,24 @@ public class RequestImpl
     // REVISIT - used to be protected.  Now public so it can be
     // accessed from xgiop.
     public RequestImpl (ORB orb,
-			org.omg.CORBA.Object targetObject,
-			Context ctx,
-			String operationName,
-			NVList argumentList,
-			NamedValue resultContainer,
-			ExceptionList exceptionList,
-			ContextList ctxList)
+                        org.omg.CORBA.Object targetObject,
+                        Context ctx,
+                        String operationName,
+                        NVList argumentList,
+                        NamedValue resultContainer,
+                        ExceptionList exceptionList,
+                        ContextList ctxList)
     {
 
         // initialize the orb
-        _orb 	= orb;
-	_wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.OA_INVOCATION ) ;
+        _orb    = orb;
+        _wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.OA_INVOCATION ) ;
 
         // initialize target, context and operation name
         _target     = targetObject;
-        _ctx	= ctx;
-        _opName	= operationName;
+        _ctx    = ctx;
+        _opName = operationName;
 
         // initialize argument list if not passed in
         if (argumentList == null)
@@ -109,7 +125,7 @@ public class RequestImpl
         else
             _arguments = argumentList;
 
-        // set result container. 
+        // set result container.
         _result = resultContainer;
 
         // initialize exception list if not passed in
@@ -124,8 +140,8 @@ public class RequestImpl
         else
             _ctxList = ctxList;
 
-        // initialize environment 
-        _env	= new EnvironmentImpl();
+        // initialize environment
+        _env    = new EnvironmentImpl();
 
     }
 
@@ -134,44 +150,44 @@ public class RequestImpl
         return _target;
     }
 
-    public String operation() 
+    public String operation()
     {
         return _opName;
     }
 
-    public NVList arguments() 
+    public NVList arguments()
     {
         return _arguments;
     }
-    
-    public NamedValue result() 
+
+    public NamedValue result()
     {
         return _result;
     }
-    
-    public Environment env() 
+
+    public Environment env()
     {
         return _env;
     }
-    
-    public ExceptionList exceptions() 
+
+    public ExceptionList exceptions()
     {
         return _exceptions;
     }
-    
-    public ContextList contexts() 
+
+    public ContextList contexts()
     {
         return _ctxList;
     }
-    
-    public synchronized Context ctx() 
+
+    public synchronized Context ctx()
     {
         if (_ctx == null)
             _ctx = new ContextImpl(_orb);
         return _ctx;
     }
-    
-    public synchronized void ctx(Context newCtx) 
+
+    public synchronized void ctx(Context newCtx)
     {
         _ctx = newCtx;
     }
@@ -224,7 +240,7 @@ public class RequestImpl
     {
         _exceptions.add(exceptionType);
     }
-    
+
     public synchronized void invoke()
     {
         doInvocation();
@@ -235,23 +251,23 @@ public class RequestImpl
         _isOneWay = true;
         doInvocation();
     }
-    
+
     public synchronized void send_deferred()
     {
         AsynchInvoke invokeObject = new AsynchInvoke(_orb, this, false);
         new Thread(invokeObject).start();
     }
-    
+
     public synchronized boolean poll_response()
     {
         // this method has to be synchronized even though it seems
         // "readonly" since the thread object doing the asynchronous
         // invocation can potentially update this variable in parallel.
         // updates are currently simply synchronized againt the request
-        // object. 
+        // object.
         return gotResponse;
     }
-    
+
     public synchronized void get_response()
         throws org.omg.CORBA.WrongTransaction
     {
@@ -259,12 +275,12 @@ public class RequestImpl
             // release the lock. wait to be notified by the thread that is
             // doing the asynchronous invocation.
             try {
-	        wait();
-            } 
-	    catch (InterruptedException e) {}
+                wait();
+            }
+            catch (InterruptedException e) {}
         }
     }
-    
+
     ///////////////////////////////////////////////////////////////////////////
     // private helper methods
 
@@ -274,54 +290,54 @@ public class RequestImpl
      */
     protected void doInvocation()
     {
-        org.omg.CORBA.portable.Delegate delegate = StubAdapter.getDelegate( 
-	    _target ) ;
+        org.omg.CORBA.portable.Delegate delegate = StubAdapter.getDelegate(
+            _target ) ;
 
-	// Initiate Client Portable Interceptors.  Inform the PIHandler that 
-        // this is a DII request so that it knows to ignore the second 
-        // inevitable call to initiateClientPIRequest in createRequest. 
-        // Also, save the RequestImpl object for later use. 
-	_orb.getPIHandler().initiateClientPIRequest( true );
-	_orb.getPIHandler().setClientPIInfo( this );
+        // Initiate Client Portable Interceptors.  Inform the PIHandler that
+        // this is a DII request so that it knows to ignore the second
+        // inevitable call to initiateClientPIRequest in createRequest.
+        // Also, save the RequestImpl object for later use.
+        _orb.getPIHandler().initiateClientPIRequest( true );
+        _orb.getPIHandler().setClientPIInfo( this );
 
-	InputStream $in = null;
-	try {
-	    OutputStream $out = delegate.request(null, _opName, !_isOneWay);
-	    // Marshal args
-	    try {
-		for (int i=0; i<_arguments.count() ; i++) {
-		    NamedValue nv = _arguments.item(i);
-		    switch (nv.flags()) {
-		    case ARG_IN.value:
-			nv.value().write_value($out);
-			break;
-		    case ARG_OUT.value:
-			break;
-		    case ARG_INOUT.value:
-			nv.value().write_value($out);
-			break;
-	            }
-		}
-	    } catch ( org.omg.CORBA.Bounds ex ) {
-		throw _wrapper.boundsErrorInDiiRequest( ex ) ;
-	    }
+        InputStream $in = null;
+        try {
+            OutputStream $out = delegate.request(null, _opName, !_isOneWay);
+            // Marshal args
+            try {
+                for (int i=0; i<_arguments.count() ; i++) {
+                    NamedValue nv = _arguments.item(i);
+                    switch (nv.flags()) {
+                    case ARG_IN.value:
+                        nv.value().write_value($out);
+                        break;
+                    case ARG_OUT.value:
+                        break;
+                    case ARG_INOUT.value:
+                        nv.value().write_value($out);
+                        break;
+                    }
+                }
+            } catch ( org.omg.CORBA.Bounds ex ) {
+                throw _wrapper.boundsErrorInDiiRequest( ex ) ;
+            }
 
-	    $in = delegate.invoke(null, $out);
-	} catch (ApplicationException e) {
-	    // REVISIT - minor code.
-	    // This is already handled in subcontract.
-	    // REVISIT - uncomment.
-	    //throw new INTERNAL();
-	} catch (RemarshalException e) {
-	    doInvocation();
-	} catch( SystemException ex ) {
-	    _env.exception(ex);
-	    // NOTE: The exception should not be thrown.
-	    // However, JDK 1.4 and earlier threw the exception,
-	    // so we keep the behavior to be compatible.
-	    throw ex;
-	} finally {
-	    delegate.releaseReply(null, $in);
+            $in = delegate.invoke(null, $out);
+        } catch (ApplicationException e) {
+            // REVISIT - minor code.
+            // This is already handled in subcontract.
+            // REVISIT - uncomment.
+            //throw new INTERNAL();
+        } catch (RemarshalException e) {
+            doInvocation();
+        } catch( SystemException ex ) {
+            _env.exception(ex);
+            // NOTE: The exception should not be thrown.
+            // However, JDK 1.4 and earlier threw the exception,
+            // so we keep the behavior to be compatible.
+            throw ex;
+        } finally {
+            delegate.releaseReply(null, $in);
         }
     }
 
@@ -335,24 +351,24 @@ public class RequestImpl
             if ( returnType.kind().value() != TCKind._tk_void )
                 returnAny.read_value(is, returnType);
         }
-        
+
         // Now unmarshal the out/inout args
         try {
             for ( int i=0; i<_arguments.count() ; i++) {
                 NamedValue nv = _arguments.item(i);
                 switch( nv.flags() ) {
-		case ARG_IN.value:
-		    break;
-		case ARG_OUT.value:
-		case ARG_INOUT.value:
-		    Any any = nv.value();	
-		    any.read_value(is, any.type());
-		    break;
+                case ARG_IN.value:
+                    break;
+                case ARG_OUT.value:
+                case ARG_INOUT.value:
+                    Any any = nv.value();
+                    any.read_value(is, any.type());
+                    break;
                 }
             }
-        } 
-	catch ( org.omg.CORBA.Bounds ex ) {
-	    // Cannot happen since we only iterate till _arguments.count()
+        }
+        catch ( org.omg.CORBA.Bounds ex ) {
+            // Cannot happen since we only iterate till _arguments.count()
         }
     }
 }

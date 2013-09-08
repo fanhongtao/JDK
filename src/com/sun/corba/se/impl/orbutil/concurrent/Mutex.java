@@ -1,4 +1,29 @@
 /*
+ * Copyright (c) 2001, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
   File: Mutex.java
 
   Originally written by Doug Lea and released into the public domain.
@@ -17,7 +42,7 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * A simple non-reentrant mutual exclusion lock.
  * The lock is free upon construction. Each acquire gets the
  * lock, and each release frees it. Releasing a lock that
- * is already free has no effect. 
+ * is already free has no effect.
  * <p>
  * This implementation makes no attempt to provide any fairness
  * or ordering guarantees. If you need them, consider using one of
@@ -30,14 +55,14 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  * acquire/release pairs do not occur in the same method or
  * code block. For example, you can use them for hand-over-hand
  * locking across the nodes of a linked list. This allows
- * extremely fine-grained locking,  and so increases 
+ * extremely fine-grained locking,  and so increases
  * potential concurrency, at the cost of additional complexity and
  * overhead that would normally make this worthwhile only in cases of
  * extreme contention.
  * <pre>
- * class Node { 
- *   Object item; 
- *   Node next; 
+ * class Node {
+ *   Object item;
+ *   Node next;
  *   Mutex lock = new Mutex(); // each node keeps its own lock
  *
  *   Node(Object x, Node n) { item = x; next = n; }
@@ -92,7 +117,7 @@ package com.sun.corba.se.impl.orbutil.concurrent;
  *
  *    synchronized void add(Object x) { // simple prepend
  *      // The use of `synchronized'  here protects only head field.
- *      // The method does not need to wait out other traversers 
+ *      // The method does not need to wait out other traversers
  *      // who have already made it past head.
  *
  *      head = new Node(x, head);
@@ -127,7 +152,7 @@ public class Mutex implements Sync  {
 
   public synchronized void release()  {
     inuse_ = false;
-    notify(); 
+    notify();
   }
 
 
@@ -152,7 +177,7 @@ public class Mutex implements Sync  {
             }
             else {
               waitTime = msecs - (System.currentTimeMillis() - start);
-              if (waitTime <= 0) 
+              if (waitTime <= 0)
                 return false;
             }
           }
@@ -162,8 +187,7 @@ public class Mutex implements Sync  {
           throw ex;
         }
       }
-    }  
+    }
   }
 
 }
-

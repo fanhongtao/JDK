@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2000 World Wide Web Consortium,
  * (Massachusetts Institute of Technology, Institut National de
  * Recherche en Informatique et en Automatique, Keio University). All
@@ -13,17 +42,16 @@
 package org.w3c.dom.html;
 
 /**
- *  For the <code>H1</code> to <code>H6</code> elements. See the  H1 element 
+ *  For the <code>H1</code> to <code>H6</code> elements. See the  H1 element
  * definition in HTML 4.0.
  * <p>See also the <a href='http://www.w3.org/TR/2000/CR-DOM-Level-2-20000510'>Document Object Model (DOM) Level 2 Specification</a>.
  */
 public interface HTMLHeadingElement extends HTMLElement {
     /**
-     *  Horizontal text alignment. See the  align attribute definition in HTML 
+     *  Horizontal text alignment. See the  align attribute definition in HTML
      * 4.0. This attribute is deprecated in HTML 4.0.
      */
     public String getAlign();
     public void setAlign(String align);
 
 }
-

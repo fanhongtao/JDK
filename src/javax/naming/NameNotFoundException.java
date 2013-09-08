@@ -1,36 +1,53 @@
 /*
- * @(#)NameNotFoundException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
 
 /**
   * This exception is thrown when a component of the name cannot be resolved
-  * because it is not bound. 
+  * because it is not bound.
   * <p>
   * Synchronization and serialization issues that apply to NamingException
   * apply directly here.
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
-  
+
 public class NameNotFoundException extends NamingException {
     /**
      * Constructs a new instance of NameNotFoundException using the
      * explanation supplied. All other fields default to null.
      *
-     * @param	explanation	Possibly null additional detail about
-     * 				this exception.
+     * @param   explanation     Possibly null additional detail about
+     *                          this exception.
      * @see java.lang.Throwable#getMessage
      */
     public NameNotFoundException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -38,7 +55,7 @@ public class NameNotFoundException extends NamingException {
       * all name resolution fields and explanation initialized to null.
       */
     public NameNotFoundException() {
-	super();
+        super();
     }
 
     /**

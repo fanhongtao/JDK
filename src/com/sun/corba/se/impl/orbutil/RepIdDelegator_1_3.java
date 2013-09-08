@@ -1,8 +1,26 @@
 /*
- * @(#)RepIdDelegator_1_3.java	1.8 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.orbutil;
@@ -20,8 +38,8 @@ import com.sun.corba.se.impl.util.RepositoryId;
  * overcome the fact that many of RepositoryId's methods
  * are static.
  */
-public final class RepIdDelegator_1_3 
-    implements RepositoryIdStrings, 
+public final class RepIdDelegator_1_3
+    implements RepositoryIdStrings,
                RepositoryIdUtility,
                RepositoryIdInterface
 {
@@ -36,7 +54,7 @@ public final class RepIdDelegator_1_3
     {
         return RepositoryId_1_3.createForJavaType(ser);
     }
-               
+
     public String createForJavaType(Class clz)
         throws TypeMismatchException
     {
@@ -56,7 +74,7 @@ public final class RepIdDelegator_1_3
     }
 
     // RepositoryIdUtility methods
-    
+
     public boolean isChunkedEncoding(int valueTag) {
         return RepositoryId.isChunkedEncoding(valueTag);
     }
@@ -102,7 +120,7 @@ public final class RepIdDelegator_1_3
     }
 
     public int getStandardRMIUnchunkedNoRepStrId() {
-	return RepositoryId.kPreComputed_StandardRMIUnchunked_NoRep;
+        return RepositoryId.kPreComputed_StandardRMIUnchunked_NoRep;
     }
 
     public int getCodeBaseRMIUnchunkedNoRepStrId() {
@@ -115,14 +133,14 @@ public final class RepIdDelegator_1_3
         return delegate.getClassFromType();
     }
 
-    public Class getClassFromType(String codebaseURL) 
+    public Class getClassFromType(String codebaseURL)
         throws ClassNotFoundException, MalformedURLException
     {
         return delegate.getClassFromType(codebaseURL);
     }
 
     public Class getClassFromType(Class expectedType,
-                                  String codebaseURL) 
+                                  String codebaseURL)
         throws ClassNotFoundException, MalformedURLException
     {
         return delegate.getClassFromType(expectedType, codebaseURL);

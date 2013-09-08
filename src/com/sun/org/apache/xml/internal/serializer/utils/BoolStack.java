@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,15 +25,15 @@ package com.sun.org.apache.xml.internal.serializer.utils;
 
 /**
  * Simple stack for boolean values.
- * 
- * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+ *
+ * This class is a copy of the one in com.sun.org.apache.xml.internal.utils.
  * It exists to cut the serializers dependancy on that package.
  * A minor changes from that package are:
  * doesn't implement Clonable
- *  
- * This class is not a public API, it is only public because it is 
+ *
+ * This class is not a public API, it is only public because it is
  * used in com.sun.org.apache.xml.internal.serializer.
- * 
+ *
  * @xsl.usage internal
  */
 public final class BoolStack
@@ -129,7 +133,7 @@ public final class BoolStack
   }
 
   /**
-   * Set the item at the top of this stack  
+   * Set the item at the top of this stack
    *
    *
    * @param b Object to set at the top of this stack

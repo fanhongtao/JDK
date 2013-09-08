@@ -1,6 +1,26 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.bind.annotation;
@@ -13,13 +33,13 @@ import static java.lang.annotation.RetentionPolicy.*;
 
 /**
  * <p>
- * Maps a JavaBean property to a XML attribute. 
+ * Maps a JavaBean property to a XML attribute.
  *
  * <p> <b>Usage</b> </p>
  * <p>
  * The <tt>@XmlAttribute</tt> annotation can be used with the
- * following program elements: 
- * <ul> 
+ * following program elements:
+ * <ul>
  *   <li> JavaBean property </li>
  *   <li> field </li>
  * </ul>
@@ -38,7 +58,7 @@ import static java.lang.annotation.RetentionPolicy.*;
  *     // Examples
  *     &#64;XmlAttribute List&lt;Integer> items; //legal
  *     &#64;XmlAttribute List&lt;Bar> foo; // illegal if Bar does not map to a schema simple type
- * </pre> 
+ * </pre>
  *   </li>
  *   <li> If the type of the field or the property is a non
  *         collection type, then the type of the property or field
@@ -50,7 +70,7 @@ import static java.lang.annotation.RetentionPolicy.*;
  * </pre>
  *   </li>
  *   <li> This annotation can be used with the following annotations:
- *            {@link XmlID}, 
+ *            {@link XmlID},
  *            {@link XmlIDREF},
  *            {@link XmlList},
  *            {@link XmlSchemaType},
@@ -58,14 +78,14 @@ import static java.lang.annotation.RetentionPolicy.*;
  *            {@link XmlAttachmentRef},
  *            {@link XmlMimeType},
  *            {@link XmlInlineBinaryData},
- *            {@link javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter}</li>.
+ *            {@link javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter}.</li>
  * </ul>
  * </p>
  *
  * <p> <b>Example 1: </b>Map a JavaBean property to an XML attribute.</p>
  * <pre>
  *     //Example: Code fragment
- *     public class USPrice { 
+ *     public class USPrice {
  *         &#64;XmlAttribute
  *         public java.math.BigDecimal getPrice() {...} ;
  *         public void setPrice(java.math.BigDecimal ) {...};
@@ -88,11 +108,11 @@ import static java.lang.annotation.RetentionPolicy.*;
  *     class Foo {
  *         ...
  *         &#64;XmlAttribute List&lt;Integer> items;
- *     } 
+ *     }
  *
  *     &lt;!-- Example: XML Schema fragment -->
  *     &lt;xs:complexType name="foo">
- *     	 ...
+ *       ...
  *       &lt;xs:attribute name="items">
  *         &lt;xs:simpleType>
  *           &lt;xs:list itemType="xs:int"/>
@@ -101,7 +121,6 @@ import static java.lang.annotation.RetentionPolicy.*;
  *
  * </pre>
  * @author Sekhar Vajjhala, Sun Microsystems, Inc.
- * @version $Revision: 1.13 $
  * @see XmlType
  * @since JAXB2.0
  */
@@ -114,7 +133,7 @@ public @interface XmlAttribute {
      *
      */
     String name() default "##default";
- 
+
     /**
      * Specifies if the XML Schema attribute is optional or
      * required. If true, then the JavaBean property is mapped to a
@@ -127,7 +146,7 @@ public @interface XmlAttribute {
     /**
      * Specifies the XML target namespace of the XML Schema
      * attribute.
-     * 
+     *
      */
     String namespace() default "##default" ;
 }

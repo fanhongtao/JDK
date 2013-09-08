@@ -1,8 +1,26 @@
 /*
- * @(#)POAObjectKeyTemplate.java	1.25 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior;
@@ -25,49 +43,49 @@ import com.sun.corba.se.spi.ior.ObjectAdapterId ;
 import com.sun.corba.se.impl.ior.ObjectKeyFactoryImpl ;
 
 /**
- * @author 
+ * @author
  */
-public final class POAObjectKeyTemplate extends NewObjectKeyTemplateBase 
+public final class POAObjectKeyTemplate extends NewObjectKeyTemplateBase
 {
     /** This constructor reads the template ONLY from the stream.
     */
-    public POAObjectKeyTemplate( ORB orb, int magic, int scid, InputStream is ) 
+    public POAObjectKeyTemplate( ORB orb, int magic, int scid, InputStream is )
     {
-	super( orb, magic, scid, is.read_long(), is.read_string(),
-	    new ObjectAdapterIdArray( POANameHelper.read( is ) ) ) ;
+        super( orb, magic, scid, is.read_long(), is.read_string(),
+            new ObjectAdapterIdArray( POANameHelper.read( is ) ) ) ;
 
-	setORBVersion( is ) ;
+        setORBVersion( is ) ;
     }
 
     /** This constructor reads a complete ObjectKey (template and Id)
     * from the stream.
     */
     public POAObjectKeyTemplate( ORB orb, int magic, int scid, InputStream is,
-	OctetSeqHolder osh ) 
+        OctetSeqHolder osh )
     {
-	super( orb, magic, scid, is.read_long(), is.read_string(),
-	    new ObjectAdapterIdArray( POANameHelper.read( is ) ) ) ;
-	
-	osh.value = readObjectKey( is ) ;
+        super( orb, magic, scid, is.read_long(), is.read_string(),
+            new ObjectAdapterIdArray( POANameHelper.read( is ) ) ) ;
 
-	setORBVersion( is ) ;
-    }
-    
-    public POAObjectKeyTemplate( ORB orb, int scid, int serverid, String orbid, 
-	ObjectAdapterId objectAdapterId) 
-    {
-	super( orb, ObjectKeyFactoryImpl.JAVAMAGIC_NEWER, scid, serverid, orbid,
-	    objectAdapterId ) ;
+        osh.value = readObjectKey( is ) ;
 
-	setORBVersion( ORBVersionFactory.getORBVersion() ) ;
+        setORBVersion( is ) ;
     }
-    
-    public void writeTemplate(OutputStream os) 
+
+    public POAObjectKeyTemplate( ORB orb, int scid, int serverid, String orbid,
+        ObjectAdapterId objectAdapterId)
     {
-	os.write_long( getMagic() ) ;
-	os.write_long( getSubcontractId() ) ;
-	os.write_long( getServerId() ) ;
-	os.write_string( getORBId() ) ;
-	getObjectAdapterId().write( os ) ;
+        super( orb, ObjectKeyFactoryImpl.JAVAMAGIC_NEWER, scid, serverid, orbid,
+            objectAdapterId ) ;
+
+        setORBVersion( ORBVersionFactory.getORBVersion() ) ;
+    }
+
+    public void writeTemplate(OutputStream os)
+    {
+        os.write_long( getMagic() ) ;
+        os.write_long( getSubcontractId() ) ;
+        os.write_long( getServerId() ) ;
+        os.write_string( getORBId() ) ;
+        getObjectAdapterId().write( os ) ;
     }
 }

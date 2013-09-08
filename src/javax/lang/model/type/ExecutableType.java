@@ -1,8 +1,26 @@
 /*
- * @(#)ExecutableType.java	1.4 06/07/31
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.type;
@@ -27,7 +45,6 @@ import javax.lang.model.element.ExecutableElement;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/07/31
  * @see ExecutableElement
  * @since 1.6
  */
@@ -38,7 +55,7 @@ public interface ExecutableType extends TypeMirror {
      * of this executable.
      *
      * @return the type variables declared by the formal type parameters,
-     *		or an empty list if there are none
+     *          or an empty list if there are none
      */
     List<? extends TypeVariable> getTypeVariables();
 
@@ -56,7 +73,7 @@ public interface ExecutableType extends TypeMirror {
      * Returns the types of this executable's formal parameters.
      *
      * @return the types of this executable's formal parameters,
-     *		or an empty list if there are none
+     *          or an empty list if there are none
      */
     List<? extends TypeMirror> getParameterTypes();
 
@@ -65,8 +82,8 @@ public interface ExecutableType extends TypeMirror {
      * executable's {@code throws} clause.
      *
      * @return the exceptions and other throwables listed in this
-     *		executable's {@code throws} clause,
-     *		or an empty list if there are none.
+     *          executable's {@code throws} clause,
+     *          or an empty list if there are none.
      */
     List<? extends TypeMirror> getThrownTypes();
 }

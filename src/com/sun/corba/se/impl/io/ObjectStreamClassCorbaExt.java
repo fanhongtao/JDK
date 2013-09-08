@@ -1,8 +1,26 @@
 /*
- * @(#)ObjectStreamClassCorbaExt.java	1.7 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.io;
@@ -41,17 +59,17 @@ class ObjectStreamClassCorbaExt {
      * 3. if 'cl' has no methods (including those of its ancestors), or,
      *    if all the methods (including those of its ancestors) throw an
      *    exception that is atleast java.rmi.RemoteException or one of
-     *	  java.rmi.RemoteException's super classes.
+     *    java.rmi.RemoteException's super classes.
      */
     static final boolean isAbstractInterface(Class cl) {
         if (!cl.isInterface() || // #1
-	        java.rmi.Remote.class.isAssignableFrom(cl)) { // #2
+                java.rmi.Remote.class.isAssignableFrom(cl)) { // #2
             return false;
         }
         Method[] methods = cl.getMethods();
         for (int i = 0; i < methods.length; i++) {
             Class exceptions[] = methods[i].getExceptionTypes();
-	    boolean exceptionMatch = false;
+            boolean exceptionMatch = false;
             for (int j = 0; (j < exceptions.length) && !exceptionMatch; j++) {
                 if ((java.rmi.RemoteException.class == exceptions[j]) ||
                     (java.lang.Throwable.class == exceptions[j]) ||
@@ -60,11 +78,11 @@ class ObjectStreamClassCorbaExt {
                     exceptionMatch = true;
                 }
             }
-	    if (!exceptionMatch) {
-		return false;
-	    }
-	}
-	return true;
+            if (!exceptionMatch) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /*
@@ -72,12 +90,12 @@ class ObjectStreamClassCorbaExt {
      */
     static final boolean isAny(String typeString) {
 
-	int isAny = 0;
+        int isAny = 0;
 
-	if ( (typeString != null) &&
-	    (typeString.equals("Ljava/lang/Object;") ||
-	     typeString.equals("Ljava/io/Serializable;") ||
-	     typeString.equals("Ljava/io/Externalizable;")) )
+        if ( (typeString != null) &&
+            (typeString.equals("Ljava/lang/Object;") ||
+             typeString.equals("Ljava/io/Serializable;") ||
+             typeString.equals("Ljava/io/Externalizable;")) )
                 isAny = 1;
 
         return (isAny==1);

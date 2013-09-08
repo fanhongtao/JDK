@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,12 +35,12 @@ public class XStringForChars extends XString
     static final long serialVersionUID = -2235248887220850467L;
   /** The start position in the fsb. */
   int m_start;
-  
+
   /** The length of the string. */
   int m_length;
-  
+
   protected String m_strCache = null;
-  
+
   /**
    * Construct a XNodeSet object.
    *
@@ -66,7 +70,7 @@ public class XStringForChars extends XString
     throw new IllegalArgumentException(
                       XSLMessages.createXPATHMessage(XPATHErrorResources.ER_XSTRINGFORCHARS_CANNOT_TAKE_STRING, null)); //"XStringForChars can not take a string for an argument!");
   }
-  
+
   /**
    * Cast result object to a string.
    *
@@ -76,7 +80,7 @@ public class XStringForChars extends XString
   {
     throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_FSB_NOT_SUPPORTED_XSTRINGFORCHARS, null)); //"fsb() not supported for XStringForChars!");
   }
-  
+
   /**
    * Cast result object to a string.
    *
@@ -87,10 +91,10 @@ public class XStringForChars extends XString
     fsb.append((char[])m_obj, m_start, m_length);
   }
 
-  
+
   /**
    * Tell if this object contains a java String object.
-   * 
+   *
    * @return true if this XMLString can return a string without creating one.
    */
   public boolean hasString()
@@ -98,7 +102,7 @@ public class XStringForChars extends XString
     return (null != m_strCache);
   }
 
-  
+
   /**
    * Cast result object to a string.
    *
@@ -108,13 +112,13 @@ public class XStringForChars extends XString
   {
     if(null == m_strCache)
       m_strCache = new String((char[])m_obj, m_start, m_length);
-    
+
     return m_strCache;
   }
-  
+
 
   /**
-   * Since this object is incomplete without the length and the offset, we 
+   * Since this object is incomplete without the length and the offset, we
    * have to convert to a string when this function is called.
    *
    * @return The java String representation of this object.
@@ -140,7 +144,7 @@ public class XStringForChars extends XString
   {
     ch.characters((char[])m_obj, m_start, m_length);
   }
-      
+
   /**
    * Directly call the
    * comment method on the passed LexicalHandler for the
@@ -155,7 +159,7 @@ public class XStringForChars extends XString
   {
     lh.comment((char[])m_obj, m_start, m_length);
   }
-  
+
   /**
    * Returns the length of this string.
    *
@@ -210,5 +214,5 @@ public class XStringForChars extends XString
   {
     System.arraycopy((char[])m_obj, m_start+srcBegin, dst, dstBegin, srcEnd);
   }
-  
+
 }

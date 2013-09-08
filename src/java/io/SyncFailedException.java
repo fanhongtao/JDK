@@ -1,8 +1,26 @@
 /*
- * @(#)SyncFailedException.java	1.16 05/11/17
+ * Copyright (c) 1996, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -11,12 +29,13 @@ package java.io;
  * Signals that a sync operation has failed.
  *
  * @author  Ken Arnold
- * @version 1.16, 11/17/05
  * @see     java.io.FileDescriptor#sync
- * @see	    java.io.IOException
+ * @see     java.io.IOException
  * @since   JDK1.1
  */
 public class SyncFailedException extends IOException {
+    private static final long serialVersionUID = -2353342684412443330L;
+
     /**
      * Constructs an SyncFailedException with a detail message.
      * A detail message is a String that describes this particular exception.
@@ -24,6 +43,6 @@ public class SyncFailedException extends IOException {
      * @param desc  a String describing the exception.
      */
     public SyncFailedException(String desc) {
-	super(desc);
+        super(desc);
     }
 }

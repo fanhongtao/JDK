@@ -1,8 +1,26 @@
 /*
- * @(#)AnnotationValue.java	1.4 06/07/31
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
@@ -20,13 +38,12 @@ import javax.lang.model.type.*;
  *     <li> {@code VariableElement} (representing an enum constant)
  *     <li> {@code AnnotationMirror}
  *     <li> {@code List<? extends AnnotationValue>}
- *		(representing the elements, in declared order, if the value is an array)
+ *              (representing the elements, in declared order, if the value is an array)
  * </ul>
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/07/31
  * @since 1.6
  */
 public interface AnnotationValue {

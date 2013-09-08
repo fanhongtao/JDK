@@ -1,8 +1,26 @@
 /*
- * @(#)BadBinaryOpValueExpException.java	4.19 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -16,9 +34,9 @@ package javax.management;
  *
  * @since 1.5
  */
-public class BadBinaryOpValueExpException extends Exception   { 
+public class BadBinaryOpValueExpException extends Exception   {
 
-    
+
     /* Serial version */
     private static final long serialVersionUID = 5068475589449021227L;
 
@@ -33,25 +51,25 @@ public class BadBinaryOpValueExpException extends Exception   {
      *
      * @param exp the expression whose value was inappropriate.
      */
-    public BadBinaryOpValueExpException(ValueExp exp) { 	
-	this.exp = exp;
-    } 
-    
+    public BadBinaryOpValueExpException(ValueExp exp) {
+        this.exp = exp;
+    }
+
 
     /**
      * Returns the <CODE>ValueExp</CODE> that originated the exception.
      *
      * @return the problematic {@link ValueExp}.
-     */   
-    public ValueExp getExp()  { 
-	return exp;
-    } 
+     */
+    public ValueExp getExp()  {
+        return exp;
+    }
 
     /**
      * Returns the string representing the object.
-     */    
-    public String toString()  { 
-	return "BadBinaryOpValueExpException: " + exp;
+     */
+    public String toString()  {
+        return "BadBinaryOpValueExpException: " + exp;
     }
 
  }

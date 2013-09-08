@@ -1,38 +1,69 @@
 /*
- * @(#)LinkageError.java	1.14 05/11/17
+ * Copyright (c) 1995, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 /**
- * Subclasses of <code>LinkageError</code> indicate that a class has 
- * some dependency on another class; however, the latter class has 
- * incompatibly changed after the compilation of the former class. 
+ * Subclasses of {@code LinkageError} indicate that a class has
+ * some dependency on another class; however, the latter class has
+ * incompatibly changed after the compilation of the former class.
  *
  *
  * @author  Frank Yellin
- * @version 1.14, 11/17/05
  * @since   JDK1.0
  */
 public
 class LinkageError extends Error {
+    private static final long serialVersionUID = 3579600108157160122L;
+
     /**
-     * Constructs a <code>LinkageError</code> with no detail message. 
+     * Constructs a {@code LinkageError} with no detail message.
      */
     public LinkageError() {
-	super();
+        super();
     }
 
     /**
-     * Constructs a <code>LinkageError</code> with the specified detail 
-     * message. 
+     * Constructs a {@code LinkageError} with the specified detail
+     * message.
      *
      * @param   s   the detail message.
      */
     public LinkageError(String s) {
-	super(s);
+        super(s);
+    }
+
+    /**
+     * Constructs a {@code LinkageError} with the specified detail
+     * message and cause.
+     *
+     * @param s     the detail message.
+     * @param cause the cause, may be {@code null}
+     * @since 1.7
+     */
+    public LinkageError(String s, Throwable cause) {
+        super(s, cause);
     }
 }

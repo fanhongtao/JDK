@@ -1,8 +1,26 @@
 /*
- * @(#)SolarisNumericUserPrincipal.java	1.18 05/11/17
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.security.auth;
@@ -17,31 +35,30 @@ import java.security.Principal;
  * may be associated with a particular <code>Subject</code>
  * to augment that <code>Subject</code> with an additional
  * identity.  Refer to the <code>Subject</code> class for more information
- * on how to achieve this.  Authorization decisions can then be based upon 
+ * on how to achieve this.  Authorization decisions can then be based upon
  * the Principals associated with a <code>Subject</code>.
- * @deprecated As of JDK&nbsp;1.4, replaced by 
+ * @deprecated As of JDK&nbsp;1.4, replaced by
  *             {@link UnixNumericUserPrincipal}.
  *             This class is entirely deprecated.
- * 
- * @version 1.18, 11/17/05
+ *
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */
 @Deprecated
 public class SolarisNumericUserPrincipal implements
-					Principal,
-					java.io.Serializable {
+                                        Principal,
+                                        java.io.Serializable {
 
     private static final long serialVersionUID = -3178578484679887104L;
 
     private static final java.util.ResourceBundle rb =
-          (java.util.ResourceBundle)java.security.AccessController.doPrivileged
-          (new java.security.PrivilegedAction() {
-              public Object run() {
+          java.security.AccessController.doPrivileged
+          (new java.security.PrivilegedAction<java.util.ResourceBundle>() {
+              public java.util.ResourceBundle run() {
                   return (java.util.ResourceBundle.getBundle
                                 ("sun.security.util.AuthResources"));
               }
-	   });
+           });
 
 
     /**
@@ -59,13 +76,13 @@ public class SolarisNumericUserPrincipal implements
      * @param name the user identification number (UID) for this user.
      *
      * @exception NullPointerException if the <code>name</code>
-     *			is <code>null</code>.
+     *                  is <code>null</code>.
      */
     public SolarisNumericUserPrincipal(String name) {
-	if (name == null)
-	    throw new NullPointerException(rb.getString("provided null name"));
+        if (name == null)
+            throw new NullPointerException(rb.getString("provided.null.name"));
 
-	this.name = name;
+        this.name = name;
     }
 
     /**
@@ -75,10 +92,10 @@ public class SolarisNumericUserPrincipal implements
      * <p>
      *
      * @param name the user identification number (UID) for this user
-     *			represented as a long.
+     *                  represented as a long.
      */
     public SolarisNumericUserPrincipal(long name) {
-	this.name = (new Long(name)).toString();
+        this.name = (new Long(name)).toString();
     }
 
     /**
@@ -88,10 +105,10 @@ public class SolarisNumericUserPrincipal implements
      * <p>
      *
      * @return the user identification number (UID) for this
-     *		<code>SolarisNumericUserPrincipal</code>
+     *          <code>SolarisNumericUserPrincipal</code>
      */
     public String getName() {
-	return name;
+        return name;
     }
 
     /**
@@ -101,10 +118,10 @@ public class SolarisNumericUserPrincipal implements
      * <p>
      *
      * @return the user identification number (UID) for this
-     *		<code>SolarisNumericUserPrincipal</code> as a long.
+     *          <code>SolarisNumericUserPrincipal</code> as a long.
      */
     public long longValue() {
-	return ((new Long(name)).longValue());
+        return ((new Long(name)).longValue());
     }
 
     /**
@@ -114,10 +131,10 @@ public class SolarisNumericUserPrincipal implements
      * <p>
      *
      * @return a string representation of this
-     *		<code>SolarisNumericUserPrincipal</code>.
+     *          <code>SolarisNumericUserPrincipal</code>.
      */
     public String toString() {
-	return(rb.getString("SolarisNumericUserPrincipal: ") + name);
+        return(rb.getString("SolarisNumericUserPrincipal.") + name);
     }
 
     /**
@@ -131,27 +148,27 @@ public class SolarisNumericUserPrincipal implements
      * <p>
      *
      * @param o Object to be compared for equality with this
-     *		<code>SolarisNumericUserPrincipal</code>.
+     *          <code>SolarisNumericUserPrincipal</code>.
      *
      * @return true if the specified Object is equal equal to this
-     *		<code>SolarisNumericUserPrincipal</code>.
+     *          <code>SolarisNumericUserPrincipal</code>.
      */
     public boolean equals(Object o) {
-	if (o == null)
-	    return false;
+        if (o == null)
+            return false;
 
         if (this == o)
             return true;
- 
+
         if (!(o instanceof SolarisNumericUserPrincipal))
             return false;
         SolarisNumericUserPrincipal that = (SolarisNumericUserPrincipal)o;
 
-	if (this.getName().equals(that.getName()))
-	    return true;
-	return false;
+        if (this.getName().equals(that.getName()))
+            return true;
+        return false;
     }
- 
+
     /**
      * Return a hash code for this <code>SolarisNumericUserPrincipal</code>.
      *
@@ -160,6 +177,6 @@ public class SolarisNumericUserPrincipal implements
      * @return a hash code for this <code>SolarisNumericUserPrincipal</code>.
      */
     public int hashCode() {
-	return name.hashCode();
+        return name.hashCode();
     }
 }

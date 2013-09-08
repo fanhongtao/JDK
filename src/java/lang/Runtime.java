@@ -1,8 +1,26 @@
 /*
- * @(#)Runtime.java	1.78 06/04/10
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
@@ -11,15 +29,14 @@ import java.io.*;
 import java.util.StringTokenizer;
 
 /**
- * Every Java application has a single instance of class 
- * <code>Runtime</code> that allows the application to interface with 
- * the environment in which the application is running. The current 
- * runtime can be obtained from the <code>getRuntime</code> method. 
+ * Every Java application has a single instance of class
+ * <code>Runtime</code> that allows the application to interface with
+ * the environment in which the application is running. The current
+ * runtime can be obtained from the <code>getRuntime</code> method.
  * <p>
- * An application cannot create its own instance of this class. 
+ * An application cannot create its own instance of this class.
  *
  * @author  unascribed
- * @version 1.78, 04/10/06
  * @see     java.lang.Runtime#getRuntime()
  * @since   JDK1.0
  */
@@ -29,14 +46,14 @@ public class Runtime {
 
     /**
      * Returns the runtime object associated with the current Java application.
-     * Most of the methods of class <code>Runtime</code> are instance 
-     * methods and must be invoked with respect to the current runtime object. 
-     * 
+     * Most of the methods of class <code>Runtime</code> are instance
+     * methods and must be invoked with respect to the current runtime object.
+     *
      * @return  the <code>Runtime</code> object associated with the current
      *          Java application.
      */
-    public static Runtime getRuntime() { 
-	return currentRuntime;
+    public static Runtime getRuntime() {
+        return currentRuntime;
     }
 
     /** Don't let anyone else instantiate this class */
@@ -83,11 +100,11 @@ public class Runtime {
      * @see #halt(int)
      */
     public void exit(int status) {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkExit(status);
-	}
-	Shutdown.exit(status);
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkExit(status);
+        }
+        Shutdown.exit(status);
     }
 
     /**
@@ -185,11 +202,11 @@ public class Runtime {
      * @since 1.3
      */
     public void addShutdownHook(Thread hook) {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkPermission(new RuntimePermission("shutdownHooks"));
-	}
-	ApplicationShutdownHooks.add(hook);
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("shutdownHooks"));
+        }
+        ApplicationShutdownHooks.add(hook);
     }
 
     /**
@@ -213,11 +230,11 @@ public class Runtime {
      * @since 1.3
      */
     public boolean removeShutdownHook(Thread hook) {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkPermission(new RuntimePermission("shutdownHooks"));
-	}
-	return ApplicationShutdownHooks.remove(hook);
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(new RuntimePermission("shutdownHooks"));
+        }
+        return ApplicationShutdownHooks.remove(hook);
     }
 
     /**
@@ -249,11 +266,11 @@ public class Runtime {
      * @since 1.3
      */
     public void halt(int status) {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkExit(status);
-	}
-	Shutdown.halt(status);
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkExit(status);
+        }
+        Shutdown.halt(status);
     }
 
     /**
@@ -261,20 +278,20 @@ public class Runtime {
      * finalizers of all objects that have finalizers that have not yet been
      * automatically invoked are to be run before the Java runtime exits.
      * By default, finalization on exit is disabled.
-     * 
-     * <p>If there is a security manager, 
+     *
+     * <p>If there is a security manager,
      * its <code>checkExit</code> method is first called
-     * with 0 as its argument to ensure the exit is allowed. 
+     * with 0 as its argument to ensure the exit is allowed.
      * This could result in a SecurityException.
      *
      * @param value true to enable finalization on exit, false to disable
      * @deprecated  This method is inherently unsafe.  It may result in
-     * 	    finalizers being called on live objects while other threads are
+     *      finalizers being called on live objects while other threads are
      *      concurrently manipulating those objects, resulting in erratic
-     *	    behavior or deadlock.
-     * 
+     *      behavior or deadlock.
+     *
      * @throws  SecurityException
-     *        if a security manager exists and its <code>checkExit</code> 
+     *        if a security manager exists and its <code>checkExit</code>
      *        method doesn't allow the exit.
      *
      * @see     java.lang.Runtime#exit(int)
@@ -284,15 +301,15 @@ public class Runtime {
      */
     @Deprecated
     public static void runFinalizersOnExit(boolean value) {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    try {
-		security.checkExit(0); 
-	    } catch (SecurityException e) {
-		throw new SecurityException("runFinalizersOnExit");
-	    }
-	}
-	Shutdown.setRunFinalizersOnExit(value);
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            try {
+                security.checkExit(0);
+            } catch (SecurityException e) {
+                throw new SecurityException("runFinalizersOnExit");
+            }
+        }
+        Shutdown.setRunFinalizersOnExit(value);
     }
 
     /**
@@ -325,7 +342,7 @@ public class Runtime {
      * @see     ProcessBuilder
      */
     public Process exec(String command) throws IOException {
-	return exec(command, null, null);
+        return exec(command, null, null);
     }
 
     /**
@@ -424,11 +441,11 @@ public class Runtime {
         if (command.length() == 0)
             throw new IllegalArgumentException("Empty command");
 
-	StringTokenizer st = new StringTokenizer(command);
-	String[] cmdarray = new String[st.countTokens()];
- 	for (int i = 0; st.hasMoreTokens(); i++)
-	    cmdarray[i] = st.nextToken();
-	return exec(cmdarray, envp, dir);
+        StringTokenizer st = new StringTokenizer(command);
+        String[] cmdarray = new String[st.countTokens()];
+        for (int i = 0; st.hasMoreTokens(); i++)
+            cmdarray[i] = st.nextToken();
+        return exec(cmdarray, envp, dir);
     }
 
     /**
@@ -463,7 +480,7 @@ public class Runtime {
      * @see     ProcessBuilder
      */
     public Process exec(String cmdarray[]) throws IOException {
-	return exec(cmdarray, null, null);
+        return exec(cmdarray, null, null);
     }
 
     /**
@@ -506,7 +523,7 @@ public class Runtime {
      * @see     ProcessBuilder
      */
     public Process exec(String[] cmdarray, String[] envp) throws IOException {
-	return exec(cmdarray, envp, null);
+        return exec(cmdarray, envp, null);
     }
 
 
@@ -526,6 +543,11 @@ public class Runtime {
      *
      * <p>If <tt>envp</tt> is <tt>null</tt>, the subprocess inherits the
      * environment settings of the current process.
+     *
+     * <p>A minimal set of system dependent environment variables may
+     * be required to start a process on some operating systems.
+     * As a result, the subprocess may inherit additional environment variable
+     * settings beyond those in the specified environment.
      *
      * <p>{@link ProcessBuilder#start()} is now the preferred way to
      * start a process with a modified environment.
@@ -589,11 +611,11 @@ public class Runtime {
      * @since 1.3
      */
     public Process exec(String[] cmdarray, String[] envp, File dir)
-	throws IOException {
-	return new ProcessBuilder(cmdarray)
-	    .environment(envp)
-	    .directory(dir)
-	    .start();
+        throws IOException {
+        return new ProcessBuilder(cmdarray)
+            .environment(envp)
+            .directory(dir)
+            .start();
     }
 
     /**
@@ -612,8 +634,8 @@ public class Runtime {
 
     /**
      * Returns the amount of free memory in the Java Virtual Machine.
-     * Calling the 
-     * <code>gc</code> method may result in increasing the value returned 
+     * Calling the
+     * <code>gc</code> method may result in increasing the value returned
      * by <code>freeMemory.</code>
      *
      * @return  an approximation to the total amount of memory currently
@@ -623,13 +645,13 @@ public class Runtime {
 
     /**
      * Returns the total amount of memory in the Java virtual machine.
-     * The value returned by this method may vary over time, depending on 
+     * The value returned by this method may vary over time, depending on
      * the host environment.
      * <p>
-     * Note that the amount of memory required to hold an object of any 
+     * Note that the amount of memory required to hold an object of any
      * given type may be implementation-dependent.
-     * 
-     * @return  the total amount of memory currently available for current 
+     *
+     * @return  the total amount of memory currently available for current
      *          and future objects, measured in bytes.
      */
     public native long totalMemory();
@@ -647,19 +669,19 @@ public class Runtime {
 
     /**
      * Runs the garbage collector.
-     * Calling this method suggests that the Java virtual machine expend 
-     * effort toward recycling unused objects in order to make the memory 
-     * they currently occupy available for quick reuse. When control 
-     * returns from the method call, the virtual machine has made 
-     * its best effort to recycle all discarded objects. 
+     * Calling this method suggests that the Java virtual machine expend
+     * effort toward recycling unused objects in order to make the memory
+     * they currently occupy available for quick reuse. When control
+     * returns from the method call, the virtual machine has made
+     * its best effort to recycle all discarded objects.
      * <p>
-     * The name <code>gc</code> stands for "garbage 
-     * collector". The virtual machine performs this recycling 
-     * process automatically as needed, in a separate thread, even if the 
+     * The name <code>gc</code> stands for "garbage
+     * collector". The virtual machine performs this recycling
+     * process automatically as needed, in a separate thread, even if the
      * <code>gc</code> method is not invoked explicitly.
      * <p>
-     * The method {@link System#gc()} is the conventional and convenient 
-     * means of invoking this method. 
+     * The method {@link System#gc()} is the conventional and convenient
+     * means of invoking this method.
      */
     public native void gc();
 
@@ -668,39 +690,39 @@ public class Runtime {
 
     /**
      * Runs the finalization methods of any objects pending finalization.
-     * Calling this method suggests that the Java virtual machine expend 
-     * effort toward running the <code>finalize</code> methods of objects 
-     * that have been found to be discarded but whose <code>finalize</code> 
-     * methods have not yet been run. When control returns from the 
-     * method call, the virtual machine has made a best effort to 
-     * complete all outstanding finalizations. 
+     * Calling this method suggests that the Java virtual machine expend
+     * effort toward running the <code>finalize</code> methods of objects
+     * that have been found to be discarded but whose <code>finalize</code>
+     * methods have not yet been run. When control returns from the
+     * method call, the virtual machine has made a best effort to
+     * complete all outstanding finalizations.
      * <p>
-     * The virtual machine performs the finalization process 
-     * automatically as needed, in a separate thread, if the 
-     * <code>runFinalization</code> method is not invoked explicitly. 
+     * The virtual machine performs the finalization process
+     * automatically as needed, in a separate thread, if the
+     * <code>runFinalization</code> method is not invoked explicitly.
      * <p>
-     * The method {@link System#runFinalization()} is the conventional 
+     * The method {@link System#runFinalization()} is the conventional
      * and convenient means of invoking this method.
      *
      * @see     java.lang.Object#finalize()
      */
     public void runFinalization() {
-	runFinalization0();
+        runFinalization0();
     }
 
     /**
      * Enables/Disables tracing of instructions.
-     * If the <code>boolean</code> argument is <code>true</code>, this 
-     * method suggests that the Java virtual machine emit debugging 
-     * information for each instruction in the virtual machine as it 
-     * is executed. The format of this information, and the file or other 
-     * output stream to which it is emitted, depends on the host environment. 
-     * The virtual machine may ignore this request if it does not support 
-     * this feature. The destination of the trace output is system 
-     * dependent. 
+     * If the <code>boolean</code> argument is <code>true</code>, this
+     * method suggests that the Java virtual machine emit debugging
+     * information for each instruction in the virtual machine as it
+     * is executed. The format of this information, and the file or other
+     * output stream to which it is emitted, depends on the host environment.
+     * The virtual machine may ignore this request if it does not support
+     * this feature. The destination of the trace output is system
+     * dependent.
      * <p>
-     * If the <code>boolean</code> argument is <code>false</code>, this 
-     * method causes the virtual machine to stop performing the 
+     * If the <code>boolean</code> argument is <code>false</code>, this
+     * method causes the virtual machine to stop performing the
      * detailed instruction trace it is performing.
      *
      * @param   on   <code>true</code> to enable instruction tracing;
@@ -710,13 +732,13 @@ public class Runtime {
 
     /**
      * Enables/Disables tracing of method calls.
-     * If the <code>boolean</code> argument is <code>true</code>, this 
-     * method suggests that the Java virtual machine emit debugging 
-     * information for each method in the virtual machine as it is 
-     * called. The format of this information, and the file or other output 
-     * stream to which it is emitted, depends on the host environment. The 
-     * virtual machine may ignore this request if it does not support 
-     * this feature.  
+     * If the <code>boolean</code> argument is <code>true</code>, this
+     * method suggests that the Java virtual machine emit debugging
+     * information for each method in the virtual machine as it is
+     * called. The format of this information, and the file or other output
+     * stream to which it is emitted, depends on the host environment. The
+     * virtual machine may ignore this request if it does not support
+     * this feature.
      * <p>
      * Calling this method with argument false suggests that the
      * virtual machine cease emitting per-call debugging information.
@@ -727,25 +749,25 @@ public class Runtime {
     public native void traceMethodCalls(boolean on);
 
     /**
-     * Loads the specified filename as a dynamic library. The filename 
+     * Loads the specified filename as a dynamic library. The filename
      * argument must be a complete path name,
      * (for example
      * <code>Runtime.getRuntime().load("/home/avh/lib/libX11.so");</code>).
      * <p>
-     * First, if there is a security manager, its <code>checkLink</code> 
-     * method is called with the <code>filename</code> as its argument. 
-     * This may result in a security exception. 
+     * First, if there is a security manager, its <code>checkLink</code>
+     * method is called with the <code>filename</code> as its argument.
+     * This may result in a security exception.
      * <p>
-     * This is similar to the method {@link #loadLibrary(String)}, but it 
-     * accepts a general file name as an argument rather than just a library 
+     * This is similar to the method {@link #loadLibrary(String)}, but it
+     * accepts a general file name as an argument rather than just a library
      * name, allowing any file of native code to be loaded.
      * <p>
-     * The method {@link System#load(String)} is the conventional and 
+     * The method {@link System#load(String)} is the conventional and
      * convenient means of invoking this method.
      *
      * @param      filename   the file to load.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkLink</code> method doesn't allow 
+     * @exception  SecurityException  if a security manager exists and its
+     *             <code>checkLink</code> method doesn't allow
      *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the file does not exist.
      * @exception  NullPointerException if <code>filename</code> is
@@ -759,47 +781,47 @@ public class Runtime {
     }
 
     synchronized void load0(Class fromClass, String filename) {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkLink(filename);
-	}
-	if (!(new File(filename).isAbsolute())) {
-	    throw new UnsatisfiedLinkError(
-	        "Expecting an absolute path of the library: " + filename);
-	}
-	ClassLoader.loadLibrary(fromClass, filename, true);
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkLink(filename);
+        }
+        if (!(new File(filename).isAbsolute())) {
+            throw new UnsatisfiedLinkError(
+                "Expecting an absolute path of the library: " + filename);
+        }
+        ClassLoader.loadLibrary(fromClass, filename, true);
     }
 
     /**
-     * Loads the dynamic library with the specified library name. 
-     * A file containing native code is loaded from the local file system 
-     * from a place where library files are conventionally obtained. The 
-     * details of this process are implementation-dependent. The 
-     * mapping from a library name to a specific filename is done in a 
-     * system-specific manner. 
+     * Loads the dynamic library with the specified library name.
+     * A file containing native code is loaded from the local file system
+     * from a place where library files are conventionally obtained. The
+     * details of this process are implementation-dependent. The
+     * mapping from a library name to a specific filename is done in a
+     * system-specific manner.
      * <p>
-     * First, if there is a security manager, its <code>checkLink</code> 
-     * method is called with the <code>libname</code> as its argument. 
-     * This may result in a security exception. 
+     * First, if there is a security manager, its <code>checkLink</code>
+     * method is called with the <code>libname</code> as its argument.
+     * This may result in a security exception.
      * <p>
-     * The method {@link System#loadLibrary(String)} is the conventional 
+     * The method {@link System#loadLibrary(String)} is the conventional
      * and convenient means of invoking this method. If native
-     * methods are to be used in the implementation of a class, a standard 
-     * strategy is to put the native code in a library file (call it 
+     * methods are to be used in the implementation of a class, a standard
+     * strategy is to put the native code in a library file (call it
      * <code>LibFile</code>) and then to put a static initializer:
      * <blockquote><pre>
      * static { System.loadLibrary("LibFile"); }
      * </pre></blockquote>
-     * within the class declaration. When the class is loaded and 
-     * initialized, the necessary native code implementation for the native 
-     * methods will then be loaded as well. 
+     * within the class declaration. When the class is loaded and
+     * initialized, the necessary native code implementation for the native
+     * methods will then be loaded as well.
      * <p>
-     * If this method is called more than once with the same library 
-     * name, the second and subsequent calls are ignored. 
+     * If this method is called more than once with the same library
+     * name, the second and subsequent calls are ignored.
      *
      * @param      libname   the name of the library.
-     * @exception  SecurityException  if a security manager exists and its  
-     *             <code>checkLink</code> method doesn't allow 
+     * @exception  SecurityException  if a security manager exists and its
+     *             <code>checkLink</code> method doesn't allow
      *             loading of the specified dynamic library
      * @exception  UnsatisfiedLinkError  if the library does not exist.
      * @exception  NullPointerException if <code>libname</code> is
@@ -808,31 +830,31 @@ public class Runtime {
      * @see        java.lang.SecurityManager#checkLink(java.lang.String)
      */
     public void loadLibrary(String libname) {
-        loadLibrary0(System.getCallerClass(), libname); 
+        loadLibrary0(System.getCallerClass(), libname);
     }
 
     synchronized void loadLibrary0(Class fromClass, String libname) {
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkLink(libname);
-	}
-	if (libname.indexOf((int)File.separatorChar) != -1) {
-	    throw new UnsatisfiedLinkError(
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkLink(libname);
+        }
+        if (libname.indexOf((int)File.separatorChar) != -1) {
+            throw new UnsatisfiedLinkError(
     "Directory separator should not appear in library name: " + libname);
-	}
-	ClassLoader.loadLibrary(fromClass, libname, false);
+        }
+        ClassLoader.loadLibrary(fromClass, libname, false);
     }
 
     /**
-     * Creates a localized version of an input stream. This method takes 
-     * an <code>InputStream</code> and returns an <code>InputStream</code> 
-     * equivalent to the argument in all respects except that it is 
-     * localized: as characters in the local character set are read from 
-     * the stream, they are automatically converted from the local 
-     * character set to Unicode. 
+     * Creates a localized version of an input stream. This method takes
+     * an <code>InputStream</code> and returns an <code>InputStream</code>
+     * equivalent to the argument in all respects except that it is
+     * localized: as characters in the local character set are read from
+     * the stream, they are automatically converted from the local
+     * character set to Unicode.
      * <p>
-     * If the argument is already a localized stream, it may be returned 
-     * as the result. 
+     * If the argument is already a localized stream, it may be returned
+     * as the result.
      *
      * @param      in InputStream to localize
      * @return     a localized input stream
@@ -846,19 +868,19 @@ public class Runtime {
      */
     @Deprecated
     public InputStream getLocalizedInputStream(InputStream in) {
-	return in;
+        return in;
     }
 
     /**
-     * Creates a localized version of an output stream. This method 
-     * takes an <code>OutputStream</code> and returns an 
-     * <code>OutputStream</code> equivalent to the argument in all respects 
-     * except that it is localized: as Unicode characters are written to 
-     * the stream, they are automatically converted to the local 
-     * character set. 
+     * Creates a localized version of an output stream. This method
+     * takes an <code>OutputStream</code> and returns an
+     * <code>OutputStream</code> equivalent to the argument in all respects
+     * except that it is localized: as Unicode characters are written to
+     * the stream, they are automatically converted to the local
+     * character set.
      * <p>
-     * If the argument is already a localized stream, it may be returned 
-     * as the result. 
+     * If the argument is already a localized stream, it may be returned
+     * as the result.
      *
      * @deprecated As of JDK&nbsp;1.1, the preferred way to translate a
      * Unicode character stream into a byte stream in the local encoding is via
@@ -874,7 +896,7 @@ public class Runtime {
      */
     @Deprecated
     public OutputStream getLocalizedOutputStream(OutputStream out) {
-	return out;
+        return out;
     }
 
 }

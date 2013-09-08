@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +30,7 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  * <p>
  * If the parser configuration uses a document scanner that implements
  * this interface, components should be able to query the scanner
- * instance from the component manager using the following property 
+ * instance from the component manager using the following property
  * identifier:
  * <blockquote>
  *  "http://apache.org/xml/properties/internal/document-scanner"
@@ -34,17 +38,16 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLDocumentScanner.java,v 1.2.6.2 2005/09/12 05:15:25 sunithareddy Exp $
  */
-public interface XMLDocumentScanner 
+public interface XMLDocumentScanner
     extends XMLDocumentSource {
 
     //
     // XMLDocumentScanner methods
     //
 
-    /** 
-     * Sets the input source. 
+    /**
+     * Sets the input source.
      *
      * @param inputSource The input source.
      *
@@ -52,7 +55,7 @@ public interface XMLDocumentScanner
      */
     public void setInputSource(XMLInputSource inputSource) throws IOException;
 
-    /** 
+    /**
      * Scans a document.
      *
      * @param complete True if the scanner should scan the document
@@ -67,6 +70,6 @@ public interface XMLDocumentScanner
      */
     public boolean scanDocument(boolean complete)
         throws IOException, XNIException;
-   
+
     public int next() throws XNIException, IOException;
 } // interface XMLDocumentScanner

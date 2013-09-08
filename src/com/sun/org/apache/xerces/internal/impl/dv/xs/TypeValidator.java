@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,13 +28,12 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
  * class. It provides extra information XSSimpleTypeDecl requires from each
  * type: allowed facets, converting String to actual value, check equality,
  * comparison, etc.
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: TypeValidator.java,v 1.2.6.1 2005/09/06 11:43:09 neerajbj Exp $
  */
 public abstract class TypeValidator {
 
@@ -60,11 +63,11 @@ public abstract class TypeValidator {
     public static final short EQUAL         = 0;
     public static final short GREATER_THAN  = 1;
     public static final short INDETERMINATE = 2;
-    
+
     // where there is distinction between identity and equality, this method
     // will be overwritten
-    // checks whether the two values are identical; for ex, this distinguishes 
-    // -0.0 from 0.0 
+    // checks whether the two values are identical; for ex, this distinguishes
+    // -0.0 from 0.0
     public boolean isIdentical (Object value1, Object value2) {
         return value1.equals(value2);
     }
@@ -97,11 +100,11 @@ public abstract class TypeValidator {
     public static final boolean isDigit(char ch) {
         return ch >= '0' && ch <= '9';
     }
-    
+
     // if the character is in the range 0x30 ~ 0x39, return its int value (0~9),
     // otherwise, return -1
     public static final int getDigit(char ch) {
         return isDigit(ch) ? ch - '0' : -1;
     }
-    
+
 } // interface TypeValidator

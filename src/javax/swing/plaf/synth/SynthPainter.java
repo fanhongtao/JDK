@@ -1,13 +1,30 @@
 /*
- * @(#)SynthPainter.java	1.13 05/11/17
+ * Copyright (c) 2002, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
 import java.awt.*;
-import javax.swing.*;
 
 /**
  * <code>SynthPainter</code> is used for painting portions of
@@ -17,7 +34,7 @@ import javax.swing.*;
  * a consequence more paint methods.
  * <p>
  * Instances of <code>SynthPainter</code> are obtained from the
- * {@link javax.swing.plaf.synth.SynthStyle#getPainter} method. 
+ * {@link javax.swing.plaf.synth.SynthStyle#getPainter} method.
  * <p>
  * You typically supply a <code>SynthPainter</code> by way of Synth's
  * <a href="doc-files/synthFileFormat.html">file</a> format. The following
@@ -39,7 +56,6 @@ import javax.swing.*;
  * they can throw a <code>NullPointerException</code> or
  * <code>IllegalArgumentException</code> in response to invalid arguments.
  *
- * @version 1.13, 11/17/05
  * @since 1.5
  * @author Scott Violet
  */
@@ -793,7 +809,7 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
-    
+
     /**
      * Paints the background of a progress bar. This implementation invokes the
      * method of the same name without the orientation.
@@ -1004,7 +1020,7 @@ public abstract class SynthPainter {
                                      int w, int h, int orientation) {
         paintScrollBarBackground(context, g, x, y, w, h);
     }
-    
+
     /**
      * Paints the border of a scrollbar.
      *
@@ -1020,7 +1036,7 @@ public abstract class SynthPainter {
                                  Graphics g, int x, int y,
                                  int w, int h) {
     }
-    
+
     /**
      * Paints the border of a scrollbar. This implementation invokes the
      * method of the same name without the orientation.
@@ -1101,7 +1117,7 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
-    
+
     /**
      * Paints the background of the track of a scrollbar. The track contains
      * the thumb. This implementation invokes the method of the same name without
@@ -1341,7 +1357,7 @@ public abstract class SynthPainter {
                                  Graphics g, int x, int y,
                                  int w, int h) {
     }
-    
+
     /**
      * Paints the border of a slider. This implementation invokes the
      * method of the same name without the orientation.
@@ -1414,7 +1430,7 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
-    
+
     /**
      * Paints the background of the track of a slider. This implementation invokes
      * the method of the same name without the orientation.
@@ -1451,7 +1467,7 @@ public abstract class SynthPainter {
                                  Graphics g, int x, int y,
                                  int w, int h) {
     }
-    
+
     /**
      * Paints the border of the track of a slider. This implementation invokes the
      * method of the same name without the orientation.
@@ -1520,7 +1536,7 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
-    
+
     /**
      * Paints the background of the divider of a split pane. This implementation
      * invokes the method of the same name without the orientation.
@@ -1698,7 +1714,7 @@ public abstract class SynthPainter {
                                  Graphics g, int x, int y,
                                  int w, int h) {
     }
-    
+
     /**
      * Paints the border of the area behind the tabs of a tabbed pane. This
      * implementation invokes the method of the same name without the orientation.
@@ -1738,7 +1754,7 @@ public abstract class SynthPainter {
                                          int x, int y, int w, int h,
                                          int tabIndex) {
     }
-    
+
     /**
      * Paints the background of a tab of a tabbed pane. This implementation
      * invokes the method of the same name without the orientation.
@@ -1779,7 +1795,7 @@ public abstract class SynthPainter {
                                          int x, int y, int w, int h,
                                          int tabIndex) {
     }
-    
+
     /**
      * Paints the border of a tab of a tabbed pane. This implementation invokes
      * the method of the same name without the orientation.
@@ -2193,7 +2209,7 @@ public abstract class SynthPainter {
                                      Graphics g, int x, int y,
                                      int w, int h) {
     }
-    
+
     /**
      * Paints the background of the window containing the tool bar when it
      * has been detached from its primary frame. This implementation invokes the
@@ -2232,7 +2248,7 @@ public abstract class SynthPainter {
                                  Graphics g, int x, int y,
                                  int w, int h) {
     }
-    
+
     /**
      * Paints the border of the window containing the tool bar when it
      * has been detached from it's primary frame. This implementation invokes the

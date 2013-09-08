@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -94,7 +98,7 @@ import com.sun.org.apache.xerces.internal.util.DatatypeMessageFormatter;
  *  
  * @author <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
  * @author <a href="mailto:Joseph.Fialli@Sun.com">Joseph Fialli</a>
- * @version $Revision: 1.3 $, $Date: 2005/09/07 19:41:13 $    
+ * @version $Revision: 1.8 $, $Date: 2010/05/19 23:20:06 $    
 
  * @see XMLGregorianCalendar#add(Duration)
  */
@@ -145,37 +149,42 @@ class DurationImpl
      * <p>Indicates the sign. -1, 0 or 1 if the duration is negative,
      * zero, or positive.</p>
      */
-    private final int signum;
+    protected int signum;
     
     /**
      * <p>Years of this <code>Duration</code>.</p>
      */
-    private final BigInteger years;
+    /**
+     * These were final since Duration is immutable. But new subclasses need
+     * to be able to set after conversion. It won't break the immutable nature
+     * of them since there's no other way to set new values to them
+     */
+    protected BigInteger years;
     
     /**
      * <p>Months of this <code>Duration</code>.</p>
      */
-    private final BigInteger months;
+    protected BigInteger months;
     
     /**
      * <p>Days of this <code>Duration</code>.</p>
      */
-    private final BigInteger days;
+    protected BigInteger days;
     
     /**
      * <p>Hours of this <code>Duration</code>.</p>
      */
-    private final BigInteger hours;
+    protected BigInteger hours;
     
     /**
      * <p>Minutes of this <code>Duration</code>.</p>
      */
-    private final BigInteger minutes;
+    protected BigInteger minutes;
     
     /**
      * <p>Seconds of this <code>Duration</code>.</p>
      */
-    private final BigDecimal seconds;
+    protected BigDecimal seconds;
 
 	/**
 	 * Returns the sign of this duration in -1,0, or 1.
@@ -195,7 +204,7 @@ class DurationImpl
 	 * 
 	 * @return 1 if positive, else -1.
 	 */	        
-    private int calcSignum(boolean isPositive) {
+    protected int calcSignum(boolean isPositive) {
         if ((years == null || years.signum() == 0)
             && (months == null || months.signum() == 0)
             && (days == null || days.signum() == 0)
@@ -278,7 +287,7 @@ class DurationImpl
      * @param n Number to test.
      * @param f Field to test.
      */
-    private static void testNonNegative(BigInteger n, DatatypeConstants.Field f) {
+    protected static void testNonNegative(BigInteger n, DatatypeConstants.Field f) {
         if (n != null && n.signum() < 0) {
             throw new IllegalArgumentException(             
                 DatatypeMessageFormatter.formatMessage(null, "NegativeField", new Object[]{f.toString()})
@@ -293,7 +302,7 @@ class DurationImpl
      * @param n Number to test.
      * @param f Field to test.
      */
-    private static void testNonNegative(BigDecimal n, DatatypeConstants.Field f) {
+    protected static void testNonNegative(BigDecimal n, DatatypeConstants.Field f) {
         if (n != null && n.signum() < 0) {
             
             throw new IllegalArgumentException(
@@ -330,7 +339,7 @@ class DurationImpl
             wrap(days),
             wrap(hours),
             wrap(minutes),
-            seconds != 0 ? new BigDecimal(String.valueOf(seconds)) : null);
+            seconds != DatatypeConstants.FIELD_UNDEFINED ? new BigDecimal(String.valueOf(seconds)) : null);
     }
 
 	/**
@@ -340,7 +349,7 @@ class DurationImpl
 	 * 
 	 * @return BigInteger representation of int.
 	 */
-    private static BigInteger wrap(final int i) {
+    protected static BigInteger wrap(final int i) {
     	
     	// field may not be set
     	if (i == DatatypeConstants.FIELD_UNDEFINED) {

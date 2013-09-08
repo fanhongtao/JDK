@@ -1,12 +1,7 @@
 /*
- * @(#)file      Timestamp.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.5
- * @(#)date      06/11/29
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 // Copyright (c) 1995-96 by Cisco Systems, Inc.
 
@@ -19,44 +14,44 @@ import java.util.Date;
 /**
  * This class is used by the {@link com.sun.jmx.snmp.SnmpVarBindList SnmpVarBindList} object.
  * An <CODE>SnmpVarBindList</CODE> time stamp object represents the time stamp when the list was updated
- * with the response variables. 
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * with the response variables.
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  */
 
 public class Timestamp implements java.io.Serializable {
+    private static final long serialVersionUID = -242456119149401823L;
 
-    
     // PRIVATE VARIABLES
     //------------------
-    
+
     /**
-     * The time (in hundreds of a second) since the network management portion of the system 
+     * The time (in hundreds of a second) since the network management portion of the system
      * was last re-initialized.
      */
     private long sysUpTime ;
-    
+
     /**
      * A <CODE>long</CODE> representing the current date.
      */
     private long crtime ;
-    
+
     /**
      * A <CODE>Date</CODE> object representing the current date.
      */
     private Date dateCache = null ;
-    
+
     /**
      * The <CODE>SnmpTimeticks</CODE> object corresponding to the <CODE>TimeStamp</CODE> object.
      */
     private SnmpTimeticks uptimeCache = null ;
-    
-    
+
+
     // CONSTRUCTORS
     //-------------
-    
+
     /**
-     * The default constructor. <CODE>Sysuptime</CODE> is 0.  
+     * The default constructor. <CODE>Sysuptime</CODE> is 0.
      * This simply indicates when this object was created.
      */
     public Timestamp() {
@@ -67,7 +62,7 @@ public class Timestamp implements java.io.Serializable {
      * Creates a <CODE>TimeStamp</CODE> object using the user parameters.
      * @param uptime The time (in hundredths of a second) since the
      * network management portion of the system was last re-initialized.
-     * @param when The current time.              
+     * @param when The current time.
      */
     public Timestamp(long uptime, long when) {
         sysUpTime = uptime ;
@@ -83,11 +78,11 @@ public class Timestamp implements java.io.Serializable {
         sysUpTime = uptime ;
         crtime = System.currentTimeMillis() ;
     }
-    
-    
+
+
     // GETTER/SETTER
     //--------------
-    
+
     /**
      * Gets the <CODE>SnmpTimeticks</CODE> object corresponding to the <CODE>TimeStamp</CODE> object.
      * @return The <CODE>SnmpTimeticks</CODE> object.
@@ -99,7 +94,7 @@ public class Timestamp implements java.io.Serializable {
     }
 
     /**
-     * Gets the time (in hundredths of a second) since the network management portion of the system 
+     * Gets the time (in hundredths of a second) since the network management portion of the system
      * was last re-initialized.
      * @return The <CODE>sysUpTime</CODE>.
      */

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -56,17 +60,16 @@ package com.sun.org.apache.bcel.internal.util;
 import java.util.ArrayList;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 
-/** 
+/**
  * Utility class implementing a (typesafe) collection of JavaClass
  * objects. Contains the most important methods of a Vector.
  *
- * @version $Id: ClassVector.java,v 1.1.2.1 2005/07/31 23:47:03 jeffsuttor Exp $
- * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see ClassQueue
 */
 public class ClassVector implements java.io.Serializable {
   protected ArrayList vec = new ArrayList();
-  
+
   public void      addElement(JavaClass clazz) { vec.add(clazz); }
   public JavaClass elementAt(int index)        { return (JavaClass)vec.get(index); }
   public void      removeElementAt(int index)  { vec.remove(index); }

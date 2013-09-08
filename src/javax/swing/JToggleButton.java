@@ -1,8 +1,26 @@
 /*
- * @(#)JToggleButton.java	1.62 06/08/08
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -19,7 +37,7 @@ import java.io.IOException;
 
 
 /**
- * An implementation of a two-state button.  
+ * An implementation of a two-state button.
  * The <code>JRadioButton</code> and <code>JCheckBox</code> classes
  * are subclasses of this class.
  * For information on using them see
@@ -27,7 +45,7 @@ import java.io.IOException;
  href="http://java.sun.com/docs/books/tutorial/uiswing/components/button.html">How to Use Buttons, Check Boxes, and Radio Buttons</a>,
  * a section in <em>The Java Tutorial</em>.
  * <p>
- * Buttons can be configured, and to some degree controlled, by 
+ * Buttons can be configured, and to some degree controlled, by
  * <code><a href="Action.html">Action</a></code>s.  Using an
  * <code>Action</code> with a button has many benefits beyond directly
  * configuring a button.  Refer to <a href="Action.html#buttonActions">
@@ -53,10 +71,9 @@ import java.io.IOException;
  * @beaninfo
  *   attribute: isContainer false
  * description: An implementation of a two-state button.
- * 
+ *
  * @see JRadioButton
  * @see JCheckBox
- * @version 1.62 08/08/06
  * @author Jeff Dinkins
  */
 public class JToggleButton extends AbstractButton implements Accessible {
@@ -84,9 +101,9 @@ public class JToggleButton extends AbstractButton implements Accessible {
     public JToggleButton(Icon icon) {
         this(null, icon, false);
     }
-    
+
     /**
-     * Creates a toggle button with the specified image 
+     * Creates a toggle button with the specified image
      * and selection state, but no text.
      *
      * @param icon  the image that the button should display
@@ -96,7 +113,7 @@ public class JToggleButton extends AbstractButton implements Accessible {
     public JToggleButton(Icon icon, boolean selected) {
         this(null, icon, selected);
     }
-    
+
     /**
      * Creates an unselected toggle button with the specified text.
      *
@@ -119,14 +136,14 @@ public class JToggleButton extends AbstractButton implements Accessible {
     }
 
     /**
-     * Creates a toggle button where properties are taken from the 
+     * Creates a toggle button where properties are taken from the
      * Action supplied.
      *
      * @since 1.3
      */
     public JToggleButton(Action a) {
         this();
-	setAction(a);
+        setAction(a);
     }
 
     /**
@@ -167,7 +184,7 @@ public class JToggleButton extends AbstractButton implements Accessible {
     public void updateUI() {
         setUI((ButtonUI)UIManager.getUI(this));
     }
-    
+
     /**
      * Returns a string that specifies the name of the l&f class
      * that renders this component.
@@ -257,12 +274,12 @@ public class JToggleButton extends AbstractButton implements Accessible {
                                   ItemEvent.ITEM_STATE_CHANGED,
                                   this,
                                   this.isSelected() ?  ItemEvent.SELECTED : ItemEvent.DESELECTED));
-        
+
         }
 
         /**
          * Sets the pressed state of the toggle button.
-         */ 
+         */
         public void setPressed(boolean b) {
             if ((isPressed() == b) || !isEnabled()) {
                 return;
@@ -270,7 +287,7 @@ public class JToggleButton extends AbstractButton implements Accessible {
 
             if (b == false && isArmed()) {
                 setSelected(!this.isSelected());
-            } 
+            }
 
             if (b) {
                 stateMask |= PRESSED;
@@ -299,8 +316,8 @@ public class JToggleButton extends AbstractButton implements Accessible {
     }
 
 
-    /** 
-     * See readObject() and writeObject() in JComponent for more 
+    /**
+     * See readObject() and writeObject() in JComponent for more
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -316,12 +333,12 @@ public class JToggleButton extends AbstractButton implements Accessible {
 
 
     /**
-     * Returns a string representation of this JToggleButton. This method 
-     * is intended to be used only for debugging purposes, and the 
-     * content and format of the returned string may vary between      
-     * implementations. The returned string may be empty but may not 
+     * Returns a string representation of this JToggleButton. This method
+     * is intended to be used only for debugging purposes, and the
+     * content and format of the returned string may vary between
+     * implementations. The returned string may be empty but may not
      * be <code>null</code>.
-     * 
+     *
      * @return  a string representation of this JToggleButton.
      */
     protected String paramString() {
@@ -334,12 +351,12 @@ public class JToggleButton extends AbstractButton implements Accessible {
 ////////////////
 
     /**
-     * Gets the AccessibleContext associated with this JToggleButton. 
-     * For toggle buttons, the AccessibleContext takes the form of an 
-     * AccessibleJToggleButton. 
+     * Gets the AccessibleContext associated with this JToggleButton.
+     * For toggle buttons, the AccessibleContext takes the form of an
+     * AccessibleJToggleButton.
      * A new AccessibleJToggleButton instance is created if necessary.
      *
-     * @return an AccessibleJToggleButton that serves as the 
+     * @return an AccessibleJToggleButton that serves as the
      *         AccessibleContext of this JToggleButton
      * @beaninfo
      *       expert: true
@@ -353,9 +370,9 @@ public class JToggleButton extends AbstractButton implements Accessible {
     }
 
     /**
-     * This class implements accessibility support for the 
-     * <code>JToggleButton</code> class.  It provides an implementation of the 
-     * Java Accessibility API appropriate to toggle button user-interface 
+     * This class implements accessibility support for the
+     * <code>JToggleButton</code> class.  It provides an implementation of the
+     * Java Accessibility API appropriate to toggle button user-interface
      * elements.
      * <p>
      * <strong>Warning:</strong>
@@ -368,17 +385,17 @@ public class JToggleButton extends AbstractButton implements Accessible {
      * Please see {@link java.beans.XMLEncoder}.
      */
     protected class AccessibleJToggleButton extends AccessibleAbstractButton
-	    implements ItemListener {
+            implements ItemListener {
 
-	public AccessibleJToggleButton() {
-	    super();
-	    JToggleButton.this.addItemListener(this);
-	}
+        public AccessibleJToggleButton() {
+            super();
+            JToggleButton.this.addItemListener(this);
+        }
 
-	/**
-	 * Fire accessible property change events when the state of the
-	 * toggle button changes.
-	 */
+        /**
+         * Fire accessible property change events when the state of the
+         * toggle button changes.
+         */
         public void itemStateChanged(ItemEvent e) {
             JToggleButton tb = (JToggleButton) e.getSource();
             if (JToggleButton.this.accessibleContext != null) {
@@ -397,7 +414,7 @@ public class JToggleButton extends AbstractButton implements Accessible {
         /**
          * Get the role of this object.
          *
-         * @return an instance of AccessibleRole describing the role of the 
+         * @return an instance of AccessibleRole describing the role of the
          * object
          */
         public AccessibleRole getAccessibleRole() {
@@ -405,4 +422,3 @@ public class JToggleButton extends AbstractButton implements Accessible {
         }
     } // inner class AccessibleJToggleButton
 }
-  

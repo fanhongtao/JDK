@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +20,10 @@
  */
 package com.sun.org.apache.xml.internal.security.algorithms;
 
-
-
 import java.security.MessageDigest;
 import java.security.NoSuchProviderException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureException;
 import com.sun.org.apache.xml.internal.security.utils.Constants;
@@ -36,11 +40,6 @@ import org.w3c.dom.Document;
  *
  */
 public class MessageDigestAlgorithm extends Algorithm {
-
-   /** {@link java.util.logging} logging facility */
-    static java.util.logging.Logger log = 
-        java.util.logging.Logger.getLogger(
-                    MessageDigestAlgorithm.class.getName());
 
     /** Message Digest - NOT RECOMMENDED MD5*/
    public static final String ALGO_ID_DIGEST_NOT_RECOMMENDED_MD5 = Constants.MoreAlgorithmsSpecNS + "md5";
@@ -72,6 +71,12 @@ public class MessageDigestAlgorithm extends Algorithm {
       this.algorithm = messageDigest;
    }
 
+   static ThreadLocal instances=new ThreadLocal() {
+           protected Object initialValue() {
+                   return new HashMap();
+           };
+   };
+
    /**
     * Factory method for constructing a message digest algorithm by name.
     *
@@ -82,35 +87,43 @@ public class MessageDigestAlgorithm extends Algorithm {
     */
    public static MessageDigestAlgorithm getInstance(
            Document doc, String algorithmURI) throws XMLSignatureException {
+          MessageDigest md = getDigestInstance(algorithmURI);
+      return new MessageDigestAlgorithm(doc, md, algorithmURI);
+   }
 
-      String algorithmID = JCEMapper.translateURItoJCEID(algorithmURI);
+private static MessageDigest getDigestInstance(String algorithmURI) throws XMLSignatureException {
+        MessageDigest result=(MessageDigest) ((Map)instances.get()).get(algorithmURI);
+        if (result!=null)
+                return result;
+    String algorithmID = JCEMapper.translateURItoJCEID(algorithmURI);
 
-	  if (algorithmID == null) {
-		  Object[] exArgs = { algorithmURI };
-		  throw new XMLSignatureException("algorithms.NoSuchMap", exArgs);
-	  }
+          if (algorithmID == null) {
+                  Object[] exArgs = { algorithmURI };
+                  throw new XMLSignatureException("algorithms.NoSuchMap", exArgs);
+          }
 
       MessageDigest md;
       String provider=JCEMapper.getProviderId();
-      try {      	
-      	 if (provider==null) {
-      	 	md = MessageDigest.getInstance(algorithmID);
-      	 } else {
-      	 	md = MessageDigest.getInstance(algorithmID,provider);
-      	 }
+      try {
+         if (provider==null) {
+                md = MessageDigest.getInstance(algorithmID);
+         } else {
+                md = MessageDigest.getInstance(algorithmID,provider);
+         }
       } catch (java.security.NoSuchAlgorithmException ex) {
          Object[] exArgs = { algorithmID,
                              ex.getLocalizedMessage() };
 
          throw new XMLSignatureException("algorithms.NoSuchAlgorithm", exArgs);
       } catch (NoSuchProviderException ex) {
-      	Object[] exArgs = { algorithmID,
-      						ex.getLocalizedMessage() };
-      	
-      	throw new XMLSignatureException("algorithms.NoSuchAlgorithm", exArgs);
-	}
-      return new MessageDigestAlgorithm(doc, md, algorithmURI);
-   }
+        Object[] exArgs = { algorithmID,
+                                                ex.getLocalizedMessage() };
+
+        throw new XMLSignatureException("algorithms.NoSuchAlgorithm", exArgs);
+        }
+      ((Map)instances.get()).put(algorithmURI, md);
+        return md;
+}
 
    /**
     * Returns the actual {@link java.security.MessageDigest} algorithm object

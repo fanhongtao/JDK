@@ -1,8 +1,26 @@
 /*
- * @(#)WritableRenderedImage.java	1.19 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ****************************************************************
@@ -19,7 +37,7 @@ package java.awt.image;
 import java.awt.Point;
 
 /**
- * WriteableRenderedImage is a common interface for objects which 
+ * WriteableRenderedImage is a common interface for objects which
  * contain or can produce image data in the form of Rasters and
  * which can be modified and/or written over.  The image
  * data may be stored/produced as a single tile or a regular array
@@ -57,7 +75,7 @@ public interface WritableRenderedImage extends RenderedImage
    * @param to the specified <code>TileObserver</code>
    */
   public void addTileObserver(TileObserver to);
- 
+
   /**
    * Removes an observer.  If the observer was not registered,
    * nothing happens.  If the observer was registered for multiple
@@ -65,10 +83,10 @@ public interface WritableRenderedImage extends RenderedImage
    * @param to the specified <code>TileObserver</code>
    */
   public void removeTileObserver(TileObserver to);
- 
+
   /**
-   * Checks out a tile for writing.  
-   * 
+   * Checks out a tile for writing.
+   *
    * The WritableRenderedImage is responsible for notifying all
    * of its TileObservers when a tile goes from having
    * no writers to having one writer.
@@ -80,7 +98,7 @@ public interface WritableRenderedImage extends RenderedImage
   public WritableRaster getWritableTile(int tileX, int tileY);
 
   /**
-   * Relinquishes the right to write to a tile.  If the caller 
+   * Relinquishes the right to write to a tile.  If the caller
    * continues to write to the tile, the results are undefined.
    * Calls to this method should only appear in matching pairs
    * with calls to getWritableTile; any other use will lead
@@ -100,7 +118,7 @@ public interface WritableRenderedImage extends RenderedImage
    *
    * @param tileX the X index of the tile.
    * @param tileY the Y index of the tile.
-   * @return <code>true</code> if specified tile is checked out 
+   * @return <code>true</code> if specified tile is checked out
    *         for writing; <code>false</code> otherwise.
    */
   public boolean isTileWritable(int tileX, int tileY);
@@ -117,7 +135,7 @@ public interface WritableRenderedImage extends RenderedImage
   /**
    * Returns whether any tile is checked out for writing.
    * Semantically equivalent to (getWritableTileIndices() != null).
-   * @return <code>true</code> if any tiles are checked out for 
+   * @return <code>true</code> if any tiles are checked out for
    *         writing; <code>false</code> otherwise.
    */
   public boolean hasTileWriters();

@@ -1,8 +1,26 @@
 /*
- * @(#)MBeanServerFileAccessController.java	1.11 08/12/18
- * 
- * Copyright 2006-2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.remote.security;
@@ -50,14 +68,14 @@ import javax.security.auth.Subject;
  * qualified by one or more <i>clauses</i>, where each clause looks
  * like <code>create <i>classNamePattern</i></code> or {@code
  * unregister}.  For example:</p>
- * 
+ *
  * <pre>
  * monitorRole  readonly
  * controlRole  readwrite \
  *              create javax.management.timer.*,javax.management.monitor.* \
  *              unregister
  * </pre>
- * 
+ *
  * <p>(The continuation lines with {@code \} come from the parser for
  * Properties files.)</p>
  */
@@ -274,19 +292,20 @@ public class MBeanServerFileAccessController
     private static Properties propertiesFromFile(String fname)
         throws IOException {
         FileInputStream fin = new FileInputStream(fname);
-        Properties p = new Properties();
-        p.load(fin);
-        // Properties.load does a buffered read so we don't need to wrap
-        // the FileInputStream in a BufferedInputStream.
-        fin.close();
-        return p;
+        try {
+            Properties p = new Properties();
+            p.load(fin);
+            return p;
+        } finally {
+            fin.close();
+        }
     }
 
     private synchronized void checkAccess(AccessType requiredAccess, String arg) {
         final AccessControlContext acc = AccessController.getContext();
-        final Subject s = (Subject)
-            AccessController.doPrivileged(new PrivilegedAction() {
-                    public Object run() {
+        final Subject s =
+            AccessController.doPrivileged(new PrivilegedAction<Subject>() {
+                    public Subject run() {
                         return Subject.getSubject(acc);
                     }
                 });

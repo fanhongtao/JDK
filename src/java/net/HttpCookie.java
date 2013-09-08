@@ -1,8 +1,26 @@
 /*
- * @(#)HttpCookie.java	1.5 05/11/17
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -14,7 +32,9 @@ import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import java.util.Date;
 
-import java.lang.NullPointerException;	// for javadoc
+import java.lang.NullPointerException;  // for javadoc
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * An HttpCookie object represents an http cookie, which carries state
@@ -32,67 +52,72 @@ import java.lang.NullPointerException;	// for javadoc
  *
  * <p>HttpCookie class can accept all these 3 forms of syntax.
  *
- * @version 1.5, 05/11/17
  * @author Edward Wang
  * @since 1.6
  */
 public final class HttpCookie implements Cloneable {
     /* ---------------- Fields -------------- */
-    
+
     //
     // The value of the cookie itself.
     //
-    
-    private String name;	// NAME= ... "$Name" style is reserved
-    private String value;	// value of NAME
+
+    private String name;        // NAME= ... "$Name" style is reserved
+    private String value;       // value of NAME
 
     //
     // Attributes encoded in the header's cookie fields.
     //
-    
-    private String comment;	// Comment=VALUE ... describes cookie's use
+
+    private String comment;     // Comment=VALUE ... describes cookie's use
     private String commentURL;  // CommentURL="http URL" ... describes cookie's use
-    private boolean toDiscard;	// Discard ... discard cookie unconditionally
-    private String domain;	// Domain=VALUE ... domain that sees cookie
-    private long maxAge = MAX_AGE_UNSPECIFIED;	// Max-Age=VALUE ... cookies auto-expire
-    private String path;	// Path=VALUE ... URLs that see the cookie
+    private boolean toDiscard;  // Discard ... discard cookie unconditionally
+    private String domain;      // Domain=VALUE ... domain that sees cookie
+    private long maxAge = MAX_AGE_UNSPECIFIED;  // Max-Age=VALUE ... cookies auto-expire
+    private String path;        // Path=VALUE ... URLs that see the cookie
     private String portlist;    // Port[="portlist"] ... the port cookie may be returned to
-    private boolean secure;	// Secure ... e.g. use SSL
-    private int version = 1;	// Version=1 ... RFC 2965 style
-    
+    private boolean secure;     // Secure ... e.g. use SSL
+    private boolean httpOnly;   // HttpOnly ... i.e. not accessible to scripts
+    private int version = 1;    // Version=1 ... RFC 2965 style
+
     //
     // Hold the creation time (in seconds) of the http cookie for later
     // expiration calculation
     //
     private long whenCreated = 0;
-    
-    
+
+
     //
     // Since the positive and zero max-age have their meanings,
     // this value serves as a hint as 'not specify max-age'
     //
     private final static long MAX_AGE_UNSPECIFIED = -1;
-    
-    
+
+
     //
-    // date format used by Netscape's cookie draft
+    // date formats used by Netscape's cookie draft
+    // as well as formats seen on various sites
     //
-    private final static String NETSCAPE_COOKIE_DATE_FORMAT = "EEE',' dd-MMM-yyyy HH:mm:ss 'GMT'";
-    
+    private final static String[] COOKIE_DATE_FORMATS = {
+        "EEE',' dd-MMM-yyyy HH:mm:ss 'GMT'",
+        "EEE',' dd MMM yyyy HH:mm:ss 'GMT'",
+        "EEE MMM dd yyyy HH:mm:ss 'GMT'Z"
+    };
+
     //
     // constant strings represent set-cookie header token
     //
     private final static String SET_COOKIE = "set-cookie:";
     private final static String SET_COOKIE2 = "set-cookie2:";
 
-    
+
     /* ---------------- Ctors -------------- */
 
     /**
      * Constructs a cookie with a specified name and value.
      *
-     * <p>The name must conform to RFC 2965. That means it can contain 
-     * only ASCII alphanumeric characters and cannot contain commas, 
+     * <p>The name must conform to RFC 2965. That means it can contain
+     * only ASCII alphanumeric characters and cannot contain commas,
      * semicolons, or white space or begin with a $ character. The cookie's
      * name cannot be changed after creation.
      *
@@ -102,17 +127,17 @@ public final class HttpCookie implements Cloneable {
      * <code>setValue</code> method.
      *
      * <p>By default, cookies are created according to the RFC 2965
-     * cookie specification. The version can be changed with the 
+     * cookie specification. The version can be changed with the
      * <code>setVersion</code> method.
      *
      *
-     * @param name 			a <code>String</code> specifying the name of the cookie
+     * @param name                      a <code>String</code> specifying the name of the cookie
      *
-     * @param value			a <code>String</code> specifying the value of the cookie
+     * @param value                     a <code>String</code> specifying the value of the cookie
      *
-     * @throws IllegalArgumentException	if the cookie name contains illegal characters
-     *					or it is one of the tokens reserved for use
-     *					by the cookie protocol
+     * @throws IllegalArgumentException if the cookie name contains illegal characters
+     *                                  or it is one of the tokens reserved for use
+     *                                  by the cookie protocol
      * @throws NullPointerException     if <tt>name</tt> is <tt>null</tt>
      * @see #setValue
      * @see #setVersion
@@ -121,19 +146,20 @@ public final class HttpCookie implements Cloneable {
 
     public HttpCookie(String name, String value) {
         name = name.trim();
-	if (name.length() == 0 || !isToken(name) || isReserved(name)) {
-	    throw new IllegalArgumentException("Illegal cookie name");
-	}
+        if (name.length() == 0 || !isToken(name) || isReserved(name)) {
+            throw new IllegalArgumentException("Illegal cookie name");
+        }
 
-	this.name = name;
-	this.value = value;
+        this.name = name;
+        this.value = value;
         toDiscard = false;
         secure = false;
-        
+
         whenCreated = System.currentTimeMillis();
+        portlist = null;
     }
-    
-    
+
+
     /**
      * Constructs cookies from set-cookie or set-cookie2 header string.
      * RFC 2965 section 3.2.2 set-cookie2 syntax indicates that one header line
@@ -153,15 +179,15 @@ public final class HttpCookie implements Cloneable {
      */
     public static List<HttpCookie> parse(String header) {
         int version = guessCookieVersion(header);
-        
+
         // if header start with set-cookie or set-cookie2, strip it off
         if (startsWithIgnoreCase(header, SET_COOKIE2)) {
             header = header.substring(SET_COOKIE2.length());
         } else if (startsWithIgnoreCase(header, SET_COOKIE)) {
             header = header.substring(SET_COOKIE.length());
         }
-        
-        
+
+
         List<HttpCookie> cookies = new java.util.ArrayList<HttpCookie>();
         // The Netscape cookie may have a comma in its expires attribute,
         // while the comma is the delimiter in rfc 2965/2109 cookie header string.
@@ -182,7 +208,7 @@ public final class HttpCookie implements Cloneable {
                 cookies.add(cookie);
             }
         }
-        
+
         return cookies;
     }
 
@@ -191,7 +217,7 @@ public final class HttpCookie implements Cloneable {
 
     /* ---------------- Public operations -------------- */
 
-    
+
     /**
      * Reports whether this http cookie has expired or not.
      *
@@ -200,90 +226,90 @@ public final class HttpCookie implements Cloneable {
      */
     public boolean hasExpired() {
         if (maxAge == 0) return true;
-        
+
         // if not specify max-age, this cookie should be
         // discarded when user agent is to be closed, but
         // it is not expired.
         if (maxAge == MAX_AGE_UNSPECIFIED) return false;
-        
+
         long deltaSecond = (System.currentTimeMillis() - whenCreated) / 1000;
         if (deltaSecond > maxAge)
             return true;
         else
             return false;
     }
-    
+
     /**
      *
      * Specifies a comment that describes a cookie's purpose.
-     * The comment is useful if the browser presents the cookie 
+     * The comment is useful if the browser presents the cookie
      * to the user. Comments
      * are not supported by Netscape Version 0 cookies.
      *
-     * @param purpose		a <code>String</code> specifying the comment 
-     *				to display to the user
+     * @param purpose           a <code>String</code> specifying the comment
+     *                          to display to the user
      *
      * @see #getComment
      *
      */
 
     public void setComment(String purpose) {
-	comment = purpose;
+        comment = purpose;
     }
-    
-    
-    
+
+
+
 
     /**
      * Returns the comment describing the purpose of this cookie, or
      * <code>null</code> if the cookie has no comment.
      *
-     * @return			a <code>String</code> containing the comment,
-     *				or <code>null</code> if none
+     * @return                  a <code>String</code> containing the comment,
+     *                          or <code>null</code> if none
      *
      * @see #setComment
      *
-     */ 
+     */
 
     public String getComment() {
-	return comment;
+        return comment;
     }
-    
-    
+
+
     /**
      *
      * Specifies a comment url that describes a cookie's purpose.
-     * The comment url is useful if the browser presents the cookie 
+     * The comment url is useful if the browser presents the cookie
      * to the user. Comment url is RFC 2965 only.
      *
-     * @param purpose		a <code>String</code> specifying the comment url
-     *				to display to the user
+     * @param purpose           a <code>String</code> specifying the comment url
+     *                          to display to the user
      *
      * @see #getCommentURL
      *
      */
 
     public void setCommentURL(String purpose) {
-	commentURL = purpose;
+        commentURL = purpose;
     }
-    
-    
-    
+
+
+
 
     /**
      * Returns the comment url describing the purpose of this cookie, or
      * <code>null</code> if the cookie has no comment url.
      *
-     * @return			a <code>String</code> containing the comment url,
-     *				or <code>null</code> if none
+     * @return                  a <code>String</code> containing the comment url,
+     *                          or <code>null</code> if none
      *
      * @see #setCommentURL
      *
-     */ 
+     */
 
     public String getCommentURL() {
-	return commentURL;
-    }    
+        return commentURL;
+    }
 
 
     /**
@@ -296,11 +322,11 @@ public final class HttpCookie implements Cloneable {
      */
 
     public void setDiscard(boolean discard) {
-	toDiscard = discard;
+        toDiscard = discard;
     }
-    
-    
-    
+
+
+
 
     /**
      * Return the discard attribute of the cookie
@@ -308,11 +334,11 @@ public final class HttpCookie implements Cloneable {
      * @return  a <tt>boolean</tt> to represent this cookie's discard attribute
      *
      * @see #setDiscard
-     */ 
+     */
 
     public boolean getDiscard() {
-	return toDiscard;
-    }    
+        return toDiscard;
+    }
 
 
     /**
@@ -325,11 +351,11 @@ public final class HttpCookie implements Cloneable {
      */
 
     public void setPortlist(String ports) {
-	portlist = ports;
+        portlist = ports;
     }
-    
-    
-    
+
+
+
 
     /**
      * Return the port list attribute of the cookie
@@ -337,12 +363,12 @@ public final class HttpCookie implements Cloneable {
      * @return  a <tt>String</tt> contains the port list
      *          or <tt>null</tt> if none
      * @see #setPortlist
-     */ 
+     */
 
     public String getPortlist() {
-	return portlist;
+        return portlist;
     }
-    
+
     /**
      *
      * Specifies the domain within which this cookie should be presented.
@@ -350,14 +376,14 @@ public final class HttpCookie implements Cloneable {
      * <p>The form of the domain name is specified by RFC 2965. A domain
      * name begins with a dot (<code>.foo.com</code>) and means that
      * the cookie is visible to servers in a specified Domain Name System
-     * (DNS) zone (for example, <code>www.foo.com</code>, but not 
+     * (DNS) zone (for example, <code>www.foo.com</code>, but not
      * <code>a.b.foo.com</code>). By default, cookies are only returned
      * to the server that sent them.
      *
      *
-     * @param pattern		a <code>String</code> containing the domain name
-     *				within which this cookie is visible;
-     *				form is according to RFC 2965
+     * @param pattern           a <code>String</code> containing the domain name
+     *                          within which this cookie is visible;
+     *                          form is according to RFC 2965
      *
      * @see #getDomain
      *
@@ -369,23 +395,23 @@ public final class HttpCookie implements Cloneable {
         else
             domain = pattern;
     }
-    
-    
-    
-    
+
+
+
+
 
     /**
-     * Returns the domain name set for this cookie. The form of 
+     * Returns the domain name set for this cookie. The form of
      * the domain name is set by RFC 2965.
      *
-     * @return			a <code>String</code> containing the domain name
+     * @return                  a <code>String</code> containing the domain name
      *
      * @see #setDomain
      *
-     */ 
+     */
 
     public String getDomain() {
-	return domain;
+        return domain;
     }
 
 
@@ -402,8 +428,8 @@ public final class HttpCookie implements Cloneable {
      * when the Web browser exits. A zero value causes the cookie
      * to be deleted.
      *
-     * @param expiry		an integer specifying the maximum age of the
-     * 				cookie in seconds; if zero, the cookie
+     * @param expiry            an integer specifying the maximum age of the
+     *                          cookie in seconds; if zero, the cookie
      *                          should be discarded immediately;
      *                          otherwise, the cookie's max age is unspecified.
      *
@@ -411,7 +437,7 @@ public final class HttpCookie implements Cloneable {
      *
      */
     public void setMaxAge(long expiry) {
-	maxAge = expiry;
+        maxAge = expiry;
     }
 
 
@@ -423,8 +449,8 @@ public final class HttpCookie implements Cloneable {
      * until browser shutdown.
      *
      *
-     * @return			an integer specifying the maximum age of the
-     *				cookie in seconds
+     * @return                  an integer specifying the maximum age of the
+     *                          cookie in seconds
      *
      *
      * @see #setMaxAge
@@ -432,18 +458,18 @@ public final class HttpCookie implements Cloneable {
      */
 
     public long getMaxAge() {
-	return maxAge;
+        return maxAge;
     }
-    
-    
-    
-    
+
+
+
+
     /**
      * Specifies a path for the cookie
      * to which the client should return the cookie.
      *
      * <p>The cookie is visible to all the pages in the directory
-     * you specify, and all the pages in that directory's subdirectories. 
+     * you specify, and all the pages in that directory's subdirectories.
      * A cookie's path must include the servlet that set the cookie,
      * for example, <i>/catalog</i>, which makes the cookie
      * visible to all directories on the server under <i>/catalog</i>.
@@ -452,7 +478,7 @@ public final class HttpCookie implements Cloneable {
      * information on setting path names for cookies.
      *
      *
-     * @param uri		a <code>String</code> specifying a path
+     * @param uri               a <code>String</code> specifying a path
      *
      *
      * @see #getPath
@@ -460,27 +486,27 @@ public final class HttpCookie implements Cloneable {
      */
 
     public void setPath(String uri) {
-	path = uri;
+        path = uri;
     }
 
 
 
 
     /**
-     * Returns the path on the server 
+     * Returns the path on the server
      * to which the browser returns this cookie. The
      * cookie is visible to all subpaths on the server.
      *
      *
-     * @return		a <code>String</code> specifying a path that contains
-     *			a servlet name, for example, <i>/catalog</i>
+     * @return          a <code>String</code> specifying a path that contains
+     *                  a servlet name, for example, <i>/catalog</i>
      *
      * @see #setPath
      *
-     */ 
+     */
 
     public String getPath() {
-	return path;
+        return path;
     }
 
 
@@ -488,40 +514,40 @@ public final class HttpCookie implements Cloneable {
 
 
     /**
-     * Indicates to the browser whether the cookie should only be sent
-     * using a secure protocol, such as HTTPS or SSL.
+     * Indicates whether the cookie should only be sent using a secure protocol,
+     * such as HTTPS or SSL.
      *
      * <p>The default value is <code>false</code>.
      *
-     * @param flag	if <code>true</code>, sends the cookie from the browser
-     *			to the server using only when using a secure protocol;
-     *			if <code>false</code>, sent on any protocol
+     * @param flag      If <code>true</code>, the cookie can only be sent over
+     *                  a secure protocol like https.
+     *                  If <code>false</code>, it can be sent over any protocol.
      *
      * @see #getSecure
      *
      */
- 
+
     public void setSecure(boolean flag) {
-	secure = flag;
+        secure = flag;
     }
 
 
 
 
     /**
-     * Returns <code>true</code> if the browser is sending cookies
-     * only over a secure protocol, or <code>false</code> if the
-     * browser can send cookies using any protocol.
+     * Returns <code>true</code> if sending this cookie should be
+     * restricted to a secure protocol, or <code>false</code> if the
+     * it can be sent using any protocol.
      *
-     * @return		<code>true</code> if the browser can use
-     *			any standard protocol; otherwise, <code>false</code>
+     * @return          <code>false</code> if the cookie can be sent over
+     *                  any standard protocol; otherwise, <code>true</code>
      *
      * @see #setSecure
      *
      */
 
     public boolean getSecure() {
-	return secure;
+        return secure;
     }
 
 
@@ -532,12 +558,12 @@ public final class HttpCookie implements Cloneable {
      * Returns the name of the cookie. The name cannot be changed after
      * creation.
      *
-     * @return		a <code>String</code> specifying the cookie's name
+     * @return          a <code>String</code> specifying the cookie's name
      *
      */
 
     public String getName() {
-	return name;
+        return name;
     }
 
 
@@ -549,13 +575,13 @@ public final class HttpCookie implements Cloneable {
      * Assigns a new value to a cookie after the cookie is created.
      * If you use a binary value, you may want to use BASE64 encoding.
      *
-     * <p>With Version 0 cookies, values should not contain white 
+     * <p>With Version 0 cookies, values should not contain white
      * space, brackets, parentheses, equals signs, commas,
      * double quotes, slashes, question marks, at signs, colons,
      * and semicolons. Empty values may not behave the same way
      * on all browsers.
      *
-     * @param newValue		a <code>String</code> specifying the new value 
+     * @param newValue          a <code>String</code> specifying the new value
      *
      *
      * @see #getValue
@@ -563,7 +589,7 @@ public final class HttpCookie implements Cloneable {
      */
 
     public void setValue(String newValue) {
-	value = newValue;
+        value = newValue;
     }
 
 
@@ -572,38 +598,38 @@ public final class HttpCookie implements Cloneable {
     /**
      * Returns the value of the cookie.
      *
-     * @return			a <code>String</code> containing the cookie's
-     *				present value
+     * @return                  a <code>String</code> containing the cookie's
+     *                          present value
      *
      * @see #setValue
      *
      */
 
     public String getValue() {
-	return value;
+        return value;
     }
 
 
 
 
     /**
-     * Returns the version of the protocol this cookie complies 
-     * with. Version 1 complies with RFC 2965/2109, 
+     * Returns the version of the protocol this cookie complies
+     * with. Version 1 complies with RFC 2965/2109,
      * and version 0 complies with the original
      * cookie specification drafted by Netscape. Cookies provided
      * by a browser use and identify the browser's cookie version.
      *
      *
-     * @return			0 if the cookie complies with the
-     *				original Netscape specification; 1
-     *				if the cookie complies with RFC 2965/2109
+     * @return                  0 if the cookie complies with the
+     *                          original Netscape specification; 1
+     *                          if the cookie complies with RFC 2965/2109
      *
      * @see #setVersion
      *
      */
 
     public int getVersion() {
-	return version;
+        return version;
     }
 
 
@@ -615,9 +641,9 @@ public final class HttpCookie implements Cloneable {
      * specification. Version 1 complies with RFC 2965/2109.
      *
      *
-     * @param v			0 if the cookie should comply with 
-     *				the original Netscape specification;
-     *				1 if the cookie should comply with RFC 2965/2109
+     * @param v                 0 if the cookie should comply with
+     *                          the original Netscape specification;
+     *                          1 if the cookie should comply with RFC 2965/2109
      *
      * @throws IllegalArgumentException if <tt>v</tt> is neither 0 nor 1
      *
@@ -629,10 +655,36 @@ public final class HttpCookie implements Cloneable {
         if (v != 0 && v != 1) {
             throw new IllegalArgumentException("cookie version should be 0 or 1");
         }
-        
-	version = v;
+
+        version = v;
     }
 
+    /**
+     * Returns {@code true} if this cookie contains the <i>HttpOnly</i>
+     * attribute. This means that the cookie should not be accessible to
+     * scripting engines, like javascript.
+     *
+     * @return {@code true} if this cookie should be considered http only.
+     * @see #setHttpOnly(boolean)
+     */
+    public boolean isHttpOnly()
+    {
+        return httpOnly;
+    }
+
+    /**
+     * Indicates whether the cookie should be considered HTTP Only. If set to
+     * {@code true} it means the cookie should not be accessible to scripting
+     * engines like javascript.
+     *
+     * @param httpOnly if {@code true} make the cookie HTTP only, i.e.
+     *                 only visible as part of an HTTP request.
+     * @see #isHttpOnly()
+     */
+    public void setHttpOnly(boolean httpOnly)
+    {
+        this.httpOnly = httpOnly;
+    }
 
     /**
      * The utility method to check whether a host name is in a domain
@@ -686,7 +738,7 @@ public final class HttpCookie implements Cloneable {
     public static boolean domainMatches(String domain, String host) {
         if (domain == null || host == null)
             return false;
-        
+
         // if there's no embedded dot in domain and domain is not .local
         boolean isLocalDomain = ".local".equalsIgnoreCase(domain);
         int embeddedDotInDomain = domain.indexOf('.');
@@ -695,12 +747,12 @@ public final class HttpCookie implements Cloneable {
         if (!isLocalDomain
             && (embeddedDotInDomain == -1 || embeddedDotInDomain == domain.length() - 1))
             return false;
-        
+
         // if the host name contains no dot and the domain name is .local
         int firstDotInHost = host.indexOf('.');
         if (firstDotInHost == -1 && isLocalDomain)
             return true;
-        
+
         int domainLength = domain.length();
         int lengthDiff = host.length() - domainLength;
         if (lengthDiff == 0) {
@@ -711,15 +763,15 @@ public final class HttpCookie implements Cloneable {
             // need to check H & D component
             String H = host.substring(0, lengthDiff);
             String D = host.substring(lengthDiff);
-            
+
             return (H.indexOf('.') == -1 && D.equalsIgnoreCase(domain));
         }
         else if (lengthDiff == -1) {
             // if domain is actually .host
-            return (domain.charAt(0) == '.' && 
+            return (domain.charAt(0) == '.' &&
                         host.equalsIgnoreCase(domain.substring(1)));
         }
-        
+
         return false;
     }
 
@@ -731,6 +783,7 @@ public final class HttpCookie implements Cloneable {
      *
      * @return  a string form of the cookie. The string has the defined format
      */
+    @Override
     public String toString() {
         if (getVersion() > 0) {
             return toRFC2965HeaderString();
@@ -738,8 +791,8 @@ public final class HttpCookie implements Cloneable {
             return toNetscapeHeaderString();
         }
     }
-    
-    
+
+
     /**
      * Test the equality of two http cookies.
      *
@@ -751,6 +804,7 @@ public final class HttpCookie implements Cloneable {
      * @return          <tt>true</tt> if 2 http cookies equal to each other;
      *                  otherwise, <tt>false</tt>
      */
+    @Override
     public boolean equals(Object obj) {
         if (obj == this)
             return true;
@@ -764,10 +818,10 @@ public final class HttpCookie implements Cloneable {
         //   3. and have same path (case-sensitive).
         return equalsIgnoreCase(getName(), other.getName()) &&
                equalsIgnoreCase(getDomain(), other.getDomain()) &&
-               equals(getPath(), other.getPath());
+               Objects.equals(getPath(), other.getPath());
     }
-    
-    
+
+
     /**
      * Return hash code of this http cookie. The result is the sum of
      * hash code value of three significant components of this cookie:
@@ -781,25 +835,27 @@ public final class HttpCookie implements Cloneable {
      *
      * @return          this http cookie's hash code
      */
+    @Override
     public int hashCode() {
         int h1 = name.toLowerCase().hashCode();
         int h2 = (domain!=null) ? domain.toLowerCase().hashCode() : 0;
         int h3 = (path!=null) ? path.hashCode() : 0;
-        
+
         return h1 + h2 + h3;
     }
-    
+
     /**
      * Create and return a copy of this object.
      *
      * @return          a clone of this http cookie
      */
+    @Override
     public Object clone() {
-	try {
-	    return super.clone();
-	} catch (CloneNotSupportedException e) {
-	    throw new RuntimeException(e.getMessage());
-	}
+        try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
 
@@ -807,33 +863,33 @@ public final class HttpCookie implements Cloneable {
 
     // Note -- disabled for now to allow full Netscape compatibility
     // from RFC 2068, token special case characters
-    // 
+    //
     // private static final String tspecials = "()<>@,;:\\\"/[]?={} \t";
     private static final String tspecials = ",;";
 
     /*
-     * Tests a string and returns true if the string counts as a 
+     * Tests a string and returns true if the string counts as a
      * token.
-     * 
-     * @param value		the <code>String</code> to be tested
      *
-     * @return			<code>true</code> if the <code>String</code> is
-     *				a token; <code>false</code> if it is not
+     * @param value             the <code>String</code> to be tested
+     *
+     * @return                  <code>true</code> if the <code>String</code> is
+     *                          a token; <code>false</code> if it is not
      */
 
     private static boolean isToken(String value) {
-	int len = value.length();
+        int len = value.length();
 
-	for (int i = 0; i < len; i++) {
-	    char c = value.charAt(i);
+        for (int i = 0; i < len; i++) {
+            char c = value.charAt(i);
 
-	    if (c < 0x20 || c >= 0x7f || tspecials.indexOf(c) != -1)
-		return false;
-	}
-	return true;
+            if (c < 0x20 || c >= 0x7f || tspecials.indexOf(c) != -1)
+                return false;
+        }
+        return true;
     }
-    
-    
+
+
     /*
      * @param name      the name to be tested
      * @return          <tt>true</tt> if the name is reserved by cookie
@@ -842,19 +898,20 @@ public final class HttpCookie implements Cloneable {
     private static boolean isReserved(String name) {
         if (name.equalsIgnoreCase("Comment")
             || name.equalsIgnoreCase("CommentURL")      // rfc2965 only
-            || name.equalsIgnoreCase("Discard")	        // rfc2965 only
+            || name.equalsIgnoreCase("Discard")         // rfc2965 only
             || name.equalsIgnoreCase("Domain")
-            || name.equalsIgnoreCase("Expires")	        // netscape draft only
+            || name.equalsIgnoreCase("Expires")         // netscape draft only
             || name.equalsIgnoreCase("Max-Age")
             || name.equalsIgnoreCase("Path")
             || name.equalsIgnoreCase("Port")            // rfc2965 only
             || name.equalsIgnoreCase("Secure")
             || name.equalsIgnoreCase("Version")
+            || name.equalsIgnoreCase("HttpOnly")
             || name.charAt(0) == '$')
         {
             return true;
         }
-        
+
         return false;
     }
 
@@ -873,9 +930,9 @@ public final class HttpCookie implements Cloneable {
     {
         HttpCookie cookie = null;
         String namevaluePair = null;
-        
+
         StringTokenizer tokenizer = new StringTokenizer(header, ";");
-        
+
         // there should always have at least on name-value pair;
         // it's cookie's name
         try {
@@ -905,15 +962,15 @@ public final class HttpCookie implements Cloneable {
                 name = namevaluePair.trim();
                 value = null;
             }
-            
+
             // assign attribute to cookie
             assignAttribute(cookie, name, value);
         }
-        
+
         return cookie;
     }
-    
-    
+
+
     /*
      * assign cookie attribute value to attribute name;
      * use a map to simulate method dispatch
@@ -961,12 +1018,17 @@ public final class HttpCookie implements Cloneable {
             });
         assignors.put("port", new CookieAttributeAssignor(){
                 public void assign(HttpCookie cookie, String attrName, String attrValue) {
-                    if (cookie.getPortlist() == null) cookie.setPortlist(attrValue);
+                    if (cookie.getPortlist() == null) cookie.setPortlist(attrValue == null ? "" : attrValue);
                 }
             });
         assignors.put("secure", new CookieAttributeAssignor(){
                 public void assign(HttpCookie cookie, String attrName, String attrValue) {
                     cookie.setSecure(true);
+                }
+            });
+        assignors.put("httponly", new CookieAttributeAssignor(){
+                public void assign(HttpCookie cookie, String attrName, String attrValue) {
+                    cookie.setHttpOnly(true);
                 }
             });
         assignors.put("version", new CookieAttributeAssignor(){
@@ -975,7 +1037,7 @@ public final class HttpCookie implements Cloneable {
                         int version = Integer.parseInt(attrValue);
                         cookie.setVersion(version);
                     } catch (NumberFormatException ignored) {
-                        throw new IllegalArgumentException("Illegal cookie version attribute");
+                        // Just ignore bogus version, it will default to 0 or 1
                     }
                 }
             });
@@ -993,35 +1055,34 @@ public final class HttpCookie implements Cloneable {
     {
         // strip off the surrounding "-sign if there's any
         attrValue = stripOffSurroundingQuote(attrValue);
-        
+
         CookieAttributeAssignor assignor = assignors.get(attrName.toLowerCase());
         if (assignor != null) {
             assignor.assign(cookie, attrName, attrValue);
         } else {
-            // must be an error
-            throw new IllegalArgumentException("Illegal cookie attribute");
+            // Ignore the attribute as per RFC 2965
         }
     }
-    
+
     /*
      * Constructs a string representation of this cookie. The string format is
      * as Netscape spec, but without leading "Cookie:" token.
      */
     private String toNetscapeHeaderString() {
         StringBuilder sb = new StringBuilder();
-        
+
         sb.append(getName() + "=" + getValue());
-        
+
         return sb.toString();
     }
-    
+
     /*
      * Constructs a string representation of this cookie. The string format is
      * as RFC 2965/2109, but without leading "Cookie:" token.
      */
     private String toRFC2965HeaderString() {
         StringBuilder sb = new StringBuilder();
-        
+
         sb.append(getName()).append("=\"").append(getValue()).append('"');
         if (getPath() != null)
             sb.append(";$Path=\"").append(getPath()).append('"');
@@ -1029,38 +1090,41 @@ public final class HttpCookie implements Cloneable {
             sb.append(";$Domain=\"").append(getDomain()).append('"');
         if (getPortlist() != null)
             sb.append(";$Port=\"").append(getPortlist()).append('"');
-        
+
         return sb.toString();
     }
-    
+
+    static final TimeZone GMT = TimeZone.getTimeZone("GMT");
+
     /*
-     * @param dateString        a date string in format of
-     *                          "EEE',' dd-MMM-yyyy HH:mm:ss 'GMT'",
-     *                          which defined in Netscape cookie spec
+     * @param dateString        a date string in one of the formats
+     *                          defined in Netscape cookie spec
      *
      * @return                  delta seconds between this cookie's creation
      *                          time and the time specified by dateString
      */
     private long expiryDate2DeltaSeconds(String dateString) {
-        SimpleDateFormat df = new SimpleDateFormat(NETSCAPE_COOKIE_DATE_FORMAT);
-        df.setTimeZone(TimeZone.getTimeZone("GMT"));
-        
-        try {
-            Date date = df.parse(dateString);
-            return (date.getTime() - whenCreated) / 1000;
-        } catch (Exception e) {
-            return 0;
+        for (int i = 0; i < COOKIE_DATE_FORMATS.length; i++) {
+            SimpleDateFormat df = new SimpleDateFormat(COOKIE_DATE_FORMATS[i], Locale.US);
+            df.setTimeZone(GMT);
+            try {
+                Date date = df.parse(dateString);
+                return (date.getTime() - whenCreated) / 1000;
+            } catch (Exception e) {
+                // Ignore, try the next date format
+            }
         }
+        return 0;
     }
-    
-    
-    
+
+
+
     /*
      * try to guess the cookie version through set-cookie header string
      */
     private static int guessCookieVersion(String header) {
         int version = 0;
-        
+
         header = header.toLowerCase();
         if (header.indexOf("expires=") != -1) {
             // only netscape cookie using 'expires'
@@ -1075,46 +1139,41 @@ public final class HttpCookie implements Cloneable {
             // only rfc 2965 cookie starts with 'set-cookie2'
             version = 1;
         }
-        
+
         return version;
     }
-    
+
     private static String stripOffSurroundingQuote(String str) {
-        if (str != null && str.length() > 0 &&
+        if (str != null && str.length() > 2 &&
             str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"') {
             return str.substring(1, str.length() - 1);
-        } else {
-            return str;
         }
+        if (str != null && str.length() > 2 &&
+            str.charAt(0) == '\'' && str.charAt(str.length() - 1) == '\'') {
+            return str.substring(1, str.length() - 1);
+        }
+        return str;
     }
 
     private static boolean equalsIgnoreCase(String s, String t) {
-	if (s == t) return true;
-	if ((s != null) && (t != null)) {
+        if (s == t) return true;
+        if ((s != null) && (t != null)) {
             return s.equalsIgnoreCase(t);
-	}
-	return false;
+        }
+        return false;
     }
 
-    private static boolean equals(String s, String t) {
-	if (s == t) return true;
-	if ((s != null) && (t != null)) {
-            return s.equals(t);
-	}
-	return false;
-    }
-    
     private static boolean startsWithIgnoreCase(String s, String start) {
         if (s == null || start == null) return false;
-        
+
         if (s.length() >= start.length() &&
                 start.equalsIgnoreCase(s.substring(0, start.length()))) {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /*
      * Split cookie header string according to rfc 2965:
      *   1) split where it is a comma;
@@ -1130,7 +1189,7 @@ public final class HttpCookie implements Cloneable {
         List<String> cookies = new java.util.ArrayList<String>();
         int quoteCount = 0;
         int p, q;
-        
+
         for (p = 0, q = 0; p < header.length(); p++) {
             char c = header.charAt(p);
             if (c == '"') quoteCount++;
@@ -1139,10 +1198,9 @@ public final class HttpCookie implements Cloneable {
                 q = p + 1;
             }
         }
-        
+
         cookies.add(header.substring(q));
-        
+
         return cookies;
     }
 }
-

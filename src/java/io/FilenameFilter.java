@@ -1,8 +1,26 @@
 /*
- * @(#)FilenameFilter.java	1.24 05/11/17
+ * Copyright (c) 1994, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -16,7 +34,6 @@ package java.io;
  *
  * @author  Arthur van Hoff
  * @author  Jonathan Payne
- * @version 1.24, 11/17/05
  * @see     java.awt.FileDialog#setFilenameFilter(java.io.FilenameFilter)
  * @see     java.io.File
  * @see     java.io.File#list(java.io.FilenameFilter)

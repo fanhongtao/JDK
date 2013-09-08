@@ -1,15 +1,31 @@
 /*
- * @(#)ColorChooserComponentFactory.java	1.18 05/11/17
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.colorchooser;
 
-import javax.swing.*;
-
-
+import javax.swing.JComponent;
 
 /**
  * A class designed to produce preconfigured "accessory" objects to
@@ -25,23 +41,23 @@ import javax.swing.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.18 11/17/05
  * @author Steve Wilson
  */
 public class ColorChooserComponentFactory {
 
     private ColorChooserComponentFactory() { } // can't instantiate
 
-
     public static AbstractColorChooserPanel[] getDefaultChooserPanels() {
-        AbstractColorChooserPanel[] choosers = { new DefaultSwatchChooserPanel(),
-						 new DefaultHSBChooserPanel(),
-						 new DefaultRGBChooserPanel() };
-        return choosers;
+        return new AbstractColorChooserPanel[] {
+                new DefaultSwatchChooserPanel(),
+                new ColorChooserPanel(new ColorModelHSV()),
+                new ColorChooserPanel(new ColorModelHSL()),
+                new ColorChooserPanel(new ColorModel()),
+                new ColorChooserPanel(new ColorModelCMYK()),
+        };
     }
 
     public static JComponent getPreviewPanel() {
         return new DefaultPreviewPanel();
     }
-
 }

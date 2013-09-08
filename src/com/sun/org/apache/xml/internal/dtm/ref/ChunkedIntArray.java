@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +21,7 @@
  * $Id: ChunkedIntArray.java,v 1.2.4.1 2005/09/15 08:14:58 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
- 
+
 import com.sun.org.apache.xml.internal.res.XMLErrorResources;
 import com.sun.org.apache.xml.internal.res.XMLMessages;
 
@@ -29,7 +33,7 @@ import com.sun.org.apache.xml.internal.res.XMLMessages;
  * <p>Making this a separate class means some call-and-return overhead. But
  * doing it all inline tends to be fragile and expensive in coder time,
  * not to mention driving up code size. If you want to inline it, feel free.
- * The Java text suggest that private and Final methods may be inlined, 
+ * The Java text suggest that private and Final methods may be inlined,
  * and one can argue that this beast need not be made subclassable...</p>
  *
  * <p>%REVIEW% This has strong conceptual overlap with the IntVector class.
@@ -43,7 +47,7 @@ final class ChunkedIntArray
   static final int lowbits=10; // How many bits address within chunks
   static final int chunkalloc=1<<lowbits;
   static final int lowmask=chunkalloc-1;
-  
+
   ChunksVector chunks=new ChunksVector();
   final int fastArray[] = new int[chunkalloc];
   int lastUsed=0;
@@ -125,7 +129,7 @@ final class ChunkedIntArray
       return chunk[slotpos + offset];
     }
   }
-  
+
   // Check that the node at index "position" is not an ancestor
   // of the node at index "startPos". IF IT IS, DO NOT ACCEPT IT AND
   // RETURN -1. If position is NOT an ancestor, return position.
@@ -144,7 +148,7 @@ final class ChunkedIntArray
                 int chunkpos = ancestor >> lowbits;
                 int slotpos = ancestor & lowmask;
                 int[] chunk = chunks.elementAt(chunkpos);
-                                                        
+
                 // Get that node's parent (Note that this assumes w[1]
                 // is the parent node index. That's really a DTM feature
                 // rather than a ChunkedIntArray feature.)
@@ -154,13 +158,13 @@ final class ChunkedIntArray
                          break;
           }
 
-          if (ancestor <= 0) 
+          if (ancestor <= 0)
           {
                   return position;
           }
           return -1;
   }
-  
+
   /**
    * @return int index of highest-numbered record currently in use
    */
@@ -211,7 +215,7 @@ final class ChunkedIntArray
    * Overwrite an entire (4-integer) record at the specified index.
    * Mostly used to create record 0, the Document node.
    * @param position integer Record number
-   * @param w0 int 
+   * @param w0 int
    * @param w1 int
    * @param w2 int
    * @param w3 int
@@ -269,16 +273,16 @@ final class ChunkedIntArray
     int[] m_map[] = new int[BLOCKSIZE][];
     int m_mapSize = BLOCKSIZE;
     int pos = 0;
-    
+
     ChunksVector()
     {
     }
-    
+
     final int size()
     {
       return pos;
     }
-    
+
     void addElement(int[] value)
     {
       if(pos >= m_mapSize)
@@ -290,12 +294,12 @@ final class ChunkedIntArray
         System.arraycopy(m_map, 0, newMap, 0, orgMapSize);
         m_map = newMap;
       }
-      // For now, just do a simple append.  A sorted insert only 
+      // For now, just do a simple append.  A sorted insert only
       // makes sense if we're doing an binary search or some such.
       m_map[pos] = value;
       pos++;
     }
-    
+
     final int[] elementAt(int pos)
     {
       return m_map[pos];

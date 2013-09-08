@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,17 +32,17 @@ import com.sun.org.apache.xalan.internal.xsltc.CollatorFactory;
  * @author W. Eliot Kimber (eliot@isogen.com)
  */
 public class CollatorFactoryBase implements CollatorFactory {
-    
+
     public static final Locale DEFAULT_LOCALE = Locale.getDefault();
     public static final Collator DEFAULT_COLLATOR = Collator.getInstance();
-    
+
     public CollatorFactoryBase() {
     }
-    
+
     public Collator getCollator(String lang, String country) {
         return Collator.getInstance(new Locale(lang, country));
     }
-    
+
     public Collator getCollator(Locale locale) {
         if (locale == DEFAULT_LOCALE)
             return DEFAULT_COLLATOR;

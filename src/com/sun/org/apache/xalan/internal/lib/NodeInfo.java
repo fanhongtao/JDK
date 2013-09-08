@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,7 +72,7 @@ public class NodeInfo
   {
     if (nodeList == null || nodeList.getLength() == 0)
       return null;
-    
+
     Node node = nodeList.item(0);
     int nodeHandler = ((DTMNodeProxy)node).getDTMNodeNumber();
     SourceLocator locator = ((DTMNodeProxy)node).getDTM()
@@ -83,7 +87,7 @@ public class NodeInfo
   /**
    * <code>publicId</code> returns the public identifier of the current
    * context node.
-   * 
+   *
    * Xalan does not currently record this value, and will return null.
    *
    * @param context an <code>ExpressionContext</code> value
@@ -106,7 +110,7 @@ public class NodeInfo
    * <code>publicId</code> returns the public identifier of the node passed as
    * argument. If a node set is passed as argument, the public identifier of
    * the first node in the set is returned.
-   * 
+   *
    * Xalan does not currently record this value, and will return null.
    *
    * @param nodeList a <code>NodeList</code> value
@@ -116,7 +120,7 @@ public class NodeInfo
   {
     if (nodeList == null || nodeList.getLength() == 0)
       return null;
-    
+
     Node node = nodeList.item(0);
     int nodeHandler = ((DTMNodeProxy)node).getDTMNodeNumber();
     SourceLocator locator = ((DTMNodeProxy)node).getDTM()
@@ -131,9 +135,9 @@ public class NodeInfo
   /**
    * <code>lineNumber</code> returns the line number of the current
    * context node.
-   * 
-   * NOTE: Xalan does not normally record location information for each node. 
-   * To obtain it, you must set the custom TrAX attribute 
+   *
+   * NOTE: Xalan does not normally record location information for each node.
+   * To obtain it, you must set the custom TrAX attribute
    * "http://xml.apache.org/xalan/features/source_location"
    * true in the TransformerFactory before generating the Transformer and executing
    * the stylesheet. Storage cost per node will be noticably increased in this mode.
@@ -160,8 +164,8 @@ public class NodeInfo
    * passed as argument. If a node set is passed as argument, the line
    * number of the first node in the set is returned.
    *
-   * NOTE: Xalan does not normally record location information for each node. 
-   * To obtain it, you must set the custom TrAX attribute 
+   * NOTE: Xalan does not normally record location information for each node.
+   * To obtain it, you must set the custom TrAX attribute
    * "http://xml.apache.org/xalan/features/source_location"
    * true in the TransformerFactory before generating the Transformer and executing
    * the stylesheet. Storage cost per node will be noticably increased in this mode.
@@ -174,7 +178,7 @@ public class NodeInfo
   {
     if (nodeList == null || nodeList.getLength() == 0)
       return -1;
-    
+
     Node node = nodeList.item(0);
     int nodeHandler = ((DTMNodeProxy)node).getDTMNodeNumber();
     SourceLocator locator = ((DTMNodeProxy)node).getDTM()
@@ -190,8 +194,8 @@ public class NodeInfo
    * <code>columnNumber</code> returns the column number of the
    * current context node.
    *
-   * NOTE: Xalan does not normally record location information for each node. 
-   * To obtain it, you must set the custom TrAX attribute 
+   * NOTE: Xalan does not normally record location information for each node.
+   * To obtain it, you must set the custom TrAX attribute
    * "http://xml.apache.org/xalan/features/source_location"
    * true in the TransformerFactory before generating the Transformer and executing
    * the stylesheet. Storage cost per node will be noticably increased in this mode.
@@ -218,8 +222,8 @@ public class NodeInfo
    * passed as argument. If a node set is passed as argument, the line
    * number of the first node in the set is returned.
    *
-   * NOTE: Xalan does not normally record location information for each node. 
-   * To obtain it, you must set the custom TrAX attribute 
+   * NOTE: Xalan does not normally record location information for each node.
+   * To obtain it, you must set the custom TrAX attribute
    * "http://xml.apache.org/xalan/features/source_location"
    * true in the TransformerFactory before generating the Transformer and executing
    * the stylesheet. Storage cost per node will be noticably increased in this mode.
@@ -232,7 +236,7 @@ public class NodeInfo
   {
     if (nodeList == null || nodeList.getLength() == 0)
       return -1;
-    
+
     Node node = nodeList.item(0);
     int nodeHandler = ((DTMNodeProxy)node).getDTMNodeNumber();
     SourceLocator locator = ((DTMNodeProxy)node).getDTM()

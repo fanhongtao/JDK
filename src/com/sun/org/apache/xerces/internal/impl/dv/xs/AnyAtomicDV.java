@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,21 +25,20 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
 
 /**
  * Represent the schema type "anyAtomicType"
- * 
+ *
  * @xerces.experimental
  *
  * @author Ankit Pasricha, IBM
- * 
- * @version $Id: AnyAtomicDV.java,v 1.2.6.1 2005/09/06 11:43:00 neerajbj Exp $
+ *
  */
 class AnyAtomicDV extends TypeValidator {
-    
+
     public short getAllowedFacets() {
         return 0;
     }
-    
+
     public Object getActualValue(String content, ValidationContext context) throws InvalidDatatypeValueException {
         return content;
     }
-    
+
 } // class AnyAtomicDV

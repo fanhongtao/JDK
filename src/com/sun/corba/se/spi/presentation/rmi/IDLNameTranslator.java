@@ -1,8 +1,26 @@
 /*
- * @(#)IDLNameTranslator.java	1.10 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.presentation.rmi ;
@@ -12,7 +30,7 @@ import java.lang.reflect.Method ;
 /** Translates between methods on an interface and RMI-IIOP encodings
  * of those methods as names.
  */
-public interface IDLNameTranslator 
+public interface IDLNameTranslator
 {
     /** Get the interfaces that this IDLNameTranslator describes.
      */
@@ -24,16 +42,15 @@ public interface IDLNameTranslator
      */
     Method[] getMethods() ;
 
-    /** Get the method from this IDLNameTranslator's interfaces that 
+    /** Get the method from this IDLNameTranslator's interfaces that
      * corresponds to the mangled name idlName.  Returns null
      * if there is no matching method.
      */
     Method getMethod( String idlName )  ;
 
-    /** Get the mangled name that corresponds to the given method 
+    /** Get the mangled name that corresponds to the given method
      * on this IDLNameTranslator's interface.  Returns null
      * if there is no matching name.
      */
     String getIDLName( Method method )  ;
 }
-

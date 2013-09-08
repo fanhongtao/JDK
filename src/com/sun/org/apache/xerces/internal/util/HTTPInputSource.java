@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,28 +37,27 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
  * whether HTTP redirects will be followed. Note that these
  * properties will only be used if reading this input source
  * will induce an HTTP connection.
- * 
+ *
  * @author Michael Glavassevich, IBM
- * 
- * @version $Id: HTTPInputSource.java,v 1.2.6.1 2005/09/05 07:54:23 neerajbj Exp $
+ *
  */
 public final class HTTPInputSource extends XMLInputSource {
 
     //
     // Data
     //
-    
+
     /** Preference for whether HTTP redirects should be followed. **/
     protected boolean fFollowRedirects = true;
-    
+
     /** HTTP request properties. **/
     protected Map fHTTPRequestProperties = new HashMap();
-    
+
     //
     // Constructors
     //
-    
-    /** 
+
+    /**
      * Constructs an input source from just the public and system
      * identifiers, leaving resolution of the entity and opening of
      * the input stream up to the caller.
@@ -72,8 +75,8 @@ public final class HTTPInputSource extends XMLInputSource {
     public HTTPInputSource(String publicId, String systemId, String baseSystemId) {
         super(publicId, systemId, baseSystemId);
     } // <init>(String,String,String)
-    
-    /** 
+
+    /**
      * Constructs an input source from a XMLResourceIdentifier
      * object, leaving resolution of the entity and opening of
      * the input stream up to the caller.
@@ -83,7 +86,7 @@ public final class HTTPInputSource extends XMLInputSource {
     public HTTPInputSource(XMLResourceIdentifier resourceIdentifier) {
         super(resourceIdentifier);
     } // <init>(XMLResourceIdentifier)
-    
+
     /**
      * Constructs an input source from a byte stream.
      *
@@ -103,7 +106,7 @@ public final class HTTPInputSource extends XMLInputSource {
             String baseSystemId, InputStream byteStream, String encoding) {
         super(publicId, systemId, baseSystemId, byteStream, encoding);
     } // <init>(String,String,String,InputStream,String)
-    
+
     /**
      * Constructs an input source from a character stream.
      *
@@ -124,11 +127,11 @@ public final class HTTPInputSource extends XMLInputSource {
             String baseSystemId, Reader charStream, String encoding) {
         super(publicId, systemId, baseSystemId, charStream, encoding);
     } // <init>(String,String,String,Reader,String)
-    
+
     //
     // Public methods
-    //   
-    
+    //
+
     /**
      * Returns the preference whether HTTP redirects should
      * be followed. By default HTTP redirects will be followed.
@@ -136,8 +139,8 @@ public final class HTTPInputSource extends XMLInputSource {
     public boolean getFollowHTTPRedirects() {
         return fFollowRedirects;
     } // getFollowHTTPRedirects():boolean
-    
-    
+
+
     /**
      * Sets the preference whether HTTP redirects should
      * be followed. By default HTTP redirects will be followed.
@@ -145,38 +148,38 @@ public final class HTTPInputSource extends XMLInputSource {
     public void setFollowHTTPRedirects(boolean followRedirects) {
         fFollowRedirects = followRedirects;
     } // setFollowHTTPRedirects(boolean)
-    
+
     /**
-     * Returns the value of the request property 
+     * Returns the value of the request property
      * associated with the given property name.
-     * 
+     *
      * @param key the name of the request property
-     * @return the value of the request property or 
+     * @return the value of the request property or
      * <code>null</code> if this property has not
      * been set
      */
     public String getHTTPRequestProperty(String key) {
         return (String) fHTTPRequestProperties.get(key);
     } // getHTTPRequestProperty(String):String
-    
+
     /**
      * Returns an iterator for the request properties this
      * input source contains. Each object returned by the
      * iterator is an instance of <code>java.util.Map.Entry</code>
      * where each key and value are a pair of strings corresponding
-     * to the name and value of a request property. 
-     * 
+     * to the name and value of a request property.
+     *
      * @return an iterator for the request properties this
      * input source contains
      */
     public Iterator getHTTPRequestProperties() {
         return fHTTPRequestProperties.entrySet().iterator();
     } // getHTTPRequestProperties():Iterator
-    
+
     /**
      * Sets the value of the request property
      * associated with the given property name.
-     * 
+     *
      * @param key the name of the request property
      * @param value the value of the request property
      */
@@ -188,5 +191,5 @@ public final class HTTPInputSource extends XMLInputSource {
             fHTTPRequestProperties.remove(key);
         }
     } // setHTTPRequestProperty(String,String)
-    
+
 } // class HTTPInputSource

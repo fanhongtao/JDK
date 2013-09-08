@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,25 +32,25 @@ public final class CompilerException extends Exception {
     private String _msg;
 
     public CompilerException() {
-	super();
+        super();
     }
-    
+
     public CompilerException(Exception e) {
-	super(e.toString());
-	_msg = e.toString(); 
+        super(e.toString());
+        _msg = e.toString();
     }
-    
+
     public CompilerException(String message) {
-	super(message);
-	_msg = message;
+        super(message);
+        _msg = message;
     }
 
     public String getMessage() {
-	final int col = _msg.indexOf(':');
+        final int col = _msg.indexOf(':');
 
-	if (col > -1)
-	    return(_msg.substring(col));
-	else
-	    return(_msg);
+        if (col > -1)
+            return(_msg.substring(col));
+        else
+            return(_msg);
     }
 }

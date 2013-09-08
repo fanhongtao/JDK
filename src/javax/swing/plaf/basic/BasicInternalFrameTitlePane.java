@@ -1,8 +1,26 @@
 /*
- * @(#)BasicInternalFrameTitlePane.java	1.64 05/11/30
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.basic;
@@ -36,7 +54,6 @@ import sun.swing.UIAction;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.41 01/18/01
  * @author David Kloba
  * @author Steve Wilson
  */
@@ -69,6 +86,7 @@ public class BasicInternalFrameTitlePane extends JComponent
     protected Action moveAction;
     protected Action sizeAction;
 
+    // These constants are not used in JDK code
     protected static final String CLOSE_CMD =
         UIManager.getString("InternalFrameTitlePane.closeButtonText");
     protected static final String ICONIFY_CMD =
@@ -89,71 +107,71 @@ public class BasicInternalFrameTitlePane extends JComponent
     private Handler handler;
 
     public BasicInternalFrameTitlePane(JInternalFrame f) {
-	frame = f;
-	installTitlePane();
+        frame = f;
+        installTitlePane();
     }
 
     protected void installTitlePane() {
-	installDefaults();
+        installDefaults();
         installListeners();
-        
-	createActions();
-	enableActions();
-	createActionMap();
 
-	setLayout(createLayout());
+        createActions();
+        enableActions();
+        createActionMap();
 
-	assembleSystemMenu();
-	createButtons();
-	addSubComponents();
+        setLayout(createLayout());
+
+        assembleSystemMenu();
+        createButtons();
+        addSubComponents();
 
     }
 
     protected void addSubComponents() {
-	add(menuBar);
-	add(iconButton);
-	add(maxButton);
-	add(closeButton);
+        add(menuBar);
+        add(iconButton);
+        add(maxButton);
+        add(closeButton);
     }
 
     protected void createActions() {
-	maximizeAction = new MaximizeAction();
-	iconifyAction = new IconifyAction();
-	closeAction = new CloseAction();
-	restoreAction = new RestoreAction();
-	moveAction = new MoveAction();
-	sizeAction = new SizeAction();
+        maximizeAction = new MaximizeAction();
+        iconifyAction = new IconifyAction();
+        closeAction = new CloseAction();
+        restoreAction = new RestoreAction();
+        moveAction = new MoveAction();
+        sizeAction = new SizeAction();
     }
 
     ActionMap createActionMap() {
-	ActionMap map = new ActionMapUIResource();
-	map.put("showSystemMenu", new ShowSystemMenuAction(true));
-	map.put("hideSystemMenu", new ShowSystemMenuAction(false));
-	return map;
+        ActionMap map = new ActionMapUIResource();
+        map.put("showSystemMenu", new ShowSystemMenuAction(true));
+        map.put("hideSystemMenu", new ShowSystemMenuAction(false));
+        return map;
     }
 
     protected void installListeners() {
         if( propertyChangeListener == null ) {
             propertyChangeListener = createPropertyChangeListener();
         }
-	frame.addPropertyChangeListener(propertyChangeListener);
+        frame.addPropertyChangeListener(propertyChangeListener);
     }
 
     protected void uninstallListeners() {
-	frame.removePropertyChangeListener(propertyChangeListener);
+        frame.removePropertyChangeListener(propertyChangeListener);
         handler = null;
     }
 
     protected void installDefaults() {
         maxIcon = UIManager.getIcon("InternalFrame.maximizeIcon");
-	minIcon = UIManager.getIcon("InternalFrame.minimizeIcon");
-	iconIcon = UIManager.getIcon("InternalFrame.iconifyIcon");
-	closeIcon = UIManager.getIcon("InternalFrame.closeIcon");
+        minIcon = UIManager.getIcon("InternalFrame.minimizeIcon");
+        iconIcon = UIManager.getIcon("InternalFrame.iconifyIcon");
+        closeIcon = UIManager.getIcon("InternalFrame.closeIcon");
 
-	selectedTitleColor = UIManager.getColor("InternalFrame.activeTitleBackground");
-	selectedTextColor = UIManager.getColor("InternalFrame.activeTitleForeground");
-	notSelectedTitleColor = UIManager.getColor("InternalFrame.inactiveTitleBackground");
-	notSelectedTextColor = UIManager.getColor("InternalFrame.inactiveTitleForeground");
+        selectedTitleColor = UIManager.getColor("InternalFrame.activeTitleBackground");
+        selectedTextColor = UIManager.getColor("InternalFrame.activeTitleForeground");
+        notSelectedTitleColor = UIManager.getColor("InternalFrame.inactiveTitleBackground");
+        notSelectedTextColor = UIManager.getColor("InternalFrame.inactiveTitleForeground");
         setFont(UIManager.getFont("InternalFrame.titleFont"));
         closeButtonToolTip =
                 UIManager.getString("InternalFrame.closeButtonToolTip");
@@ -170,30 +188,30 @@ public class BasicInternalFrameTitlePane extends JComponent
     }
 
     protected void createButtons() {
-	iconButton = new NoFocusButton(
+        iconButton = new NoFocusButton(
                      "InternalFrameTitlePane.iconifyButtonAccessibleName",
                      "InternalFrameTitlePane.iconifyButtonOpacity");
-	iconButton.addActionListener(iconifyAction);
+        iconButton.addActionListener(iconifyAction);
         if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
             iconButton.setToolTipText(iconButtonToolTip);
         }
 
-	maxButton = new NoFocusButton(
+        maxButton = new NoFocusButton(
                         "InternalFrameTitlePane.maximizeButtonAccessibleName",
                         "InternalFrameTitlePane.maximizeButtonOpacity");
-	maxButton.addActionListener(maximizeAction);
+        maxButton.addActionListener(maximizeAction);
 
-	closeButton = new NoFocusButton(
+        closeButton = new NoFocusButton(
                       "InternalFrameTitlePane.closeButtonAccessibleName",
                       "InternalFrameTitlePane.closeButtonOpacity");
-	closeButton.addActionListener(closeAction);
+        closeButton.addActionListener(closeAction);
         if (closeButtonToolTip != null && closeButtonToolTip.length() != 0) {
             closeButton.setToolTipText(closeButtonToolTip);
         }
 
         setButtonIcons();
     }
-    
+
     protected void setButtonIcons() {
         if(frame.isIcon()) {
             if (minIcon != null) {
@@ -211,13 +229,13 @@ public class BasicInternalFrameTitlePane extends JComponent
             }
         } else if (frame.isMaximum()) {
             if (iconIcon != null) {
-	        iconButton.setIcon(iconIcon);
+                iconButton.setIcon(iconIcon);
             }
             if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
                 iconButton.setToolTipText(iconButtonToolTip);
             }
             if (minIcon != null) {
-	        maxButton.setIcon(minIcon);
+                maxButton.setIcon(minIcon);
             }
             if (restoreButtonToolTip != null &&
                     restoreButtonToolTip.length() != 0) {
@@ -225,77 +243,77 @@ public class BasicInternalFrameTitlePane extends JComponent
             }
         } else {
             if (iconIcon != null) {
-	        iconButton.setIcon(iconIcon);
+                iconButton.setIcon(iconIcon);
             }
             if (iconButtonToolTip != null && iconButtonToolTip.length() != 0) {
                 iconButton.setToolTipText(iconButtonToolTip);
             }
             if (maxIcon != null) {
-	        maxButton.setIcon(maxIcon);
+                maxButton.setIcon(maxIcon);
             }
             if (maxButtonToolTip != null && maxButtonToolTip.length() != 0) {
                 maxButton.setToolTipText(maxButtonToolTip);
             }
         }
         if (closeIcon != null) {
-	    closeButton.setIcon(closeIcon);
+            closeButton.setIcon(closeIcon);
         }
     }
 
     protected void assembleSystemMenu() {
         menuBar = createSystemMenuBar();
-	windowMenu = createSystemMenu();	    
-	menuBar.add(windowMenu);
-	addSystemMenuItems(windowMenu);
-	enableActions();
+        windowMenu = createSystemMenu();
+        menuBar.add(windowMenu);
+        addSystemMenuItems(windowMenu);
+        enableActions();
     }
 
     protected void addSystemMenuItems(JMenu systemMenu) {
-        JMenuItem mi = (JMenuItem)systemMenu.add(restoreAction);
-	mi.setMnemonic('R');
-	mi = (JMenuItem)systemMenu.add(moveAction);
-	mi.setMnemonic('M');
-	mi = (JMenuItem)systemMenu.add(sizeAction);
-	mi.setMnemonic('S');
-	mi = (JMenuItem)systemMenu.add(iconifyAction);
-	mi.setMnemonic('n');
-	mi = (JMenuItem)systemMenu.add(maximizeAction);
-	mi.setMnemonic('x');
-	systemMenu.add(new JSeparator());
-	mi = (JMenuItem)systemMenu.add(closeAction);
-	mi.setMnemonic('C');
+        JMenuItem mi = systemMenu.add(restoreAction);
+        mi.setMnemonic('R');
+        mi = systemMenu.add(moveAction);
+        mi.setMnemonic('M');
+        mi = systemMenu.add(sizeAction);
+        mi.setMnemonic('S');
+        mi = systemMenu.add(iconifyAction);
+        mi.setMnemonic('n');
+        mi = systemMenu.add(maximizeAction);
+        mi.setMnemonic('x');
+        systemMenu.add(new JSeparator());
+        mi = systemMenu.add(closeAction);
+        mi.setMnemonic('C');
     }
 
     protected JMenu createSystemMenu() {
-	return new JMenu("    ");
+        return new JMenu("    ");
     }
 
     protected JMenuBar createSystemMenuBar() {
-	menuBar = new SystemMenuBar();
-	menuBar.setBorderPainted(false);
-	return menuBar;
+        menuBar = new SystemMenuBar();
+        menuBar.setBorderPainted(false);
+        return menuBar;
     }
-      
+
     protected void showSystemMenu(){
-	//      windowMenu.setPopupMenuVisible(true);
+        //      windowMenu.setPopupMenuVisible(true);
       //      windowMenu.setVisible(true);
       windowMenu.doClick();
     }
 
     public void paintComponent(Graphics g)  {
-	paintTitleBackground(g);
+        paintTitleBackground(g);
 
-	if(frame.getTitle() != null) {
-	    boolean isSelected = frame.isSelected();
-	    Font f = g.getFont();
-	    g.setFont(getFont());
-	    if(isSelected)
-		g.setColor(selectedTextColor);
-	    else
-		g.setColor(notSelectedTextColor);
+        if(frame.getTitle() != null) {
+            boolean isSelected = frame.isSelected();
+            Font f = g.getFont();
+            g.setFont(getFont());
+            if(isSelected)
+                g.setColor(selectedTextColor);
+            else
+                g.setColor(notSelectedTextColor);
 
             // Center text vertically.
-	    FontMetrics fm = SwingUtilities2.getFontMetrics(frame, g);
+            FontMetrics fm = SwingUtilities2.getFontMetrics(frame, g);
             int baseline = (getHeight() + fm.getAscent() - fm.getLeading() -
                     fm.getDescent()) / 2;
 
@@ -304,8 +322,8 @@ public class BasicInternalFrameTitlePane extends JComponent
             if (frame.isIconifiable())  r = iconButton.getBounds();
             else if (frame.isMaximizable())  r = maxButton.getBounds();
             else if (frame.isClosable())  r = closeButton.getBounds();
-	    int titleW;
-	
+            int titleW;
+
             String title = frame.getTitle();
             if( BasicGraphicsUtils.isLeftToRight(frame) ) {
               if (r.x == 0)  r.x = frame.getWidth()-frame.getInsets().right;
@@ -316,10 +334,10 @@ public class BasicInternalFrameTitlePane extends JComponent
                 titleX = menuBar.getX() - 2
                          - SwingUtilities2.stringWidth(frame,fm,title);
             }
-            
-	    SwingUtilities2.drawString(frame, g, title, titleX, baseline);
-	    g.setFont(f);
-	}
+
+            SwingUtilities2.drawString(frame, g, title, titleX, baseline);
+            g.setFont(f);
+        }
     }
 
    /**
@@ -330,13 +348,13 @@ public class BasicInternalFrameTitlePane extends JComponent
     * @since 1.4
     */
     protected void paintTitleBackground(Graphics g) {
-	boolean isSelected = frame.isSelected();
+        boolean isSelected = frame.isSelected();
 
-	if(isSelected)
-	    g.setColor(selectedTitleColor);
-	else
-	    g.setColor(notSelectedTitleColor);
-	g.fillRect(0, 0, getWidth(), getHeight());
+        if(isSelected)
+            g.setColor(selectedTitleColor);
+        else
+            g.setColor(notSelectedTitleColor);
+        g.fillRect(0, 0, getWidth(), getHeight());
     }
 
     protected String getTitle(String text, FontMetrics fm, int availTextWidth) {
@@ -365,11 +383,11 @@ public class BasicInternalFrameTitlePane extends JComponent
 
 
     protected void enableActions() {
-        restoreAction.setEnabled(frame.isMaximum() || frame.isIcon()); 
+        restoreAction.setEnabled(frame.isMaximum() || frame.isIcon());
         maximizeAction.setEnabled(
             (frame.isMaximizable() && !frame.isMaximum() && !frame.isIcon()) ||
             (frame.isMaximizable() && frame.isIcon()));
-        iconifyAction.setEnabled(frame.isIconifiable() && !frame.isIcon()); 
+        iconifyAction.setEnabled(frame.isIconifiable() && !frame.isIcon());
         closeAction.setEnabled(frame.isClosable());
         sizeAction.setEnabled(false);
         moveAction.setEnabled(false);
@@ -396,12 +414,12 @@ public class BasicInternalFrameTitlePane extends JComponent
         // PropertyChangeListener
         //
         public void propertyChange(PropertyChangeEvent evt) {
-            String prop = (String)evt.getPropertyName();
+            String prop = evt.getPropertyName();
 
             if (prop == JInternalFrame.IS_SELECTED_PROPERTY) {
                 repaint();
                 return;
-            } 
+            }
 
             if (prop == JInternalFrame.IS_ICON_PROPERTY ||
                     prop == JInternalFrame.IS_MAXIMUM_PROPERTY) {
@@ -411,26 +429,26 @@ public class BasicInternalFrameTitlePane extends JComponent
             }
 
             if ("closable" == prop) {
-                if ((Boolean)evt.getNewValue() == Boolean.TRUE) {
+                if (evt.getNewValue() == Boolean.TRUE) {
                     add(closeButton);
                 } else {
                     remove(closeButton);
                 }
             } else if ("maximizable" == prop) {
-                if ((Boolean)evt.getNewValue() == Boolean.TRUE) {
+                if (evt.getNewValue() == Boolean.TRUE) {
                     add(maxButton);
                 } else {
                     remove(maxButton);
                 }
             } else if ("iconable" == prop) {
-                if ((Boolean)evt.getNewValue() == Boolean.TRUE) {
+                if (evt.getNewValue() == Boolean.TRUE) {
                     add(iconButton);
                 } else {
                     remove(iconButton);
                 }
             }
             enableActions();
-            
+
             revalidate();
             repaint();
         }
@@ -440,15 +458,15 @@ public class BasicInternalFrameTitlePane extends JComponent
         // LayoutManager
         //
         public void addLayoutComponent(String name, Component c) {}
-        public void removeLayoutComponent(Component c) {}    
+        public void removeLayoutComponent(Component c) {}
         public Dimension preferredLayoutSize(Container c) {
             return minimumLayoutSize(c);
         }
-    
+
         public Dimension minimumLayoutSize(Container c) {
             // Calculate width.
             int width = 22;
- 
+
             if (frame.isClosable()) {
                 width += 19;
             }
@@ -484,7 +502,7 @@ public class BasicInternalFrameTitlePane extends JComponent
                 iconHeight = Math.min(icon.getIconHeight(), 16);
             }
             iconHeight += 2;
-      
+
             int height = Math.max( fontHeight, iconHeight );
 
             Dimension dim = new Dimension(width, height);
@@ -497,10 +515,10 @@ public class BasicInternalFrameTitlePane extends JComponent
             }
             return dim;
         }
-    
+
         public void layoutContainer(Container c) {
             boolean leftToRight = BasicGraphicsUtils.isLeftToRight(frame);
-            
+
             int w = getWidth();
             int h = getHeight();
             int x;
@@ -516,20 +534,20 @@ public class BasicInternalFrameTitlePane extends JComponent
             menuBar.setBounds(x, (h - iconHeight) / 2, 16, 16);
 
             x = (leftToRight) ? w - 16 - 2 : 2;
-            
+
             if (frame.isClosable()) {
                 closeButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
                 x += (leftToRight) ? -(16 + 2) : 16 + 2;
-            } 
-            
+            }
+
             if (frame.isMaximizable()) {
                 maxButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
                 x += (leftToRight) ? -(16 + 2) : 16 + 2;
             }
-        
+
             if (frame.isIconifiable()) {
                 iconButton.setBounds(x, (h - buttonHeight) / 2, 16, 14);
-            } 
+            }
         }
     }
 
@@ -540,11 +558,11 @@ public class BasicInternalFrameTitlePane extends JComponent
     public class PropertyChangeHandler implements PropertyChangeListener {
         // NOTE: This class exists only for backward compatability. All
         // its functionality has been moved into Handler. If you need to add
-        // new functionality add it to the Handler, but make sure this      
+        // new functionality add it to the Handler, but make sure this
         // class calls into the Handler.
         public void propertyChange(PropertyChangeEvent evt) {
             getHandler().propertyChange(evt);
-	}
+        }
     }
 
     /**
@@ -554,7 +572,7 @@ public class BasicInternalFrameTitlePane extends JComponent
     public class TitlePaneLayout implements LayoutManager {
         // NOTE: This class exists only for backward compatability. All
         // its functionality has been moved into Handler. If you need to add
-        // new functionality add it to the Handler, but make sure this      
+        // new functionality add it to the Handler, but make sure this
         // class calls into the Handler.
         public void addLayoutComponent(String name, Component c) {
             getHandler().addLayoutComponent(name, c);
@@ -562,35 +580,36 @@ public class BasicInternalFrameTitlePane extends JComponent
 
         public void removeLayoutComponent(Component c) {
             getHandler().removeLayoutComponent(c);
-        }    
+        }
 
         public Dimension preferredLayoutSize(Container c)  {
             return getHandler().preferredLayoutSize(c);
-	}
-    
+        }
+
         public Dimension minimumLayoutSize(Container c) {
             return getHandler().minimumLayoutSize(c);
-	}
-    
+        }
+
         public void layoutContainer(Container c) {
             getHandler().layoutContainer(c);
-	}
+        }
     }
 
     /**
      * This class should be treated as a &quot;protected&quot; inner class.
      * Instantiate it only within subclasses of <Foo>.
-     */  
+     */
     public class CloseAction extends AbstractAction {
         public CloseAction() {
-	    super(CLOSE_CMD);
+            super(UIManager.getString(
+                    "InternalFrameTitlePane.closeButtonText"));
         }
 
         public void actionPerformed(ActionEvent e) {
-	    if(frame.isClosable()) {
-		frame.doDefaultCloseAction();
-	    }
-	}      
+            if(frame.isClosable()) {
+                frame.doDefaultCloseAction();
+            }
+        }
     } // end CloseAction
 
     /**
@@ -599,26 +618,27 @@ public class BasicInternalFrameTitlePane extends JComponent
      */
     public class MaximizeAction extends AbstractAction {
         public MaximizeAction() {
-	    super(MAXIMIZE_CMD);
+            super(UIManager.getString(
+                    "InternalFrameTitlePane.maximizeButtonText"));
         }
 
         public void actionPerformed(ActionEvent evt) {
-	    if (frame.isMaximizable()) {
+            if (frame.isMaximizable()) {
                 if (frame.isMaximum() && frame.isIcon()) {
                     try {
                         frame.setIcon(false);
                     } catch (PropertyVetoException e) { }
                 } else if (!frame.isMaximum()) {
-		    try {
+                    try {
                         frame.setMaximum(true);
                     } catch (PropertyVetoException e) { }
-		} else {
-		    try { 
-		        frame.setMaximum(false); 
-		    } catch (PropertyVetoException e) { }
-		}
-	    }
-	}
+                } else {
+                    try {
+                        frame.setMaximum(false);
+                    } catch (PropertyVetoException e) { }
+                }
+            }
+        }
     }
 
     /**
@@ -627,18 +647,19 @@ public class BasicInternalFrameTitlePane extends JComponent
      */
     public class IconifyAction extends AbstractAction {
         public IconifyAction() {
-	    super(ICONIFY_CMD);
+            super(UIManager.getString(
+                    "InternalFrameTitlePane.minimizeButtonText"));
         }
 
         public void actionPerformed(ActionEvent e) {
-	    if(frame.isIconifiable()) {
-	      if(!frame.isIcon()) {
-		try { frame.setIcon(true); } catch (PropertyVetoException e1) { }
-	      } else{
-		try { frame.setIcon(false); } catch (PropertyVetoException e1) { }
-	      }
-	    }
-	}
+            if(frame.isIconifiable()) {
+              if(!frame.isIcon()) {
+                try { frame.setIcon(true); } catch (PropertyVetoException e1) { }
+              } else{
+                try { frame.setIcon(false); } catch (PropertyVetoException e1) { }
+              }
+            }
+        }
     } // end IconifyAction
 
     /**
@@ -647,24 +668,25 @@ public class BasicInternalFrameTitlePane extends JComponent
      */
     public class RestoreAction extends AbstractAction {
         public RestoreAction() {
-	    super(RESTORE_CMD);
+            super(UIManager.getString(
+                    "InternalFrameTitlePane.restoreButtonText"));
         }
 
         public void actionPerformed(ActionEvent evt) {
-	    if (frame.isMaximizable() && frame.isMaximum() && frame.isIcon()) {
-	        try {
+            if (frame.isMaximizable() && frame.isMaximum() && frame.isIcon()) {
+                try {
                     frame.setIcon(false);
                 } catch (PropertyVetoException e) { }
-	    } else if (frame.isMaximizable() && frame.isMaximum()) {
+            } else if (frame.isMaximizable() && frame.isMaximum()) {
                 try {
                     frame.setMaximum(false);
                 } catch (PropertyVetoException e) { }
             } else if (frame.isIconifiable() && frame.isIcon()) {
-	        try {
+                try {
                     frame.setIcon(false);
                 } catch (PropertyVetoException e) { }
-	    }
-	}      
+            }
+        }
     }
 
     /**
@@ -673,31 +695,32 @@ public class BasicInternalFrameTitlePane extends JComponent
      */
     public class MoveAction extends AbstractAction {
         public MoveAction() {
-	    super(MOVE_CMD);
+            super(UIManager.getString(
+                    "InternalFrameTitlePane.moveButtonText"));
         }
 
         public void actionPerformed(ActionEvent e) {
-	    // This action is currently undefined
-	}      
+            // This action is currently undefined
+        }
     } // end MoveAction
 
     /*
      * Handles showing and hiding the system menu.
      */
     private class ShowSystemMenuAction extends AbstractAction {
-	private boolean show;	// whether to show the menu
-	
-	public ShowSystemMenuAction(boolean show) {
-	    this.show = show;
-	}
+        private boolean show;   // whether to show the menu
+
+        public ShowSystemMenuAction(boolean show) {
+            this.show = show;
+        }
 
         public void actionPerformed(ActionEvent e) {
-	    if (show) {
-		windowMenu.doClick();
-	    } else {
-		windowMenu.setVisible(false);
-	    }
-	}      
+            if (show) {
+                windowMenu.doClick();
+            } else {
+                windowMenu.setVisible(false);
+            }
+        }
     }
 
     /**
@@ -706,12 +729,13 @@ public class BasicInternalFrameTitlePane extends JComponent
      */
     public class SizeAction extends AbstractAction {
         public SizeAction() {
-	    super(SIZE_CMD);
+            super(UIManager.getString(
+                    "InternalFrameTitlePane.sizeButtonText"));
         }
 
         public void actionPerformed(ActionEvent e) {
-	    // This action is currently undefined
-	}      
+            // This action is currently undefined
+        }
     } // end SizeAction
 
 
@@ -720,27 +744,27 @@ public class BasicInternalFrameTitlePane extends JComponent
      * Instantiate it only within subclasses of <Foo>.
      */
     public class SystemMenuBar extends JMenuBar {
-	public boolean isFocusTraversable() { return false; }
-	public void requestFocus() {}
-	public void paint(Graphics g) {
-	    Icon icon = frame.getFrameIcon();
-	    if (icon == null) {
-	      icon = (Icon)DefaultLookup.get(frame, frame.getUI(),
+        public boolean isFocusTraversable() { return false; }
+        public void requestFocus() {}
+        public void paint(Graphics g) {
+            Icon icon = frame.getFrameIcon();
+            if (icon == null) {
+              icon = (Icon)DefaultLookup.get(frame, frame.getUI(),
                       "InternalFrame.icon");
-	    }
-	    if (icon != null) {
-	        // Resize to 16x16 if necessary.
-	        if (icon instanceof ImageIcon && (icon.getIconWidth() > 16 || icon.getIconHeight() > 16)) {
-		    Image img = ((ImageIcon)icon).getImage();
-		    ((ImageIcon)icon).setImage(img.getScaledInstance(16, 16, Image.SCALE_SMOOTH));
-		}
-		icon.paintIcon(this, g, 0, 0);
-	    }
-	}
+            }
+            if (icon != null) {
+                // Resize to 16x16 if necessary.
+                if (icon instanceof ImageIcon && (icon.getIconWidth() > 16 || icon.getIconHeight() > 16)) {
+                    Image img = ((ImageIcon)icon).getImage();
+                    ((ImageIcon)icon).setImage(img.getScaledInstance(16, 16, Image.SCALE_SMOOTH));
+                }
+                icon.paintIcon(this, g, 0, 0);
+            }
+        }
 
-	public boolean isOpaque() { 
-	    return true; 
-	}
+        public boolean isOpaque() {
+            return true;
+        }
     } // end SystemMenuBar
 
 
@@ -750,14 +774,14 @@ public class BasicInternalFrameTitlePane extends JComponent
             setFocusPainted(false);
             setMargin(new Insets(0,0,0,0));
             this.uiKey = uiKey;
-            
+
             Object opacity = UIManager.get(opacityKey);
             if (opacity instanceof Boolean) {
                 setOpaque(((Boolean)opacity).booleanValue());
             }
         }
-	public boolean isFocusTraversable() { return false; }
-	public void requestFocus() {};
+        public boolean isFocusTraversable() { return false; }
+        public void requestFocus() {}
         public AccessibleContext getAccessibleContext() {
             AccessibleContext ac = super.getAccessibleContext();
             if (uiKey != null) {
@@ -766,7 +790,6 @@ public class BasicInternalFrameTitlePane extends JComponent
             }
             return ac;
         }
-    };  // end NoFocusButton
+    }  // end NoFocusButton
 
 }   // End Title Pane Class
-

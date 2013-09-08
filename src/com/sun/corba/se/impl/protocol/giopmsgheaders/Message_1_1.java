@@ -1,8 +1,26 @@
 /*
- * @(#)Message_1_1.java	1.13 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -20,7 +38,6 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
  * This implements the GIOP 1.1 & 1.2 Message header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public class Message_1_1
@@ -29,8 +46,8 @@ public class Message_1_1
     // Constants
     final static int UPPER_THREE_BYTES_OF_INT_MASK = 0xFF;
 
-    private static ORBUtilSystemException wrapper =  
-	ORBUtilSystemException.get( CORBALogDomains.RPC_PROTOCOL ) ;
+    private static ORBUtilSystemException wrapper =
+        ORBUtilSystemException.get( CORBALogDomains.RPC_PROTOCOL ) ;
 
     // Instance variables
     int magic = (int) 0;
@@ -43,7 +60,7 @@ public class Message_1_1
 
     Message_1_1() {
     }
-    
+
     Message_1_1(int _magic, GIOPVersion _GIOP_version, byte _flags,
             byte _message_type, int _message_size) {
         magic = _magic;
@@ -60,15 +77,15 @@ public class Message_1_1
     }
 
     public int getType() {
-    	return this.message_type;
+        return this.message_type;
     }
 
     public int getSize() {
-	    return this.message_size;
+            return this.message_size;
     }
 
     public boolean isLittleEndian() {
-    	return ((this.flags & LITTLE_ENDIAN_BIT) == LITTLE_ENDIAN_BIT);
+        return ((this.flags & LITTLE_ENDIAN_BIT) == LITTLE_ENDIAN_BIT);
     }
 
     public boolean moreFragmentsToFollow() {
@@ -81,25 +98,25 @@ public class Message_1_1
     // Add the poolToUse to the upper 6 bits of byte 6 of the GIOP header.
     // this.flags represents byte 6 here.
     public void setThreadPoolToUse(int poolToUse) {
-	// IMPORTANT: Bitwise operations will promote
-	//            byte types to int before performing
-	//            bitwise operations. And, Java
-	//            types are signed.
-	int tmpFlags = poolToUse << 2;
-	tmpFlags &= UPPER_THREE_BYTES_OF_INT_MASK;
-	tmpFlags |= flags;
-	flags = (byte)tmpFlags;
+        // IMPORTANT: Bitwise operations will promote
+        //            byte types to int before performing
+        //            bitwise operations. And, Java
+        //            types are signed.
+        int tmpFlags = poolToUse << 2;
+        tmpFlags &= UPPER_THREE_BYTES_OF_INT_MASK;
+        tmpFlags |= flags;
+        flags = (byte)tmpFlags;
     }
 
-    public void	setSize(ByteBuffer byteBuffer, int size) {
+    public void setSize(ByteBuffer byteBuffer, int size) {
 
-	this.message_size = size;
+        this.message_size = size;
 
         //
-    	// Patch the size field in the header.
-	//
+        // Patch the size field in the header.
+        //
 
-	int patch = size - GIOPMessageHeaderLength;
+        int patch = size - GIOPMessageHeaderLength;
         if (!isLittleEndian()) {
             byteBuffer.put(8,  (byte)((patch >>> 24) & 0xFF));
             byteBuffer.put(9,  (byte)((patch >>> 16) & 0xFF));
@@ -124,13 +141,13 @@ public class Message_1_1
         case GIOPCancelRequest :
         case GIOPCloseConnection :
         case GIOPMessageError :
-	    throw wrapper.fragmentationDisallowed(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.fragmentationDisallowed(
+                CompletionStatus.COMPLETED_MAYBE);
         case GIOPLocateRequest :
         case GIOPLocateReply :
             if (this.GIOP_version.equals(GIOPVersion.V1_1)) {
-		throw wrapper.fragmentationDisallowed(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.fragmentationDisallowed(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
             break;
         }
@@ -140,7 +157,7 @@ public class Message_1_1
         // bit is set. Otherwise, raise error
         // too stringent check
         if ( (this.flags & MORE_FRAGMENTS_BIT) != MORE_FRAGMENTS_BIT ) {
-		throw wrapper.fragmentationDisallowed( CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.fragmentationDisallowed( CompletionStatus.COMPLETED_MAYBE);
         }
         */
         if (this.GIOP_version.equals(GIOPVersion.V1_1)) {
@@ -149,7 +166,7 @@ public class Message_1_1
             return new FragmentMessage_1_2(this);
         }
 
-	throw wrapper.giopVersionError( CompletionStatus.COMPLETED_MAYBE);
+        throw wrapper.giopVersionError( CompletionStatus.COMPLETED_MAYBE);
     }
 
     // IO methods

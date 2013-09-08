@@ -1,8 +1,26 @@
 /*
- * @(#)GIFImageMetadata.java	1.31 05/11/17
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.gif;
@@ -19,9 +37,6 @@ import javax.imageio.metadata.IIOMetadataFormat;
 import javax.imageio.metadata.IIOMetadataFormatImpl;
 import org.w3c.dom.Node;
 
-/**
- * @version 0.5
- */
 public class GIFImageMetadata extends GIFMetadata {
 
     // package scope
@@ -93,14 +108,14 @@ public class GIFImageMetadata extends GIFMetadata {
               extraMetadataFormatNames,
               extraMetadataFormatClassNames);
     }
-    
+
     public GIFImageMetadata() {
         this(true,
               nativeMetadataFormatName,
               "com.sun.imageio.plugins.gif.GIFImageMetadataFormat",
               null, null);
     }
-    
+
     public boolean isReadOnly() {
         return true;
     }
@@ -138,7 +153,7 @@ public class GIFImageMetadata extends GIFMetadata {
         node.setAttribute("imageWidth", Integer.toString(imageWidth));
         node.setAttribute("imageHeight", Integer.toString(imageHeight));
         node.setAttribute("interlaceFlag",
-                          interlaceFlag ? "true" : "false");
+                          interlaceFlag ? "TRUE" : "FALSE");
         root.appendChild(node);
 
         // Local color table
@@ -149,7 +164,7 @@ public class GIFImageMetadata extends GIFMetadata {
                               Integer.toString(numEntries));
             node.setAttribute("sortFlag",
                               sortFlag ? "TRUE" : "FALSE");
-            
+
             for (int i = 0; i < numEntries; i++) {
                 IIOMetadataNode entry =
                     new IIOMetadataNode("ColorTableEntry");
@@ -170,10 +185,10 @@ public class GIFImageMetadata extends GIFMetadata {
         node.setAttribute("disposalMethod",
                           disposalMethodNames[disposalMethod]);
         node.setAttribute("userInputFlag",
-                          userInputFlag ? "true" : "false");
+                          userInputFlag ? "TRUE" : "FALSE");
         node.setAttribute("transparentColorFlag",
-                          transparentColorFlag ? "true" : "false");
-        node.setAttribute("delayTime", 
+                          transparentColorFlag ? "TRUE" : "FALSE");
+        node.setAttribute("delayTime",
                           Integer.toString(delayTime));
         node.setAttribute("transparentColorIndex",
                           Integer.toString(transparentColorIndex));
@@ -318,7 +333,7 @@ public class GIFImageMetadata extends GIFMetadata {
         // BitsPerSample not in image
         // SignificantBitsPerSample not in format
         // SampleMSB not in format
-        
+
         return data_node;
     }
 
@@ -366,7 +381,7 @@ public class GIFImageMetadata extends GIFMetadata {
 
         IIOMetadataNode text_node = new IIOMetadataNode("Text");
         IIOMetadataNode node = null; // scratch node
-        
+
         while (commentIter.hasNext()) {
             byte[] comment = (byte[])commentIter.next();
             String s = null;
@@ -390,7 +405,7 @@ public class GIFImageMetadata extends GIFMetadata {
         if (!transparentColorFlag) {
             return null;
         }
-        
+
         IIOMetadataNode transparency_node =
             new IIOMetadataNode("Transparency");
         IIOMetadataNode node = null; // scratch node
@@ -409,7 +424,7 @@ public class GIFImageMetadata extends GIFMetadata {
         return transparency_node;
     }
 
-    public void setFromTree(String formatName, Node root) 
+    public void setFromTree(String formatName, Node root)
         throws IIOInvalidTreeException
     {
         throw new IllegalStateException("Metadata is read-only!");

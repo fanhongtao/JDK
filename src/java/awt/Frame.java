@@ -1,8 +1,26 @@
 /*
- * @(#)Frame.java	1.163 08/10/31
+ * Copyright (c) 1995, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt;
 
@@ -26,18 +44,18 @@ import javax.accessibility.*;
  * A <code>Frame</code> is a top-level window with a title and a border.
  * <p>
  * The size of the frame includes any area designated for the
- * border.  The dimensions of the border area may be obtained 
- * using the <code>getInsets</code> method, however, since 
+ * border.  The dimensions of the border area may be obtained
+ * using the <code>getInsets</code> method, however, since
  * these dimensions are platform-dependent, a valid insets
  * value cannot be obtained until the frame is made displayable
- * by either calling <code>pack</code> or <code>show</code>. 
+ * by either calling <code>pack</code> or <code>show</code>.
  * Since the border area is included in the overall size of the
  * frame, the border effectively obscures a portion of the frame,
  * constraining the area available for rendering and/or displaying
  * subcomponents to the rectangle which has an upper-left corner
  * location of <code>(insets.left, insets.top)</code>, and has a size of
- * <code>width - (insets.left + insets.right)</code> by 
- * <code>height - (insets.top + insets.bottom)</code>. 
+ * <code>width - (insets.left + insets.right)</code> by
+ * <code>height - (insets.top + insets.bottom)</code>.
  * <p>
  * The default layout for a frame is <code>BorderLayout</code>.
  * <p>
@@ -62,13 +80,13 @@ import javax.accessibility.*;
  * of the primary screen in the virtual device, negative coordinates
  * are possible, as shown in the following figure.
  * <p>
- * <img src="doc-files/MultiScreen.gif" 
+ * <img src="doc-files/MultiScreen.gif"
  * alt="Diagram of virtual device encompassing three physical screens and one primary physical screen. The primary physical screen
  * shows (0,0) coords while a different physical screen shows (-80,-100) coords."
  * ALIGN=center HSPACE=10 VSPACE=7>
  * <p>
- * In such an environment, when calling <code>setLocation</code>, 
- * you must pass a virtual coordinate to this method.  Similarly, 
+ * In such an environment, when calling <code>setLocation</code>,
+ * you must pass a virtual coordinate to this method.  Similarly,
  * calling <code>getLocationOnScreen</code> on a <code>Frame</code>
  * returns virtual device coordinates.  Call the <code>getBounds</code>
  * method of a <code>GraphicsConfiguration</code> to find its origin in
@@ -109,8 +127,7 @@ import javax.accessibility.*;
  * <li><code>WINDOW_STATE_CHANGED</code>
  * </ul>
  *
- * @version 	1.163, 10/31/08
- * @author 	Sami Shaio
+ * @author      Sami Shaio
  * @see WindowEvent
  * @see Window#addWindowListener
  * @since       JDK1.0
@@ -125,86 +142,86 @@ public class Frame extends Window implements MenuContainer {
     * @deprecated   replaced by <code>Cursor.DEFAULT_CURSOR</code>.
     */
     @Deprecated
-    public static final int	DEFAULT_CURSOR   		= Cursor.DEFAULT_CURSOR;
+    public static final int     DEFAULT_CURSOR                  = Cursor.DEFAULT_CURSOR;
 
 
    /**
     * @deprecated   replaced by <code>Cursor.CROSSHAIR_CURSOR</code>.
     */
     @Deprecated
-    public static final int	CROSSHAIR_CURSOR 		= Cursor.CROSSHAIR_CURSOR;
+    public static final int     CROSSHAIR_CURSOR                = Cursor.CROSSHAIR_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.TEXT_CURSOR</code>.
     */
     @Deprecated
-    public static final int	TEXT_CURSOR 	 		= Cursor.TEXT_CURSOR;
+    public static final int     TEXT_CURSOR                     = Cursor.TEXT_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.WAIT_CURSOR</code>.
     */
     @Deprecated
-    public static final int	WAIT_CURSOR	 		= Cursor.WAIT_CURSOR;
+    public static final int     WAIT_CURSOR                     = Cursor.WAIT_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.SW_RESIZE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	SW_RESIZE_CURSOR	 	= Cursor.SW_RESIZE_CURSOR;
+    public static final int     SW_RESIZE_CURSOR                = Cursor.SW_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.SE_RESIZE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	SE_RESIZE_CURSOR	 	= Cursor.SE_RESIZE_CURSOR;
+    public static final int     SE_RESIZE_CURSOR                = Cursor.SE_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.NW_RESIZE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	NW_RESIZE_CURSOR		= Cursor.NW_RESIZE_CURSOR;
+    public static final int     NW_RESIZE_CURSOR                = Cursor.NW_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.NE_RESIZE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	NE_RESIZE_CURSOR	 	= Cursor.NE_RESIZE_CURSOR;
+    public static final int     NE_RESIZE_CURSOR                = Cursor.NE_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.N_RESIZE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	N_RESIZE_CURSOR 		= Cursor.N_RESIZE_CURSOR;
+    public static final int     N_RESIZE_CURSOR                 = Cursor.N_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.S_RESIZE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	S_RESIZE_CURSOR 		= Cursor.S_RESIZE_CURSOR;
+    public static final int     S_RESIZE_CURSOR                 = Cursor.S_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.W_RESIZE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	W_RESIZE_CURSOR	 		= Cursor.W_RESIZE_CURSOR;
+    public static final int     W_RESIZE_CURSOR                 = Cursor.W_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.E_RESIZE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	E_RESIZE_CURSOR			= Cursor.E_RESIZE_CURSOR;
+    public static final int     E_RESIZE_CURSOR                 = Cursor.E_RESIZE_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.HAND_CURSOR</code>.
     */
     @Deprecated
-    public static final int	HAND_CURSOR			= Cursor.HAND_CURSOR;
+    public static final int     HAND_CURSOR                     = Cursor.HAND_CURSOR;
 
    /**
     * @deprecated   replaced by <code>Cursor.MOVE_CURSOR</code>.
     */
     @Deprecated
-    public static final int	MOVE_CURSOR			= Cursor.MOVE_CURSOR;	
+    public static final int     MOVE_CURSOR                     = Cursor.MOVE_CURSOR;
 
 
     /**
@@ -255,7 +272,7 @@ public class Frame extends Window implements MenuContainer {
      * <pre>
      *     (state & Frame.MAXIMIZED_BOTH) != 0
      * </pre>
-     * 
+     *
      * @see #setExtendedState(int)
      * @see #getExtendedState
      * @since 1.4
@@ -281,7 +298,7 @@ public class Frame extends Window implements MenuContainer {
      * @see #getTitle
      * @see #setTitle(String)
      */
-    String 	title = "Untitled";
+    String      title = "Untitled";
 
     /**
      * The frames menubar.  If <code>menuBar</code> = null
@@ -291,7 +308,7 @@ public class Frame extends Window implements MenuContainer {
      * @see #getMenuBar
      * @see #setMenuBar(MenuBar)
      */
-    MenuBar	menuBar;
+    MenuBar     menuBar;
 
     /**
      * This field indicates whether the frame is resizable.
@@ -302,7 +319,7 @@ public class Frame extends Window implements MenuContainer {
      * @serial
      * @see #isResizable()
      */
-    boolean	resizable = true;
+    boolean     resizable = true;
 
     /**
      * This field indicates whether the frame is undecorated.
@@ -323,13 +340,13 @@ public class Frame extends Window implements MenuContainer {
      *
      * @serial
      */
-    boolean	mbManagement = false;	/* used only by the Motif impl.	*/
+    boolean     mbManagement = false;   /* used only by the Motif impl. */
 
     // XXX: uwe: abuse old field for now
     // will need to take care of serialization
     private int state = NORMAL;
 
-    /* 
+    /*
      * The Windows owned by the Frame.
      * Note: in 1.2 this has been superceded by Window.ownedWindowList
      *
@@ -342,20 +359,20 @@ public class Frame extends Window implements MenuContainer {
     private static int nameCounter = 0;
 
     /*
-     * JDK 1.1 serialVersionUID 
+     * JDK 1.1 serialVersionUID
      */
      private static final long serialVersionUID = 2673458971256075116L;
 
     static {
         /* ensure that the necessary native libraries are loaded */
-	Toolkit.loadLibraries();
+        Toolkit.loadLibraries();
         if (!GraphicsEnvironment.isHeadless()) {
             initIDs();
         }
     }
 
     /**
-     * Constructs a new instance of <code>Frame</code> that is 
+     * Constructs a new instance of <code>Frame</code> that is
      * initially invisible.  The title of the <code>Frame</code>
      * is empty.
      * @exception HeadlessException when
@@ -372,11 +389,11 @@ public class Frame extends Window implements MenuContainer {
      * Constructs a new, initially invisible {@code Frame} with the
      * specified {@code GraphicsConfiguration}.
      *
-     * @param gc the <code>GraphicsConfiguration</code> 
-     * of the target screen device. If <code>gc</code> 
-     * is <code>null</code>, the system default 
+     * @param gc the <code>GraphicsConfiguration</code>
+     * of the target screen device. If <code>gc</code>
+     * is <code>null</code>, the system default
      * <code>GraphicsConfiguration</code> is assumed.
-     * @exception IllegalArgumentException if 
+     * @exception IllegalArgumentException if
      * <code>gc</code> is not from a screen device.
      * @exception HeadlessException when
      *     <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
@@ -388,7 +405,7 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Constructs a new, initially invisible <code>Frame</code> object 
+     * Constructs a new, initially invisible <code>Frame</code> object
      * with the specified title.
      * @param title the title to be displayed in the frame's border.
      *              A <code>null</code> value
@@ -403,19 +420,19 @@ public class Frame extends Window implements MenuContainer {
     public Frame(String title) throws HeadlessException {
         init(title, null);
     }
-    
+
     /**
-     * Constructs a new, initially invisible <code>Frame</code> object 
-     * with the specified title and a 
+     * Constructs a new, initially invisible <code>Frame</code> object
+     * with the specified title and a
      * <code>GraphicsConfiguration</code>.
      * @param title the title to be displayed in the frame's border.
      *              A <code>null</code> value
      *              is treated as an empty string, "".
-     * @param gc the <code>GraphicsConfiguration</code> 
-     * of the target screen device.  If <code>gc</code> is 
-     * <code>null</code>, the system default 
+     * @param gc the <code>GraphicsConfiguration</code>
+     * of the target screen device.  If <code>gc</code> is
+     * <code>null</code>, the system default
      * <code>GraphicsConfiguration</code> is assumed.
-     * @exception IllegalArgumentException if <code>gc</code> 
+     * @exception IllegalArgumentException if <code>gc</code>
      * is not from a screen device.
      * @exception HeadlessException when
      *     <code>GraphicsEnvironment.isHeadless()</code> returns <code>true</code>
@@ -434,15 +451,15 @@ public class Frame extends Window implements MenuContainer {
         this.title = title;
         SunToolkit.checkAndSetPolicy(this, false);
     }
-    
+
     /**
      * Construct a name for this component.  Called by getName() when the
      * name is null.
      */
     String constructComponentName() {
-        synchronized (getClass()) {
-	    return base + nameCounter++;
-	}
+        synchronized (Frame.class) {
+            return base + nameCounter++;
+        }
     }
 
     /**
@@ -455,20 +472,20 @@ public class Frame extends Window implements MenuContainer {
      * @see #removeNotify
      */
     public void addNotify() {
-	synchronized (getTreeLock()) {
-	    if (peer == null) {
-		peer = getToolkit().createFrame(this);
-	    }
-	    FramePeer p = (FramePeer)peer;
-	    MenuBar menuBar = this.menuBar;
-	    if (menuBar != null) {
-	        mbManagement = true;
-		menuBar.addNotify();
-		p.setMenuBar(menuBar);
-	    }
-	    p.setMaximizedBounds(maximizedBounds);
-	    super.addNotify();
-	}
+        synchronized (getTreeLock()) {
+            if (peer == null) {
+                peer = getToolkit().createFrame(this);
+            }
+            FramePeer p = (FramePeer)peer;
+            MenuBar menuBar = this.menuBar;
+            if (menuBar != null) {
+                mbManagement = true;
+                menuBar.addNotify();
+                p.setMenuBar(menuBar);
+            }
+            p.setMaximizedBounds(maximizedBounds);
+            super.addNotify();
+        }
     }
 
     /**
@@ -479,7 +496,7 @@ public class Frame extends Window implements MenuContainer {
      * @see       #setTitle(String)
      */
     public String getTitle() {
-	return title;
+        return title;
     }
 
     /**
@@ -512,10 +529,10 @@ public class Frame extends Window implements MenuContainer {
      * This method is obsolete and kept for backward compatibility
      * only. Use {@link Window#getIconImages Window.getIconImages()} instead.
      * <p>
-     * If a list of several images was specified as a Window's icon, 
+     * If a list of several images was specified as a Window's icon,
      * this method will return the first item of the list.
-     * 
-     * @return    the icon image for this frame, or <code>null</code> 
+     *
+     * @return    the icon image for this frame, or <code>null</code>
      *                    if this frame doesn't have an icon image.
      * @see       #setIconImage(Image)
      * @see       Window#getIconImages()
@@ -540,12 +557,12 @@ public class Frame extends Window implements MenuContainer {
 
     /**
      * Gets the menu bar for this frame.
-     * @return    the menu bar for this frame, or <code>null</code> 
+     * @return    the menu bar for this frame, or <code>null</code>
      *                   if this frame doesn't have a menu bar.
      * @see       #setMenuBar(MenuBar)
      */
     public MenuBar getMenuBar() {
-	return menuBar;
+        return menuBar;
     }
 
     /**
@@ -557,44 +574,44 @@ public class Frame extends Window implements MenuContainer {
      */
     public void setMenuBar(MenuBar mb) {
         synchronized (getTreeLock()) {
-	    if (menuBar == mb) {
-	        return;
-	    }
-	    if ((mb != null) && (mb.parent != null)) {
-	        mb.parent.remove(mb);
-	    }
-	    if (menuBar != null) {
-	        remove(menuBar);
-	    }
-	    menuBar = mb;
-	    if (menuBar != null) {
-	        menuBar.parent = this;
+            if (menuBar == mb) {
+                return;
+            }
+            if ((mb != null) && (mb.parent != null)) {
+                mb.parent.remove(mb);
+            }
+            if (menuBar != null) {
+                remove(menuBar);
+            }
+            menuBar = mb;
+            if (menuBar != null) {
+                menuBar.parent = this;
 
-		FramePeer peer = (FramePeer)this.peer;
-		if (peer != null) {
-		    mbManagement = true;
-		    menuBar.addNotify();
+                FramePeer peer = (FramePeer)this.peer;
+                if (peer != null) {
+                    mbManagement = true;
+                    menuBar.addNotify();
                     invalidateIfValid();
-		    peer.setMenuBar(menuBar);
-		}
-	    }
-	}
+                    peer.setMenuBar(menuBar);
+                }
+            }
+        }
     }
 
     /**
-     * Indicates whether this frame is resizable by the user.  
-     * By default, all frames are initially resizable. 
-     * @return    <code>true</code> if the user can resize this frame; 
+     * Indicates whether this frame is resizable by the user.
+     * By default, all frames are initially resizable.
+     * @return    <code>true</code> if the user can resize this frame;
      *                        <code>false</code> otherwise.
      * @see       java.awt.Frame#setResizable(boolean)
      */
     public boolean isResizable() {
-	return resizable;
+        return resizable;
     }
 
     /**
-     * Sets whether this frame is resizable by the user.  
-     * @param    resizable   <code>true</code> if this frame is resizable; 
+     * Sets whether this frame is resizable by the user.
+     * @param    resizable   <code>true</code> if this frame is resizable;
      *                       <code>false</code> otherwise.
      * @see      java.awt.Frame#isResizable
      */
@@ -603,21 +620,21 @@ public class Frame extends Window implements MenuContainer {
         boolean testvalid = false;
 
         synchronized (this) {
-	    this.resizable = resizable;
-	    FramePeer peer = (FramePeer)this.peer;
-	    if (peer != null) {
-	        peer.setResizable(resizable);
-		testvalid = true;
-	    }
-	}
+            this.resizable = resizable;
+            FramePeer peer = (FramePeer)this.peer;
+            if (peer != null) {
+                peer.setResizable(resizable);
+                testvalid = true;
+            }
+        }
 
-	// On some platforms, changing the resizable state affects
-	// the insets of the Frame. If we could, we'd call invalidate()
-	// from the peer, but we need to guarantee that we're not holding
-	// the Frame lock when we call invalidate().
+        // On some platforms, changing the resizable state affects
+        // the insets of the Frame. If we could, we'd call invalidate()
+        // from the peer, but we need to guarantee that we're not holding
+        // the Frame lock when we call invalidate().
         if (testvalid) {
             invalidateIfValid();
-	}
+        }
         firePropertyChange("resizable", oldResizable, resizable);
     }
 
@@ -629,24 +646,54 @@ public class Frame extends Window implements MenuContainer {
      * ICONIFIED.  Since JDK 1.4 set of supported frame states is
      * expanded and frame state is represented as a bitwise mask.
      * <p>
-     * For compatibility with old programs this method still accepts
-     * <code>Frame.NORMAL</code> and <code>Frame.ICONIFIED</code> but
-     * it only changes the iconic state of the frame, other aspects of
-     * frame state are not affected by this method.
-     * 
+     * For compatibility with applications developed
+     * earlier this method still accepts
+     * {@code Frame.NORMAL} and
+     * {@code Frame.ICONIFIED} only.  The iconic
+     * state of the frame is only changed, other aspects
+     * of frame state are not affected by this method. If
+     * the state passed to this method is neither {@code
+     * Frame.NORMAL} nor {@code Frame.ICONIFIED} the
+     * method performs no actions at all.
+     * <p>Note that if the state is not supported on a
+     * given platform, neither the state nor the return
+     * value of the {@link #getState} method will be
+     * changed. The application may determine whether a
+     * specific state is supported via the {@link
+     * java.awt.Toolkit#isFrameStateSupported} method.
+     * <p><b>If the frame is currently visible on the
+     * screen</b> (the {@link #isShowing} method returns
+     * {@code true}), the developer should examine the
+     * return value of the  {@link
+     * java.awt.event.WindowEvent#getNewState} method of
+     * the {@code WindowEvent} received through the
+     * {@link java.awt.event.WindowStateListener} to
+     * determine that the state has actually been
+     * changed.
+     * <p><b>If the frame is not visible on the
+     * screen</b>, the events may or may not be
+     * generated.  In this case the developer may assume
+     * that the state changes immediately after this
+     * method returns.  Later, when the {@code
+     * setVisible(true)} method is invoked, the frame
+     * will attempt to apply this state. Receiving any
+     * {@link
+     * java.awt.event.WindowEvent#WINDOW_STATE_CHANGED}
+     * events is not guaranteed in this case also.
+     *
      * @param state either <code>Frame.NORMAL</code> or
      *     <code>Frame.ICONIFIED</code>.
-     * @see #getState
      * @see #setExtendedState(int)
+     * @see java.awt.Window#addWindowStateListener
      */
     public synchronized void setState(int state) {
-	int current = getExtendedState();
-	if (state == ICONIFIED && (current & ICONIFIED) == 0) {
-	    setExtendedState(current | ICONIFIED);
-	}
-	else if (state == NORMAL && (current & ICONIFIED) != 0) {
-	    setExtendedState(current & ~ICONIFIED);
-	}
+        int current = getExtendedState();
+        if (state == ICONIFIED && (current & ICONIFIED) == 0) {
+            setExtendedState(current | ICONIFIED);
+        }
+        else if (state == NORMAL && (current & ICONIFIED) != 0) {
+            setExtendedState(current & ~ICONIFIED);
+        }
     }
 
     /**
@@ -663,21 +710,44 @@ public class Frame extends Window implements MenuContainer {
      * and <code>MAXIMIZED_VERT</code>.
      * </ul>
      * <p>Note that if the state is not supported on a
-     * given platform, nothing will happen. The application
-     * may determine if a specific state is available via
-     * the <code>java.awt.Toolkit#isFrameStateSupported(int state)</code>
-     * method.
-     * 
+     * given platform, neither the state nor the return
+     * value of the {@link #getExtendedState} method will
+     * be changed. The application may determine whether
+     * a specific state is supported via the {@link
+     * java.awt.Toolkit#isFrameStateSupported} method.
+     * <p><b>If the frame is currently visible on the
+     * screen</b> (the {@link #isShowing} method returns
+     * {@code true}), the developer should examine the
+     * return value of the {@link
+     * java.awt.event.WindowEvent#getNewState} method of
+     * the {@code WindowEvent} received through the
+     * {@link java.awt.event.WindowStateListener} to
+     * determine that the state has actually been
+     * changed.
+     * <p><b>If the frame is not visible on the
+     * screen</b>, the events may or may not be
+     * generated.  In this case the developer may assume
+     * that the state changes immediately after this
+     * method returns.  Later, when the {@code
+     * setVisible(true)} method is invoked, the frame
+     * will attempt to apply this state. Receiving any
+     * {@link
+     * java.awt.event.WindowEvent#WINDOW_STATE_CHANGED}
+     * events is not guaranteed in this case also.
+     *
      * @param state a bitwise mask of frame state constants
-     * @see     #getExtendedState
-     * @see     java.awt.Toolkit#isFrameStateSupported(int)
      * @since   1.4
+     * @see java.awt.Window#addWindowStateListener
      */
-    public synchronized void setExtendedState(int state) {
+    public void setExtendedState(int state) {
         if ( !isFrameStateSupported( state ) ) {
             return;
-        }    
-        this.state = state;
+        }
+        synchronized (getObjectLock()) {
+            this.state = state;
+        }
+        // peer.setState must be called outside of object lock
+        // synchronization block to avoid possible deadlock
         FramePeer peer = (FramePeer)this.peer;
         if (peer != null) {
             peer.setState(state);
@@ -685,7 +755,7 @@ public class Frame extends Window implements MenuContainer {
     }
     private boolean isFrameStateSupported(int state) {
         if( !getToolkit().isFrameStateSupported( state ) ) {
-            // * Toolkit.isFrameStateSupported returns always false 
+            // * Toolkit.isFrameStateSupported returns always false
             // on compound state even if all parts are supported;
             // * if part of state is not supported, state is not supported;
             // * MAXIMIZED_BOTH is not a compound state.
@@ -696,7 +766,7 @@ public class Frame extends Window implements MenuContainer {
                 state &= ~ICONIFIED;
             }
             return getToolkit().isFrameStateSupported( state );
-        }    
+        }
         return true;
     }
 
@@ -711,7 +781,7 @@ public class Frame extends Window implements MenuContainer {
      * <code>Frame.NORMAL</code> and <code>Frame.ICONIFIED</code> but
      * it only reports the iconic state of the frame, other aspects of
      * frame state are not reported by this method.
-     * 
+     *
      * @return  <code>Frame.NORMAL</code> or <code>Frame.ICONIFIED</code>.
      * @see     #setState(int)
      * @see     #getExtendedState
@@ -735,16 +805,36 @@ public class Frame extends Window implements MenuContainer {
      * and <code>MAXIMIZED_VERT</code>.
      * </ul>
      *
-     * @return	a bitwise mask of frame state constants
+     * @return  a bitwise mask of frame state constants
      * @see     #setExtendedState(int)
      * @since 1.4
      */
-    public synchronized int getExtendedState() {
-        FramePeer peer = (FramePeer)this.peer;
-        if (peer != null) {
-            state = peer.getState();
+    public int getExtendedState() {
+        synchronized (getObjectLock()) {
+            return state;
         }
-        return state;
+    }
+
+    static {
+        AWTAccessor.setFrameAccessor(
+            new AWTAccessor.FrameAccessor() {
+                public void setExtendedState(Frame frame, int state) {
+                    synchronized(frame.getObjectLock()) {
+                        frame.state = state;
+                    }
+                }
+                public int getExtendedState(Frame frame) {
+                    synchronized(frame.getObjectLock()) {
+                        return frame.state;
+                    }
+                }
+                public Rectangle getMaximizedBounds(Frame frame) {
+                    synchronized(frame.getObjectLock()) {
+                        return frame.maximizedBounds;
+                    }
+                }
+            }
+        );
     }
 
     /**
@@ -760,19 +850,24 @@ public class Frame extends Window implements MenuContainer {
      * others by setting those fields you want to accept from system
      * to <code>Integer.MAX_VALUE</code>.
      * <p>
-     * On some systems only the size portion of the bounds is taken
-     * into account.
-     * 
+     * Note, the given maximized bounds are used as a hint for the native
+     * system, because the underlying platform may not support setting the
+     * location and/or size of the maximized windows.  If that is the case, the
+     * provided values do not affect the appearance of the frame in the
+     * maximized state.
+     *
      * @param bounds  bounds for the maximized state
      * @see #getMaximizedBounds()
      * @since 1.4
      */
-    public synchronized void setMaximizedBounds(Rectangle bounds) {
-	this.maximizedBounds = bounds;
+    public void setMaximizedBounds(Rectangle bounds) {
+        synchronized(getObjectLock()) {
+            this.maximizedBounds = bounds;
+        }
         FramePeer peer = (FramePeer)this.peer;
-	if (peer != null) {
-	    peer.setMaximizedBounds(bounds);
-	}
+        if (peer != null) {
+            peer.setMaximizedBounds(bounds);
+        }
     }
 
     /**
@@ -780,26 +875,45 @@ public class Frame extends Window implements MenuContainer {
      * Some fields may contain <code>Integer.MAX_VALUE</code> to indicate
      * that system supplied values for this field must be used.
      *
-     * @return	maximized bounds for this frame;  may be <code>null</code>
+     * @return  maximized bounds for this frame;  may be <code>null</code>
      * @see     #setMaximizedBounds(Rectangle)
      * @since   1.4
      */
     public Rectangle getMaximizedBounds() {
-	return maximizedBounds;
+        synchronized(getObjectLock()) {
+            return maximizedBounds;
+        }
     }
 
 
     /**
      * Disables or enables decorations for this frame.
-     * This method can only be called while the frame is not displayable.
-     * @param  undecorated <code>true</code> if no frame decorations are 
-     *         to be enabled;
-     *         <code>false</code> if frame decorations are to be enabled.
-     * @throws <code>IllegalComponentStateException</code> if the frame
-     *         is displayable.
+     * <p>
+     * This method can only be called while the frame is not displayable. To
+     * make this frame decorated, it must be opaque and have the default shape,
+     * otherwise the {@code IllegalComponentStateException} will be thrown.
+     * Refer to {@link Window#setShape}, {@link Window#setOpacity} and {@link
+     * Window#setBackground} for details
+     *
+     * @param  undecorated {@code true} if no frame decorations are to be
+     *         enabled; {@code false} if frame decorations are to be enabled
+     *
+     * @throws IllegalComponentStateException if the frame is displayable
+     * @throws IllegalComponentStateException if {@code undecorated} is
+     *      {@code false}, and this frame does not have the default shape
+     * @throws IllegalComponentStateException if {@code undecorated} is
+     *      {@code false}, and this frame opacity is less than {@code 1.0f}
+     * @throws IllegalComponentStateException if {@code undecorated} is
+     *      {@code false}, and the alpha value of this frame background
+     *      color is less than {@code 1.0f}
+     *
      * @see    #isUndecorated
-     * @see    Component#isDisplayable	 
+     * @see    Component#isDisplayable
+     * @see    Window#getShape
+     * @see    Window#getOpacity
+     * @see    Window#getBackground
      * @see    javax.swing.JFrame#setDefaultLookAndFeelDecorated(boolean)
+     *
      * @since 1.4
      */
     public void setUndecorated(boolean undecorated) {
@@ -809,13 +923,15 @@ public class Frame extends Window implements MenuContainer {
                 throw new IllegalComponentStateException("The frame is displayable.");
             }
             if (!undecorated) {
-                //XXX: this needs to be documented in a further release,
-                //or better: we may throw an exception here.
-                if (!AWTAccessor.getWindowAccessor().isOpaque(this)) {
-                    AWTAccessor.getWindowAccessor().setOpaque(this, true);
+                if (getOpacity() < 1.0f) {
+                    throw new IllegalComponentStateException("The frame is not opaque");
                 }
-                if (AWTAccessor.getWindowAccessor().getShape(this) != null) {
-                    AWTAccessor.getWindowAccessor().setShape(this, null);
+                if (getShape() != null) {
+                    throw new IllegalComponentStateException("The frame does not have a default shape");
+                }
+                Color bg = getBackground();
+                if ((bg != null) && (bg.getAlpha() < 255)) {
+                    throw new IllegalComponentStateException("The frame background color is not opaque");
                 }
             }
             this.undecorated = undecorated;
@@ -823,9 +939,9 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * Indicates whether this frame is undecorated.  
-     * By default, all frames are initially decorated. 
-     * @return    <code>true</code> if frame is undecorated; 
+     * Indicates whether this frame is undecorated.
+     * By default, all frames are initially decorated.
+     * @return    <code>true</code> if frame is undecorated;
      *                        <code>false</code> otherwise.
      * @see       java.awt.Frame#setUndecorated(boolean)
      * @since 1.4
@@ -835,36 +951,75 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setOpacity(float opacity) {
+        synchronized (getTreeLock()) {
+            if ((opacity < 1.0f) && !isUndecorated()) {
+                throw new IllegalComponentStateException("The frame is decorated");
+            }
+            super.setOpacity(opacity);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setShape(Shape shape) {
+        synchronized (getTreeLock()) {
+            if ((shape != null) && !isUndecorated()) {
+                throw new IllegalComponentStateException("The frame is decorated");
+            }
+            super.setShape(shape);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setBackground(Color bgColor) {
+        synchronized (getTreeLock()) {
+            if ((bgColor != null) && (bgColor.getAlpha() < 255) && !isUndecorated()) {
+                throw new IllegalComponentStateException("The frame is decorated");
+            }
+            super.setBackground(bgColor);
+        }
+    }
+
+    /**
      * Removes the specified menu bar from this frame.
      * @param    m   the menu component to remove.
-     *           If <code>m</code> is <code>null</code>, then 
+     *           If <code>m</code> is <code>null</code>, then
      *           no action is taken
      */
     public void remove(MenuComponent m) {
         if (m == null) {
             return;
         }
-	synchronized (getTreeLock()) {
-	    if (m == menuBar) {
-		menuBar = null;
-		FramePeer peer = (FramePeer)this.peer;
-		if (peer != null) {
-		    mbManagement = true;
+        synchronized (getTreeLock()) {
+            if (m == menuBar) {
+                menuBar = null;
+                FramePeer peer = (FramePeer)this.peer;
+                if (peer != null) {
+                    mbManagement = true;
                     invalidateIfValid();
-		    peer.setMenuBar(null);
-		    m.removeNotify();
-		}
-		m.parent = null;
-	    } else {
-		super.remove(m);
-	    }
-	}
+                    peer.setMenuBar(null);
+                    m.removeNotify();
+                }
+                m.parent = null;
+            } else {
+                super.remove(m);
+            }
+        }
     }
 
     /**
      * Makes this Frame undisplayable by removing its connection
      * to its native screen resource. Making a Frame undisplayable
-     * will cause any of its children to be made undisplayable. 
+     * will cause any of its children to be made undisplayable.
      * This method is called by the toolkit internally and should
      * not be called directly by programs.
      * @see Component#isDisplayable
@@ -872,19 +1027,19 @@ public class Frame extends Window implements MenuContainer {
      */
     public void removeNotify() {
         synchronized (getTreeLock()) {
-	    FramePeer peer = (FramePeer)this.peer;
-	    if (peer != null) {
+            FramePeer peer = (FramePeer)this.peer;
+            if (peer != null) {
                 // get the latest Frame state before disposing
                 getState();
 
                 if (menuBar != null) {
-	            mbManagement = true;
-		    peer.setMenuBar(null);
-		    menuBar.removeNotify();
+                    mbManagement = true;
+                    peer.setMenuBar(null);
+                    menuBar.removeNotify();
                 }
-	    }
-	    super.removeNotify();
-	}
+            }
+            super.removeNotify();
+        }
     }
 
     void postProcessKeyEvent(KeyEvent e) {
@@ -897,40 +1052,40 @@ public class Frame extends Window implements MenuContainer {
 
     /**
      * Returns a string representing the state of this <code>Frame</code>.
-     * This method is intended to be used only for debugging purposes, and the 
-     * content and format of the returned string may vary between 
-     * implementations. The returned string may be empty but may not be 
+     * This method is intended to be used only for debugging purposes, and the
+     * content and format of the returned string may vary between
+     * implementations. The returned string may be empty but may not be
      * <code>null</code>.
      *
      * @return the parameter string of this frame
      */
     protected String paramString() {
-	String str = super.paramString();
-	if (title != null) {
-	    str += ",title=" + title;
-	}
-	if (resizable) {
-	    str += ",resizable";
-	}
-	getExtendedState();	// sync with peer
-	if (state == NORMAL) {
-	    str += ",normal";
-	}
-	else {
-	    if ((state & ICONIFIED) != 0) {
-		str += ",iconified";
-	    }
-	    if ((state & MAXIMIZED_BOTH) == MAXIMIZED_BOTH) {
-		str += ",maximized";
-	    }
-	    else if ((state & MAXIMIZED_HORIZ) != 0) {
-		str += ",maximized_horiz";
-	    }
-	    else if ((state & MAXIMIZED_VERT) != 0) {
-		str += ",maximized_vert";
-	    }
-	}
-	return str;
+        String str = super.paramString();
+        if (title != null) {
+            str += ",title=" + title;
+        }
+        if (resizable) {
+            str += ",resizable";
+        }
+        int state = getExtendedState();
+        if (state == NORMAL) {
+            str += ",normal";
+        }
+        else {
+            if ((state & ICONIFIED) != 0) {
+                str += ",iconified";
+            }
+            if ((state & MAXIMIZED_BOTH) == MAXIMIZED_BOTH) {
+                str += ",maximized";
+            }
+            else if ((state & MAXIMIZED_HORIZ) != 0) {
+                str += ",maximized_horiz";
+            }
+            else if ((state & MAXIMIZED_VERT) != 0) {
+                str += ",maximized_vert";
+            }
+        }
+        return str;
     }
 
     /**
@@ -939,10 +1094,10 @@ public class Frame extends Window implements MenuContainer {
      */
     @Deprecated
     public void setCursor(int cursorType) {
-	if (cursorType < DEFAULT_CURSOR || cursorType > MOVE_CURSOR) {
-	    throw new IllegalArgumentException("illegal cursor type");
-	}
-	setCursor(Cursor.getPredefinedCursor(cursorType));
+        if (cursorType < DEFAULT_CURSOR || cursorType > MOVE_CURSOR) {
+            throw new IllegalArgumentException("illegal cursor type");
+        }
+        setCursor(Cursor.getPredefinedCursor(cursorType));
     }
 
     /**
@@ -951,7 +1106,7 @@ public class Frame extends Window implements MenuContainer {
      */
     @Deprecated
     public int getCursorType() {
-	return (getCursor().getType());
+        return (getCursor().getType());
     }
 
     /**
@@ -969,7 +1124,7 @@ public class Frame extends Window implements MenuContainer {
      * ownerless {@code Dialog}s (introduced in release 1.6), use {@link
      * Window#getOwnerlessWindows Window.getOwnerlessWindows}.
      *
-     * @see Window#getWindows
+     * @see Window#getWindows()
      * @see Window#getOwnerlessWindows
      *
      * @since 1.2
@@ -996,7 +1151,7 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /* Serialization support.  If there's a MenuBar we restore
-     * its (transient) parent field here.  Likewise for top level 
+     * its (transient) parent field here.  Likewise for top level
      * windows that are "owned" by this frame.
      */
 
@@ -1020,7 +1175,7 @@ public class Frame extends Window implements MenuContainer {
      * @see #readObject(ObjectInputStream)
      */
     private void writeObject(ObjectOutputStream s)
-      throws IOException 
+      throws IOException
     {
         s.defaultWriteObject();
         if (icons != null && icons.size() > 0) {
@@ -1089,7 +1244,7 @@ public class Frame extends Window implements MenuContainer {
           for (int i = 0; i < ownedWindows.size(); i++) {
               connectOwnedWindow((Window) ownedWindows.elementAt(i));
           }
-          ownedWindows = null;  
+          ownedWindows = null;
       }
     }
 
@@ -1104,12 +1259,12 @@ public class Frame extends Window implements MenuContainer {
      */
 
     /**
-     * Gets the AccessibleContext associated with this Frame. 
-     * For frames, the AccessibleContext takes the form of an 
-     * AccessibleAWTFrame. 
+     * Gets the AccessibleContext associated with this Frame.
+     * For frames, the AccessibleContext takes the form of an
+     * AccessibleAWTFrame.
      * A new AccessibleAWTFrame instance is created if necessary.
      *
-     * @return an AccessibleAWTFrame that serves as the 
+     * @return an AccessibleAWTFrame that serves as the
      *         AccessibleContext of this Frame
      * @since 1.3
      */
@@ -1121,8 +1276,8 @@ public class Frame extends Window implements MenuContainer {
     }
 
     /**
-     * This class implements accessibility support for the 
-     * <code>Frame</code> class.  It provides an implementation of the 
+     * This class implements accessibility support for the
+     * <code>Frame</code> class.  It provides an implementation of the
      * Java Accessibility API appropriate to frame user-interface elements.
      * @since 1.3
      */
@@ -1136,7 +1291,7 @@ public class Frame extends Window implements MenuContainer {
         /**
          * Get the role of this object.
          *
-         * @return an instance of AccessibleRole describing the role of the 
+         * @return an instance of AccessibleRole describing the role of the
          * object
          * @see AccessibleRole
          */

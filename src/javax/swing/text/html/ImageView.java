@@ -1,15 +1,31 @@
 /*
- * @(#)ImageView.java	1.58 05/11/30
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text.html;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.image.ImageObserver;
-import java.io.*;
 import java.net.*;
 import java.util.Dictionary;
 import javax.swing.*;
@@ -26,7 +42,6 @@ import javax.swing.event.*;
  * as of 1.4.
  *
  * @author  Scott Violet
- * @version 1.58 11/30/05
  * @see IconView
  * @since 1.4
  */
@@ -52,12 +67,12 @@ public class ImageView extends View {
      * Property name for missing image icon
      */
     private static final String MISSING_IMAGE = "html.missingImage";
-    
+
     /**
      * Document property for image cache.
      */
     private static final String IMAGE_CACHE_PROPERTY = "imageCache";
-    
+
     // Height/width to use before we know the real size, these should at least
     // the size of <code>sMissingImageIcon</code> and
     // <code>sPendingImageIcon</code>
@@ -80,6 +95,7 @@ public class ImageView extends View {
 
     private AttributeSet attr;
     private Image image;
+    private Image disabledImage;
     private int width;
     private int height;
     /** Bitmask containing some of the above bitmask values. Because the
@@ -118,8 +134,8 @@ public class ImageView extends View {
      * @param elem the element to create a view for
      */
     public ImageView(Element elem) {
-    	super(elem);
-	fBounds = new Rectangle();
+        super(elem);
+        fBounds = new Rectangle();
         imageObserver = new ImageHandler();
         state = RELOAD_FLAG | RELOAD_IMAGE_FLAG;
     }
@@ -135,25 +151,25 @@ public class ImageView extends View {
     }
 
     /**
-     * Return a URL for the image source, 
+     * Return a URL for the image source,
      * or null if it could not be determined.
      */
     public URL getImageURL() {
- 	String src = (String)getElement().getAttributes().
+        String src = (String)getElement().getAttributes().
                              getAttribute(HTML.Attribute.SRC);
- 	if (src == null) {
+        if (src == null) {
             return null;
         }
 
-	URL reference = ((HTMLDocument)getDocument()).getBase();
+        URL reference = ((HTMLDocument)getDocument()).getBase();
         try {
- 	    URL u = new URL(reference,src);
-	    return u;
+            URL u = new URL(reference,src);
+            return u;
         } catch (MalformedURLException e) {
-	    return null;
+            return null;
         }
     }
-    
+
     /**
      * Returns the icon to use if the image couldn't be found.
      */
@@ -174,6 +190,17 @@ public class ImageView extends View {
     public Image getImage() {
         sync();
         return image;
+    }
+
+    private Image getImage(boolean enabled) {
+        Image img = getImage();
+        if (! enabled) {
+            if (disabledImage == null) {
+                disabledImage = GrayFilter.createDisabledImage(img);
+            }
+            img = disabledImage;
+        }
+        return img;
     }
 
     /**
@@ -204,8 +231,8 @@ public class ImageView extends View {
      * Convenience method to get the StyleSheet.
      */
     protected StyleSheet getStyleSheet() {
-	HTMLDocument doc = (HTMLDocument) getDocument();
-	return doc.getStyleSheet();
+        HTMLDocument doc = (HTMLDocument) getDocument();
+        return doc.getStyleSheet();
     }
 
     /**
@@ -215,7 +242,7 @@ public class ImageView extends View {
      */
     public AttributeSet getAttributes() {
         sync();
-	return attr;
+        return attr;
     }
 
     /**
@@ -286,8 +313,8 @@ public class ImageView extends View {
      */
     public void setParent(View parent) {
         View oldParent = getParent();
-	super.setParent(parent);
-	container = (parent != null) ? getContainer() : null;
+        super.setParent(parent);
+        container = (parent != null) ? getContainer() : null;
         if (oldParent != parent) {
             synchronized(this) {
                 state |= RELOAD_FLAG;
@@ -299,7 +326,7 @@ public class ImageView extends View {
      * Invoked when the Elements attributes have changed. Recreates the image.
      */
     public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-    	super.changedUpdate(e,a,f);
+        super.changedUpdate(e,a,f);
 
         synchronized(this) {
             state |= RELOAD_FLAG | RELOAD_IMAGE_FLAG;
@@ -319,13 +346,11 @@ public class ImageView extends View {
     public void paint(Graphics g, Shape a) {
         sync();
 
-	Rectangle rect = (a instanceof Rectangle) ? (Rectangle)a :
+        Rectangle rect = (a instanceof Rectangle) ? (Rectangle)a :
                          a.getBounds();
-
-        Image image = getImage();
         Rectangle clip = g.getClipBounds();
 
-	fBounds.setBounds(rect);
+        fBounds.setBounds(rect);
         paintHighlights(g, a);
         paintBorder(g, rect);
         if (clip != null) {
@@ -333,29 +358,29 @@ public class ImageView extends View {
                        rect.width - leftInset - rightInset,
                        rect.height - topInset - bottomInset);
         }
-        if (image != null) {
-            if (!hasPixels(image)) {
-                // No pixels yet, use the default
-                Icon icon = (image == null) ? getNoImageIcon() :
-                                               getLoadingImageIcon();
 
+        Container host = getContainer();
+        Image img = getImage(host == null || host.isEnabled());
+        if (img != null) {
+            if (! hasPixels(img)) {
+                // No pixels yet, use the default
+                Icon icon = getLoadingImageIcon();
                 if (icon != null) {
-                    icon.paintIcon(getContainer(), g, rect.x + leftInset,
-                                   rect.y + topInset);
+                    icon.paintIcon(host, g,
+                            rect.x + leftInset, rect.y + topInset);
                 }
             }
             else {
                 // Draw the image
-                g.drawImage(image, rect.x + leftInset, rect.y + topInset,
+                g.drawImage(img, rect.x + leftInset, rect.y + topInset,
                             width, height, imageObserver);
             }
         }
         else {
             Icon icon = getNoImageIcon();
-
             if (icon != null) {
-                icon.paintIcon(getContainer(), g, rect.x + leftInset,
-                               rect.y + topInset);
+                icon.paintIcon(host, g,
+                        rect.x + leftInset, rect.y + topInset);
             }
             View view = getAltView();
             // Paint the view representing the alt text, if its non-null
@@ -377,14 +402,14 @@ public class ImageView extends View {
     }
 
     private void paintHighlights(Graphics g, Shape shape) {
-	if (container instanceof JTextComponent) {
-	    JTextComponent tc = (JTextComponent)container;
-	    Highlighter h = tc.getHighlighter();
-	    if (h instanceof LayeredHighlighter) {
-		((LayeredHighlighter)h).paintLayeredHighlights
-		    (g, getStartOffset(), getEndOffset(), shape, tc, this);
-	    }
-	}
+        if (container instanceof JTextComponent) {
+            JTextComponent tc = (JTextComponent)container;
+            Highlighter h = tc.getHighlighter();
+            if (h instanceof LayeredHighlighter) {
+                ((LayeredHighlighter)h).paintLayeredHighlights
+                    (g, getStartOffset(), getEndOffset(), shape, tc, this);
+            }
+        }
     }
 
     private void paintBorder(Graphics g, Rectangle rect) {
@@ -395,8 +420,8 @@ public class ImageView extends View {
             int yOffset = topInset - borderSize;
             g.setColor(color);
             int n = (image == null) ? 1 : borderSize;
-	    for (int counter = 0; counter < n; counter++) {
-	        g.drawRect(rect.x + xOffset + counter,
+            for (int counter = 0; counter < n; counter++) {
+                g.drawRect(rect.x + xOffset + counter,
                            rect.y + yOffset + counter,
                            rect.width - counter - counter - xOffset -xOffset-1,
                            rect.height - counter - counter -yOffset-yOffset-1);
@@ -411,7 +436,7 @@ public class ImageView extends View {
      * @param axis may be either X_AXIS or Y_AXIS
      * @return   the span the view would like to be rendered into;
      *           typically the view is told to render into the span
-     *           that is returned, although there is no guarantee;  
+     *           that is returned, although there is no guarantee;
      *           the parent may choose to resize or break the view
      */
     public float getPreferredSpan(int axis) {
@@ -471,12 +496,12 @@ public class ImageView extends View {
      *   center of the view
      */
     public float getAlignment(int axis) {
-	switch (axis) {
-	case View.Y_AXIS:
-	    return vAlign;
-	default:
-	    return super.getAlignment(axis);
-	}
+        switch (axis) {
+        case View.Y_AXIS:
+            return vAlign;
+        default:
+            return super.getAlignment(axis);
+        }
     }
 
     /**
@@ -491,17 +516,17 @@ public class ImageView extends View {
      * @see View#modelToView
      */
     public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException {
-	int p0 = getStartOffset();
-	int p1 = getEndOffset();
-	if ((pos >= p0) && (pos <= p1)) {
-	    Rectangle r = a.getBounds();
-	    if (pos == p1) {
-		r.x += r.width;
-	    }
-	    r.width = 0;
-	    return r;
-	}
-	return null;
+        int p0 = getStartOffset();
+        int p1 = getEndOffset();
+        if ((pos >= p0) && (pos <= p1)) {
+            Rectangle r = a.getBounds();
+            if (pos == p1) {
+                r.x += r.width;
+            }
+            r.width = 0;
+            return r;
+        }
+        return null;
     }
 
     /**
@@ -516,17 +541,17 @@ public class ImageView extends View {
      * @see View#viewToModel
      */
     public int viewToModel(float x, float y, Shape a, Position.Bias[] bias) {
-	Rectangle alloc = (Rectangle) a;
-	if (x < alloc.x + alloc.width) {
-	    bias[0] = Position.Bias.Forward;
-	    return getStartOffset();
-	}
-	bias[0] = Position.Bias.Backward;
-	return getEndOffset();
+        Rectangle alloc = (Rectangle) a;
+        if (x < alloc.x + alloc.width) {
+            bias[0] = Position.Bias.Forward;
+            return getStartOffset();
+        }
+        bias[0] = Position.Bias.Backward;
+        return getEndOffset();
     }
 
     /**
-     * Sets the size of the view.  This should cause 
+     * Sets the size of the view.  This should cause
      * layout of the view if it has any layout duties.
      *
      * @param width the width >= 0
@@ -539,8 +564,8 @@ public class ImageView extends View {
             View view = getAltView();
 
             if (view != null) {
-		view.setSize(Math.max(0f, width - (float)(DEFAULT_WIDTH + leftInset + rightInset)),
-			     Math.max(0f, height - (float)(topInset + bottomInset)));
+                view.setSize(Math.max(0f, width - (float)(DEFAULT_WIDTH + leftInset + rightInset)),
+                             Math.max(0f, height - (float)(topInset + bottomInset)));
             }
         }
     }
@@ -549,7 +574,7 @@ public class ImageView extends View {
      * Returns true if this image within a link?
      */
     private boolean isLink() {
-	return ((state & LINK_FLAG) == LINK_FLAG);
+        return ((state & LINK_FLAG) == LINK_FLAG);
     }
 
     /**
@@ -581,10 +606,10 @@ public class ImageView extends View {
      * Assumes the view is still at its last-drawn location.
      */
     private void repaint(long delay) {
-    	if (container != null && fBounds != null) {
-	    container.repaint(delay, fBounds.x, fBounds.y, fBounds.width,
+        if (container != null && fBounds != null) {
+            container.repaint(delay, fBounds.x, fBounds.y, fBounds.width,
                                fBounds.height);
-    	}
+        }
     }
 
     /**
@@ -592,23 +617,23 @@ public class ImageView extends View {
      * AttributeSet.
      */
     private int getIntAttr(HTML.Attribute name, int deflt) {
-    	AttributeSet attr = getElement().getAttributes();
-    	if (attr.isDefined(name)) {		// does not check parents!
-    	    int i;
- 	    String val = (String)attr.getAttribute(name);
- 	    if (val == null) {
- 	    	i = deflt;
+        AttributeSet attr = getElement().getAttributes();
+        if (attr.isDefined(name)) {             // does not check parents!
+            int i;
+            String val = (String)attr.getAttribute(name);
+            if (val == null) {
+                i = deflt;
             }
- 	    else {
- 	    	try{
- 	            i = Math.max(0, Integer.parseInt(val));
- 	    	}catch( NumberFormatException x ) {
- 	    	    i = deflt;
- 	    	}
+            else {
+                try{
+                    i = Math.max(0, Integer.parseInt(val));
+                }catch( NumberFormatException x ) {
+                    i = deflt;
+                }
             }
-	    return i;
-	} else
-	    return deflt;
+            return i;
+        } else
+            return deflt;
     }
 
     /**
@@ -634,7 +659,7 @@ public class ImageView extends View {
      * <code>updateImageSize</code> directly.
      */
     private void refreshImage() {
-	synchronized(this) {
+        synchronized(this) {
             // clear out width/height/realoadimage flag and set loading flag
             state = (state | LOADING_FLAG | RELOAD_IMAGE_FLAG | WIDTH_FLAG |
                      HEIGHT_FLAG) ^ (WIDTH_FLAG | HEIGHT_FLAG |
@@ -688,42 +713,42 @@ public class ImageView extends View {
      * only be invoked from <code>refreshImage</code>.
      */
     private void updateImageSize() {
-	int newWidth = 0;
-	int newHeight = 0;
+        int newWidth = 0;
+        int newHeight = 0;
         int newState = 0;
         Image newImage = getImage();
 
         if (newImage != null) {
             Element elem = getElement();
-	    AttributeSet attr = elem.getAttributes();
+            AttributeSet attr = elem.getAttributes();
 
             // Get the width/height and set the state ivar before calling
             // anything that might cause the image to be loaded, and thus the
             // ImageHandler to be called.
-	    newWidth = getIntAttr(HTML.Attribute.WIDTH, -1);
+            newWidth = getIntAttr(HTML.Attribute.WIDTH, -1);
             if (newWidth > 0) {
                 newState |= WIDTH_FLAG;
             }
-	    newHeight = getIntAttr(HTML.Attribute.HEIGHT, -1);
+            newHeight = getIntAttr(HTML.Attribute.HEIGHT, -1);
             if (newHeight > 0) {
                 newState |= HEIGHT_FLAG;
             }
 
             if (newWidth <= 0) {
-		newWidth = newImage.getWidth(imageObserver);
+                newWidth = newImage.getWidth(imageObserver);
                 if (newWidth <= 0) {
                     newWidth = DEFAULT_WIDTH;
                 }
             }
 
             if (newHeight <= 0) {
-		newHeight = newImage.getHeight(imageObserver);
+                newHeight = newImage.getHeight(imageObserver);
                 if (newHeight <= 0) {
                     newHeight = DEFAULT_HEIGHT;
                 }
             }
 
-	    // Make sure the image starts loading:
+            // Make sure the image starts loading:
             if ((newState & (WIDTH_FLAG | HEIGHT_FLAG)) != 0) {
                 Toolkit.getDefaultToolkit().prepareImage(newImage, newWidth,
                                                          newHeight,
@@ -735,7 +760,7 @@ public class ImageView extends View {
             }
 
             boolean createText = false;
-	    synchronized(this) {
+            synchronized(this) {
                 // If imageloading failed, other thread may have called
                 // ImageLoader which will null out image, hence we check
                 // for it.
@@ -763,8 +788,8 @@ public class ImageView extends View {
             if (createText) {
                 // Only reset if this thread determined image is null
                 updateAltTextView();
-	    }
-	}
+            }
+        }
         else {
             width = height = DEFAULT_HEIGHT;
             updateAltTextView();
@@ -808,14 +833,14 @@ public class ImageView extends View {
      */
     private void safePreferenceChanged() {
         if (SwingUtilities.isEventDispatchThread()) {
-	    Document doc = getDocument();
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readLock();
-	    }
+            Document doc = getDocument();
+            if (doc instanceof AbstractDocument) {
+                ((AbstractDocument)doc).readLock();
+            }
             preferenceChanged(null, true, true);
-	    if (doc instanceof AbstractDocument) {
-		((AbstractDocument)doc).readUnlock();
-	    }
+            if (doc instanceof AbstractDocument) {
+                ((AbstractDocument)doc).readUnlock();
+            }
         }
         else {
             SwingUtilities.invokeLater(new Runnable() {
@@ -838,10 +863,12 @@ public class ImageView extends View {
         // it will pick up the new height/width, if necessary.
         public boolean imageUpdate(Image img, int flags, int x, int y,
                                    int newWidth, int newHeight ) {
-            if (image == null || image != img || getParent() == null) {
+            if (img != image && img != disabledImage ||
+                image == null || getParent() == null) {
+
                 return false;
             }
-    	    
+
             // Bail out if there was an error:
             if ((flags & (ABORT|ERROR)) != 0) {
                 repaint(0);
@@ -856,6 +883,8 @@ public class ImageView extends View {
                         if ((state & HEIGHT_FLAG) != HEIGHT_FLAG) {
                             height = DEFAULT_HEIGHT;
                         }
+                    } else {
+                        disabledImage = null;
                     }
                     if ((state & LOADING_FLAG) == LOADING_FLAG) {
                         // No need to resize or repaint, still in the process
@@ -868,37 +897,36 @@ public class ImageView extends View {
                 return false;
             }
 
-            // Resize image if necessary:
-            short changed = 0;
-            if ((flags & ImageObserver.HEIGHT) != 0 && !getElement().
-                  getAttributes().isDefined(HTML.Attribute.HEIGHT)) {
-                changed |= 1;
-            }
-            if ((flags & ImageObserver.WIDTH) != 0 && !getElement().
-                  getAttributes().isDefined(HTML.Attribute.WIDTH)) {
-		changed |= 2;
-            }
+            if (image == img) {
+                // Resize image if necessary:
+                short changed = 0;
+                if ((flags & ImageObserver.HEIGHT) != 0 && !getElement().
+                      getAttributes().isDefined(HTML.Attribute.HEIGHT)) {
+                    changed |= 1;
+                }
+                if ((flags & ImageObserver.WIDTH) != 0 && !getElement().
+                      getAttributes().isDefined(HTML.Attribute.WIDTH)) {
+                    changed |= 2;
+                }
 
-            synchronized(ImageView.this) {
-                if (image != img) {
-                    return false;
+                synchronized(ImageView.this) {
+                    if ((changed & 1) == 1 && (state & WIDTH_FLAG) == 0) {
+                        width = newWidth;
+                    }
+                    if ((changed & 2) == 2 && (state & HEIGHT_FLAG) == 0) {
+                        height = newHeight;
+                    }
+                    if ((state & LOADING_FLAG) == LOADING_FLAG) {
+                        // No need to resize or repaint, still in the process of
+                        // loading.
+                        return true;
+                    }
                 }
-                if ((changed & 1) == 1 && (state & WIDTH_FLAG) == 0) {
-                    width = newWidth;
-                }
-                if ((changed & 2) == 2 && (state & HEIGHT_FLAG) == 0) {
-                    height = newHeight;
-                }
-                if ((state & LOADING_FLAG) == LOADING_FLAG) {
-                    // No need to resize or repaint, still in the process of
-                    // loading.
+                if (changed != 0) {
+                    // May need to resize myself, asynchronously:
+                    safePreferenceChanged();
                     return true;
                 }
-            }
-            if (changed != 0) {
-                // May need to resize myself, asynchronously:
-		safePreferenceChanged();
-                return true;
             }
 
             // Repaint when done or when new pixels arrive:
@@ -954,7 +982,7 @@ public class ImageView extends View {
         public int getStartOffset() {
             return 0;
         }
-    
+
         public int getEndOffset() {
             return segment.array.length;
         }

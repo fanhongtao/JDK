@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,13 +61,12 @@ package com.sun.org.apache.bcel.internal.generic;
 import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.ExceptionConstants;
 
-/** 
+/**
  * GETFIELD - Fetch field from object
  * <PRE>Stack: ..., objectref -&gt; ..., value</PRE>
  * OR
  * <PRE>Stack: ..., objectref -&gt; ..., value.word1, value.word2</PRE>
  *
- * @version $Id: GETFIELD.java,v 1.1.2.1 2005/07/31 23:45:37 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class GETFIELD extends FieldInstruction
@@ -84,7 +87,7 @@ public class GETFIELD extends FieldInstruction
     Class[] cs = new Class[2 + ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length];
 
     System.arraycopy(ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION, 0,
-		     cs, 0, ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length);
+                     cs, 0, ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length);
 
     cs[ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length+1] =
       ExceptionConstants.INCOMPATIBLE_CLASS_CHANGE_ERROR;

@@ -1,8 +1,26 @@
 /*
- * @(#)CollationRules.java	1.27 05/11/17
+ * Copyright (c) 1996, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -26,7 +44,6 @@ package java.text;
  * so they do not have to contain accented characters, such as A-grave.
  * @see                RuleBasedCollator
  * @see                LocaleElements
- * @version            1.27, 11/17/05
  * @author             Helena Shih, Mark Davis
  */
 final class CollationRules {
@@ -128,8 +145,8 @@ final class CollationRules {
         //+ ";\u0340"          // non-spacing grave tone mark == \u0300
         //+ ";\u0341"          // non-spacing acute tone mark == \u0301
         + ";\u0342;"
-	//+ "\u0343;" // == \u0313
-	+ "\u0344;\u0345;\u0360;\u0361"    // newer
+        //+ "\u0343;" // == \u0313
+        + "\u0344;\u0345;\u0360;\u0361"    // newer
         + ";\u0483;\u0484;\u0485;\u0486"    // Cyrillic accents
 
         + ";\u20D0;\u20D1;\u20D2"           // symbol accents
@@ -191,7 +208,7 @@ final class CollationRules {
         + "<\u20a4"          // lira sign
         + "<\u20a5"          // mill sign
         + "<\u20a6"          // naira sign
-        + "<\u20a7"          // peseta sign        
+        + "<\u20a7"          // peseta sign
         + "<\u00a3"          // pound-sterling sign
         + "<\u20a8"          // rupee sign
         + "<\u20aa"          // new shekel sign

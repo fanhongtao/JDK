@@ -1,8 +1,26 @@
 /*
- * @(#)IIOWriteProgressListener.java	1.19 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.event;
@@ -16,7 +34,6 @@ import javax.imageio.ImageWriter;
  *
  * @see javax.imageio.ImageWriter#write
  *
- * @version 0.5
  */
 public interface IIOWriteProgressListener extends EventListener {
 
@@ -60,7 +77,7 @@ public interface IIOWriteProgressListener extends EventListener {
      * @param percentageDone the approximate percentage of decoding that
      * has been completed.
      */
-    void imageProgress(ImageWriter source, 
+    void imageProgress(ImageWriter source,
                        float percentageDone);
 
     /**

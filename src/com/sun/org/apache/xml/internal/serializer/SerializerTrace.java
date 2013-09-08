@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,12 +27,12 @@ import org.xml.sax.Attributes;
 /**
  * This interface defines a set of integer constants that identify trace event
  * types.
- * 
+ *
  * @xsl.usage internal
  */
 
 public interface SerializerTrace {
-    
+
   /**
    * Event type generated when a document begins.
    *
@@ -79,7 +83,7 @@ public interface SerializerTrace {
    * Event type generated after CDATA is generated.
    */
   public static final int EVENTTYPE_CDATA = 10;
-  
+
   /**
    * Event type generated when characters might be written to an output stream,
    *  but  these characters never are. They will ultimately be written out via
@@ -90,12 +94,12 @@ public interface SerializerTrace {
    * EVENTTYPE_OUTPUT_CHARACTERS.
    */
   public static final int EVENTTYPE_OUTPUT_PSEUDO_CHARACTERS = 11;
-  
+
   /**
    * Event type generated when characters are written to an output stream.
    */
   public static final int EVENTTYPE_OUTPUT_CHARACTERS = 12;
-    
+
 
   /**
    * Tell if trace listeners are present.
@@ -103,14 +107,14 @@ public interface SerializerTrace {
    * @return True if there are trace listeners
    */
   public boolean hasTraceListeners();
-  
+
   /**
    * Fire startDocument, endDocument events.
    *
    * @param eventType One of the EVENTTYPE_XXX constants.
    */
   public void fireGenerateEvent(int eventType);
-  
+
   /**
    * Fire startElement, endElement events.
    *
@@ -119,7 +123,7 @@ public interface SerializerTrace {
    * @param atts The SAX attribute list.
    */
   public void fireGenerateEvent(int eventType, String name, Attributes atts);
-  
+
   /**
    * Fire characters, cdata events.
    *
@@ -129,7 +133,7 @@ public interface SerializerTrace {
    * @param length The end offset to be used in the chara array.
    */
   public void fireGenerateEvent(int eventType, char ch[], int start, int length);
-  
+
   /**
    * Fire processingInstruction events.
    *
@@ -138,7 +142,7 @@ public interface SerializerTrace {
    * @param data The processing instruction data.
    */
   public void fireGenerateEvent(int eventType, String name, String data);
-  
+
 
   /**
    * Fire comment and entity ref events.
@@ -147,5 +151,5 @@ public interface SerializerTrace {
    * @param data The comment or entity ref data.
    */
   public void fireGenerateEvent(int eventType, String data);
-  
+
 }

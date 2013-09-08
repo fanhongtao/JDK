@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -71,11 +75,10 @@ import java.util.HashMap;
  * can traverse the list via an Enumeration returned by
  * InstructionList.elements().
  *
- * @version $Id: InstructionHandle.java,v 1.1.2.1 2005/07/31 23:45:01 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Instruction
  * @see BranchHandle
- * @see InstructionList 
+ * @see InstructionList
  */
 public class InstructionHandle implements java.io.Serializable {
   InstructionHandle next, prev;  // Will be set from the outside
@@ -196,7 +199,7 @@ public class InstructionHandle implements java.io.Serializable {
   public void removeTargeter(InstructionTargeter t) {
     targeters.remove(t);
   }
-  
+
   /**
    * Denote this handle is being referenced by t.
    */
@@ -218,19 +221,19 @@ public class InstructionHandle implements java.io.Serializable {
   public InstructionTargeter[] getTargeters() {
     if(!hasTargeters())
       return null;
-    
+
     InstructionTargeter[] t = new InstructionTargeter[targeters.size()];
     targeters.toArray(t);
     return t;
   }
 
-  /** @return a (verbose) string representation of the contained instruction. 
+  /** @return a (verbose) string representation of the contained instruction.
    */
   public String toString(boolean verbose) {
     return Utility.format(i_position, 4, false, ' ') + ": " + instruction.toString(verbose);
   }
 
-  /** @return a string representation of the contained instruction. 
+  /** @return a string representation of the contained instruction.
    */
   public String toString() {
     return toString(true);
@@ -244,7 +247,7 @@ public class InstructionHandle implements java.io.Serializable {
   public void addAttribute(Object key, Object attr) {
     if(attributes == null)
       attributes = new HashMap(3);
-    
+
     attributes.put(key, attr);
   }
 
@@ -273,7 +276,7 @@ public class InstructionHandle implements java.io.Serializable {
   public Collection getAttributes() {
     return attributes.values();
   }
-  
+
   /** Convenience method, simply calls accept() on the contained instruction.
    *
    * @param v Visitor object

@@ -1,8 +1,26 @@
 /*
- * @(#)Compilable.java	1.3 05/11/17 14:24:13
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTAIL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.script;
@@ -15,7 +33,6 @@ import java.io.Reader;
  * to a form that can be executed repeatedly without recompilation.
  *
  * @author Mike Grogan
- * @version 1.0
  * @since 1.6
  */
 public interface Compilable {
@@ -32,10 +49,10 @@ public interface Compilable {
      * @throws NullPointerException if the argument is null.
      *
      */
-    
+
     public CompiledScript compile(String script) throws
             ScriptException;
-    
+
     /**
      * Compiles the script (source read from <code>Reader</code>) for
      * later execution.  Functionality is identical to

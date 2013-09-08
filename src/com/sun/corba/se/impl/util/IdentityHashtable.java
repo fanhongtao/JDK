@@ -1,8 +1,26 @@
 /*
- * @(#)IdentityHashtable.java	1.15 05/11/17
+ * Copyright (c) 1999, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -10,8 +28,6 @@
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.util;
@@ -22,7 +38,7 @@ import java.util.NoSuchElementException;
 
 /**
  * IdentityHashtable is a modified copy of the 1.1.6 Hashtable class which
- * does not rely on the hashCode() and equals() methods of the key or value; 
+ * does not rely on the hashCode() and equals() methods of the key or value;
  * instead, it uses the System.identityHashcode() method and pointer comparison.
  * In addition, all synchronization has been removed.
  */
@@ -30,10 +46,10 @@ import java.util.NoSuchElementException;
  * IdentityHashtable collision list.
  */
 class IdentityHashtableEntry {
-	int hash;
-	Object key;
-	Object value;
-	IdentityHashtableEntry next;
+        int hash;
+        Object key;
+        Object value;
+        IdentityHashtableEntry next;
 }
 
 public final class IdentityHashtable extends Dictionary {
@@ -58,8 +74,8 @@ public final class IdentityHashtable extends Dictionary {
     private float loadFactor;
 
     /**
-     * Constructs a new, empty hashtable with the specified initial 
-     * capacity and the specified load factor. 
+     * Constructs a new, empty hashtable with the specified initial
+     * capacity and the specified load factor.
      *
      * @param      initialCapacity   the initial capacity of the hashtable.
      * @param      loadFactor        a number between 0.0 and 1.0.
@@ -69,12 +85,12 @@ public final class IdentityHashtable extends Dictionary {
      * @since      JDK1.0
      */
     public IdentityHashtable(int initialCapacity, float loadFactor) {
-	if ((initialCapacity <= 0) || (loadFactor <= 0.0)) {
-	    throw new IllegalArgumentException();
-	}
-	this.loadFactor = loadFactor;
-	table = new IdentityHashtableEntry[initialCapacity];
-	threshold = (int)(initialCapacity * loadFactor);
+        if ((initialCapacity <= 0) || (loadFactor <= 0.0)) {
+            throw new IllegalArgumentException();
+        }
+        this.loadFactor = loadFactor;
+        table = new IdentityHashtableEntry[initialCapacity];
+        threshold = (int)(initialCapacity * loadFactor);
     }
 
     /**
@@ -85,17 +101,17 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public IdentityHashtable(int initialCapacity) {
-	this(initialCapacity, 0.75f);
+        this(initialCapacity, 0.75f);
     }
 
     /**
      * Constructs a new, empty hashtable with a default capacity and load
-     * factor. 
+     * factor.
      *
      * @since   JDK1.0
      */
     public IdentityHashtable() {
-	this(101, 0.75f);
+        this(101, 0.75f);
     }
 
     /**
@@ -105,7 +121,7 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public int size() {
-	return count;
+        return count;
     }
 
     /**
@@ -116,7 +132,7 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public boolean isEmpty() {
-	return count == 0;
+        return count == 0;
     }
 
     /**
@@ -128,7 +144,7 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public Enumeration keys() {
-	return new IdentityHashtableEnumerator(table, true);
+        return new IdentityHashtableEnumerator(table, true);
     }
 
     /**
@@ -142,7 +158,7 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public Enumeration elements() {
-	return new IdentityHashtableEnumerator(table, false);
+        return new IdentityHashtableEnumerator(table, false);
     }
 
     /**
@@ -159,24 +175,24 @@ public final class IdentityHashtable extends Dictionary {
      * @since      JDK1.0
      */
     public boolean contains(Object value) {
-	if (value == null) {
-	    throw new NullPointerException();
-	}
+        if (value == null) {
+            throw new NullPointerException();
+        }
 
-	IdentityHashtableEntry tab[] = table;
-	for (int i = tab.length ; i-- > 0 ;) {
-	    for (IdentityHashtableEntry e = tab[i] ; e != null ; e = e.next) {
-		if (e.value == value) {
-		    return true;
-		}
-	    }
-	}
-	return false;
+        IdentityHashtableEntry tab[] = table;
+        for (int i = tab.length ; i-- > 0 ;) {
+            for (IdentityHashtableEntry e = tab[i] ; e != null ; e = e.next) {
+                if (e.value == value) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
      * Tests if the specified object is a key in this hashtable.
-     * 
+     *
      * @param   key   possible key.
      * @return  <code>true</code> if the specified object is a key in this
      *          hashtable; <code>false</code> otherwise.
@@ -184,15 +200,15 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public boolean containsKey(Object key) {
-	IdentityHashtableEntry tab[] = table;
-	int hash = System.identityHashCode(key);
-	int index = (hash & 0x7FFFFFFF) % tab.length;
-	for (IdentityHashtableEntry e = tab[index] ; e != null ; e = e.next) {
-	    if ((e.hash == hash) && e.key == key) {
-		return true;
-	    }
-	}
-	return false;
+        IdentityHashtableEntry tab[] = table;
+        int hash = System.identityHashCode(key);
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (IdentityHashtableEntry e = tab[index] ; e != null ; e = e.next) {
+            if ((e.hash == hash) && e.key == key) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -206,56 +222,56 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public Object get(Object key) {
-	IdentityHashtableEntry tab[] = table;
-	int hash = System.identityHashCode(key);
-	int index = (hash & 0x7FFFFFFF) % tab.length;
-	for (IdentityHashtableEntry e = tab[index] ; e != null ; e = e.next) {
-	    if ((e.hash == hash) && e.key == key) {
-		return e.value;
-	    }
-	}
-	return null;
+        IdentityHashtableEntry tab[] = table;
+        int hash = System.identityHashCode(key);
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (IdentityHashtableEntry e = tab[index] ; e != null ; e = e.next) {
+            if ((e.hash == hash) && e.key == key) {
+                return e.value;
+            }
+        }
+        return null;
     }
 
     /**
-     * Rehashes the contents of the hashtable into a hashtable with a 
-     * larger capacity. This method is called automatically when the 
-     * number of keys in the hashtable exceeds this hashtable's capacity 
-     * and load factor. 
+     * Rehashes the contents of the hashtable into a hashtable with a
+     * larger capacity. This method is called automatically when the
+     * number of keys in the hashtable exceeds this hashtable's capacity
+     * and load factor.
      *
      * @since   JDK1.0
      */
     protected void rehash() {
-	int oldCapacity = table.length;
-	IdentityHashtableEntry oldTable[] = table;
+        int oldCapacity = table.length;
+        IdentityHashtableEntry oldTable[] = table;
 
-	int newCapacity = oldCapacity * 2 + 1;
-	IdentityHashtableEntry newTable[] = new IdentityHashtableEntry[newCapacity];
+        int newCapacity = oldCapacity * 2 + 1;
+        IdentityHashtableEntry newTable[] = new IdentityHashtableEntry[newCapacity];
 
-	threshold = (int)(newCapacity * loadFactor);
-	table = newTable;
+        threshold = (int)(newCapacity * loadFactor);
+        table = newTable;
 
-	//System.out.println("rehash old=" + oldCapacity + ", new=" + newCapacity + ", thresh=" + threshold + ", count=" + count);
+        //System.out.println("rehash old=" + oldCapacity + ", new=" + newCapacity + ", thresh=" + threshold + ", count=" + count);
 
-	for (int i = oldCapacity ; i-- > 0 ;) {
-	    for (IdentityHashtableEntry old = oldTable[i] ; old != null ; ) {
-		IdentityHashtableEntry e = old;
-		old = old.next;
+        for (int i = oldCapacity ; i-- > 0 ;) {
+            for (IdentityHashtableEntry old = oldTable[i] ; old != null ; ) {
+                IdentityHashtableEntry e = old;
+                old = old.next;
 
-		int index = (e.hash & 0x7FFFFFFF) % newCapacity;
-		e.next = newTable[index];
-		newTable[index] = e;
-	    }
-	}
+                int index = (e.hash & 0x7FFFFFFF) % newCapacity;
+                e.next = newTable[index];
+                newTable[index] = e;
+            }
+        }
     }
 
     /**
-     * Maps the specified <code>key</code> to the specified 
-     * <code>value</code> in this hashtable. Neither the key nor the 
-     * value can be <code>null</code>. 
+     * Maps the specified <code>key</code> to the specified
+     * <code>value</code> in this hashtable. Neither the key nor the
+     * value can be <code>null</code>.
      * <p>
-     * The value can be retrieved by calling the <code>get</code> method 
-     * with a key that is equal to the original key. 
+     * The value can be retrieved by calling the <code>get</code> method
+     * with a key that is equal to the original key.
      *
      * @param      key     the hashtable key.
      * @param      value   the value.
@@ -267,42 +283,42 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public Object put(Object key, Object value) {
-	// Make sure the value is not null
-	if (value == null) {
-	    throw new NullPointerException();
-	}
+        // Make sure the value is not null
+        if (value == null) {
+            throw new NullPointerException();
+        }
 
-	// Makes sure the key is not already in the hashtable.
-	IdentityHashtableEntry tab[] = table;
-	int hash = System.identityHashCode(key);
-	int index = (hash & 0x7FFFFFFF) % tab.length;
-	for (IdentityHashtableEntry e = tab[index] ; e != null ; e = e.next) {
-	    if ((e.hash == hash) && e.key == key) {
-		Object old = e.value;
-		e.value = value;
-		return old;
-	    }
-	}
+        // Makes sure the key is not already in the hashtable.
+        IdentityHashtableEntry tab[] = table;
+        int hash = System.identityHashCode(key);
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (IdentityHashtableEntry e = tab[index] ; e != null ; e = e.next) {
+            if ((e.hash == hash) && e.key == key) {
+                Object old = e.value;
+                e.value = value;
+                return old;
+            }
+        }
 
-	if (count >= threshold) {
-	    // Rehash the table if the threshold is exceeded
-	    rehash();
-	    return put(key, value);
-	} 
+        if (count >= threshold) {
+            // Rehash the table if the threshold is exceeded
+            rehash();
+            return put(key, value);
+        }
 
-	// Creates the new entry.
-	IdentityHashtableEntry e = new IdentityHashtableEntry();
-	e.hash = hash;
-	e.key = key;
-	e.value = value;
-	e.next = tab[index];
-	tab[index] = e;
-	count++;
-	return null;
+        // Creates the new entry.
+        IdentityHashtableEntry e = new IdentityHashtableEntry();
+        e.hash = hash;
+        e.key = key;
+        e.value = value;
+        e.next = tab[index];
+        tab[index] = e;
+        count++;
+        return null;
     }
 
-	/**
-     * Removes the key (and its corresponding value) from this 
+        /**
+     * Removes the key (and its corresponding value) from this
      * hashtable. This method does nothing if the key is not in the hashtable.
      *
      * @param   key   the key that needs to be removed.
@@ -311,33 +327,33 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public Object remove(Object key) {
-	IdentityHashtableEntry tab[] = table;
-	int hash = System.identityHashCode(key);
-	int index = (hash & 0x7FFFFFFF) % tab.length;
-	for (IdentityHashtableEntry e = tab[index], prev = null ; e != null ; prev = e, e = e.next) {
-	    if ((e.hash == hash) && e.key == key) {
-		if (prev != null) {
-		    prev.next = e.next;
-		} else {
-		    tab[index] = e.next;
-		}
-		count--;
-		return e.value;
-	    }
-	}
-	return null;
+        IdentityHashtableEntry tab[] = table;
+        int hash = System.identityHashCode(key);
+        int index = (hash & 0x7FFFFFFF) % tab.length;
+        for (IdentityHashtableEntry e = tab[index], prev = null ; e != null ; prev = e, e = e.next) {
+            if ((e.hash == hash) && e.key == key) {
+                if (prev != null) {
+                    prev.next = e.next;
+                } else {
+                    tab[index] = e.next;
+                }
+                count--;
+                return e.value;
+            }
+        }
+        return null;
     }
 
     /**
-     * Clears this hashtable so that it contains no keys. 
+     * Clears this hashtable so that it contains no keys.
      *
      * @since   JDK1.0
      */
     public void clear() {
-	IdentityHashtableEntry tab[] = table;
-	for (int index = tab.length; --index >= 0; )
-	    tab[index] = null;
-	count = 0;
+        IdentityHashtableEntry tab[] = table;
+        for (int index = tab.length; --index >= 0; )
+            tab[index] = null;
+        count = 0;
     }
 
     /**
@@ -347,21 +363,21 @@ public final class IdentityHashtable extends Dictionary {
      * @since   JDK1.0
      */
     public String toString() {
-	int max = size() - 1;
-	StringBuffer buf = new StringBuffer();
-	Enumeration k = keys();
-	Enumeration e = elements();
-	buf.append("{");
+        int max = size() - 1;
+        StringBuffer buf = new StringBuffer();
+        Enumeration k = keys();
+        Enumeration e = elements();
+        buf.append("{");
 
-	for (int i = 0; i <= max; i++) {
-	    String s1 = k.nextElement().toString();
-	    String s2 = e.nextElement().toString();
-	    buf.append(s1 + "=" + s2);
-	    if (i < max) {
-		buf.append(", ");
-	    }
-	}
-	buf.append("}");
-	return buf.toString();
+        for (int i = 0; i <= max; i++) {
+            String s1 = k.nextElement().toString();
+            String s2 = e.nextElement().toString();
+            buf.append(s1 + "=" + s2);
+            if (i < max) {
+                buf.append(", ");
+            }
+        }
+        buf.append("}");
+        return buf.toString();
     }
 }

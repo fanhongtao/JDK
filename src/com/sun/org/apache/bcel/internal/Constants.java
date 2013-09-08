@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal;
 
 /* ====================================================================
@@ -57,7 +61,6 @@ package com.sun.org.apache.bcel.internal;
 /**
  * Constants for the project, mostly defined in the JVM specification.
  *
- * @version $Id: Constants.java,v 1.1.2.1 2005/07/31 23:46:56 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public interface Constants {
@@ -583,7 +586,7 @@ public interface Constants {
 
   /**
    * Names of opcodes.
-   */ 
+   */
   public static final String[] OPCODE_NAMES = {
     "nop", "aconst_null", "iconst_m1", "iconst_0", "iconst_1",
     "iconst_2", "iconst_3", "iconst_4", "iconst_5", "lconst_0",
@@ -635,7 +638,7 @@ public interface Constants {
 
   /**
    * Number of words consumed on operand stack by instructions.
-   */ 
+   */
   public static final int[] CONSUME_STACK = {
     0/*nop*/, 0/*aconst_null*/, 0/*iconst_m1*/, 0/*iconst_0*/, 0/*iconst_1*/,
     0/*iconst_2*/, 0/*iconst_3*/, 0/*iconst_4*/, 0/*iconst_5*/, 0/*lconst_0*/,
@@ -659,7 +662,7 @@ public interface Constants {
     1/*fneg*/, 2/*dneg*/, 2/*ishl*/, 3/*lshl*/, 2/*ishr*/, 3/*lshr*/, 2/*iushr*/, 3/*lushr*/,
     2/*iand*/, 4/*land*/, 2/*ior*/, 4/*lor*/, 2/*ixor*/, 4/*lxor*/, 0/*iinc*/,
     1/*i2l*/, 1/*i2f*/, 1/*i2d*/, 2/*l2i*/, 2/*l2f*/, 2/*l2d*/, 1/*f2i*/, 1/*f2l*/,
-    1/*f2d*/, 2/*d2i*/, 2/*d2l*/, 2/*d2f*/, 1/*i2b*/, 1/*i2c*/, 1/*i2s*/, 
+    1/*f2d*/, 2/*d2i*/, 2/*d2l*/, 2/*d2f*/, 1/*i2b*/, 1/*i2c*/, 1/*i2s*/,
     4/*lcmp*/, 2/*fcmpl*/, 2/*fcmpg*/, 4/*dcmpl*/, 4/*dcmpg*/, 1/*ifeq*/, 1/*ifne*/,
     1/*iflt*/, 1/*ifge*/, 1/*ifgt*/, 1/*ifle*/, 2/*if_icmpeq*/, 2/*if_icmpne*/, 2/*if_icmplt*/,
     2 /*if_icmpge*/, 2/*if_icmpgt*/, 2/*if_icmple*/, 2/*if_acmpeq*/, 2/*if_acmpne*/,
@@ -689,7 +692,7 @@ public interface Constants {
 
   /**
    * Number of words produced onto operand stack by instructions.
-   */ 
+   */
   public static final int[] PRODUCE_STACK = {
     0/*nop*/, 1/*aconst_null*/, 1/*iconst_m1*/, 1/*iconst_0*/, 1/*iconst_1*/,
     1/*iconst_2*/, 1/*iconst_3*/, 1/*iconst_4*/, 1/*iconst_5*/, 2/*lconst_0*/,
@@ -780,6 +783,6 @@ public interface Constants {
 
   public static final String[] ITEM_NAMES = {
     "Bogus", "Integer", "Float", "Double", "Long",
-    "Null", "InitObject", "Object", "NewObject" 
+    "Null", "InitObject", "Object", "NewObject"
   };
 }

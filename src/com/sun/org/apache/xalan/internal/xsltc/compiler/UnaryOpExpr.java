@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,9 +36,9 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
  */
 final class UnaryOpExpr extends Expression {
     private Expression _left;
-	
+
     public UnaryOpExpr(Expression left) {
-	(_left = left).setParent(this);
+        (_left = left).setParent(this);
     }
 
     /**
@@ -42,7 +46,7 @@ final class UnaryOpExpr extends Expression {
      * needed for context changes in node steps containing multiple predicates.
      */
     public boolean hasPositionCall() {
-	return(_left.hasPositionCall());
+        return(_left.hasPositionCall());
     }
 
     /**
@@ -51,37 +55,36 @@ final class UnaryOpExpr extends Expression {
     public boolean hasLastCall() {
             return(_left.hasLastCall());
     }
-    
-    public void setParser(Parser parser) {
-	super.setParser(parser);
-	_left.setParser(parser);
-    }
-    
-    public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	final Type tleft = _left.typeCheck(stable); 
-	final MethodType ptype = lookupPrimop(stable, "u-",
-					      new MethodType(Type.Void,
-							     tleft)); 
-	
-	if (ptype != null) {
-	    final Type arg1 = (Type) ptype.argsType().elementAt(0);
-	    if (!arg1.identicalTo(tleft)) {
-		_left = new CastExpr(_left, arg1);
-	    }
-	    return _type = ptype.resultType();
-	}
 
-	throw new TypeCheckError(this);
+    public void setParser(Parser parser) {
+        super.setParser(parser);
+        _left.setParser(parser);
+    }
+
+    public Type typeCheck(SymbolTable stable) throws TypeCheckError {
+        final Type tleft = _left.typeCheck(stable);
+        final MethodType ptype = lookupPrimop(stable, "u-",
+                                              new MethodType(Type.Void,
+                                                             tleft));
+
+        if (ptype != null) {
+            final Type arg1 = (Type) ptype.argsType().elementAt(0);
+            if (!arg1.identicalTo(tleft)) {
+                _left = new CastExpr(_left, arg1);
+            }
+            return _type = ptype.resultType();
+        }
+
+        throw new TypeCheckError(this);
     }
 
     public String toString() {
-	return "u-" + '(' + _left + ')';
+        return "u-" + '(' + _left + ')';
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	InstructionList il = methodGen.getInstructionList();
-	_left.translate(classGen, methodGen);
-	il.append(_type.NEG());
+        InstructionList il = methodGen.getInstructionList();
+        _left.translate(classGen, methodGen);
+        il.append(_type.NEG());
     }
 }
-

@@ -1,8 +1,26 @@
 /*
- * @(#)LocateReplyMessage_1_1.java	1.14 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -26,7 +44,6 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
  * This implements the GIOP 1.1 LocateReply header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public final class LocateReplyMessage_1_1 extends Message_1_1
@@ -68,7 +85,7 @@ public final class LocateReplyMessage_1_1 extends Message_1_1
     public short getAddrDisposition() {
         return KeyAddr.value;
     }
-        
+
     public SystemException getSystemException(String message) {
         return null; // 1.0 LocateReply body does not contain SystemException
     }
@@ -88,7 +105,7 @@ public final class LocateReplyMessage_1_1 extends Message_1_1
         // The code below reads the reply body if status is OBJECT_FORWARD
         if (this.reply_status == OBJECT_FORWARD) {
             CDRInputStream cdr = (CDRInputStream) istream;
-	    this.ior = IORFactories.makeIOR( cdr ) ;
+            this.ior = IORFactories.makeIOR( cdr ) ;
         }
     }
 
@@ -109,9 +126,9 @@ public final class LocateReplyMessage_1_1 extends Message_1_1
         case OBJECT_FORWARD :
             break;
         default :
-	    ORBUtilSystemException localWrapper = ORBUtilSystemException.get( 
-		CORBALogDomains.RPC_PROTOCOL ) ;
-	    throw localWrapper.illegalReplyStatus( CompletionStatus.COMPLETED_MAYBE);
+            ORBUtilSystemException localWrapper = ORBUtilSystemException.get(
+                CORBALogDomains.RPC_PROTOCOL ) ;
+            throw localWrapper.illegalReplyStatus( CompletionStatus.COMPLETED_MAYBE);
         }
     }
 

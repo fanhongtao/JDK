@@ -1,16 +1,32 @@
 /*
- * @(#)MemoryCacheImageInputStream.java	1.26 06/01/05
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.stream;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
 import com.sun.imageio.stream.StreamFinalizer;
 import sun.java2d.Disposer;
 import sun.java2d.DisposerRecord;
@@ -23,10 +39,9 @@ import sun.java2d.DisposerRecord;
  *
  * <p> In general, it is preferable to use a
  * <code>FileCacheImageInputStream</code> when reading from a regular
- * <code>InputStream</code>.  This class is provided for cases where 
+ * <code>InputStream</code>.  This class is provided for cases where
  * it is not possible to create a writable temporary file.
  *
- * @version 0.5
  */
 public class MemoryCacheImageInputStream extends ImageInputStreamImpl {
 
@@ -52,7 +67,7 @@ public class MemoryCacheImageInputStream extends ImageInputStreamImpl {
     public MemoryCacheImageInputStream(InputStream stream) {
         if (stream == null) {
             throw new IllegalArgumentException("stream == null!");
-        }        
+        }
         this.stream = stream;
 
         disposerRecord = new StreamDisposerRecord(cache);

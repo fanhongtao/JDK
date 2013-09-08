@@ -1,13 +1,31 @@
 /*
- * @(#)DomainManagerOperations.java	1.11 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
-/** 
+/**
  *  Provides the <tt>DomainManager</tt> with the means to access policies.
  *  <P>
  *  The <tt>DomainManager</tt> has associated with it the policy objects for a
@@ -19,7 +37,7 @@ package org.omg.CORBA;
  *  creating and accessing policies.
  */
 
-public interface DomainManagerOperations 
+public interface DomainManagerOperations
 {
     /** This returns the policy of the specified type for objects in
      *  this domain.  The types of policies available are domain specific.
@@ -29,4 +47,3 @@ public interface DomainManagerOperations
      */
     public org.omg.CORBA.Policy get_domain_policy(int policy_type);
 }
-

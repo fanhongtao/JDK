@@ -1,8 +1,26 @@
 /*
- * @(#)NotBoundException.java	1.13 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.rmi;
 
@@ -10,15 +28,14 @@ package java.rmi;
  * A <code>NotBoundException</code> is thrown if an attempt
  * is made to lookup or unbind in the registry a name that has
  * no associated binding.
- * 
- * @version 1.13, 11/17/05
+ *
  * @since   JDK1.1
  * @author  Ann Wollrath
  * @author  Roger Riggs
  * @see     java.rmi.Naming#lookup(String)
  * @see     java.rmi.Naming#unbind(String)
  * @see     java.rmi.registry.Registry#lookup(String)
- * @see     java.rmi.registry.Registry#unbind(String) 
+ * @see     java.rmi.registry.Registry#unbind(String)
  */
 public class NotBoundException extends java.lang.Exception {
 
@@ -31,7 +48,7 @@ public class NotBoundException extends java.lang.Exception {
      * @since JDK1.1
      */
     public NotBoundException() {
-	super();
+        super();
     }
 
     /**
@@ -42,6 +59,6 @@ public class NotBoundException extends java.lang.Exception {
      * @since JDK1.1
      */
     public NotBoundException(String s) {
-	super(s);
+        super(s);
     }
 }

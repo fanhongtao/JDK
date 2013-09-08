@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,18 +67,18 @@ public class FunctionPattern extends StepPattern
 
   /**
    * Should be a {@link com.sun.org.apache.xpath.internal.functions.Function expression}.
-   *  @serial   
+   *  @serial
    */
   Expression m_functionExpr;
-  
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -83,7 +87,7 @@ public class FunctionPattern extends StepPattern
     m_functionExpr.fixupVariables(vars, globalsSize);
   }
 
-  
+
   /**
    * Test a node to see if it matches the given node test.
    *
@@ -126,7 +130,7 @@ public class FunctionPattern extends StepPattern
 
     return score;
   }
-  
+
   /**
    * Test a node to see if it matches the given node test.
    *
@@ -140,7 +144,7 @@ public class FunctionPattern extends StepPattern
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public XObject execute(XPathContext xctxt, int context, 
+  public XObject execute(XPathContext xctxt, int context,
                          DTM dtm, int expType)
           throws javax.xml.transform.TransformerException
   {
@@ -169,7 +173,7 @@ public class FunctionPattern extends StepPattern
 
     return score;
   }
-  
+
   /**
    * Test a node to see if it matches the given node test.
    *
@@ -212,7 +216,7 @@ public class FunctionPattern extends StepPattern
 
     return score;
   }
-  
+
   class FunctionOwner implements ExpressionOwner
   {
     /**
@@ -229,11 +233,11 @@ public class FunctionPattern extends StepPattern
      */
     public void setExpression(Expression exp)
     {
-    	exp.exprSetParent(FunctionPattern.this);
-    	m_functionExpr = exp;
+        exp.exprSetParent(FunctionPattern.this);
+        m_functionExpr = exp;
     }
   }
-  
+
   /**
    * Call the visitor for the function.
    */

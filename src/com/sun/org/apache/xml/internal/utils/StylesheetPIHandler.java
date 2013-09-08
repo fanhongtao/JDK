@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,9 +56,9 @@ public class StylesheetPIHandler extends DefaultHandler
 
   /** A list of SAXSource objects that match the criteria.  */
   Vector m_stylesheets = new Vector();
-  
-  // Add code to use a URIResolver. Patch from Dmitri Ilyin. 
-  
+
+  // Add code to use a URIResolver. Patch from Dmitri Ilyin.
+
   /**
    * The object that implements the URIResolver interface,
    * or null.
@@ -62,7 +66,7 @@ public class StylesheetPIHandler extends DefaultHandler
   URIResolver m_uriResolver;
 
   /**
-   * Get the object that will be used to resolve URIs in href 
+   * Get the object that will be used to resolve URIs in href
    * in xml-stylesheet processing instruction.
    *
    * @param resolver An object that implements the URIResolver interface,
@@ -74,7 +78,7 @@ public class StylesheetPIHandler extends DefaultHandler
   }
 
   /**
-   * Get the object that will be used to resolve URIs in href 
+   * Get the object that will be used to resolve URIs in href
    * in xml-stylesheet processing instruction.
    *
    * @return The URIResolver that was set with setURIResolver.
@@ -85,10 +89,10 @@ public class StylesheetPIHandler extends DefaultHandler
   }
 
   /**
-   * Construct a StylesheetPIHandler instance that will search 
+   * Construct a StylesheetPIHandler instance that will search
    * for xml-stylesheet PIs based on the given criteria.
    *
-   * @param baseID The base ID of the XML document, needed to resolve 
+   * @param baseID The base ID of the XML document, needed to resolve
    *               relative IDs.
    * @param media The desired media criteria.
    * @param title The desired title criteria.
@@ -107,7 +111,7 @@ public class StylesheetPIHandler extends DefaultHandler
   /**
    * Return the last stylesheet found that match the constraints.
    *
-   * @return Source object that references the last stylesheet reference 
+   * @return Source object that references the last stylesheet reference
    *         that matches the constraints.
    */
   public Source getAssociatedStylesheet()
@@ -118,7 +122,7 @@ public class StylesheetPIHandler extends DefaultHandler
     if (sz > 0)
     {
       Source source = (Source) m_stylesheets.elementAt(sz-1);
-      return source;      
+      return source;
     }
     else
       return null;
@@ -148,53 +152,53 @@ public class StylesheetPIHandler extends DefaultHandler
       String charset = null;  // CDATA #IMPLIED
       boolean alternate = false;  // (yes|no) "no"
       StringTokenizer tokenizer = new StringTokenizer(data, " \t=\n", true);
-      boolean lookedAhead = false; 
+      boolean lookedAhead = false;
       Source source = null;
 
       String token = "";
       while (tokenizer.hasMoreTokens())
-      {        
+      {
         if (!lookedAhead)
           token = tokenizer.nextToken();
         else
           lookedAhead = false;
-        if (tokenizer.hasMoreTokens() && 
+        if (tokenizer.hasMoreTokens() &&
                (token.equals(" ") || token.equals("\t") || token.equals("=")))
           continue;
-          
-        String name = token;  
+
+        String name = token;
         if (name.equals("type"))
-        { 
+        {
           token = tokenizer.nextToken();
-          while (tokenizer.hasMoreTokens() && 
+          while (tokenizer.hasMoreTokens() &&
                (token.equals(" " ) || token.equals("\t") || token.equals("=")))
             token = tokenizer.nextToken();
           type = token.substring(1, token.length() - 1);
-          
+
         }
         else if (name.equals("href"))
         {
           token = tokenizer.nextToken();
-          while (tokenizer.hasMoreTokens() && 
+          while (tokenizer.hasMoreTokens() &&
                (token.equals(" " ) || token.equals("\t") || token.equals("=")))
             token = tokenizer.nextToken();
           href = token;
           if (tokenizer.hasMoreTokens())
           {
             token = tokenizer.nextToken();
-            // If the href value has parameters to be passed to a 
-            // servlet(something like "foobar?id=12..."), 
+            // If the href value has parameters to be passed to a
+            // servlet(something like "foobar?id=12..."),
             // we want to make sure we get them added to
-            // the href value. Without this check, we would move on 
+            // the href value. Without this check, we would move on
             // to try to process another attribute and that would be
             // wrong.
             // We need to set lookedAhead here to flag that we
-            // already have the next token. 
+            // already have the next token.
             while ( token.equals("=") && tokenizer.hasMoreTokens())
-            {  
+            {
               href = href + token + tokenizer.nextToken();
               if (tokenizer.hasMoreTokens())
-              {  
+              {
                 token = tokenizer.nextToken();
                 lookedAhead = true;
               }
@@ -206,17 +210,17 @@ public class StylesheetPIHandler extends DefaultHandler
           }
           href = href.substring(1, href.length() - 1);
           try
-          { 
-            // Add code to use a URIResolver. Patch from Dmitri Ilyin. 
-            if (m_uriResolver != null) 
+          {
+            // Add code to use a URIResolver. Patch from Dmitri Ilyin.
+            if (m_uriResolver != null)
             {
               source = m_uriResolver.resolve(href, m_baseID);
-            } 
-           else 
+            }
+           else
             {
               href = SystemIDResolver.getAbsoluteURI(href, m_baseID);
               source = new SAXSource(new InputSource(href));
-            }            
+            }
           }
           catch(TransformerException te)
           {
@@ -226,7 +230,7 @@ public class StylesheetPIHandler extends DefaultHandler
         else if (name.equals("title"))
         {
           token = tokenizer.nextToken();
-          while (tokenizer.hasMoreTokens() && 
+          while (tokenizer.hasMoreTokens() &&
                (token.equals(" " ) || token.equals("\t") || token.equals("=")))
             token = tokenizer.nextToken();
           title = token.substring(1, token.length() - 1);
@@ -234,7 +238,7 @@ public class StylesheetPIHandler extends DefaultHandler
         else if (name.equals("media"))
         {
           token = tokenizer.nextToken();
-          while (tokenizer.hasMoreTokens() && 
+          while (tokenizer.hasMoreTokens() &&
                (token.equals(" " ) || token.equals("\t") || token.equals("=")))
             token = tokenizer.nextToken();
           media = token.substring(1, token.length() - 1);
@@ -242,7 +246,7 @@ public class StylesheetPIHandler extends DefaultHandler
         else if (name.equals("charset"))
         {
           token = tokenizer.nextToken();
-          while (tokenizer.hasMoreTokens() && 
+          while (tokenizer.hasMoreTokens() &&
               (token.equals(" " ) || token.equals("\t") || token.equals("=")))
             token = tokenizer.nextToken();
           charset = token.substring(1, token.length() - 1);
@@ -250,17 +254,17 @@ public class StylesheetPIHandler extends DefaultHandler
         else if (name.equals("alternate"))
         {
           token = tokenizer.nextToken();
-          while (tokenizer.hasMoreTokens() && 
+          while (tokenizer.hasMoreTokens() &&
                (token.equals(" " ) || token.equals("\t") || token.equals("=")))
             token = tokenizer.nextToken();
           alternate = token.substring(1, token.length()
                                              - 1).equals("yes");
         }
-        
+
       }
 
-      if ((null != type) 
-          && (type.equals("text/xsl") || type.equals("text/xml") || type.equals("application/xml+xslt"))  
+      if ((null != type)
+          && (type.equals("text/xsl") || type.equals("text/xml") || type.equals("application/xml+xslt"))
           && (null != href))
       {
         if (null != m_media)
@@ -300,8 +304,8 @@ public class StylesheetPIHandler extends DefaultHandler
       }
     }
   }
-  
-  
+
+
   /**
    * The spec notes that "The xml-stylesheet processing instruction is allowed only in the prolog of an XML document.",
    * so, at least for right now, I'm going to go ahead an throw a TransformerException
@@ -312,7 +316,7 @@ public class StylesheetPIHandler extends DefaultHandler
    * @param qName The qualified name (with prefix).
    * @param atts  The specified or defaulted attributes.
    *
-   * @throws StopParseException since there can be no valid xml-stylesheet processing 
+   * @throws StopParseException since there can be no valid xml-stylesheet processing
    *                            instructions past the first element.
    */
   public void startElement(
@@ -325,11 +329,11 @@ public class StylesheetPIHandler extends DefaultHandler
   /**
     * Added additional getter and setter methods for the Base Id
     * to fix bugzilla bug 24187
-    * 
+    *
     */
    public void setBaseId(String baseId) {
        m_baseID = baseId;
- 
+
    }
    public String  getBaseId() {
        return m_baseID ;

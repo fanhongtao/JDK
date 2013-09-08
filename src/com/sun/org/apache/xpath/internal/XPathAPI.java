@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +49,7 @@ import org.w3c.dom.traversal.NodeIterator;
  * consider using an instance of CachedXPathAPI rather than these static
  * methods.
  *
- * @see <a href="http://www.w3.org/TR/xpath">XPath Specification</a> 
+ * @see <a href="http://www.w3.org/TR/xpath">XPath Specification</a>
  * */
 public class XPathAPI
 {
@@ -125,7 +129,7 @@ public class XPathAPI
     // Execute the XPath, and have it return the result
     XObject list = eval(contextNode, str, namespaceNode);
 
-    // Have the XObject return its result as a NodeSetDTM.                
+    // Have the XObject return its result as a NodeSetDTM.
     return list.nodeset();
   }
 

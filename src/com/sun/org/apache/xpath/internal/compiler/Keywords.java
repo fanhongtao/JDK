@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -265,20 +269,20 @@ public class Keywords
     m_nodetests.put(NODETYPE_NODE_STRING,
                     new Integer(OpCodes.NODETYPE_NODE));
   }
-  
+
   static Object getAxisName(String key){
           return m_axisnames.get(key);
   }
-  
+
   static Object lookupNodeTest(String key){
           return m_nodetests.get(key);
   }
-  
+
   static Object getKeyWord(String key){
           return m_keywords.get(key);
   }
-  
+
   static Object getNodeType(String key){
           return m_nodetypes.get(key);
-  }      
+  }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)CollationKey.java	1.21 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -76,7 +94,6 @@ package java.text;
  *
  * @see          Collator
  * @see          RuleBasedCollator
- * @version      1.21, 11/17/05
  * @author       Helena Shih
  */
 
@@ -109,14 +126,14 @@ public abstract class CollationKey implements Comparable<CollationKey> {
      */
     abstract public byte[] toByteArray();
 
-    
+
   /**
    * CollationKey constructor.
    *
    * @param source - the source string.
    * @exception NullPointerException if <code>source</code> is null.
    * @since 1.6
-   */ 
+   */
     protected CollationKey(String source) {
         if (source==null){
             throw new NullPointerException();
@@ -126,4 +143,3 @@ public abstract class CollationKey implements Comparable<CollationKey> {
 
     final private String source;
 }
-

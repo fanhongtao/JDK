@@ -1,21 +1,36 @@
 /*
- * @(#)InvalidKeyException.java	3.19 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.openmbean;
 
 /**
- * This runtime exception is thrown to indicate that a method parameter which was expected to be 
+ * This runtime exception is thrown to indicate that a method parameter which was expected to be
  * an item name of a <i>composite data</i> or a row index of a <i>tabular data</i> is not valid.
  *
- * @version     3.19  05/11/17
- * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
- * @since.unbundled JMX 1.1
  */
 public class InvalidKeyException extends IllegalArgumentException {
 
@@ -25,7 +40,7 @@ public class InvalidKeyException extends IllegalArgumentException {
      * An InvalidKeyException with no detail message.
      */
     public InvalidKeyException() {
-	super();
+        super();
     }
 
     /**
@@ -34,7 +49,7 @@ public class InvalidKeyException extends IllegalArgumentException {
      * @param msg the detail message.
      */
     public InvalidKeyException(String msg) {
-	super(msg);
+        super(msg);
     }
 
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)AppletStub.java	1.27 06/07/27
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.applet;
 
@@ -15,8 +33,7 @@ import java.net.URL;
  * environment or applet viewer environment in which the application
  * is running.
  *
- * @author 	Arthur van Hoff
- * @version     1.27, 07/27/06
+ * @author      Arthur van Hoff
  * @see         java.applet.Applet#setStub(java.applet.AppletStub)
  * @since       JDK1.0
  */
@@ -31,7 +48,7 @@ public interface AppletStub {
      */
     boolean isActive();
 
-    
+
     /**
      * Gets the URL of the document in which the applet is embedded.
      * For example, suppose an applet is contained

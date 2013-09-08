@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: SchemaFactory.java,v 1.7 2006/05/19 01:08:43 jeffsuttor Exp $
- * @(#)SchemaFactory.java	1.22 06/06/21
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.validation;
@@ -46,46 +44,46 @@ import org.xml.sax.SAXNotSupportedException;
  * <p>
  * {@link SchemaFactory} is a schema compiler. It reads external
  * representations of schemas and prepares them for validation.
- * 
+ *
  * <p>
  * The {@link SchemaFactory} class is not thread-safe. In other words,
  * it is the application's responsibility to ensure that at most
  * one thread is using a {@link SchemaFactory} object at any
  * given moment. Implementations are encouraged to mark methods
  * as <code>synchronized</code> to protect themselves from broken clients.
- * 
+ *
  * <p>
  * {@link SchemaFactory} is not re-entrant. While one of the
  * <code>newSchema</code> methods is being invoked, applications
  * may not attempt to recursively invoke the <code>newSchema</code> method,
  * even from the same thread.
- * 
+ *
  * <h2><a name="schemaLanguage"></a>Schema Language</h2>
  * <p>
  * This spec uses a namespace URI to designate a schema language.
  * The following table shows the values defined by this specification.
  * <p>
- * To be compliant with the spec, the implementation 
+ * To be compliant with the spec, the implementation
  * is only required to support W3C XML Schema 1.0. However,
  * if it chooses to support other schema languages listed here,
  * it must conform to the relevant behaviors described in this spec.
- * 
+ *
  * <p>
  * Schema languages not listed here are expected to
- * introduce their own URIs to represent themselves.  
+ * introduce their own URIs to represent themselves.
  * The {@link SchemaFactory} class is capable of locating other
  * implementations for other schema languages at run-time.
- * 
+ *
  * <p>
  * Note that because the XML DTD is strongly tied to the parsing process
  * and has a significant effect on the parsing process, it is impossible
- * to define the DTD validation as a process independent from parsing. 
+ * to define the DTD validation as a process independent from parsing.
  * For this reason, this specification does not define the semantics for
  * the XML DTD. This doesn't prohibit implentors from implementing it
  * in a way they see fit, but <em>users are warned that any DTD
  * validation implemented on this interface necessarily deviate from
  * the XML DTD semantics as defined in the XML 1.0</em>.
- * 
+ *
  * <table border="1" cellpadding="2">
  *   <thead>
  *     <tr>
@@ -104,33 +102,32 @@ import org.xml.sax.SAXNotSupportedException;
  *     </tr>
  *   </tbody>
  * </table>
- * 
+ *
  * @author  <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
  * @author  <a href="mailto:Neeraj.Bajaj@sun.com">Neeraj Bajaj</a>
  *
- * @version $Revision: 1.7 $, $Date: 2006/05/19 01:08:43 $
  * @since 1.5
  */
 public abstract class SchemaFactory {
 
      private static SecuritySupport ss = new SecuritySupport();
-     
+
     /**
      * <p>Constructor for derived classes.</p>
-     * 
+     *
      * <p>The constructor does nothing.</p>
-     * 
+     *
      * <p>Derived classes must create {@link SchemaFactory} objects that have
      * <code>null</code> {@link ErrorHandler} and
      * <code>null</code> {@link LSResourceResolver}.</p>
      */
     protected SchemaFactory() {
     }
- 
+
     /**
      * <p>Lookup an implementation of the <code>SchemaFactory</code> that supports the specified
      * schema language and return it.</p>
-     * 
+     *
      * <p>To find a <code>SchemaFactory</code> object for a given schema language,
      * this method looks the following places in the following order
      * where "the class loader" refers to the context class loader:</p>
@@ -156,7 +153,7 @@ public abstract class SchemaFactory {
      *     Each potential service provider is required to implement the method:</p>
      *     <pre>
      *        {@link #isSchemaLanguageSupported(String schemaLanguage)}
-     *     </pre> 
+     *     </pre>
      *     The first service provider found in class loader order that supports the specified schema language is returned.
      *   </li>
      *   <li>
@@ -165,9 +162,9 @@ public abstract class SchemaFactory {
      *     <code>SchemaFactory</code> for W3C XML Schema.
      *   </li>
      * </ol>
-     * 
+     *
      * <p>If everything fails, {@link IllegalArgumentException} will be thrown.</p>
-     * 
+     *
      * <p><strong>Tip for Trouble-shooting:</strong></p>
      * <p>See {@link java.util.Properties#load(java.io.InputStream)} for
      * exactly how a property file is parsed. In particular, colons ':'
@@ -176,15 +173,15 @@ public abstract class SchemaFactory {
      * <pre>
      * http\://www.w3.org/2001/XMLSchema=org.acme.foo.XSSchemaFactory
      * </pre>
-     * 
+     *
      * @param schemaLanguage
      *      Specifies the schema language which the returned
      *      SchemaFactory will understand. See
      *      <a href="#schemaLanguage">the list of available
      *      schema languages</a> for the possible values.
-     * 
+     *
      * @return New instance of a <code>SchemaFactory</code>
-     * 
+     *
      * @throws IllegalArgumentException
      *      If no implementation of the schema language is available.
      * @throws NullPointerException
@@ -193,14 +190,14 @@ public abstract class SchemaFactory {
      * @see #newInstance(String schemaLanguage, String factoryClassName, ClassLoader classLoader)
      */
     public static final SchemaFactory newInstance(String schemaLanguage) {
-        ClassLoader cl;        
+        ClassLoader cl;
         cl = ss.getContextClassLoader();
-        
+
         if (cl == null) {
             //cl = ClassLoader.getSystemClassLoader();
             //use the current class loader
             cl = SchemaFactory.class.getClassLoader();
-        } 
+        }
 
         SchemaFactory f = new SchemaFactoryFinder(cl).newFactory(schemaLanguage);
         if (f == null) {
@@ -211,19 +208,19 @@ public abstract class SchemaFactory {
         }
         return f;
     }
-    
+
     /**
      * <p>Obtain a new instance of a <code>SchemaFactory</code> from class name. <code>SchemaFactory</code>
      * is returned if specified factory class name supports the specified schema language.
      * This function is useful when there are multiple providers in the classpath.
      * It gives more control to the application as it can specify which provider
      * should be loaded.</p>
-     *     
+     *
      * <h2>Tip for Trouble-shooting</h2>
      * <p>Setting the <code>jaxp.debug</code> system property will cause
      * this method to print a lot of debug messages
      * to <code>System.err</code> about what it is doing and where it is looking at.</p>
-     * 
+     *
      * <p> If you have problems try:</p>
      * <pre>
      * java -Djaxp.debug=1 YourProgram ....
@@ -234,16 +231,16 @@ public abstract class SchemaFactory {
      *                          <a href="#schemaLanguage">the list of available
      *                          schema languages</a> for the possible values.
      *
-     * @param factoryClassName fully qualified factory class name that provides implementation of <code>javax.xml.validation.SchemaFactory</code>. 
+     * @param factoryClassName fully qualified factory class name that provides implementation of <code>javax.xml.validation.SchemaFactory</code>.
      *
-     * @param classLoader <code>ClassLoader</code> used to load the factory class. If <code>null</code>  
+     * @param classLoader <code>ClassLoader</code> used to load the factory class. If <code>null</code>
      *                     current <code>Thread</code>'s context classLoader is used to load the factory class.
      *
      * @return New instance of a <code>SchemaFactory</code>
      *
      * @throws IllegalArgumentException
-     *                   if <code>factoryClassName</code> is <code>null</code>, or 
-     *                   the factory class cannot be loaded, instantiated or doesn't 
+     *                   if <code>factoryClassName</code> is <code>null</code>, or
+     *                   the factory class cannot be loaded, instantiated or doesn't
      *                   support the schema language specified in <code>schemLanguage</code>
      *                   parameter.
      *
@@ -255,11 +252,11 @@ public abstract class SchemaFactory {
      * @since 1.6
      */
     public static SchemaFactory newInstance(String schemaLanguage, String factoryClassName, ClassLoader classLoader){
-        ClassLoader cl = classLoader;        
-        
+        ClassLoader cl = classLoader;
+
         if (cl == null) {
             cl = ss.getContextClassLoader();
-        } 
+        }
 
         SchemaFactory f = new SchemaFactoryFinder(cl).createInstance(factoryClassName);
         if (f == null) {
@@ -269,28 +266,28 @@ public abstract class SchemaFactory {
         }
         //if this factory supports the given schemalanguage return this factory else thrown exception
         if(f.isSchemaLanguageSupported(schemaLanguage)){
-            return f;    
+            return f;
         }else{
             throw new IllegalArgumentException(
                     "Factory " + f.getClass().getName()
                     + " does not implement the schema language specified by: " + schemaLanguage);
         }
-        
+
     }
-    
-	/**
-	 * <p>Is specified schema supported by this <code>SchemaFactory</code>?</p>
-	 * 
-	 * @param schemaLanguage Specifies the schema language which the returned <code>SchemaFactory</code> will understand.
+
+        /**
+         * <p>Is specified schema supported by this <code>SchemaFactory</code>?</p>
+         *
+         * @param schemaLanguage Specifies the schema language which the returned <code>SchemaFactory</code> will understand.
      *    <code>schemaLanguage</code> must specify a <a href="#schemaLanguage">valid</a> schema language.
-	 * 
-	 * @return <code>true</code> if <code>SchemaFactory</code> supports <code>schemaLanguage</code>, else <code>false</code>.
-	 * 
-	 * @throws NullPointerException If <code>schemaLanguage</code> is <code>null</code>.
-	 * @throws IllegalArgumentException If <code>schemaLanguage.length() == 0</code>
-	 *   or <code>schemaLanguage</code> does not specify a <a href="#schemaLanguage">valid</a> schema language.  
-	 */    
-	public abstract boolean isSchemaLanguageSupported(String schemaLanguage);
+         *
+         * @return <code>true</code> if <code>SchemaFactory</code> supports <code>schemaLanguage</code>, else <code>false</code>.
+         *
+         * @throws NullPointerException If <code>schemaLanguage</code> is <code>null</code>.
+         * @throws IllegalArgumentException If <code>schemaLanguage.length() == 0</code>
+         *   or <code>schemaLanguage</code> does not specify a <a href="#schemaLanguage">valid</a> schema language.
+         */
+        public abstract boolean isSchemaLanguageSupported(String schemaLanguage);
 
     /**
      * Look up the value of a feature flag.
@@ -309,7 +306,7 @@ public abstract class SchemaFactory {
      * @throws SAXNotRecognizedException If the feature
      *   value can't be assigned or retrieved.
      * @throws SAXNotSupportedException When the
-     *   {@link SchemaFactory} recognizes the feature name but 
+     *   {@link SchemaFactory} recognizes the feature name but
      *   cannot determine its value at this time.
      * @throws NullPointerException If <code>name</code> is <code>null</code>.
      *
@@ -317,13 +314,13 @@ public abstract class SchemaFactory {
      */
     public boolean getFeature(String name)
         throws SAXNotRecognizedException, SAXNotSupportedException {
-    	
+
         if (name == null) {
-        	throw new NullPointerException("the name parameter is null");
-        } 
+                throw new NullPointerException("the name parameter is null");
+        }
         throw new SAXNotRecognizedException(name);
     }
-    
+
     /**
      * <p>Set a feature for this <code>SchemaFactory</code>,
      * {@link Schema}s created by this factory, and by extension,
@@ -360,28 +357,28 @@ public abstract class SchemaFactory {
      *     regard to possible implementation limits.
      *   </li>
      * </ul>
-     * 
+     *
      * @param name The feature name, which is a non-null fully-qualified URI.
      * @param value The requested value of the feature (true or false).
-     * 
+     *
      * @throws SAXNotRecognizedException If the feature
      *   value can't be assigned or retrieved.
      * @throws SAXNotSupportedException When the
-     *   {@link SchemaFactory} recognizes the feature name but 
+     *   {@link SchemaFactory} recognizes the feature name but
      *   cannot set the requested value.
      * @throws NullPointerException If <code>name</code> is <code>null</code>.
-     * 
+     *
      * @see #getFeature(String)
      */
     public void setFeature(String name, boolean value)
         throws SAXNotRecognizedException, SAXNotSupportedException {
-    	
+
         if (name == null) {
-        	throw new NullPointerException("the name parameter is null");
-        } 
+                throw new NullPointerException("the name parameter is null");
+        }
         throw new SAXNotRecognizedException(name);
     }
-    
+
     /**
      * Set the value of a property.
      *
@@ -404,13 +401,13 @@ public abstract class SchemaFactory {
      */
     public void setProperty(String name, Object object)
         throws SAXNotRecognizedException, SAXNotSupportedException {
-    	
+
         if (name == null) {
-        	throw new NullPointerException("the name parameter is null");
-        } 
+                throw new NullPointerException("the name parameter is null");
+        }
         throw new SAXNotRecognizedException(name);
     }
-    
+
     /**
      * Look up the value of a property.
      *
@@ -431,7 +428,7 @@ public abstract class SchemaFactory {
      * @throws SAXNotRecognizedException If the property
      *   value can't be assigned or retrieved.
      * @throws SAXNotSupportedException When the
-     *   XMLReader recognizes the property name but 
+     *   XMLReader recognizes the property name but
      *   cannot determine its value at this time.
      * @throws NullPointerException If <code>name</code> is <code>null</code>.
      *
@@ -439,44 +436,44 @@ public abstract class SchemaFactory {
      */
     public Object getProperty(String name)
         throws SAXNotRecognizedException, SAXNotSupportedException {
-    	
+
         if (name == null) {
-        	throw new NullPointerException("the name parameter is null");
-        } 
+                throw new NullPointerException("the name parameter is null");
+        }
         throw new SAXNotRecognizedException(name);
     }
-    
+
     /**
      * Sets the {@link ErrorHandler} to receive errors encountered
      * during the <code>newSchema</code> method invocation.
-     * 
+     *
      * <p>
      * Error handler can be used to customize the error handling process
      * during schema parsing. When an {@link ErrorHandler} is set,
      * errors found during the parsing of schemas will be first sent
      * to the {@link ErrorHandler}.
-     * 
+     *
      * <p>
      * The error handler can abort the parsing of a schema immediately
      * by throwing {@link SAXException} from the handler. Or for example
      * it can print an error to the screen and try to continue the
-     * processing by returning normally from the {@link ErrorHandler} 
-     * 
+     * processing by returning normally from the {@link ErrorHandler}
+     *
      * <p>
      * If any {@link Throwable} (or instances of its derived classes)
      * is thrown from an {@link ErrorHandler},
      * the caller of the <code>newSchema</code> method will be thrown
      * the same {@link Throwable} object.
-     * 
+     *
      * <p>
      * {@link SchemaFactory} is not allowed to
      * throw {@link SAXException} without first reporting it to
      * {@link ErrorHandler}.
-     * 
+     *
      * <p>
      * Applications can call this method even during a {@link Schema}
-     * is being parsed. 
-     * 
+     * is being parsed.
+     *
      * <p>
      * When the {@link ErrorHandler} is null, the implementation will
      * behave as if the following {@link ErrorHandler} is set:
@@ -493,35 +490,35 @@ public abstract class SchemaFactory {
      *     }
      * }
      * </pre>
-     * 
+     *
      * <p>
      * When a new {@link SchemaFactory} object is created, initially
      * this field is set to null. This field will <em>NOT</em> be
-     * inherited to {@link Schema}s, {@link Validator}s, or 
+     * inherited to {@link Schema}s, {@link Validator}s, or
      * {@link ValidatorHandler}s that are created from this {@link SchemaFactory}.
-     * 
+     *
      * @param errorHandler A new error handler to be set.
      *   This parameter can be <code>null</code>.
      */
     public abstract void setErrorHandler(ErrorHandler errorHandler);
-    
+
     /**
      * Gets the current {@link ErrorHandler} set to this {@link SchemaFactory}.
-     * 
+     *
      * @return
      *      This method returns the object that was last set through
      *      the {@link #setErrorHandler(ErrorHandler)} method, or null
      *      if that method has never been called since this {@link SchemaFactory}
      *      has created.
-     * 
+     *
      * @see #setErrorHandler(ErrorHandler)
      */
     public abstract ErrorHandler getErrorHandler();
-    
+
     /**
      * Sets the {@link LSResourceResolver} to customize
      * resource resolution when parsing schemas.
-     * 
+     *
      * <p>
      * {@link SchemaFactory} uses a {@link LSResourceResolver}
      * when it needs to locate external resources while parsing schemas,
@@ -529,11 +526,11 @@ public abstract class SchemaFactory {
      * up to each schema language. For example, for W3C XML Schema,
      * this includes files <code>&lt;include></code>d or <code>&lt;import></code>ed,
      * and DTD referenced from schema files, etc.
-     * 
+     *
      * <p>
      * Applications can call this method even during a {@link Schema}
-     * is being parsed. 
-     * 
+     * is being parsed.
+     *
      * <p>
      * When the {@link LSResourceResolver} is null, the implementation will
      * behave as if the following {@link LSResourceResolver} is set:
@@ -541,107 +538,107 @@ public abstract class SchemaFactory {
      * class DumbDOMResourceResolver implements {@link LSResourceResolver} {
      *     public {@link org.w3c.dom.ls.LSInput} resolveResource(
      *         String publicId, String systemId, String baseURI) {
-     *         
+     *
      *         return null; // always return null
      *     }
      * }
      * </pre>
-     * 
+     *
      * <p>
      * If a {@link LSResourceResolver} throws a {@link RuntimeException}
      *  (or instances of its derived classes),
-     * then the {@link SchemaFactory} will abort the parsing and  
+     * then the {@link SchemaFactory} will abort the parsing and
      * the caller of the <code>newSchema</code> method will receive
-     * the same {@link RuntimeException}. 
-     * 
+     * the same {@link RuntimeException}.
+     *
      * <p>
      * When a new {@link SchemaFactory} object is created, initially
      * this field is set to null.  This field will <em>NOT</em> be
-     * inherited to {@link Schema}s, {@link Validator}s, or 
+     * inherited to {@link Schema}s, {@link Validator}s, or
      * {@link ValidatorHandler}s that are created from this {@link SchemaFactory}.
-     * 
+     *
      * @param   resourceResolver
      *      A new resource resolver to be set. This parameter can be null.
      */
     public abstract void setResourceResolver(LSResourceResolver resourceResolver);
-    
+
     /**
      * Gets the current {@link LSResourceResolver} set to this {@link SchemaFactory}.
-     * 
+     *
      * @return
      *      This method returns the object that was last set through
      *      the {@link #setResourceResolver(LSResourceResolver)} method, or null
      *      if that method has never been called since this {@link SchemaFactory}
      *      has created.
-     * 
+     *
      * @see #setErrorHandler(ErrorHandler)
      */
     public abstract LSResourceResolver getResourceResolver();
-    
+
     /**
      * <p>Parses the specified source as a schema and returns it as a schema.</p>
-     * 
+     *
      * <p>This is a convenience method for {@link #newSchema(Source[] schemas)}.</p>
-     * 
+     *
      * @param schema Source that represents a schema.
-     * 
+     *
      * @return New <code>Schema</code> from parsing <code>schema</code>.
-     * 
+     *
      * @throws SAXException If a SAX error occurs during parsing.
      * @throws NullPointerException if <code>schema</code> is null.
      */
     public Schema newSchema(Source schema) throws SAXException {
-    	return newSchema(new Source[]{schema});
+        return newSchema(new Source[]{schema});
     }
-    
+
     /**
      * <p>Parses the specified <code>File</code> as a schema and returns it as a <code>Schema</code>.</p>
-     * 
+     *
      * <p>This is a convenience method for {@link #newSchema(Source schema)}.</p>
-     * 
+     *
      * @param schema File that represents a schema.
-     * 
+     *
      * @return New <code>Schema</code> from parsing <code>schema</code>.
-     * 
+     *
      * @throws SAXException If a SAX error occurs during parsing.
      * @throws NullPointerException if <code>schema</code> is null.
      */
     public Schema newSchema(File schema) throws SAXException {
         return newSchema(new StreamSource(schema));
     }
-    
+
     /**
      * <p>Parses the specified <code>URL</code> as a schema and returns it as a <code>Schema</code>.</p>
-     * 
+     *
      * <p>This is a convenience method for {@link #newSchema(Source schema)}.</p>
-     * 
+     *
      * @param schema <code>URL</code> that represents a schema.
-     * 
+     *
      * @return New <code>Schema</code> from parsing <code>schema</code>.
-     * 
+     *
      * @throws SAXException If a SAX error occurs during parsing.
      * @throws NullPointerException if <code>schema</code> is null.
      */
     public Schema newSchema(URL schema) throws SAXException {
         return newSchema(new StreamSource(schema.toExternalForm()));
     }
-    
+
     /**
      * Parses the specified source(s) as a schema and returns it as a schema.
-     * 
+     *
      * <p>
      * The callee will read all the {@link Source}s and combine them into a
      * single schema. The exact semantics of the combination depends on the schema
      * language that this {@link SchemaFactory} object is created for.
-     * 
+     *
      * <p>
      * When an {@link ErrorHandler} is set, the callee will report all the errors
      * found in sources to the handler. If the handler throws an exception, it will
      * abort the schema compilation and the same exception will be thrown from
      * this method. Also, after an error is reported to a handler, the callee is allowed
      * to abort the further processing by throwing it. If an error handler is not set,
-     * the callee will throw the first error it finds in the sources.   
-     * 
+     * the callee will throw the first error it finds in the sources.
+     *
      * <h2>W3C XML Schema 1.0</h2>
      * <p>
      * The resulting schema contains components from the specified sources.
@@ -656,23 +653,23 @@ public abstract class SchemaFactory {
      * JAXP-compliant parsers may vary; in particular, parsers may choose
      * to ignore all but the first &lt;import> for a given namespace,
      * regardless of information provided in schemaLocation.
-     * 
+     *
      * <p>
      * If the parsed set of schemas includes error(s) as
      * specified in the section 5.1 of the XML Schema spec, then
      * the error must be reported to the {@link ErrorHandler}.
-     * 
+     *
      * <h2>RELAX NG</h2>
-     * 
+     *
      * <p>For RELAX NG, this method must throw {@link UnsupportedOperationException}
-     * if <code>schemas.length!=1</code>. 
-     *  
-     * 
+     * if <code>schemas.length!=1</code>.
+     *
+     *
      * @param schemas
      *      inputs to be parsed. {@link SchemaFactory} is required
      *      to recognize {@link javax.xml.transform.sax.SAXSource},
      *      {@link StreamSource},
-     *      {@link javax.xml.transform.stax.StAXSource}, 
+     *      {@link javax.xml.transform.stax.StAXSource},
      *      and {@link javax.xml.transform.dom.DOMSource}.
      *      Input schemas must be XML documents or
      *      XML elements and must not be null. For backwards compatibility,
@@ -680,13 +677,13 @@ public abstract class SchemaFactory {
      *      a document or element are implementation-dependent.
      *      Implementations must either recognize and process the input
      *      or thrown an IllegalArgumentException.
-     * 
+     *
      * @return
      *      Always return a non-null valid {@link Schema} object.
      *      Note that when an error has been reported, there is no
      *      guarantee that the returned {@link Schema} object is
      *      meaningful.
-     * 
+     *
      * @throws SAXException
      *      If an error is found during processing the specified inputs.
      *      When an {@link ErrorHandler} is set, errors are reported to
@@ -695,22 +692,22 @@ public abstract class SchemaFactory {
      *      If the <code>schemas</code> parameter itself is null or
      *      any item in the array is null.
      * @throws IllegalArgumentException
-     *      If any item in the array is not recognized by this method. 
+     *      If any item in the array is not recognized by this method.
      * @throws UnsupportedOperationException
      *      If the schema language doesn't support this operation.
      */
     public abstract Schema newSchema(Source[] schemas) throws SAXException;
-    
+
     /**
      * Creates a special {@link Schema} object.
-     * 
+     *
      * <p>The exact semantics of the returned {@link Schema} object
      * depend on the schema language for which this {@link SchemaFactory}
      * is created.
-     * 
+     *
      * <p>Also, implementations are allowed to use implementation-specific
      * property/feature to alter the semantics of this method.</p>
-     * 
+     *
      * <p>Implementors and developers should pay particular attention
      * to how the features set on this {@link SchemaFactory} are
      * processed by this special {@link Schema}.
@@ -721,12 +718,12 @@ public abstract class SchemaFactory {
      * Developers should
      * make sure that features, such as secure processing, are explicitly
      * set in both places.</p>
-     * 
+     *
      * <h2>W3C XML Schema 1.0</h2>
      * <p>
      * For XML Schema, this method creates a {@link Schema} object that
      * performs validation by using location hints specified in documents.
-     * 
+     *
      * <p>
      * The returned {@link Schema} object assumes that if documents
      * refer to the same URL in the schema location hints,
@@ -734,19 +731,19 @@ public abstract class SchemaFactory {
      * asusmption allows implementations to reuse parsed results of
      * schema documents so that multiple validations against the same
      * schema will run faster.
-     * 
+     *
      * <p>
      * Note that the use of schema location hints introduces a
-     * vulnerability to denial-of-service attacks. 
-     *  
-     * 
+     * vulnerability to denial-of-service attacks.
+     *
+     *
      * <h2>RELAX NG</h2>
      * <p>
-     * RELAX NG does not support this operation. 
-     * 
+     * RELAX NG does not support this operation.
+     *
      * @return
      *      Always return non-null valid {@link Schema} object.
-     * 
+     *
      * @throws UnsupportedOperationException
      *      If this operation is not supported by the callee.
      * @throws SAXException

@@ -1,14 +1,32 @@
 /*
- * @(#)DynSequence.java	1.15 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
 package org.omg.CORBA;
 
-/** 
+/**
  * The representation of a <code>DynAny</code> object that is associated
  * with an IDL sequence.
  * @deprecated Use the new <a href="../DynamicAny/DynSequence.html">DynSequence</a> instead
@@ -37,18 +55,18 @@ public interface DynSequence extends org.omg.CORBA.Object, org.omg.CORBA.DynAny
      * Returns the value of every element in this sequence.
      *
      * @return an array of <code>Any</code> objects containing the values in
-	 *         the sequence
-	 * @see #set_elements
+         *         the sequence
+         * @see #set_elements
      */
     public org.omg.CORBA.Any[] get_elements();
 
     /**
      * Sets the values of all elements in this sequence with the given
-	 * array.
+         * array.
      *
      * @param value the array of <code>Any</code> objects to be set
      * @exception InvalidSeq if the array of values is bad
-	 * @see #get_elements
+         * @see #get_elements
      */
     public void set_elements(org.omg.CORBA.Any[] value)
         throws org.omg.CORBA.DynAnyPackage.InvalidSeq;

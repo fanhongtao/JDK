@@ -1,11 +1,25 @@
 /*
- * @(#)file      JDMAclBlock.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.10
- * @(#)date      06/11/29
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -16,10 +30,6 @@ package com.sun.jmx.snmp.IPAcl;
 
 import java.util.Hashtable;
 
-/** 
- * @version     4.10     11/17/05 
- * @author      Sun Microsystems, Inc. 
- */ 
 class JDMAclBlock extends SimpleNode {
   JDMAclBlock(int id) {
     super(id);
@@ -36,7 +46,7 @@ class JDMAclBlock extends SimpleNode {
   public static Node jjtCreate(Parser p, int id) {
       return new JDMAclBlock(p, id);
   }
-  
+
   /**
    * Do no need to go through this part of the tree for
    * building TrapEntry.

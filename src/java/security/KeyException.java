@@ -1,8 +1,26 @@
 /*
- * @(#)KeyException.java	1.20 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -14,7 +32,6 @@ package java.security;
  * @see InvalidKeyException
  * @see KeyManagementException
  *
- * @version 1.20 05/11/17
  * @author Benjamin Renaud
  */
 
@@ -27,7 +44,7 @@ public class KeyException extends GeneralSecurityException {
      * message is a String that describes this particular exception.
      */
     public KeyException() {
-	super();
+        super();
     }
 
     /**
@@ -35,10 +52,10 @@ public class KeyException extends GeneralSecurityException {
      * A detail message is a String that describes this particular
      * exception.
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public KeyException(String msg) {
-	super(msg);
+        super(msg);
     }
 
     /**

@@ -1,8 +1,26 @@
 /*
- * @(#)MotifOptionPaneUI.java	1.18 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -27,8 +45,7 @@ import java.awt.Rectangle;
  * for short term storage or RMI between applications running the same
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
- * 
- * @version 1.18 11/17/05
+ *
  * @author Scott Violet
  */
 public class MotifOptionPaneUI extends BasicOptionPaneUI
@@ -37,7 +54,7 @@ public class MotifOptionPaneUI extends BasicOptionPaneUI
       * Creates a new MotifOptionPaneUI instance.
       */
     public static ComponentUI createUI(JComponent x) {
-	return new MotifOptionPaneUI();
+        return new MotifOptionPaneUI();
     }
 
     /**
@@ -45,19 +62,19 @@ public class MotifOptionPaneUI extends BasicOptionPaneUI
      * are created by calling <code>getButtons</code>.
      */
     protected Container createButtonArea() {
-	Container          b = super.createButtonArea();
+        Container          b = super.createButtonArea();
 
-	if(b != null && b.getLayout() instanceof ButtonAreaLayout) {
-	    ((ButtonAreaLayout)b.getLayout()).setCentersChildren(false);
-	}
-	return b;
+        if(b != null && b.getLayout() instanceof ButtonAreaLayout) {
+            ((ButtonAreaLayout)b.getLayout()).setCentersChildren(false);
+        }
+        return b;
     }
 
     /**
      * Returns null, CDE/Motif does not impose a minimum size.
      */
     public Dimension getMinimumOptionPaneSize() {
-	return null;
+        return null;
     }
 
     protected Container createSeparator() {
@@ -69,12 +86,12 @@ public class MotifOptionPaneUI extends BasicOptionPaneUI
 
             public void paint(Graphics g) {
                 int width = getWidth();
-	        g.setColor(Color.darkGray);
-	        g.drawLine(0, 0, width, 0);
-	        g.setColor(Color.white);
-	        g.drawLine(0, 1, width, 1);
+                g.setColor(Color.darkGray);
+                g.drawLine(0, 0, width, 0);
+                g.setColor(Color.white);
+                g.drawLine(0, 1, width, 1);
             }
-	};
+        };
     }
 
     /**
@@ -83,15 +100,15 @@ public class MotifOptionPaneUI extends BasicOptionPaneUI
      * <code>createMessageArea</code>
      */
     protected void addIcon(Container top) {
-	/* Create the icon. */
-	Icon                  sideIcon = getIcon();
+        /* Create the icon. */
+        Icon                  sideIcon = getIcon();
 
-	if (sideIcon != null) {
-	    JLabel            iconLabel = new JLabel(sideIcon);
+        if (sideIcon != null) {
+            JLabel            iconLabel = new JLabel(sideIcon);
 
-	    iconLabel.setVerticalAlignment(SwingConstants.CENTER);
-	    top.add(iconLabel, "West");
-	}
+            iconLabel.setVerticalAlignment(SwingConstants.CENTER);
+            top.add(iconLabel, "West");
+        }
     }
 
 }

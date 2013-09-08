@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,11 +33,11 @@ import com.sun.org.apache.xpath.internal.patterns.NodeTest;
 import com.sun.org.apache.xpath.internal.patterns.StepPattern;
 
 /**
- * This class treats a 
- * <a href="http://www.w3.org/TR/xpath#location-paths">LocationPath</a> as a 
- * filtered iteration over the tree, evaluating each node in a super axis 
- * traversal against the LocationPath interpreted as a match pattern.  This 
- * class is useful to find nodes in document order that are complex paths 
+ * This class treats a
+ * <a href="http://www.w3.org/TR/xpath#location-paths">LocationPath</a> as a
+ * filtered iteration over the tree, evaluating each node in a super axis
+ * traversal against the LocationPath interpreted as a match pattern.  This
+ * class is useful to find nodes in document order that are complex paths
  * whose steps probably criss-cross each other.
  */
 public class MatchPatternIterator extends LocPathIterator
@@ -48,10 +52,10 @@ public class MatchPatternIterator extends LocPathIterator
 
   /** The DTM inner traversal class, that corresponds to the super axis. */
   protected DTMAxisTraverser m_traverser;
-  
+
   /** DEBUG flag for diagnostic dumps. */
   private static final boolean DEBUG = false;
-  
+
 //  protected int m_nsElemBase = DTM.NULL;
 
   /**
@@ -63,7 +67,7 @@ public class MatchPatternIterator extends LocPathIterator
    * this expression.
    * @param opPos The position of this iterator in the
    * opcode list from the compiler.
-   * @param analysis Analysis bits that give general information about the 
+   * @param analysis Analysis bits that give general information about the
    * LocationPath.
    *
    * @throws javax.xml.transform.TransformerException
@@ -76,22 +80,22 @@ public class MatchPatternIterator extends LocPathIterator
 
     int firstStepPos = compiler.getFirstChildPos(opPos);
 
-    m_pattern = WalkerFactory.loadSteps(this, compiler, firstStepPos, 0); 
+    m_pattern = WalkerFactory.loadSteps(this, compiler, firstStepPos, 0);
 
     boolean fromRoot = false;
     boolean walkBack = false;
     boolean walkDescendants = false;
     boolean walkAttributes = false;
 
-    if (0 != (analysis & (WalkerFactory.BIT_ROOT | 
+    if (0 != (analysis & (WalkerFactory.BIT_ROOT |
                           WalkerFactory.BIT_ANY_DESCENDANT_FROM_ROOT)))
       fromRoot = true;
-      
+
     if (0 != (analysis
               & (WalkerFactory.BIT_ANCESTOR
                  | WalkerFactory.BIT_ANCESTOR_OR_SELF
                  | WalkerFactory.BIT_PRECEDING
-                 | WalkerFactory.BIT_PRECEDING_SIBLING 
+                 | WalkerFactory.BIT_PRECEDING_SIBLING
                  | WalkerFactory.BIT_FOLLOWING
                  | WalkerFactory.BIT_FOLLOWING_SIBLING
                  | WalkerFactory.BIT_PARENT | WalkerFactory.BIT_FILTER)))
@@ -106,13 +110,13 @@ public class MatchPatternIterator extends LocPathIterator
     if (0 != (analysis
               & (WalkerFactory.BIT_ATTRIBUTE | WalkerFactory.BIT_NAMESPACE)))
       walkAttributes = true;
-      
+
     if(false || DEBUG)
     {
       System.out.print("analysis: "+Integer.toBinaryString(analysis));
       System.out.println(", "+WalkerFactory.getAnalysisString(analysis));
     }
-      
+
     if(fromRoot || walkBack)
     {
       if(walkAttributes)
@@ -143,10 +147,10 @@ public class MatchPatternIterator extends LocPathIterator
     {
       System.out.println("axis: "+Axis.getNames(m_superAxis));
     }
-    
+
   }
-  
-  
+
+
   /**
    * Initialize the context values for this expression
    * after it is cloned.
@@ -168,16 +172,16 @@ public class MatchPatternIterator extends LocPathIterator
    * exception INVALID_STATE_ERR.
    */
   public void detach()
-  {    
+  {
     if(m_allowDetach)
     {
       m_traverser = null;
-      
+
       // Always call the superclass detach last!
       super.detach();
     }
   }
-  
+
   /**
    * Get the next node via getNextXXX.  Bottlenecked for derived class override.
    * @return The next node on the axis, or DTM.NULL.
@@ -198,12 +202,12 @@ public class MatchPatternIterator extends LocPathIterator
    *   <code>null</code> if there are no more members in that set.
    */
   public int nextNode()
-  {      
-  	if(m_foundLast)
-  		return DTM.NULL;
+  {
+        if(m_foundLast)
+                return DTM.NULL;
 
     int next;
-    
+
     com.sun.org.apache.xpath.internal.VariableStack vars;
     int savedStart;
     if (-1 != m_stackFrame)
@@ -221,7 +225,7 @@ public class MatchPatternIterator extends LocPathIterator
       vars = null;
       savedStart = 0;
     }
-    
+
     try
     {
       if(DEBUG)
@@ -230,7 +234,7 @@ public class MatchPatternIterator extends LocPathIterator
       do
       {
         next = getNextNode();
-  
+
         if (DTM.NULL != next)
         {
           if(DTMIterator.FILTER_ACCEPT == acceptNode(next, m_execContext))
@@ -242,7 +246,7 @@ public class MatchPatternIterator extends LocPathIterator
           break;
       }
       while (next != DTM.NULL);
-      
+
       if (DTM.NULL != next)
       {
         if(DEBUG)
@@ -251,13 +255,13 @@ public class MatchPatternIterator extends LocPathIterator
           System.out.println("name: "+m_cdtm.getNodeName(next));
         }
         incrementCurrentPos();
-  
+
         return next;
       }
       else
       {
         m_foundLast = true;
-  
+
         return DTM.NULL;
       }
     }
@@ -271,7 +275,7 @@ public class MatchPatternIterator extends LocPathIterator
     }
 
   }
-  
+
   /**
    *  Test whether a specified node is visible in the logical view of a
    * TreeWalker or NodeIterator. This function will be called by the
@@ -297,9 +301,9 @@ public class MatchPatternIterator extends LocPathIterator
         System.out.println("pattern: "+m_pattern.toString());
         m_pattern.debugWhatToShow(m_pattern.getWhatToShow());
       }
-      
+
       XObject score = m_pattern.execute(xctxt);
-      
+
       if(DEBUG)
       {
         // System.out.println("analysis: "+Integer.toBinaryString(m_analysis));
@@ -308,7 +312,7 @@ public class MatchPatternIterator extends LocPathIterator
       }
 
       // System.out.println("\n::acceptNode - score: "+score.num()+"::");
-      return (score == NodeTest.SCORE_NONE) ? DTMIterator.FILTER_SKIP 
+      return (score == NodeTest.SCORE_NONE) ? DTMIterator.FILTER_SKIP
                     : DTMIterator.FILTER_ACCEPT;
     }
     catch (javax.xml.transform.TransformerException se)

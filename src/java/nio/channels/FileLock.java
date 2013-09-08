@@ -1,22 +1,42 @@
 /*
- * @(#)FileLock.java	1.9 05/11/17
+ * Copyright (c) 2001, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.channels;
 
 import java.io.IOException;
 
-
 /**
  * A token representing a lock on a region of a file.
  *
  * <p> A file-lock object is created each time a lock is acquired on a file via
  * one of the {@link FileChannel#lock(long,long,boolean) lock} or {@link
- * FileChannel#tryLock(long,long,boolean) tryLock} methods of the {@link
- * FileChannel} class.
+ * FileChannel#tryLock(long,long,boolean) tryLock} methods of the
+ * {@link FileChannel} class, or the {@link
+ * AsynchronousFileChannel#lock(long,long,boolean,Object,CompletionHandler) lock}
+ * or {@link AsynchronousFileChannel#tryLock(long,long,boolean) tryLock}
+ * methods of the {@link AsynchronousFileChannel} class.
  *
  * <p> A file-lock object is initially valid.  It remains valid until the lock
  * is released by invoking the {@link #release release} method, by closing the
@@ -52,8 +72,7 @@ import java.io.IOException;
  * <p> File-lock objects are safe for use by multiple concurrent threads.
  *
  *
- * <a name="pdep">
- * <h4> Platform dependencies </h4>
+ * <a name="pdep"><h4> Platform dependencies </h4></a>
  *
  * <p> This file-locking API is intended to map directly to the native locking
  * facility of the underlying operating system.  Thus the locks held on a file
@@ -75,7 +94,7 @@ import java.io.IOException;
  *
  * <p> On some systems, acquiring a mandatory lock on a region of a file
  * prevents that region from being {@link java.nio.channels.FileChannel#map
- * </code>mapped into memory<code>}, and vice versa.  Programs that combine
+ * <i>mapped into memory</i>}, and vice versa.  Programs that combine
  * locking and mapping should be prepared for this combination to fail.
  *
  * <p> On some systems, closing a channel releases all locks held by the Java
@@ -94,13 +113,12 @@ import java.io.IOException;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.9, 05/11/17
  * @since 1.4
  */
 
-public abstract class FileLock {
+public abstract class FileLock implements AutoCloseable {
 
-    private final FileChannel channel;
+    private final Channel channel;
     private final long position;
     private final long size;
     private final boolean shared;
@@ -127,27 +145,80 @@ public abstract class FileLock {
      *         If the preconditions on the parameters do not hold
      */
     protected FileLock(FileChannel channel,
-		       long position, long size, boolean shared)
+                       long position, long size, boolean shared)
     {
-	if (position < 0)
-	    throw new IllegalArgumentException("Negative position");
-	if (size < 0)
-	    throw new IllegalArgumentException("Negative size");
-	if (position + size < 0)
-	    throw new IllegalArgumentException("Negative position + size");
-	this.channel = channel;
-	this.position = position;
-	this.size = size;
-	this.shared = shared;
+        if (position < 0)
+            throw new IllegalArgumentException("Negative position");
+        if (size < 0)
+            throw new IllegalArgumentException("Negative size");
+        if (position + size < 0)
+            throw new IllegalArgumentException("Negative position + size");
+        this.channel = channel;
+        this.position = position;
+        this.size = size;
+        this.shared = shared;
     }
 
     /**
-     * Returns the file channel upon whose file this lock is held.  </p>
+     * Initializes a new instance of this class.
      *
-     * @return  The file channel
+     * @param  channel
+     *         The channel upon whose file this lock is held
+     *
+     * @param  position
+     *         The position within the file at which the locked region starts;
+     *         must be non-negative
+     *
+     * @param  size
+     *         The size of the locked region; must be non-negative, and the sum
+     *         <tt>position</tt>&nbsp;+&nbsp;<tt>size</tt> must be non-negative
+     *
+     * @param  shared
+     *         <tt>true</tt> if this lock is shared,
+     *         <tt>false</tt> if it is exclusive
+     *
+     * @throws IllegalArgumentException
+     *         If the preconditions on the parameters do not hold
+     *
+     * @since 1.7
+     */
+    protected FileLock(AsynchronousFileChannel channel,
+                       long position, long size, boolean shared)
+    {
+        if (position < 0)
+            throw new IllegalArgumentException("Negative position");
+        if (size < 0)
+            throw new IllegalArgumentException("Negative size");
+        if (position + size < 0)
+            throw new IllegalArgumentException("Negative position + size");
+        this.channel = channel;
+        this.position = position;
+        this.size = size;
+        this.shared = shared;
+    }
+
+    /**
+     * Returns the file channel upon whose file this lock was acquired.
+     *
+     * <p> This method has been superseded by the {@link #acquiredBy acquiredBy}
+     * method.
+     *
+     * @return  The file channel, or {@code null} if the file lock was not
+     *          acquired by a file channel.
      */
     public final FileChannel channel() {
-	return channel;
+        return (channel instanceof FileChannel) ? (FileChannel)channel : null;
+    }
+
+    /**
+     * Returns the channel upon whose file this lock was acquired.
+     *
+     * @return  The channel upon whose file this lock was acquired.
+     *
+     * @since 1.7
+     */
+    public Channel acquiredBy() {
+        return channel;
     }
 
     /**
@@ -161,7 +232,7 @@ public abstract class FileLock {
      * @return  The position
      */
     public final long position() {
-	return position;
+        return position;
     }
 
     /**
@@ -174,7 +245,7 @@ public abstract class FileLock {
      * @return  The size of the locked region
      */
     public final long size() {
-	return size;
+        return size;
     }
 
     /**
@@ -184,7 +255,7 @@ public abstract class FileLock {
      *         <tt>false</tt> if it is exclusive
      */
     public final boolean isShared() {
-	return shared;
+        return shared;
     }
 
     /**
@@ -194,11 +265,11 @@ public abstract class FileLock {
      *          range overlap by at least one byte
      */
     public final boolean overlaps(long position, long size) {
-	if (position + size <= this.position)
-	    return false;		// That is below this
-	if (this.position + this.size <= position)
-	    return false;		// This is below that
-	return true;
+        if (position + size <= this.position)
+            return false;               // That is below this
+        if (this.position + this.size <= position)
+            return false;               // This is below that
+        return true;
     }
 
     /**
@@ -228,17 +299,28 @@ public abstract class FileLock {
     public abstract void release() throws IOException;
 
     /**
+     * This method invokes the {@link #release} method. It was added
+     * to the class so that it could be used in conjunction with the
+     * automatic resource management block construct.
+     *
+     * @since 1.7
+     */
+    public final void close() throws IOException {
+        release();
+    }
+
+    /**
      * Returns a string describing the range, type, and validity of this lock.
      *
      * @return  A descriptive string
      */
     public final String toString() {
-	return (this.getClass().getName()
-		+ "[" + position
-		+ ":" + size
-		+ " " + (shared ? "shared" : "exclusive")
-		+ " " + (isValid() ? "valid" : "invalid")
-		+ "]");
+        return (this.getClass().getName()
+                + "[" + position
+                + ":" + size
+                + " " + (shared ? "shared" : "exclusive")
+                + " " + (isValid() ? "valid" : "invalid")
+                + "]");
     }
 
 }

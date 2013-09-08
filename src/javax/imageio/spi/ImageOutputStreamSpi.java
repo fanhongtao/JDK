@@ -1,8 +1,26 @@
 /*
- * @(#)ImageOutputStreamSpi.java	1.20 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.spi;
@@ -34,7 +52,6 @@ import javax.imageio.stream.ImageOutputStream;
  * @see IIORegistry
  * @see javax.imageio.stream.ImageOutputStream
  *
- * @version 0.5
  */
 public abstract class ImageOutputStreamSpi extends IIOServiceProvider {
 
@@ -66,7 +83,7 @@ public abstract class ImageOutputStreamSpi extends IIOServiceProvider {
      * @exception IllegalArgumentException if <code>vendorName</code>
      * is <code>null</code>.
      * @exception IllegalArgumentException if <code>version</code>
-     * is <code>null</code>. 
+     * is <code>null</code>.
     */
     public ImageOutputStreamSpi(String vendorName,
                                 String version,
@@ -129,14 +146,14 @@ public abstract class ImageOutputStreamSpi extends IIOServiceProvider {
      * Returns an instance of the <code>ImageOutputStream</code>
      * implementation associated with this service provider.  If the
      * use of a cache file is optional, the <code>useCache</code>
-     * parameter will be consulted.  Where a cache is required, or 
+     * parameter will be consulted.  Where a cache is required, or
      * not applicable, the value of <code>useCache</code> will be ignored.
      *
      * @param output an object of the class type returned by
      * <code>getOutputClass</code>.
      * @param useCache a <code>boolean</code> indicating whether a
      * cache file should be used, in cases where it is optional.
-     * @param cacheDir a <code>File</code> indicating where the 
+     * @param cacheDir a <code>File</code> indicating where the
      * cache file should be created, or <code>null</code> to use the
      * system directory.
      *

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +47,7 @@ import java.io.InputStreamReader;
  * class and modified to be used as a general utility for creating objects 
  * dynamically.
  *
- * @version $Id: ObjectFactory.java,v 1.2.4.1 2005/09/15 02:39:54 jeffsuttor Exp $
+ * @version $Id: ObjectFactory.java,v 1.9 2008/04/02 00:40:59 joehw Exp $
  */
 class ObjectFactory {
 

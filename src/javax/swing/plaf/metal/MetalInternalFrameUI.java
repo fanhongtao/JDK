@@ -1,8 +1,26 @@
 /*
- * @(#)MetalInternalFrameUI.java	1.36 09/08/07
+ * Copyright (c) 1998, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -18,10 +36,9 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.plaf.*;
 
 /**
- * Metal implementation of JInternalFrame.  
+ * Metal implementation of JInternalFrame.
  * <p>
  *
- * @version 1.36 08/07/09
  * @author Steve Wilson
  */
 public class MetalInternalFrameUI extends BasicInternalFrameUI {
@@ -30,7 +47,7 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
         new MetalPropertyChangeHandler();
 
   private static final Border handyEmptyBorder = new EmptyBorder(0,0,0,0);
-  
+
   protected static String IS_PALETTE   = "JInternalFrame.isPalette";
   private static String IS_PALETTE_KEY = "JInternalFrame.isPalette";
   private static String FRAME_TYPE     = "JInternalFrame.frameType";
@@ -46,31 +63,31 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
       return new MetalInternalFrameUI( (JInternalFrame) c);
   }
 
-  public void installUI(JComponent c) { 
+  public void installUI(JComponent c) {
     super.installUI(c);
 
     Object paletteProp = c.getClientProperty(IS_PALETTE_KEY);
     if ( paletteProp != null ) {
-	setPalette( ((Boolean)paletteProp).booleanValue() );
+        setPalette( ((Boolean)paletteProp).booleanValue() );
     }
 
     Container content = frame.getContentPane();
-    stripContentBorder(content);    
+    stripContentBorder(content);
     //c.setOpaque(false);
   }
-  
-  public void uninstallUI(JComponent c) {                  
+
+  public void uninstallUI(JComponent c) {
       frame = (JInternalFrame)c;
 
       Container cont = ((JInternalFrame)(c)).getContentPane();
       if (cont instanceof JComponent) {
-	JComponent content = (JComponent)cont;
-	if ( content.getBorder() == handyEmptyBorder) {
-	  content.setBorder(null);
-	}
+        JComponent content = (JComponent)cont;
+        if ( content.getBorder() == handyEmptyBorder) {
+          content.setBorder(null);
+        }
       }
       super.uninstallUI(c);
-  } 
+  }
 
     protected void installListeners() {
         super.installListeners();
@@ -86,9 +103,9 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
       super.installKeyboardActions();
       ActionMap map = SwingUtilities.getUIActionMap(frame);
       if (map != null) {
-	  // BasicInternalFrameUI creates an action with the same name, we override
-	  // it as Metal frames do not have system menus.
-	  map.remove("showSystemMenu");
+          // BasicInternalFrameUI creates an action with the same name, we override
+          // it as Metal frames do not have system menus.
+          map.remove("showSystemMenu");
       }
   }
 
@@ -105,13 +122,13 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
         if ( c instanceof JComponent ) {
             JComponent contentComp = (JComponent)c;
             Border contentBorder = contentComp.getBorder();
-   	    if (contentBorder == null || contentBorder instanceof UIResource) {
-	        contentComp.setBorder( handyEmptyBorder );
+            if (contentBorder == null || contentBorder instanceof UIResource) {
+                contentComp.setBorder( handyEmptyBorder );
             }
         }
   }
 
-    
+
   protected JComponent createNorthPane(JInternalFrame w) {
       return new MetalInternalFrameTitlePane(w);
   }
@@ -152,7 +169,7 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
   {
       public void propertyChange(PropertyChangeEvent e)
       {
-	  String name = e.getPropertyName();
+          String name = e.getPropertyName();
           JInternalFrame jif = (JInternalFrame)e.getSource();
 
           if (!(jif.getUI() instanceof MetalInternalFrameUI)) {
@@ -161,24 +178,24 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
 
           MetalInternalFrameUI ui = (MetalInternalFrameUI)jif.getUI();
 
-	  if ( name.equals( FRAME_TYPE ) )
-	  {
-	      if ( e.getNewValue() instanceof String )
-	      {
-		  ui.setFrameType( (String) e.getNewValue() );
-	      }
-	  }
-	  else if ( name.equals(IS_PALETTE_KEY) )
-	  {
-	      if ( e.getNewValue() != null )
-	      {
-	          ui.setPalette( ((Boolean)e.getNewValue()).booleanValue() );
-	      }
-	      else
-	      {
-		  ui.setPalette( false );
-	      }
-	  } else if ( name.equals( JInternalFrame.CONTENT_PANE_PROPERTY ) ) {
+          if ( name.equals( FRAME_TYPE ) )
+          {
+              if ( e.getNewValue() instanceof String )
+              {
+                  ui.setFrameType( (String) e.getNewValue() );
+              }
+          }
+          else if ( name.equals(IS_PALETTE_KEY) )
+          {
+              if ( e.getNewValue() != null )
+              {
+                  ui.setPalette( ((Boolean)e.getNewValue()).booleanValue() );
+              }
+              else
+              {
+                  ui.setPalette( false );
+              }
+          } else if ( name.equals( JInternalFrame.CONTENT_PANE_PROPERTY ) ) {
               ui.stripContentBorder(e.getNewValue());
           }
       }
@@ -199,13 +216,13 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
                     xOffset -= icon.getIconWidth();
                 }
                 int iconY = ((titlePane.getHeight() / 2) - (icon.getIconHeight() /2));
-                rect = new Rectangle(xOffset, iconY, 
+                rect = new Rectangle(xOffset, iconY,
                     icon.getIconWidth(), icon.getIconHeight());
             }
             return rect;
         }
 
-	public void mouseClicked(MouseEvent e) {
+        public void mouseClicked(MouseEvent e) {
             if (e.getClickCount() == 2 && e.getSource() == getNorthPane() &&
                 frame.isClosable() && !frame.isIcon()) {
                 Rectangle rect = getIconBounds();
@@ -219,16 +236,16 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
             else {
                 super.mouseClicked(e);
             }
-	}
+        }
     };    /// End BorderListener Class
 
 
     /**
-     * Returns the <code>MouseInputAdapter</code> that will be installed 
+     * Returns the <code>MouseInputAdapter</code> that will be installed
      * on the TitlePane.
      *
      * @param w the <code>JInternalFrame</code>
-     * @return the <code>MouseInputAdapter</code> that will be installed 
+     * @return the <code>MouseInputAdapter</code> that will be installed
      * on the TitlePane.
      * @since 1.6
      */
@@ -236,4 +253,3 @@ public class MetalInternalFrameUI extends BasicInternalFrameUI {
         return new BorderListener1();
     }
 }
-

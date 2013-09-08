@@ -1,8 +1,26 @@
 /*
- * @(#)ActivationMonitor.java	1.17 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.activation;
@@ -22,12 +40,11 @@ import java.rmi.activation.UnknownObjectException;
  * <code>ActivationMonitor</code> when either: its objects become active or
  * inactive, or the group as a whole becomes inactive.
  *
- * @author 	Ann Wollrath
- * @version	1.17, 11/17/05
- * @see		Activator
- * @see		ActivationSystem
- * @see 	ActivationGroup
- * @since	1.2
+ * @author      Ann Wollrath
+ * @see         Activator
+ * @see         ActivationSystem
+ * @see         ActivationGroup
+ * @since       1.2
  */
 public interface ActivationMonitor extends Remote {
 
@@ -54,7 +71,7 @@ public interface ActivationMonitor extends Remote {
      * @since 1.2
      */
     public void inactiveObject(ActivationID id)
- 	throws UnknownObjectException, RemoteException;
+        throws UnknownObjectException, RemoteException;
 
     /**
      * Informs that an object is now active. An <code>ActivationGroup</code>
@@ -69,8 +86,8 @@ public interface ActivationMonitor extends Remote {
      * @since 1.2
      */
     public void activeObject(ActivationID id,
-			     MarshalledObject<? extends Remote> obj)
-	throws UnknownObjectException, RemoteException;
+                             MarshalledObject<? extends Remote> obj)
+        throws UnknownObjectException, RemoteException;
 
     /**
      * Informs that the group is now inactive. The group will be
@@ -85,9 +102,7 @@ public interface ActivationMonitor extends Remote {
      * @since 1.2
      */
     public void inactiveGroup(ActivationGroupID id,
-			      long incarnation)
-	throws UnknownGroupException, RemoteException;
+                              long incarnation)
+        throws UnknownGroupException, RemoteException;
 
 }
-
-

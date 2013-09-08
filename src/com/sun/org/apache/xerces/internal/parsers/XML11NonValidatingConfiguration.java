@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +39,10 @@ import com.sun.org.apache.xerces.internal.impl.XMLVersionDetector;
 import com.sun.org.apache.xerces.internal.impl.dv.DTDDVFactory;
 import com.sun.org.apache.xerces.internal.impl.msg.XMLMessageFormatter;
 import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
+import com.sun.org.apache.xerces.internal.util.FeatureState;
 import com.sun.org.apache.xerces.internal.util.ParserConfigurationSettings;
+import com.sun.org.apache.xerces.internal.util.PropertyState;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.xni.XMLDTDContentModelHandler;
 import com.sun.org.apache.xerces.internal.xni.XMLDTDHandler;
@@ -67,7 +74,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLPullParserConfiguration;
  * @author John Kim, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XML11NonValidatingConfiguration.java,v 1.1.2.1 2005/08/01 03:37:43 jeffsuttor Exp $
+ * @version $Id: XML11NonValidatingConfiguration.java,v 1.5 2010-11-01 04:40:10 joehw Exp $
  */
 public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
     implements XMLPullParserConfiguration, XML11Configurable {
@@ -320,10 +327,6 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
 		fXML11Components = new ArrayList();
 		// Common components for XML 1.1. and XML 1.0
 		fCommonComponents = new ArrayList();
-
-		// create storage for recognized features and properties
-		fRecognizedFeatures = new ArrayList();
-		fRecognizedProperties = new ArrayList();
 
 		// create table for features and properties
 		fFeatures = new HashMap();
@@ -695,13 +698,13 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
 	 *                                   it is <strong>really</strong>
 	 *                                   a critical error.
 	 */
-	public boolean getFeature(String featureId)
+	public FeatureState getFeatureState(String featureId)
 		throws XMLConfigurationException {
 			// make this feature special
         if (featureId.equals(PARSER_SETTINGS)){
-        	return fConfigUpdated;
+        	return FeatureState.is(fConfigUpdated);
         }
-        return super.getFeature(featureId);
+        return super.getFeatureState(featureId);
 
 	} // getFeature(String):boolean
     
@@ -953,7 +956,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkFeature(String featureId) throws XMLConfigurationException {
+    protected FeatureState checkFeature(String featureId) throws XMLConfigurationException {
 
         //
         // Xerces Features
@@ -970,7 +973,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
             //
             if (suffixLength == Constants.DYNAMIC_VALIDATION_FEATURE.length() && 
                 featureId.endsWith(Constants.DYNAMIC_VALIDATION_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
 
             //
@@ -979,8 +982,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
             if (suffixLength == Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE.length() &&
                 featureId.endsWith(Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE)) {
                 // REVISIT
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
             //
             // http://apache.org/xml/features/validation/default-attribute-values
@@ -988,22 +990,21 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
             if (suffixLength == Constants.VALIDATE_CONTENT_MODELS_FEATURE.length() && 
                 featureId.endsWith(Constants.VALIDATE_CONTENT_MODELS_FEATURE)) {
                 // REVISIT
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
             //
             // http://apache.org/xml/features/validation/nonvalidating/load-dtd-grammar
             //
             if (suffixLength == Constants.LOAD_DTD_GRAMMAR_FEATURE.length() && 
                 featureId.endsWith(Constants.LOAD_DTD_GRAMMAR_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
             //
             // http://apache.org/xml/features/validation/nonvalidating/load-external-dtd
             //
             if (suffixLength == Constants.LOAD_EXTERNAL_DTD_FEATURE.length() && 
                 featureId.endsWith(Constants.LOAD_EXTERNAL_DTD_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
 
             //
@@ -1011,15 +1012,13 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
             //
             if (suffixLength == Constants.VALIDATE_DATATYPES_FEATURE.length() && 
                 featureId.endsWith(Constants.VALIDATE_DATATYPES_FEATURE)) {
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
             			 
             // special performance feature: only component manager is allowed to set it.			 
-            if (suffixLength == Constants.PARSER_SETTINGS.length() && 
+            if (suffixLength == Constants.PARSER_SETTINGS.length() &&
                 featureId.endsWith(Constants.PARSER_SETTINGS)) {
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
         }
 
@@ -1027,7 +1026,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
         // Not recognized
         //
 
-        super.checkFeature(featureId);
+        return super.checkFeature(featureId);
 
     } // checkFeature(String)
 
@@ -1044,7 +1043,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkProperty(String propertyId) throws XMLConfigurationException {
+    protected PropertyState checkProperty(String propertyId) throws XMLConfigurationException {
 
         //
         // Xerces Properties
@@ -1055,7 +1054,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
 
             if (suffixLength == Constants.DTD_SCANNER_PROPERTY.length() && 
                 propertyId.endsWith(Constants.DTD_SCANNER_PROPERTY)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
         }
         
@@ -1064,7 +1063,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
 
             if (suffixLength == Constants.SCHEMA_SOURCE.length() && 
                 propertyId.endsWith(Constants.SCHEMA_SOURCE)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
         }
         
@@ -1087,8 +1086,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
                 // REVISIT - we should probably ask xml-dev for a precise
                 // definition of what this is actually supposed to return, and
                 // in exactly which circumstances.
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, propertyId);
+                return PropertyState.NOT_SUPPORTED;
             }
         }
 
@@ -1096,7 +1094,7 @@ public class XML11NonValidatingConfiguration extends ParserConfigurationSettings
         // Not recognized
         //
 
-        super.checkProperty(propertyId);
+        return super.checkProperty(propertyId);
 
     } // checkProperty(String)
 

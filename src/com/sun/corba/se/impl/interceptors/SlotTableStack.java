@@ -1,8 +1,26 @@
 /*
- * @(#)SlotTableStack.java	1.12 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.interceptors;
@@ -70,14 +88,14 @@ public class SlotTableStack
             return pool[currentIndex];
         }
     }
-   
+
     // Contains all the active SlotTables for each thread.
     // The List is made to behave like a stack.
     private java.util.List tableContainer;
 
     // Keeps track of number of PICurrents in the stack.
     private int currentIndex;
- 
+
     // For Every Thread there will be a pool of re-usable SlotTables'
     // stored in SlotTablePool
     private SlotTablePool tablePool;
@@ -98,12 +116,12 @@ public class SlotTableStack
        tableContainer = new java.util.ArrayList( );
        tablePool = new SlotTablePool( );
        // SlotTableStack will be created with one SlotTable on the stack.
-       // This table is used as the reference to query for number of 
+       // This table is used as the reference to query for number of
        // allocated slots to create other slottables.
        tableContainer.add( currentIndex, table );
        currentIndex++;
     }
-   
+
 
     /**
      * pushSlotTable  pushes a fresh Slot Table on to the stack by doing the
@@ -111,7 +129,7 @@ public class SlotTableStack
      * 1: Checks to see if there is any SlotTable in SlotTablePool
      *    If present then use that instance to push into the SlotTableStack
      *
-     * 2: If there is no SlotTable in the pool, then creates a new one and 
+     * 2: If there is no SlotTable in the pool, then creates a new one and
      *    pushes that into the SlotTableStack
      */
     void pushSlotTable( ) {
@@ -126,8 +144,8 @@ public class SlotTableStack
             // Add will cause the table to grow.
             tableContainer.add( currentIndex, table );
         } else if (currentIndex > tableContainer.size()) {
-	    throw wrapper.slotTableInvariant( new Integer( currentIndex ),
-		new Integer( tableContainer.size() ) ) ;
+            throw wrapper.slotTableInvariant( new Integer( currentIndex ),
+                new Integer( tableContainer.size() ) ) ;
         } else {
             // Set will override unused slots.
             tableContainer.set( currentIndex, table );
@@ -140,15 +158,15 @@ public class SlotTableStack
      * 1: pops the top SlotTable in the SlotTableStack
      *
      * 2: resets the slots in the SlotTable which resets the slotvalues to
-     *    null if there are any previous sets. 
+     *    null if there are any previous sets.
      *
-     * 3: puts the reset SlotTable into the SlotTablePool to reuse 
+     * 3: puts the reset SlotTable into the SlotTablePool to reuse
      */
     void  popSlotTable( ) {
         if( currentIndex <= 1 ) {
             // Do not pop the SlotTable, If there is only one.
             // This should not happen, But an extra check for safety.
-	    throw wrapper.cantPopOnlyPicurrent() ;
+            throw wrapper.cantPopOnlyPicurrent() ;
         }
         currentIndex--;
         SlotTable table = (SlotTable)tableContainer.get( currentIndex );

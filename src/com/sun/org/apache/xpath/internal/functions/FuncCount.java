@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +48,7 @@ public class FuncCount extends FunctionOneArg
 
 //    DTMIterator nl = m_arg0.asIterator(xctxt, xctxt.getCurrentNode());
 
-//    // We should probably make a function on the iterator for this, 
+//    // We should probably make a function on the iterator for this,
 //    // as a given implementation could optimize.
 //    int i = 0;
 //
@@ -53,9 +57,9 @@ public class FuncCount extends FunctionOneArg
 //      i++;
 //    }
 //    nl.detach();
-	DTMIterator nl = m_arg0.asIterator(xctxt, xctxt.getCurrentNode());
-	int i = nl.getLength();	
-	nl.detach();
+        DTMIterator nl = m_arg0.asIterator(xctxt, xctxt.getCurrentNode());
+        int i = nl.getLength();
+        nl.detach();
 
     return new XNumber((double) i);
   }

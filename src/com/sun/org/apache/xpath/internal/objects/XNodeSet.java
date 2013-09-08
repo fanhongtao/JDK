@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,12 +57,17 @@ public class XNodeSet extends NodeSequence
   	super();
   	if(val instanceof XNodeSet)
   	{
-	    setIter(((XNodeSet)val).m_iter);
-	    m_dtmMgr = ((XNodeSet)val).m_dtmMgr;
-	    m_last = ((XNodeSet)val).m_last;
-	    if(!((XNodeSet)val).hasCache())
-	    	((XNodeSet)val).setShouldCacheNodes(true);
-	    m_obj = ((XNodeSet)val).m_obj;
+            final XNodeSet nodeSet = (XNodeSet) val;
+            setIter(nodeSet.m_iter);
+            m_dtmMgr = nodeSet.m_dtmMgr;
+            m_last = nodeSet.m_last;
+            // First make sure the DTMIterator val has a cache,
+            // so if it doesn't have one, make one.
+            if(!nodeSet.hasCache())
+                nodeSet.setShouldCacheNodes(true);
+
+            // Get the cache from val and use it ourselves (we share it).
+            setObject(nodeSet.getIteratorCache());
   	}
   	else
     	setIter(val);
@@ -77,7 +86,7 @@ public class XNodeSet extends NodeSequence
     m_last = val.m_last;
     if(!val.hasCache())
     	val.setShouldCacheNodes(true);
-    m_obj = val.m_obj;
+    setObject(val.m_obj);
   }
 
 
@@ -426,7 +435,7 @@ public class XNodeSet extends NodeSequence
     else
     {
       mnl = new NodeSetDTM(iter());
-      m_obj = mnl;
+      setObject(mnl);
       setCurrentPos(0);
     }
 

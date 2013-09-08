@@ -1,8 +1,26 @@
 /*
- * @(#)LocateReplyMessage_1_2.java	1.19 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -32,7 +50,6 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
  * This implements the GIOP 1.2 LocateReply header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public final class LocateReplyMessage_1_2 extends Message_1_2
@@ -53,8 +70,8 @@ public final class LocateReplyMessage_1_2 extends Message_1_2
 
     LocateReplyMessage_1_2(ORB orb) {
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
     }
 
     LocateReplyMessage_1_2(ORB orb, int _request_id,
@@ -62,8 +79,8 @@ public final class LocateReplyMessage_1_2 extends Message_1_2
         super(Message.GIOPBigMagic, GIOPVersion.V1_2, FLAG_NO_FRAG_BIG_ENDIAN,
             Message.GIOPLocateReply, 0);
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
         request_id = _request_id;
         reply_status = _reply_status;
         ior = _ior;
@@ -84,7 +101,7 @@ public final class LocateReplyMessage_1_2 extends Message_1_2
     }
 
     public SystemException getSystemException(String message) {
-	return MessageBase.getSystemException(
+        return MessageBase.getSystemException(
             exClassName, minorCode, completionStatus, message, wrapper);
     }
 
@@ -124,13 +141,13 @@ public final class LocateReplyMessage_1_2 extends Message_1_2
                 this.completionStatus = CompletionStatus.COMPLETED_MAYBE;
                 break;
             default:
-		throw wrapper.badCompletionStatusInLocateReply( 
-		    CompletionStatus.COMPLETED_MAYBE, new Integer(status) );
+                throw wrapper.badCompletionStatusInLocateReply(
+                    CompletionStatus.COMPLETED_MAYBE, new Integer(status) );
             }
         } else if ( (this.reply_status == OBJECT_FORWARD) ||
                 (this.reply_status == OBJECT_FORWARD_PERM) ){
             CDRInputStream cdr = (CDRInputStream) istream;
-	    this.ior = IORFactories.makeIOR( cdr ) ;
+            this.ior = IORFactories.makeIOR( cdr ) ;
         }  else if (this.reply_status == LOC_NEEDS_ADDRESSING_MODE) {
             // read GIOP::AddressingDisposition from body and resend the
             // original request using the requested addressing mode. The
@@ -164,9 +181,9 @@ public final class LocateReplyMessage_1_2 extends Message_1_2
         case LOC_NEEDS_ADDRESSING_MODE :
             break;
         default :
-	    ORBUtilSystemException localWrapper = ORBUtilSystemException.get( 
-		CORBALogDomains.RPC_PROTOCOL ) ;
-	    throw localWrapper.illegalReplyStatus( CompletionStatus.COMPLETED_MAYBE);
+            ORBUtilSystemException localWrapper = ORBUtilSystemException.get(
+                CORBALogDomains.RPC_PROTOCOL ) ;
+            throw localWrapper.illegalReplyStatus( CompletionStatus.COMPLETED_MAYBE);
         }
     }
 

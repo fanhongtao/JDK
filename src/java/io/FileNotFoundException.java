@@ -1,8 +1,26 @@
 /*
- * @(#)FileNotFoundException.java	1.24 05/11/17
+ * Copyright (c) 1994, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -19,18 +37,18 @@ package java.io;
  * example when an attempt is made to open a read-only file for writing.
  *
  * @author  unascribed
- * @version 1.24, 11/17/05
  * @since   JDK1.0
  */
 
 public class FileNotFoundException extends IOException {
+    private static final long serialVersionUID = -897856973823710492L;
 
     /**
      * Constructs a <code>FileNotFoundException</code> with
      * <code>null</code> as its error detail message.
      */
     public FileNotFoundException() {
-	super();
+        super();
     }
 
     /**
@@ -43,7 +61,7 @@ public class FileNotFoundException extends IOException {
      * @param   s   the detail message.
      */
     public FileNotFoundException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -56,9 +74,9 @@ public class FileNotFoundException extends IOException {
      * @since 1.2
      */
     private FileNotFoundException(String path, String reason) {
-	super(path + ((reason == null)
-		      ? ""
-		      : " (" + reason + ")"));
+        super(path + ((reason == null)
+                      ? ""
+                      : " (" + reason + ")"));
     }
 
 }

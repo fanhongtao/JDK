@@ -1,8 +1,26 @@
 /*
- * @(#)CDRInputStream.java	1.35 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -49,25 +67,25 @@ public abstract class CDRInputStream
     // We can move this out somewhere later.  For now, it serves its purpose
     // to create a concrete CDR delegate based on the GIOP version.
     private static class InputStreamFactory {
-        
+
         public static CDRInputStreamBase newInputStream(
-	        ORB orb, GIOPVersion version, byte encodingVersion) {
+                ORB orb, GIOPVersion version, byte encodingVersion) {
             switch(version.intValue()) {
                 case GIOPVersion.VERSION_1_0:
                     return new CDRInputStream_1_0();
                 case GIOPVersion.VERSION_1_1:
                     return new CDRInputStream_1_1();
                 case GIOPVersion.VERSION_1_2:
-		    if (encodingVersion != Message.CDR_ENC_VERSION) {
-			return
-			  new IDLJavaSerializationInputStream(encodingVersion);
-		    }
+                    if (encodingVersion != Message.CDR_ENC_VERSION) {
+                        return
+                          new IDLJavaSerializationInputStream(encodingVersion);
+                    }
                     return new CDRInputStream_1_2();
-		    // else fall through and report exception.
+                    // else fall through and report exception.
                 default:
-		    ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
-			CORBALogDomains.RPC_ENCODING ) ;
-		    throw wrapper.unsupportedGiopVersion( version ) ;
+                    ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
+                        CORBALogDomains.RPC_ENCODING ) ;
+                    throw wrapper.unsupportedGiopVersion( version ) ;
             }
         }
     }
@@ -76,9 +94,9 @@ public abstract class CDRInputStream
     // created with a SystemException due to a dead server/closed
     // connection with no warning.  Note that the stream will
     // not be initialized in this case.
-    // 
+    //
     // Probably also required by ServerRequestImpl.
-    // 
+    //
     // REVISIT.
     public CDRInputStream() {
     }
@@ -93,11 +111,11 @@ public abstract class CDRInputStream
                           int size,
                           boolean littleEndian,
                           GIOPVersion version,
-			  byte encodingVersion,
+                          byte encodingVersion,
                           BufferManagerRead bufMgr)
     {
         impl = InputStreamFactory.newInputStream((ORB)orb, version,
-						 encodingVersion);
+                                                 encodingVersion);
 
         impl.init(orb, byteBuffer, size, littleEndian, bufMgr);
 
@@ -470,7 +488,7 @@ public abstract class CDRInputStream
     public void setHeaderPadding(boolean headerPadding) {
         impl.setHeaderPadding(headerPadding);
     }
-    
+
     /**
      * This must be called after determining the proper ORB version,
      * and setting it on the stream's ORB instance.  It can be called

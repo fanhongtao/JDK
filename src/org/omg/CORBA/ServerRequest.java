@@ -1,8 +1,26 @@
 /*
- * @(#)ServerRequest.java	1.32 05/11/17
+ * Copyright (c) 1996, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -45,7 +63,6 @@ package org.omg.CORBA;
  * @see org.omg.CORBA.NVList
  * @see org.omg.CORBA.NamedValue
  *
- * @version 1.15 09/09/97
  */
 
 public abstract class ServerRequest {
@@ -102,7 +119,7 @@ public abstract class ServerRequest {
      * method signature contains no parameters. Once the method <code>
      * arguments</code> or <code>set_exception</code>
      * has been called, calling <code>arguments</code> on the same
-     * <code>ServerRequest</code> object 
+     * <code>ServerRequest</code> object
      * will result in a <code>BAD_INV_ORDER</code> system exception.
      * The DIR must pass in to the method <code>arguments</code>
      * an NVList initialized with TypeCodes and Flags
@@ -116,8 +133,8 @@ public abstract class ServerRequest {
      * values for any "out" arguments before returning, and may also change
      * the return values for any "inout" arguments.
      *
-     * @param params		the arguments of the method, in the
-     *				form of an <code>NVList</code> object
+     * @param params            the arguments of the method, in the
+     *                          form of an <code>NVList</code> object
      * @deprecated use the method <code>arguments</code>
      */
     @Deprecated
@@ -134,7 +151,7 @@ public abstract class ServerRequest {
      * method signature contains no parameters. Once the method <code>
      * arguments</code> or <code>set_exception</code>
      * has been called, calling <code>arguments</code> on the same
-     * <code>ServerRequest</code> object 
+     * <code>ServerRequest</code> object
      * will result in a <code>BAD_INV_ORDER</code> system exception.
      * The DIR must pass in to the method <code>arguments</code>
      * an NVList initialized with TypeCodes and Flags
@@ -160,18 +177,18 @@ public abstract class ServerRequest {
 
 
     /**
-     * Specifies any return value for the call. 
+     * Specifies any return value for the call.
      * <P>
      * Note that this method is deprecated; use the method
      * <code>set_result</code> in its place.
      * <P>
-     * Unless the method 
+     * Unless the method
      * <code>set_exception</code> is called, if the invoked method
      * has a non-void result type, the method <code>set_result</code>
      * must be called exactly once before the DIR returns.
-     * If the operation has a void result type, the method 
+     * If the operation has a void result type, the method
      * <code>set_result</code> may optionally be
-     * called once with an <code>Any</code> object whose type is 
+     * called once with an <code>Any</code> object whose type is
      * <code>tk_void</code>. Calling the method <code>set_result</code> before
      * the method <code>arguments</code> has been called or after
      * the method <code>set_result</code> or <code>set_exception</code> has been
@@ -195,13 +212,13 @@ public abstract class ServerRequest {
     /**
      * Throws an <code>org.omg.CORBA.NO_IMPLEMENT</code> exception.
      * <P>
-     * Specifies any return value for the call. Unless the method 
+     * Specifies any return value for the call. Unless the method
      * <code>set_exception</code> is called, if the invoked method
      * has a non-void result type, the method <code>set_result</code>
      * must be called exactly once before the DIR returns.
-     * If the operation has a void result type, the method 
+     * If the operation has a void result type, the method
      * <code>set_result</code> may optionally be
-     * called once with an <code>Any</code> object whose type is 
+     * called once with an <code>Any</code> object whose type is
      * <code>tk_void</code>. Calling the method <code>set_result</code> before
      * the method <code>arguments</code> has been called or after
      * the method <code>set_result</code> or <code>set_exception</code> has been
@@ -233,7 +250,7 @@ public abstract class ServerRequest {
      * BAD_PARAM system exception or in the client receiving an
      * UNKNOWN_EXCEPTION system exception.
      *
-     * @param any	the <code>Any</code> object containing the exception
+     * @param any       the <code>Any</code> object containing the exception
      * @deprecated use set_exception()
      */
     @Deprecated
@@ -245,19 +262,19 @@ public abstract class ServerRequest {
     /**
      * Throws an <code>org.omg.CORBA.NO_IMPLEMENT</code> exception.
      * <P>
-     * Returns the given exception to the client.  This method 
+     * Returns the given exception to the client.  This method
      * is invoked by the DIR, which may call it at any time.
      * The <code>Any</code> object  passed to this method must
      * contain either a system
-     * exception or one of the user exceptions specified in the 
+     * exception or one of the user exceptions specified in the
      * invoked operation's IDL definition. Passing in an
-     * <code>Any</code> object that does not contain an exception 
+     * <code>Any</code> object that does not contain an exception
      * will cause a BAD_PARAM system exception to be thrown. Passing
      * in an unlisted user exception will result in either the DIR receiving a
      * BAD_PARAM system exception or in the client receiving an
      * UNKNOWN_EXCEPTION system exception.
      *
-     * @param any	the <code>Any</code> object containing the exception
+     * @param any       the <code>Any</code> object containing the exception
      * @exception BAD_PARAM if the given <code>Any</code> object does not
      *                      contain an exception or the exception is an
      *                      unlisted user exception
@@ -283,9 +300,9 @@ public abstract class ServerRequest {
      * has been called will result in a
      * BAD_INV_ORDER system exception.
      *
-     * @return			the context object that is to be used
-     *				to resolve any context strings whose
-     *				values need to be sent with the invocation.
+     * @return                  the context object that is to be used
+     *                          to resolve any context strings whose
+     *                          values need to be sent with the invocation.
      * @exception BAD_INV_ORDER if (1) the method <code>ctx</code> is called
      *                          before the method <code>arguments</code> or
      *                          (2) the method <code>ctx</code> is called

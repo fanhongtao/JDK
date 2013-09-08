@@ -1,8 +1,26 @@
 /*
- * @(#)JMXConnectionNotification.java	1.19 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -56,7 +74,6 @@ import javax.management.ObjectName;
  * when the notification was constructed.</p>
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public class JMXConnectionNotification extends Notification {
 
@@ -82,7 +99,7 @@ public class JMXConnectionNotification extends Notification {
      * lost notifications.</p>
      */
     public static final String NOTIFS_LOST =
-	"jmx.remote.connection.notifs.lost";
+        "jmx.remote.connection.notifs.lost";
 
     /**
      * Constructs a new connection notification.  The {@link
@@ -118,10 +135,10 @@ public class JMXConnectionNotification extends Notification {
      * but not required that this number will be greater than any
      * previous <code>sequenceNumber</code> in a notification from
      * this source.
-     * 
+     *
      * @param message an unspecified text message, typically containing
      * a human-readable description of the event.  Can be null.
-     * 
+     *
      * @param userData an object whose type and meaning is defined by
      * the connector server.  Can be null.
      *
@@ -132,35 +149,35 @@ public class JMXConnectionNotification extends Notification {
      * <code>sequenceNumber</code> is negative.
      */
     public JMXConnectionNotification(String type,
-				     Object source,
-				     String connectionId,
-				     long sequenceNumber,
-				     String message,
-				     Object userData) {
-	/* We don't know whether the parent class (Notification) will
-	   throw an exception if the type or source is null, because
-	   JMX 1.2 doesn't specify that.  So we make sure it is not
-	   null, in case it would throw the wrong exception
-	   (e.g. IllegalArgumentException instead of
-	   NullPointerException).  Likewise for the sequence number.  */
-	super((String) nonNull(type),
-	      nonNull(source),
-	      Math.max(0, sequenceNumber),
-	      System.currentTimeMillis(),
-	      message);
-	if (type == null || source == null || connectionId == null)
-	    throw new NullPointerException("Illegal null argument");
-	if (sequenceNumber < 0)
-	    throw new IllegalArgumentException("Negative sequence number");
-	this.connectionId = connectionId;
-	setUserData(userData);
+                                     Object source,
+                                     String connectionId,
+                                     long sequenceNumber,
+                                     String message,
+                                     Object userData) {
+        /* We don't know whether the parent class (Notification) will
+           throw an exception if the type or source is null, because
+           JMX 1.2 doesn't specify that.  So we make sure it is not
+           null, in case it would throw the wrong exception
+           (e.g. IllegalArgumentException instead of
+           NullPointerException).  Likewise for the sequence number.  */
+        super((String) nonNull(type),
+              nonNull(source),
+              Math.max(0, sequenceNumber),
+              System.currentTimeMillis(),
+              message);
+        if (type == null || source == null || connectionId == null)
+            throw new NullPointerException("Illegal null argument");
+        if (sequenceNumber < 0)
+            throw new IllegalArgumentException("Negative sequence number");
+        this.connectionId = connectionId;
+        setUserData(userData);
     }
 
     private static Object nonNull(Object arg) {
-	if (arg == null)
-	    return "";
-	else
-	    return arg;
+        if (arg == null)
+            return "";
+        else
+            return arg;
     }
 
     /**
@@ -169,7 +186,7 @@ public class JMXConnectionNotification extends Notification {
      * @return the connection ID.
      */
     public String getConnectionId() {
-	return connectionId;
+        return connectionId;
     }
 
     /**

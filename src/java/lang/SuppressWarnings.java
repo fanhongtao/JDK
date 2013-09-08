@@ -1,14 +1,31 @@
 /*
- * @(#)SuppressWarnings.java	1.4 05/11/17
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 import java.lang.annotation.*;
-import java.lang.annotation.ElementType;
 import static java.lang.annotation.ElementType.*;
 
 /**

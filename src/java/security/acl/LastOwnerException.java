@@ -1,19 +1,37 @@
 /*
- * @(#)LastOwnerException.java	1.16 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.acl;
 
 /**
  * This is an exception that is thrown whenever an attempt is made to delete
- * the last owner of an Access Control List.  
- *  
+ * the last owner of an Access Control List.
+ *
  * @see java.security.acl.Owner#deleteOwner
  *
- * @author Satish Dharmaraj 
+ * @author Satish Dharmaraj
  */
 public class LastOwnerException extends Exception {
 

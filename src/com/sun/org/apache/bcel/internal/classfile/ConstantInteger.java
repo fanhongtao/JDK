@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 
 package com.sun.org.apache.bcel.internal.classfile;
 
@@ -59,23 +63,22 @@ package com.sun.org.apache.bcel.internal.classfile;
 import  com.sun.org.apache.bcel.internal.Constants;
 import  java.io.*;
 
-/** 
- * This class is derived from the abstract 
- * <A HREF="com.sun.org.apache.bcel.internal.classfile.Constant.html">Constant</A> class 
+/**
+ * This class is derived from the abstract
+ * <A HREF="com.sun.org.apache.bcel.internal.classfile.Constant.html">Constant</A> class
  * and represents a reference to an int object.
  *
- * @version $Id: ConstantInteger.java,v 1.1.2.1 2005/07/31 23:46:36 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Constant
  */
 public final class ConstantInteger extends Constant implements ConstantObject {
   private int bytes;
 
-  /** 
+  /**
    * @param bytes Data
    */
   public ConstantInteger(int bytes)
-  {    
+  {
     super(Constants.CONSTANT_Integer);
     this.bytes = bytes;
   }
@@ -87,14 +90,14 @@ public final class ConstantInteger extends Constant implements ConstantObject {
     this(c.getBytes());
   }
 
-  /** 
+  /**
    * Initialize instance from file data.
    *
    * @param file Input stream
    * @throws IOException
    */
   ConstantInteger(DataInputStream file) throws IOException
-  {    
+  {
     this(file.readInt());
   }
 
@@ -114,7 +117,7 @@ public final class ConstantInteger extends Constant implements ConstantObject {
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     file.writeByte(tag);
@@ -123,7 +126,7 @@ public final class ConstantInteger extends Constant implements ConstantObject {
 
   /**
    * @return data, i.e., 4 bytes.
-   */  
+   */
   public final int getBytes() { return bytes; }
 
   /**
@@ -138,7 +141,7 @@ public final class ConstantInteger extends Constant implements ConstantObject {
    */
   public final String toString() {
     return super.toString() + "(bytes = " + bytes + ")";
-  }    
+  }
 
   /** @return Integer object
    */

@@ -1,6 +1,6 @@
 /*
- * Copyright 1997-2008 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
  *
@@ -22,19 +22,13 @@
  *
  *
  */
-/* 
- * $Id: SOAPConstants.java,v 1.12 2005/04/05 22:28:13 mk125090 Exp $
- * $Revision: 1.12 $
- * $Date: 2005/04/05 22:28:13 $
- */
-
 
 package javax.xml.soap;
 
 import javax.xml.namespace.QName;
 
 /**
- * The definition of constants pertaining to the SOAP protocol. 
+ * The definition of constants pertaining to the SOAP protocol.
  */
 public interface SOAPConstants {
     /**
@@ -80,16 +74,16 @@ public interface SOAPConstants {
      * @since SAAJ 1.3
      */
     public static final String
-		URI_NS_SOAP_1_1_ENVELOPE = "http://schemas.xmlsoap.org/soap/envelope/";
+                URI_NS_SOAP_1_1_ENVELOPE = "http://schemas.xmlsoap.org/soap/envelope/";
     /**
      * The namespace identifier for the SOAP 1.2 envelope.
      * @since SAAJ 1.3
      */
     public static final String
-		URI_NS_SOAP_1_2_ENVELOPE = "http://www.w3.org/2003/05/soap-envelope";
+                URI_NS_SOAP_1_2_ENVELOPE = "http://www.w3.org/2003/05/soap-envelope";
 
     /**
-     * The namespace identifier for the SOAP 1.1 envelope, All SOAPElements in this 
+     * The namespace identifier for the SOAP 1.1 envelope, All SOAPElements in this
      * namespace are defined by the SOAP 1.1 specification.
      */
     public static final String
@@ -175,33 +169,33 @@ public interface SOAPConstants {
      */
     public static final QName SOAP_VERSIONMISMATCH_FAULT =
          new QName(URI_NS_SOAP_1_2_ENVELOPE, "VersionMismatch", SOAP_ENV_PREFIX);
-                                                                                                                  
+
     /**
      * SOAP 1.2 MustUnderstand Fault
      * @since SAAJ 1.3
      */
     public static final QName SOAP_MUSTUNDERSTAND_FAULT =
          new QName(URI_NS_SOAP_1_2_ENVELOPE, "MustUnderstand", SOAP_ENV_PREFIX);
-                                                                                                                  
+
     /**
      * SOAP 1.2 DataEncodingUnknown Fault
      * @since SAAJ 1.3
      */
     public static final QName SOAP_DATAENCODINGUNKNOWN_FAULT =
          new QName(URI_NS_SOAP_1_2_ENVELOPE, "DataEncodingUnknown", SOAP_ENV_PREFIX);
-                                                                                                                  
+
     /**
      * SOAP 1.2 Sender Fault
      * @since SAAJ 1.3
      */
     public static final QName SOAP_SENDER_FAULT =
          new QName(URI_NS_SOAP_1_2_ENVELOPE, "Sender", SOAP_ENV_PREFIX);
-                                                                                                                  
+
     /**
      * SOAP 1.2 Receiver Fault
      * @since SAAJ 1.3
      */
     public static final QName SOAP_RECEIVER_FAULT =
          new QName(URI_NS_SOAP_1_2_ENVELOPE, "Receiver", SOAP_ENV_PREFIX);
-                                                                                                                  
+
 }

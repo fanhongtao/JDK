@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,7 +31,6 @@ import java.io.IOException;
  * Extends {@link Printer} and adds support for indentation and line
  * wrapping.
  *
- * @version $Revision: 1.2.6.1 $ $Date: 2005/09/09 07:26:15 $
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  */
 public class IndentPrinter
@@ -63,8 +66,8 @@ public class IndentPrinter
      * memory and will be sent for printing shortly.
      */
     private int             _thisIndent;
-    
-    
+
+
     /**
      * Holds the indentation for the next line to be printed. After this line is
      * printed, {@link #_nextIndent} is assigned to {@link #_thisIndent}.
@@ -104,8 +107,8 @@ public class IndentPrinter
             _writer = _dtdWriter;
         }
     }
-    
-    
+
+
     /**
      * Called by the root element to leave DTD mode and if any
      * DTD parts were printer, will return a string with their
@@ -123,8 +126,8 @@ public class IndentPrinter
         } else
             return null;
     }
-    
-    
+
+
     /**
      * Called to print additional text. Each time this method is called
      * it accumulates more text. When a space is printed ({@link
@@ -138,8 +141,8 @@ public class IndentPrinter
     {
         _text.append( text );
     }
-    
-    
+
+
     public void printText( StringBuffer text )
     {
         _text.append( text.toString() );
@@ -156,7 +159,7 @@ public class IndentPrinter
     {
         _text.append( chars, start, length );
     }
-    
+
 
     /**
      * Called to print a single space between text parts that may be
@@ -178,7 +181,7 @@ public class IndentPrinter
         // -  A space is printed, the previous spaces are added
         //    to _line, the _text is added to _line, and a new
         //    space is counted.
-        
+
         // If text was accumulated with printText(), then the space
         // means we have to move that text into the line and
         // start accumulating new text with printText().
@@ -200,7 +203,7 @@ public class IndentPrinter
                         _exception = except;
                 }
             }
-            
+
             // Add as many spaces as we accumulaed before.
             // At the end of this loop, _spaces is zero.
             while ( _spaces > 0 ) {
@@ -251,7 +254,7 @@ public class IndentPrinter
                 _exception = except;
         }
     }
-    
+
 
     /**
      * Flushes the line accumulated so far to the writer and get ready
@@ -263,10 +266,10 @@ public class IndentPrinter
     public void flushLine( boolean preserveSpace )
     {
         int     indent;
-        
+
         if ( _line.length() > 0 ) {
             try {
-                
+
                 if ( _format.getIndenting() && ! preserveSpace ) {
                     // Make sure the indentation does not blow us away.
                     indent = _thisIndent;
@@ -280,13 +283,13 @@ public class IndentPrinter
                     }
                 }
                 _thisIndent = _nextIndent;
-                
+
                 // There is no need to print the spaces at the end of the line,
                 // they are simply stripped and replaced with a single line
                 // separator.
                 _spaces = 0;
                 _writer.write( _line.toString() );
-                
+
                 _line = new StringBuffer( 40 );
             } catch ( IOException except ) {
                 // We don't throw an exception, but hold it
@@ -296,8 +299,8 @@ public class IndentPrinter
             }
         }
     }
-    
-    
+
+
     /**
      * Flush the output stream. Must be called when done printing
      * the document, otherwise some text might be buffered.

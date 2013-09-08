@@ -1,8 +1,26 @@
 /*
- * @(#)ImageTypeSpecifier.java	1.36 07/11/26
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio;
@@ -31,7 +49,6 @@ import java.util.Hashtable;
  * <code>SampleModel</code> and <code>ColorModel</code>) to be
  * specified in a convenient manner.
  *
- * @version 0.5
  */
 public class ImageTypeSpecifier {
 
@@ -54,7 +71,7 @@ public class ImageTypeSpecifier {
     // Initialize the standard specifiers
     static {
         sRGB = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-        
+
         BISpecifier =
             new ImageTypeSpecifier[BufferedImage.TYPE_BYTE_INDEXED + 1];
     }
@@ -103,7 +120,7 @@ public class ImageTypeSpecifier {
      *
      * @param image a <code>RenderedImage</code>.
      *
-     * @exception IllegalArgumentException if the argument is 
+     * @exception IllegalArgumentException if the argument is
      * <code>null</code>.
      */
     public ImageTypeSpecifier(RenderedImage image) {
@@ -176,13 +193,13 @@ public class ImageTypeSpecifier {
      * single byte, short, or int.
      *
      * @param colorSpace the desired <code>ColorSpace</code>.
-     * @param redMask a contiguous mask indicated the position of the 
+     * @param redMask a contiguous mask indicated the position of the
      * red channel.
-     * @param greenMask a contiguous mask indicated the position of the 
+     * @param greenMask a contiguous mask indicated the position of the
      * green channel.
-     * @param blueMask a contiguous mask indicated the position of the 
+     * @param blueMask a contiguous mask indicated the position of the
      * blue channel.
-     * @param alphaMask a contiguous mask indicated the position of the 
+     * @param alphaMask a contiguous mask indicated the position of the
      * alpha channel.
      * @param transferType the desired <code>SampleModel</code> transfer type.
      * @param isAlphaPremultiplied <code>true</code> if the color channels
@@ -227,14 +244,14 @@ public class ImageTypeSpecifier {
                                         boolean isAlphaPremultiplied) {
         int transparency =
             hasAlpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE;
-        
+
         int[] numBits = new int[numBands];
         int bits = DataBuffer.getDataTypeSize(dataType);
 
         for (int i = 0; i < numBands; i++) {
             numBits[i] = bits;
         }
-        
+
         return new ComponentColorModel(colorSpace,
                                        numBits,
                                        hasAlpha,
@@ -290,7 +307,7 @@ public class ImageTypeSpecifier {
                                                      dataType,
                                                      hasAlpha,
                                                      isAlphaPremultiplied);
-            
+
             int minBandOffset = bandOffsets[0];
             int maxBandOffset = minBandOffset;
             for (int i = 0; i < bandOffsets.length; i++) {
@@ -299,7 +316,7 @@ public class ImageTypeSpecifier {
                 maxBandOffset = Math.max(offset, maxBandOffset);
             }
             int pixelStride = maxBandOffset - minBandOffset + 1;
-            
+
             int w = 1;
             int h = 1;
             this.sampleModel =
@@ -316,7 +333,7 @@ public class ImageTypeSpecifier {
                 return false;
             }
 
-            ImageTypeSpecifier.Interleaved that = 
+            ImageTypeSpecifier.Interleaved that =
                 (ImageTypeSpecifier.Interleaved)o;
 
             if ((!(this.colorSpace.equals(that.colorSpace))) ||
@@ -430,7 +447,7 @@ public class ImageTypeSpecifier {
                 throw new IllegalArgumentException
                     ("bandOffsets.length is wrong!");
             }
-           
+
             this.colorSpace = colorSpace;
             this.bankIndices = (int[])bankIndices.clone();
             this.bandOffsets = (int[])bandOffsets.clone();
@@ -460,7 +477,7 @@ public class ImageTypeSpecifier {
                 return false;
             }
 
-            ImageTypeSpecifier.Banded that = 
+            ImageTypeSpecifier.Banded that =
                 (ImageTypeSpecifier.Banded)o;
 
             if ((!(this.colorSpace.equals(that.colorSpace))) ||
@@ -591,11 +608,11 @@ public class ImageTypeSpecifier {
                  (dataType == DataBuffer.TYPE_SHORT ||
                   dataType == DataBuffer.TYPE_USHORT))) {
                 // Use component color model & sample model
-                
+
                 int numBands = hasAlpha ? 2 : 1;
                 int transparency =
                     hasAlpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE;
-                
+
 
                 int[] nBits = new int[numBands];
                 nBits[0] = bits;
@@ -631,7 +648,7 @@ public class ImageTypeSpecifier {
                 }
                 this.colorModel =
                     new IndexColorModel(bits, numEntries, arr, arr, arr);
-                
+
                 this.sampleModel =
                     new MultiPixelPackedSampleModel(dataType, 1, 1, bits);
             }
@@ -744,7 +761,7 @@ public class ImageTypeSpecifier {
                 throw new IllegalArgumentException
                     ("Too many bits for dataType!");
             }
-                
+
             int len = 1 << bits;
             if (redLUT.length != len ||
                 greenLUT.length != len ||
@@ -760,7 +777,7 @@ public class ImageTypeSpecifier {
             }
             this.bits = bits;
             this.dataType = dataType;
-            
+
             if (alphaLUT == null) {
                 this.colorModel = new IndexColorModel(bits,
                                                       redLUT.length,
@@ -775,7 +792,7 @@ public class ImageTypeSpecifier {
                                                       blueLUT,
                                                       alphaLUT);
             }
-            
+
             if ((bits == 8 && dataType == DataBuffer.TYPE_BYTE) ||
                 (bits == 16 &&
                  (dataType == DataBuffer.TYPE_SHORT ||
@@ -914,7 +931,7 @@ public class ImageTypeSpecifier {
                 return getSpecifier(bufferedImageType);
             }
         }
-        
+
         return new ImageTypeSpecifier(image);
     }
 
@@ -947,7 +964,7 @@ public class ImageTypeSpecifier {
     }
 
     /**
-     * Return the number of color components 
+     * Return the number of color components
      * specified by this object.  This is the same value as returned by
      * <code>ColorModel.getNumComponents</code>
      *
@@ -958,7 +975,7 @@ public class ImageTypeSpecifier {
     }
 
     /**
-     * Return the number of bands 
+     * Return the number of bands
      * specified by this object.  This is the same value as returned by
      * <code>SampleModel.getNumBands</code>
      *
@@ -1050,7 +1067,7 @@ public class ImageTypeSpecifier {
      * elements needed to store the image is greater than
      * <code>Integer.MAX_VALUE</code>.
      */
-    public BufferedImage createBufferedImage(int width, int height) { 
+    public BufferedImage createBufferedImage(int width, int height) {
         try {
             SampleModel sampleModel = getSampleModel(width, height);
             WritableRaster raster =
@@ -1102,7 +1119,7 @@ public class ImageTypeSpecifier {
         }
         return BISpecifier[type];
     }
-    
+
     private static ImageTypeSpecifier createSpecifier(int type) {
         switch(type) {
           case BufferedImage.TYPE_INT_RGB:
@@ -1113,7 +1130,7 @@ public class ImageTypeSpecifier {
                                   0x0,
                                   DataBuffer.TYPE_INT,
                                   false);
-              
+
           case BufferedImage.TYPE_INT_ARGB:
               return createPacked(sRGB,
                                   0x00ff0000,
@@ -1122,7 +1139,7 @@ public class ImageTypeSpecifier {
                                   0xff000000,
                                   DataBuffer.TYPE_INT,
                                   false);
-              
+
           case BufferedImage.TYPE_INT_ARGB_PRE:
               return createPacked(sRGB,
                                   0x00ff0000,
@@ -1154,14 +1171,14 @@ public class ImageTypeSpecifier {
                                        DataBuffer.TYPE_BYTE,
                                        true,
                                        false);
-              
+
           case BufferedImage.TYPE_4BYTE_ABGR_PRE:
               return createInterleaved(sRGB,
                                        new int[] { 3, 2, 1, 0 },
                                        DataBuffer.TYPE_BYTE,
                                        true,
                                        true);
-              
+
           case BufferedImage.TYPE_USHORT_565_RGB:
               return createPacked(sRGB,
                                   0xF800,
@@ -1179,7 +1196,7 @@ public class ImageTypeSpecifier {
                                   0x0,
                                   DataBuffer.TYPE_USHORT,
                                   false);
-              
+
           case BufferedImage.TYPE_BYTE_GRAY:
             return createGrayscale(8,
                                    DataBuffer.TYPE_BYTE,
@@ -1197,7 +1214,7 @@ public class ImageTypeSpecifier {
 
           case BufferedImage.TYPE_BYTE_INDEXED:
           {
-              
+
               BufferedImage bi =
                   new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_INDEXED);
               IndexColorModel icm = (IndexColorModel)bi.getColorModel();
@@ -1206,7 +1223,7 @@ public class ImageTypeSpecifier {
               byte[] greenLUT = new byte[mapSize];
               byte[] blueLUT = new byte[mapSize];
               byte[] alphaLUT = new byte[mapSize];
-              
+
               icm.getReds(redLUT);
               icm.getGreens(greenLUT);
               icm.getBlues(blueLUT);

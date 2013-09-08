@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -121,9 +125,9 @@ class ElemDesc
 
   /**
    * "is (this element described by these flags)".
-   * 
+   *
    * This might more properly be called areFlagsSet(). It accepts an
-   * integer (being used as a bitvector) and checks whether all the 
+   * integer (being used as a bitvector) and checks whether all the
    * corresponding bits are set in our internal flags. Note that this
    * test is performed as a bitwise AND, not an equality test, so a
    * 0 bit in the input means "don't test", not "must be set false".
@@ -132,7 +136,7 @@ class ElemDesc
    *
    * @return true if the flags set in the parameter are also set in the
    * element's stored flags.
-   * 
+   *
    * @see m_flags
    * @see isAttrFlagSet
    */
@@ -143,7 +147,7 @@ class ElemDesc
   }
 
   /**
-   * Set a new attribute for this element 
+   * Set a new attribute for this element
    *
    *
    * @param name Attribute name
@@ -159,14 +163,14 @@ class ElemDesc
   }
 
   /**
-   * Find out if a flag is set in a given attribute of this element 
+   * Find out if a flag is set in a given attribute of this element
    *
    *
    * @param name Attribute name
    * @param flags Flag to check
    *
    * @return True if the flag is set in the attribute. Returns false
-   * if the attribute is not found 
+   * if the attribute is not found
    * @see m_flags
    */
   boolean isAttrFlagSet(String name, int flags)

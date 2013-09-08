@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -57,42 +61,41 @@ package com.sun.org.apache.bcel.internal.classfile;
 import  com.sun.org.apache.bcel.internal.Constants;
 import  java.io.*;
 
-/** 
- * This class is derived from the abstract 
- * <A HREF="com.sun.org.apache.bcel.internal.classfile.Constant.html">Constant</A> class 
+/**
+ * This class is derived from the abstract
+ * <A HREF="com.sun.org.apache.bcel.internal.classfile.Constant.html">Constant</A> class
  * and represents a reference to a long object.
  *
- * @version $Id: ConstantLong.java,v 1.1.2.1 2005/07/31 23:46:29 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Constant
  */
 public final class ConstantLong extends Constant implements ConstantObject {
   private long bytes;
 
-  /** 
+  /**
    * @param bytes Data
    */
   public ConstantLong(long bytes)
   {
     super(Constants.CONSTANT_Long);
     this.bytes = bytes;
-  }    
+  }
   /**
    * Initialize from another object.
    */
   public ConstantLong(ConstantLong c) {
     this(c.getBytes());
-  }    
-  /** 
+  }
+  /**
    * Initialize instance from file data.
    *
    * @param file Input stream
    * @throws IOException
    */
   ConstantLong(DataInputStream file) throws IOException
-  {    
+  {
     this(file.readLong());
-  }    
+  }
   /**
    * Called by objects that are traversing the nodes of the tree implicitely
    * defined by the contents of a Java class. I.e., the hierarchy of methods,
@@ -102,34 +105,34 @@ public final class ConstantLong extends Constant implements ConstantObject {
    */
   public void accept(Visitor v) {
     v.visitConstantLong(this);
-  }    
+  }
   /**
    * Dump constant long to file stream in binary format.
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     file.writeByte(tag);
     file.writeLong(bytes);
-  }    
+  }
   /**
    * @return data, i.e., 8 bytes.
-   */  
-  public final long getBytes() { return bytes; }    
+   */
+  public final long getBytes() { return bytes; }
   /**
    * @param bytes.
    */
   public final void setBytes(long bytes) {
     this.bytes = bytes;
-  }    
+  }
   /**
    * @return String representation.
    */
   public final String toString() {
     return super.toString() + "(bytes = " + bytes + ")";
-  }    
+  }
 
   /** @return Long object
    */

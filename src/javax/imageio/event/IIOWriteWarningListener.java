@@ -1,8 +1,26 @@
 /*
- * @(#)IIOWriteWarningListener.java	1.20 05/11/17
+ * Copyright (c) 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.event;
@@ -24,10 +42,9 @@ import javax.imageio.ImageWriter;
  * @see javax.imageio.ImageWriter#addIIOWriteWarningListener
  * @see javax.imageio.ImageWriter#removeIIOWriteWarningListener
  *
- * @version 0.5
  */
 public interface IIOWriteWarningListener extends EventListener {
-    
+
     /**
      * Reports the occurence of a non-fatal error in encoding.  Encoding
      * will continue following the call to this method.  The application

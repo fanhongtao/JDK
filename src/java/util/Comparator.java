@@ -1,8 +1,26 @@
 /*
- * @(#)Comparator.java	1.26 06/04/21
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -62,9 +80,13 @@ package java.util;
  * equals</i>, we mean that the quotient for the ordering is the equivalence
  * relation defined by the objects' {@link Object#equals(Object)
  * equals(Object)} method(s):<pre>
- *     {(x, y) such that x.equals(y)}. </pre><p>
+ *     {(x, y) such that x.equals(y)}. </pre>
  *
- * This interface is a member of the
+ * <p>Unlike {@code Comparable}, a comparator may optionally permit
+ * comparison of null arguments, while maintaining the requirements for
+ * an equivalence relation.
+ *
+ * <p>This interface is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
@@ -72,7 +94,6 @@ package java.util;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.26, 04/21/06
  * @see Comparable
  * @see java.io.Serializable
  * @since 1.2
@@ -112,15 +133,16 @@ public interface Comparator<T> {
      * @param o1 the first object to be compared.
      * @param o2 the second object to be compared.
      * @return a negative integer, zero, or a positive integer as the
-     * 	       first argument is less than, equal to, or greater than the
-     *	       second.
+     *         first argument is less than, equal to, or greater than the
+     *         second.
+     * @throws NullPointerException if an argument is null and this
+     *         comparator does not permit null arguments
      * @throws ClassCastException if the arguments' types prevent them from
-     * 	       being compared by this comparator.
+     *         being compared by this comparator.
      */
     int compare(T o1, T o2);
 
     /**
-     *
      * Indicates whether some other object is &quot;equal to&quot; this
      * comparator.  This method must obey the general contract of
      * {@link Object#equals(Object)}.  Additionally, this method can return
@@ -137,8 +159,8 @@ public interface Comparator<T> {
      *
      * @param   obj   the reference object with which to compare.
      * @return  <code>true</code> only if the specified object is also
-     *		a comparator and it imposes the same ordering as this
-     *		comparator.
+     *          a comparator and it imposes the same ordering as this
+     *          comparator.
      * @see Object#equals(Object)
      * @see Object#hashCode()
      */

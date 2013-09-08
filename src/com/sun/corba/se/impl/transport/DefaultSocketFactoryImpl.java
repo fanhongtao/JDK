@@ -1,8 +1,26 @@
 /*
- * @(#)DefaultSocketFactoryImpl.java	1.4 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.transport;
@@ -29,54 +47,54 @@ public class DefaultSocketFactoryImpl
 
     public void setORB(ORB orb)
     {
-	this.orb = orb;
+        this.orb = orb;
     }
 
-    public ServerSocket createServerSocket(String type, 
-					   InetSocketAddress inetSocketAddress)
+    public ServerSocket createServerSocket(String type,
+                                           InetSocketAddress inetSocketAddress)
         throws IOException
     {
-	ServerSocketChannel serverSocketChannel = null;
-	ServerSocket serverSocket = null;
+        ServerSocketChannel serverSocketChannel = null;
+        ServerSocket serverSocket = null;
 
-	if (orb.getORBData().acceptorSocketType().equals(ORBConstants.SOCKETCHANNEL)) {
-	    serverSocketChannel = ServerSocketChannel.open();
-	    serverSocket = serverSocketChannel.socket();
-	} else {
-	    serverSocket = new ServerSocket();
-	}
-	serverSocket.bind(inetSocketAddress);
-	return serverSocket;
+        if (orb.getORBData().acceptorSocketType().equals(ORBConstants.SOCKETCHANNEL)) {
+            serverSocketChannel = ServerSocketChannel.open();
+            serverSocket = serverSocketChannel.socket();
+        } else {
+            serverSocket = new ServerSocket();
+        }
+        serverSocket.bind(inetSocketAddress);
+        return serverSocket;
     }
 
-    public Socket createSocket(String type, 
-			       InetSocketAddress inetSocketAddress)
+    public Socket createSocket(String type,
+                               InetSocketAddress inetSocketAddress)
         throws IOException
     {
-	SocketChannel socketChannel = null;
-	Socket socket = null;
+        SocketChannel socketChannel = null;
+        Socket socket = null;
 
-	if (orb.getORBData().connectionSocketType().equals(ORBConstants.SOCKETCHANNEL)) {
-	    socketChannel = SocketChannel.open(inetSocketAddress);
-	    socket = socketChannel.socket();
-	} else {
-	    socket = new Socket(inetSocketAddress.getHostName(),
-				inetSocketAddress.getPort());
-	}
+        if (orb.getORBData().connectionSocketType().equals(ORBConstants.SOCKETCHANNEL)) {
+            socketChannel = SocketChannel.open(inetSocketAddress);
+            socket = socketChannel.socket();
+        } else {
+            socket = new Socket(inetSocketAddress.getHostName(),
+                                inetSocketAddress.getPort());
+        }
 
-	// Disable Nagle's algorithm (i.e., always send immediately).
-	socket.setTcpNoDelay(true);
+        // Disable Nagle's algorithm (i.e., always send immediately).
+        socket.setTcpNoDelay(true);
 
-	return socket;
+        return socket;
     }
 
     public void setAcceptedSocketOptions(Acceptor acceptor,
-					 ServerSocket serverSocket,
-					 Socket socket)
-	throws SocketException
+                                         ServerSocket serverSocket,
+                                         Socket socket)
+        throws SocketException
     {
-	// Disable Nagle's algorithm (i.e., always send immediately).
-	socket.setTcpNoDelay(true);
+        // Disable Nagle's algorithm (i.e., always send immediately).
+        socket.setTcpNoDelay(true);
     }
 }
 

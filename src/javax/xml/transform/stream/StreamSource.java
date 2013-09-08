@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: StreamSource.java,v 1.4 2005/11/03 19:34:27 jeffsuttor Exp $
- * @(#)StreamSource.java	1.25 05/11/30
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.transform.stream;
@@ -41,7 +39,6 @@ import javax.xml.transform.Source;
  * <code>StreamSource</code> instances may only be used once.</p>
  *
  * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.4 $, $Date: 2005/11/03 19:34:27 $
  */
 public class StreamSource implements Source {
 
@@ -51,7 +48,7 @@ public class StreamSource implements Source {
      */
     public static final String FEATURE =
         "http://javax.xml.transform.stream.StreamSource/feature";
-    
+
     /**
      * <p>Zero-argument default constructor.  If this constructor is used, and
      * no Stream source is set using
@@ -60,9 +57,9 @@ public class StreamSource implements Source {
      * <code>Transformer</code> will
      * create an empty source {@link java.io.InputStream} using
      * {@link java.io.InputStream#InputStream() new InputStream()}.</p>
-     * 
+     *
      * @see javax.xml.transform.Transformer#transform(Source xmlSource, Result outputTarget)
-     */    
+     */
     public StreamSource() { }
 
     /**
@@ -144,7 +141,7 @@ public class StreamSource implements Source {
      * @param f Must a non-null File reference.
      */
     public StreamSource(File f) {
-        //convert file to appropriate URI, f.toURI().toASCIIString() 
+        //convert file to appropriate URI, f.toURI().toASCIIString()
         //converts the URI to string as per rule specified in
         //RFC 2396,
         setSystemId(f.toURI().toASCIIString());
@@ -255,7 +252,7 @@ public class StreamSource implements Source {
      * @param f Must a non-null File reference.
      */
     public void setSystemId(File f) {
-        //convert file to appropriate URI, f.toURI().toASCIIString() 
+        //convert file to appropriate URI, f.toURI().toASCIIString()
         //converts the URI to string as per rule specified in
         //RFC 2396,
         this.systemId = f.toURI().toASCIIString();

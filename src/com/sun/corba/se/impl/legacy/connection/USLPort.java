@@ -1,8 +1,26 @@
 /*
- * @(#)USLPort.java	1.7 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.legacy.connection;
@@ -14,8 +32,8 @@ public class USLPort
 
     public USLPort (String type, int port)
     {
-	this.type = type;
-	this.port = port;
+        this.type = type;
+        this.port = port;
     }
 
     public String getType  () { return type; }
@@ -24,4 +42,3 @@ public class USLPort
 }
 
 // End of file.
-

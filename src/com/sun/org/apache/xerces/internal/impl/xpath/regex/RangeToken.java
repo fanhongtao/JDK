@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +22,14 @@ package com.sun.org.apache.xerces.internal.impl.xpath.regex;
 
 /**
  * This class represents a character class such as [a-z] or a period.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: RangeToken.java,v 1.2.6.1 2005/09/06 11:46:33 neerajbj Exp $
  */
 final class RangeToken extends Token implements java.io.Serializable {
 
     private static final long serialVersionUID = 3257568399592010545L;
-    
+
     int[] ranges;
     boolean sorted;
     boolean compacted;
@@ -443,7 +446,7 @@ final class RangeToken extends Token implements java.io.Serializable {
     synchronized RangeToken getCaseInsensitiveToken() {
         if (this.icaseCache != null)
             return this.icaseCache;
-            
+
         RangeToken uppers = this.type == Token.RANGE ? Token.createRange() : Token.createNRange();
         for (int i = 0;  i < this.ranges.length;  i += 2) {
             for (int ch = this.ranges[i];  ch <= this.ranges[i+1];  ch ++) {
@@ -522,7 +525,7 @@ final class RangeToken extends Token implements java.io.Serializable {
                 for (int j = s; j <= e && j < MAPSIZE; j++) {
                     map[j/32] |= 1<<(j&0x1f); // s&0x1f : 0-31
                 }
-            } 
+            }
             else {
                 nonMapIndex = i;
                 break;

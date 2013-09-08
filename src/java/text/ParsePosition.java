@@ -1,8 +1,26 @@
 /*
- * @(#)ParsePosition.java	1.20 05/11/17
+ * Copyright (c) 1996, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -32,7 +50,6 @@ package java.text;
  * you can use the same <code>ParsePosition</code>, since the index parameter
  * records the current position.
  *
- * @version     1.20 11/17/05
  * @author      Mark Davis
  * @see         java.text.Format
  */

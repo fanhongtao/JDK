@@ -1,12 +1,32 @@
 /*
- * @(#)StringMonitor.java	4.46 08/12/16
+ * Copyright (c) 1999, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.monitor;
 
+import static com.sun.jmx.defaults.JmxProperties.MONITOR_LOGGER;
+import java.util.logging.Level;
 import javax.management.ObjectName;
 import javax.management.MBeanNotificationInfo;
 import static javax.management.monitor.MonitorNotification.*;
@@ -33,19 +53,10 @@ import static javax.management.monitor.MonitorNotification.*;
  *      the attribute value matches the string to compare value.
  * </UL>
  *
- * @version     4.46     12/16/08
- * @author      Sun Microsystems, Inc
  *
  * @since 1.5
  */
 public class StringMonitor extends Monitor implements StringMonitorMBean {
-
-    // TRACES & DEBUG
-    //---------------
-
-    String makeDebugTag() {
-        return "StringMonitor";
-    }
 
     /*
      * ------------------------------------------
@@ -127,7 +138,6 @@ public class StringMonitor extends Monitor implements StringMonitorMBean {
      * Default constructor.
      */
     public StringMonitor() {
-        dbgTag = makeDebugTag();
     }
 
     /*
@@ -141,9 +151,8 @@ public class StringMonitor extends Monitor implements StringMonitorMBean {
      */
     public synchronized void start() {
         if (isActive()) {
-            if (isTraceOn()) {
-                trace("start", "the monitor is already active");
-            }
+            MONITOR_LOGGER.logp(Level.FINER, StringMonitor.class.getName(),
+                    "start", "the monitor is already active");
             return;
         }
         // Reset values.
@@ -174,7 +183,6 @@ public class StringMonitor extends Monitor implements StringMonitorMBean {
      *
      * @return The derived gauge of the specified object.
      *
-     * @since.unbundled JMX 1.2
      */
     @Override
     public synchronized String getDerivedGauge(ObjectName object) {
@@ -191,7 +199,6 @@ public class StringMonitor extends Monitor implements StringMonitorMBean {
      *
      * @return The derived gauge timestamp of the specified object.
      *
-     * @since.unbundled JMX 1.2
      */
     @Override
     public synchronized long getDerivedGaugeTimeStamp(ObjectName object) {

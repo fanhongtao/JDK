@@ -1,8 +1,26 @@
 /*
- * @(#)PropertyResourceBundle.java	1.32 06/06/20
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -31,7 +49,7 @@ import sun.util.ResourceBundleEnumeration;
  * <code>ResourceBundle</code> that manages resources for a locale
  * using a set of static strings from a property file. See
  * {@link ResourceBundle ResourceBundle} for more information about resource
- * bundles. 
+ * bundles.
  *
  * <p>
  * Unlike other types of resource bundle, you don't subclass
@@ -82,12 +100,13 @@ import sun.util.ResourceBundleEnumeration;
  * </blockquote>
  *
  * <p>
- * <strong>Note:</strong> PropertyResourceBundle can be constructed either 
- * from an InputStream or a Reader, which represents a property file.  
- * Constructing a PropertyResourceBundle instance from an InputStream requires 
- * that the input stream be encoded in ISO-8859-1.  In that case, characters 
- * that cannot be represented in ISO-8859-1 encoding must be represented by 
- * <a href="http://java.sun.com/docs/books/jls/third_edition/html/lexical.html#3.3">Unicode Escapes</a>, 
+ * <strong>Note:</strong> PropertyResourceBundle can be constructed either
+ * from an InputStream or a Reader, which represents a property file.
+ * Constructing a PropertyResourceBundle instance from an InputStream requires
+ * that the input stream be encoded in ISO-8859-1.  In that case, characters
+ * that cannot be represented in ISO-8859-1 encoding must be represented by Unicode Escapes
+ * as defined in section 3.3 of
+ * <cite>The Java&trade; Language Specification</cite>
  * whereas the other constructor which takes a Reader does not have that limitation.
  *
  * @see ResourceBundle
@@ -115,7 +134,7 @@ public class PropertyResourceBundle extends ResourceBundle {
     /**
      * Creates a property resource bundle from a {@link java.io.Reader
      * Reader}.  Unlike the constructor
-     * {@link #PropertyResourceBundle(java.io.InputStream) PropertyResourceBundle(InputStream)}, 
+     * {@link #PropertyResourceBundle(java.io.InputStream) PropertyResourceBundle(InputStream)},
      * there is no limitation as to the encoding of the input property file.
      *
      * @param reader a Reader that represents a property file to
@@ -162,7 +181,7 @@ public class PropertyResourceBundle extends ResourceBundle {
      * @see #keySet()
      */
     protected Set<String> handleKeySet() {
-	return lookup.keySet();
+        return lookup.keySet();
     }
 
     // ==================privates====================

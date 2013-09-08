@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,14 +30,13 @@ import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
  * scopes of namespace/prefix bindings.  This is useful in situations when it is
  * not always appropriate for elements to inherit the namespace bindings of their
  * ancestors (such as included elements in XInclude).
- * 
+ *
  * When searching for a URI to match a prefix, or a prefix to match a URI, it is
  * searched for in the current context, then the ancestors of the current context,
  * up to the beginning of the current scope.  Other scopes are not searched.
- * 
+ *
  * @author Peter McCracken, IBM
- * 
- * @version $Id: MultipleScopeNamespaceSupport.java,v 1.2.6.1 2005/09/05 13:27:46 sunithareddy Exp $
+ *
  */
 public class MultipleScopeNamespaceSupport extends NamespaceSupport {
 
@@ -41,7 +44,7 @@ public class MultipleScopeNamespaceSupport extends NamespaceSupport {
     protected int fCurrentScope;
 
     /**
-     * 
+     *
      */
     public MultipleScopeNamespaceSupport() {
         super();
@@ -64,7 +67,7 @@ public class MultipleScopeNamespaceSupport extends NamespaceSupport {
     public Enumeration getAllPrefixes() {
         int count = 0;
         if (fPrefixes.length < (fNamespace.length / 2)) {
-            // resize prefix array          
+            // resize prefix array
             String[] prefixes = new String[fNamespaceSize];
             fPrefixes = prefixes;
         }

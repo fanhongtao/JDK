@@ -1,8 +1,26 @@
 /*
- * @(#)CodeSetsComponentImpl.java	1.25 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior.iiop;
@@ -21,43 +39,43 @@ import com.sun.corba.se.impl.encoding.MarshalOutputStream ;
 import com.sun.corba.se.impl.encoding.MarshalInputStream ;
 
 /**
- * @author 
+ * @author
  */
-public class CodeSetsComponentImpl extends TaggedComponentBase 
+public class CodeSetsComponentImpl extends TaggedComponentBase
     implements CodeSetsComponent
 {
     CodeSetComponentInfo csci ;
- 
+
     public boolean equals( Object obj )
     {
-	if (!(obj instanceof CodeSetsComponentImpl)) 
-	    return false ;
+        if (!(obj instanceof CodeSetsComponentImpl))
+            return false ;
 
-	CodeSetsComponentImpl other = (CodeSetsComponentImpl)obj ;
+        CodeSetsComponentImpl other = (CodeSetsComponentImpl)obj ;
 
-	return csci.equals( other.csci ) ;
+        return csci.equals( other.csci ) ;
     }
 
     public int hashCode()
     {
-	return csci.hashCode() ;
+        return csci.hashCode() ;
     }
 
     public String toString()
-    {	
-	return "CodeSetsComponentImpl[csci=" + csci + "]" ;
+    {
+        return "CodeSetsComponentImpl[csci=" + csci + "]" ;
     }
 
-    public CodeSetsComponentImpl() 
+    public CodeSetsComponentImpl()
     {
         // Uses our default code sets (see CodeSetComponentInfo)
-	csci = new CodeSetComponentInfo() ;
+        csci = new CodeSetComponentInfo() ;
     }
 
     public CodeSetsComponentImpl( InputStream is )
     {
-	csci = new CodeSetComponentInfo() ;
-	csci.read( (MarshalInputStream)is ) ;
+        csci = new CodeSetComponentInfo() ;
+        csci.read( (MarshalInputStream)is ) ;
     }
 
     public CodeSetsComponentImpl(com.sun.corba.se.spi.orb.ORB orb)
@@ -67,19 +85,19 @@ public class CodeSetsComponentImpl extends TaggedComponentBase
         else
             csci = orb.getORBData().getCodeSetComponentInfo();
     }
-    
+
     public CodeSetComponentInfo getCodeSetComponentInfo()
     {
-	return csci ;
+        return csci ;
     }
 
-    public void writeContents(OutputStream os) 
+    public void writeContents(OutputStream os)
     {
-	csci.write( (MarshalOutputStream)os ) ;
+        csci.write( (MarshalOutputStream)os ) ;
     }
-    
-    public int getId() 
+
+    public int getId()
     {
-	return TAG_CODE_SETS.value ; // 1 in CORBA 2.3.1 13.6.3
+        return TAG_CODE_SETS.value ; // 1 in CORBA 2.3.1 13.6.3
     }
 }

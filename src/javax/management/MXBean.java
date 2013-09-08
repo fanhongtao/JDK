@@ -1,8 +1,26 @@
 /*
- * @(#)MXBean.java	1.18 06/06/22
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -14,7 +32,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 // remaining imports are for Javadoc
-import java.beans.ConstructorProperties;
 import java.io.InvalidObjectException;
 import java.lang.management.MemoryUsage;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -60,7 +77,7 @@ import javax.management.openmbean.TabularType;
     public interface MisleadingMXBean {}
     </pre>
 
-    <h3><a name="MXBean-spec">MXBean specification</a></h3>
+    <h3 id="MXBean-spec">MXBean specification</a></h3>
 
     <p>The MXBean concept provides a simple way to code an MBean
       that only references a predefined set of types, the ones defined
@@ -76,23 +93,23 @@ import javax.management.openmbean.TabularType;
 
     <table border="1" cellpadding="5">
       <tr>
-	<th>Standard MBean</th><th>MXBean</th>
+        <th>Standard MBean</th><th>MXBean</th>
       </tr>
       <tr>
-	<td><pre>
+        <td><pre>
 public interface MemoryPool<b>MBean</b> {
     String getName();
     MemoryUsage getUsage();
     // ...
 }
-	  </pre></td>
-	<td><pre>
+          </pre></td>
+        <td><pre>
 public interface MemoryPool<b>MXBean</b> {
     String getName();
     MemoryUsage getUsage();
     // ...
 }
-	  </pre></td>
+          </pre></td>
       </tr>
     </table>
 
@@ -116,10 +133,10 @@ public interface MemoryPool<b>MXBean</b> {
 
     <table border="1" cellpadding="5">
       <tr>
-	<th>Standard MBean</th><th>MXBean</th>
+        <th>Standard MBean</th><th>MXBean</th>
       </tr>
       <tr>
-	<td><pre>
+        <td><pre>
 public class MemoryUsage <b>implements Serializable</b> {
     // standard JavaBean conventions with getters
 
@@ -130,8 +147,8 @@ public class MemoryUsage <b>implements Serializable</b> {
     long getCommitted() {...}
     long getMax() {...}
 }
-	  </pre></td>
-	<td><pre>
+          </pre></td>
+        <td><pre>
 public class MemoryUsage {
     // standard JavaBean conventions with getters
     <b>&#64;ConstructorProperties({"init", "used", "committed", "max"})</b>
@@ -142,7 +159,7 @@ public class MemoryUsage {
     long getCommitted() {...}
     long getMax() {...}
 }
-	  </pre></td>
+          </pre></td>
       </tr>
     </table>
 
@@ -178,25 +195,25 @@ public class MemoryUsage {
 
     <table border="1" cellpadding="5">
       <tr>
-	<th>Standard MBean</th><th>MXBean</th>
+        <th>Standard MBean</th><th>MXBean</th>
       </tr>
       <tr>
-	<td><pre>
+        <td><pre>
 String name = (String)
     mbeanServer.{@link MBeanServer#getAttribute
     getAttribute}(objectName, "Name");
 <b>MemoryUsage</b> usage = (<b>MemoryUsage</b>)
     mbeanServer.getAttribute(objectName, "Usage");
 <b>long used = usage.getUsed();</b>
-	  </pre></td>
-	<td><pre>
+          </pre></td>
+        <td><pre>
 String name = (String)
     mbeanServer.{@link MBeanServer#getAttribute
     getAttribute}(objectName, "Name");
 <b>{@link CompositeData}</b> usage = (<b>CompositeData</b>)
     mbeanServer.getAttribute(objectName, "Usage");
 <b>long used = (Long) usage.{@link CompositeData#get get}("used");</b>
-	  </pre></td>
+          </pre></td>
     </table>
 
     <p>For attributes with simple types like <code>String</code>, the
@@ -215,31 +232,31 @@ String name = (String)
 
     <table border="1" cellpadding="5">
       <tr>
-	<th>Standard MBean</th><th>MXBean</th>
+        <th>Standard MBean</th><th>MXBean</th>
       </tr>
       <tr>
-	<td><pre>
+        <td><pre>
 MemoryPool<b>MBean</b> proxy =
     JMX.<b>{@link JMX#newMBeanProxy(MBeanServerConnection, ObjectName,
-	      Class) newMBeanProxy}</b>(
+              Class) newMBeanProxy}</b>(
         mbeanServer,
         objectName,
         MemoryPool<b>MBean</b>.class);
 String name = proxy.getName();
 MemoryUsage usage = proxy.getUsage();
 long used = usage.getUsed();
-	  </pre></td>
-	<td><pre>
+          </pre></td>
+        <td><pre>
 MemoryPool<b>MXBean</b> proxy =
     JMX.<b>{@link JMX#newMXBeanProxy(MBeanServerConnection, ObjectName,
-	      Class) newMXBeanProxy}</b>(
+              Class) newMXBeanProxy}</b>(
         mbeanServer,
         objectName,
         MemoryPool<b>MXBean</b>.class);
 String name = proxy.getName();
 MemoryUsage usage = proxy.getUsage();
 long used = usage.getUsed();
-	  </pre></td>
+          </pre></td>
       </tr>
     </table>
 
@@ -248,25 +265,25 @@ long used = usage.getUsed();
 
     <table border="1" cellpadding="5">
       <tr>
-	<th>Standard MBean</th><th>MXBean</th>
+        <th>Standard MBean</th><th>MXBean</th>
       </tr>
       <tr>
-	<td><pre>
+        <td><pre>
 public class MemoryPool
-    	implements MemoryPool<b>MBean</b> {
+        implements MemoryPool<b>MBean</b> {
     public String getName() {...}
     public MemoryUsage getUsage() {...}
     // ...
 }
-	  </pre></td>
-	<td><pre>
+          </pre></td>
+        <td><pre>
 public class MemoryPool
-    	implements MemoryPool<b>MXBean</b> {
+        implements MemoryPool<b>MXBean</b> {
     public String getName() {...}
     public MemoryUsage getUsage() {...}
     // ...
 }
-	  </pre></td>
+          </pre></td>
       </tr>
     </table>
 
@@ -275,28 +292,28 @@ public class MemoryPool
 
     <table border="1" cellpadding="5">
       <tr>
-	<th>Standard MBean</th><th>MXBean</th>
+        <th>Standard MBean</th><th>MXBean</th>
       </tr>
       <tr>
-	<td><pre>
+        <td><pre>
 {
     MemoryPool<b>MBean</b> pool = new MemoryPool();
     mbeanServer.{@link MBeanServer#registerMBean
     registerMBean}(pool, objectName);
 }
-	  </pre></td>
-	<td><pre>
+          </pre></td>
+        <td><pre>
 {
     MemoryPool<b>MXBean</b> pool = new MemoryPool();
     mbeanServer.{@link MBeanServer#registerMBean
     registerMBean}(pool, objectName);
 }
-	  </pre></td>
+          </pre></td>
       </tr>
     </table>
 
 
-    <h2><a name="mxbean-def">Definition of an MXBean</a></h2>
+    <h2 id="mxbean-def">Definition of an MXBean</h2>
 
     <p>An MXBean is a kind of MBean.  An MXBean object can be
       registered directly in the MBean Server, or it can be used as an
@@ -310,34 +327,34 @@ public class MemoryPool
 
     <ul>
       <li>If the class implements the interface {@link DynamicMBean}
-	then the MBean is a Dynamic MBean.  Note that the class
+        then the MBean is a Dynamic MBean.  Note that the class
         {@code StandardMBean} implements this interface, so this
         case applies to a Standard MBean or MXBean created using
         the class {@code StandardMBean}.</li>
 
       <li>Otherwise, if the class matches the Standard MBean naming
-	conventions, then the MBean is a Standard MBean.</li>
+        conventions, then the MBean is a Standard MBean.</li>
 
       <li>Otherwise, it may be an MXBean.  The set of interfaces
-	implemented by the object is examined for interfaces that:
+        implemented by the object is examined for interfaces that:
 
-	<ul>
-	  <li>have a class name <code><em>S</em>MXBean</code> where
-	    <code><em>S</em></code> is any non-empty string, and
-	    do not have an annotation {@code @MXBean(false)}; and/or</li>
-	  <li>have an annotation {@code @MXBean(true)}
-	    or just {@code @MXBean}.</li>
-	</ul>
+        <ul>
+          <li>have a class name <code><em>S</em>MXBean</code> where
+            <code><em>S</em></code> is any non-empty string, and
+            do not have an annotation {@code @MXBean(false)}; and/or</li>
+          <li>have an annotation {@code @MXBean(true)}
+            or just {@code @MXBean}.</li>
+        </ul>
 
-	If there is exactly one such interface, or if there is one
-	such interface that is a subinterface of all the others, then
-	the object is an MXBean.  The interface in question is the
-	<em>MXBean interface</em>.  In the example above, the MXBean
-	interface is {@code MemoryPoolMXBean}.
+        If there is exactly one such interface, or if there is one
+        such interface that is a subinterface of all the others, then
+        the object is an MXBean.  The interface in question is the
+        <em>MXBean interface</em>.  In the example above, the MXBean
+        interface is {@code MemoryPoolMXBean}.
 
       <li>If none of these conditions is met, the MBean is invalid and
-	the attempt to register it will generate {@link
-	NotCompliantMBeanException}.
+        the attempt to register it will generate {@link
+        NotCompliantMBeanException}.
     </ul>
 
     <p>Every Java type that appears as the parameter or return type of a
@@ -349,37 +366,37 @@ public class MemoryPool
       above rules will produce an exception.</p>
 
 
-    <h2><a name="naming-conv">Naming conventions</a></h2>
+    <h2 id="naming-conv">Naming conventions</h2>
 
     <p>The same naming conventions are applied to the methods in an
       MXBean as in a Standard MBean:</p>
 
     <ol>
       <li>A method <code><em>T</em> get<em>N</em>()</code>, where
-	<code><em>T</em></code> is a Java type (not <code>void</code>)
-	and <code><em>N</em></code> is a non-empty string, specifies
-	that there is a readable attribute called
-	<code><em>N</em></code>.  The Java type and Open type of the
-	attribute are determined by the mapping rules below.
-	The method {@code final Class getClass()} inherited from {@code
-	Object} is ignored when looking for getters.</li>
+        <code><em>T</em></code> is a Java type (not <code>void</code>)
+        and <code><em>N</em></code> is a non-empty string, specifies
+        that there is a readable attribute called
+        <code><em>N</em></code>.  The Java type and Open type of the
+        attribute are determined by the mapping rules below.
+        The method {@code final Class getClass()} inherited from {@code
+        Object} is ignored when looking for getters.</li>
 
       <li>A method <code>boolean is<em>N</em>()</code> specifies that
-	there is a readable attribute called <code><em>N</em></code>
-	with Java type <code>boolean</code> and Open type
-	<code>SimpleType.Boolean</code>.</li>
+        there is a readable attribute called <code><em>N</em></code>
+        with Java type <code>boolean</code> and Open type
+        <code>SimpleType.Boolean</code>.</li>
 
       <li>A method <code>void set<em>N</em>(<em>T</em> x)</code>
-	specifies that there is a writeable attribute called
-	<code><em>N</em></code>.  The Java type and Open type of the
-	attribute are determined by the mapping rules below.  (Of
-	course, the name <code>x</code> of the parameter is
-	irrelevant.)</li>
+        specifies that there is a writeable attribute called
+        <code><em>N</em></code>.  The Java type and Open type of the
+        attribute are determined by the mapping rules below.  (Of
+        course, the name <code>x</code> of the parameter is
+        irrelevant.)</li>
 
       <li>Every other method specifies that there is an operation with
-	the same name as the method.  The Java type and Open type of the
-	return value and of each parameter are determined by the mapping
-	rules below.</li>
+        the same name as the method.  The Java type and Open type of the
+        return value and of each parameter are determined by the mapping
+        rules below.</li>
     </ol>
 
     <p>The rules for <code>get<em>N</em></code> and
@@ -395,7 +412,7 @@ public class MemoryPool
       read-only or write-only respectively.</p>
 
 
-    <h2><a name="mapping-rules">Type mapping rules</a></h2>
+    <h2 id="mapping-rules">Type mapping rules</h2>
 
     <p>An MXBean is a kind of Open MBean, as defined by the {@link
       javax.management.openmbean} package.  This means that the types of
@@ -409,39 +426,39 @@ public class MemoryPool
 
     <ul>
       <li>The corresponding Open Type, <em>opentype(J)</em>.  This is
-	an instance of a subclass of {@link
-	javax.management.openmbean.OpenType}.</li>
+        an instance of a subclass of {@link
+        javax.management.openmbean.OpenType}.</li>
       <li>The <em>mapped</em> Java type, <em>opendata(J)</em>, which is
-	always the same for any given <em>opentype(J)</em>.  This is a Java
-	class.</li>
+        always the same for any given <em>opentype(J)</em>.  This is a Java
+        class.</li>
       <li>How a value is converted from type <em>J</em> to type
-	<em>opendata(J)</em>.</li>
+        <em>opendata(J)</em>.</li>
       <li>How a value is converted from type <em>opendata(J)</em> to
-	type <em>J</em>, if it can be.</li>
+        type <em>J</em>, if it can be.</li>
     </ul>
 
     <p>For example, for the Java type {@code List<String>}:</p>
 
     <ul>
       <li>The Open Type, <em>opentype(</em>{@code
-	List<String>}<em>)</em>, is {@link ArrayType}<code>(1, </code>{@link
-	  SimpleType#STRING}<code>)</code>, representing a 1-dimensional
-	  array of <code>String</code>s.</li>
+        List<String>}<em>)</em>, is {@link ArrayType}<code>(1, </code>{@link
+          SimpleType#STRING}<code>)</code>, representing a 1-dimensional
+          array of <code>String</code>s.</li>
       <li>The mapped Java type, <em>opendata(</em>{@code
-	List<String>}<em>)</em>, is {@code String[]}.</li>
+        List<String>}<em>)</em>, is {@code String[]}.</li>
       <li>A {@code List<String>} can be converted to a {@code String[]}
-	  using {@link List#toArray(Object[]) List.toArray(new
-	  String[0])}.</li>
+          using {@link List#toArray(Object[]) List.toArray(new
+          String[0])}.</li>
       <li>A {@code String[]} can be converted to a {@code List<String>}
-	  using {@link Arrays#asList Arrays.asList}.</li>
+          using {@link Arrays#asList Arrays.asList}.</li>
     </ul>
 
     <p>If no mapping rules exist to derive <em>opentype(J)</em> from
       <em>J</em>, then <em>J</em> cannot be the type of a method
       parameter or return value in an MXBean interface.</p>
 
-    <p>If there is a way to convert <em>opendata(J)</em> back to
-      <em>J</em> then we say that <em>J</em> is
+    <p id="reconstructible-def">If there is a way to convert
+      <em>opendata(J)</em> back to <em>J</em> then we say that <em>J</em> is
       <em>reconstructible</em>.  All method parameters in an MXBean
       interface must be reconstructible, because when the MXBean
       framework is invoking a method it will need to convert those
@@ -461,73 +478,73 @@ public class MemoryPool
 
     <table border="1" cellpadding="5">
       <tr>
-	<th>Java type <em>J</em></th>
-	<th><em>opentype(J)</em></th>
-	<th><em>opendata(J)</em></th>
+        <th>Java type <em>J</em></th>
+        <th><em>opentype(J)</em></th>
+        <th><em>opendata(J)</em></th>
       </tr>
       <tbody cellvalign="top">
-	<tr>
-	  <td>{@code int}, {@code boolean}, etc<br>
-	    (the 8 primitive Java types)</td>
-	  <td>{@code SimpleType.INTEGER},<br>
-	    {@code SimpleType.BOOLEAN}, etc</td>
-	  <td>{@code Integer}, {@code Boolean}, etc<br>
-	    (the corresponding boxed types)</td>
-	</tr>
-	<tr>
-	  <td>{@code Integer}, {@code ObjectName}, etc<br>
-	    (the types covered by {@link SimpleType})</td>
-	  <td>the corresponding {@code SimpleType}</td>
-	  <td><em>J</em>, the same type</td>
-	</tr>
-	<tr>
-	  <td>{@code int[]} etc<br>
-	    (a one-dimensional array with<br>
-	    primitive element type)</td>
-	  <td>{@code ArrayType.getPrimitiveArrayType(int[].class)} etc</td>
-	  <td><em>J</em>, the same type</td>
-	<tr>
-	  <td><em>E</em>{@code []}<br>
-	    (an array with non-primitive element type <em>E</em>;
-	      this includes {@code int[][]}, where <em>E</em> is {@code int[]})</td>
-	  <td>{@code ArrayType.getArrayType(}<em>opentype(E)</em>{@code )}</td>
-	  <td><em>opendata(E)</em>{@code []}</td>
-	</tr>
-	<tr>
-	  <td>{@code List<}<em>E</em>{@code >}<br>
-	    {@code Set<}<em>E</em>{@code >}<br>
-	    {@code SortedSet<}<em>E</em>{@code >} (see below)</td>
-	  <td>same as for <em>E</em>{@code []}</td>
-	  <td>same as for <em>E</em>{@code []}</td>
-	</tr>
-	<tr>
-	  <td>An enumeration <em>E</em><br>
-	    (declared in Java as {@code enum }<em>E</em>
-	    {@code {...}})</td>
-	  <td>{@code SimpleType.STRING}</td>
-	  <td>{@code String}</td>
-	</tr>
-	<tr>
-	  <td>{@code Map<}<em>K</em>,<em>V</em>{@code >}<br>
-	    {@code SortedMap<}<em>K</em>,<em>V</em>{@code >}</td>
-	  <td>{@link TabularType}<br>
-	    (see below)</td>
-	  <td>{@link TabularData}<br>
-	    (see below)</td>
-	</tr>
-	<tr>
-	  <td>An MXBean interface</td>
-	  <td>{@code SimpleType.OBJECTNAME}<br>
-	    (see below)</td>
-	  <td>{@link ObjectName}<br>
-	    (see below)</td>
-	</tr>
-	<tr>
-	  <td>Any other type</td>
-	  <td>{@link CompositeType},
-	    if possible<br>
-	    (see below)</td>
-	  <td>{@link CompositeData}</td>
+        <tr>
+          <td>{@code int}, {@code boolean}, etc<br>
+            (the 8 primitive Java types)</td>
+          <td>{@code SimpleType.INTEGER},<br>
+            {@code SimpleType.BOOLEAN}, etc</td>
+          <td>{@code Integer}, {@code Boolean}, etc<br>
+            (the corresponding boxed types)</td>
+        </tr>
+        <tr>
+          <td>{@code Integer}, {@code ObjectName}, etc<br>
+            (the types covered by {@link SimpleType})</td>
+          <td>the corresponding {@code SimpleType}</td>
+          <td><em>J</em>, the same type</td>
+        </tr>
+        <tr>
+          <td>{@code int[]} etc<br>
+            (a one-dimensional array with<br>
+            primitive element type)</td>
+          <td>{@code ArrayType.getPrimitiveArrayType(int[].class)} etc</td>
+          <td><em>J</em>, the same type</td>
+        <tr>
+          <td><em>E</em>{@code []}<br>
+            (an array with non-primitive element type <em>E</em>;
+              this includes {@code int[][]}, where <em>E</em> is {@code int[]})</td>
+          <td>{@code ArrayType.getArrayType(}<em>opentype(E)</em>{@code )}</td>
+          <td><em>opendata(E)</em>{@code []}</td>
+        </tr>
+        <tr>
+          <td>{@code List<}<em>E</em>{@code >}<br>
+            {@code Set<}<em>E</em>{@code >}<br>
+            {@code SortedSet<}<em>E</em>{@code >} (see below)</td>
+          <td>same as for <em>E</em>{@code []}</td>
+          <td>same as for <em>E</em>{@code []}</td>
+        </tr>
+        <tr>
+          <td>An enumeration <em>E</em><br>
+            (declared in Java as {@code enum }<em>E</em>
+            {@code {...}})</td>
+          <td>{@code SimpleType.STRING}</td>
+          <td>{@code String}</td>
+        </tr>
+        <tr>
+          <td>{@code Map<}<em>K</em>,<em>V</em>{@code >}<br>
+            {@code SortedMap<}<em>K</em>,<em>V</em>{@code >}</td>
+          <td>{@link TabularType}<br>
+            (see below)</td>
+          <td>{@link TabularData}<br>
+            (see below)</td>
+        </tr>
+        <tr>
+          <td>An MXBean interface</td>
+          <td>{@code SimpleType.OBJECTNAME}<br>
+            (see below)</td>
+          <td>{@link ObjectName}<br>
+            (see below)</td>
+        </tr>
+        <tr>
+          <td>Any other type</td>
+          <td>{@link CompositeType},
+            if possible<br>
+            (see below)</td>
+          <td>{@link CompositeData}</td>
       </tbody>
     </table>
 
@@ -563,20 +580,20 @@ public class MemoryPool
 
     <p>A {@code List<}<em>E</em>{@code >} or {@code
       Set<}<em>E</em>{@code >}, such as {@code List<String>} or {@code
-	Set<ObjectName>}, is mapped in the same way as an array of the
-	  same element type, such as {@code String[]} or {@code
-	  ObjectName[]}.</p>
+        Set<ObjectName>}, is mapped in the same way as an array of the
+          same element type, such as {@code String[]} or {@code
+          ObjectName[]}.</p>
 
     <p>A {@code SortedSet<}<em>E</em>{@code >} is also mapped in the
       same way as an <em>E</em>{@code []}, but it is only convertible if
       <em>E</em> is a class or interface that implements {@link
       java.lang.Comparable}.  Thus, a {@code SortedSet<String>} or
-	{@code SortedSet<Integer>} is convertible, but a {@code
-	  SortedSet<int[]>} or {@code SortedSet<List<String>>} is not.  The
-		conversion of a {@code SortedSet} instance will fail with an
-		{@code IllegalArgumentException} if it has a
-		non-null {@link java.util.SortedSet#comparator()
-		comparator()}.</p>
+        {@code SortedSet<Integer>} is convertible, but a {@code
+          SortedSet<int[]>} or {@code SortedSet<List<String>>} is not.  The
+                conversion of a {@code SortedSet} instance will fail with an
+                {@code IllegalArgumentException} if it has a
+                non-null {@link java.util.SortedSet#comparator()
+                comparator()}.</p>
 
     <p>A {@code List<}<em>E</em>{@code >} is reconstructed as a
       {@code java.util.ArrayList<}<em>E</em>{@code >};
@@ -591,16 +608,16 @@ public class MemoryPool
     <p>A {@code Map<}<em>K</em>,<em>V</em>{@code >} or {@code
       SortedMap<}<em>K</em>,<em>V</em>{@code >}, for example {@code
       Map<String,ObjectName>}, has Open Type {@link TabularType} and is mapped
-	to a {@link TabularData}.
-	The {@code TabularType} has two items called {@code key} and
-	{@code value}.  The Open Type of {@code key} is
-	<em>opentype(K)</em>, and the Open Type of {@code value} is
-	<em>opentype(V)</em>.  The index of the {@code TabularType} is the
-	single item {@code key}.</p>
+        to a {@link TabularData}.
+        The {@code TabularType} has two items called {@code key} and
+        {@code value}.  The Open Type of {@code key} is
+        <em>opentype(K)</em>, and the Open Type of {@code value} is
+        <em>opentype(V)</em>.  The index of the {@code TabularType} is the
+        single item {@code key}.</p>
 
     <p>For example, the {@code TabularType} for a {@code
       Map<String,ObjectName>} might be constructed with code like
-	this:</p>
+        this:</p>
 
     <pre>
 String typeName =
@@ -622,11 +639,11 @@ TabularType tabularType =
       same way, but it is only convertible if
       <em>K</em> is a class or interface that implements {@link
       java.lang.Comparable}.  Thus, a {@code SortedMap<String,int[]>}
-	is convertible, but a
-	{@code SortedMap<int[],String>} is not.  The conversion of a
-	  {@code SortedMap} instance will fail with an {@code
-	  IllegalArgumentException} if it has a non-null {@link
-	  java.util.SortedMap#comparator() comparator()}.</p>
+        is convertible, but a
+        {@code SortedMap<int[],String>} is not.  The conversion of a
+          {@code SortedMap} instance will fail with an {@code
+          IllegalArgumentException} if it has a non-null {@link
+          java.util.SortedMap#comparator() comparator()}.</p>
 
     <p>A {@code Map<}<em>K</em>,<em>V</em>{@code >} is reconstructed as
       a {@code java.util.HashMap<}<em>K</em>,<em>V</em>{@code >};
@@ -640,7 +657,7 @@ TabularType tabularType =
       TabularData} that serializes as {@code TabularDataSupport}.</p>
 
 
-    <h3><a name="mxbean-map">Mappings for MXBean interfaces</a></h3>
+    <h3 id="mxbean-map">Mappings for MXBean interfaces</h3>
 
     <p>An MXBean interface, or a type referenced within an MXBean
       interface, can reference another MXBean interface, <em>J</em>.
@@ -729,7 +746,7 @@ public interface ModuleMXBean {
       general, notably because it does not work well for MBeans that are
       {@link NotificationBroadcaster}s.</p>
 
-    <h3><a name="composite-map">Mappings for other types</a></h3>
+    <h3 id="composite-map">Mappings for other types</h3>
 
     <p>Given a Java class or interface <em>J</em> that does not match the other
       rules in the table above, the MXBean framework will attempt to map
@@ -800,7 +817,7 @@ public interface ModuleMXBean {
       Open Type {@code ArrayType(1, SimpleType.STRING)}.  The conversion
       to {@code CompositeData} will call {@code getNames()} and convert
       the resultant {@code List<String>} into a {@code String[]} for the
-	item "{@code names}".</p>
+        item "{@code names}".</p>
 
     <p>{@code CompositeData} is an interface.  The concrete class that is
       used to represent a type as Open Data is {@link
@@ -826,65 +843,66 @@ public interface ModuleMXBean {
     <ol>
 
       <li><p>If <em>J</em> has a method<br>
-	{@code public static }<em>J </em>{@code from(CompositeData cd)}<br>
-	then that method is called to reconstruct an instance of
-	<em>J</em>.</p></li>
+        {@code public static }<em>J </em>{@code from(CompositeData cd)}<br>
+        then that method is called to reconstruct an instance of
+        <em>J</em>.</p></li>
 
       <li><p>Otherwise, if <em>J</em> has at least one public
-	constructor with a {@link ConstructorProperties} annotation, then one
-	of those constructors (not necessarily always the same one)
-	will be called to reconstruct an instance of <em>J</em>.
-	Every such annotation must list as many strings as the
-	constructor has parameters; each string must name a property
-	corresponding to a getter of <em>J</em>; and the type of this
-	getter must be the same as the corresponding constructor
-	parameter.  It is not an error for there to be getters that
-	are not mentioned in the {@code ConstructorProperties} annotation
-	(these may correspond to information that is not needed to
-	reconstruct the object).</p>
+        constructor with a {@link java.beans.ConstructorProperties
+        ConstructorProperties} annotation, then one
+        of those constructors (not necessarily always the same one)
+        will be called to reconstruct an instance of <em>J</em>.
+        Every such annotation must list as many strings as the
+        constructor has parameters; each string must name a property
+        corresponding to a getter of <em>J</em>; and the type of this
+        getter must be the same as the corresponding constructor
+        parameter.  It is not an error for there to be getters that
+        are not mentioned in the {@code ConstructorProperties} annotation
+        (these may correspond to information that is not needed to
+        reconstruct the object).</p>
 
-	<p>An instance of <em>J</em> is reconstructed by calling a
-	constructor with the appropriate reconstructed items from the
-	{@code CompositeData}.  The constructor to be called will be
-	determined at runtime based on the items actually present in
-	the {@code CompositeData}, given that this {@code
-	CompositeData} might come from an earlier version of
-	<em>J</em> where not all the items were present.  A
-	constructor is <em>applicable</em> if all the properties named
-	in its {@code ConstructorProperties} annotation are present as items
-	in the {@code CompositeData}.  If no constructor is
-	applicable, then the attempt to reconstruct <em>J</em> fails.</p>
+        <p>An instance of <em>J</em> is reconstructed by calling a
+        constructor with the appropriate reconstructed items from the
+        {@code CompositeData}.  The constructor to be called will be
+        determined at runtime based on the items actually present in
+        the {@code CompositeData}, given that this {@code
+        CompositeData} might come from an earlier version of
+        <em>J</em> where not all the items were present.  A
+        constructor is <em>applicable</em> if all the properties named
+        in its {@code ConstructorProperties} annotation are present as items
+        in the {@code CompositeData}.  If no constructor is
+        applicable, then the attempt to reconstruct <em>J</em> fails.</p>
 
-	<p>For any possible combination of properties, it must be the
-	case that either (a) there are no applicable constructors, or
-	(b) there is exactly one applicable constructor, or (c) one of
-	the applicable constructors names a proper superset of the
-	properties named by each other applicable constructor.  (In
-	other words, there should never be ambiguity over which
-	constructor to choose.)  If this condition is not true, then
-	<em>J</em> is not reconstructible.</p></li>
+        <p>For any possible combination of properties, it must be the
+        case that either (a) there are no applicable constructors, or
+        (b) there is exactly one applicable constructor, or (c) one of
+        the applicable constructors names a proper superset of the
+        properties named by each other applicable constructor.  (In
+        other words, there should never be ambiguity over which
+        constructor to choose.)  If this condition is not true, then
+        <em>J</em> is not reconstructible.</p></li>
 
       <li><p>Otherwise, if <em>J</em> has a public no-arg constructor, and
-	for every getter in <em>J</em> with type
-	<em>T</em> and name <em>N</em> there is a corresponding setter
-	with the same name and type, then an instance of <em>J</em> is
-	constructed with the no-arg constructor and the setters are
-	called with the reconstructed items from the {@code CompositeData}
-	to restore the values.  For example, if there is a method<br>
-	{@code public List<String> getNames()}<br>
-	  then there must also be a method<br>
-	  {@code public void setNames(List<String> names)}<br>
-	    for this rule to apply.</p>
+        for every getter in <em>J</em> with type
+        <em>T</em> and name <em>N</em> there is a corresponding setter
+        with the same name and type, then an instance of <em>J</em> is
+        constructed with the no-arg constructor and the setters are
+        called with the reconstructed items from the {@code CompositeData}
+        to restore the values.  For example, if there is a method<br>
+        {@code public List<String> getNames()}<br>
+          then there must also be a method<br>
+          {@code public void setNames(List<String> names)}<br>
+            for this rule to apply.</p>
 
-    	<p>If the {@code CompositeData} came from an earlier version of
-	<em>J</em>, some items might not be present.  In this case,
-	the corresponding setters will not be called.</p></li>
+        <p>If the {@code CompositeData} came from an earlier version of
+        <em>J</em>, some items might not be present.  In this case,
+        the corresponding setters will not be called.</p></li>
 
       <li><p>Otherwise, if <em>J</em> is an interface that has no methods
-	other than getters, an instance of <em>J</em> is constructed
-	using a {@link java.lang.reflect.Proxy} with a {@link
-	CompositeDataInvocationHandler} backed by the {@code
-	CompositeData} being converted.</p></li>
+        other than getters, an instance of <em>J</em> is constructed
+        using a {@link java.lang.reflect.Proxy} with a {@link
+        CompositeDataInvocationHandler} backed by the {@code
+        CompositeData} being converted.</p></li>
 
       <li><p>Otherwise, <em>J</em> is not reconstructible.</p></li>
     </ol>
@@ -896,12 +914,12 @@ public interface ModuleMXBean {
     <blockquote>
       <pre>
 {@link CompositeType}(
-    "NamedNumber",			// typeName
-    "NamedNumber",			// description
-    new String[] {"number", "name"},	// itemNames
-    new String[] {"number", "name"},	// itemDescriptions
+    "NamedNumber",                      // typeName
+    "NamedNumber",                      // description
+    new String[] {"number", "name"},    // itemNames
+    new String[] {"number", "name"},    // itemDescriptions
     new OpenType[] {SimpleType.INTEGER,
-    	    	    SimpleType.STRING}  // itemTypes
+                    SimpleType.STRING}  // itemTypes
 );
       </pre>
     </blockquote>
@@ -909,49 +927,49 @@ public interface ModuleMXBean {
     <ol>
       <li>Static {@code from} method:
 
-	<blockquote>
-	  <pre>
+        <blockquote>
+          <pre>
 public class NamedNumber {
     public int getNumber() {return number;}
     public String getName() {return name;}
     private NamedNumber(int number, String name) {
-    	this.number = number;
-    	this.name = name;
+        this.number = number;
+        this.name = name;
     }
     <b>public static NamedNumber from(CompositeData cd)</b> {
-    	return new NamedNumber((Integer) cd.get("number"),
-    	    	    	       (String) cd.get("name"));
+        return new NamedNumber((Integer) cd.get("number"),
+                               (String) cd.get("name"));
     }
     private final int number;
     private final String name;
 }
-	  </pre>
-	</blockquote>
+          </pre>
+        </blockquote>
       </li>
 
       <li>Public constructor with <code>&#64;ConstructorProperties</code> annotation:
 
-	<blockquote>
-	  <pre>
+        <blockquote>
+          <pre>
 public class NamedNumber {
     public int getNumber() {return number;}
     public String getName() {return name;}
     <b>&#64;ConstructorProperties({"number", "name"})
     public NamedNumber(int number, String name)</b> {
-    	this.number = number;
-    	this.name = name;
+        this.number = number;
+        this.name = name;
     }
     private final int number;
     private final String name;
 }
-	  </pre>
-	</blockquote>
+          </pre>
+        </blockquote>
       </li>
 
       <li>Setter for every getter:
 
-	<blockquote>
-	  <pre>
+        <blockquote>
+          <pre>
 public class NamedNumber {
     public int getNumber() {return number;}
     public void <b>setNumber</b>(int number) {this.number = number;}
@@ -961,20 +979,20 @@ public class NamedNumber {
     private int number;
     private String name;
 }
-	  </pre>
-	</blockquote>
+          </pre>
+        </blockquote>
       </li>
 
       <li>Interface with only getters:
 
-	<blockquote>
-	  <pre>
+        <blockquote>
+          <pre>
 public interface NamedNumber {
     public int getNumber();
     public String getName();
 }
-	  </pre>
-	</blockquote>
+          </pre>
+        </blockquote>
       </li>
     </ol>
 
@@ -1068,12 +1086,12 @@ public interface Node {
       that appeared in the MXBean interface.  The format of this string
       is described in the section <a href="#type-names">Type Names</a>
       below.</p>
- 
+
     <p>The {@code Descriptor} for the {@code MBeanInfo} will have a field
       {@code mxbean} whose value is the string "{@code true}".</p>
 
- 
-    <h3><a name="type-names">Type Names</a></h3>
+
+    <h3 id="type-names">Type Names</h3>
 
     <p>Sometimes the unmapped type <em>T</em> of a method parameter or
     return value in an MXBean must be represented as a string.  If
@@ -1111,7 +1129,7 @@ public interface Node {
       Class.getName()}, but if a method returns {@code List<int[]>},
       this will be represented by the string {@code
       "java.util.List<int[]>"}.
-	  
+
     <h3>Exceptions</h3>
 
     <p>A problem with mapping <em>from</em> Java types <em>to</em>

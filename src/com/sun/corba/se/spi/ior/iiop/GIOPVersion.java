@@ -1,8 +1,26 @@
 /*
- * @(#)GIOPVersion.java	1.17 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior.iiop ;
@@ -28,7 +46,7 @@ public class GIOPVersion {
     // Major version 13 indicates Java serialization,
     // Minor version [00-FF] is the version number.
     public static final GIOPVersion V13_XX =
-	new GIOPVersion((byte)13, (byte)Message.JAVA_ENC_VERSION);
+        new GIOPVersion((byte)13, (byte)Message.JAVA_ENC_VERSION);
 
     public static final GIOPVersion DEFAULT_VERSION = V1_2;
 
@@ -36,8 +54,8 @@ public class GIOPVersion {
     public static final int VERSION_1_1 = 0x0101;
     public static final int VERSION_1_2 = 0x0102;
     public static final int VERSION_1_3 = 0x0103;
-    public static final int VERSION_13_XX = 
-	((0x0D << 8) & 0x0000FF00) | Message.JAVA_ENC_VERSION;
+    public static final int VERSION_13_XX =
+        ((0x0D << 8) & 0x0000FF00) | Message.JAVA_ENC_VERSION;
 
     // Instance variables
 
@@ -81,9 +99,9 @@ public class GIOPVersion {
             return false;
     }
 
-    public int hashCode() 
+    public int hashCode()
     {
-	return 37*major + minor ;
+        return 37*major + minor ;
     }
 
     public boolean lessThan(GIOPVersion gv) {
@@ -142,13 +160,13 @@ public class GIOPVersion {
     /**
      * This chooses the appropriate GIOP version.
      *
-     * @return the GIOP version 13.00 if Java serialization is enabled, or 
+     * @return the GIOP version 13.00 if Java serialization is enabled, or
      *         smallest(profGIOPVersion, orbGIOPVersion)
      */
     public static GIOPVersion chooseRequestVersion(ORB orb, IOR ior ) {
 
         GIOPVersion orbVersion = orb.getORBData().getGIOPVersion();
-	IIOPProfile prof = ior.getProfile() ;
+        IIOPProfile prof = ior.getProfile() ;
         GIOPVersion profVersion = prof.getGIOPVersion();
 
         // Check if the profile is from a legacy Sun ORB.

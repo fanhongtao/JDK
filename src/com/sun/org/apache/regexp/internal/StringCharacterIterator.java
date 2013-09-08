@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +24,6 @@ package com.sun.org.apache.regexp.internal;
  * Encapsulates String as CharacterIterator.
  *
  * @author <a href="mailto:ales.novak@netbeans.com">Ales Novak</a>
- * @version CVS $Id: StringCharacterIterator.java,v 1.1.2.1 2005/08/01 00:03:00 jeffsuttor Exp $
  */
 public final class StringCharacterIterator implements CharacterIterator
 {

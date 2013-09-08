@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +30,6 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
-
 import javax.xml.transform.dom.DOMSource;
 
 import com.sun.org.apache.xalan.internal.xsltc.DOM;
@@ -56,6 +59,27 @@ import com.sun.org.apache.xml.internal.utils.XML11Char;
 public final class BasisLibrary {
 
     private final static String EMPTYSTRING = "";
+    
+    /**
+     * Re-use a single instance of StringBuffer (per thread) in the basis library.
+     * StringBuilder is better, however, DecimalFormat only accept StringBuffer
+     */
+    private static final ThreadLocal<StringBuilder> threadLocalStringBuilder =
+        new ThreadLocal<StringBuilder> () {
+            @Override protected StringBuilder initialValue() {
+                return new StringBuilder();
+            }
+    };
+
+    /**
+     * ThreadLocal for StringBuffer used
+     */
+    private static final ThreadLocal<StringBuffer> threadLocalStringBuffer =
+        new ThreadLocal<StringBuffer> () {
+            @Override protected StringBuffer initialValue() {
+                return new StringBuffer();
+            }
+    };
 
     /**
      * Standard function count(node-set)
@@ -237,17 +261,19 @@ public final class BasisLibrary {
      * conversions resulting into NaNs and rounding.
      */
     public static String substringF(String value, double start) {
-	try {
+        if (Double.isNaN(start))
+            return(EMPTYSTRING);
+
 	    final int strlen = value.length();
 	    int istart = (int)Math.round(start) - 1;
 
-	    if (Double.isNaN(start)) return(EMPTYSTRING);
-	    if (istart > strlen) return(EMPTYSTRING);
- 	    if (istart < 1) istart = 0;
-
+        if (istart > strlen)
+            return(EMPTYSTRING);
+        if (istart < 1)
+            istart = 0;
+        try {
 	    return value.substring(istart);
-	}
-	catch (IndexOutOfBoundsException e) {
+	} catch (IndexOutOfBoundsException e) {
 	    runTimeError(RUN_TIME_INTERNAL_ERR, "substring()");
 	    return null;
 	}
@@ -258,26 +284,31 @@ public final class BasisLibrary {
      * conversions resulting into NaNs and rounding.
      */
     public static String substringF(String value, double start, double length) {
-	try {
-	    final int strlen  = value.length();
+        if (Double.isInfinite(start) ||
+            Double.isNaN(start) ||
+            Double.isNaN(length))
+            return(EMPTYSTRING);
+
 	    int istart = (int)Math.round(start) - 1;
-	    int isum   = istart + (int)Math.round(length);
+        final int isum;
+        if (Double.isInfinite(length))
+            isum = Integer.MAX_VALUE;
+        else
+            isum = istart + (int)Math.round(length);
 
-	    if (Double.isInfinite(length)) isum = Integer.MAX_VALUE;
-
-	    if (Double.isNaN(start) || Double.isNaN(length))
+        final int strlen = value.length();
+        if (isum < 0 || istart > strlen)
 		return(EMPTYSTRING);
-	    if (Double.isInfinite(start)) return(EMPTYSTRING);
-	    if (istart > strlen) return(EMPTYSTRING);
-	    if (isum < 0) return(EMPTYSTRING);
- 	    if (istart < 0) istart = 0;
 
+        if (istart < 0)
+            istart = 0;
+
+        try {
 	    if (isum > strlen)
 		return value.substring(istart);
 	    else
 		return value.substring(istart, isum);
-	}
-	catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
 	    runTimeError(RUN_TIME_INTERNAL_ERR, "substring()");
 	    return null;
 	}
@@ -306,26 +337,6 @@ public final class BasisLibrary {
     }
 
     /**
-     * ThreadLocal for StringBuilder used
-     */
-    private static final ThreadLocal<StringBuilder> threadLocalStringBuilder =
-        new ThreadLocal<StringBuilder> () {
-            @Override protected StringBuilder initialValue() {
-                return new StringBuilder();
-            }
-    };
-
-    /**
-     * ThreadLocal for StringBuffer used
-     */
-    private static final ThreadLocal<StringBuffer> threadLocalStringBuffer =
-        new ThreadLocal<StringBuffer> () {
-            @Override protected StringBuffer initialValue() {
-                return new StringBuffer();
-            }
-    };
-
-    /**
      * XSLT Standard function translate(). 
      */
     public static String translateF(String value, String from, String to) {
@@ -333,8 +344,8 @@ public final class BasisLibrary {
 	final int froml = from.length();
 	final int valuel = value.length();
 
-	StringBuilder result  = threadLocalStringBuilder.get();
-	result.setLength(0);
+	final StringBuilder result = threadLocalStringBuilder.get();
+    result.setLength(0);
 	for (int j, i = 0; i < valuel; i++) {
 	    final char ch = value.charAt(i);
 	    for (j = 0; j < froml; j++) {
@@ -363,8 +374,8 @@ public final class BasisLibrary {
     public static String normalize_spaceF(String value) {
 	int i = 0, n = value.length();
 	StringBuilder result = threadLocalStringBuilder.get();
-	result.setLength(0);
-
+    result.setLength(0);
+        
 	while (i < n && isWhiteSpace(value.charAt(i)))
 	    i++;
 
@@ -941,7 +952,8 @@ public final class BasisLibrary {
             // Use the XPath formatter to ignore locales
             StringBuffer result = threadLocalStringBuffer.get();
             result.setLength(0);
-	    return xpathFormatter.format(d, result, _fieldPosition).toString();
+            xpathFormatter.format(d, result, _fieldPosition);
+	    return result.toString();
 	}
     }
 
@@ -967,11 +979,12 @@ public final class BasisLibrary {
 	}
 	try {
 	    StringBuffer result = threadLocalStringBuffer.get();
-	    result.setLength(0);
+        result.setLength(0);
 	    if (pattern != defaultPattern) {
 		formatter.applyLocalizedPattern(pattern);
 	    }
-            return formatter.format(number, result, _fieldPosition).toString();
+        formatter.format(number, result, _fieldPosition);
+	    return result.toString();
 	}
 	catch (IllegalArgumentException e) {
 	    runTimeError(FORMAT_NUMBER_ERR, Double.toString(number), pattern);
@@ -1445,9 +1458,12 @@ public final class BasisLibrary {
     /**
      * This function is used in the execution of xsl:element
      */
-    private static int prefixIndex = 0;		// not thread safe!!
+    private static int prefixIndex = 0;
+    
     public static String generatePrefix() {
-	return ("ns" + prefixIndex++);
+        synchronized (BasisLibrary.class) {
+            return ("ns" + prefixIndex++);
+        }
     }
 
     public static final String RUN_TIME_INTERNAL_ERR =
@@ -1540,8 +1556,8 @@ public final class BasisLibrary {
 
     public static String replace(String base, String delim, String[] str) {
 	final int len = base.length();
-	StringBuilder result  = threadLocalStringBuilder.get();
-	result.setLength(0);
+	final StringBuilder result = threadLocalStringBuilder.get();
+        result.setLength(0);
 
 	for (int i = 0; i < len; i++) {
 	    final char ch = base.charAt(i);

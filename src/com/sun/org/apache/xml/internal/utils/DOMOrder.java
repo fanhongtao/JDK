@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +25,7 @@ package com.sun.org.apache.xml.internal.utils;
 /**
  * @deprecated Since the introduction of the DTM, this class will be removed.
  * Nodes that implement this index can return a document order index.
- * Eventually, this will be replaced by DOM 3 methods. 
+ * Eventually, this will be replaced by DOM 3 methods.
  * (compareDocumentOrder and/or compareTreePosition.)
  */
 public interface DOMOrder

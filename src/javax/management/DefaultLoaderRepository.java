@@ -1,18 +1,35 @@
 /*
- * @(#)DefaultLoaderRepository.java	1.34 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
 
 import javax.management.loading.ClassLoaderRepository;
-import com.sun.jmx.trace.Trace;
 
 /**
  * <p>Keeps the list of Class Loaders registered in the MBean Server.
- * It provides the necessary methods to load classes using the registered 
+ * It provides the necessary methods to load classes using the registered
  * Class Loaders.</p>
  *
  * <p>This deprecated class is maintained for compatibility.  In
@@ -25,8 +42,8 @@ import com.sun.jmx.trace.Trace;
  * that code referencing <code>DefaultLoaderRepository</code> be
  * rewritten.</p>
  *
- * @deprecated Use 
- * {@link javax.management.MBeanServer#getClassLoaderRepository()} 
+ * @deprecated Use
+ * {@link javax.management.MBeanServer#getClassLoaderRepository()}
  * instead.
  *
  * @since 1.5
@@ -45,14 +62,14 @@ public class DefaultLoaderRepository {
      *
      * @exception ClassNotFoundException The specified class could not be found.
      */
-    public static Class loadClass(String className) 
-	throws ClassNotFoundException {
-	return javax.management.loading.DefaultLoaderRepository.loadClass(className);
+    public static Class<?> loadClass(String className)
+        throws ClassNotFoundException {
+        return javax.management.loading.DefaultLoaderRepository.loadClass(className);
     }
 
 
     /**
-     * Go through the list of class loaders but exclude the given class loader, then try to load 
+     * Go through the list of class loaders but exclude the given class loader, then try to load
      * the requested class.
      * The method will stop as soon as the class is found. If the class
      * is not found the method will throw a <CODE>ClassNotFoundException</CODE>
@@ -65,9 +82,9 @@ public class DefaultLoaderRepository {
      *
      * @exception ClassNotFoundException The specified class could not be found.
      */
-    public static Class loadClassWithout(ClassLoader loader,String className)
-	throws ClassNotFoundException {	
-	return javax.management.loading.DefaultLoaderRepository.loadClassWithout(loader, className);
+    public static Class<?> loadClassWithout(ClassLoader loader,String className)
+        throws ClassNotFoundException {
+        return javax.management.loading.DefaultLoaderRepository.loadClassWithout(loader, className);
     }
-       
+
  }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +18,11 @@
  * limitations under the License.
  */
 /*
- * $Id: XMLReaderManager.java,v 1.7 2007/04/03 21:21:21 joehw Exp $
+ * $Id: XMLReaderManager.java,v 1.2.4.1 2005/09/15 08:16:02 suresh_emailid Exp $
  */
 package com.sun.org.apache.xml.internal.utils;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,7 +44,6 @@ public class XMLReaderManager {
                              "http://xml.org/sax/features/namespace-prefixes";
     private static final XMLReaderManager m_singletonManager =
                                                      new XMLReaderManager();
-
     private static final String property = "org.xml.sax.driver";
     /**
      * Parser factory to be used to construct XMLReader objects
@@ -55,7 +58,7 @@ public class XMLReaderManager {
     /**
      * Keeps track of whether an XMLReader object is in use.
      */
-    private Hashtable m_inUse;
+    private HashMap m_inUse;
 
     /**
      * Hidden constructor
@@ -78,7 +81,6 @@ public class XMLReaderManager {
      */
     public synchronized XMLReader getXMLReader() throws SAXException {
         XMLReader reader;
-        boolean readerInUse;
 
         if (m_readers == null) {
             // When the m_readers.get() method is called for the first time
@@ -87,7 +89,7 @@ public class XMLReaderManager {
         }
 
         if (m_inUse == null) {
-            m_inUse = new Hashtable();
+            m_inUse = new HashMap();
         }
 
         // If the cached reader for this thread is in use, construct a new
@@ -96,7 +98,7 @@ public class XMLReaderManager {
         reader = (XMLReader) m_readers.get();
         boolean threadHasReader = (reader != null);
         String factory = SecuritySupport.getInstance().getSystemProperty(property);
-         if (threadHasReader && m_inUse.get(reader) != Boolean.TRUE &&
+        if (threadHasReader && m_inUse.get(reader) != Boolean.TRUE &&
                 ( factory == null || reader.getClass().getName().equals(factory))) {
             m_inUse.put(reader, Boolean.TRUE);
         } else {
@@ -143,7 +145,7 @@ public class XMLReaderManager {
                 m_readers.set(reader);
                 m_inUse.put(reader, Boolean.TRUE);
             }
-        }
+        } 
 
         return reader;
     }

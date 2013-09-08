@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,12 +20,14 @@
 
 package com.sun.org.apache.xerces.internal.impl.xs;
 
+import com.sun.org.apache.xerces.internal.impl.xs.util.StringListImpl;
+import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
 import com.sun.org.apache.xerces.internal.xs.StringList;
 import com.sun.org.apache.xerces.internal.xs.XSAnnotation;
 import com.sun.org.apache.xerces.internal.xs.XSConstants;
 import com.sun.org.apache.xerces.internal.xs.XSNamespaceItem;
 import com.sun.org.apache.xerces.internal.xs.XSWildcard;
-import com.sun.org.apache.xerces.internal.impl.xs.util.StringListImpl;
+import com.sun.org.apache.xerces.internal.xs.XSObjectList;
 
 /**
  * The XML representation for a wildcard declaration
@@ -32,7 +38,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.util.StringListImpl;
  * @author Sandy Gao, IBM
  * @author Rahul Srivastava, Sun Microsystems Inc.
  *
- * @version $Id: XSWildcardDecl.java,v 1.2.6.1 2005/09/09 07:30:58 sunithareddy Exp $
+ * @version $Id: XSWildcardDecl.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */
 public class XSWildcardDecl implements XSWildcard {
 
@@ -48,7 +54,7 @@ public class XSWildcardDecl implements XSWildcard {
     public String[] fNamespaceList;
 
     // optional annotation
-    public XSAnnotationImpl fAnnotation = null;
+    public XSObjectList fAnnotations = null;
 
     // I'm trying to implement the following constraint exactly as what the
     // spec describes. Sometimes it seems redundant, and sometimes there seems
@@ -501,13 +507,13 @@ public class XSWildcardDecl implements XSWildcard {
                 }
                 break;
             }
-            buffer.append("]");
+            buffer.append(']');
             fDescription = buffer.toString();
         }
 
         return fDescription;
     }
-    
+
     /**
      * Get the type of the object, i.e ELEMENT_DECLARATION.
      */
@@ -573,16 +579,21 @@ public class XSWildcardDecl implements XSWildcard {
      * Optional. Annotation.
      */
     public XSAnnotation getAnnotation() {
-        return fAnnotation;
+        return (fAnnotations != null) ? (XSAnnotation) fAnnotations.item(0) : null;
     }
 
+    /**
+     * Optional. Annotations.
+     */
+    public XSObjectList getAnnotations() {
+        return (fAnnotations != null) ? fAnnotations : XSObjectListImpl.EMPTY_LIST;
+    }
 
-	/**
-	 * @see com.sun.org.apache.xerces.internal.xs.XSObject#getNamespaceItem()
-	 */
-	public XSNamespaceItem getNamespaceItem() {
-        // REVISIT: implement
-		return null;
-	}
+    /**
+     * @see org.apache.xerces.xs.XSObject#getNamespaceItem()
+     */
+    public XSNamespaceItem getNamespaceItem() {
+        return null;
+    }
 
 } // class XSWildcardDecl

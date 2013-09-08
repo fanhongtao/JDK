@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidPreferencesFormatException.java	1.8 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.prefs;
@@ -12,11 +30,10 @@ import java.io.NotSerializableException;
 /**
  * Thrown to indicate that an operation could not complete because
  * the input did not conform to the appropriate XML document type
- * for a collection of preferences, as per the {@link Preferences} 
+ * for a collection of preferences, as per the {@link Preferences}
  * specification.
  *
  * @author  Josh Bloch
- * @version 1.8, 11/17/05
  * @see     Preferences
  * @since   1.4
  */
@@ -36,7 +53,7 @@ public class InvalidPreferencesFormatException extends Exception {
     * Constructs an InvalidPreferencesFormatException with the specified
     * detail message.
     *
-    * @param   message   the detail message. The detail message is saved for 
+    * @param   message   the detail message. The detail message is saved for
     *          later retrieval by the {@link Throwable#getMessage()} method.
     */
     public InvalidPreferencesFormatException(String message) {

@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2004 World Wide Web Consortium,
  *
  * (Massachusetts Institute of Technology, European Research Consortium for
@@ -15,7 +44,8 @@ package org.w3c.dom;
 /**
  * This interface permits a DOM implementer to supply one or more 
  * implementations, based upon requested features and versions, as specified 
- * in . Each implemented <code>DOMImplementationSource</code> object is 
+ * in <a href='http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407/core.html#DOMFeatures'>DOM
+ * Features</a>. Each implemented <code>DOMImplementationSource</code> object is
  * listed in the binding-specific list of available sources so that its 
  * <code>DOMImplementation</code> objects are made available.
  * <p>See also the <a href='http://www.w3.org/TR/2004/REC-DOM-Level-3-Core-20040407'>Document Object Model (DOM) Level 3 Core Specification</a>.

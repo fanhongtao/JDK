@@ -1,8 +1,26 @@
 /*
- * @(#)DescriptorKey.java	1.5 06/05/02
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -39,7 +57,7 @@ import java.lang.annotation.*;
  * <p>When a Standard MBean is made from the {@code CacheControlMBean},
  * the usual rules mean that it will have an attribute called
  * {@code CacheSize} of type {@code long}.  The {@code @Units}
- * attribute, given the above definition, will ensure that the
+ * annotation, given the above definition, will ensure that the
  * {@link MBeanAttributeInfo} for this attribute will have a
  * {@code Descriptor} that has a field called {@code units} with
  * corresponding value {@code bytes}.</p>
@@ -152,4 +170,3 @@ import java.lang.annotation.*;
 public @interface DescriptorKey {
     String value();
 }
-

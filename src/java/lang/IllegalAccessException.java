@@ -1,21 +1,38 @@
 /*
- * @(#)IllegalAccessException.java	1.15 05/11/17
+ * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 /**
- * An IllegalAccessException is thrown when an application tries 
- * to reflectively create an instance (other than an array), 
- * set or get a field, or invoke a method, but the currently 
- * executing method does not have access to the definition of 
+ * An IllegalAccessException is thrown when an application tries
+ * to reflectively create an instance (other than an array),
+ * set or get a field, or invoke a method, but the currently
+ * executing method does not have access to the definition of
  * the specified class, field, method or constructor.
  *
  * @author  unascribed
- * @version 1.15, 11/17/05
  * @see     Class#newInstance()
  * @see     java.lang.reflect.Field#set(Object, Object)
  * @see     java.lang.reflect.Field#setBoolean(Object, boolean)
@@ -39,21 +56,23 @@ package java.lang;
  * @see     java.lang.reflect.Constructor#newInstance(Object[])
  * @since   JDK1.0
  */
-public class IllegalAccessException extends Exception {
+public class IllegalAccessException extends ReflectiveOperationException {
+    private static final long serialVersionUID = 6616958222490762034L;
+
     /**
-     * Constructs an <code>IllegalAccessException</code> without a 
-     * detail message. 
+     * Constructs an <code>IllegalAccessException</code> without a
+     * detail message.
      */
     public IllegalAccessException() {
-	super();
+        super();
     }
 
     /**
-     * Constructs an <code>IllegalAccessException</code> with a detail message. 
+     * Constructs an <code>IllegalAccessException</code> with a detail message.
      *
      * @param   s   the detail message.
      */
     public IllegalAccessException(String s) {
-	super(s);
+        super(s);
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)NotificationEmitter.java	1.16 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -50,7 +68,6 @@ import java.util.concurrent.CopyOnWriteArrayList;  // for Javadoc
  * use a {@link CopyOnWriteArrayList} for this list.
  *
  * @since 1.5
- * @since.unbundled JMX 1.2
  */
 public interface NotificationEmitter extends NotificationBroadcaster {
     /**
@@ -75,7 +92,7 @@ public interface NotificationEmitter extends NotificationBroadcaster {
      * given filter and handback.
      */
     public void removeNotificationListener(NotificationListener listener,
-					   NotificationFilter filter,
-					   Object handback)
-	    throws ListenerNotFoundException;
+                                           NotificationFilter filter,
+                                           Object handback)
+            throws ListenerNotFoundException;
 }

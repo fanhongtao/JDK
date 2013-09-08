@@ -1,33 +1,30 @@
 /*
- * @(#)file      SnmpQManager.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.7
- * @(#)date      06/11/29
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
+// Copyright (c) 1995-96 by Cisco Systems, Inc.
 
 package com.sun.jmx.snmp.daemon;
 
+import java.util.logging.Level;
 import java.util.Vector;
 import java.io.Serializable;
 
 // import debug stuff
 //
-import com.sun.jmx.trace.Trace;
+import static com.sun.jmx.defaults.JmxProperties.SNMP_ADAPTOR_LOGGER;
 
 /**
  * This class implements a server queue manager.
  * This class is for internal use.
  */
-
 final class SnmpQManager implements Serializable {
+    private static final long serialVersionUID = 2163709017015248264L;
 
     // VARIABLES
     //----------
-        
+
     private SendQ  newq ;
     private WaitQ  waitq ;
 
@@ -35,22 +32,19 @@ final class SnmpQManager implements Serializable {
     private Thread requestQThread = null ;
     private Thread timerQThread = null ;
 
-    static String dbgTag = "SnmpQManager";
-    
-    
     // CONSTRUCTORS
     //-------------
-    
+
     SnmpQManager() {
         newq = new SendQ(20, 5) ;
         waitq = new WaitQ(20, 5) ;
 
         queueThreadGroup = new ThreadGroup("Qmanager Thread Group") ;
-    
+
         // TIME BOMB HERE
         startQThreads() ;
     }
-    
+
     public void startQThreads() {
         if (timerQThread == null || timerQThread.isAlive() == false) {
             timerQThread   = new SnmpTimerServer(queueThreadGroup, this) ;
@@ -61,25 +55,25 @@ final class SnmpQManager implements Serializable {
     }
 
     public void stopQThreads() {
-        
+
         ((SnmpTimerServer)timerQThread).isBeingDestroyed = true;
         waitq.isBeingDestroyed = true;
         ((SnmpSendServer)requestQThread).isBeingDestroyed = true;
         newq.isBeingDestroyed = true;
-        
-        if (timerQThread != null && timerQThread.isAlive() == true) {   
+
+        if (timerQThread != null && timerQThread.isAlive() == true) {
             ((SnmpTimerServer)timerQThread).stopTimerServer();
         }
         waitq = null;
         timerQThread = null;
-        
-        if (requestQThread != null && requestQThread.isAlive() == true) {            
+
+        if (requestQThread != null && requestQThread.isAlive() == true) {
             ((SnmpSendServer)requestQThread).stopSendServer();
         }
         newq = null;
         requestQThread = null;
     }
-    
+
     public void addRequest(SnmpInformRequest reqc) {
         newq.addRequest(reqc) ;
         return ;
@@ -106,54 +100,20 @@ final class SnmpQManager implements Serializable {
     public SnmpInformRequest removeRequest(long reqid) {
         SnmpInformRequest reqc = null ;
 
-        if ((reqc = newq.removeRequest(reqid)) == null) 
+        if ((reqc = newq.removeRequest(reqid)) == null)
             reqc = waitq.removeRequest(reqid) ;
-	
+
         return reqc ;
     }
 
-    // TRACES & DEBUG
-    //---------------
-    
-    static boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_ADAPTOR_SNMP);
-    }
-
-    static void trace(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_ADAPTOR_SNMP, clz, func, info);
-    }
-
-    static void trace(String func, String info) {
-        SnmpQManager.trace(dbgTag, func, info);
-    }
-    
-    static boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP);
-    }
-
-    static void debug(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP, clz, func, info);
-    }
-
-    static void debug(String clz, String func, Throwable exception) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP, clz, func, exception);
-    }
-    
-    static void debug(String func, String info) {
-        SnmpQManager.debug(dbgTag, func, info);
-    }
-    
-    static void debug(String func, Throwable exception) {
-        SnmpQManager.debug(dbgTag, func, exception);
-    }
-    
 }
 
 /**
  * This vector manages the inform requests to be sent to the manager.
  */
-class SendQ extends Vector {
-    
+@SuppressWarnings("serial")  // no serialVersionUID but never serialized
+class SendQ extends Vector<SnmpInformRequest> {
+
     SendQ(int initialCapacity, int capacityIncr) {
         super(initialCapacity , capacityIncr) ;
     }
@@ -163,7 +123,7 @@ class SendQ extends Vector {
     }
 
     public synchronized void addRequest(SnmpInformRequest req) {
-                
+
         long nextPoll = req.getAbsNextPollTime() ;
 
         int i ;
@@ -186,7 +146,7 @@ class SendQ extends Vector {
             long tmp = 0 ;
             if (isEmpty() == false) {
                 long currTime = System.currentTimeMillis() ;
-                SnmpInformRequest req = (SnmpInformRequest) lastElement() ;
+                SnmpInformRequest req = lastElement() ;
                 tmp = req.getAbsNextPollTime() - currTime ;
                 if (tmp <= 0) {
                     return true ;
@@ -198,18 +158,18 @@ class SendQ extends Vector {
 
     public synchronized Vector getAllOutstandingRequest(long margin) {
         int i ;
-        Vector outreq = new Vector() ;
+        Vector<SnmpInformRequest> outreq = new Vector<SnmpInformRequest>();
         while (true) {
             if (waitUntilReady() == true) {
                 long refTime = System.currentTimeMillis() + margin ;
 
                 for (i = size() ; i > 0 ; i--) {
                     SnmpInformRequest req = getRequestAt(i-1) ;
-                    if (req.getAbsNextPollTime() > refTime) 
+                    if (req.getAbsNextPollTime() > refTime)
                         break ;
                     outreq.addElement(req) ;
                 }
-			
+
                 if (! outreq.isEmpty()) {
                     elementCount -= outreq.size() ;
                     return outreq ;
@@ -222,9 +182,10 @@ class SendQ extends Vector {
 
     public synchronized void waitOnThisQueue(long time) {
         if (time == 0 && !isEmpty()) {
-            if (SnmpQManager.isDebugOn()) {
-                SnmpQManager.debug("waitOnThisQueue", "[" + Thread.currentThread().toString() + "]:" +
-                                   "Fatal BUG :: Blocking on newq permenantly. But size = " + size());
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpQManager.class.getName(),
+                    "waitOnThisQueue", "[" + Thread.currentThread().toString() + "]:" +
+                    "Fatal BUG :: Blocking on newq permenantly. But size = " + size());
             }
         }
 
@@ -235,9 +196,9 @@ class SendQ extends Vector {
     }
 
     public SnmpInformRequest getRequestAt(int idx) {
-        return (SnmpInformRequest)elementAt(idx) ;
+        return elementAt(idx) ;
     }
-    
+
     public synchronized SnmpInformRequest removeRequest(long reqid) {
         int max= size() ;
         for (int i = 0 ; i < max ; i++) {
@@ -259,14 +220,15 @@ class SendQ extends Vector {
 /**
  * This vector manages the inform requests to be retried to the manager.
  */
-class WaitQ extends Vector {
-    
+@SuppressWarnings("serial")  // no serialVersionUID, but never serialized
+class WaitQ extends Vector<SnmpInformRequest> {
+
     WaitQ(int initialCapacity, int capacityIncr) {
         super(initialCapacity , capacityIncr) ;
     }
 
     public synchronized void addWaiting(SnmpInformRequest req) {
-        
+
         long waitTime = req.getAbsMaxTimeToWait() ;
         int i ;
         for (i = size() ; i > 0 ; i--) {
@@ -288,7 +250,7 @@ class WaitQ extends Vector {
             long tmp = 0 ;
             if (isEmpty() == false) {
                 long currTime = System.currentTimeMillis() ;
-                SnmpInformRequest req = (SnmpInformRequest) lastElement() ;
+                SnmpInformRequest req = lastElement() ;
                 tmp = req.getAbsMaxTimeToWait() - currTime ;
                 if (tmp <= 0) {
                     return true ;
@@ -300,7 +262,7 @@ class WaitQ extends Vector {
 
     public synchronized SnmpInformRequest getTimeoutRequests() {
         if (waitUntilReady() == true) {
-            SnmpInformRequest req = (SnmpInformRequest) lastElement() ;
+            SnmpInformRequest req = lastElement() ;
             elementCount-- ;
             return req ;
         }
@@ -315,12 +277,13 @@ class WaitQ extends Vector {
 
     public synchronized void waitOnThisQueue(long time) {
         if (time == 0 && !isEmpty()) {
-            if (SnmpQManager.isDebugOn()) {
-                SnmpQManager.debug("waitOnThisQueue", "[" + Thread.currentThread().toString() + "]:" +
-                                   "Fatal BUG :: Blocking on waitq permenantly. But size = " + size());
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpQManager.class.getName(),
+                    "waitOnThisQueue", "[" + Thread.currentThread().toString() + "]:" +
+                    "Fatal BUG :: Blocking on waitq permenantly. But size = " + size());
             }
         }
-				
+
         try {
             this.wait(time) ;
         } catch (InterruptedException e) {
@@ -328,7 +291,7 @@ class WaitQ extends Vector {
     }
 
     public SnmpInformRequest getRequestAt(int idx) {
-        return (SnmpInformRequest)elementAt(idx) ;
+        return elementAt(idx) ;
     }
 
     public synchronized SnmpInformRequest removeRequest(long reqid) {

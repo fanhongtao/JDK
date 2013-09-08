@@ -1,8 +1,26 @@
 /*
- * @(#)TypeParameterElement.java	1.5 06/08/02
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
@@ -19,7 +37,6 @@ import javax.lang.model.type.TypeVariable;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.5 06/08/02
  * @see TypeVariable
  * @since 1.6
  */
@@ -45,4 +62,12 @@ public interface TypeParameterElement extends Element {
      * there are none
      */
     List<? extends TypeMirror> getBounds();
+
+    /**
+     * Returns the {@linkplain TypeParameterElement#getGenericElement generic element} of this type parameter.
+     *
+     * @return the generic element of this type parameter
+     */
+    @Override
+    Element getEnclosingElement();
 }

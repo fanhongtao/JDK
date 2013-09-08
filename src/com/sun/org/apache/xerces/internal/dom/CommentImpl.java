@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,14 +26,13 @@ import org.w3c.dom.Node;
 
 /**
  * Represents an XML (or HTML) comment.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: CommentImpl.java,v 1.2.6.1 2005/08/30 11:37:06 sunithareddy Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
-public class CommentImpl 
-    extends CharacterDataImpl 
+public class CommentImpl
+    extends CharacterDataImpl
     implements CharacterData, Comment {
 
     //
@@ -45,14 +48,14 @@ public class CommentImpl
 
     /** Factory constructor. */
     public CommentImpl(CoreDocumentImpl ownerDoc, String data) {
-    	super(ownerDoc, data);
+        super(ownerDoc, data);
     }
-    
+
     //
     // Node methods
     //
 
-    /** 
+    /**
      * A short integer indicating what type of node this is. The named
      * constants for this value are defined in the org.w3c.dom.Node interface.
      */

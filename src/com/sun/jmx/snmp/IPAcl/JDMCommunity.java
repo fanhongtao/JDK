@@ -1,11 +1,25 @@
 /*
- * @(#)file      JDMCommunity.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.9
- * @(#)date      06/11/29
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -14,10 +28,6 @@
 
 package com.sun.jmx.snmp.IPAcl;
 
-/** 
- * @version     4.9     11/17/05 
- * @author      Sun Microsystems, Inc. 
- */ 
 class JDMCommunity extends SimpleNode {
   protected String communityString= "";
 
@@ -38,6 +48,6 @@ class JDMCommunity extends SimpleNode {
   }
 
   public String getCommunity(){
-	return communityString;
+        return communityString;
   }
 }

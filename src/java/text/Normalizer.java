@@ -1,8 +1,26 @@
 /*
- * @(#)Normalizer.java	1.1 05/05/13
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Portions Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -107,24 +125,24 @@ public final class Normalizer {
      */
     public static enum Form {
 
-	/**
+        /**
          * Canonical decomposition.
-	 */
-	NFD,
+         */
+        NFD,
 
-	/**
+        /**
          * Canonical decomposition, followed by canonical composition.
-	 */
-	NFC,	
+         */
+        NFC,
 
-	/**	
+        /**
          * Compatibility decomposition.
-	 */
+         */
         NFKD,
 
-	/**
+        /**
          * Compatibility decomposition, followed by canonical composition.
-	 */
+         */
         NFKC
     }
 

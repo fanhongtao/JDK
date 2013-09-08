@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // SAX default implementation for AttributeList.
 // http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
@@ -26,10 +51,10 @@ import java.util.Vector;
  * AttributesImpl} interface.</p>
  *
  * <p>This class provides a convenience implementation of the SAX
- * {@link org.xml.sax.AttributeList AttributeList} interface.  This 
- * implementation is useful both for SAX parser writers, who can use 
- * it to provide attributes to the application, and for SAX application 
- * writers, who can use it to create a persistent copy of an element's 
+ * {@link org.xml.sax.AttributeList AttributeList} interface.  This
+ * implementation is useful both for SAX parser writers, who can use
+ * it to provide attributes to the application, and for SAX application
+ * writers, who can use it to create a persistent copy of an element's
  * attribute specifications:</p>
  *
  * <pre>
@@ -46,7 +71,7 @@ import java.util.Vector;
  *
  * <p>Please note that SAX parsers are not required to use this
  * class to provide an implementation of AttributeList; it is
- * supplied only as an optional convenience.  In particular, 
+ * supplied only as an optional convenience.  In particular,
  * parser writers are encouraged to invent more efficient
  * implementations.</p>
  *
@@ -55,17 +80,16 @@ import java.util.Vector;
  *             that interface has been replaced by
  *             {@link org.xml.sax.Attributes Attributes},
  *             which is implemented in the
- *             {@link org.xml.sax.helpers.AttributesImpl 
+ *             {@link org.xml.sax.helpers.AttributesImpl
  *            AttributesImpl} helper class.
  * @since SAX 1.0
  * @author David Megginson
- * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.AttributeList
- * @see org.xml.sax.DocumentHandler#startElement 
+ * @see org.xml.sax.DocumentHandler#startElement
  */
 public class AttributeListImpl implements AttributeList
 {
-    
+
     /**
      * Create an empty attribute list.
      *
@@ -79,8 +103,8 @@ public class AttributeListImpl implements AttributeList
     public AttributeListImpl ()
     {
     }
-    
-    
+
+
     /**
      * Construct a persistent copy of an existing attribute list.
      *
@@ -93,16 +117,16 @@ public class AttributeListImpl implements AttributeList
      */
     public AttributeListImpl (AttributeList atts)
     {
-	setAttributeList(atts);
+        setAttributeList(atts);
     }
-    
-    
-
+
+
+
     ////////////////////////////////////////////////////////////////////
     // Methods specific to this class.
     ////////////////////////////////////////////////////////////////////
-    
-    
+
+
     /**
      * Set the attribute list, discarding previous contents.
      *
@@ -113,16 +137,16 @@ public class AttributeListImpl implements AttributeList
      */
     public void setAttributeList (AttributeList atts)
     {
-	int count = atts.getLength();
-	
-	clear();
-	
-	for (int i = 0; i < count; i++) {
-	    addAttribute(atts.getName(i), atts.getType(i), atts.getValue(i));
-	}
+        int count = atts.getLength();
+
+        clear();
+
+        for (int i = 0; i < count; i++) {
+            addAttribute(atts.getName(i), atts.getType(i), atts.getValue(i));
+        }
     }
-    
-    
+
+
     /**
      * Add an attribute to an attribute list.
      *
@@ -138,12 +162,12 @@ public class AttributeListImpl implements AttributeList
      */
     public void addAttribute (String name, String type, String value)
     {
-	names.addElement(name);
-	types.addElement(type);
-	values.addElement(value);
+        names.addElement(name);
+        types.addElement(type);
+        values.addElement(value);
     }
-    
-    
+
+
     /**
      * Remove an attribute from the list.
      *
@@ -160,16 +184,16 @@ public class AttributeListImpl implements AttributeList
      */
     public void removeAttribute (String name)
     {
-	int i = names.indexOf(name);
-	
-	if (i >= 0) {
-	    names.removeElementAt(i);
-	    types.removeElementAt(i);
-	    values.removeElementAt(i);
-	}
+        int i = names.indexOf(name);
+
+        if (i >= 0) {
+            names.removeElementAt(i);
+            types.removeElementAt(i);
+            values.removeElementAt(i);
+        }
     }
-    
-    
+
+
     /**
      * Clear the attribute list.
      *
@@ -182,18 +206,18 @@ public class AttributeListImpl implements AttributeList
      */
     public void clear ()
     {
-	names.removeAllElements();
-	types.removeAllElements();
-	values.removeAllElements();
+        names.removeAllElements();
+        types.removeAllElements();
+        values.removeAllElements();
     }
-    
-    
-
+
+
+
     ////////////////////////////////////////////////////////////////////
     // Implementation of org.xml.sax.AttributeList
     ////////////////////////////////////////////////////////////////////
-    
-    
+
+
     /**
      * Return the number of attributes in the list.
      *
@@ -202,10 +226,10 @@ public class AttributeListImpl implements AttributeList
      */
     public int getLength ()
     {
-	return names.size();
+        return names.size();
     }
-    
-    
+
+
     /**
      * Get the name of an attribute (by position).
      *
@@ -216,17 +240,17 @@ public class AttributeListImpl implements AttributeList
      */
     public String getName (int i)
     {
-	if (i < 0) {
-	    return null;
-	}
-	try {
-	    return (String)names.elementAt(i);
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    return null;
-	}
+        if (i < 0) {
+            return null;
+        }
+        try {
+            return (String)names.elementAt(i);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
     }
-    
-    
+
+
     /**
      * Get the type of an attribute (by position).
      *
@@ -239,17 +263,17 @@ public class AttributeListImpl implements AttributeList
      */
     public String getType (int i)
     {
-	if (i < 0) {
-	    return null;
-	}
-	try {
-	    return (String)types.elementAt(i);
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    return null;
-	}
+        if (i < 0) {
+            return null;
+        }
+        try {
+            return (String)types.elementAt(i);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
     }
-    
-    
+
+
     /**
      * Get the value of an attribute (by position).
      *
@@ -260,17 +284,17 @@ public class AttributeListImpl implements AttributeList
      */
     public String getValue (int i)
     {
-	if (i < 0) {
-	    return null;
-	}
-	try {
-	    return (String)values.elementAt(i);
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    return null;
-	}
+        if (i < 0) {
+            return null;
+        }
+        try {
+            return (String)values.elementAt(i);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
     }
-    
-    
+
+
     /**
      * Get the type of an attribute (by name).
      *
@@ -282,10 +306,10 @@ public class AttributeListImpl implements AttributeList
      */
     public String getType (String name)
     {
-	return getType(names.indexOf(name));
+        return getType(names.indexOf(name));
     }
-    
-    
+
+
     /**
      * Get the value of an attribute (by name).
      *
@@ -294,11 +318,11 @@ public class AttributeListImpl implements AttributeList
      */
     public String getValue (String name)
     {
-	return getValue(names.indexOf(name));
+        return getValue(names.indexOf(name));
     }
-    
-    
-
+
+
+
     ////////////////////////////////////////////////////////////////////
     // Internal state.
     ////////////////////////////////////////////////////////////////////

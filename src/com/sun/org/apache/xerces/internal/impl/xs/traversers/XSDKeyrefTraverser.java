@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +35,7 @@ import org.w3c.dom.Element;
  * @xerces.internal 
  *
  * @author Neil Graham, IBM
- * @version $Id: XSDKeyrefTraverser.java,v 1.2.6.1 2005/09/09 07:19:25 sunithareddy Exp $
+ * @version $Id: XSDKeyrefTraverser.java,v 1.7 2010-11-01 04:40:02 joehw Exp $
  */
 class XSDKeyrefTraverser extends XSDAbstractIDConstraintTraverser {
 
@@ -82,17 +86,37 @@ class XSDKeyrefTraverser extends XSDAbstractIDConstraintTraverser {
 
         KeyRef keyRef = new KeyRef(schemaDoc.fTargetNamespace, krName, element.fName, key);
 
-        // add to element decl
-        traverseIdentityConstraint(keyRef, krElem, schemaDoc, attrValues);
+        // If errors occurred in traversing the identity constraint, then don't
+        // add it to the schema, to avoid errors when processing the instance.
+        if (traverseIdentityConstraint(keyRef, krElem, schemaDoc, attrValues)) {
+            //Schema Component Constraint: Identity-constraint Definition Properties Correct
+            //2 If the {identity-constraint category} is keyref, the cardinality of the {fields} must equal that of the {fields} of the {referenced key}.
+            if(key.getFieldCount() != keyRef.getFieldCount()) {
+                reportSchemaError("c-props-correct.2" , new Object [] {krName,key.getIdentityConstraintName()}, krElem);
+            } else {
+                // add key reference to element decl
+                // and stuff this in the grammar
+                if (grammar.getIDConstraintDecl(keyRef.getIdentityConstraintName()) == null) {
+                    grammar.addIDConstraintDecl(element, keyRef);
+                }
 
-        //Schema Component Constraint: Identity-constraint Definition Properties Correct
-        //2 If the {identity-constraint category} is keyref, the cardinality of the {fields} must equal that of the {fields} of the {referenced key}.
-        if(key.getFieldCount() != keyRef.getFieldCount()) {
-            reportSchemaError("c-props-correct.2" , new Object [] {krName,key.getIdentityConstraintName()}, krElem);
-        } else {
-            // add key reference to element decl
-            // and stuff this in the grammar
-            grammar.addIDConstraintDecl(element, keyRef);
+                // also add it to extended map
+                final String loc = fSchemaHandler.schemaDocument2SystemId(schemaDoc);
+                final IdentityConstraint idc = grammar.getIDConstraintDecl(keyRef.getIdentityConstraintName(), loc);
+                if (idc  == null) {
+                    grammar.addIDConstraintDecl(element, keyRef, loc);
+                }
+
+                // handle duplicates
+                if (fSchemaHandler.fTolerateDuplicates) {
+                    if (idc  != null) {
+                        if (idc instanceof KeyRef) {
+                            keyRef = (KeyRef) idc;
+                        }
+                    }
+                    fSchemaHandler.addIDConstraintDecl(keyRef);
+                }
+            }
         }
 
         // and put back attributes

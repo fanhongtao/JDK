@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -54,15 +58,13 @@ package com.sun.org.apache.bcel.internal.generic;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * Thrown on internal errors. Extends RuntimeException so it hasn't to be declared
  * in the throws clause every time.
  *
- * @version $Id: ClassGenException.java,v 1.1.2.1 2005/07/31 23:44:54 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ClassGenException extends RuntimeException {
   public ClassGenException() { super(); }
   public ClassGenException(String s) { super(s); }
 }
-

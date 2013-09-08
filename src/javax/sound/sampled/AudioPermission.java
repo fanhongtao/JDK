@@ -1,8 +1,26 @@
 /*
- * @(#)AudioPermission.java	1.19 06/04/21
+ * Copyright (c) 1999, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sound.sampled;
@@ -56,7 +74,6 @@ import java.security.BasicPermission;
  *<p>
  *
  * @author Kara Kytle
- * @version 1.19 06/04/21
  * @since 1.3
  */
 /*
@@ -104,7 +121,6 @@ import java.security.BasicPermission;
  *<p>
  *
  * @author Kara Kytle
- * @version 1.19 06/04/21
  * @since 1.3
  */
 
@@ -184,12 +200,11 @@ import java.security.BasicPermission;
  * </table>
  *<p>
  *
- * @version 1.19 06/04/21
  * @author Kara Kytle
  */
 
 public class AudioPermission extends BasicPermission {
-    
+
     /**
      * Creates a new <code>AudioPermission</code> object that has the specified
      * symbolic name, such as "play" or "record". An asterisk can be used to indicate
@@ -200,10 +215,10 @@ public class AudioPermission extends BasicPermission {
      * @throws IllegalArgumentException if <code>name</code> is empty.
      */
     public AudioPermission(String name) {
-	
-	super(name);
+
+        super(name);
     }
-    
+
     /**
      * Creates a new <code>AudioPermission</code> object that has the specified
      * symbolic name, such as "play" or "record".  The <code>actions</code>
@@ -215,8 +230,7 @@ public class AudioPermission extends BasicPermission {
      * @throws IllegalArgumentException if <code>name</code> is empty.
      */
     public AudioPermission(String name, String actions) {
-	
-	super(name, actions);
+
+        super(name, actions);
     }
 }
-

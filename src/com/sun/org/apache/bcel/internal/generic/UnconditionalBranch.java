@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,11 +61,9 @@ package com.sun.org.apache.bcel.internal.generic;
 /**
  * Denotes an instruction to perform an unconditional branch, i.e., GOTO, JSR.
  *
- * @version $Id: UnconditionalBranch.java,v 1.1.2.1 2005/07/31 23:46:03 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
 
  * @see GOTO
  * @see JSR
  */
 public interface UnconditionalBranch {}
-

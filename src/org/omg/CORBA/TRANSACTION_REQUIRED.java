@@ -1,14 +1,32 @@
 /*
- * @(#)TRANSACTION_REQUIRED.java	1.23 06/04/21
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * Exception  indicates that the request carried a null transaction context, 
+ * Exception  indicates that the request carried a null transaction context,
  * but an active transaction is required.<P>
  * It contains a minor code, which gives information about
  * what caused the exception, and a completion status. It may also contain
@@ -17,7 +35,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.5 09/09/97
  */
 
 public final class TRANSACTION_REQUIRED extends SystemException {
@@ -27,7 +44,7 @@ public final class TRANSACTION_REQUIRED extends SystemException {
      * and a null description.
      */
     public TRANSACTION_REQUIRED() {
-	this("");
+        this("");
     }
 
     /**

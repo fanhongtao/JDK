@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -57,13 +61,12 @@ import java.util.HashMap;
 import java.util.Collection;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 
-/** 
+/**
  * Utility class implementing a (typesafe) set of JavaClass objects.
  * Since JavaClass has no equals() method, the name of the class is
  * used for comparison.
  *
- * @version $Id: ClassSet.java,v 1.1.2.1 2005/07/31 23:47:02 jeffsuttor Exp $
- * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see ClassStack
 */
 public class ClassSet implements java.io.Serializable {
@@ -93,4 +96,4 @@ public class ClassSet implements java.io.Serializable {
   public String[] getClassNames() {
     return (String[])_map.keySet().toArray(new String[_map.keySet().size()]);
   }
-}  
+}

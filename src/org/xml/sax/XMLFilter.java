@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // XMLFilter.java - filter SAX2 events.
 // http://www.saxproject.org
 // Written by David Megginson
@@ -30,7 +55,6 @@ package org.xml.sax;
  *
  * @since SAX 2.0
  * @author David Megginson
- * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.helpers.XMLFilterImpl
  */
 public interface XMLFilter extends XMLReader

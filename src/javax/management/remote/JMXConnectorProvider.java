@@ -1,8 +1,26 @@
 /*
- * @(#)JMXConnectorProvider.java	1.16 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -19,7 +37,6 @@ import java.util.Map;
  * newJMXConnector} method.</p>
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public interface JMXConnectorProvider {
     /**
@@ -51,6 +68,6 @@ public interface JMXConnectorProvider {
      * connection cannot be made because of a communication problem.
      */
     public JMXConnector newJMXConnector(JMXServiceURL serviceURL,
-					Map<String,?> environment)
-	    throws IOException;
+                                        Map<String,?> environment)
+            throws IOException;
 }

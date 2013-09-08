@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +40,7 @@ public class Minus extends Operation
    * @param left non-null reference to the evaluated left operand.
    * @param right non-null reference to the evaluated right operand.
    *
-   * @return non-null reference to the XObject that represents the 
+   * @return non-null reference to the XObject that represents the
    *         result of the operation.
    *
    * @throws javax.xml.transform.TransformerException
@@ -46,7 +50,7 @@ public class Minus extends Operation
   {
     return new XNumber(left.num() - right.num());
   }
-  
+
   /**
    * Evaluate this operation directly to a double.
    *

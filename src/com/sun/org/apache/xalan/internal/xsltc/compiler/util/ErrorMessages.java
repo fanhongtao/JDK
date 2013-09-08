@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,13 +90,7 @@ public class ErrorMessages extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    /** Get the lookup table for error messages.   
-     *
-     * @return The message lookup table.
-     */
-    public Object[][] getContents()
-    {
-      return new Object[][] { 
+    private static final Object[][] _contents =  new Object[][] {
         {ErrorMsg.MULTIPLE_STYLESHEET_ERR,
         "More than one stylesheet defined in the same file."},
 
@@ -940,8 +938,18 @@ public class ErrorMessages extends ListResourceBundle {
         "The feature name cannot be null in TransformerFactory.setFeature(String name, boolean value)."},
 
         {ErrorMsg.JAXP_UNSUPPORTED_FEATURE,
-        "Cannot set the feature ''{0}'' on this TransformerFactory."}
+        "Cannot set the feature ''{0}'' on this TransformerFactory."},
 
+        {ErrorMsg.JAXP_SECUREPROCESSING_FEATURE,
+        "FEATURE_SECURE_PROCESSING: Cannot set the feature to false when security manager is present."}
     };
+
+    /** Get the lookup table for error messages.
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+        return _contents;
     }
 }

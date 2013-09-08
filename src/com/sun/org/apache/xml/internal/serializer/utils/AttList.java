@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,15 +30,15 @@ import org.xml.sax.Attributes;
 
 /**
  * Wraps a DOM attribute list in a SAX Attributes.
- * 
- * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+ *
+ * This class is a copy of the one in com.sun.org.apache.xml.internal.utils.
  * It exists to cut the serializers dependancy on that package.
  * A minor changes from that package are:
  * DOMHelper reference changed to DOM2Helper, class is not "public"
- *  
- * This class is not a public API, it is only public because it is 
+ *
+ * This class is not a public API, it is only public because it is
  * used in com.sun.org.apache.xml.internal.serializer.
- * 
+ *
  * @xsl.usage internal
  */
 public final class AttList implements Attributes
@@ -71,18 +75,18 @@ public final class AttList implements Attributes
    *
    *
    * @param attrs List of attributes this will contain
-   * @param dh DOMHelper 
+   * @param dh DOMHelper
    */
   public AttList(NamedNodeMap attrs, DOM2Helper dh)
   {
-    
+
     m_attrs = attrs;
     m_lastIndex = m_attrs.getLength() - 1;
     m_dh = dh;
   }
 
   /**
-   * Get the number of attribute nodes in the list 
+   * Get the number of attribute nodes in the list
    *
    *
    * @return number of attribute nodes
@@ -199,7 +203,7 @@ public final class AttList implements Attributes
   public String getValue(String name)
   {
     Attr attr = ((Attr) m_attrs.getNamedItem(name));
-    return (null != attr) 
+    return (null != attr)
           ? attr.getValue() : null;
   }
 
@@ -259,4 +263,3 @@ public final class AttList implements Attributes
     return -1;
   }
 }
-

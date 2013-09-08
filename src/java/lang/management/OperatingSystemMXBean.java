@@ -1,8 +1,26 @@
 /*
- * @(#)OperatingSystemMXBean.java	1.11 05/12/09
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.management;
@@ -26,22 +44,25 @@ package java.lang.management;
  *      <tt>java.lang:type=OperatingSystem</tt>}
  * </blockquote>
  *
- * <p> This interface defines several convenient methods for accessing 
- * system properties about the operating system on which the Java 
+ * It can be obtained by calling the
+ * {@link PlatformManagedObject#getObjectName} method.
+ *
+ * <p> This interface defines several convenient methods for accessing
+ * system properties about the operating system on which the Java
  * virtual machine is running.
  *
+ * @see ManagementFactory#getPlatformMXBeans(Class)
  * @see <a href="../../../javax/management/package-summary.html">
  *      JMX Specification.</a>
  * @see <a href="package-summary.html#examples">
  *      Ways to Access MXBeans</a>
  *
  * @author  Mandy Chung
- * @version 1.11, 12/09/05 
  * @since   1.5
  */
-public interface OperatingSystemMXBean {
+public interface OperatingSystemMXBean extends PlatformManagedObject {
     /**
-     * Returns the operating system name. 
+     * Returns the operating system name.
      * This method is equivalent to <tt>System.getProperty("os.name")</tt>.
      *
      * @return the operating system name.
@@ -56,7 +77,7 @@ public interface OperatingSystemMXBean {
     public String getName();
 
     /**
-     * Returns the operating system architecture. 
+     * Returns the operating system architecture.
      * This method is equivalent to <tt>System.getProperty("os.arch")</tt>.
      *
      * @return the operating system architecture.
@@ -71,7 +92,7 @@ public interface OperatingSystemMXBean {
     public String getArch();
 
     /**
-     * Returns the operating system version. 
+     * Returns the operating system version.
      * This method is equivalent to <tt>System.getProperty("os.version")</tt>.
      *
      * @return the operating system version.
@@ -119,4 +140,3 @@ public interface OperatingSystemMXBean {
      */
     public double getSystemLoadAverage();
 }
-

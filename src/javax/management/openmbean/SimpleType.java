@@ -1,8 +1,26 @@
 /*
- * @(#)SimpleType.java	3.26 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -37,11 +55,7 @@ import javax.management.ObjectName;
  * In other words, its methods <code>getClassName</code>, <code>getTypeName</code> and <code>getDescription</code>
  * all return the same string value <i>className</i>.
  *
- * @version     3.26  05/11/17
- * @author      Sun Microsystems, Inc.
- *
  * @since 1.5
- * @since.unbundled JMX 1.1
  */
 public final class SimpleType<T> extends OpenType<T> {
 
@@ -56,114 +70,114 @@ public final class SimpleType<T> extends OpenType<T> {
      * Java class name is <code>java.lang.Void</code>.
      */
     public static final SimpleType<Void> VOID =
-	new SimpleType<Void>(Void.class);
+        new SimpleType<Void>(Void.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.Boolean</code>.
      */
     public static final SimpleType<Boolean> BOOLEAN =
-	new SimpleType<Boolean>(Boolean.class);
+        new SimpleType<Boolean>(Boolean.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.Character</code>.
      */
     public static final SimpleType<Character> CHARACTER =
-	new SimpleType<Character>(Character.class);
+        new SimpleType<Character>(Character.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.Byte</code>.
      */
     public static final SimpleType<Byte> BYTE =
-	new SimpleType<Byte>(Byte.class);
+        new SimpleType<Byte>(Byte.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.Short</code>.
      */
     public static final SimpleType<Short> SHORT =
-	new SimpleType<Short>(Short.class);
+        new SimpleType<Short>(Short.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.Integer</code>.
      */
     public static final SimpleType<Integer> INTEGER =
-	new SimpleType<Integer>(Integer.class);
+        new SimpleType<Integer>(Integer.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.Long</code>.
      */
     public static final SimpleType<Long> LONG =
-	new SimpleType<Long>(Long.class);
+        new SimpleType<Long>(Long.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.Float</code>.
      */
     public static final SimpleType<Float> FLOAT =
-	new SimpleType<Float>(Float.class);
+        new SimpleType<Float>(Float.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.Double</code>.
      */
     public static final SimpleType<Double> DOUBLE =
-	new SimpleType<Double>(Double.class);
+        new SimpleType<Double>(Double.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.lang.String</code>.
      */
     public static final SimpleType<String> STRING =
-	new SimpleType<String>(String.class);
+        new SimpleType<String>(String.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.math.BigDecimal</code>.
      */
     public static final SimpleType<BigDecimal> BIGDECIMAL =
-	new SimpleType<BigDecimal>(BigDecimal.class);
+        new SimpleType<BigDecimal>(BigDecimal.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.math.BigInteger</code>.
      */
     public static final SimpleType<BigInteger> BIGINTEGER =
-	new SimpleType<BigInteger>(BigInteger.class);
+        new SimpleType<BigInteger>(BigInteger.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>java.util.Date</code>.
      */
     public static final SimpleType<Date> DATE =
-	new SimpleType<Date>(Date.class);
+        new SimpleType<Date>(Date.class);
 
     /**
      * The <code>SimpleType</code> instance describing values whose
      * Java class name is <code>javax.management.ObjectName</code>.
      */
     public static final SimpleType<ObjectName> OBJECTNAME =
-	new SimpleType<ObjectName>(ObjectName.class);
+        new SimpleType<ObjectName>(ObjectName.class);
 
-    private static final SimpleType[] typeArray = {
-	VOID, BOOLEAN, CHARACTER, BYTE, SHORT, INTEGER, LONG, FLOAT,
-	DOUBLE, STRING, BIGDECIMAL, BIGINTEGER, DATE, OBJECTNAME,
+    private static final SimpleType<?>[] typeArray = {
+        VOID, BOOLEAN, CHARACTER, BYTE, SHORT, INTEGER, LONG, FLOAT,
+        DOUBLE, STRING, BIGDECIMAL, BIGINTEGER, DATE, OBJECTNAME,
     };
 
 
-    private transient Integer myHashCode = null;	// As this instance is immutable, these two values
-    private transient String  myToString = null;	// need only be calculated once.
+    private transient Integer myHashCode = null;        // As this instance is immutable, these two values
+    private transient String  myToString = null;        // need only be calculated once.
 
 
     /* *** Constructor *** */
 
     private SimpleType(Class<T> valueClass) {
-	super(valueClass.getName(), valueClass.getName(), valueClass.getName(),
-	      false);
+        super(valueClass.getName(), valueClass.getName(), valueClass.getName(),
+              false);
     }
 
 
@@ -185,15 +199,15 @@ public final class SimpleType<T> extends OpenType<T> {
      */
     public boolean isValue(Object obj) {
 
-	// if obj is null, return false
-	//
-	if (obj == null) {
-	    return false;
-	}
+        // if obj is null, return false
+        //
+        if (obj == null) {
+            return false;
+        }
 
-	// Test if obj's class name is the same as for this instance
-	//
-	return this.getClassName().equals(obj.getClass().getName());
+        // Test if obj's class name is the same as for this instance
+        //
+        return this.getClassName().equals(obj.getClass().getName());
     }
 
 
@@ -206,26 +220,26 @@ public final class SimpleType<T> extends OpenType<T> {
      * {@link OpenType#getClassName() getClassName} methods return the same value.
      *
      * @param  obj  the object to be compared for equality with this <code>SimpleType</code> instance;
-     *		    if <var>obj</var> is <code>null</code> or is not an instance of the class <code>SimpleType</code>,
+     *              if <var>obj</var> is <code>null</code> or is not an instance of the class <code>SimpleType</code>,
      *              <code>equals</code> returns <code>false</code>.
      *
      * @return  <code>true</code> if the specified object is equal to this <code>SimpleType</code> instance.
      */
     public boolean equals(Object obj) {
 
-	/* If it weren't for readReplace(), we could replace this method
-	   with just:
-	   return (this == obj);
-	*/
+        /* If it weren't for readReplace(), we could replace this method
+           with just:
+           return (this == obj);
+        */
 
-	if (!(obj instanceof SimpleType))
-	    return false;
+        if (!(obj instanceof SimpleType<?>))
+            return false;
 
-	SimpleType other = (SimpleType) obj;
+        SimpleType<?> other = (SimpleType<?>) obj;
 
-	// Test if other's className field is the same as for this instance
-	//
-	return this.getClassName().equals(other.getClassName());
+        // Test if other's className field is the same as for this instance
+        //
+        return this.getClassName().equals(other.getClassName());
     }
 
     /**
@@ -240,15 +254,15 @@ public final class SimpleType<T> extends OpenType<T> {
      */
     public int hashCode() {
 
-	// Calculate the hash code value if it has not yet been done (ie 1st call to hashCode())
-	//
-	if (myHashCode == null) {
-	    myHashCode = new Integer(this.getClassName().hashCode());
-	}
+        // Calculate the hash code value if it has not yet been done (ie 1st call to hashCode())
+        //
+        if (myHashCode == null) {
+            myHashCode = Integer.valueOf(this.getClassName().hashCode());
+        }
 
-	// return always the same hash code for this instance (immutable)
-	//
-	return myHashCode.intValue();
+        // return always the same hash code for this instance (immutable)
+        //
+        return myHashCode.intValue();
     }
 
     /**
@@ -265,24 +279,24 @@ public final class SimpleType<T> extends OpenType<T> {
      */
     public String toString() {
 
-	// Calculate the string representation if it has not yet been done (ie 1st call to toString())
-	//
-	if (myToString == null) {
-	    myToString = this.getClass().getName()+ "(name="+ getTypeName() +")";
-	}
+        // Calculate the string representation if it has not yet been done (ie 1st call to toString())
+        //
+        if (myToString == null) {
+            myToString = this.getClass().getName()+ "(name="+ getTypeName() +")";
+        }
 
-	// return always the same string representation for this instance (immutable)
-	//
-	return myToString;
+        // return always the same string representation for this instance (immutable)
+        //
+        return myToString;
     }
 
-    private static final Map<SimpleType,SimpleType> canonicalTypes =
-	new HashMap<SimpleType,SimpleType>();
+    private static final Map<SimpleType<?>,SimpleType<?>> canonicalTypes =
+        new HashMap<SimpleType<?>,SimpleType<?>>();
     static {
-	for (int i = 0; i < typeArray.length; i++) {
-	    final SimpleType type = typeArray[i];
-	    canonicalTypes.put(type, type);
-	}
+        for (int i = 0; i < typeArray.length; i++) {
+            final SimpleType<?> type = typeArray[i];
+            canonicalTypes.put(type, type);
+        }
     }
 
     /**
@@ -296,11 +310,11 @@ public final class SimpleType<T> extends OpenType<T> {
      * resolved.
      */
     public Object readResolve() throws ObjectStreamException {
-	final SimpleType canonical = (SimpleType) canonicalTypes.get(this);
-	if (canonical == null) {
-	    // Should not happen
-	    throw new InvalidObjectException("Invalid SimpleType: " + this);
-	}
-	return canonical;
+        final SimpleType<?> canonical = canonicalTypes.get(this);
+        if (canonical == null) {
+            // Should not happen
+            throw new InvalidObjectException("Invalid SimpleType: " + this);
+        }
+        return canonical;
     }
 }

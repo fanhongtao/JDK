@@ -1,15 +1,33 @@
 /*
- * @(#)INV_POLICY.java	1.15 06/04/21
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
  * Standard exception  thrown
- * when an invocation cannot be made because of an incompatibility between 
+ * when an invocation cannot be made because of an incompatibility between
  * <tt>Policy</tt> overrides that apply to the particular invocation.
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -17,7 +35,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.5 09/09/97
  */
 
 public final class INV_POLICY extends SystemException {
@@ -27,7 +44,7 @@ public final class INV_POLICY extends SystemException {
      * and a null description.
      */
     public INV_POLICY() {
-	this("");
+        this("");
     }
 
     /**

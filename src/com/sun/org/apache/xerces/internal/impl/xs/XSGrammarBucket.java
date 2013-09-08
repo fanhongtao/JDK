@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +20,9 @@
 
 package com.sun.org.apache.xerces.internal.impl.xs;
 
-import java.util.Hashtable;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -26,7 +31,7 @@ import java.util.Vector;
  * @xerces.internal  
  * 
  * @author Sandy Gao, IBM
- * @version $Id: XSGrammarBucket.java,v 1.2.6.1 2005/09/09 07:30:56 sunithareddy Exp $
+ * @version $Id: XSGrammarBucket.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */
 public class XSGrammarBucket {
 
@@ -35,7 +40,7 @@ public class XSGrammarBucket {
     /**
      * Hashtable that maps between Namespace and a Grammar
      */
-    Hashtable fGrammarRegistry = new Hashtable();
+    Map<String, SchemaGrammar> fGrammarRegistry = new HashMap();
     SchemaGrammar fNoNSGrammar = null;
 
     /**
@@ -95,7 +100,7 @@ public class XSGrammarBucket {
             putGrammar(grammar);
             return true;
         }
-        
+
         Vector grammars = ((Vector)currGrammars.clone());
         SchemaGrammar sg1, sg2;
         Vector gs;
@@ -133,6 +138,77 @@ public class XSGrammarBucket {
     }
 
     /**
+     * put a schema grammar and any grammars imported by it (directly or
+     * inderectly) into the registry. when a grammar with the same target
+     * namespace is already in the bucket, and different from the one being
+     * added, no grammar will be added into the bucket.
+     *
+     * @param grammar        the grammar to put in the registry
+     * @param deep           whether to add imported grammars
+     * @param ignoreConflict whether to ignore grammars that already exist in the grammar
+     *                       bucket or not - including 'grammar' parameter.
+     * @return               whether the process succeeded
+     */
+    public boolean putGrammar(SchemaGrammar grammar, boolean deep, boolean ignoreConflict) {
+        if (!ignoreConflict) {
+            return putGrammar(grammar, deep);
+        }
+
+        // if grammar already exist in the bucket, we ignore the request
+        SchemaGrammar sg = getGrammar(grammar.fTargetNamespace);
+        if (sg == null) {
+            putGrammar(grammar);
+        }
+
+        // not adding the imported grammars
+        if (!deep) {
+            return true;
+        }
+
+        // get all imported grammars, and make a copy of the Vector, so that
+        // we can recursively process the grammars, and add distinct ones
+        // to the same vector
+        Vector currGrammars = (Vector)grammar.getImportedGrammars();
+        if (currGrammars == null) {
+            return true;
+        }
+
+        Vector grammars = ((Vector)currGrammars.clone());
+        SchemaGrammar sg1, sg2;
+        Vector gs;
+        // for all (recursively) imported grammars
+        for (int i = 0; i < grammars.size(); i++) {
+            // get the grammar
+            sg1 = (SchemaGrammar)grammars.elementAt(i);
+            // check whether the bucket has one with the same tns
+            sg2 = getGrammar(sg1.fTargetNamespace);
+            if (sg2 == null) {
+                // we need to add grammars imported by sg1 too
+                gs = sg1.getImportedGrammars();
+                // for all grammars imported by sg2, but not in the vector
+                // we add them to the vector
+                if(gs == null) continue;
+                for (int j = gs.size() - 1; j >= 0; j--) {
+                    sg2 = (SchemaGrammar)gs.elementAt(j);
+                    if (!grammars.contains(sg2))
+                        grammars.addElement(sg2);
+                }
+            }
+            // we found one with the same target namespace, ignore it
+            else  {
+                grammars.remove(sg1);
+            }
+        }
+
+        // now we have all imported grammars stored in the vector. add them
+        for (int i = grammars.size() - 1; i >= 0; i--) {
+            putGrammar((SchemaGrammar)grammars.elementAt(i));
+        }
+
+        return true;
+    }
+
+    /**
      * get all grammars in the registry
      *
      * @return an array of SchemaGrammars.
@@ -142,10 +218,11 @@ public class XSGrammarBucket {
         int count = fGrammarRegistry.size() + (fNoNSGrammar==null ? 0 : 1);
         SchemaGrammar[] grammars = new SchemaGrammar[count];
         // get grammars with target namespace
-        Enumeration schemas = fGrammarRegistry.elements();
         int i = 0;
-        while (schemas.hasMoreElements())
-            grammars[i++] = (SchemaGrammar)schemas.nextElement();
+        for(Map.Entry<String, SchemaGrammar> entry : fGrammarRegistry.entrySet()){
+            grammars[i++] = entry.getValue();
+        }
+
         // add the grammar without target namespace, if any
         if (fNoNSGrammar != null)
             grammars[count-1] = fNoNSGrammar;

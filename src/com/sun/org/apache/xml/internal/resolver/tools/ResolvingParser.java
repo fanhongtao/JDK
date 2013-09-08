@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // ResolvingParser.java - An interface for reading catalog files
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,7 +62,6 @@ import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class ResolvingParser
   implements Parser, DTDHandler, DocumentHandler, EntityResolver {
@@ -161,7 +164,7 @@ public class ResolvingParser
    */
   public void parse(InputSource input)
     throws IOException,
-	   SAXException {
+           SAXException {
     setupParse(input.getSystemId());
     try {
       parser.parse(input);
@@ -177,7 +180,7 @@ public class ResolvingParser
    */
   public void parse(String systemId)
     throws IOException,
-	   SAXException {
+           SAXException {
     setupParse(systemId);
     try {
       parser.parse(systemId);
@@ -257,57 +260,57 @@ public class ResolvingParser
 
       int pos = data.indexOf("catalog=");
       if (pos >= 0) {
-	data = data.substring(pos+8);
-	if (data.length() > 1) {
-	  String quote = data.substring(0,1);
-	  data = data.substring(1);
-	  pos = data.indexOf(quote);
-	  if (pos >= 0) {
-	    data = data.substring(0, pos);
-	    try {
-	      if (baseURL != null) {
-		catalog = new URL(baseURL, data);
-	      } else {
-		catalog = new URL(data);
-	      }
-	    } catch (MalformedURLException mue) {
-	      // nevermind
-	    }
-	  }
-	}
+        data = data.substring(pos+8);
+        if (data.length() > 1) {
+          String quote = data.substring(0,1);
+          data = data.substring(1);
+          pos = data.indexOf(quote);
+          if (pos >= 0) {
+            data = data.substring(0, pos);
+            try {
+              if (baseURL != null) {
+                catalog = new URL(baseURL, data);
+              } else {
+                catalog = new URL(data);
+              }
+            } catch (MalformedURLException mue) {
+              // nevermind
+            }
+          }
+        }
       }
 
       if (allowXMLCatalogPI) {
-	if (catalogManager.getAllowOasisXMLCatalogPI()) {
-	  catalogManager.debug.message(4,"oasis-xml-catalog PI", pidata);
+        if (catalogManager.getAllowOasisXMLCatalogPI()) {
+          catalogManager.debug.message(4,"oasis-xml-catalog PI", pidata);
 
-	  if (catalog != null) {
-	    try {
-	      catalogManager.debug.message(4,"oasis-xml-catalog", catalog.toString());
-	      oasisXMLCatalogPI = true;
+          if (catalog != null) {
+            try {
+              catalogManager.debug.message(4,"oasis-xml-catalog", catalog.toString());
+              oasisXMLCatalogPI = true;
 
-	      if (piCatalogResolver == null) {
-		piCatalogResolver = new CatalogResolver(true);
-	      }
+              if (piCatalogResolver == null) {
+                piCatalogResolver = new CatalogResolver(true);
+              }
 
-	      piCatalogResolver.getCatalog().parseCatalog(catalog.toString());
-	    } catch (Exception e) {
-	      catalogManager.debug.message(3, "Exception parsing oasis-xml-catalog: "
-			    + catalog.toString());
-	    }
-	  } else {
-	    catalogManager.debug.message(3, "PI oasis-xml-catalog unparseable: " + pidata);
-	  }
-	} else {
-	  catalogManager.debug.message(4,"PI oasis-xml-catalog ignored: " + pidata);
-	}
+              piCatalogResolver.getCatalog().parseCatalog(catalog.toString());
+            } catch (Exception e) {
+              catalogManager.debug.message(3, "Exception parsing oasis-xml-catalog: "
+                            + catalog.toString());
+            }
+          } else {
+            catalogManager.debug.message(3, "PI oasis-xml-catalog unparseable: " + pidata);
+          }
+        } else {
+          catalogManager.debug.message(4,"PI oasis-xml-catalog ignored: " + pidata);
+        }
       } else {
-	catalogManager.debug.message(3, "PI oasis-xml-catalog occurred in an invalid place: "
-		      + pidata);
+        catalogManager.debug.message(3, "PI oasis-xml-catalog occurred in an invalid place: "
+                      + pidata);
       }
     } else {
       if (documentHandler != null) {
-	documentHandler.processingInstruction(target, pidata);
+        documentHandler.processingInstruction(target, pidata);
       }
     }
   }
@@ -346,9 +349,9 @@ public class ResolvingParser
 
   /** SAX DTDHandler API. */
   public void unparsedEntityDecl (String name,
-				  String publicId,
-				  String systemId,
-				  String notationName) 
+                                  String publicId,
+                                  String systemId,
+                                  String notationName)
     throws SAXException {
     allowXMLCatalogPI = false;
     if (dtdHandler != null) {
@@ -371,28 +374,28 @@ public class ResolvingParser
 
     if (resolved != null) {
       try {
-	InputSource iSource = new InputSource(resolved);
-	iSource.setPublicId(publicId);
+        InputSource iSource = new InputSource(resolved);
+        iSource.setPublicId(publicId);
 
-	// Ideally this method would not attempt to open the
-	// InputStream, but there is a bug (in Xerces, at least)
-	// that causes the parser to mistakenly open the wrong
-	// system identifier if the returned InputSource does
-	// not have a byteStream.
-	//
-	// It could be argued that we still shouldn't do this here,
-	// but since the purpose of calling the entityResolver is
-	// almost certainly to open the input stream, it seems to
-	// do little harm.
-	//
-	URL url = new URL(resolved);
-	InputStream iStream = url.openStream();
-	iSource.setByteStream(iStream);
+        // Ideally this method would not attempt to open the
+        // InputStream, but there is a bug (in Xerces, at least)
+        // that causes the parser to mistakenly open the wrong
+        // system identifier if the returned InputSource does
+        // not have a byteStream.
+        //
+        // It could be argued that we still shouldn't do this here,
+        // but since the purpose of calling the entityResolver is
+        // almost certainly to open the input stream, it seems to
+        // do little harm.
+        //
+        URL url = new URL(resolved);
+        InputStream iStream = url.openStream();
+        iSource.setByteStream(iStream);
 
-	return iSource;
+        return iSource;
       } catch (Exception e) {
-	catalogManager.debug.message(1, "Failed to create InputSource", resolved);
-	return null;
+        catalogManager.debug.message(1, "Failed to create InputSource", resolved);
+        return null;
       }
     } else {
       return null;
@@ -418,15 +421,15 @@ public class ResolvingParser
       baseURL = new URL(systemId);
     } catch (MalformedURLException mue) {
       if (cwd != null) {
-	try {
-	  baseURL = new URL(cwd, systemId);
-	} catch (MalformedURLException mue2) {
-	  // give up
-	  baseURL = null;
-	}
+        try {
+          baseURL = new URL(cwd, systemId);
+        } catch (MalformedURLException mue2) {
+          // give up
+          baseURL = null;
+        }
       } else {
-	// give up
-	baseURL = null;
+        // give up
+        baseURL = null;
       }
     }
   }
@@ -439,4 +442,3 @@ public class ResolvingParser
     }
   }
 }
-

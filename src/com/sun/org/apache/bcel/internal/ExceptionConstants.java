@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal;
 
 /* ====================================================================
@@ -57,7 +61,6 @@ package com.sun.org.apache.bcel.internal;
 /**
  * Exception constants.
  *
- * @version $Id: ExceptionConstants.java,v 1.1.2.1 2005/07/31 23:46:56 jeffsuttor Exp $
  * @author  <A HREF="http://www.inf.fu-berlin.de/~ehaase">E. Haase</A>
  */
 public interface ExceptionConstants {
@@ -76,7 +79,7 @@ public interface ExceptionConstants {
   /** Linking Exceptions
    */
   public static final Class CLASS_CIRCULARITY_ERROR         = ClassCircularityError.class;
-  public static final Class CLASS_FORMAT_ERROR	            = ClassFormatError.class;
+  public static final Class CLASS_FORMAT_ERROR              = ClassFormatError.class;
   public static final Class EXCEPTION_IN_INITIALIZER_ERROR  = ExceptionInInitializerError.class;
   public static final Class INCOMPATIBLE_CLASS_CHANGE_ERROR = IncompatibleClassChangeError.class;
   public static final Class ABSTRACT_METHOD_ERROR           = AbstractMethodError.class;
@@ -91,7 +94,7 @@ public interface ExceptionConstants {
   /* UnsupportedClassVersionError is new in JDK 1.2 */
   //public static final Class UnsupportedClassVersionError = UnsupportedClassVersionError.class;
 
-  /** Run-Time Exceptions 
+  /** Run-Time Exceptions
    */
   public static final Class NULL_POINTER_EXCEPTION              = NullPointerException.class;
   public static final Class ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION = ArrayIndexOutOfBoundsException.class;
@@ -101,10 +104,10 @@ public interface ExceptionConstants {
   public static final Class ILLEGAL_MONITOR_STATE               = IllegalMonitorStateException.class;
 
   /** Pre-defined exception arrays according to chapters 5.1-5.4 of the Java Virtual
-   * Machine Specification 
+   * Machine Specification
    */
   public static final Class[] EXCS_CLASS_AND_INTERFACE_RESOLUTION = {
-    NO_CLASS_DEF_FOUND_ERROR, CLASS_FORMAT_ERROR, VERIFY_ERROR,	ABSTRACT_METHOD_ERROR,
+    NO_CLASS_DEF_FOUND_ERROR, CLASS_FORMAT_ERROR, VERIFY_ERROR, ABSTRACT_METHOD_ERROR,
     EXCEPTION_IN_INITIALIZER_ERROR, ILLEGAL_ACCESS_ERROR
   }; // Chapter 5.1
 

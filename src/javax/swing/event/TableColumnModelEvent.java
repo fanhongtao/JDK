@@ -1,8 +1,26 @@
 /*
- * @(#)TableColumnModelEvent.java	1.19 06/04/11
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.event;
@@ -24,7 +42,6 @@ import javax.swing.table.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 04/11/06
  * @author Alan Chung
  * @see TableColumnModelListener
  */
@@ -35,10 +52,10 @@ public class TableColumnModelEvent extends java.util.EventObject
 //
 
     /** The index of the column from where it was moved or removed */
-    protected int	fromIndex;
+    protected int       fromIndex;
 
     /** The index of the column to where it was moved or added */
-    protected int	toIndex;
+    protected int       toIndex;
 
 //
 // Constructors
@@ -56,11 +73,11 @@ public class TableColumnModelEvent extends java.util.EventObject
      * @see #getToIndex
      */
     public TableColumnModelEvent(TableColumnModel source, int from, int to) {
-	super(source);
-	fromIndex = from;
-	toIndex = to;
+        super(source);
+        fromIndex = from;
+        toIndex = to;
     }
-    
+
 //
 // Querying Methods
 //

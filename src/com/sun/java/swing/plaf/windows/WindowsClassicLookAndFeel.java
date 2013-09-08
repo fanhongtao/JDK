@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsClassicLookAndFeel.java	1.3 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -17,8 +35,10 @@ package com.sun.java.swing.plaf.windows;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.3 11/17/05
  * @since 1.5
  */
 public class WindowsClassicLookAndFeel extends WindowsLookAndFeel {
+    public String getName() {
+        return "Windows Classic";
+    }
 }

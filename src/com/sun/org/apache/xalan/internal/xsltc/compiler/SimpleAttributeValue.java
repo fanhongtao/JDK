@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +44,7 @@ final class SimpleAttributeValue extends AttributeValue {
      * @param value the attribute value.
      */
     public SimpleAttributeValue(String value) {
-	_value = value;
+        _value = value;
     }
 
     /**
@@ -48,15 +52,15 @@ final class SimpleAttributeValue extends AttributeValue {
      * @param stable The compiler/parser's symbol table
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	return _type = Type.String;
+        return _type = Type.String;
     }
-    
+
     public String toString() {
-	return _value;
+        return _value;
     }
-	
+
     protected boolean contextDependent() {
-	return false;
+        return false;
     }
 
     /**
@@ -66,8 +70,8 @@ final class SimpleAttributeValue extends AttributeValue {
      * @param methodGen BCEL Java method generator
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
-	il.append(new PUSH(cpg, _value));
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
+        il.append(new PUSH(cpg, _value));
     }
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +62,7 @@ import org.w3c.dom.Node;
  * -scott
  * </PRE>
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  * @see com.sun.org.apache.xml.internal.security.transforms.implementations.FuncHere
  * @see com.sun.org.apache.xml.internal.security.utils.XPathFuncHereAPI
  * @see <A HREF="http://www.w3.org/Signature/Drafts/xmldsig-core/Overview.html#function-here">XML Signature - The here() function</A>

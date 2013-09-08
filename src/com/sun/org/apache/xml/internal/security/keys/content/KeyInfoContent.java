@@ -1,4 +1,7 @@
-
+/*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 /*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
@@ -24,7 +27,7 @@ package com.sun.org.apache.xml.internal.security.keys.content;
 /**
  * Empty interface just to identify Elements that can be cildren of ds:KeyInfo.
  *
- * @author $Author: blautenb $
+ * @author $Author: mullan $
  */
 public interface KeyInfoContent {
 }

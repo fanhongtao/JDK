@@ -1,8 +1,26 @@
 /*
- * @(#)JumboEnumSet.java	1.10 06/01/27
+ * Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -16,6 +34,8 @@ package java.util;
  * @serial exclude
  */
 class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
+    private static final long serialVersionUID = 334349849919042784L;
+
     /**
      * Bit vector representation of this set.  The ith bit of the jth
      * element of this array represents the  presence of universe[64*j +i]
@@ -71,7 +91,7 @@ class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
      * @return an iterator over the elements contained in this set
      */
     public Iterator<E> iterator() {
-        return new EnumSetIterator<E>();
+        return new EnumSetIterator<>();
     }
 
     private class EnumSetIterator<E extends Enum<E>> implements Iterator<E> {
@@ -120,8 +140,11 @@ class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
         public void remove() {
             if (lastReturned == 0)
                 throw new IllegalStateException();
-            elements[lastReturnedIndex] -= lastReturned;
-            size--;
+            final long oldElements = elements[lastReturnedIndex];
+            elements[lastReturnedIndex] &= ~lastReturned;
+            if (oldElements != elements[lastReturnedIndex]) {
+                size--;
+            }
             lastReturned = 0;
         }
     }
@@ -294,7 +317,7 @@ class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
 
         JumboEnumSet<?> es = (JumboEnumSet<?>)c;
         if (es.elementType != elementType) {
-	    boolean changed = (size != 0);
+            boolean changed = (size != 0);
             clear();
             return changed;
         }
@@ -346,7 +369,7 @@ class JumboEnumSet<E extends Enum<E>> extends EnumSet<E> {
 
     public EnumSet<E> clone() {
         JumboEnumSet<E> result = (JumboEnumSet<E>) super.clone();
-        result.elements = (long[]) result.elements.clone();
+        result.elements = result.elements.clone();
         return result;
     }
 }

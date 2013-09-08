@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,21 +19,22 @@
  */
 package com.sun.org.apache.xerces.internal.impl.xs;
 
+import java.io.IOException;
+import java.io.StringReader;
+
+import com.sun.org.apache.xerces.internal.dom.CoreDocumentImpl;
+import com.sun.org.apache.xerces.internal.parsers.DOMParser;
+import com.sun.org.apache.xerces.internal.parsers.SAXParser;
 import com.sun.org.apache.xerces.internal.xs.XSAnnotation;
 import com.sun.org.apache.xerces.internal.xs.XSConstants;
 import com.sun.org.apache.xerces.internal.xs.XSNamespaceItem;
-import com.sun.org.apache.xerces.internal.parsers.SAXParser;
-import com.sun.org.apache.xerces.internal.parsers.DOMParser;
 
-import org.xml.sax.ContentHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.InputSource;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
 import org.w3c.dom.Document;
-import java.io.StringReader;
-import java.io.IOException;
-
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 /**
  * This is an implementation of the XSAnnotation schema component.
  * 
@@ -54,20 +59,20 @@ public class XSAnnotationImpl implements XSAnnotation {
     }
 
     /**
-     *  Write contents of the annotation to the specified DOM object. If the 
-     * specified <code>target</code> object is a DOM in-scope namespace 
-     * declarations for <code>annotation</code> element are added as 
-     * attributes nodes of the serialized <code>annotation</code>, otherwise 
-     * the corresponding events for all in-scope namespace declaration are 
-     * sent via specified document handler. 
-     * @param target  A target pointer to the annotation target object, i.e. 
-     *   <code>org.w3c.dom.Document</code>, 
-     *   <code>org.xml.sax.ContentHandler</code>. 
-     * @param targetType  A target type. 
-     * @return If the <code>target</code> is recognized type and supported by 
-     *   this implementation return true, otherwise return false. 
+     *  Write contents of the annotation to the specified DOM object. If the
+     * specified <code>target</code> object is a DOM in-scope namespace
+     * declarations for <code>annotation</code> element are added as
+     * attributes nodes of the serialized <code>annotation</code>, otherwise
+     * the corresponding events for all in-scope namespace declaration are
+     * sent via specified document handler.
+     * @param target  A target pointer to the annotation target object, i.e.
+     *   <code>org.w3c.dom.Document</code>,
+     *   <code>org.xml.sax.ContentHandler</code>.
+     * @param targetType  A target type.
+     * @return If the <code>target</code> is recognized type and supported by
+     *   this implementation return true, otherwise return false.
      */
-    public boolean writeAnnotation(Object target, 
+    public boolean writeAnnotation(Object target,
                                    short targetType) {
         if(targetType == XSAnnotation.W3C_DOM_ELEMENT || targetType == XSAnnotation.W3C_DOM_DOCUMENT) {
             writeToDOM((Node)target, targetType);
@@ -89,15 +94,15 @@ public class XSAnnotationImpl implements XSAnnotation {
     // XSObject methods
 
     /**
-     *  The <code>type</code> of this object, i.e. 
-     * <code>ELEMENT_DECLARATION</code>. 
+     *  The <code>type</code> of this object, i.e.
+     * <code>ELEMENT_DECLARATION</code>.
      */
     public short getType() {
         return XSConstants.ANNOTATION;
     }
 
     /**
-     * The name of type <code>NCName</code> of this declaration as defined in 
+     * The name of type <code>NCName</code> of this declaration as defined in
      * XML Namespaces.
      */
     public String getName() {
@@ -105,16 +110,16 @@ public class XSAnnotationImpl implements XSAnnotation {
     }
 
     /**
-     *  The [target namespace] of this object, or <code>null</code> if it is 
-     * unspecified. 
+     *  The [target namespace] of this object, or <code>null</code> if it is
+     * unspecified.
      */
     public String getNamespace() {
         return null;
     }
 
     /**
-     * A namespace schema information item corresponding to the target 
-     * namespace of the component, if it's globally declared; or null 
+     * A namespace schema information item corresponding to the target
+     * namespace of the component, if it's globally declared; or null
      * otherwise.
      */
     public XSNamespaceItem getNamespaceItem() {
@@ -130,34 +135,52 @@ public class XSAnnotationImpl implements XSAnnotation {
         parser.setContentHandler(handler);
         try {
             parser.parse(aSource);
-        } catch (SAXException e) {
+        }
+        catch (SAXException e) {
             // this should never happen!
             // REVISIT:  what to do with this?; should really not
             // eat it...
-        } catch (IOException i) {
+        }
+        catch (IOException i) {
             // ditto with above
         }
+        // Release the reference to the user's ContentHandler.
+        parser.setContentHandler(null);
     }
 
     // this creates the new Annotation element as the first child
     // of the Node
-    private synchronized void writeToDOM(Node target, short type){
-        Document futureOwner = (type == XSAnnotation.W3C_DOM_ELEMENT)?target.getOwnerDocument():(Document)target;
+    private synchronized void writeToDOM(Node target, short type) {
+        Document futureOwner = (type == XSAnnotation.W3C_DOM_ELEMENT) ?
+                target.getOwnerDocument() : (Document)target;
         DOMParser parser = fGrammar.getDOMParser();
         StringReader aReader = new StringReader(fData);
         InputSource aSource = new InputSource(aReader);
         try {
             parser.parse(aSource);
-        } catch (SAXException e) {
+        }
+        catch (SAXException e) {
             // this should never happen!
             // REVISIT:  what to do with this?; should really not
             // eat it...
-        } catch (IOException i) {
+        }
+        catch (IOException i) {
             // ditto with above
         }
         Document aDocument = parser.getDocument();
+        parser.dropDocumentReferences();
         Element annotation = aDocument.getDocumentElement();
-        Node newElem = futureOwner.importNode(annotation, true);
+        Node newElem = null;
+        if (futureOwner instanceof CoreDocumentImpl) {
+            newElem = futureOwner.adoptNode(annotation);
+            // adoptNode will return null when the DOM implementations are not compatible.
+            if (newElem == null) {
+                newElem = futureOwner.importNode(annotation, true);
+            }
+        }
+        else {
+            newElem = futureOwner.importNode(annotation, true);
+        }
         target.insertBefore(newElem, target.getFirstChild());
     }
 

@@ -1,8 +1,26 @@
 /*
- * @(#)ImagePainter.java	1.13 09/08/07
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
@@ -20,11 +38,11 @@ import sun.swing.plaf.synth.Paint9Painter;
  * by way of an insets, and the remaining regions are either tiled or
  * scaled to fit.
  *
- * @version 1.13, 08/07/09
  * @author Scott Violet
  */
 class ImagePainter extends SynthPainter {
-    private static final Object CACHE_KEY = new Object(); // SynthCacheKey
+    private static final StringBuffer CACHE_KEY =
+                               new StringBuffer("SynthCacheKey");
 
     private Image image;
     private Insets sInsets;
@@ -48,14 +66,14 @@ class ImagePainter extends SynthPainter {
             Paint9Painter painter;
             if (cacheRef == null || (painter = cacheRef.get()) == null) {
                 painter = new Paint9Painter(30);
-                cacheRef = new WeakReference(painter);
+                cacheRef = new WeakReference<Paint9Painter>(painter);
                 AppContext.getAppContext().put(CACHE_KEY, cacheRef);
             }
             return painter;
         }
     }
 
-    ImagePainter(boolean tiles, boolean paintCenter, 
+    ImagePainter(boolean tiles, boolean paintCenter,
                  Insets sourceInsets, Insets destinationInsets, URL path,
                  boolean center) {
         if (sourceInsets != null) {
@@ -428,7 +446,7 @@ class ImagePainter extends SynthPainter {
                                      int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintProgressBarBackground(SynthContext context,
                                            Graphics g, int x, int y,
                                            int w, int h, int orientation) {
@@ -440,7 +458,7 @@ class ImagePainter extends SynthPainter {
                                  int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintProgressBarBorder(SynthContext context,
                                        Graphics g, int x, int y,
                                        int w, int h, int orientation) {
@@ -498,7 +516,7 @@ class ImagePainter extends SynthPainter {
                                      int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintScrollBarBackground(SynthContext context,
                                      Graphics g, int x, int y,
                                      int w, int h, int orientation) {
@@ -536,7 +554,7 @@ class ImagePainter extends SynthPainter {
                                      int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintScrollBarTrackBackground(SynthContext context,
                                               Graphics g, int x, int y,
                                               int w, int h, int orientation) {
@@ -554,7 +572,7 @@ class ImagePainter extends SynthPainter {
                                           int w, int h, int orientation) {
         paint(context, g, x, y, w, h);
     }
-    
+
     // SCROLL_PANE
     public void paintScrollPaneBackground(SynthContext context,
                                      Graphics g, int x, int y,
@@ -586,7 +604,7 @@ class ImagePainter extends SynthPainter {
                                  int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintSeparatorBorder(SynthContext context,
                                      Graphics g, int x, int y,
                                      int w, int h, int orientation) {
@@ -605,7 +623,7 @@ class ImagePainter extends SynthPainter {
                                      int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintSliderBackground(SynthContext context,
                                       Graphics g, int x, int y,
                                       int w, int h, int orientation) {
@@ -617,7 +635,7 @@ class ImagePainter extends SynthPainter {
                                  int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintSliderBorder(SynthContext context,
                                   Graphics g, int x, int y,
                                   int w, int h, int orientation) {
@@ -643,7 +661,7 @@ class ImagePainter extends SynthPainter {
                                      int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintSliderTrackBackground(SynthContext context,
                                            Graphics g, int x, int y,
                                            int w, int h, int orientation) {
@@ -656,7 +674,7 @@ class ImagePainter extends SynthPainter {
         paint(context, g, x, y, w, h);
     }
 
-    
+
     public void paintSliderTrackBorder(SynthContext context,
                                        Graphics g, int x, int y,
                                        int w, int h, int orientation) {
@@ -688,7 +706,7 @@ class ImagePainter extends SynthPainter {
                                                 int w, int h, int orientation) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintSplitPaneDividerForeground(SynthContext context,
                                      Graphics g, int x, int y,
                                      int w, int h, int orientation) {
@@ -733,7 +751,7 @@ class ImagePainter extends SynthPainter {
                                      int w, int h) {
         paint(context, g, x, y, w, h);
     }
-    
+
     public void paintTabbedPaneTabAreaBackground(SynthContext context,
                                                  Graphics g, int x, int y,
                                                  int w, int h, int orientation) {
@@ -916,7 +934,7 @@ class ImagePainter extends SynthPainter {
                                           int w, int h, int orientation) {
         paint(context, g, x, y, w, h);
     }
-    
+
     // TOOL_DRAG_WINDOW
     public void paintToolBarDragWindowBackground(SynthContext context,
                                      Graphics g, int x, int y,

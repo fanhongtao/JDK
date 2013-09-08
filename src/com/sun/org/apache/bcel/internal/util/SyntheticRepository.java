@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -78,7 +82,6 @@ import com.sun.org.apache.bcel.internal.classfile.*;
  *
  * @see com.sun.org.apache.bcel.internal.Repository
  *
- * @version $Id: SyntheticRepository.java,v 1.1.2.1 2005/07/31 23:47:04 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @author David Dixon-Peugh
  */
@@ -135,7 +138,7 @@ public class SyntheticRepository implements Repository {
    * Load a JavaClass object for the given class name using
    * the CLASSPATH environment variable.
    */
-  public JavaClass loadClass(String className) 
+  public JavaClass loadClass(String className)
     throws ClassNotFoundException
   {
     if(className == null || className.equals("")) {
@@ -147,8 +150,8 @@ public class SyntheticRepository implements Repository {
     try {
       return loadClass(_path.getInputStream(className), className);
     } catch(IOException e) {
-      throw new ClassNotFoundException("Exception while looking for class " + 
-				       className + ": " + e.toString());
+      throw new ClassNotFoundException("Exception while looking for class " +
+                                       className + ": " + e.toString());
     }
   }
 
@@ -174,26 +177,26 @@ public class SyntheticRepository implements Repository {
   {
     JavaClass clazz = findClass(className);
 
-    if(clazz != null) { 
+    if(clazz != null) {
       return clazz;
     }
 
     try {
       if(is != null) {
-	ClassParser parser = new ClassParser(is, className);
-	clazz = parser.parse();
-	
-	storeClass(clazz);
-	
-	return clazz;
+        ClassParser parser = new ClassParser(is, className);
+        clazz = parser.parse();
+
+        storeClass(clazz);
+
+        return clazz;
       }
     } catch(IOException e) {
-      throw new ClassNotFoundException("Exception while looking for class " + 
-				       className + ": " + e.toString());
+      throw new ClassNotFoundException("Exception while looking for class " +
+                                       className + ": " + e.toString());
     }
 
     throw new ClassNotFoundException("SyntheticRepository could not load " +
-				     className);    
+                                     className);
   }
 
   /** Clear all entries from cache.

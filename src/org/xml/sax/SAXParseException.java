@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // SAX exception class.
 // http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
@@ -231,7 +256,24 @@ public class SAXParseException extends SAXException {
 	return this.columnNumber;
     }
     
-    
+    /**
+     * Override toString to provide more detailed error message.
+     *
+     * @return A string representation of this exception.
+     */
+    public String toString() {
+        StringBuilder buf = new StringBuilder(getClass().getName());
+        String message = getLocalizedMessage();
+        if (publicId!=null)    buf.append("publicId: ").append(publicId);
+        if (systemId!=null)    buf.append("; systemId: ").append(systemId);
+        if (lineNumber!=-1)    buf.append("; lineNumber: ").append(lineNumber);
+        if (columnNumber!=-1)  buf.append("; columnNumber: ").append(columnNumber);
+
+       //append the exception message at the end
+        if (message!=null)     buf.append("; ").append(message);
+        return buf.toString();    
+    }
+    
     //////////////////////////////////////////////////////////////////////
     // Internal state.
     //////////////////////////////////////////////////////////////////////

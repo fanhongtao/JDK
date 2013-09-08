@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -200,7 +204,7 @@ public class DTMNamedNodeMap implements NamedNodeMap
        {
          if (localName.equals(dtm.getLocalName(n)))
          {
-           String nsURI = dtm.getNamespaceURI(n); 
+           String nsURI = dtm.getNamespaceURI(n);
            if ((namespaceURI == null && nsURI == null)
                   || (namespaceURI != null && namespaceURI.equals(nsURI)))
            {
@@ -248,7 +252,7 @@ public class DTMNamedNodeMap implements NamedNodeMap
    * immediately appears containing the default value as well as the
    * corresponding namespace URI, local name, and prefix when applicable.
    * <br>HTML-only DOM implementations do not need to implement this method.
-   * 
+   *
    * @param namespaceURI The namespace URI of the node to remove.
    * @param localName The local name of the node to remove.
    *

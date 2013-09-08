@@ -1,8 +1,26 @@
 /*
- * @(#)MirroredTypeException.java	1.2 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.type;
@@ -17,15 +35,22 @@ import com.sun.mirror.declaration.Declaration;
  * Thrown when an application attempts to access the {@link Class} object
  * corresponding to a {@link TypeMirror}.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  The replacement for the
+ * functionality of this exception is {@link
+ * javax.lang.model.type.MirroredTypeException}.
+ *
  * @see MirroredTypesException
  * @see Declaration#getAnnotation(Class)
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class MirroredTypeException extends RuntimeException {
 
     private static final long serialVersionUID = 1;
 
-    private transient TypeMirror type;		// cannot be serialized
-    private String name;			// type's qualified "name"
+    private transient TypeMirror type;          // cannot be serialized
+    private String name;                        // type's qualified "name"
 
     /**
      * Constructs a new MirroredTypeException for the specified type.
@@ -33,9 +58,9 @@ public class MirroredTypeException extends RuntimeException {
      * @param type  the type being accessed
      */
     public MirroredTypeException(TypeMirror type) {
-	super("Attempt to access Class object for TypeMirror " + type);
-	this.type = type;
-	name = type.toString();
+        super("Attempt to access Class object for TypeMirror " + type);
+        this.type = type;
+        name = type.toString();
     }
 
     /**
@@ -46,7 +71,7 @@ public class MirroredTypeException extends RuntimeException {
      * @return the type mirror, or <tt>null</tt> if unavailable
      */
     public TypeMirror getTypeMirror() {
-	return type;
+        return type;
     }
 
     /**
@@ -58,6 +83,6 @@ public class MirroredTypeException extends RuntimeException {
      * @return the fully qualified name of the type being accessed
      */
     public String getQualifiedName() {
-	return name;
+        return name;
     }
 }

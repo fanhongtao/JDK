@@ -1,8 +1,26 @@
 /*
- * @(#)OAInvocationInfo.java	1.9 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.oa;
 
@@ -26,19 +44,19 @@ public class OAInvocationInfo extends ServantObject {
     // In the RMI-IIOP case, it is the RMI-IIOP Tie, and the servant is the
     // target of the Tie.
     // In all other cases, it is the same as the Servant.
-    private java.lang.Object	servantContainer ;
+    private java.lang.Object    servantContainer ;
 
     // These fields are to support standard OMG APIs.
-    private ObjectAdapter	oa; 
-    private byte[]		oid;
+    private ObjectAdapter       oa;
+    private byte[]              oid;
 
     // These fields are to support the Object adapter implementation.
-    private CookieHolder	cookieHolder;
-    private String		operation;
+    private CookieHolder        cookieHolder;
+    private String              operation;
 
     // This is the copier to be used by javax.rmi.CORBA.Util.copyObject(s)
     // For the current request.
-    private ObjectCopierFactory	factory ;
+    private ObjectCopierFactory factory ;
 
     public OAInvocationInfo(ObjectAdapter oa, byte[] id )
     {
@@ -49,44 +67,44 @@ public class OAInvocationInfo extends ServantObject {
     // Copy constructor of sorts; used in local optimization path
     public OAInvocationInfo( OAInvocationInfo info, String operation )
     {
-	this.servant		= info.servant ;
-	this.servantContainer	= info.servantContainer ;
-	this.cookieHolder	= info.cookieHolder ;
-        this.oa			= info.oa;
-        this.oid		= info.oid;
-	this.factory		= info.factory ;
+        this.servant            = info.servant ;
+        this.servantContainer   = info.servantContainer ;
+        this.cookieHolder       = info.cookieHolder ;
+        this.oa                 = info.oa;
+        this.oid                = info.oid;
+        this.factory            = info.factory ;
 
-	this.operation		= operation;
+        this.operation          = operation;
     }
 
     //getters
-    public ObjectAdapter    oa()		    { return oa ; }
-    public byte[]	    id()		    { return oid ; }
-    public Object	    getServantContainer()   { return servantContainer ; }
+    public ObjectAdapter    oa()                    { return oa ; }
+    public byte[]           id()                    { return oid ; }
+    public Object           getServantContainer()   { return servantContainer ; }
 
     // Create CookieHolder on demand.  This is only called by a single
     // thread, so no synchronization is needed.
-    public CookieHolder	    getCookieHolder()	
-    { 
-	if (cookieHolder == null)
-	    cookieHolder = new CookieHolder() ;
+    public CookieHolder     getCookieHolder()
+    {
+        if (cookieHolder == null)
+            cookieHolder = new CookieHolder() ;
 
-	return cookieHolder; 
+        return cookieHolder;
     }
 
-    public String	    getOperation()	{ return operation; }
-    public ObjectCopierFactory	getCopierFactory()	{ return factory; }
+    public String           getOperation()      { return operation; }
+    public ObjectCopierFactory  getCopierFactory()      { return factory; }
 
     //setters
     public void setOperation( String operation )    { this.operation = operation ; }
-    public void setCopierFactory( ObjectCopierFactory factory )    { this.factory = factory ; } 
+    public void setCopierFactory( ObjectCopierFactory factory )    { this.factory = factory ; }
 
-    public void setServant(Object servant) 
-    { 
-	servantContainer = servant ;
-	if (servant instanceof Tie)
-	    this.servant = ((Tie)servant).getTarget() ;
-	else
-	    this.servant = servant; 
+    public void setServant(Object servant)
+    {
+        servantContainer = servant ;
+        if (servant instanceof Tie)
+            this.servant = ((Tie)servant).getTarget() ;
+        else
+            this.servant = servant;
     }
 }

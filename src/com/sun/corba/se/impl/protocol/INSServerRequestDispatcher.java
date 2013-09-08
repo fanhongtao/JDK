@@ -1,16 +1,32 @@
 /*
- * @(#)INSServerRequestDispatcher.java	1.7 05/11/17 
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.protocol;
@@ -30,13 +46,13 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException;
 /**
  * INSServerRequestDispatcher handles all INS related discovery request. The INS Service
  * can be registered using ORB.register_initial_reference().
- * This Singleton subcontract just 
+ * This Singleton subcontract just
  * finds the target IOR and does location forward.
  * XXX PI points are not invoked in either dispatch() or locate() method this
  * should be fixed in Tiger.
- */ 
-public class INSServerRequestDispatcher 
-    implements CorbaServerRequestDispatcher 
+ */
+public class INSServerRequestDispatcher
+    implements CorbaServerRequestDispatcher
 {
 
     private ORB orb = null;
@@ -44,26 +60,26 @@ public class INSServerRequestDispatcher
 
     public INSServerRequestDispatcher( ORB orb ) {
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
     }
 
     // Need to signal one of OBJECT_HERE, OBJECT_FORWARD, OBJECT_NOT_EXIST.
-    public IOR locate(ObjectKey okey) { 
-        // send a locate forward with the right IOR. If the insKey is not 
+    public IOR locate(ObjectKey okey) {
+        // send a locate forward with the right IOR. If the insKey is not
         // registered then it will throw OBJECT_NOT_EXIST Exception
         String insKey = new String( okey.getBytes(orb) );
         return getINSReference( insKey );
     }
 
-    public void dispatch(MessageMediator mediator) 
+    public void dispatch(MessageMediator mediator)
     {
-	CorbaMessageMediator request = (CorbaMessageMediator) mediator;
-        // send a locate forward with the right IOR. If the insKey is not 
+        CorbaMessageMediator request = (CorbaMessageMediator) mediator;
+        // send a locate forward with the right IOR. If the insKey is not
         // registered then it will throw OBJECT_NOT_EXIST Exception
         String insKey = new String( request.getObjectKey().getBytes(orb) );
-	request.getProtocolHandler()
-	    .createLocationForward(request, getINSReference( insKey ), null);
+        request.getProtocolHandler()
+            .createLocationForward(request, getINSReference( insKey ), null);
         return;
     }
 
@@ -78,6 +94,6 @@ public class INSServerRequestDispatcher
             return entry;
         }
 
-	throw wrapper.servantNotFound() ;
+        throw wrapper.servantNotFound() ;
     }
 }

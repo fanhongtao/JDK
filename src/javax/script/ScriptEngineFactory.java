@@ -1,8 +1,26 @@
 /*
- * @(#)ScriptEngineFactory.java	1.3 05/11/17 14:24:14
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTAIL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.script;
@@ -30,14 +48,14 @@ public interface ScriptEngineFactory {
      * @return The name of the engine implementation.
      */
     public String getEngineName();
-    
+
     /**
      * Returns the version of the <code>ScriptEngine</code>.
      * @return The <code>ScriptEngine</code> implementation version.
      */
     public String getEngineVersion();
-    
-    
+
+
     /**
      * Returns an immutable list of filename extensions, which generally identify scripts
      * written in the language supported by this <code>ScriptEngine</code>.
@@ -46,8 +64,8 @@ public interface ScriptEngineFactory {
      * @return The list of extensions.
      */
     public List<String> getExtensions();
-    
-    
+
+
     /**
      * Returns an immutable list of mimetypes, associated with scripts that
      * can be executed by the engine.  The list is used by the
@@ -56,7 +74,7 @@ public interface ScriptEngineFactory {
      * @return The list of mime types.
      */
     public List<String> getMimeTypes();
-    
+
     /**
      * Returns an immutable list of  short names for the <code>ScriptEngine</code>, which may be used to
      * identify the <code>ScriptEngine</code> by the <code>ScriptEngineManager</code>.
@@ -64,21 +82,21 @@ public interface ScriptEngineFactory {
      * return list containing {&quot;javascript&quot;, &quot;rhino&quot;}.
      */
     public List<String> getNames();
-    
+
     /**
      * Returns the name of the scripting langauge supported by this
      * <code>ScriptEngine</code>.
      * @return The name of the supported language.
      */
     public String getLanguageName();
-    
+
     /**
      * Returns the version of the scripting language supported by this
      * <code>ScriptEngine</code>.
      * @return The version of the supported language.
      */
     public String getLanguageVersion();
-    
+
     /**
      * Returns the value of an attribute whose meaning may be implementation-specific.
      * Keys for which the value is defined in all implementations are:
@@ -97,20 +115,19 @@ public interface ScriptEngineFactory {
      * with respect to concurrent execution of scripts and maintenance of state is also defined.
      * These values for the <code><b>THREADING</b></code> key are:<br><br>
      * <ul>
-     * <p><code>null</code> - The engine implementation is not thread safe, and cannot
+     * <li><code>null</code> - The engine implementation is not thread safe, and cannot
      * be used to execute scripts concurrently on multiple threads.
-     * <p><code>&quot;MULTITHREADED&quot;</code> - The engine implementation is internally
+     * <li><code>&quot;MULTITHREADED&quot;</code> - The engine implementation is internally
      * thread-safe and scripts may execute concurrently although effects of script execution
      * on one thread may be visible to scripts on other threads.
-     * <p><code>&quot;THREAD-ISOLATED&quot;</code> - The implementation satisfies the requirements
+     * <li><code>&quot;THREAD-ISOLATED&quot;</code> - The implementation satisfies the requirements
      * of &quot;MULTITHREADED&quot;, and also, the engine maintains independent values
      * for symbols in scripts executing on different threads.
-     * <p><code>&quot;STATELESS&quot;</code> - The implementation satisfies the requirements of
-     * <code>&quot;THREAD-ISOLATED&quot;</code>.  In addition, script executions do not alter the
+     * <li><code>&quot;STATELESS&quot;</code> - The implementation satisfies the requirements of
+     * <li><code>&quot;THREAD-ISOLATED&quot;</code>.  In addition, script executions do not alter the
      * mappings in the <code>Bindings</code> which is the engine scope of the
      * <code>ScriptEngine</code>.  In particular, the keys in the <code>Bindings</code>
      * and their associated values are the same before and after the execution of the script.
-     * </li>
      * </ul>
      * <br><br>
      * Implementations may define implementation-specific keys.
@@ -121,28 +138,29 @@ public interface ScriptEngineFactory {
      *
      */
     public Object getParameter(String key);
-    
+
     /**
      * Returns a String which can be used to invoke a method of a  Java object using the syntax
      * of the supported scripting language.  For instance, an implementaton for a Javascript
      * engine might be;
      * <p>
-     * <code><pre>
+     * <pre>
+     * <code>
      * public String getMethodCallSyntax(String obj,
      *                                   String m, String... args) {
      *      String ret = obj;
      *      ret += "." + m + "(";
      *      for (int i = 0; i < args.length; i++) {
      *          ret += args[i];
-     *          if (i == args.length - 1) {
-     *              ret += ")";
-     *          } else {
+     *          if (i < args.length - 1) {
      *              ret += ",";
      *          }
      *      }
+     *      ret += ")";
      *      return ret;
      * }
-     *</pre></code>
+     *</code>
+     *</pre>
      * <p>
      *
      * @param obj The name representing the object whose method is to be invoked. The
@@ -158,7 +176,7 @@ public interface ScriptEngineFactory {
      * @return The String used to invoke the method in the syntax of the scripting language.
      */
     public String getMethodCallSyntax(String obj, String m, String... args);
-    
+
     /**
      * Returns a String that can be used as a statement to display the specified String  using
      * the syntax of the supported scripting language.  For instance, the implementaton for a Perl
@@ -176,8 +194,8 @@ public interface ScriptEngineFactory {
      *
      */
     public String getOutputStatement(String toDisplay);
-    
-    
+
+
     /**
      * Returns A valid scripting language executable progam with given statements.
      * For instance an implementation for a PHP engine might be:
@@ -198,9 +216,9 @@ public interface ScriptEngineFactory {
      *  calls to the <code>getMethodCallSyntax</code> and <code>getOutputStatement</code> methods.
      *  @return The Program
      */
-    
+
     public String getProgram(String... statements);
-    
+
     /**
      * Returns an instance of the <code>ScriptEngine</code> associated with this
      * <code>ScriptEngineFactory</code>. A new ScriptEngine is generally

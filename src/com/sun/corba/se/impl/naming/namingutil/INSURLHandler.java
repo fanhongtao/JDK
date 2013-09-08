@@ -1,8 +1,26 @@
 /*
- * @(#)INSURLHandler.java	1.6 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.naming.namingutil;
 
@@ -11,7 +29,7 @@ import java.util.StringTokenizer;
 
 /**
  *  This class is the entry point to parse different types of INS URL's.
- * 
+ *
  *  @Author Hemanth
  */
 
@@ -38,10 +56,10 @@ public class INSURLHandler {
     public INSURL parseURL( String aUrl ) {
         String url = aUrl;
         if ( url.startsWith( "corbaloc:" ) == true ) {
-            return new CorbalocURL( url.substring( CORBALOC_PREFIX_LENGTH ) ); 
+            return new CorbalocURL( url.substring( CORBALOC_PREFIX_LENGTH ) );
         } else if ( url.startsWith ( "corbaname:" ) == true ) {
             return new CorbanameURL( url.substring( CORBANAME_PREFIX_LENGTH ) );
-        } 
+        }
         return null;
     }
 }

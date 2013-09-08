@@ -1,8 +1,26 @@
 /*
- * @(#)MBeanServer.java	1.147 06/07/27
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -24,7 +42,7 @@ import javax.management.loading.ClassLoaderRepository;
  *
  * <p>User code does not usually implement this interface.  Instead,
  * an object that implements this interface is obtained with one of
- * the methods in the {@link MBeanServerFactory} class.</p>
+ * the methods in the {@link javax.management.MBeanServerFactory} class.</p>
  *
  * <p>Every MBean which is added to the MBean server becomes
  * manageable: its attributes and operations become remotely
@@ -32,8 +50,8 @@ import javax.management.loading.ClassLoaderRepository;
  * server.  A Java object cannot be registered in the MBean server
  * unless it is a JMX compliant MBean.</p>
  *
- * <p>When an MBean is registered or unregistered in the MBean server
- * a {@link javax.management.MBeanServerNotification
+ * <p id="notif">When an MBean is registered or unregistered in the
+ * MBean server a {@link javax.management.MBeanServerNotification
  * MBeanServerNotification} Notification is emitted. To register an
  * object as listener to MBeanServerNotifications you should call the
  * MBean server method {@link #addNotificationListener
@@ -55,7 +73,8 @@ import javax.management.loading.ClassLoaderRepository;
  *
  * <p>Assuming that there is a security manager, or that the
  * implementation chooses to make checks anyway, the checks are made
- * as detailed below.  In what follows, <code>className</code> is the
+ * as detailed below.  In what follows, and unless otherwise specified,
+ * {@code className} is the
  * string returned by {@link MBeanInfo#getClassName()} for the target
  * MBean.</p>
  *
@@ -138,11 +157,11 @@ import javax.management.loading.ClassLoaderRepository;
  * <li><p>For the {@link #queryMBeans queryMBeans} method, the
  * caller's permissions must imply {@link
  * MBeanPermission#MBeanPermission(String,String,ObjectName,String)
- * MBeanPermission(null, null, name, "queryMBeans")}.
- * Additionally, for each MBean that matches <code>name</code>,
+ * MBeanPermission(null, null, null, "queryMBeans")}.
+ * Additionally, for each MBean <em>n</em> that matches <code>name</code>,
  * if the caller's permissions do not imply {@link
  * MBeanPermission#MBeanPermission(String,String,ObjectName,String)
- * MBeanPermission(className, null, name, "queryMBeans")}, the
+ * MBeanPermission(className, null, <em>n</em>, "queryMBeans")}, the
  * MBean server will behave as if that MBean did not exist.</p>
  *
  * <p>Certain query elements perform operations on the MBean server.
@@ -162,7 +181,7 @@ import javax.management.loading.ClassLoaderRepository;
  * <li><p>For the {@link #getDomains getDomains} method, the caller's
  * permissions must imply {@link
  * MBeanPermission#MBeanPermission(String,String,ObjectName,String)
- * MBeanPermission(null, null, name, "getDomains")}.  Additionally,
+ * MBeanPermission(null, null, null, "getDomains")}.  Additionally,
  * for each domain <var>d</var> in the returned array, if the caller's
  * permissions do not imply {@link
  * MBeanPermission#MBeanPermission(String,String,ObjectName,String)
@@ -196,14 +215,14 @@ import javax.management.loading.ClassLoaderRepository;
  * <li><p>For the <code>instantiate</code> methods, the caller's
  * permissions must imply {@link
  * MBeanPermission#MBeanPermission(String,String,ObjectName,String)
- * MBeanPermission(className, null, null, "instantiate")}.</p>
+ * MBeanPermission(className, null, null, "instantiate")},
+ * where {@code className} is the name of the class which is to
+ * be instantiated.</p>
  *
  * <li><p>For the {@link #registerMBean registerMBean} method, the
  * caller's permissions must imply {@link
  * MBeanPermission#MBeanPermission(String,String,ObjectName,String)
- * MBeanPermission(className, null, name, "registerMBean")}.  Here
- * <code>className</code> is the string returned by {@link
- * MBeanInfo#getClassName()} for an object of this class.
+ * MBeanPermission(className, null, name, "registerMBean")}.
  *
  * <p>If the <code>MBeanPermission</code> check succeeds, the MBean's
  * class is validated by checking that its {@link
@@ -225,12 +244,13 @@ import javax.management.loading.ClassLoaderRepository;
  * the caller's permissions must imply {@link
  * MBeanPermission#MBeanPermission(String,String,ObjectName,String)
  * MBeanPermission(className, null, name, "unregisterMBean")}.</p>
+ * </p>
  *
  * </ul>
  *
  * @since 1.5
  */
- 
+
 /* DELETED:
  *
  * <li><p>For the {@link #isRegistered isRegistered} method, the
@@ -239,44 +259,79 @@ import javax.management.loading.ClassLoaderRepository;
  * MBeanPermission(null, null, name, "isRegistered")}.</p>
  */
 public interface MBeanServer extends MBeanServerConnection {
-    
-    // doc comment inherited from MBeanServerConnection
-    public ObjectInstance createMBean(String className, ObjectName name)
-	    throws ReflectionException, InstanceAlreadyExistsException,
-		   MBeanRegistrationException, MBeanException,
-		   NotCompliantMBeanException;
-
-    // doc comment inherited from MBeanServerConnection
-    public ObjectInstance createMBean(String className, ObjectName name,
-				      ObjectName loaderName) 
-	    throws ReflectionException, InstanceAlreadyExistsException,
-		   MBeanRegistrationException, MBeanException,
-		   NotCompliantMBeanException, InstanceNotFoundException;
-
-    // doc comment inherited from MBeanServerConnection
-    public ObjectInstance createMBean(String className, ObjectName name,
-				      Object params[], String signature[]) 
-	    throws ReflectionException, InstanceAlreadyExistsException,
-	    	   MBeanRegistrationException, MBeanException,
-	    	   NotCompliantMBeanException;
-
-    // doc comment inherited from MBeanServerConnection
-    public ObjectInstance createMBean(String className, ObjectName name,
-				      ObjectName loaderName, Object params[],
-				      String signature[]) 
-	    throws ReflectionException, InstanceAlreadyExistsException,
-	    	   MBeanRegistrationException, MBeanException,
-	    	   NotCompliantMBeanException, InstanceNotFoundException;
 
     /**
-     * Registers a pre-existing object as an MBean with the MBean
+     * {@inheritDoc}
+     * <p>If this method successfully creates an MBean, a notification
+     * is sent as described <a href="#notif">above</a>.</p>
+     *
+     * @throws RuntimeOperationsException {@inheritDoc}
+     * @throws RuntimeMBeanException {@inheritDoc}
+     * @throws RuntimeErrorException {@inheritDoc}
+     */
+    public ObjectInstance createMBean(String className, ObjectName name)
+            throws ReflectionException, InstanceAlreadyExistsException,
+                   MBeanRegistrationException, MBeanException,
+                   NotCompliantMBeanException;
+
+    /**
+     * {@inheritDoc}
+     * <p>If this method successfully creates an MBean, a notification
+     * is sent as described <a href="#notif">above</a>.</p>
+     *
+     * @throws RuntimeOperationsException {@inheritDoc}
+     * @throws RuntimeMBeanException {@inheritDoc}
+     * @throws RuntimeErrorException {@inheritDoc}
+     */
+    public ObjectInstance createMBean(String className, ObjectName name,
+                                      ObjectName loaderName)
+            throws ReflectionException, InstanceAlreadyExistsException,
+                   MBeanRegistrationException, MBeanException,
+                   NotCompliantMBeanException, InstanceNotFoundException;
+
+    /**
+     * {@inheritDoc}
+     * <p>If this method successfully creates an MBean, a notification
+     * is sent as described <a href="#notif">above</a>.</p>
+     *
+     * @throws RuntimeOperationsException {@inheritDoc}
+     * @throws RuntimeMBeanException {@inheritDoc}
+     * @throws RuntimeErrorException {@inheritDoc}
+     */
+    public ObjectInstance createMBean(String className, ObjectName name,
+                                      Object params[], String signature[])
+            throws ReflectionException, InstanceAlreadyExistsException,
+                   MBeanRegistrationException, MBeanException,
+                   NotCompliantMBeanException;
+
+    /**
+     * {@inheritDoc}
+     * <p>If this method successfully creates an MBean, a notification
+     * is sent as described <a href="#notif">above</a>.</p>
+     *
+     * @throws RuntimeOperationsException {@inheritDoc}
+     * @throws RuntimeMBeanException {@inheritDoc}
+     * @throws RuntimeErrorException {@inheritDoc}
+     */
+    public ObjectInstance createMBean(String className, ObjectName name,
+                                      ObjectName loaderName, Object params[],
+                                      String signature[])
+            throws ReflectionException, InstanceAlreadyExistsException,
+                   MBeanRegistrationException, MBeanException,
+                   NotCompliantMBeanException, InstanceNotFoundException;
+
+    /**
+     * <p>Registers a pre-existing object as an MBean with the MBean
      * server. If the object name given is null, the MBean must
      * provide its own name by implementing the {@link
      * javax.management.MBeanRegistration MBeanRegistration} interface
      * and returning the name from the {@link
      * MBeanRegistration#preRegister preRegister} method.
      *
-     * @param object The  MBean to be registered as an MBean.	  
+     * <p>If this method successfully registers an MBean, a notification
+     * is sent as described <a href="#notif">above</a>.</p>
+     *
+     * @param object The  MBean to be registered as an MBean.
      * @param name The object name of the MBean. May be null.
      *
      * @return An <CODE>ObjectInstance</CODE>, containing the
@@ -291,31 +346,68 @@ public interface MBeanServer extends MBeanServerConnection {
      * <CODE>preRegister</CODE> (<CODE>MBeanRegistration</CODE>
      * interface) method of the MBean has thrown an exception. The
      * MBean will not be registered.
+     * @exception RuntimeMBeanException If the <CODE>postRegister</CODE>
+     * (<CODE>MBeanRegistration</CODE> interface) method of the MBean throws a
+     * <CODE>RuntimeException</CODE>, the <CODE>registerMBean</CODE> method will
+     * throw a <CODE>RuntimeMBeanException</CODE>, although the MBean
+     * registration succeeded. In such a case, the MBean will be actually
+     * registered even though the <CODE>registerMBean</CODE> method
+     * threw an exception.  Note that <CODE>RuntimeMBeanException</CODE> can
+     * also be thrown by <CODE>preRegister</CODE>, in which case the MBean
+     * will not be registered.
+     * @exception RuntimeErrorException If the <CODE>postRegister</CODE>
+     * (<CODE>MBeanRegistration</CODE> interface) method of the MBean throws an
+     * <CODE>Error</CODE>, the <CODE>registerMBean</CODE> method will
+     * throw a <CODE>RuntimeErrorException</CODE>, although the MBean
+     * registration succeeded. In such a case, the MBean will be actually
+     * registered even though the <CODE>registerMBean</CODE> method
+     * threw an exception.  Note that <CODE>RuntimeErrorException</CODE> can
+     * also be thrown by <CODE>preRegister</CODE>, in which case the MBean
+     * will not be registered.
      * @exception NotCompliantMBeanException This object is not a JMX
      * compliant MBean
      * @exception RuntimeOperationsException Wraps a
      * <CODE>java.lang.IllegalArgumentException</CODE>: The object
      * passed in parameter is null or no object name is specified.
+     * @see javax.management.MBeanRegistration
      */
     public ObjectInstance registerMBean(Object object, ObjectName name)
-	    throws InstanceAlreadyExistsException, MBeanRegistrationException,
-		   NotCompliantMBeanException;
+            throws InstanceAlreadyExistsException, MBeanRegistrationException,
+                   NotCompliantMBeanException;
 
-    // doc comment inherited from MBeanServerConnection
+    /**
+     * {@inheritDoc}
+     *
+     * <p>If this method successfully unregisters an MBean, a notification
+     * is sent as described <a href="#notif">above</a>.</p>
+     *
+     * @throws RuntimeOperationsException {@inheritDoc}
+     * @throws RuntimeMBeanException {@inheritDoc}
+     * @throws RuntimeErrorException {@inheritDoc}
+     */
     public void unregisterMBean(ObjectName name)
-	    throws InstanceNotFoundException, MBeanRegistrationException;
+            throws InstanceNotFoundException, MBeanRegistrationException;
 
     // doc comment inherited from MBeanServerConnection
     public ObjectInstance getObjectInstance(ObjectName name)
-	    throws InstanceNotFoundException;
+            throws InstanceNotFoundException;
 
-    // doc comment inherited from MBeanServerConnection
+    /**
+     * {@inheritDoc}
+      * @throws RuntimeOperationsException {@inheritDoc}
+     */
     public Set<ObjectInstance> queryMBeans(ObjectName name, QueryExp query);
 
-    // doc comment inherited from MBeanServerConnection
+    /**
+     * {@inheritDoc}
+      * @throws RuntimeOperationsException {@inheritDoc}
+    */
     public Set<ObjectName> queryNames(ObjectName name, QueryExp query);
 
     // doc comment inherited from MBeanServerConnection
+    /**
+     * @throws RuntimeOperationsException {@inheritDoc}
+     */
     public boolean isRegistered(ObjectName name);
 
     /**
@@ -328,84 +420,105 @@ public interface MBeanServer extends MBeanServerConnection {
     public Integer getMBeanCount();
 
     // doc comment inherited from MBeanServerConnection
+    /**
+     * @throws RuntimeOperationsException {@inheritDoc}
+     */
     public Object getAttribute(ObjectName name, String attribute)
-	    throws MBeanException, AttributeNotFoundException,
-	    	   InstanceNotFoundException, ReflectionException;
+            throws MBeanException, AttributeNotFoundException,
+                   InstanceNotFoundException, ReflectionException;
 
     // doc comment inherited from MBeanServerConnection
+    /**
+     * @throws RuntimeOperationsException {@inheritDoc}
+     */
     public AttributeList getAttributes(ObjectName name, String[] attributes)
-	    throws InstanceNotFoundException, ReflectionException;
+            throws InstanceNotFoundException, ReflectionException;
 
     // doc comment inherited from MBeanServerConnection
+    /**
+     * @throws RuntimeOperationsException {@inheritDoc}
+     */
     public void setAttribute(ObjectName name, Attribute attribute)
-	    throws InstanceNotFoundException, AttributeNotFoundException,
-		   InvalidAttributeValueException, MBeanException, 
-		   ReflectionException;
+            throws InstanceNotFoundException, AttributeNotFoundException,
+                   InvalidAttributeValueException, MBeanException,
+                   ReflectionException;
 
     // doc comment inherited from MBeanServerConnection
+    /**
+     * @throws RuntimeOperationsException {@inheritDoc}
+     */
     public AttributeList setAttributes(ObjectName name,
-				       AttributeList attributes)
-	throws InstanceNotFoundException, ReflectionException;
+                                       AttributeList attributes)
+        throws InstanceNotFoundException, ReflectionException;
 
     // doc comment inherited from MBeanServerConnection
     public Object invoke(ObjectName name, String operationName,
-			 Object params[], String signature[])
-	    throws InstanceNotFoundException, MBeanException,
-		   ReflectionException;
- 
+                         Object params[], String signature[])
+            throws InstanceNotFoundException, MBeanException,
+                   ReflectionException;
+
     // doc comment inherited from MBeanServerConnection
     public String getDefaultDomain();
 
     // doc comment inherited from MBeanServerConnection
     public String[] getDomains();
 
-    // doc comment inherited from MBeanServerConnection
+    // doc comment inherited from MBeanServerConnection, plus:
+    /**
+     * {@inheritDoc}
+     * If the source of the notification
+     * is a reference to an MBean object, the MBean server will replace it
+     * by that MBean's ObjectName.  Otherwise the source is unchanged.
+     */
     public void addNotificationListener(ObjectName name,
-					NotificationListener listener,
-					NotificationFilter filter,
-					Object handback)
-	    throws InstanceNotFoundException;
+                                        NotificationListener listener,
+                                        NotificationFilter filter,
+                                        Object handback)
+            throws InstanceNotFoundException;
 
-    // doc comment inherited from MBeanServerConnection
+    /**
+     * {@inheritDoc}
+     * @throws RuntimeOperationsException {@inheritDoc}
+     */
     public void addNotificationListener(ObjectName name,
-					ObjectName listener,
-					NotificationFilter filter,
-					Object handback)
-	    throws InstanceNotFoundException;
+                                        ObjectName listener,
+                                        NotificationFilter filter,
+                                        Object handback)
+            throws InstanceNotFoundException;
 
     // doc comment inherited from MBeanServerConnection
     public void removeNotificationListener(ObjectName name,
-					   ObjectName listener) 
-	throws InstanceNotFoundException, ListenerNotFoundException;
+                                           ObjectName listener)
+        throws InstanceNotFoundException, ListenerNotFoundException;
 
     // doc comment inherited from MBeanServerConnection
     public void removeNotificationListener(ObjectName name,
-					   ObjectName listener,
-					   NotificationFilter filter,
-					   Object handback)
-	    throws InstanceNotFoundException, ListenerNotFoundException;
+                                           ObjectName listener,
+                                           NotificationFilter filter,
+                                           Object handback)
+            throws InstanceNotFoundException, ListenerNotFoundException;
 
     // doc comment inherited from MBeanServerConnection
     public void removeNotificationListener(ObjectName name,
-					   NotificationListener listener)
-	    throws InstanceNotFoundException, ListenerNotFoundException;
+                                           NotificationListener listener)
+            throws InstanceNotFoundException, ListenerNotFoundException;
 
     // doc comment inherited from MBeanServerConnection
     public void removeNotificationListener(ObjectName name,
-					   NotificationListener listener,
-					   NotificationFilter filter,
-					   Object handback)
-	    throws InstanceNotFoundException, ListenerNotFoundException;
+                                           NotificationListener listener,
+                                           NotificationFilter filter,
+                                           Object handback)
+            throws InstanceNotFoundException, ListenerNotFoundException;
 
     // doc comment inherited from MBeanServerConnection
     public MBeanInfo getMBeanInfo(ObjectName name)
-	    throws InstanceNotFoundException, IntrospectionException,
-	    	   ReflectionException;
+            throws InstanceNotFoundException, IntrospectionException,
+                   ReflectionException;
 
- 
+
     // doc comment inherited from MBeanServerConnection
     public boolean isInstanceOf(ObjectName name, String className)
-	    throws InstanceNotFoundException;
+            throws InstanceNotFoundException;
 
     /**
      * <p>Instantiates an object using the list of all class loaders
@@ -413,16 +526,16 @@ public interface MBeanServer extends MBeanServerConnection {
      * javax.management.loading.ClassLoaderRepository Class Loader
      * Repository}.  The object's class should have a public
      * constructor.  This method returns a reference to the newly
-     * created object.	The newly created object is not registered in
+     * created object.  The newly created object is not registered in
      * the MBean server.</p>
      *
      * <p>This method is equivalent to {@link
      * #instantiate(String,Object[],String[])
      * instantiate(className, (Object[]) null, (String[]) null)}.</p>
      *
-     * @param className The class name of the object to be instantiated.    
+     * @param className The class name of the object to be instantiated.
      *
-     * @return The newly instantiated object.	 
+     * @return The newly instantiated object.
      *
      * @exception ReflectionException Wraps a
      * <CODE>java.lang.ClassNotFoundException</CODE> or the
@@ -435,15 +548,15 @@ public interface MBeanServer extends MBeanServerConnection {
      * passed in parameter is null.
      */
     public Object instantiate(String className)
-	    throws ReflectionException, MBeanException;
+            throws ReflectionException, MBeanException;
 
 
     /**
      * <p>Instantiates an object using the class Loader specified by its
-     * <CODE>ObjectName</CODE>.	 If the loader name is null, the
+     * <CODE>ObjectName</CODE>.  If the loader name is null, the
      * ClassLoader that loaded the MBean Server will be used.  The
-     * object's class should have a public constructor.	 This method
-     * returns a reference to the newly created object.	 The newly
+     * object's class should have a public constructor.  This method
+     * returns a reference to the newly created object.  The newly
      * created object is not registered in the MBean server.</p>
      *
      * <p>This method is equivalent to {@link
@@ -451,10 +564,10 @@ public interface MBeanServer extends MBeanServerConnection {
      * instantiate(className, loaderName, (Object[]) null, (String[])
      * null)}.</p>
      *
-     * @param className The class name of the MBean to be instantiated.	   
+     * @param className The class name of the MBean to be instantiated.
      * @param loaderName The object name of the class loader to be used.
      *
-     * @return The newly instantiated object.	 
+     * @return The newly instantiated object.
      *
      * @exception ReflectionException Wraps a
      * <CODE>java.lang.ClassNotFoundException</CODE> or the
@@ -468,9 +581,9 @@ public interface MBeanServer extends MBeanServerConnection {
      * <CODE>java.lang.IllegalArgumentException</CODE>: The className
      * passed in parameter is null.
      */
-    public Object instantiate(String className, ObjectName loaderName) 
-	    throws ReflectionException, MBeanException,
-		   InstanceNotFoundException;
+    public Object instantiate(String className, ObjectName loaderName)
+            throws ReflectionException, MBeanException,
+                   InstanceNotFoundException;
 
     /**
      * <p>Instantiates an object using the list of all class loaders
@@ -478,7 +591,7 @@ public interface MBeanServer extends MBeanServerConnection {
      * javax.management.loading.ClassLoaderRepository Class Loader
      * Repository}.  The object's class should have a public
      * constructor.  The call returns a reference to the newly created
-     * object.	The newly created object is not registered in the
+     * object.  The newly created object is not registered in the
      * MBean server.</p>
      *
      * @param className The class name of the object to be instantiated.
@@ -487,7 +600,7 @@ public interface MBeanServer extends MBeanServerConnection {
      * @param signature An array containing the signature of the
      * constructor to be invoked.
      *
-     * @return The newly instantiated object.	 
+     * @return The newly instantiated object.
      *
      * @exception ReflectionException Wraps a
      * <CODE>java.lang.ClassNotFoundException</CODE> or the
@@ -498,10 +611,10 @@ public interface MBeanServer extends MBeanServerConnection {
      * @exception RuntimeOperationsException Wraps a
      * <CODE>java.lang.IllegalArgumentException</CODE>: The className
      * passed in parameter is null.
-     */	   
+     */
     public Object instantiate(String className, Object params[],
-			      String signature[]) 
-	    throws ReflectionException, MBeanException; 
+                              String signature[])
+            throws ReflectionException, MBeanException;
 
     /**
      * <p>Instantiates an object. The class loader to be used is
@@ -518,10 +631,10 @@ public interface MBeanServer extends MBeanServerConnection {
      * constructor to be invoked.
      * @param loaderName The object name of the class loader to be used.
      *
-     * @return The newly instantiated object.	 
+     * @return The newly instantiated object.
      *
-     * @exception ReflectionException Wraps a <CODE>java.lang.ClassNotFoundException</CODE> or the <CODE>java.lang.Exception</CODE> that 
-     * occurred when trying to invoke the object's constructor.	 
+     * @exception ReflectionException Wraps a <CODE>java.lang.ClassNotFoundException</CODE> or the <CODE>java.lang.Exception</CODE> that
+     * occurred when trying to invoke the object's constructor.
      * @exception MBeanException The constructor of the object has
      * thrown an exception
      * @exception InstanceNotFoundException The specified class loader
@@ -529,14 +642,14 @@ public interface MBeanServer extends MBeanServerConnection {
      * @exception RuntimeOperationsException Wraps a
      * <CODE>java.lang.IllegalArgumentException</CODE>: The className
      * passed in parameter is null.
-     */	   
+     */
     public Object instantiate(String className, ObjectName loaderName,
-			      Object params[], String signature[]) 
-	    throws ReflectionException, MBeanException,
-		   InstanceNotFoundException;
+                              Object params[], String signature[])
+            throws ReflectionException, MBeanException,
+                   InstanceNotFoundException;
 
     /**
-     * <p>De-serializes a byte array in the context of the class loader 
+     * <p>De-serializes a byte array in the context of the class loader
      * of an MBean.</p>
      *
      * @param name The name of the MBean whose class loader should be
@@ -555,7 +668,7 @@ public interface MBeanServer extends MBeanServerConnection {
      */
     @Deprecated
     public ObjectInputStream deserialize(ObjectName name, byte[] data)
-	    throws InstanceNotFoundException, OperationsException;
+            throws InstanceNotFoundException, OperationsException;
 
 
     /**
@@ -582,9 +695,9 @@ public interface MBeanServer extends MBeanServerConnection {
      */
     @Deprecated
     public ObjectInputStream deserialize(String className, byte[] data)
-	    throws OperationsException, ReflectionException;
+            throws OperationsException, ReflectionException;
 
-   
+
     /**
      * <p>De-serializes a byte array in the context of a given MBean
      * class loader.  The class loader is the one that loaded the
@@ -613,10 +726,10 @@ public interface MBeanServer extends MBeanServerConnection {
      */
     @Deprecated
     public ObjectInputStream deserialize(String className,
-					 ObjectName loaderName,
-					 byte[] data)
-	    throws InstanceNotFoundException, OperationsException,
-		   ReflectionException;
+                                         ObjectName loaderName,
+                                         byte[] data)
+            throws InstanceNotFoundException, OperationsException,
+                   ReflectionException;
 
     /**
      * <p>Return the {@link java.lang.ClassLoader} that was used for
@@ -641,10 +754,9 @@ public interface MBeanServer extends MBeanServerConnection {
      *
      * @exception InstanceNotFoundException if the named MBean is not found.
      *
-     * @since.unbundled JMX 1.2
      */
-    public ClassLoader getClassLoaderFor(ObjectName mbeanName) 
-	throws InstanceNotFoundException;
+    public ClassLoader getClassLoaderFor(ObjectName mbeanName)
+        throws InstanceNotFoundException;
 
     /**
      * <p>Return the named {@link java.lang.ClassLoader}.</p>
@@ -668,19 +780,17 @@ public interface MBeanServer extends MBeanServerConnection {
      * What this means is that the ClassLoader may be wrapped in
      * another ClassLoader for security or other reasons.
      *
-     * @exception InstanceNotFoundException if the named ClassLoader is 
+     * @exception InstanceNotFoundException if the named ClassLoader is
      *    not found.
      *
-     * @since.unbundled JMX 1.2
      */
     public ClassLoader getClassLoader(ObjectName loaderName)
-	throws InstanceNotFoundException;
+        throws InstanceNotFoundException;
 
     /**
      * <p>Return the ClassLoaderRepository for this MBeanServer.
      * @return The ClassLoaderRepository for this MBeanServer.
      *
-     * @since.unbundled JMX 1.2
      */
     public ClassLoaderRepository getClassLoaderRepository();
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)ContainerListener.java	1.13 06/04/13
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -16,9 +34,9 @@ import java.util.EventListener;
  * contains) or extends the abstract <code>ContainerAdapter</code> class
  * (overriding only the methods of interest).
  * The listener object created from that class is then registered with a
- * component using the component's <code>addContainerListener</code> 
+ * component using the component's <code>addContainerListener</code>
  * method. When the container's contents change because a component
- * has been added or removed, the relevant method in the listener object 
+ * has been added or removed, the relevant method in the listener object
  * is invoked, and the <code>ContainerEvent</code> is passed to it.
  * <P>
  * Container events are provided for notification purposes ONLY;
@@ -32,7 +50,6 @@ import java.util.EventListener;
  *
  * @author Tim Prinzing
  * @author Amy Fowler
- * @version 1.13 04/13/06
  * @since 1.1
  */
 public interface ContainerListener extends EventListener {
@@ -43,7 +60,7 @@ public interface ContainerListener extends EventListener {
 
     /**
      * Invoked when a component has been removed from the container.
-     */    
+     */
     public void componentRemoved(ContainerEvent e);
 
 }

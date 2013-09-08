@@ -1,8 +1,26 @@
 /*
- * @(#)AbstractMethodError.java	1.20 05/11/17
+ * Copyright (c) 1994, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
@@ -15,16 +33,17 @@ package java.lang;
  * compiled.
  *
  * @author  unascribed
- * @version 1.20, 11/17/05
  * @since   JDK1.0
  */
 public
 class AbstractMethodError extends IncompatibleClassChangeError {
+    private static final long serialVersionUID = -1654391082989018462L;
+
     /**
      * Constructs an <code>AbstractMethodError</code> with no detail  message.
      */
     public AbstractMethodError() {
-	super();
+        super();
     }
 
     /**
@@ -34,6 +53,6 @@ class AbstractMethodError extends IncompatibleClassChangeError {
      * @param   s   the detail message.
      */
     public AbstractMethodError(String s) {
-	super(s);
+        super(s);
     }
 }

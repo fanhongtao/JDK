@@ -1,16 +1,32 @@
 /*
- * @(#)StandardLocation.java	1.2 06/06/25
+ * Copyright (c) 2006, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.tools;
 
 import javax.tools.JavaFileManager.Location;
 
-import java.io.File;
-import java.util.*;
 import java.util.concurrent.*;
 
 /**

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -61,7 +65,6 @@ import  java.io.*;
  * This class represents a local variable within a method. It contains its
  * scope, name, signature and index on the method's frame.
  *
- * @version $Id: LocalVariable.java,v 1.1.2.1 2005/07/31 23:46:37 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     LocalVariableTable
  */
@@ -73,8 +76,8 @@ public final class LocalVariable
   private int name_index;      // Index in constant pool of variable name
   private int signature_index; // Index of variable signature
   private int index;            /* Variable is `index'th local variable on
-				* this method's frame.
-				*/
+                                * this method's frame.
+                                */
 
   private ConstantPool constant_pool;
 
@@ -84,7 +87,7 @@ public final class LocalVariable
    */
   public LocalVariable(LocalVariable c) {
     this(c.getStartPC(), c.getLength(), c.getNameIndex(),
-	 c.getSignatureIndex(), c.getIndex(), c.getConstantPool());
+         c.getSignatureIndex(), c.getIndex(), c.getConstantPool());
   }
 
   /**
@@ -95,9 +98,9 @@ public final class LocalVariable
   LocalVariable(DataInputStream file, ConstantPool constant_pool)
        throws IOException
   {
-    this(file.readUnsignedShort(), file.readUnsignedShort(), 
-	 file.readUnsignedShort(), file.readUnsignedShort(), 
-	 file.readUnsignedShort(), constant_pool);
+    this(file.readUnsignedShort(), file.readUnsignedShort(),
+         file.readUnsignedShort(), file.readUnsignedShort(),
+         file.readUnsignedShort(), constant_pool);
   }
 
   /**
@@ -109,8 +112,8 @@ public final class LocalVariable
    * @param constant_pool Array of constants
    */
   public LocalVariable(int start_pc, int length, int name_index,
-		       int signature_index, int index,
-		       ConstantPool constant_pool)
+                       int signature_index, int index,
+                       ConstantPool constant_pool)
   {
     this.start_pc        = start_pc;
     this.length          = length;
@@ -136,7 +139,7 @@ public final class LocalVariable
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     file.writeShort(start_pc);
@@ -148,17 +151,17 @@ public final class LocalVariable
 
   /**
    * @return Constant pool used by this object.
-   */   
+   */
   public final ConstantPool getConstantPool() { return constant_pool; }
 
   /**
    * @return Variable is valid within getStartPC() .. getStartPC()+getLength()
-   */  
+   */
   public final int getLength()         { return length; }
 
   /**
    * @return Variable name.
-   */   
+   */
   public final String getName() {
     ConstantUtf8  c;
 
@@ -168,27 +171,27 @@ public final class LocalVariable
 
   /**
    * @return Index in constant pool of variable name.
-   */   
+   */
   public final int getNameIndex()      { return name_index; }
 
   /**
    * @return Signature.
-   */   
+   */
   public final String getSignature() {
     ConstantUtf8  c;
-    c = (ConstantUtf8)constant_pool.getConstant(signature_index, 
-						CONSTANT_Utf8);
+    c = (ConstantUtf8)constant_pool.getConstant(signature_index,
+                                                CONSTANT_Utf8);
     return c.getBytes();
   }
 
   /**
    * @return Index in constant pool of variable signature.
-   */   
-  public final int getSignatureIndex() { return signature_index; }    
+   */
+  public final int getSignatureIndex() { return signature_index; }
 
   /**
    * @return index of register where variable is stored
-   */   
+   */
   public final int getIndex()           { return index; }
 
   /**
@@ -198,7 +201,7 @@ public final class LocalVariable
 
   /**
    * @param constant_pool Constant pool to be used for this object.
-   */   
+   */
   public final void setConstantPool(ConstantPool constant_pool) {
     this.constant_pool = constant_pool;
   }
@@ -215,14 +218,14 @@ public final class LocalVariable
    */
   public final void setNameIndex(int name_index) {
     this.name_index = name_index;
-  }    
+  }
 
   /**
    * @param signature_index.
    */
   public final void setSignatureIndex(int signature_index) {
     this.signature_index = signature_index;
-  }    
+  }
 
   /**
    * @param index.
@@ -244,7 +247,7 @@ public final class LocalVariable
 
     return "LocalVariable(start_pc = " + start_pc + ", length = " + length +
       ", index = " + index + ":" + signature + " " + name + ")";
-  }    
+  }
 
   /**
    * @return deep copy of this object

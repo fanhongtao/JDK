@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,15 +38,15 @@ abstract class Instruction extends SyntaxTreeNode {
      * Type check all the children of this node.
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	return typeCheckContents(stable);
+        return typeCheckContents(stable);
     }
 
     /**
      * Translate this node into JVM bytecodes.
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	ErrorMsg msg = new ErrorMsg(ErrorMsg.NOT_IMPLEMENTED_ERR,
-				    getClass(), this);
-	getParser().reportError(FATAL, msg);
+        ErrorMsg msg = new ErrorMsg(ErrorMsg.NOT_IMPLEMENTED_ERR,
+                                    getClass(), this);
+        getParser().reportError(FATAL, msg);
     }
 }

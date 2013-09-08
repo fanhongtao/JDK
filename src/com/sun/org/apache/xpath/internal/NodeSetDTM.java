@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,14 +44,14 @@ import org.w3c.dom.traversal.NodeIterator;
  * as they are fetched.  Derived classes that implement iterators
  * must override runTo(int index), in order that they may
  * run the iteration to the given index. </p>
- * 
+ *
  * <p>Note that we directly implement the DOM's NodeIterator
  * interface. We do not emulate all the behavior of the
  * standard NodeIterator. In particular, we do not guarantee
  * to present a "live view" of the document ... but in XSLT,
  * the source document should never be mutated, so this should
  * never be an issue.</p>
- * 
+ *
  * <p>Thought: Should NodeSetDTM really implement NodeList and NodeIterator,
  * or should there be specific subclasses of it which do so? The
  * advantage of doing it all here is that all NodeSetDTMs will respond
@@ -56,7 +60,7 @@ import org.w3c.dom.traversal.NodeIterator;
  * @xsl.usage advanced
  */
 public class NodeSetDTM extends NodeVector
-        implements /* NodeList, NodeIterator, */ DTMIterator, 
+        implements /* NodeList, NodeIterator, */ DTMIterator,
         Cloneable
 {
     static final long serialVersionUID = 7686480133331317070L;
@@ -73,7 +77,7 @@ public class NodeSetDTM extends NodeVector
   /**
    * Create an empty, using the given block size.
    *
-   * @param blocksize Size of blocks to allocate 
+   * @param blocksize Size of blocks to allocate
    * @param dummy pass zero for right now...
    */
   public NodeSetDTM(int blocksize, int dummy, DTMManager dtmManager)
@@ -128,7 +132,7 @@ public class NodeSetDTM extends NodeVector
     m_root = ni.getRoot();
     addNodes(ni);
   }
-  
+
   /**
    * Create a NodeSetDTM, and copy the members of the
    * given DTMIterator into it.
@@ -149,7 +153,7 @@ public class NodeSetDTM extends NodeVector
       addNodeInDocOrder(handle, xctxt);
     }
   }
-  
+
   /**
    * Create a NodeSetDTM, and copy the members of the
    * given DTMIterator into it.
@@ -163,13 +167,13 @@ public class NodeSetDTM extends NodeVector
     m_manager = xctxt.getDTMManager();
 
     int n = nodeList.getLength();
-    for (int i = 0; i < n; i++) 
+    for (int i = 0; i < n; i++)
     {
       Node node = nodeList.item(i);
       int handle = xctxt.getDTMHandleFromNode(node);
       // Do not reorder or strip duplicate nodes from the given DOM nodelist
-      addNode(handle); // addNodeInDocOrder(handle, xctxt);  
-    } 
+      addNode(handle); // addNodeInDocOrder(handle, xctxt);
+    }
   }
 
 
@@ -186,18 +190,18 @@ public class NodeSetDTM extends NodeVector
 
     addNode(node);
   }
-  
+
   /**
    * Set the environment in which this iterator operates, which should provide:
-   * a node (the context node... same value as "root" defined below) 
-   * a pair of non-zero positive integers (the context position and the context size) 
-   * a set of variable bindings 
-   * a function library 
+   * a node (the context node... same value as "root" defined below)
+   * a pair of non-zero positive integers (the context position and the context size)
+   * a set of variable bindings
+   * a function library
    * the set of namespace declarations in scope for the expression.
-   * 
-   * <p>At this time the exact implementation of this environment is application 
+   *
+   * <p>At this time the exact implementation of this environment is application
    * dependent.  Probably a proper interface will be created fairly soon.</p>
-   * 
+   *
    * @param environment The environment object.
    */
   public void setEnvironment(Object environment)
@@ -222,7 +226,7 @@ public class NodeSetDTM extends NodeVector
     else
       return m_root;
   }
-  
+
   /**
    * Initialize the context values for this expression
    * after it is cloned.
@@ -291,7 +295,7 @@ public class NodeSetDTM extends NodeVector
    * no equivalent in the XPath data model.
    *
    * @return integer used as a bit-array, containing flags defined in
-   * the DOM's DTMFilter class. The value will be 
+   * the DOM's DTMFilter class. The value will be
    * <code>SHOW_ALL & ~SHOW_ENTITY_REFERENCE</code>, meaning that
    * only entity references are suppressed.
    */
@@ -304,7 +308,7 @@ public class NodeSetDTM extends NodeVector
    * The filter object used to screen nodes. Filters are applied to
    * further reduce (and restructure) the DTMIterator's view of the
    * document. In our case, we will be using hardcoded filters built
-   * into our iterators... but getFilter() is part of the DOM's 
+   * into our iterators... but getFilter() is part of the DOM's
    * DTMIterator interface, so we have to support it.
    *
    * @return null, which is slightly misleading. True, there is no
@@ -338,10 +342,10 @@ public class NodeSetDTM extends NodeVector
   {
     return true;
   }
-  
+
   /**
-   * Get an instance of a DTM that "owns" a node handle.  Since a node 
-   * iterator may be passed without a DTMManager, this allows the 
+   * Get an instance of a DTM that "owns" a node handle.  Since a node
+   * iterator may be passed without a DTMManager, this allows the
    * caller to easily get the DTM using just the iterator.
    *
    * @param nodeHandle the nodeHandle.
@@ -350,23 +354,23 @@ public class NodeSetDTM extends NodeVector
    */
   public DTM getDTM(int nodeHandle)
   {
-    
+
     return m_manager.getDTM(nodeHandle);
   }
-  
+
   /* An instance of the DTMManager. */
   DTMManager m_manager;
-  
+
   /**
-   * Get an instance of the DTMManager.  Since a node 
-   * iterator may be passed without a DTMManager, this allows the 
+   * Get an instance of the DTMManager.  Since a node
+   * iterator may be passed without a DTMManager, this allows the
    * caller to easily get the DTMManager using just the iterator.
    *
    * @return a non-null DTMManager reference.
    */
   public DTMManager getDTMManager()
   {
-    
+
     return m_manager;
   }
 
@@ -403,7 +407,7 @@ public class NodeSetDTM extends NodeVector
    * @throws DOMException
    *    INVALID_STATE_ERR: Raised if this method is called after the
    *   <code>detach</code> method was invoked.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a cached type, and hence doesn't know what the previous node was.
    */
   public int previousNode()
@@ -430,16 +434,16 @@ public class NodeSetDTM extends NodeVector
    * <code>nextNode</code> or<code>previousNode</code> will raise the
    * exception INVALID_STATE_ERR.
    * <p>
-   * This operation is a no-op in NodeSetDTM, and will not cause 
+   * This operation is a no-op in NodeSetDTM, and will not cause
    * INVALID_STATE_ERR to be raised by later operations.
    * </p>
    */
   public void detach(){}
-  
+
   /**
    * Specify if it's OK for detach to release the iterator for reuse.
-   * 
-   * @param allowRelease true if it is OK for detach to release this iterator 
+   *
+   * @param allowRelease true if it is OK for detach to release this iterator
    * for pooling.
    */
   public void allowDetachToRelease(boolean allowRelease)
@@ -490,9 +494,9 @@ public class NodeSetDTM extends NodeVector
    * Returns the <code>index</code>th item in the collection. If
    * <code>index</code> is greater than or equal to the number of nodes in
    * the list, this returns <code>null</code>.
-   * 
+   *
    * TODO: What happens if index is out of range?
-   * 
+   *
    * @param index Index into the collection.
    * @return The node at the <code>index</code>th position in the
    *   <code>NodeList</code>, or <code>null</code> if that is not a valid
@@ -527,7 +531,7 @@ public class NodeSetDTM extends NodeVector
    * operation
    *
    * @param n Node to be added
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void addNode(int n)
@@ -545,7 +549,7 @@ public class NodeSetDTM extends NodeVector
    * @param n Node to be added
    * @param pos Offset at which the node is to be inserted,
    * with 0 being the first position.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void insertNode(int n, int pos)
@@ -561,7 +565,7 @@ public class NodeSetDTM extends NodeVector
    * Remove a node.
    *
    * @param n Node to be added
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void removeNode(int n)
@@ -580,7 +584,7 @@ public class NodeSetDTM extends NodeVector
 //   *
 //   * @param nodelist List of nodes which should now be referenced by
 //   * this NodeSetDTM.
-//   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+//   * @throws RuntimeException thrown if this NodeSetDTM is not of
 //   * a mutable type.
 //   */
 //  public void addNodes(NodeList nodelist)
@@ -613,7 +617,7 @@ public class NodeSetDTM extends NodeVector
 //   * document order.  Only genuine node references will be copied;
 //   * nulls appearing in the source NodeSetDTM will
 //   * not be added to this one. </p>
-//   * 
+//   *
 //   * <p> In case you're wondering why this function is needed: NodeSetDTM
 //   * implements both DTMIterator and NodeList. If this method isn't
 //   * provided, Java can't decide which of those to use when addNodes()
@@ -621,7 +625,7 @@ public class NodeSetDTM extends NodeVector
 //   * ambiguity.)</p>
 //   *
 //   * @param ns NodeSetDTM whose members should be merged into this NodeSetDTM.
-//   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+//   * @throws RuntimeException thrown if this NodeSetDTM is not of
 //   * a mutable type.
 //   */
 //  public void addNodes(NodeSetDTM ns)
@@ -638,7 +642,7 @@ public class NodeSetDTM extends NodeVector
    * document order.  Null references are not added.
    *
    * @param iterator DTMIterator which yields the nodes to be added.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void addNodes(DTMIterator iterator)
@@ -667,7 +671,7 @@ public class NodeSetDTM extends NodeVector
 //   *
 //   * @param nodelist List of nodes to be added
 //   * @param support The XPath runtime context.
-//   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+//   * @throws RuntimeException thrown if this NodeSetDTM is not of
 //   * a mutable type.
 //   */
 //  public void addNodesInDocOrder(NodeList nodelist, XPathContext support)
@@ -695,7 +699,7 @@ public class NodeSetDTM extends NodeVector
    *
    * @param iterator DTMIterator which yields the nodes to be added.
    * @param support The XPath runtime context.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void addNodesInDocOrder(DTMIterator iterator, XPathContext support)
@@ -723,7 +727,7 @@ public class NodeSetDTM extends NodeVector
 //   * @param support The XPath runtime context.
 //   *
 //   * @return false always.
-//   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+//   * @throws RuntimeException thrown if this NodeSetDTM is not of
 //   * a mutable type.
 //   */
 //  private boolean addNodesInDocOrder(int start, int end, int testIndex,
@@ -784,7 +788,7 @@ public class NodeSetDTM extends NodeVector
    * @param test true if we should test for doc order
    * @param support The XPath runtime context.
    * @return insertIndex.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public int addNodeInDocOrder(int node, boolean test, XPathContext support)
@@ -798,8 +802,8 @@ public class NodeSetDTM extends NodeVector
     if (test)
     {
 
-      // This needs to do a binary search, but a binary search 
-      // is somewhat tough because the sequence test involves 
+      // This needs to do a binary search, but a binary search
+      // is somewhat tough because the sequence test involves
       // two nodes.
       int size = size(), i;
 
@@ -859,7 +863,7 @@ public class NodeSetDTM extends NodeVector
    * @param support The XPath runtime context.
    *
    * @return The index where it was inserted.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public int addNodeInDocOrder(int node, XPathContext support)
@@ -885,7 +889,7 @@ public class NodeSetDTM extends NodeVector
    * Append a Node onto the vector.
    *
    * @param value The node to be added.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void addElement(int value)
@@ -905,7 +909,7 @@ public class NodeSetDTM extends NodeVector
    *
    * @param value The node to be inserted.
    * @param at The index where the insert should occur.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void insertElementAt(int value, int at)
@@ -921,7 +925,7 @@ public class NodeSetDTM extends NodeVector
    * Append the nodes to the list.
    *
    * @param nodes The nodes to be appended to this node set.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void appendNodes(NodeVector nodes)
@@ -938,7 +942,7 @@ public class NodeSetDTM extends NodeVector
    * Each component in this vector with an index greater or equal to
    * the specified index is shifted upward to have an index one greater
    * than the value it had previously.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void removeAllElements()
@@ -960,7 +964,7 @@ public class NodeSetDTM extends NodeVector
    * @param s The node to be removed.
    *
    * @return True if the node was successfully removed
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public boolean removeElement(int s)
@@ -979,7 +983,7 @@ public class NodeSetDTM extends NodeVector
    * the value it had previously.
    *
    * @param i The index of the node to be removed.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void removeElementAt(int i)
@@ -1000,7 +1004,7 @@ public class NodeSetDTM extends NodeVector
    *
    * @param node  The node to be set.
    * @param index The index of the node to be replaced.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void setElementAt(int node, int index)
@@ -1011,13 +1015,13 @@ public class NodeSetDTM extends NodeVector
 
     super.setElementAt(node, index);
   }
-  
+
   /**
    * Same as setElementAt.
    *
    * @param node  The node to be set.
    * @param index The index of the node to be replaced.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a mutable type.
    */
   public void setItem(int node, int index)
@@ -1043,7 +1047,7 @@ public class NodeSetDTM extends NodeVector
 
     return super.elementAt(i);
   }
-  
+
   /**
    * Tell if the table contains the given node.
    *
@@ -1083,7 +1087,7 @@ public class NodeSetDTM extends NodeVector
    * beginning the search at index, and testing for equality
    * using the equals method.
    *
-   * @param elem Node to look for 
+   * @param elem Node to look for
    * @return the index of the first occurrence of the object
    * argument in this vector at position index or later in the
    * vector; returns -1 if the object is not found.
@@ -1116,7 +1120,7 @@ public class NodeSetDTM extends NodeVector
   /**
    * Set the current position in the node set.
    * @param i Must be a valid index.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a cached type, and thus doesn't permit indexed access.
    */
   public void setCurrentPos(int i)
@@ -1133,7 +1137,7 @@ public class NodeSetDTM extends NodeVector
    * Return the last fetched node.  Needed to support the UnionPathIterator.
    *
    * @return the last fetched node.
-   * @throws RuntimeException thrown if this NodeSetDTM is not of 
+   * @throws RuntimeException thrown if this NodeSetDTM is not of
    * a cached type, and thus doesn't permit indexed access.
    */
   public int getCurrentNode()
@@ -1147,7 +1151,7 @@ public class NodeSetDTM extends NodeVector
     // because nextNode always increments
     // But watch out for copy29, where the root iterator didn't
     // have nextNode called on it.
-    int current = (m_next > 0) ? m_next-1 : m_next; 
+    int current = (m_next > 0) ? m_next-1 : m_next;
     int n = (current < m_firstFree) ? elementAt(current) : DTM.NULL;
     m_next = saved; // HACK: I think this is a bit of a hack.  -sb
     return n;
@@ -1159,7 +1163,7 @@ public class NodeSetDTM extends NodeVector
   /** True if this list is cached.
    *  @serial  */
   transient protected boolean m_cacheNodes = true;
-  
+
   /** The root of the iteration, if available. */
   protected int m_root = DTM.NULL;
 
@@ -1195,51 +1199,51 @@ public class NodeSetDTM extends NodeVector
     m_cacheNodes = b;
     m_mutable = true;
   }
-  
+
   /**
-   * Tells if this iterator can have nodes added to it or set via 
+   * Tells if this iterator can have nodes added to it or set via
    * the <code>setItem(int node, int index)</code> method.
-   * 
+   *
    * @return True if the nodelist can be mutated.
    */
   public boolean isMutable()
   {
     return m_mutable;
   }
-  
+
   transient private int m_last = 0;
-  
+
   public int getLast()
   {
     return m_last;
   }
-  
+
   public void setLast(int last)
   {
     m_last = last;
   }
-  
+
   /**
-   * Returns true if all the nodes in the iteration well be returned in document 
+   * Returns true if all the nodes in the iteration well be returned in document
    * order.
-   * 
+   *
    * @return true as a default.
    */
   public boolean isDocOrdered()
   {
     return true;
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
   {
     return -1;
   }
-  
+
 
 }

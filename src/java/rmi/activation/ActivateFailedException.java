@@ -1,8 +1,26 @@
 /*
- * @(#)ActivateFailedException.java	1.11 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.activation;
@@ -11,9 +29,8 @@ package java.rmi.activation;
  * This exception is thrown by the RMI runtime when activation
  * fails during a remote call to an activatable object.
  *
- * @author 	Ann Wollrath
- * @version	1.11, 11/17/05
- * @since 	1.2
+ * @author      Ann Wollrath
+ * @since       1.2
  */
 public class ActivateFailedException extends java.rmi.RemoteException {
 
@@ -28,7 +45,7 @@ public class ActivateFailedException extends java.rmi.RemoteException {
      * @since 1.2
      */
     public ActivateFailedException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -40,6 +57,6 @@ public class ActivateFailedException extends java.rmi.RemoteException {
      * @since 1.2
      */
     public ActivateFailedException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

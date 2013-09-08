@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +25,7 @@ import java.io.IOException;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 
 /**
- * Represents a parser configuration that can be used as the 
+ * Represents a parser configuration that can be used as the
  * configuration for a "pull" parser. A pull parser allows the
  * application to drive the parser instead of having document
  * information events "pushed" to the registered handlers.
@@ -29,18 +33,17 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  * A pull parser using this type of configuration first calls
  * the <code>setInputSource</code> method. After the input
  * source is set, the pull parser repeatedly calls the
- * <code>parse(boolean):boolean</code> method. This method 
+ * <code>parse(boolean):boolean</code> method. This method
  * returns a value of true if there is more to parse in the
  * document.
  * <p>
  * Calling the <code>parse(XMLInputSource)</code> is equivalent
- * to setting the input source and calling the 
- * <code>parse(boolean):boolean</code> method with a "complete" 
+ * to setting the input source and calling the
+ * <code>parse(boolean):boolean</code> method with a "complete"
  * value of <code>true</code>.
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLPullParserConfiguration.java,v 1.2.6.1 2005/09/06 08:32:41 neerajbj Exp $
  */
 public interface XMLPullParserConfiguration
     extends XMLParserConfiguration {
@@ -56,7 +59,7 @@ public interface XMLPullParserConfiguration
      *
      * @param inputSource The document's input source.
      *
-     * @exception XMLConfigurationException Thrown if there is a 
+     * @exception XMLConfigurationException Thrown if there is a
      *                        configuration error when initializing the
      *                        parser.
      * @exception IOException Thrown on I/O error.
@@ -74,7 +77,7 @@ public interface XMLPullParserConfiguration
      *
      * @return True if there is more document to parse.
      *
-     * @exception XNIException Any XNI exception, possibly wrapping 
+     * @exception XNIException Any XNI exception, possibly wrapping
      *                         another exception.
      * @exception IOException  An IO exception from the parser, possibly
      *                         from a byte stream or character stream
@@ -90,5 +93,5 @@ public interface XMLPullParserConfiguration
      * resource allocated during parsing. For example, close all opened streams.
      */
     public void cleanup();
-    
+
 } // interface XMLPullParserConfiguration

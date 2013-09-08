@@ -1,14 +1,30 @@
 /*
- * @(#)SystemColor.java	1.26 06/08/06
+ * Copyright (c) 1996, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.ColorModel;
+import java.io.ObjectStreamException;
 
 /**
  * A class to encapsulate symbolic colors representing the color of
@@ -28,8 +44,7 @@ import java.awt.image.ColorModel;
  *
  * @see Toolkit#getDesktopProperty
  *
- * @version 	1.26, 08/06/06
- * @author 	Carl Quinn
+ * @author      Carl Quinn
  * @author      Amy Fowler
  */
 public final class SystemColor extends Color implements java.io.Serializable {
@@ -223,6 +238,41 @@ public final class SystemColor extends Color implements java.io.Serializable {
 
     /******************************************************************************************/
 
+    /*
+     * System colors with default initial values, overwritten by toolkit if
+     * system values differ and are available.
+     * Should put array initialization above first field that is using
+     * SystemColor constructor to initialize.
+     */
+    private static int[] systemColors = {
+        0xFF005C5C,  // desktop = new Color(0,92,92);
+        0xFF000080,  // activeCaption = new Color(0,0,128);
+        0xFFFFFFFF,  // activeCaptionText = Color.white;
+        0xFFC0C0C0,  // activeCaptionBorder = Color.lightGray;
+        0xFF808080,  // inactiveCaption = Color.gray;
+        0xFFC0C0C0,  // inactiveCaptionText = Color.lightGray;
+        0xFFC0C0C0,  // inactiveCaptionBorder = Color.lightGray;
+        0xFFFFFFFF,  // window = Color.white;
+        0xFF000000,  // windowBorder = Color.black;
+        0xFF000000,  // windowText = Color.black;
+        0xFFC0C0C0,  // menu = Color.lightGray;
+        0xFF000000,  // menuText = Color.black;
+        0xFFC0C0C0,  // text = Color.lightGray;
+        0xFF000000,  // textText = Color.black;
+        0xFF000080,  // textHighlight = new Color(0,0,128);
+        0xFFFFFFFF,  // textHighlightText = Color.white;
+        0xFF808080,  // textInactiveText = Color.gray;
+        0xFFC0C0C0,  // control = Color.lightGray;
+        0xFF000000,  // controlText = Color.black;
+        0xFFFFFFFF,  // controlHighlight = Color.white;
+        0xFFE0E0E0,  // controlLtHighlight = new Color(224,224,224);
+        0xFF808080,  // controlShadow = Color.gray;
+        0xFF000000,  // controlDkShadow = Color.black;
+        0xFFE0E0E0,  // scrollbar = new Color(224,224,224);
+        0xFFE0E000,  // info = new Color(224,224,0);
+        0xFF000000,  // infoText = Color.black;
+    };
+
    /**
      * The color rendered for the background of the desktop.
      */
@@ -368,42 +418,43 @@ public final class SystemColor extends Color implements java.io.Serializable {
     public final static SystemColor infoText = new SystemColor((byte)INFO_TEXT);
 
     /*
-     * System colors with default initial values, overwritten by toolkit if
-     * system values differ and are available.
-     */
-    private static int[] systemColors = {
-        0xFF005C5C,  // desktop = new Color(0,92,92);
-        0xFF000080,  // activeCaption = new Color(0,0,128);
-        0xFFFFFFFF,  // activeCaptionText = Color.white;
-        0xFFC0C0C0,  // activeCaptionBorder = Color.lightGray;
-        0xFF808080,  // inactiveCaption = Color.gray;
-        0xFFC0C0C0,  // inactiveCaptionText = Color.lightGray;
-        0xFFC0C0C0,  // inactiveCaptionBorder = Color.lightGray;
-        0xFFFFFFFF,  // window = Color.white;
-        0xFF000000,  // windowBorder = Color.black;
-        0xFF000000,  // windowText = Color.black;
-        0xFFC0C0C0,  // menu = Color.lightGray;
-        0xFF000000,  // menuText = Color.black;
-        0xFFC0C0C0,  // text = Color.lightGray;
-        0xFF000000,  // textText = Color.black;
-        0xFF000080,  // textHighlight = new Color(0,0,128);
-        0xFFFFFFFF,  // textHighlightText = Color.white;
-        0xFF808080,  // textInactiveText = Color.gray;
-        0xFFC0C0C0,  // control = Color.lightGray;
-        0xFF000000,  // controlText = Color.black;
-        0xFFFFFFFF,  // controlHighlight = Color.white;
-        0xFFE0E0E0,  // controlLtHighlight = new Color(224,224,224);
-        0xFF808080,  // controlShadow = Color.gray;
-        0xFF000000,  // controlDkShadow = Color.black;
-        0xFFE0E0E0,  // scrollbar = new Color(224,224,224);
-        0xFFE0E000,  // info = new Color(224,224,0);
-        0xFF000000,  // infoText = Color.black;
-    };
-
-    /*
      * JDK 1.1 serialVersionUID.
      */
     private static final long serialVersionUID = 4503142729533789064L;
+
+    /*
+     * An index into either array of SystemColor objects or values.
+     */
+    private transient int index;
+
+    private static SystemColor systemColorObjects [] = {
+        SystemColor.desktop,
+        SystemColor.activeCaption,
+        SystemColor.activeCaptionText,
+        SystemColor.activeCaptionBorder,
+        SystemColor.inactiveCaption,
+        SystemColor.inactiveCaptionText,
+        SystemColor.inactiveCaptionBorder,
+        SystemColor.window,
+        SystemColor.windowBorder,
+        SystemColor.windowText,
+        SystemColor.menu,
+        SystemColor.menuText,
+        SystemColor.text,
+        SystemColor.textText,
+        SystemColor.textHighlight,
+        SystemColor.textHighlightText,
+        SystemColor.textInactiveText,
+        SystemColor.control,
+        SystemColor.controlText,
+        SystemColor.controlHighlight,
+        SystemColor.controlLtHighlight,
+        SystemColor.controlShadow,
+        SystemColor.controlDkShadow,
+        SystemColor.scrollbar,
+        SystemColor.info,
+        SystemColor.infoText
+    };
 
     static {
       updateSystemColors();
@@ -416,6 +467,9 @@ public final class SystemColor extends Color implements java.io.Serializable {
         if (!GraphicsEnvironment.isHeadless()) {
             Toolkit.getDefaultToolkit().loadSystemColors(systemColors);
         }
+        for (int i = 0; i < systemColors.length; i++) {
+            systemColorObjects[i].value = systemColors[i];
+        }
     }
 
     /**
@@ -423,37 +477,8 @@ public final class SystemColor extends Color implements java.io.Serializable {
      * color cache. Used by above static system colors.
      */
     private SystemColor(byte index) {
-        super(0, 0, 0);
-	value = index;
-    }
-
-    /**
-     * Gets the "current" RGB value representing the symbolic color.
-     * (Bits 24-31 are 0xff, 16-23 are red, 8-15 are green, 0-7 are blue).
-     * @see java.awt.image.ColorModel#getRGBdefault
-     * @see java.awt.Color#getBlue()
-     * @see java.awt.Color#getGreen()
-     * @see java.awt.Color#getRed()
-     */
-    // NOTE: This method may be called by privileged threads.
-    //       DO NOT INVOKE CLIENT CODE ON THIS THREAD!
-    public int getRGB() {
-	return systemColors[value];
-    }
-
-    /**
-     * Creates and returns a <code>PaintContext</code> used to generate
-     * a solid color pattern.  This enables a Color object to be used
-     * as an argument to any method requiring an object implementing
-     * the Paint interface.
-     * @see Paint
-     * @see PaintContext
-     * @see Graphics2D#setPaint
-     */
-    public PaintContext createContext(ColorModel cm, Rectangle r,
-				      Rectangle2D r2d, AffineTransform xform,
-                                      RenderingHints hints) {
-	return new ColorPaintContext(value, cm);
+        super(systemColors[index]);
+        this.index = index;
     }
 
     /**
@@ -466,7 +491,53 @@ public final class SystemColor extends Color implements java.io.Serializable {
      * @return  a string representation of this <code>Color</code>
      */
     public String toString() {
-        return getClass().getName() + "[i=" + (value) + "]";
+        return getClass().getName() + "[i=" + (index) + "]";
     }
 
+    /**
+     * The design of the {@code SystemColor} class assumes that
+     * the {@code SystemColor} object instances stored in the
+     * static final fields above are the only instances that can
+     * be used by developers.
+     * This method helps maintain those limits on instantiation
+     * by using the index stored in the value field of the
+     * serialized form of the object to replace the serialized
+     * object with the equivalent static object constant field
+     * of {@code SystemColor}.
+     * See the {@link #writeReplace} method for more information
+     * on the serialized form of these objects.
+     * @return one of the {@code SystemColor} static object
+     *         fields that refers to the same system color.
+     */
+    private Object readResolve() {
+        // The instances of SystemColor are tightly controlled and
+        // only the canonical instances appearing above as static
+        // constants are allowed.  The serial form of SystemColor
+        // objects stores the color index as the value.  Here we
+        // map that index back into the canonical instance.
+        return systemColorObjects[value];
+    }
+
+    /**
+     * Returns a specialized version of the {@code SystemColor}
+     * object for writing to the serialized stream.
+     * @serialData
+     * The value field of a serialized {@code SystemColor} object
+     * contains the array index of the system color instead of the
+     * rgb data for the system color.
+     * This index is used by the {@link #readResolve} method to
+     * resolve the deserialized objects back to the original
+     * static constant versions to ensure unique instances of
+     * each {@code SystemColor} object.
+     * @return a proxy {@code SystemColor} object with its value
+     *         replaced by the corresponding system color index.
+     */
+    private Object writeReplace() throws ObjectStreamException
+    {
+        // we put an array index in the SystemColor.value while serialize
+        // to keep compatibility.
+        SystemColor color = new SystemColor((byte)index);
+        color.value = index;
+        return color;
+    }
 }

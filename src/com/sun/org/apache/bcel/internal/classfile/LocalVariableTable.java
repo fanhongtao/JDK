@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -61,7 +65,6 @@ import  java.io.*;
  * This class represents colection of local variables in a
  * method. This attribute is contained in the <em>Code</em> attribute.
  *
- * @version $Id: LocalVariableTable.java,v 1.1.2.1 2005/07/31 23:46:30 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Code
  * @see LocalVariable
@@ -76,7 +79,7 @@ public class LocalVariableTable extends Attribute {
    */
   public LocalVariableTable(LocalVariableTable c) {
     this(c.getNameIndex(), c.getLength(), c.getLocalVariableTable(),
-	 c.getConstantPool());
+         c.getConstantPool());
   }
 
   /**
@@ -86,12 +89,12 @@ public class LocalVariableTable extends Attribute {
    * @param constant_pool Array of constants
    */
   public LocalVariableTable(int name_index, int length,
-			    LocalVariable[] local_variable_table,
-			    ConstantPool    constant_pool)
+                            LocalVariable[] local_variable_table,
+                            ConstantPool    constant_pool)
   {
     super(Constants.ATTR_LOCAL_VARIABLE_TABLE, name_index, length, constant_pool);
     setLocalVariableTable(local_variable_table);
-  }    
+  }
 
   /**
    * Construct object from file stream.
@@ -102,7 +105,7 @@ public class LocalVariableTable extends Attribute {
    * @throws IOException
    */
   LocalVariableTable(int name_index, int length, DataInputStream file,
-		     ConstantPool constant_pool) throws IOException
+                     ConstantPool constant_pool) throws IOException
   {
     this(name_index, length, (LocalVariable[])null, constant_pool);
 
@@ -129,7 +132,7 @@ public class LocalVariableTable extends Attribute {
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     super.dump(file);
@@ -140,17 +143,17 @@ public class LocalVariableTable extends Attribute {
 
   /**
    * @return Array of local variables of method.
-   */  
+   */
   public final LocalVariable[] getLocalVariableTable() {
     return local_variable_table;
-  }    
+  }
 
   /** @return first matching variable using index
    */
   public final LocalVariable getLocalVariable(int index) {
     for(int i=0; i < local_variable_table_length; i++)
       if(local_variable_table[i].getIndex() == index)
-	return local_variable_table[i];
+        return local_variable_table[i];
 
     return null;
   }
@@ -164,7 +167,7 @@ public class LocalVariableTable extends Attribute {
 
   /**
    * @return String representation.
-   */ 
+   */
   public final String toString() {
     StringBuffer buf = new StringBuffer("");
 
@@ -172,7 +175,7 @@ public class LocalVariableTable extends Attribute {
       buf.append(local_variable_table[i].toString());
 
       if(i < local_variable_table_length - 1)
-	buf.append('\n');
+        buf.append('\n');
     }
 
     return buf.toString();

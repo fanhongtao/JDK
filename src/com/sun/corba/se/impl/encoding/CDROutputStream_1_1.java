@@ -1,8 +1,26 @@
 /*
- * @(#)CDROutputStream_1_1.java	1.18 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -15,11 +33,11 @@ public class CDROutputStream_1_1 extends CDROutputStream_1_0
     // This is used to keep indirections working across fragments.  When added
     // to the current bbwi.position(), the result is the current position
     // in the byte stream without any fragment headers.
-    // 
+    //
     // It is equal to the following:
     //
     // n = number of buffers (0 is original buffer, 1 is first fragment, etc)
-    // 
+    //
     // n == 0, fragmentOffset = 0
     //
     // n > 0, fragmentOffset
@@ -60,7 +78,7 @@ public class CDROutputStream_1_1 extends CDROutputStream_1_0
         int oldSize = bbwi.position();
 
         super.grow(align, n);
-   
+
         // At this point, if we fragmented, we should have a ByteBufferWithInfo
         // with the fragment header already marshalled.  The size and length fields
         // should be updated accordingly, and the fragmented flag should be set.
@@ -78,7 +96,7 @@ public class CDROutputStream_1_1 extends CDROutputStream_1_0
     }
 
     public int get_offset() {
-	return bbwi.position() + fragmentOffset;
+        return bbwi.position() + fragmentOffset;
     }
 
     public GIOPVersion getGIOPVersion() {
@@ -96,7 +114,7 @@ public class CDROutputStream_1_1 extends CDROutputStream_1_0
         converter.convert(x);
 
         if (converter.getNumBytes() != 2)
-	    throw wrapper.badGiop11Ctb(CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.badGiop11Ctb(CompletionStatus.COMPLETED_MAYBE);
 
         alignAndReserve(converter.getAlignment(),
                         converter.getNumBytes());
@@ -109,13 +127,13 @@ public class CDROutputStream_1_1 extends CDROutputStream_1_0
     public void write_wstring(String value)
     {
         if (value == null) {
-	    throw wrapper.nullParam(CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.nullParam(CompletionStatus.COMPLETED_MAYBE);
         }
 
         // The length is the number of code points (which are 2 bytes each)
         // including the 2 byte null.  See CORBA formal 99-10-07 15.3.2.7.
 
-    	int len = value.length() + 1;
+        int len = value.length() + 1;
 
         write_long(len);
 
@@ -129,4 +147,3 @@ public class CDROutputStream_1_1 extends CDROutputStream_1_0
         write_short((short)0);
     }
 }
-

@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -57,12 +61,14 @@
 
 package com.sun.org.apache.xerces.internal.impl.dtd.models;
 
-import com.sun.org.apache.xerces.internal.xni.QName;
+import java.util.HashMap;
+
 import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
+import com.sun.org.apache.xerces.internal.xni.QName;
 
 /**
 
- * @version $Id: DFAContentModel.java,v 1.1.2.1 2005/08/01 03:34:24 jeffsuttor Exp $
+ * @version $Id: DFAContentModel.java,v 1.4 2010/08/06 23:49:43 joehw Exp $
  * DFAContentModel is the derivative of ContentModel that does
  * all of the non-trivial element content validation. This class does 
  * the conversion from the regular expression to the DFA that 
@@ -76,7 +82,7 @@ import com.sun.org.apache.xerces.internal.impl.dtd.XMLContentSpec;
  * 
  * @xerces.internal
  * 
- * @version $Id: DFAContentModel.java,v 1.1.2.1 2005/08/01 03:34:24 jeffsuttor Exp $
+ * @version $Id: DFAContentModel.java,v 1.4 2010/08/06 23:49:43 joehw Exp $
  */
 public class DFAContentModel
     implements ContentModelValidator {
@@ -119,7 +125,7 @@ public class DFAContentModel
     private QName fElemMap[] = null;
 
     /**
-     * This is a map of whether the element map contains information 
+     * This is a map of whether the element map contains information
      * related to ANY models.
      */
     private int fElemMapType[] = null;
@@ -215,7 +221,7 @@ public class DFAContentModel
     // temp variables
 
     /** Temporary qualified name. */
-    private QName fQName = new QName();
+    private final QName fQName = new QName();
 
     //
     // Constructors
@@ -261,12 +267,12 @@ public class DFAContentModel
 
     /**
      * Check that the specified content is valid according to this
-     * content model. This method can also be called to do 'what if' 
+     * content model. This method can also be called to do 'what if'
      * testing of content models just to see if they would be valid.
      * <p>
-     * A value of -1 in the children array indicates a PCDATA node. All other 
+     * A value of -1 in the children array indicates a PCDATA node. All other
      * indexes will be positive and represent child elements. The count can be
-     * zero, since some elements have the EMPTY content model and that must be 
+     * zero, since some elements have the EMPTY content model and that must be
      * confirmed.
      *
      * @param children The children of this element.  Each integer is an index within
@@ -284,13 +290,13 @@ public class DFAContentModel
      */
     public int validate(QName[] children, int offset, int length) {
 
-        if (DEBUG_VALIDATE_CONTENT) 
+        if (DEBUG_VALIDATE_CONTENT)
             System.out.println("DFAContentModel#validateContent");
 
         //
         // A DFA content model must *always* have at least 1 child
         // so a failure is given if no children present.
-        // 
+        //
         // Defect 782: This is an incorrect statement because a DFA
         // content model is also used for constructions such as:
         //
@@ -307,13 +313,13 @@ public class DFAContentModel
                 for (int i = 0; i < fElemMap.length; i++) {
                     String uri = fElemMap[i].uri;
                     String localpart = fElemMap[i].localpart;
-                    
+
                     System.out.println("fElemMap["+i+"]="+uri+","+
                                        localpart+" ("+
                                        uri+", "+
                                        localpart+
                                        ')');
-                                       
+
                 }
                 System.out.println("EOCIndex="+fEOCString);
             }
@@ -389,7 +395,7 @@ public class DFAContentModel
 
             // If its not a legal transition, then invalid
             if (curState == -1) {
-                if (DEBUG_VALIDATE_CONTENT) 
+                if (DEBUG_VALIDATE_CONTENT)
                     System.out.println("!!! not a legal transition");
                 return childIndex;
             }
@@ -400,7 +406,7 @@ public class DFAContentModel
         //  does not mean that we ended in a final state. So check whether
         //  our ending state is a final state.
         //
-        if (DEBUG_VALIDATE_CONTENT) 
+        if (DEBUG_VALIDATE_CONTENT)
             System.out.println("curState="+curState+", childCount="+length);
         if (!fFinalStateFlags[curState])
             return length;
@@ -414,14 +420,14 @@ public class DFAContentModel
     // Private methods
     //
 
-    /** 
+    /**
      * Builds the internal DFA transition table from the given syntax tree.
      *
      * @param syntaxTree The syntax tree.
      *
      * @exception CMException Thrown if DFA cannot be built.
      */
-    private void buildDFA(CMNode syntaxTree) 
+    private void buildDFA(CMNode syntaxTree)
     {
         //
         //  The first step we need to take is to rewrite the content model
@@ -452,7 +458,7 @@ public class DFAContentModel
         //  for that matter.)
         //
 
-	/* MODIFIED (Jan, 2001) 
+	/* MODIFIED (Jan, 2001)
 	 *
 	 * Use following rules.
 	 *   nullable(x+) := nullable(x), first(x+) := first(x),  last(x+) := last(x)
@@ -561,9 +567,9 @@ public class DFAContentModel
             fLeafNameTypeVector.setValues(fElemMap, fElemMapType, fElemMapSize);
         }
 
-	/*** 
-	* Optimization(Jan, 2001); We sort fLeafList according to 
-	* elemIndex which is *uniquely* associated to each leaf.  
+	/***
+	* Optimization(Jan, 2001); We sort fLeafList according to
+	* elemIndex which is *uniquely* associated to each leaf.
 	* We are *assuming* that each element appears in at least one leaf.
 	**/
 
@@ -631,7 +637,7 @@ public class DFAContentModel
 	     * a large content model such as, "(t001+|t002+|.... |t500+)".
 	     */
 
-	java.util.Hashtable stateTable = new java.util.Hashtable();
+        HashMap stateTable = new HashMap();
 
 	    /* Optimization(Jan, 2001) */
 
@@ -756,12 +762,9 @@ public class DFAContentModel
                         int[][] newTransTable = new int[newSize][];
 
                         // Copy over all of the existing content
-                        for (int expIndex = 0; expIndex < curArraySize; expIndex++)
-                        {
-                            newToDo[expIndex] = statesToDo[expIndex];
-                            newFinalFlags[expIndex] = fFinalStateFlags[expIndex];
-                            newTransTable[expIndex] = fTransTable[expIndex];
-                        }
+                        System.arraycopy(statesToDo, 0, newToDo, 0, curArraySize);
+                        System.arraycopy(fFinalStateFlags, 0, newFinalFlags, 0, curArraySize);
+                        System.arraycopy(fTransTable, 0, newTransTable, 0, curArraySize);
 
                         // Store the new array size
                         curArraySize = newSize;
@@ -780,7 +783,7 @@ public class DFAContentModel
         //  And now we can say bye bye to the temp representation since we've
         //  built the DFA.
         //
-        if (DEBUG_VALIDATE_CONTENT) 
+        if (DEBUG_VALIDATE_CONTENT)
             dumpTree(fHeadNode, 0);
         fHeadNode = null;
         fLeafList = null;
@@ -795,7 +798,7 @@ public class DFAContentModel
      *
      * @exception CMException Thrown if follow list cannot be calculated.
      */
-    private void calcFollowList(CMNode nodeCur) 
+    private void calcFollowList(CMNode nodeCur)
     {
         // Recurse as required
         if (nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_CHOICE)
@@ -883,7 +886,7 @@ public class DFAContentModel
                     fFollowList[index].union(first);
             }
         }
-       
+
         else if (nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ZERO_OR_ONE) {
             // Recurse only
             calcFollowList(((CMUniOp)nodeCur).getChild());
@@ -899,7 +902,7 @@ public class DFAContentModel
      *
      * @exception CMException Thrown on error.
      */
-    private void dumpTree(CMNode nodeCur, int level) 
+    private void dumpTree(CMNode nodeCur, int level)
     {
         for (int index = 0; index < level; index++)
             System.out.print("   ");
@@ -980,7 +983,7 @@ public class DFAContentModel
     }
 
     /** Post tree build initialization. */
-    private int postTreeBuildInit(CMNode nodeCur, int curIndex) 
+    private int postTreeBuildInit(CMNode nodeCur, int curIndex)
     {
         // Set the maximum states on this node
         nodeCur.setMaxStates(fLeafCount);

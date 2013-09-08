@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2000 World Wide Web Consortium,
  * (Massachusetts Institute of Technology, Institut National de
  * Recherche en Informatique et en Automatique, Keio University). All
@@ -20,15 +49,15 @@ import org.w3c.dom.Document;
  */
 public interface HTMLIFrameElement extends HTMLElement {
     /**
-     *  Aligns this object (vertically or horizontally)  with respect to its 
-     * surrounding text. See the  align attribute definition in HTML 4.0. 
+     *  Aligns this object (vertically or horizontally)  with respect to its
+     * surrounding text. See the  align attribute definition in HTML 4.0.
      * This attribute is deprecated in HTML 4.0.
      */
     public String getAlign();
     public void setAlign(String align);
 
     /**
-     *  Request frame borders. See the  frameborder attribute definition in 
+     *  Request frame borders. See the  frameborder attribute definition in
      * HTML 4.0.
      */
     public String getFrameBorder();
@@ -41,42 +70,42 @@ public interface HTMLIFrameElement extends HTMLElement {
     public void setHeight(String height);
 
     /**
-     *  URI designating a long description of this image or frame. See the  
+     *  URI designating a long description of this image or frame. See the
      * longdesc attribute definition in HTML 4.0.
      */
     public String getLongDesc();
     public void setLongDesc(String longDesc);
 
     /**
-     *  Frame margin height, in pixels. See the  marginheight attribute 
+     *  Frame margin height, in pixels. See the  marginheight attribute
      * definition in HTML 4.0.
      */
     public String getMarginHeight();
     public void setMarginHeight(String marginHeight);
 
     /**
-     *  Frame margin width, in pixels. See the  marginwidth attribute 
+     *  Frame margin width, in pixels. See the  marginwidth attribute
      * definition in HTML 4.0.
      */
     public String getMarginWidth();
     public void setMarginWidth(String marginWidth);
 
     /**
-     *  The frame name (object of the <code>target</code> attribute). See the  
+     *  The frame name (object of the <code>target</code> attribute). See the
      * name attribute definition in HTML 4.0.
      */
     public String getName();
     public void setName(String name);
 
     /**
-     *  Specify whether or not the frame should have scrollbars. See the  
+     *  Specify whether or not the frame should have scrollbars. See the
      * scrolling attribute definition in HTML 4.0.
      */
     public String getScrolling();
     public void setScrolling(String scrolling);
 
     /**
-     *  A URI designating the initial frame contents. See the  src attribute 
+     *  A URI designating the initial frame contents. See the  src attribute
      * definition in HTML 4.0.
      */
     public String getSrc();
@@ -89,11 +118,10 @@ public interface HTMLIFrameElement extends HTMLElement {
     public void setWidth(String width);
 
     /**
-     *  The document this frame contains, if there is any and it is available, 
+     *  The document this frame contains, if there is any and it is available,
      * or <code>null</code> otherwise.
      * @since DOM Level 2
      */
     public Document getContentDocument();
 
 }
-

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,29 +38,29 @@ import com.sun.org.apache.bcel.internal.generic.Type;
  */
 public final class NamedMethodGenerator extends MethodGenerator {
     protected static final int CURRENT_INDEX  = 4;
-    
+
     // The index of the first parameter (after dom/iterator/handler/current)
     private static final int PARAM_START_INDEX = 5;
 
     public NamedMethodGenerator(int access_flags, Type return_type,
-				Type[] arg_types, String[] arg_names,
-				String method_name, String class_name,
-				InstructionList il, ConstantPoolGen cp) {
-	super(access_flags, return_type, arg_types, arg_names, method_name, 
-	      class_name, il, cp);
+                                Type[] arg_types, String[] arg_names,
+                                String method_name, String class_name,
+                                InstructionList il, ConstantPoolGen cp) {
+        super(access_flags, return_type, arg_types, arg_names, method_name,
+              class_name, il, cp);
     }
 
     public int getLocalIndex(String name) {
-	if (name.equals("current")) {
-	    return CURRENT_INDEX;
-	}
-	return super.getLocalIndex(name);
+        if (name.equals("current")) {
+            return CURRENT_INDEX;
+        }
+        return super.getLocalIndex(name);
     }
 
     public Instruction loadParameter(int index) {
         return new ALOAD(index + PARAM_START_INDEX);
     }
-    
+
     public Instruction storeParameter(int index) {
         return new ASTORE(index + PARAM_START_INDEX);
     }

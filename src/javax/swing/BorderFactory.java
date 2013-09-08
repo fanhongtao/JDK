@@ -1,14 +1,33 @@
 /*
- * @(#)BorderFactory.java	1.35 05/11/17
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import javax.swing.JComponent;
+import java.awt.Paint;
 import javax.swing.border.*;
 
 /**
@@ -20,10 +39,9 @@ import javax.swing.border.*;
  to Use Borders</a>,
  * a section in <em>The Java Tutorial</em>.
  *
- * @version 1.35 11/17/05
  * @author David Kloba
  */
-public class BorderFactory 
+public class BorderFactory
 {
 
     /** Don't let anyone instantiate this class */
@@ -46,7 +64,7 @@ public class BorderFactory
      * Creates a line border with the specified color
      * and width. The width applies to all four sides of the
      * border. To specify widths individually for the top,
-     * bottom, left, and right, use 
+     * bottom, left, and right, use
      * {@link #createMatteBorder(int,int,int,int,Color)}.
      *
      * @param color  a <code>Color</code> to use for the line
@@ -56,11 +74,21 @@ public class BorderFactory
     public static Border createLineBorder(Color color, int thickness)  {
         return new LineBorder(color, thickness);
     }
-    
-//    public static Border createLineBorder(Color color, int thickness, 
-//					boolean drawRounded)  {
-//        return new JLineBorder(color, thickness, drawRounded);
-//    }
+
+    /**
+     * Creates a line border with the specified color, thickness, and corner shape.
+     *
+     * @param color      the color of the border
+     * @param thickness  the thickness of the border
+     * @param rounded    whether or not border corners should be round
+     * @return the {@code Border} object
+     *
+     * @see LineBorder#LineBorder(Color, int, boolean)
+     * @since 1.7
+     */
+    public static Border createLineBorder(Color color, int thickness, boolean rounded) {
+        return new LineBorder(color, thickness, rounded);
+    }
 
 //// BevelBorder /////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,24 +129,24 @@ public class BorderFactory
      *  are underneath.)
      *
      * @param type  an integer specifying either
-     *			<code>BevelBorder.LOWERED</code> or
-     *              	<code>BevelBorder.RAISED</code>
+     *                  <code>BevelBorder.LOWERED</code> or
+     *                  <code>BevelBorder.RAISED</code>
      * @return the <code>Border</code> object
      */
     public static Border createBevelBorder(int type) {
-	return createSharedBevel(type);
+        return createSharedBevel(type);
     }
-	
+
     /**
      * Creates a beveled border of the specified type, using
-     * the specified highlighting and shadowing. The outer 
+     * the specified highlighting and shadowing. The outer
      * edge of the highlighted area uses a brighter shade of
      * the highlight color. The inner edge of the shadow area
      * uses a brighter shade of the shadow color.
-     * 
-     * @param type  an integer specifying either 
-     *			<code>BevelBorder.LOWERED</code> or
-     *              	<code>BevelBorder.RAISED</code>
+     *
+     * @param type  an integer specifying either
+     *                  <code>BevelBorder.LOWERED</code> or
+     *                  <code>BevelBorder.RAISED</code>
      * @param highlight  a <code>Color</code> object for highlights
      * @param shadow     a <code>Color</code> object for shadows
      * @return the <code>Border</code> object
@@ -130,52 +158,157 @@ public class BorderFactory
     /**
      * Creates a beveled border of the specified type, using
      * the specified colors for the inner and outer highlight
-     * and shadow areas. 
-     * <p>
-     * Note: The shadow inner and outer colors are
-     * switched for a lowered bevel border.
-     * 
-     * @param type  an integer specifying either 
-     *		<code>BevelBorder.LOWERED</code> or
+     * and shadow areas.
+     *
+     * @param type  an integer specifying either
+     *          <code>BevelBorder.LOWERED</code> or
      *          <code>BevelBorder.RAISED</code>
      * @param highlightOuter  a <code>Color</code> object for the
-     *			outer edge of the highlight area
+     *                  outer edge of the highlight area
      * @param highlightInner  a <code>Color</code> object for the
-     *			inner edge of the highlight area
+     *                  inner edge of the highlight area
      * @param shadowOuter     a <code>Color</code> object for the
-     *			outer edge of the shadow area
+     *                  outer edge of the shadow area
      * @param shadowInner     a <code>Color</code> object for the
-     *			inner edge of the shadow area
+     *                  inner edge of the shadow area
      * @return the <code>Border</code> object
      */
     public static Border createBevelBorder(int type,
                         Color highlightOuter, Color highlightInner,
                         Color shadowOuter, Color shadowInner) {
-        return new BevelBorder(type, highlightOuter, highlightInner, 
-					shadowOuter, shadowInner);
+        return new BevelBorder(type, highlightOuter, highlightInner,
+                                        shadowOuter, shadowInner);
     }
 
-    static Border createSharedBevel(int type)	{
-	if(type == BevelBorder.RAISED) {
-	    return sharedRaisedBevel;
-	} else if(type == BevelBorder.LOWERED) {
-	    return sharedLoweredBevel;
-	}
-	return null;
+    static Border createSharedBevel(int type)   {
+        if(type == BevelBorder.RAISED) {
+            return sharedRaisedBevel;
+        } else if(type == BevelBorder.LOWERED) {
+            return sharedLoweredBevel;
+        }
+        return null;
     }
+
+//// SoftBevelBorder ///////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+    private static Border sharedSoftRaisedBevel;
+    private static Border sharedSoftLoweredBevel;
+
+    /**
+     * Creates a beveled border with a raised edge and softened corners,
+     * using brighter shades of the component's current background color
+     * for highlighting, and darker shading for shadows.
+     * In a raised border, highlights are on top and shadows are underneath.
+     *
+     * @return the {@code Border} object
+     *
+     * @since 1.7
+     */
+    public static Border createRaisedSoftBevelBorder() {
+        if (sharedSoftRaisedBevel == null) {
+            sharedSoftRaisedBevel = new SoftBevelBorder(BevelBorder.RAISED);
+        }
+        return sharedSoftRaisedBevel;
+    }
+
+    /**
+     * Creates a beveled border with a lowered edge and softened corners,
+     * using brighter shades of the component's current background color
+     * for highlighting, and darker shading for shadows.
+     * In a lowered border, shadows are on top and highlights are underneath.
+     *
+     * @return the {@code Border} object
+     *
+     * @since 1.7
+     */
+    public static Border createLoweredSoftBevelBorder() {
+        if (sharedSoftLoweredBevel == null) {
+            sharedSoftLoweredBevel = new SoftBevelBorder(BevelBorder.LOWERED);
+        }
+        return sharedSoftLoweredBevel;
+    }
+
+    /**
+     * Creates a beveled border of the specified type with softened corners,
+     * using brighter shades of the component's current background color
+     * for highlighting, and darker shading for shadows.
+     * The type is either {@link BevelBorder#RAISED} or {@link BevelBorder#LOWERED}.
+     *
+     * @param type  a type of a bevel
+     * @return the {@code Border} object or {@code null}
+     *         if the specified type is not valid
+     *
+     * @see BevelBorder#BevelBorder(int)
+     * @since 1.7
+     */
+    public static Border createSoftBevelBorder(int type) {
+        if (type == BevelBorder.RAISED) {
+            return createRaisedSoftBevelBorder();
+        }
+        if (type == BevelBorder.LOWERED) {
+            return createLoweredSoftBevelBorder();
+        }
+        return null;
+    }
+
+    /**
+     * Creates a beveled border of the specified type with softened corners,
+     * using the specified highlighting and shadowing.
+     * The type is either {@link BevelBorder#RAISED} or {@link BevelBorder#LOWERED}.
+     * The outer edge of the highlight area uses
+     * a brighter shade of the {@code highlight} color.
+     * The inner edge of the shadow area uses
+     * a brighter shade of the {@code shadow} color.
+     *
+     * @param type       a type of a bevel
+     * @param highlight  a basic color of the highlight area
+     * @param shadow     a basic color of the shadow area
+     * @return the {@code Border} object
+     *
+     * @see BevelBorder#BevelBorder(int, Color, Color)
+     * @since 1.7
+     */
+    public static Border createSoftBevelBorder(int type, Color highlight, Color shadow) {
+        return new SoftBevelBorder(type, highlight, shadow);
+    }
+
+    /**
+     * Creates a beveled border of the specified type with softened corners,
+     * using the specified colors for the inner and outer edges
+     * of the highlight and the shadow areas.
+     * The type is either {@link BevelBorder#RAISED} or {@link BevelBorder#LOWERED}.
+     * Note: The shadow inner and outer colors are switched
+     * for a lowered bevel border.
+     *
+     * @param type            a type of a bevel
+     * @param highlightOuter  a color of the outer edge of the highlight area
+     * @param highlightInner  a color of the inner edge of the highlight area
+     * @param shadowOuter     a color of the outer edge of the shadow area
+     * @param shadowInner     a color of the inner edge of the shadow area
+     * @return the {@code Border} object
+     *
+     * @see BevelBorder#BevelBorder(int, Color, Color, Color, Color)
+     * @since 1.7
+     */
+    public static Border createSoftBevelBorder(int type, Color highlightOuter, Color highlightInner, Color shadowOuter, Color shadowInner) {
+        return new SoftBevelBorder(type, highlightOuter, highlightInner, shadowOuter, shadowInner);
+    }
+
 //// EtchedBorder ///////////////////////////////////////////////////////////
+
     static final Border sharedEtchedBorder = new EtchedBorder();
     private static Border sharedRaisedEtchedBorder;
 
     /**
      * Creates a border with an "etched" look using
-     * the component's current background color for 
+     * the component's current background color for
      * highlighting and shading.
      *
      * @return the <code>Border</code> object
      */
     public static Border createEtchedBorder()    {
-	return sharedEtchedBorder;
+        return sharedEtchedBorder;
     }
 
     /**
@@ -184,7 +317,7 @@ public class BorderFactory
      *
      * @param highlight  a <code>Color</code> object for the border highlights
      * @param shadow     a <code>Color</code> object for the border shadows
-     * @return the <code>Border</code> object 
+     * @return the <code>Border</code> object
      */
     public static Border createEtchedBorder(Color highlight, Color shadow)    {
         return new EtchedBorder(highlight, shadow);
@@ -192,45 +325,45 @@ public class BorderFactory
 
     /**
      * Creates a border with an "etched" look using
-     * the component's current background color for 
+     * the component's current background color for
      * highlighting and shading.
      *
-     * @param type  	one of <code>EtchedBorder.RAISED</code>, or
-     *			<code>EtchedBorder.LOWERED</code>
+     * @param type      one of <code>EtchedBorder.RAISED</code>, or
+     *                  <code>EtchedBorder.LOWERED</code>
      * @return the <code>Border</code> object
      * @exception IllegalArgumentException if type is not either
-     *			<code>EtchedBorder.RAISED</code> or 
-     *			<code>EtchedBorder.LOWERED</code>
+     *                  <code>EtchedBorder.RAISED</code> or
+     *                  <code>EtchedBorder.LOWERED</code>
      * @since 1.3
      */
     public static Border createEtchedBorder(int type)    {
-	switch (type) {
-	case EtchedBorder.RAISED:
-	    if (sharedRaisedEtchedBorder == null) {
-		sharedRaisedEtchedBorder = new EtchedBorder
-		                           (EtchedBorder.RAISED);
-	    }
-	    return sharedRaisedEtchedBorder;
-	case EtchedBorder.LOWERED:
-	    return sharedEtchedBorder;
-	default:
-	    throw new IllegalArgumentException("type must be one of EtchedBorder.RAISED or EtchedBorder.LOWERED");
-	}
+        switch (type) {
+        case EtchedBorder.RAISED:
+            if (sharedRaisedEtchedBorder == null) {
+                sharedRaisedEtchedBorder = new EtchedBorder
+                                           (EtchedBorder.RAISED);
+            }
+            return sharedRaisedEtchedBorder;
+        case EtchedBorder.LOWERED:
+            return sharedEtchedBorder;
+        default:
+            throw new IllegalArgumentException("type must be one of EtchedBorder.RAISED or EtchedBorder.LOWERED");
+        }
     }
 
     /**
      * Creates a border with an "etched" look using
      * the specified highlighting and shading colors.
      *
-     * @param type    	one of <code>EtchedBorder.RAISED</code>, or
-     *			<code>EtchedBorder.LOWERED</code>
+     * @param type      one of <code>EtchedBorder.RAISED</code>, or
+     *                  <code>EtchedBorder.LOWERED</code>
      * @param highlight  a <code>Color</code> object for the border highlights
      * @param shadow     a <code>Color</code> object for the border shadows
-     * @return the <code>Border</code> object 
+     * @return the <code>Border</code> object
      * @since 1.3
      */
     public static Border createEtchedBorder(int type, Color highlight,
-					    Color shadow)    {
+                                            Color shadow)    {
         return new EtchedBorder(type, highlight, shadow);
     }
 
@@ -275,8 +408,8 @@ public class BorderFactory
      * @param title      a <code>String</code> containing the text of the title
      * @return the <code>TitledBorder</code> object
      */
-    public static TitledBorder createTitledBorder(Border border, 
-						   String title) {
+    public static TitledBorder createTitledBorder(Border border,
+                                                   String title) {
         return new TitledBorder(border, title);
     }
 
@@ -287,7 +420,7 @@ public class BorderFactory
      *
      * @param border      the <code>Border</code> object to add the title to
      * @param title       a <code>String</code> containing the text of the title
-     * @param titleJustification  an integer specifying the justification 
+     * @param titleJustification  an integer specifying the justification
      *        of the title -- one of the following:
      *<ul>
      *<li><code>TitledBorder.LEFT</code>
@@ -310,7 +443,7 @@ public class BorderFactory
      *</ul>
      * @return the <code>TitledBorder</code> object
      */
-    public static TitledBorder createTitledBorder(Border border, 
+    public static TitledBorder createTitledBorder(Border border,
                         String title,
                         int titleJustification,
                         int titlePosition)      {
@@ -349,7 +482,7 @@ public class BorderFactory
      * @param titleFont           a Font object specifying the title font
      * @return the TitledBorder object
      */
-    public static TitledBorder createTitledBorder(Border border,       	
+    public static TitledBorder createTitledBorder(Border border,
                         String title,
                         int titleJustification,
                         int titlePosition,
@@ -389,7 +522,7 @@ public class BorderFactory
      * @param titleColor  a <code>Color</code> object specifying the title color
      * @return the <code>TitledBorder</code> object
      */
-    public static TitledBorder createTitledBorder(Border border,                     
+    public static TitledBorder createTitledBorder(Border border,
                         String title,
                         int titleJustification,
                         int titlePosition,
@@ -398,7 +531,7 @@ public class BorderFactory
         return new TitledBorder(border, title, titleJustification,
                         titlePosition, titleFont, titleColor);
     }
-//// EmptyBorder ///////////////////////////////////////////////////////////	
+//// EmptyBorder ///////////////////////////////////////////////////////////
     final static Border emptyBorder = new EmptyBorder(0, 0, 0, 0);
 
     /**
@@ -408,7 +541,7 @@ public class BorderFactory
      * @return the <code>Border</code> object
      */
     public static Border createEmptyBorder() {
-	return emptyBorder;
+        return emptyBorder;
     }
 
     /**
@@ -417,18 +550,18 @@ public class BorderFactory
      * right sides.
      *
      * @param top     an integer specifying the width of the top,
-     *			in pixels
+     *                  in pixels
      * @param left    an integer specifying the width of the left side,
-     *			in pixels
+     *                  in pixels
      * @param bottom  an integer specifying the width of the bottom,
-     *			in pixels
+     *                  in pixels
      * @param right   an integer specifying the width of the right side,
-     *			in pixels
+     *                  in pixels
      * @return the <code>Border</code> object
      */
-    public static Border createEmptyBorder(int top, int left, 
-						int bottom, int right) {
-	return new EmptyBorder(top, left, bottom, right);
+    public static Border createEmptyBorder(int top, int left,
+                                                int bottom, int right) {
+        return new EmptyBorder(top, left, bottom, right);
     }
 
 //// CompoundBorder ////////////////////////////////////////////////////////
@@ -438,8 +571,8 @@ public class BorderFactory
      *
      * @return the <code>CompoundBorder</code> object
      */
-    public static CompoundBorder createCompoundBorder() { 
-	return new CompoundBorder(); 
+    public static CompoundBorder createCompoundBorder() {
+        return new CompoundBorder();
     }
 
     /**
@@ -447,14 +580,14 @@ public class BorderFactory
      * for the outside and inside edges.
      *
      * @param outsideBorder  a <code>Border</code> object for the outer
-     *				edge of the compound border
+     *                          edge of the compound border
      * @param insideBorder   a <code>Border</code> object for the inner
-     *				edge of the compound border
+     *                          edge of the compound border
      * @return the <code>CompoundBorder</code> object
      */
-    public static CompoundBorder createCompoundBorder(Border outsideBorder, 
-						Border insideBorder) { 
-	return new CompoundBorder(outsideBorder, insideBorder); 
+    public static CompoundBorder createCompoundBorder(Border outsideBorder,
+                                                Border insideBorder) {
+        return new CompoundBorder(outsideBorder, insideBorder);
     }
 
 //// MatteBorder ////////////////////////////////////////////////////////
@@ -464,42 +597,163 @@ public class BorderFactory
      * border dimensions.)
      *
      * @param top     an integer specifying the width of the top,
-     *				in pixels
+     *                          in pixels
      * @param left    an integer specifying the width of the left side,
-     *				in pixels
+     *                          in pixels
      * @param bottom  an integer specifying the width of the right side,
-     *				in pixels
+     *                          in pixels
      * @param right   an integer specifying the width of the bottom,
-     *				in pixels
+     *                          in pixels
      * @param color   a <code>Color</code> to use for the border
-     * @return the <code>MatteBorder</code> object 
+     * @return the <code>MatteBorder</code> object
      */
-    public static MatteBorder createMatteBorder(int top, int left, int bottom, int right, 
+    public static MatteBorder createMatteBorder(int top, int left, int bottom, int right,
                                                 Color color) {
         return new MatteBorder(top, left, bottom, right, color);
     }
 
     /**
-     * Creates a matte-look border that consists of multiple tiles of a 
+     * Creates a matte-look border that consists of multiple tiles of a
      * specified icon. Multiple copies of the icon are placed side-by-side
      * to fill up the border area.
      * <p>
-     * Note:<br> 
+     * Note:<br>
      * If the icon doesn't load, the border area is painted gray.
      *
      * @param top     an integer specifying the width of the top,
-     *				in pixels
+     *                          in pixels
      * @param left    an integer specifying the width of the left side,
-     *				in pixels
+     *                          in pixels
      * @param bottom  an integer specifying the width of the right side,
-     *				in pixels
+     *                          in pixels
      * @param right   an integer specifying the width of the bottom,
-     *				in pixels
+     *                          in pixels
      * @param tileIcon  the <code>Icon</code> object used for the border tiles
      * @return the <code>MatteBorder</code> object
      */
-    public static MatteBorder createMatteBorder(int top, int left, int bottom, int right, 
+    public static MatteBorder createMatteBorder(int top, int left, int bottom, int right,
                                                 Icon tileIcon) {
         return new MatteBorder(top, left, bottom, right, tileIcon);
+    }
+
+//// StrokeBorder //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Creates a border of the specified {@code stroke}.
+     * The component's foreground color will be used to render the border.
+     *
+     * @param stroke  the {@link BasicStroke} object used to stroke a shape
+     * @return the {@code Border} object
+     *
+     * @throws NullPointerException if the specified {@code stroke} is {@code null}
+     *
+     * @since 1.7
+     */
+    public static Border createStrokeBorder(BasicStroke stroke) {
+        return new StrokeBorder(stroke);
+    }
+
+    /**
+     * Creates a border of the specified {@code stroke} and {@code paint}.
+     * If the specified {@code paint} is {@code null},
+     * the component's foreground color will be used to render the border.
+     *
+     * @param stroke  the {@link BasicStroke} object used to stroke a shape
+     * @param paint   the {@link Paint} object used to generate a color
+     * @return the {@code Border} object
+     *
+     * @throws NullPointerException if the specified {@code stroke} is {@code null}
+     *
+     * @since 1.7
+     */
+    public static Border createStrokeBorder(BasicStroke stroke, Paint paint) {
+        return new StrokeBorder(stroke, paint);
+    }
+
+//// DashedBorder //////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+    private static Border sharedDashedBorder;
+
+    /**
+     * Creates a dashed border of the specified {@code paint}.
+     * If the specified {@code paint} is {@code null},
+     * the component's foreground color will be used to render the border.
+     * The width of a dash line is equal to {@code 1}.
+     * The relative length of a dash line and
+     * the relative spacing between dash lines are equal to {@code 1}.
+     * A dash line is not rounded.
+     *
+     * @param paint  the {@link Paint} object used to generate a color
+     * @return the {@code Border} object
+     *
+     * @since 1.7
+     */
+    public static Border createDashedBorder(Paint paint) {
+        return createDashedBorder(paint, 1.0f, 1.0f, 1.0f, false);
+    }
+
+    /**
+     * Creates a dashed border of the specified {@code paint},
+     * relative {@code length}, and relative {@code spacing}.
+     * If the specified {@code paint} is {@code null},
+     * the component's foreground color will be used to render the border.
+     * The width of a dash line is equal to {@code 1}.
+     * A dash line is not rounded.
+     *
+     * @param paint    the {@link Paint} object used to generate a color
+     * @param length   the relative length of a dash line
+     * @param spacing  the relative spacing between dash lines
+     * @return the {@code Border} object
+     *
+     * @throws IllegalArgumentException if the specified {@code length} is less than {@code 1}, or
+     *                                  if the specified {@code spacing} is less than {@code 0}
+     * @since 1.7
+     */
+    public static Border createDashedBorder(Paint paint, float length, float spacing) {
+        return createDashedBorder(paint, 1.0f, length, spacing, false);
+    }
+
+    /**
+     * Creates a dashed border of the specified {@code paint}, {@code thickness},
+     * line shape, relative {@code length}, and relative {@code spacing}.
+     * If the specified {@code paint} is {@code null},
+     * the component's foreground color will be used to render the border.
+     *
+     * @param paint      the {@link Paint} object used to generate a color
+     * @param thickness  the width of a dash line
+     * @param length     the relative length of a dash line
+     * @param spacing    the relative spacing between dash lines
+     * @param rounded    whether or not line ends should be round
+     * @return the {@code Border} object
+     *
+     * @throws IllegalArgumentException if the specified {@code thickness} is less than {@code 1}, or
+     *                                  if the specified {@code length} is less than {@code 1}, or
+     *                                  if the specified {@code spacing} is less than {@code 0}
+     * @since 1.7
+     */
+    public static Border createDashedBorder(Paint paint, float thickness, float length, float spacing, boolean rounded) {
+        boolean shared = !rounded && (paint == null) && (thickness == 1.0f) && (length == 1.0f) && (spacing == 1.0f);
+        if (shared && (sharedDashedBorder != null)) {
+            return sharedDashedBorder;
+        }
+        if (thickness < 1.0f) {
+            throw new IllegalArgumentException("thickness is less than 1");
+        }
+        if (length < 1.0f) {
+            throw new IllegalArgumentException("length is less than 1");
+        }
+        if (spacing < 0.0f) {
+            throw new IllegalArgumentException("spacing is less than 0");
+        }
+        int cap = rounded ? BasicStroke.CAP_ROUND : BasicStroke.CAP_SQUARE;
+        int join = rounded ? BasicStroke.JOIN_ROUND : BasicStroke.JOIN_MITER;
+        float[] array = { thickness * (length - 1.0f), thickness * (spacing + 1.0f) };
+        Border border = createStrokeBorder(new BasicStroke(thickness, cap, join, thickness * 2.0f, array, 0.0f), paint);
+        if (shared) {
+            sharedDashedBorder = border;
+        }
+        return border;
     }
 }

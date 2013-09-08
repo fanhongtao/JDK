@@ -1,8 +1,26 @@
 /*
- * @(#)EventDispatchThread.java	1.62 08/05/28
+ * Copyright (c) 1996, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -14,11 +32,11 @@ import java.awt.event.WindowEvent;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
-import sun.awt.DebugHelper;
 import sun.awt.AWTAutoShutdown;
 import sun.awt.SunToolkit;
 
 import java.util.Vector;
+import sun.util.logging.PlatformLogger;
 
 import sun.awt.dnd.SunDragSourceContextPeer;
 import sun.awt.EventQueueDelegate;
@@ -39,126 +57,52 @@ import sun.awt.EventQueueDelegate;
  * @author Amy Fowler
  * @author Fred Ecks
  * @author David Mendenhall
- * 
- * @version 1.62, 05/28/08
+ *
  * @since 1.1
  */
 class EventDispatchThread extends Thread {
-    private static final DebugHelper dbg = DebugHelper.create(EventDispatchThread.class);
+
+    private static final PlatformLogger eventLog = PlatformLogger.getLogger("java.awt.event.EventDispatchThread");
 
     private EventQueue theQueue;
     private boolean doDispatch = true;
+    private boolean threadDeathCaught = false;
+
     private static final int ANY_EVENT = -1;
 
     private Vector<EventFilter> eventFilters = new Vector<EventFilter>();
-    // used in handleException
-    private int modalFiltersCount = 0;
 
     EventDispatchThread(ThreadGroup group, String name, EventQueue queue) {
         super(group, name);
-        theQueue = queue;
+        setEventQueue(queue);
     }
 
-    void stopDispatchingImpl(boolean wait) {
-        // Note: We stop dispatching via a flag rather than using
-        // Thread.interrupt() because we can't guarantee that the wait()
-        // we interrupt will be EventQueue.getNextEvent()'s.  -fredx 8-11-98
-
-        StopDispatchEvent stopEvent = new StopDispatchEvent();
-
-        // wait for the dispatcher to complete
-        if (Thread.currentThread() != this) {
-
-            // fix 4122683, 4128923
-            // Post an empty event to ensure getNextEvent is unblocked
-            //
-            // We have to use postEventPrivate instead of postEvent because
-            // EventQueue.pop calls EventDispatchThread.stopDispatching.
-            // Calling SunToolkit.flushPendingEvents in this case could
-            // lead to deadlock.
-            theQueue.postEventPrivate(stopEvent);
-                
-            if (wait) {
-                try {
-                    join();
-                } catch(InterruptedException e) {
-                }
-            }
-        } else {
-            stopEvent.dispatch();
-        }
-        synchronized (theQueue) {
-            if (theQueue.getDispatchThread() == this) {
-                theQueue.detachDispatchThread();
-            }
-        }
-    }
-
+    /*
+     * Must be called on EDT only, that's why no synchronization
+     */
     public void stopDispatching() {
-        stopDispatchingImpl(true);
-    }
-
-    public void stopDispatchingLater() {
-        stopDispatchingImpl(false);
-    }
-
-    class StopDispatchEvent extends AWTEvent implements ActiveEvent {
-        /*
-         * serialVersionUID
-         */
-        static final long serialVersionUID = -3692158172100730735L;
-
-        public StopDispatchEvent() {
-            super(EventDispatchThread.this,0);
-        }
-
-        public void dispatch() {
-            doDispatch = false;
-        }
+        doDispatch = false;
     }
 
     public void run() {
-	try {
-	    pumpEvents(new Conditional() {
-		public boolean evaluate() {
-		    return true;
-		}
-	    });	    
-	} finally {
-	    /*
-	     * This synchronized block is to secure that the event dispatch 
-	     * thread won't die in the middle of posting a new event to the
-	     * associated event queue. It is important because we notify
-	     * that the event dispatch thread is busy after posting a new event
-	     * to its queue, so the EventQueue.dispatchThread reference must
-	     * be valid at that point.
-	     */
-	    synchronized (theQueue) {
-                if (theQueue.getDispatchThread() == this) {
-                    theQueue.detachDispatchThread();
+        while (true) {
+            try {
+                pumpEvents(new Conditional() {
+                    public boolean evaluate() {
+                        return true;
+                    }
+                });
+            } finally {
+                EventQueue eq = getEventQueue();
+                if (eq.detachDispatchThread(this) || threadDeathCaught) {
+                    break;
                 }
-                /*
-                 * Event dispatch thread dies in case of an uncaught exception. 
-                 * A new event dispatch thread for this queue will be started
-                 * only if a new event is posted to it. In case if no more
-                 * events are posted after this thread died all events that 
-                 * currently are in the queue will never be dispatched.
-                 */
-                /*
-                 * Fix for 4648733. Check both the associated java event
-                 * queue and the PostEventQueue.
-                 */
-                if (theQueue.peekEvent() != null || 
-                    !SunToolkit.isPostEventQueueEmpty()) { 
-                    theQueue.initDispatchThread();
-                }
-		AWTAutoShutdown.getInstance().notifyThreadFree(this);
-	    }
-	}
+            }
+        }
     }
 
     void pumpEvents(Conditional cond) {
-	pumpEvents(ANY_EVENT, cond);
+        pumpEvents(ANY_EVENT, cond);
     }
 
     void pumpEventsForHierarchy(Conditional cond, Component modalComponent) {
@@ -169,8 +113,7 @@ class EventDispatchThread extends Thread {
         pumpEventsForHierarchy(id, cond, null);
     }
 
-    void pumpEventsForHierarchy(int id, Conditional cond, Component modalComponent)
-    {
+    void pumpEventsForHierarchy(int id, Conditional cond, Component modalComponent) {
         pumpEventsForFilter(id, cond, new HierarchyEventFilter(modalComponent));
     }
 
@@ -180,6 +123,7 @@ class EventDispatchThread extends Thread {
 
     void pumpEventsForFilter(int id, Conditional cond, EventFilter filter) {
         addEventFilter(filter);
+        doDispatch = true;
         while (doDispatch && cond.evaluate()) {
             if (isInterrupted() || !pumpOneEventForFilters(id)) {
                 doDispatch = false;
@@ -189,6 +133,7 @@ class EventDispatchThread extends Thread {
     }
 
     void addEventFilter(EventFilter filter) {
+        eventLog.finest("adding the event filter: " + filter);
         synchronized (eventFilters) {
             if (!eventFilters.contains(filter)) {
                 if (filter instanceof ModalEventFilter) {
@@ -204,7 +149,6 @@ class EventDispatchThread extends Thread {
                         }
                     }
                     eventFilters.add(k, filter);
-                    modalFiltersCount++;
                 } else {
                     eventFilters.add(filter);
                 }
@@ -213,29 +157,27 @@ class EventDispatchThread extends Thread {
     }
 
     void removeEventFilter(EventFilter filter) {
+        eventLog.finest("removing the event filter: " + filter);
         synchronized (eventFilters) {
-            if (eventFilters.contains(filter)) {
-                if (filter instanceof ModalEventFilter) {
-                    modalFiltersCount--;
-                }
-                eventFilters.remove(filter);
-            }
+            eventFilters.remove(filter);
         }
     }
 
     boolean pumpOneEventForFilters(int id) {
+        AWTEvent event = null;
+        boolean eventOK = false;
         try {
-            AWTEvent event;
-            boolean eventOK;
-            EventQueueDelegate.Delegate delegate =
-                EventQueueDelegate.getDelegate();
+            EventQueue eq = null;
+            EventQueueDelegate.Delegate delegate = null;
             do {
+                // EventQueue may change during the dispatching
+                eq = getEventQueue();
+                delegate = EventQueueDelegate.getDelegate();
+
                 if (delegate != null && id == ANY_EVENT) {
-                    event = delegate.getNextEvent(theQueue);
+                    event = delegate.getNextEvent(eq);
                 } else {
-                    event = (id == ANY_EVENT)
-                        ? theQueue.getNextEvent()
-                        : theQueue.getNextEvent(id);
+                    event = (id == ANY_EVENT) ? eq.getNextEvent() : eq.getNextEvent(id);
                 }
 
                 eventOK = true;
@@ -257,22 +199,24 @@ class EventDispatchThread extends Thread {
                 }
             }
             while (eventOK == false);
-                      
-            if (dbg.on) {
-                dbg.println("Dispatching: "+event);
+
+            if (eventLog.isLoggable(PlatformLogger.FINEST)) {
+                eventLog.finest("Dispatching: " + event);
             }
 
             Object handle = null;
             if (delegate != null) {
                 handle = delegate.beforeDispatch(event);
             }
-            theQueue.dispatchEvent(event);
+            eq.dispatchEvent(event);
             if (delegate != null) {
                 delegate.afterDispatch(event, handle);
             }
+
             return true;
         }
         catch (ThreadDeath death) {
+            threadDeathCaught = true;
             return false;
 
         }
@@ -281,124 +225,26 @@ class EventDispatchThread extends Thread {
                           // Threads in the AppContext
 
         }
-        // Can get and throw only unchecked exceptions
-        catch (RuntimeException e) {
-            processException(e, modalFiltersCount > 0);
-        } catch (Error e) {
-            processException(e, modalFiltersCount > 0);
-        }
-        return true;
-    }
-
-    private void processException(Throwable e, boolean isModal) {
-        if (!handleException(e)) {
-            // See bug ID 4499199.
-            // If we are in a modal dialog, we cannot throw
-            // an exception for the ThreadGroup to handle (as added
-            // in RFE 4063022).  If we did, the message pump of
-            // the modal dialog would be interrupted.
-            // We instead choose to handle the exception ourselves.
-            // It may be useful to add either a runtime flag or API
-            // later if someone would like to instead dispose the
-            // dialog and allow the thread group to handle it.
-            if (isModal) {
-                System.err.println(
-                    "Exception occurred during event dispatching:");
-                e.printStackTrace();
-            } else if (e instanceof RuntimeException) {
-                throw (RuntimeException)e;
-            } else if (e instanceof Error) {
-                throw (Error)e;
-            }
-        }
-    }
-
-    private static final String handlerPropName = "sun.awt.exception.handler";
-    private static String handlerClassName = null;
-    private static String NO_HANDLER = new String();
-
-    /**
-     * Handles an exception thrown in the event-dispatch thread.
-     *
-     * <p> If the system property "sun.awt.exception.handler" is defined, then
-     * when this method is invoked it will attempt to do the following:
-     *
-     * <ol>
-     * <li> Load the class named by the value of that property, using the
-     *      current thread's context class loader,
-     * <li> Instantiate that class using its zero-argument constructor,
-     * <li> Find the resulting handler object's <tt>public void handle</tt>
-     *      method, which should take a single argument of type
-     *      <tt>Throwable</tt>, and
-     * <li> Invoke the handler's <tt>handle</tt> method, passing it the
-     *      <tt>thrown</tt> argument that was passed to this method.
-     * </ol>
-     *
-     * If any of the first three steps fail then this method will return
-     * <tt>false</tt> and all following invocations of this method will return
-     * <tt>false</tt> immediately.  An exception thrown by the handler object's
-     * <tt>handle</tt> will be caught, and will cause this method to return
-     * <tt>false</tt>.  If the handler's <tt>handle</tt> method is successfully
-     * invoked, then this method will return <tt>true</tt>.  This method will
-     * never throw any sort of exception.
-     *
-     * <p> <i>Note:</i> This method is a temporary hack to work around the
-     * absence of a real API that provides the ability to replace the
-     * event-dispatch thread.  The magic "sun.awt.exception.handler" property
-     * <i>will be removed</i> in a future release.
-     *
-     * @param  thrown  The Throwable that was thrown in the event-dispatch
-     *                 thread
-     *
-     * @return  <tt>false</tt> if any of the above steps failed, otherwise
-     *          <tt>true</tt>
-     */
-    private boolean handleException(Throwable thrown) {
-
-        try {
-
-            if (handlerClassName == NO_HANDLER) {
-                return false;   /* Already tried, and failed */
-            }
-
-            /* Look up the class name */
-            if (handlerClassName == null) {
-                handlerClassName = ((String) AccessController.doPrivileged(
-                    new GetPropertyAction(handlerPropName)));
-                if (handlerClassName == null) {
-                    handlerClassName = NO_HANDLER; /* Do not try this again */
-                    return false;
-                }
-            }
-
-            /* Load the class, instantiate it, and find its handle method */
-            Method m;
-            Object h;
-            try {
-                ClassLoader cl = Thread.currentThread().getContextClassLoader();
-                Class c = Class.forName(handlerClassName, true, cl);
-                m = c.getMethod("handle", new Class[] { Throwable.class });
-                h = c.newInstance();
-            } catch (Throwable x) {
-                handlerClassName = NO_HANDLER; /* Do not try this again */
-                return false;
-            }
-
-            /* Finally, invoke the handler */
-            m.invoke(h, new Object[] { thrown });
-
-        } catch (Throwable x) {
-            return false;
+        catch (Throwable e) {
+            processException(e);
         }
 
         return true;
     }
 
-    boolean isDispatching(EventQueue eq) {
-	return theQueue.equals(eq);
+    private void processException(Throwable e) {
+        if (eventLog.isLoggable(PlatformLogger.FINE)) {
+            eventLog.fine("Processing exception: " + e);
+        }
+        getUncaughtExceptionHandler().uncaughtException(this, e);
     }
 
-    EventQueue getEventQueue() { return theQueue; }
+    public synchronized EventQueue getEventQueue() {
+        return theQueue;
+    }
+    public synchronized void setEventQueue(EventQueue eq) {
+        theQueue = eq;
+    }
 
     private static class HierarchyEventFilter implements EventFilter {
         private Component modalComponent;
@@ -419,16 +265,16 @@ class EventDispatchThread extends Thread {
                  * KeyEvent is handled by using enqueueKeyEvent
                  * in Dialog.show
                  */
-                 if (Component.isInstanceOf(modalComponent, "javax.swing.JInternalFrame")) {
-                     /*
-                      * Modal internal frames are handled separately. If event is
-                      * for some component from another heavyweight than modalComp,
-                      * it is accepted. If heavyweight is the same - we still accept
-                      * event and perform further filtering in LightweightDispatcher
-                      */
-		     return windowClosingEvent ? FilterAction.REJECT : FilterAction.ACCEPT; 
+                if (Component.isInstanceOf(modalComponent, "javax.swing.JInternalFrame")) {
+                    /*
+                     * Modal internal frames are handled separately. If event is
+                     * for some component from another heavyweight than modalComp,
+                     * it is accepted. If heavyweight is the same - we still accept
+                     * event and perform further filtering in LightweightDispatcher
+                     */
+                    return windowClosingEvent ? FilterAction.REJECT : FilterAction.ACCEPT;
                 }
-                if (mouseEvent || actionEvent || windowClosingEvent) { 
+                if (mouseEvent || actionEvent || windowClosingEvent) {
                     Object o = event.getSource();
                     if (o instanceof sun.awt.ModalExclude) {
                         // Exclude this object from modality and

@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,12 +27,11 @@ package com.sun.org.apache.xerces.internal.util;
  * other classes (CachingParserPool, XMLGrammarCachingConfiguration).
  *
  * @author Andy Clark, IBM
- * @version $Id: SynchronizedSymbolTable.java,v 1.2.6.1 2005/09/05 08:52:12 neerajbj Exp $
  */
 
 public final class SynchronizedSymbolTable
     extends SymbolTable {
-        
+
     //
     // Data
     //
@@ -43,7 +46,7 @@ public final class SynchronizedSymbolTable
     /** Constructs a synchronized symbol table. */
     public SynchronizedSymbolTable(SymbolTable symbolTable) {
         fSymbolTable = symbolTable;
-    } // <init>(SymbolTable) 
+    } // <init>(SymbolTable)
 
     // construct synchronized symbol table of default size
     public SynchronizedSymbolTable() {
@@ -58,13 +61,13 @@ public final class SynchronizedSymbolTable
     //
     // SymbolTable methods
     //
-        
+
     /**
      * Adds the specified symbol to the symbol table and returns a
-     * reference to the unique symbol. If the symbol already exists, 
+     * reference to the unique symbol. If the symbol already exists,
      * the previous symbol reference is returned instead, in order
      * guarantee that symbol references remain unique.
-     * 
+     *
      * @param symbol The new symbol.
      */
     public String addSymbol(String symbol) {
@@ -77,10 +80,10 @@ public final class SynchronizedSymbolTable
 
     /**
      * Adds the specified symbol to the symbol table and returns a
-     * reference to the unique symbol. If the symbol already exists, 
+     * reference to the unique symbol. If the symbol already exists,
      * the previous symbol reference is returned instead, in order
      * guarantee that symbol references remain unique.
-     * 
+     *
      * @param buffer The buffer containing the new symbol.
      * @param offset The offset into the buffer of the new symbol.
      * @param length The length of the new symbol in the buffer.
@@ -93,7 +96,7 @@ public final class SynchronizedSymbolTable
 
     } // addSymbol(char[],int,int):String
 
-    /** 
+    /**
      * Returns true if the symbol table already contains the specified
      * symbol.
      *
@@ -107,7 +110,7 @@ public final class SynchronizedSymbolTable
 
     } // containsSymbol(String):boolean
 
-    /** 
+    /**
      * Returns true if the symbol table already contains the specified
      * symbol.
      *

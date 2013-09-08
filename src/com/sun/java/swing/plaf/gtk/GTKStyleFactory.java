@@ -1,36 +1,41 @@
 /*
- * @(#)GTKStyleFactory.java	1.37 07/02/28
+ * Copyright (c) 2002, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
+
 package com.sun.java.swing.plaf.gtk;
 
-import com.sun.java.swing.plaf.gtk.GTKConstants.WidgetType;
-import javax.swing.plaf.synth.*;
-import javax.swing.*;
-import java.util.*;
-
 import java.awt.Font;
-import java.awt.Toolkit;
-import sun.awt.UNIXToolkit;
+import java.util.*;
+import javax.swing.*;
+import javax.swing.plaf.synth.*;
+import com.sun.java.swing.plaf.gtk.GTKEngine.WidgetType;
 
 /**
  *
  * @author Scott Violet
  */
-
 class GTKStyleFactory extends SynthStyleFactory {
-    /**
-     * States if there is native GTK support.
-     */
-    private static final boolean isNativeGtk;
-    
-    static {
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        isNativeGtk = (toolkit instanceof UNIXToolkit &&
-                      ((UNIXToolkit)toolkit).checkGTK());
-    }
 
     /**
      * Saves all styles that have been accessed.  In most common cases,
@@ -39,13 +44,13 @@ class GTKStyleFactory extends SynthStyleFactory {
      * differentiate similar styles.
      */
     private final Map<Object, GTKStyle> stylesCache;
-    
+
     private Font defaultFont;
-    
+
     GTKStyleFactory() {
         stylesCache = new HashMap<Object, GTKStyle>();
     }
-    
+
     /**
      * Returns the <code>GTKStyle</code> to use based on the
      * <code>Region</code> id
@@ -54,7 +59,7 @@ class GTKStyleFactory extends SynthStyleFactory {
      * @param id of the region to get the style.
      */
     public synchronized SynthStyle getStyle(JComponent c, Region id) {
-        WidgetType wt = GTKNativeEngine.getWidgetType(c, id);
+        WidgetType wt = GTKEngine.getWidgetType(c, id);
 
         Object key = null;
         if (id == Region.SCROLL_BAR) {
@@ -69,7 +74,7 @@ class GTKStyleFactory extends SynthStyleFactory {
                 boolean focusable = sb.isFocusable();
                 key = new ComplexKey(wt, sp, horiz, ltr, focusable);
             }
-        } 
+        }
         else if (id == Region.CHECK_BOX || id == Region.RADIO_BUTTON) {
             // The style/insets of a checkbox or radiobutton can depend
             // on the component orientation, so use a complex key here.
@@ -95,12 +100,10 @@ class GTKStyleFactory extends SynthStyleFactory {
 
         GTKStyle result = stylesCache.get(key);
         if (result == null) {
-            result = isNativeGtk ? 
-                     new GTKNativeStyle(defaultFont, wt) : 
-                     new GTKDefaultStyle(defaultFont);
+            result = new GTKStyle(defaultFont, wt);
             stylesCache.put(key, result);
         }
-        
+
         return result;
     }
 

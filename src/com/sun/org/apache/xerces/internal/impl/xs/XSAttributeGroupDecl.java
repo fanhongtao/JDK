@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +21,7 @@
 package com.sun.org.apache.xerces.internal.impl.xs;
 
 import com.sun.org.apache.xerces.internal.impl.dv.ValidatedInfo;
+import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
 import com.sun.org.apache.xerces.internal.xs.XSAnnotation;
 import com.sun.org.apache.xerces.internal.xs.XSAttributeGroupDefinition;
 import com.sun.org.apache.xerces.internal.xs.XSAttributeUse;
@@ -24,7 +29,6 @@ import com.sun.org.apache.xerces.internal.xs.XSConstants;
 import com.sun.org.apache.xerces.internal.xs.XSNamespaceItem;
 import com.sun.org.apache.xerces.internal.xs.XSObjectList;
 import com.sun.org.apache.xerces.internal.xs.XSWildcard;
-import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
 
 /**
  * The XML representation for an attribute group declaration
@@ -35,7 +39,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
  * @author Sandy Gao, IBM
  * @author Rahul Srivastava, Sun Microsystems Inc.
  *
- * @version $Id: XSAttributeGroupDecl.java,v 1.2.6.1 2005/09/09 07:30:54 sunithareddy Exp $
+ * @version $Id: XSAttributeGroupDecl.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */
 public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
 
@@ -54,9 +58,13 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
     public String fIDAttrName = null;
 
     // optional annotation
-    public XSAnnotationImpl fAnnotation;
-    
+    public XSObjectList fAnnotations;
+
     protected XSObjectListImpl fAttrUses = null;
+
+    // The namespace schema information item corresponding to the target namespace
+    // of the attribute group definition, if it is globally declared; or null otherwise.
+    private XSNamespaceItem fNamespaceItem = null;
 
     // add an attribute use
     // if the type is derived from ID, but there is already another attribute
@@ -64,24 +72,34 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
     // otherwise, return null
     public String addAttributeUse(XSAttributeUseImpl attrUse) {
 
+        // if this attribute use is prohibited, then don't check whether it's
+        // of type ID
+        if (attrUse.fUse != SchemaSymbols.USE_PROHIBITED) {
+            if (attrUse.fAttrDecl.fType.isIDType()) {
+                // if there is already an attribute use of type ID,
+                // return its name (and don't add it to the list, to avoid
+                // interruption to instance validation.
+                if (fIDAttrName == null)
+                    fIDAttrName = attrUse.fAttrDecl.fName;
+                else
+                    return fIDAttrName;
+            }
+        }
+
         if (fAttrUseNum == fAttributeUses.length) {
             fAttributeUses = resize(fAttributeUses, fAttrUseNum*2);
         }
         fAttributeUses[fAttrUseNum++] = attrUse;
-        // if this attribute use is prohibited, then don't check whether it's
-        // of type ID
-        if (attrUse.fUse == SchemaSymbols.USE_PROHIBITED)
-            return null;
-
-        if (attrUse.fAttrDecl.fType.isIDType()) {
-            // if there is already an attribute use of type ID, return it' sname
-            if (fIDAttrName == null)
-                fIDAttrName = attrUse.fAttrDecl.fName;
-            else
-                return fIDAttrName;
-        }
 
         return null;
+    }
+
+    public void replaceAttributeUse(XSAttributeUse oldUse, XSAttributeUseImpl newUse) {
+        for (int i=0; i<fAttrUseNum; i++) {
+            if (fAttributeUses[i] == oldUse) {
+                fAttributeUses[i] = newUse;
+            }
+        }
     }
 
     public XSAttributeUse getAttributeUse(String namespace, String name) {
@@ -94,36 +112,50 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
         return null;
     }
 
-    public void removeProhibitedAttrs() {
-        if (fAttrUseNum == 0) return;
-        int pCount = 0;
-        XSAttributeUseImpl[] pUses = new XSAttributeUseImpl[fAttrUseNum];
-        for (int i = 0; i < fAttrUseNum; i++) {
-            if (fAttributeUses[i].fUse == SchemaSymbols.USE_PROHIBITED) {
-                pCount++;
-                // we use the entries at the end, so that we can use the
-                // first entries to store non-prohibited attribute uses,
-                // hence avoid creating a new array.
-                pUses[fAttrUseNum-pCount] = fAttributeUses[i];
-            }
+    public XSAttributeUse getAttributeUseNoProhibited(String namespace, String name) {
+        for (int i=0; i<fAttrUseNum; i++) {
+            if ( (fAttributeUses[i].fAttrDecl.fTargetNamespace == namespace) &&
+                 (fAttributeUses[i].fAttrDecl.fName == name) &&
+                 (fAttributeUses[i].fUse != SchemaSymbols.USE_PROHIBITED))
+                return fAttributeUses[i];
         }
 
-        int newCount = 0;
-        if (pCount > 0) {
-            OUTER: for (int i = 0; i < fAttrUseNum; i++) {
-                if (fAttributeUses[i].fUse == SchemaSymbols.USE_PROHIBITED)
-                    continue;
-                for (int j = 1; j <= pCount; j++) {
-                    if (fAttributeUses[i].fAttrDecl.fName == pUses[fAttrUseNum-pCount].fAttrDecl.fName &&
-                        fAttributeUses[i].fAttrDecl.fTargetNamespace == pUses[fAttrUseNum-pCount].fAttrDecl.fTargetNamespace) {
-                        continue OUTER;
-                    }
-                }
-                pUses[newCount++] = fAttributeUses[i];
+        return null;
+    }
+
+    public void removeProhibitedAttrs() {
+        if (fAttrUseNum == 0) return;
+        // Remove all prohibited attributes.
+        int count = 0;
+        XSAttributeUseImpl[] uses = new XSAttributeUseImpl[fAttrUseNum];
+        for (int i = 0; i < fAttrUseNum; i++) {
+            if (fAttributeUses[i].fUse != SchemaSymbols.USE_PROHIBITED) {
+                uses[count++] = fAttributeUses[i];
             }
-            fAttributeUses = pUses;
-            fAttrUseNum = newCount;
         }
+        fAttributeUses = uses;
+        fAttrUseNum = count;
+
+        // Do not remove attributes that have the same name as the prohibited
+        // ones, because they are specified at the same level. Prohibited
+        // attributes are only to remove attributes from the base type in a
+        // restriction.
+//        int newCount = 0;
+//        if (pCount > 0) {
+//            OUTER: for (int i = 0; i < fAttrUseNum; i++) {
+//                if (fAttributeUses[i].fUse == SchemaSymbols.USE_PROHIBITED)
+//                    continue;
+//                for (int j = 1; j <= pCount; j++) {
+//                    if (fAttributeUses[i].fAttrDecl.fName == pUses[fAttrUseNum-pCount].fAttrDecl.fName &&
+//                        fAttributeUses[i].fAttrDecl.fTargetNamespace == pUses[fAttrUseNum-pCount].fAttrDecl.fTargetNamespace) {
+//                        continue OUTER;
+//                    }
+//                }
+//                pUses[newCount++] = fAttributeUses[i];
+//            }
+//            fAttributeUses = pUses;
+//            fAttrUseNum = newCount;
+//        }
     }
 
     /**
@@ -131,9 +163,9 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
      * If an error is found, an Object[] is returned. This contains the arguments for the error message
      * describing the error. The last element in the array (at index arr.length - 1) is the the error code.
      * Returns null if there is no error.
-     * 
+     *
      * REVISIT: is there a better way of returning the appropriate information for the error?
-     * 
+     *
      * @param typeName the name of the type containing this attribute group, used for error reporting purposes
      * @param baseGroup the XSAttributeGroupDecl that is the base we are checking against
      */
@@ -293,10 +325,10 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
         // reset attribute uses
         for (int i=0;i<fAttrUseNum;i++) {
             fAttributeUses[i] = null;
-        } 
+        }
         fAttrUseNum = 0;
         fAttributeWC = null;
-        fAnnotation = null;
+        fAnnotations = null;
         fIDAttrName = null;
 
     }
@@ -346,15 +378,25 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
      * Optional. Annotation.
      */
     public XSAnnotation getAnnotation() {
-        return fAnnotation;
+        return (fAnnotations != null) ? (XSAnnotation) fAnnotations.item(0) : null;
     }
-    
-	/**
-	 * @see com.sun.org.apache.xerces.internal.xs.XSObject#getNamespaceItem()
-	 */
-	public XSNamespaceItem getNamespaceItem() {
-        //REVISIT: implement
-		return null;
-	}
+
+    /**
+     * Optional. Annotations.
+     */
+    public XSObjectList getAnnotations() {
+        return (fAnnotations != null) ? fAnnotations : XSObjectListImpl.EMPTY_LIST;
+    }
+
+    /**
+     * @see org.apache.xerces.xs.XSObject#getNamespaceItem()
+     */
+    public XSNamespaceItem getNamespaceItem() {
+        return fNamespaceItem;
+    }
+
+    void setNamespaceItem(XSNamespaceItem namespaceItem) {
+        fNamespaceItem = namespaceItem;
+    }
 
 } // class XSAttributeGroupDecl

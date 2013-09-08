@@ -1,10 +1,28 @@
 /*
- * @(#)MetalHighContrastTheme.java	1.5 05/11/17
+ * Copyright (c) 2001, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package javax.swing.plaf.metal;
 
 import javax.swing.plaf.*;
@@ -18,7 +36,6 @@ import java.awt.*;
  * A high contrast theme. This is used on Windows if the system property
  * awt.highContrast.on is true.
  *
- * @version @(#)MetalHighContrastTheme.java	1.5 05/11/17
  * @author Michael C. Albers
  */
 class MetalHighContrastTheme extends DefaultMetalTheme {
@@ -46,7 +63,7 @@ class MetalHighContrastTheme extends DefaultMetalTheme {
 
     protected ColorUIResource getPrimary1() {
         return primary1;
-    } 
+    }
 
     protected ColorUIResource getPrimary2() {
         return primary2;
@@ -84,7 +101,7 @@ class MetalHighContrastTheme extends DefaultMetalTheme {
     public ColorUIResource getHighlightedTextColor() {
         return getWhite();
     }
-  
+
     public ColorUIResource getMenuSelectedBackground() {
         return getBlack();
     }
@@ -106,7 +123,7 @@ class MetalHighContrastTheme extends DefaultMetalTheme {
                     getBlack()));
         Border whiteLineBorder = new BorderUIResource(new LineBorder(
                     getWhite()));
-	Object textBorder = new BorderUIResource(new CompoundBorder(
+        Object textBorder = new BorderUIResource(new CompoundBorder(
                    blackLineBorder, new BasicBorders.MarginBorder()));
 
         Object[] defaults = new Object[] {
@@ -129,10 +146,10 @@ class MetalHighContrastTheme extends DefaultMetalTheme {
             "ComboBox.selectionBackground", getTextHighlightColor(),
             "ComboBox.selectionForeground", getHighlightedTextColor(),
 
-	    "ProgressBar.foreground",  getUserTextColor(),
-	    "ProgressBar.background", getWindowBackground(),
-	    "ProgressBar.selectionForeground", getWindowBackground(),
-	    "ProgressBar.selectionBackground", getUserTextColor(),
+            "ProgressBar.foreground",  getUserTextColor(),
+            "ProgressBar.background", getWindowBackground(),
+            "ProgressBar.selectionForeground", getWindowBackground(),
+            "ProgressBar.selectionBackground", getUserTextColor(),
 
             "OptionPane.errorDialog.border.background",
                         getPrimary1(),

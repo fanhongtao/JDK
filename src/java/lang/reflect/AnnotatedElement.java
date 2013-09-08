@@ -1,8 +1,26 @@
 /*
- * @(#)AnnotatedElement.java	1.5 05/11/17
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.reflect;
@@ -26,12 +44,17 @@ import java.lang.annotation.Annotation;
  * <p>Similarly, attempting to read an enum-valued member will result in
  * a {@link EnumConstantNotPresentException} if the enum constant in the
  * annotation is no longer present in the enum type.
- * 
+ *
  * <p>Finally, Attempting to read a member whose definition has evolved
  * incompatibly will result in a {@link
  * java.lang.annotation.AnnotationTypeMismatchException} or an
  * {@link java.lang.annotation.IncompleteAnnotationException}.
  *
+ * @see java.lang.EnumConstantNotPresentException
+ * @see java.lang.TypeNotPresentException
+ * @see java.lang.annotation.AnnotationFormatError
+ * @see java.lang.annotation.AnnotationTypeMismatchException
+ * @see java.lang.annotation.IncompleteAnnotationException
  * @since 1.5
  * @author Josh Bloch
  */
@@ -54,7 +77,7 @@ public interface AnnotatedElement {
      * Returns this element's annotation for the specified type if
      * such an annotation is present, else null.
      *
-     * @param annotationClass the Class object corresponding to the 
+     * @param annotationClass the Class object corresponding to the
      *        annotation type
      * @return this element's annotation for the specified annotation type if
      *     present on this element, else null

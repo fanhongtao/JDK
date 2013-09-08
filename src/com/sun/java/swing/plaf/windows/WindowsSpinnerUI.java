@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsSpinnerUI.java	1.16 06/04/07
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -34,7 +52,7 @@ public class WindowsSpinnerUI extends BasicSpinnerUI {
         }
         super.paint(g,c);
     }
-    
+
     private State getXPState(JComponent c) {
         State state = State.NORMAL;
         if (!c.isEnabled()) {
@@ -49,9 +67,9 @@ public class WindowsSpinnerUI extends BasicSpinnerUI {
         State state = getXPState(c);
         skin.paintSkin(g, 0, 0, c.getWidth(), c.getHeight(), state);
     }
-    
+
     protected Component createPreviousButton() {
-	if (XPStyle.getXP() != null) {
+        if (XPStyle.getXP() != null) {
             JButton xpButton = new XPStyle.GlyphButton(spinner, Part.SPNP_DOWN);
             Dimension size = UIManager.getDimension("Spinner.arrowButtonSize");
             xpButton.setPreferredSize(size);
@@ -63,7 +81,7 @@ public class WindowsSpinnerUI extends BasicSpinnerUI {
     }
 
     protected Component createNextButton() {
-	if (XPStyle.getXP() != null) {
+        if (XPStyle.getXP() != null) {
             JButton xpButton = new XPStyle.GlyphButton(spinner, Part.SPNP_UP);
             Dimension size = UIManager.getDimension("Spinner.arrowButtonSize");
             xpButton.setPreferredSize(size);
@@ -83,4 +101,3 @@ public class WindowsSpinnerUI extends BasicSpinnerUI {
         return null;
     }
 }
-

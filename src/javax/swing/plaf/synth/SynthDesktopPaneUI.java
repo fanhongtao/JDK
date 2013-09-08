@@ -1,8 +1,26 @@
 /*
- * @(#)SynthDesktopPaneUI.java	1.19 05/11/17
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.synth;
@@ -11,35 +29,38 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.BasicDesktopPaneUI;
-
 import java.beans.*;
-
 import java.awt.event.*;
-import java.awt.Dimension;
-import java.awt.Insets;
-import java.awt.Graphics;
-import java.awt.KeyboardFocusManager;
 import java.awt.*;
-import java.util.Vector;
-import sun.swing.plaf.synth.SynthUI;
 
 /**
- * Synth L&F for a desktop.
+ * Provides the Synth L&F UI delegate for
+ * {@link javax.swing.JDesktopPane}.
  *
- * @version 1.19, 11/17/05
  * @author Joshua Outwater
  * @author Steve Wilson
+ * @since 1.7
  */
-class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
+public class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
                   PropertyChangeListener, SynthUI {
     private SynthStyle style;
     private TaskBar taskBar;
     private DesktopManager oldDesktopManager;
 
+    /**
+     * Creates a new UI object for the given component.
+     *
+     * @param c component to create UI object for
+     * @return the UI object
+     */
     public static ComponentUI createUI(JComponent c) {
         return new SynthDesktopPaneUI();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installListeners() {
         super.installListeners();
         desktop.addPropertyChangeListener(this);
@@ -51,6 +72,10 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
         }
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installDefaults() {
         updateStyle(desktop);
 
@@ -74,12 +99,12 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
                 if (desktopIcon.getParent() != taskBar) {
                     taskBar.add(desktopIcon);
                     desktopIcon.getInternalFrame().addComponentListener(
-                        taskBar); 
+                        taskBar);
                 }
             }
             taskBar.setBackground(desktop.getBackground());
             desktop.add(taskBar,
-                new Integer(JLayeredPane.PALETTE_LAYER.intValue() + 1));
+                Integer.valueOf(JLayeredPane.PALETTE_LAYER.intValue() + 1));
             if (desktop.isShowing()) {
                 taskBar.adjustSize();
             }
@@ -97,6 +122,10 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
         context.dispose();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallListeners() {
         if (taskBar != null) {
             desktop.removeComponentListener(taskBar);
@@ -106,6 +135,10 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
         super.uninstallListeners();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallDefaults() {
         SynthContext context = getContext(desktop, ENABLED);
 
@@ -130,6 +163,10 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
         }
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installDesktopManager() {
         if (UIManager.getBoolean("InternalFrame.useTaskBar")) {
             desktopManager = oldDesktopManager = desktop.getDesktopManager();
@@ -142,6 +179,10 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
         }
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallDesktopManager() {
         if (oldDesktopManager != null && !(oldDesktopManager instanceof UIResource)) {
             desktopManager = desktop.getDesktopManager();
@@ -259,7 +300,7 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
                     }
                 }
                 add(desktopIcon);
-                f.addComponentListener(this); 
+                f.addComponentListener(this);
                 if (getComponentCount() == 1) {
                     adjustSize();
                 }
@@ -380,7 +421,10 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
         }
     }
 
-
+    /**
+     * @inheritDoc
+     */
+    @Override
     public SynthContext getContext(JComponent c) {
         return getContext(c, getComponentState(c));
     }
@@ -390,14 +434,23 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
                      SynthLookAndFeel.getRegion(c), style, state);
     }
 
-    private Region getRegion(JComponent c) {
-        return SynthLookAndFeel.getRegion(c);
-    }
-
     private int getComponentState(JComponent c) {
         return SynthLookAndFeel.getComponentState(c);
     }
 
+    /**
+     * Notifies this UI delegate to repaint the specified component.
+     * This method paints the component background, then calls
+     * the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * <p>In general, this method does not need to be overridden by subclasses.
+     * All Look and Feel rendering code should reside in the {@code paint} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void update(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -408,6 +461,16 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
         context.dispose();
     }
 
+    /**
+     * Paints the specified component according to the Look and Feel.
+     * <p>This method is not used by Synth Look and Feel.
+     * Painting is handled by the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void paint(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -415,14 +478,29 @@ class SynthDesktopPaneUI extends BasicDesktopPaneUI implements
         context.dispose();
     }
 
+    /**
+     * Paints the specified component. This implementation does nothing.
+     *
+     * @param context context for the component being painted
+     * @param g the {@code Graphics} object used for painting
+     * @see #update(Graphics,JComponent)
+     */
     protected void paint(SynthContext context, Graphics g) {
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
         context.getPainter().paintDesktopPaneBorder(context, g, x, y, w, h);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if (SynthLookAndFeel.shouldUpdateStyle(evt)) {
             updateStyle((JDesktopPane)evt.getSource());

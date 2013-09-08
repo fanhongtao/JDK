@@ -1,8 +1,26 @@
 /*
- * @(#)MonitoringManagerFactoryImpl.java	1.7 09/02/23
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.monitoring;
@@ -15,20 +33,15 @@ public class MonitoringManagerFactoryImpl implements MonitoringManagerFactory {
 
     private HashMap monitoringManagerTable = new HashMap();
 
-    public synchronized MonitoringManager createMonitoringManager( 
-        String nameOfTheRoot, String description ) 
+    public synchronized MonitoringManager createMonitoringManager(
+        String nameOfTheRoot, String description )
     {
-	MonitoringManagerImpl m = null;
-	m = (MonitoringManagerImpl)monitoringManagerTable.get(nameOfTheRoot);
-	if (m == null) {
-	    m = new MonitoringManagerImpl( nameOfTheRoot, description );
-	    monitoringManagerTable.put(nameOfTheRoot, m);
-	}
+        MonitoringManagerImpl m = null;
+        m = (MonitoringManagerImpl)monitoringManagerTable.get(nameOfTheRoot);
+        if (m == null) {
+            m = new MonitoringManagerImpl( nameOfTheRoot, description );
+            monitoringManagerTable.put(nameOfTheRoot, m);
+        }
         return m;
     }
-
-    public synchronized void remove( String nameOfTheRoot ) {
-        monitoringManagerTable.remove( nameOfTheRoot ) ;
-    }
 }
-

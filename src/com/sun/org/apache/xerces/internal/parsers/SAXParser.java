@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +33,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: SAXParser.java,v 1.2.6.1 2005/09/06 13:45:43 sunithareddy Exp $
+ * @version $Id: SAXParser.java,v 1.5 2007/07/19 04:38:54 ofung Exp $
  */
 public class SAXParser
     extends AbstractSAXParser {
@@ -44,9 +48,13 @@ public class SAXParser
     protected static final String NOTIFY_BUILTIN_REFS =
         Constants.XERCES_FEATURE_PREFIX + Constants.NOTIFY_BUILTIN_REFS_FEATURE;
 
+    protected static final String REPORT_WHITESPACE =
+            Constants.SUN_SCHEMA_FEATURE_PREFIX + Constants.SUN_REPORT_IGNORED_ELEMENT_CONTENT_WHITESPACE;
+    
     /** Recognized features. */
     private static final String[] RECOGNIZED_FEATURES = {
         NOTIFY_BUILTIN_REFS,
+        REPORT_WHITESPACE
     };
 
     // properties

@@ -1,11 +1,26 @@
 /*
- * @(#)SourcePositions.java	1.4 06/06/09
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Use and Distribution is subject to the Java Research License available
- * at <http://wwws.sun.com/software/communitysource/jrl.html>.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.source.util;
@@ -25,8 +40,8 @@ public interface SourcePositions {
     /**
      * Gets the starting position of tree within file.  If tree is not found within
      * file, or if the starting position is not available,
-     * return {@link javax.tools.Diagnostic#NOPOS}.  
-     * The returned position must be at the start of the yield of this tree, that 
+     * return {@link javax.tools.Diagnostic#NOPOS}.
+     * The returned position must be at the start of the yield of this tree, that
      * is for any sub-tree of this tree, the following must hold:
      *
      * <p>
@@ -44,8 +59,8 @@ public interface SourcePositions {
     /**
      * Gets the ending position of tree within file.  If tree is not found within
      * file, or if the starting position is not available,
-     * return {@link javax.tools.Diagnostic#NOPOS}.  
-     * The returned position must be at the end of the yield of this tree, 
+     * return {@link javax.tools.Diagnostic#NOPOS}.
+     * The returned position must be at the end of the yield of this tree,
      * that is for any sub-tree of this tree, the following must hold:
      *
      * <p>

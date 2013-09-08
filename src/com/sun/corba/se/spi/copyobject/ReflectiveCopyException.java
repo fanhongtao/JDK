@@ -1,24 +1,42 @@
 /*
- * @(#)ReflectiveCopyException.java	1.5 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.copyobject ;
 
 public class ReflectiveCopyException extends Exception {
     public ReflectiveCopyException()
     {
-	super() ;
+        super() ;
     }
 
     public ReflectiveCopyException( String msg )
     {
-	super( msg ) ;
+        super( msg ) ;
     }
 
     public ReflectiveCopyException( String msg, Throwable t )
     {
-	super( msg, t ) ;
+        super( msg, t ) ;
     }
 }

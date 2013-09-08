@@ -1,8 +1,26 @@
 /*
- * @(#)CertSelector.java	1.6 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -25,23 +43,22 @@ package java.security.cert;
  * @see CertStore
  * @see CertStore#getCertificates
  *
- * @version 	1.6 11/17/05
- * @author	Steve Hanna
- * @since	1.4
+ * @author      Steve Hanna
+ * @since       1.4
  */
 public interface CertSelector extends Cloneable {
 
     /**
      * Decides whether a <code>Certificate</code> should be selected.
      *
-     * @param	cert	the <code>Certificate</code> to be checked
-     * @return	<code>true</code> if the <code>Certificate</code> 
+     * @param   cert    the <code>Certificate</code> to be checked
+     * @return  <code>true</code> if the <code>Certificate</code>
      * should be selected, <code>false</code> otherwise
      */
     boolean match(Certificate cert);
 
     /**
-     * Makes a copy of this <code>CertSelector</code>. Changes to the 
+     * Makes a copy of this <code>CertSelector</code>. Changes to the
      * copy will not affect the original and vice versa.
      *
      * @return a copy of this <code>CertSelector</code>

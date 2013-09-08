@@ -1,8 +1,26 @@
 /*
- * @(#)SupportedOptions.java	1.3 06/07/31
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.annotation.processing;
@@ -22,7 +40,6 @@ import static java.lang.annotation.ElementType.*;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.3 06/07/31
  * @since 1.6
  */
 @Documented

@@ -1,11 +1,26 @@
 /*
- * @(#)LineMap.java	1.1 06/04/19
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Use and Distribution is subject to the Java Research License available
- * at <http://www.sun.com/software/communitysource/jrl.html>.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.source.tree;
@@ -17,7 +32,7 @@ package com.sun.source.tree;
  * @since 1.6
  */
 public interface LineMap {
-    /** 
+    /**
      * Find the start position of a line.
      *
      * @param line line number (beginning at 1)
@@ -27,8 +42,8 @@ public interface LineMap {
      *           if <tt>lineNumber > no. of lines</tt>
      */
     long getStartPosition(long line);
-    
-    /** 
+
+    /**
      * Find the position corresponding to a (line,column).
      *
      * @param   line    line number (beginning at 1)
@@ -40,8 +55,8 @@ public interface LineMap {
      *           if {@code line > no. of lines}
      */
     long getPosition(long line, long column);
-    
-    /** 
+
+    /**
      * Find the line containing a position; a line termination
      * character is on the line it terminates.
      *
@@ -49,8 +64,8 @@ public interface LineMap {
      * @return the line number of pos (first line is 1)
      */
     long getLineNumber(long pos);
-    
-    /** 
+
+    /**
      * Find the column for a character position.
      * Tab characters preceding the position on the same line
      * will be expanded when calculating the column number.
@@ -59,5 +74,5 @@ public interface LineMap {
      * @return       the tab-expanded column number of pos (first column is 1)
      */
     long getColumnNumber(long pos);
-    
+
 }

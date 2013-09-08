@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -59,12 +63,11 @@ import com.sun.org.apache.bcel.internal.classfile.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-/** 
+/**
  * Template class for building up a java class. May be initialized with an
  * existing java class (file).
  *
  * @see JavaClass
- * @version $Id: ClassGen.java,v 1.1.2.1 2005/07/31 23:45:37 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ClassGen extends AccessFlags implements Cloneable {
@@ -92,7 +95,7 @@ public class ClassGen extends AccessFlags implements Cloneable {
    * @param cp constant pool to use
    */
   public ClassGen(String class_name, String super_class_name, String file_name,
-		  int access_flags, String[] interfaces, ConstantPoolGen cp) {
+                  int access_flags, String[] interfaces, ConstantPoolGen cp) {
     this.class_name       = class_name;
     this.super_class_name = super_class_name;
     this.file_name        = file_name;
@@ -102,14 +105,14 @@ public class ClassGen extends AccessFlags implements Cloneable {
     // Put everything needed by default into the constant pool and the vectors
     if(file_name != null)
       addAttribute(new SourceFile(cp.addUtf8("SourceFile"), 2,
-				  cp.addUtf8(file_name), cp.getConstantPool()));
+                                  cp.addUtf8(file_name), cp.getConstantPool()));
 
     class_name_index      = cp.addClass(class_name);
     superclass_name_index = cp.addClass(super_class_name);
 
     if(interfaces != null)
       for(int i=0; i < interfaces.length; i++)
-	addInterface(interfaces[i]);
+        addInterface(interfaces[i]);
   }
 
   /** Convenience constructor to set up some important values initially.
@@ -121,9 +124,9 @@ public class ClassGen extends AccessFlags implements Cloneable {
    * @param interfaces implemented interfaces
    */
   public ClassGen(String class_name, String super_class_name, String file_name,
-		  int access_flags, String[] interfaces) {
+                  int access_flags, String[] interfaces) {
     this(class_name, super_class_name, file_name, access_flags, interfaces,
-	 new ConstantPoolGen());
+         new ConstantPoolGen());
   }
 
   /**
@@ -145,7 +148,7 @@ public class ClassGen extends AccessFlags implements Cloneable {
     Method[]    methods    = clazz.getMethods();
     Field[]     fields     = clazz.getFields();
     String[]    interfaces = clazz.getInterfaceNames();
-    
+
     for(int i=0; i < interfaces.length; i++)
       addInterface(interfaces[i]);
 
@@ -170,10 +173,10 @@ public class ClassGen extends AccessFlags implements Cloneable {
 
     // Must be last since the above calls may still add something to it
     ConstantPool cp         = this.cp.getFinalConstantPool();
-    
+
     return new JavaClass(class_name_index, superclass_name_index,
-			 file_name, major, minor, access_flags,
-			 cp, interfaces, fields, methods, attributes);
+                         file_name, major, minor, access_flags,
+                         cp, interfaces, fields, methods, attributes);
   }
 
   /**
@@ -202,14 +205,14 @@ public class ClassGen extends AccessFlags implements Cloneable {
    */
   public void setMajor(int major) {
     this.major = major;
-  }    
+  }
 
   /** Set minor version number of class file, default value is 3 (JDK 1.1)
    * @param minor minor version number
    */
   public void setMinor(int minor) {
     this.minor = minor;
-  }    
+  }
 
   /**
    * @return minor version number of class file
@@ -238,11 +241,11 @@ public class ClassGen extends AccessFlags implements Cloneable {
     InstructionList il = new InstructionList();
     il.append(InstructionConstants.THIS); // Push `this'
     il.append(new INVOKESPECIAL(cp.addMethodref(super_class_name,
-						"<init>", "()V")));
+                                                "<init>", "()V")));
     il.append(InstructionConstants.RETURN);
 
     MethodGen mg = new MethodGen(access_flags, Type.VOID, Type.NO_ARGS, null,
-		       "<init>", class_name, il, cp);
+                       "<init>", class_name, il, cp);
     mg.setMaxStack(1);
     addMethod(mg.getMethod());
   }
@@ -254,14 +257,14 @@ public class ClassGen extends AccessFlags implements Cloneable {
   public void addField(Field f)            { field_vec.add(f); }
 
   public boolean containsField(Field f)    { return field_vec.contains(f); }
-  
+
   /** @return field object with given name, or null
    */
   public Field containsField(String name) {
     for(Iterator e=field_vec.iterator(); e.hasNext(); ) {
       Field f = (Field)e.next();
       if(f.getName().equals(name))
-	return f;
+        return f;
     }
 
     return null;
@@ -273,7 +276,7 @@ public class ClassGen extends AccessFlags implements Cloneable {
     for(Iterator e=method_vec.iterator(); e.hasNext();) {
       Method m = (Method)e.next();
       if(m.getName().equals(name) && m.getSignature().equals(signature))
-	return m;
+        return m;
     }
 
     return null;
@@ -394,7 +397,7 @@ public class ClassGen extends AccessFlags implements Cloneable {
   public ConstantPoolGen getConstantPool() { return cp; }
   public void setConstantPool(ConstantPoolGen constant_pool) {
     cp = constant_pool;
-  }    
+  }
 
   public void setClassNameIndex(int class_name_index) {
     this.class_name_index = class_name_index;
@@ -408,7 +411,7 @@ public class ClassGen extends AccessFlags implements Cloneable {
       getConstantString(superclass_name_index, Constants.CONSTANT_Class).replace('/', '.');
   }
 
-  public int getSuperclassNameIndex() { return superclass_name_index; }    
+  public int getSuperclassNameIndex() { return superclass_name_index; }
 
   public int getClassNameIndex()   { return class_name_index; }
 
@@ -437,7 +440,7 @@ public class ClassGen extends AccessFlags implements Cloneable {
   public void update() {
     if(observers != null)
       for(Iterator e = observers.iterator(); e.hasNext(); )
-	((ClassObserver)e.next()).notify(this);
+        ((ClassObserver)e.next()).notify(this);
   }
 
   public Object clone() {

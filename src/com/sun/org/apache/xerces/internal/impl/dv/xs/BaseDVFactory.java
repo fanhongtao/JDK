@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002, 2003,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +21,11 @@
 package com.sun.org.apache.xerces.internal.impl.dv.xs;
 
 import com.sun.org.apache.xerces.internal.impl.dv.SchemaDVFactory;
-import com.sun.org.apache.xerces.internal.impl.dv.XSSimpleType;
 import com.sun.org.apache.xerces.internal.impl.dv.XSFacets;
+import com.sun.org.apache.xerces.internal.impl.dv.XSSimpleType;
+import com.sun.org.apache.xerces.internal.util.SymbolHash;
 import com.sun.org.apache.xerces.internal.xs.XSConstants;
 import com.sun.org.apache.xerces.internal.xs.XSObjectList;
-import com.sun.org.apache.xerces.internal.util.SymbolHash;
 
 /**
  * the factory to create/return built-in schema DVs and create user-defined DVs
@@ -31,7 +35,7 @@ import com.sun.org.apache.xerces.internal.util.SymbolHash;
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: BaseDVFactory.java,v 1.2.6.1 2005/09/06 11:43:01 neerajbj Exp $
+ * @version $Id: BaseDVFactory.java,v 1.7 2010-11-01 04:39:46 joehw Exp $
  */
 public class BaseDVFactory extends SchemaDVFactory {
 
@@ -183,7 +187,7 @@ public class BaseDVFactory extends SchemaDVFactory {
         types.put(NONPOSITIVEINTEGER, nonPositiveDV);
 
         facets.maxInclusive = "-1";
-        XSSimpleTypeDecl negativeDV = new XSSimpleTypeDecl(integerDV, NEGATIVEINTEGER, URI_SCHEMAFORSCHEMA, (short)0, false, null, XSConstants.NEGATIVEINTEGER_DT);
+        XSSimpleTypeDecl negativeDV = new XSSimpleTypeDecl(nonPositiveDV, NEGATIVEINTEGER, URI_SCHEMAFORSCHEMA, (short)0, false, null, XSConstants.NEGATIVEINTEGER_DT);
         negativeDV.applyFacets1(facets , XSSimpleType.FACET_MAXINCLUSIVE, (short)0);
         types.put(NEGATIVEINTEGER, negativeDV);
 

@@ -1,8 +1,26 @@
 /*
- * @(#)PUBLIC_MEMBER.java	1.18 05/11/17
+ * Copyright (c) 1998, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * File: ./org/omg/CORBA/PUBLIC_MEMBER.java
@@ -23,7 +41,6 @@ package org.omg.CORBA;
  * The other constant is <code>PRIVATE_MEMBER</code>.
  *
  * @author unattributed
- * @version 1.18 11/17/05
  */
 public interface PUBLIC_MEMBER {
     final short value = (short) (1L);

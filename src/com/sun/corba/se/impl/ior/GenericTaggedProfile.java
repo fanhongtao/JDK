@@ -1,8 +1,26 @@
 /*
- * @(#)GenericTaggedProfile.java	1.10 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior;
@@ -22,64 +40,64 @@ import com.sun.corba.se.spi.ior.iiop.GIOPVersion ;
 import com.sun.corba.se.impl.encoding.EncapsOutputStream ;
 
 /**
- * @author 
+ * @author
  */
-public class GenericTaggedProfile extends GenericIdentifiable implements TaggedProfile 
+public class GenericTaggedProfile extends GenericIdentifiable implements TaggedProfile
 {
     private ORB orb ;
 
-    public GenericTaggedProfile( int id, InputStream is ) 
+    public GenericTaggedProfile( int id, InputStream is )
     {
-	super( id, is ) ;
-	this.orb = (ORB)(is.orb()) ;
+        super( id, is ) ;
+        this.orb = (ORB)(is.orb()) ;
     }
 
-    public GenericTaggedProfile( ORB orb, int id, byte[] data ) 
+    public GenericTaggedProfile( ORB orb, int id, byte[] data )
     {
-	super( id, data ) ;
-	this.orb = orb ;
-    }
-    
-    public TaggedProfileTemplate getTaggedProfileTemplate() 
-    {
-	return null ;
+        super( id, data ) ;
+        this.orb = orb ;
     }
 
-    public ObjectId getObjectId() 
+    public TaggedProfileTemplate getTaggedProfileTemplate()
     {
-	return null ;
+        return null ;
     }
 
-    public ObjectKeyTemplate getObjectKeyTemplate() 
+    public ObjectId getObjectId()
     {
-	return null ;
+        return null ;
     }
 
-    public ObjectKey getObjectKey() 
+    public ObjectKeyTemplate getObjectKeyTemplate()
     {
-	return null ;
+        return null ;
     }
 
-    public boolean isEquivalent( TaggedProfile prof ) 
+    public ObjectKey getObjectKey()
     {
-	return equals( prof ) ;
+        return null ;
+    }
+
+    public boolean isEquivalent( TaggedProfile prof )
+    {
+        return equals( prof ) ;
     }
 
     public void makeImmutable()
     {
-	// NO-OP
+        // NO-OP
     }
 
-    public boolean isLocal() 
+    public boolean isLocal()
     {
-	return false ;
+        return false ;
     }
-    
-    public org.omg.IOP.TaggedProfile getIOPProfile() 
+
+    public org.omg.IOP.TaggedProfile getIOPProfile()
     {
-	EncapsOutputStream os = new EncapsOutputStream( orb ) ;
-	write( os ) ;
-	InputStream is = (InputStream)(os.create_input_stream()) ;
-	return org.omg.IOP.TaggedProfileHelper.read( is ) ;
+        EncapsOutputStream os = new EncapsOutputStream( orb ) ;
+        write( os ) ;
+        InputStream is = (InputStream)(os.create_input_stream()) ;
+        return org.omg.IOP.TaggedProfileHelper.read( is ) ;
     }
 }

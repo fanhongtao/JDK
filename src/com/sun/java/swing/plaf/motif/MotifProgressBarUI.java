@@ -1,8 +1,26 @@
 /*
- * @(#)MotifProgressBarUI.java	1.14 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -17,7 +35,7 @@ import javax.swing.plaf.basic.BasicProgressBarUI;
 
 
 /**
- * A Motif ProgressBarUI.  
+ * A Motif ProgressBarUI.
  * <p>
  * <strong>Warning:</strong>
  * Serialized objects of this class will not be compatible with
@@ -26,16 +44,15 @@ import javax.swing.plaf.basic.BasicProgressBarUI;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.14 11/17/05
  * @author Michael C. Albers
  */
-public class MotifProgressBarUI extends BasicProgressBarUI 
+public class MotifProgressBarUI extends BasicProgressBarUI
 {
     /**
      * Creates the ProgressBar's UI
      */
     public static ComponentUI createUI(JComponent x) {
-	return new MotifProgressBarUI();
+        return new MotifProgressBarUI();
     }
 
 }

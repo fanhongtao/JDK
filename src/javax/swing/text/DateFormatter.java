@@ -1,8 +1,26 @@
 /*
- * @(#)DateFormatter.java	1.11 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -27,7 +45,6 @@ import javax.swing.text.*;
  *
  * @see java.text.DateFormat
  *
- * @version 1.5 04/09/01
  * @since 1.4
  */
 public class DateFormatter extends InternationalFormatter {
@@ -97,7 +114,7 @@ public class DateFormatter extends InternationalFormatter {
             Object key = attrs.next();
 
             if ((key instanceof DateFormat.Field) &&
-                (key == DateFormat.Field.HOUR1 || 
+                (key == DateFormat.Field.HOUR1 ||
                  ((DateFormat.Field)key).getCalendarField() != -1)) {
                 return key;
             }

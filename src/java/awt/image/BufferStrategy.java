@@ -1,8 +1,26 @@
 /*
- * @(#)BufferStrategy.java	1.11 06/02/14
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.image;
@@ -85,14 +103,14 @@ import java.awt.Image;
  *             // Get a new graphics context every time through the loop
  *             // to make sure the strategy is validated
  *             Graphics graphics = strategy.getDrawGraphics();
- *     
+ *
  *             // Render to graphics
  *             // ...
  *
  *             // Dispose the graphics
  *             graphics.dispose();
  *
- *             // Repeat the rendering if the drawing buffer contents 
+ *             // Repeat the rendering if the drawing buffer contents
  *             // were restored
  *         } while (strategy.contentsRestored());
  *
@@ -108,14 +126,15 @@ import java.awt.Image;
  * w.dispose();
  * </code></pre>
  *
- * @see java.awt.Component
+ * @see java.awt.Window
+ * @see java.awt.Canvas
  * @see java.awt.GraphicsConfiguration
  * @see VolatileImage
  * @author Michael Martak
  * @since 1.4
  */
 public abstract class BufferStrategy {
-    
+
     /**
      * Returns the <code>BufferCapabilities</code> for this
      * <code>BufferStrategy</code>.
@@ -141,7 +160,7 @@ public abstract class BufferStrategy {
      * For a discussion on lost buffers, see <code>VolatileImage</code>.
      *
      * @return Whether or not the drawing buffer was lost since the last call
-     * to <code>getDrawGraphics</code>. 
+     * to <code>getDrawGraphics</code>.
      * @see java.awt.image.VolatileImage
      */
     public abstract boolean contentsLost();
@@ -156,7 +175,7 @@ public abstract class BufferStrategy {
      * For a discussion on lost buffers, see <code>VolatileImage</code>.
      *
      * @return Whether or not the drawing buffer was restored since the last
-     *         call to <code>getDrawGraphics</code>. 
+     *         call to <code>getDrawGraphics</code>.
      * @see java.awt.image.VolatileImage
      */
     public abstract boolean contentsRestored();
@@ -175,11 +194,12 @@ public abstract class BufferStrategy {
      * to use a <code>BufferStrategy</code> after it has been disposed will
      * result in undefined behavior.
      *
-     * @see java.awt.Component#createBufferStrategy
-     * @see java.awt.Component#getBufferStrategy
+     * @see java.awt.Window#createBufferStrategy
+     * @see java.awt.Canvas#createBufferStrategy
+     * @see java.awt.Window#getBufferStrategy
+     * @see java.awt.Canvas#getBufferStrategy
      * @since 1.6
      */
     public void dispose() {
     }
 }
-

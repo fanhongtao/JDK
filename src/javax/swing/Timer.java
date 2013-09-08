@@ -1,8 +1,26 @@
 /*
- * @(#)Timer.java	1.49 06/04/12
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -12,9 +30,15 @@ package javax.swing;
 
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.Serializable;
+import java.io.*;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import javax.swing.event.EventListenerList;
 
 
@@ -29,7 +53,7 @@ import javax.swing.event.EventListenerList;
  * registering one or more action listeners on it,
  * and starting the timer using
  * the <code>start</code> method.
- * For example, 
+ * For example,
  * the following code creates and starts a timer
  * that fires an action event once per second
  * (as specified by the first argument to the <code>Timer</code> constructor).
@@ -64,7 +88,7 @@ import javax.swing.event.EventListenerList;
  * invoke <code>setRepeats(false)</code> on the timer.
  * <p>
  * Although all <code>Timer</code>s perform their waiting
- * using a single, shared thread 
+ * using a single, shared thread
  * (created by the first <code>Timer</code> object that executes),
  * the action event handlers for <code>Timer</code>s
  * execute on another thread -- the event-dispatching thread.
@@ -78,7 +102,7 @@ import javax.swing.event.EventListenerList;
  * to the Java platform: <code>java.util.Timer</code>.
  * Both it and <code>javax.swing.Timer</code>
  * provide the same basic functionality,
- * but <code>java.util.Timer</code> 
+ * but <code>java.util.Timer</code>
  * is more general and has more features.
  * The <code>javax.swing.Timer</code> has two features
  * that can make it a little easier to use with GUIs.
@@ -86,12 +110,12 @@ import javax.swing.event.EventListenerList;
  * and can make dealing with the event-dispatching thread
  * a bit simpler.
  * Second, its
- * automatic thread sharing means that you don't have to 
+ * automatic thread sharing means that you don't have to
  * take special steps to avoid spawning
  * too many threads.
  * Instead, your timer uses the same thread
  * used to make cursors blink,
- * tool tips appear, 
+ * tool tips appear,
  * and so on.
  *
  * <p>
@@ -101,9 +125,9 @@ import javax.swing.event.EventListenerList;
  * target = "_top">How to Use Timers</a>,
  * a section in <em>The Java Tutorial.</em>
  * For more examples and help in choosing between
- * this <code>Timer</code> class and 
- * <code>java.util.Timer</code>, 
- * see 
+ * this <code>Timer</code> class and
+ * <code>java.util.Timer</code>,
+ * see
  * <a href="http://java.sun.com/products/jfc/tsc/articles/timer/"
  * target="_top">Using Timers in Swing Applications</a>,
  * an article in <em>The Swing Connection.</em>
@@ -120,11 +144,14 @@ import javax.swing.event.EventListenerList;
  * @see java.util.Timer <code>java.util.Timer</code>
  *
  *
- * @version 1.49 04/12/06
  * @author Dave Moore
  */
 public class Timer implements Serializable
 {
+    /*
+     * NOTE: all fields need to be handled in readResolve
+     */
+
     protected EventListenerList listenerList = new EventListenerList();
 
     // The following field strives to maintain the following:
@@ -140,24 +167,24 @@ public class Timer implements Serializable
     // notify is set to true when the Timer fires and the Runnable is queued.
     // It will be set to false after notifying the listeners (if coalesce is
     // true) or if the developer invokes stop.
-    private boolean notify = false;
+    private transient final AtomicBoolean notify = new AtomicBoolean(false);
 
-    int     initialDelay, delay;
-    boolean repeats = true, coalesce = true;
+    private volatile int     initialDelay, delay;
+    private volatile boolean repeats = true, coalesce = true;
 
-    Runnable doPostEvent = null;
+    private transient final Runnable doPostEvent;
 
-    private static boolean logTimers;
+    private static volatile boolean logTimers;
 
+    private transient final Lock lock = new ReentrantLock();
 
-    // These fields are maintained by TimerQueue.
+    // This field is maintained by TimerQueue.
     // eventQueued can also be reset by the TimerQueue, but will only ever
     // happen in applet case when TimerQueues thread is destroyed.
-    long    expirationTime;
-    Timer   nextTimer;
-    boolean running;
+    // access to this field is synchronized on getLock() lock.
+    transient TimerQueue.DelayedTimer delayedTimer = null;
 
-    private String actionCommand;
+    private volatile String actionCommand;
 
     /**
      * Creates a {@code Timer} and initializes both the initial delay and
@@ -180,24 +207,40 @@ public class Timer implements Serializable
 
         doPostEvent = new DoPostEvent();
 
-	if (listener != null) {
-	    addActionListener(listener);
-	}
+        if (listener != null) {
+            addActionListener(listener);
+        }
     }
 
+    /*
+     * The timer's AccessControlContext.
+     */
+     private transient volatile AccessControlContext acc =
+            AccessController.getContext();
 
     /**
-     * DoPostEvent is a runnable class that fires actionEvents to 
+      * Returns the acc this timer was constructed with.
+      */
+     final AccessControlContext getAccessControlContext() {
+       if (acc == null) {
+           throw new SecurityException(
+                   "Timer is missing AccessControlContext");
+       }
+       return acc;
+     }
+
+    /**
+     * DoPostEvent is a runnable class that fires actionEvents to
      * the listeners on the EventDispatchThread, via invokeLater.
      * @see Timer#post
      */
-    class DoPostEvent implements Runnable, Serializable
+    class DoPostEvent implements Runnable
     {
         public void run() {
             if (logTimers) {
                 System.out.println("Timer ringing: " + Timer.this);
             }
-            if(notify) {
+            if(notify.get()) {
                 fireActionPerformed(new ActionEvent(Timer.this, 0, getActionCommand(),
                                                     System.currentTimeMillis(),
                                                     0));
@@ -212,12 +255,11 @@ public class Timer implements Serializable
         }
     }
 
-
     /**
      * Adds an action listener to the <code>Timer</code>.
      *
      * @param listener the listener to add
-     * 
+     *
      * @see #Timer
      */
     public void addActionListener(ActionListener listener) {
@@ -248,14 +290,13 @@ public class Timer implements Serializable
      * @since 1.4
      */
     public ActionListener[] getActionListeners() {
-        return (ActionListener[])listenerList.getListeners(
-                ActionListener.class);
+        return listenerList.getListeners(ActionListener.class);
     }
 
 
     /**
      * Notifies all listeners that have registered interest for
-     * notification on this event type.  
+     * notification on this event type.
      *
      * @param e the action event to fire
      * @see EventListenerList
@@ -269,7 +310,7 @@ public class Timer implements Serializable
         for (int i=listeners.length-2; i>=0; i-=2) {
             if (listeners[i]==ActionListener.class) {
                 ((ActionListener)listeners[i+1]).actionPerformed(e);
-            }          
+            }
         }
     }
 
@@ -282,7 +323,7 @@ public class Timer implements Serializable
      * <p>
      * You can specify the <code>listenerType</code> argument
      * with a class literal, such as <code><em>Foo</em>Listener.class</code>.
-     * For example, you can query a <code>Timer</code> 
+     * For example, you can query a <code>Timer</code>
      * instance <code>t</code>
      * for its action listeners
      * with the following code:
@@ -298,26 +339,26 @@ public class Timer implements Serializable
      * @return an array of all objects registered as
      *          <code><em>Foo</em>Listener</code>s
      *          on this timer,
-     *          or an empty array if no such 
-     *		listeners have been added
+     *          or an empty array if no such
+     *          listeners have been added
      * @exception ClassCastException if <code>listenerType</code> doesn't
-     *          specify a class or interface that implements 
-     *		<code>java.util.EventListener</code>
-     * 
+     *          specify a class or interface that implements
+     *          <code>java.util.EventListener</code>
+     *
      * @see #getActionListeners
      * @see #addActionListener
      * @see #removeActionListener
      *
      * @since 1.3
      */
-    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
-	return listenerList.getListeners(listenerType); 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
+        return listenerList.getListeners(listenerType);
     }
 
     /**
      * Returns the timer queue.
      */
-    TimerQueue timerQueue() {
+    private TimerQueue timerQueue() {
         return TimerQueue.sharedInstance();
     }
 
@@ -364,7 +405,7 @@ public class Timer implements Serializable
 
 
     /**
-     * Returns the delay, in milliseconds, 
+     * Returns the delay, in milliseconds,
      * between firings of action events.
      *
      * @see #setDelay
@@ -382,7 +423,7 @@ public class Timer implements Serializable
      * is set to be the same as the between-event delay,
      * but then its value is independent and remains unaffected
      * by changes to the between-event delay.
-     * 
+     *
      * @param initialDelay the initial delay, in milliseconds
      * @see #setDelay
      */
@@ -424,7 +465,7 @@ public class Timer implements Serializable
     /**
      * Returns <code>true</code> (the default)
      * if the <code>Timer</code> will send
-     * an action event 
+     * an action event
      * to its listeners multiple times.
      *
      * @see #setRepeats
@@ -506,9 +547,8 @@ public class Timer implements Serializable
      *
      * @see #stop
      */
-    public void start() {
-        timerQueue().addTimer(this,
-                              System.currentTimeMillis() + getInitialDelay());
+     public void start() {
+        timerQueue().addTimer(this, getInitialDelay());
     }
 
 
@@ -530,8 +570,13 @@ public class Timer implements Serializable
      * @see #start
      */
     public void stop() {
-        timerQueue().removeTimer(this);
-        cancelEvent();
+        getLock().lock();
+        try {
+            cancelEvent();
+            timerQueue().removeTimer(this);
+        } finally {
+            getLock().unlock();
+        }
     }
 
 
@@ -541,8 +586,13 @@ public class Timer implements Serializable
      * it to fire with its initial delay.
      */
     public void restart() {
-        stop();
-        start();
+        getLock().lock();
+        try {
+            stop();
+            start();
+        } finally {
+            getLock().unlock();
+        }
     }
 
 
@@ -551,15 +601,45 @@ public class Timer implements Serializable
      * any of its listeners. This does not stop a repeatable Timer from
      * firing again, use <code>stop</code> for that.
      */
-    synchronized void cancelEvent() {
-        notify = false;
+    void cancelEvent() {
+        notify.set(false);
     }
 
 
-    synchronized void post() {
-        if (notify == false || !coalesce) {
-            notify = true;
-            SwingUtilities.invokeLater(doPostEvent);
+    void post() {
+         if (notify.compareAndSet(false, true) || !coalesce) {
+             AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                 public Void run() {
+                     SwingUtilities.invokeLater(doPostEvent);
+                     return null;
+                }
+            }, getAccessControlContext());
         }
+    }
+
+    Lock getLock() {
+        return lock;
+    }
+
+    private void readObject(ObjectInputStream in)
+        throws ClassNotFoundException, IOException
+    {
+        this.acc = AccessController.getContext();
+        in.defaultReadObject();
+    }
+
+    /*
+     * We have to use readResolve because we can not initialize final
+     * fields for deserialized object otherwise
+     */
+    private Object readResolve() {
+        Timer timer = new Timer(getDelay(), null);
+        timer.listenerList = listenerList;
+        timer.initialDelay = initialDelay;
+        timer.delay = delay;
+        timer.repeats = repeats;
+        timer.coalesce = coalesce;
+        timer.actionCommand = actionCommand;
+        return timer;
     }
 }

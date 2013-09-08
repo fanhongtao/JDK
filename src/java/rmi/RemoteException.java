@@ -1,8 +1,26 @@
 /*
- * @(#)RemoteException.java	1.25 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi;
@@ -25,7 +43,6 @@ package java.rmi;
  * instance of <code>RemoteException</code> always throws {@link
  * IllegalStateException}.
  *
- * @version 1.25, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
@@ -59,7 +76,7 @@ public class RemoteException extends java.io.IOException {
      * @param s the detail message
      */
     public RemoteException(String s) {
-	super(s);
+        super(s);
         initCause(null);  // Disallow subsequent initCause
     }
 
@@ -72,24 +89,24 @@ public class RemoteException extends java.io.IOException {
      * @param cause the cause
      */
     public RemoteException(String s, Throwable cause) {
-	super(s);
+        super(s);
         initCause(null);  // Disallow subsequent initCause
-	detail = cause;
+        detail = cause;
     }
 
     /**
      * Returns the detail message, including the message from the cause, if
      * any, of this exception.
-     * 
+     *
      * @return the detail message
      */
     public String getMessage() {
-	if (detail == null) {
-	    return super.getMessage();
-	} else {
-	    return super.getMessage() + "; nested exception is: \n\t" +
-		detail.toString();
-	}
+        if (detail == null) {
+            return super.getMessage();
+        } else {
+            return super.getMessage() + "; nested exception is: \n\t" +
+                detail.toString();
+        }
     }
 
     /**

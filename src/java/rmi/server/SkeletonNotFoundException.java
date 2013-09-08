@@ -1,8 +1,26 @@
 /*
- * @(#)SkeletonNotFoundException.java	1.18 06/07/17
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.server;
@@ -14,8 +32,7 @@ import java.rmi.RemoteException;
  * <code>Skeleton</code> corresponding to the remote object being
  * exported is not found.  Skeletons are no longer required, so this
  * exception is never thrown.
- * 
- * @version 1.18, 07/17/06
+ *
  * @since   JDK1.1
  * @deprecated no replacement.  Skeletons are no longer required for remote
  * method calls in the Java 2 platform v1.2 and greater.
@@ -34,7 +51,7 @@ public class SkeletonNotFoundException extends RemoteException {
      * @since JDK1.1
      */
     public SkeletonNotFoundException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -46,6 +63,6 @@ public class SkeletonNotFoundException extends RemoteException {
      * @since JDK1.1
      */
     public SkeletonNotFoundException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

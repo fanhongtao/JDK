@@ -1,8 +1,26 @@
 /*
- * @(#)NamespaceChangeListener.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.event;
@@ -26,10 +44,9 @@ package javax.naming.event;
   * A listener that wants to be notified of <tt>OBJECT_CHANGED</tt> event types
   * should also implement the <tt>ObjectChangeListener</tt>
   * interface.
-  * 
+  *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   *
   * @see NamingEvent
   * @see ObjectChangeListener
@@ -70,5 +87,5 @@ public interface NamespaceChangeListener extends NamingListener {
      * @param evt The nonnull event.
      * @see NamingEvent#OBJECT_RENAMED
      */
-    void objectRenamed(NamingEvent evt); 
+    void objectRenamed(NamingEvent evt);
 }

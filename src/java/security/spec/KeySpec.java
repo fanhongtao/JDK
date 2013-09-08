@@ -1,8 +1,26 @@
 /*
- * @(#)KeySpec.java	1.18 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.spec;
@@ -29,7 +47,6 @@ package java.security.spec;
  *
  * @author Jan Luehe
  *
- * @version 1.18, 11/17/05
  *
  * @see java.security.Key
  * @see java.security.KeyFactory

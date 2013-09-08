@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation.
@@ -41,8 +45,8 @@ final class LiteralExpr extends Expression {
      * @param value the literal expression content/value.
      */
     public LiteralExpr(String value) {
-	_value = value;
-	_namespace = null;
+        _value = value;
+        _namespace = null;
     }
 
     /**
@@ -51,33 +55,33 @@ final class LiteralExpr extends Expression {
      * @param namespace the namespace in which the expression exists.
      */
     public LiteralExpr(String value, String namespace) {
-	_value = value;
-	_namespace = namespace.equals(Constants.EMPTYSTRING) ? null : namespace;
+        _value = value;
+        _namespace = namespace.equals(Constants.EMPTYSTRING) ? null : namespace;
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	return _type = Type.String;
+        return _type = Type.String;
     }
 
     public String toString() {
-	return "literal-expr(" + _value + ')';
+        return "literal-expr(" + _value + ')';
     }
 
     protected boolean contextDependent() {
-	return false;
+        return false;
     }
 
     protected String getValue() {
-	return _value;
+        return _value;
     }
 
     protected String getNamespace() {
-	return _namespace;
+        return _namespace;
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
-	il.append(new PUSH(cpg, _value));
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
+        il.append(new PUSH(cpg, _value));
     }
 }

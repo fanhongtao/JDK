@@ -1,18 +1,36 @@
 /*
- * @(#)UIManager.java	1.131 09/08/07
+ * Copyright (c) 1997, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
-import java.awt.Component; 
+import java.awt.Component;
 import java.awt.Font;
-import java.awt.Color; 
-import java.awt.Insets; 
-import java.awt.Dimension; 
-import java.awt.KeyboardFocusManager; 
-import java.awt.KeyEventPostProcessor; 
+import java.awt.Color;
+import java.awt.Insets;
+import java.awt.Dimension;
+import java.awt.KeyboardFocusManager;
+import java.awt.KeyEventPostProcessor;
 import java.awt.Toolkit;
 
 import java.awt.event.KeyEvent;
@@ -29,14 +47,17 @@ import java.io.Serializable;
 import java.io.File;
 import java.io.FileInputStream;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;
 import java.util.Properties;
-import java.util.StringTokenizer; 
-import java.util.Vector; 
+import java.util.StringTokenizer;
+import java.util.Vector;
 import java.util.Locale;
 
+import sun.awt.SunToolkit;
+import sun.awt.OSInfo;
 import sun.security.action.GetPropertyAction;
 import sun.swing.SwingUtilities2;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import sun.awt.AppContext;
 import sun.awt.AWTAccessor;
@@ -76,7 +97,7 @@ import sun.awt.AWTAccessor;
  *
  * The class used for the default look and feel is chosen in the following
  * manner:
- * <ol>  
+ * <ol>
  *   <li>If the system property <code>swing.defaultlaf</code> is
  *       {@code non-null}, use its value as the default look and feel class
  *       name.
@@ -92,7 +113,7 @@ import sun.awt.AWTAccessor;
  * </ol>
  *
  * <h3>Defaults</h3>
- * 
+ *
  * {@code UIManager} manages three sets of {@code UIDefaults}. In order, they
  * are:
  * <ol>
@@ -111,7 +132,7 @@ import sun.awt.AWTAccessor;
  * the first {@code non-null} value. For example, invoking
  * {@code UIManager.getString("Table.foreground")} results in first
  * checking developer defaults. If the developer defaults contain
- * a value for {@code "Table.foreground"} it is returned, otherwise 
+ * a value for {@code "Table.foreground"} it is returned, otherwise
  * the look and feel defaults are checked, followed by the system defaults.
  * <p>
  * It's important to note that {@code getDefaults} returns a custom
@@ -136,7 +157,7 @@ import sun.awt.AWTAccessor;
  * the defaults may effect an existing look and feel. Finally, other look
  * and feels might not configure themselves from the defaults table in
  * any way. None-the-less it is usually the case that a look and feel
- * expects certain defaults, so that in general 
+ * expects certain defaults, so that in general
  * a {@code ComponentUI} provided by one look and feel will not
  * work with another look and feel.
  * <p>
@@ -149,14 +170,13 @@ import sun.awt.AWTAccessor;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.131 08/07/09
  * @author Thomas Ball
  * @author Hans Muller
  */
-public class UIManager implements Serializable 
+public class UIManager implements Serializable
 {
     /**
-     * This class defines the state managed by the <code>UIManager</code>.  For 
+     * This class defines the state managed by the <code>UIManager</code>.  For
      * Swing applications the fields in this class could just as well
      * be static members of <code>UIManager</code> however we give them
      * "AppContext"
@@ -165,7 +185,7 @@ public class UIManager implements Serializable
      * an applet can alter its look and feel, see <code>setLookAndFeel</code>.
      * Doing so has no affect on other applets (or the browser).
      */
-    private static class LAFState 
+    private static class LAFState
     {
         Properties swingProps;
         private UIDefaults[] tables = new UIDefaults[2];
@@ -174,7 +194,7 @@ public class UIManager implements Serializable
         MultiUIDefaults multiUIDefaults = new MultiUIDefaults(tables);
         LookAndFeel lookAndFeel;
         LookAndFeel multiLookAndFeel = null;
-        Vector auxLookAndFeels = null;
+        Vector<LookAndFeel> auxLookAndFeels = null;
         SwingPropertyChangeSupport changeSupport;
 
         LookAndFeelInfo[] installedLAFs;
@@ -221,17 +241,17 @@ public class UIManager implements Serializable
         LAFState rv = (LAFState)SwingUtilities.appContextGet(
                 SwingUtilities2.LAF_STATE_KEY);
         if (rv == null) {
-	    synchronized (classLock) {
+            synchronized (classLock) {
                 rv = (LAFState)SwingUtilities.appContextGet(
                         SwingUtilities2.LAF_STATE_KEY);
-		if (rv == null) {
+                if (rv == null) {
                     SwingUtilities.appContextPut(
-                            SwingUtilities2.LAF_STATE_KEY, 
+                            SwingUtilities2.LAF_STATE_KEY,
                             (rv = new LAFState()));
-		}
-	    }
+                }
+            }
         }
-	return rv;
+        return rv;
     }
 
 
@@ -246,7 +266,7 @@ public class UIManager implements Serializable
     private static final String disableMnemonicKey = "swing.disablenavaids";
 
     /**
-     * Return a swing.properties file key for the attribute of specified 
+     * Return a swing.properties file key for the attribute of specified
      * look and feel.  The attr is either "name" or "class", a typical
      * key would be: "swing.installedlaf.windows.name"
      */
@@ -257,7 +277,7 @@ public class UIManager implements Serializable
     /**
      * The filename for swing.properties is a path like this (Unix version):
      * <java.home>/lib/swing.properties.  This method returns a bogus
-     * filename if java.home isn't defined.  
+     * filename if java.home isn't defined.
      */
     private static String makeSwingPropertiesFilename() {
         String sep = File.separator;
@@ -271,7 +291,7 @@ public class UIManager implements Serializable
     }
 
 
-    /** 
+    /**
      * Provides a little information about an installed
      * <code>LookAndFeel</code> for the sake of configuring a menu or
      * for initial application set up.
@@ -284,13 +304,13 @@ public class UIManager implements Serializable
         private String className;
 
         /**
-         * Constructs a <code>UIManager</code>s 
+         * Constructs a <code>UIManager</code>s
          * <code>LookAndFeelInfo</code> object.
          *
          * @param name      a <code>String</code> specifying the name of
-         *			the look and feel
+         *                      the look and feel
          * @param className a <code>String</code> specifiying the name of
-         *			the class that implements the look and feel
+         *                      the class that implements the look and feel
          */
         public LookAndFeelInfo(String name, String className) {
             this.name = name;
@@ -309,8 +329,8 @@ public class UIManager implements Serializable
 
         /**
          * Returns the name of the class that implements this look and feel.
-         * @return the name of the class that implements this 
-         *		<code>LookAndFeel</code>
+         * @return the name of the class that implements this
+         *              <code>LookAndFeel</code>
          * @see LookAndFeel
          */
         public String getClassName() {
@@ -333,25 +353,24 @@ public class UIManager implements Serializable
      * The default value of <code>installedLAFS</code> is used when no
      * swing.properties
      * file is available or if the file doesn't contain a "swing.installedlafs"
-     * property.   
-     * 
+     * property.
+     *
      * @see #initializeInstalledLAFs
      */
     private static LookAndFeelInfo[] installedLAFs;
 
     static {
-        ArrayList iLAFs = new ArrayList(4);
+        ArrayList<LookAndFeelInfo> iLAFs = new ArrayList<LookAndFeelInfo>(4);
         iLAFs.add(new LookAndFeelInfo(
                       "Metal", "javax.swing.plaf.metal.MetalLookAndFeel"));
         iLAFs.add(new LookAndFeelInfo(
-                      "Nimbus", "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel"));
+                      "Nimbus", "javax.swing.plaf.nimbus.NimbusLookAndFeel"));
         iLAFs.add(new LookAndFeelInfo("CDE/Motif",
                   "com.sun.java.swing.plaf.motif.MotifLookAndFeel"));
 
         // Only include windows on Windows boxs.
-	String osName = (String)AccessController.doPrivileged(
-                             new GetPropertyAction("os.name"));
-        if (osName != null && osName.indexOf("Windows") != -1) {
+        OSInfo.OSType osType = AccessController.doPrivileged(OSInfo.getOSTypeAction());
+        if (osType == OSInfo.OSType.WINDOWS) {
             iLAFs.add(new LookAndFeelInfo("Windows",
                         "com.sun.java.swing.plaf.windows.WindowsLookAndFeel"));
             if (Toolkit.getDefaultToolkit().getDesktopProperty(
@@ -365,12 +384,11 @@ public class UIManager implements Serializable
             iLAFs.add(new LookAndFeelInfo("GTK+",
                   "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"));
         }
-        installedLAFs = (LookAndFeelInfo[])iLAFs.toArray(
-                        new LookAndFeelInfo[iLAFs.size()]);
+        installedLAFs = iLAFs.toArray(new LookAndFeelInfo[iLAFs.size()]);
     }
 
 
-    /** 
+    /**
      * Returns an array of {@code LookAndFeelInfo}s representing the
      * {@code LookAndFeel} implementations currently available. The
      * <code>LookAndFeelInfo</code> objects can be used by an
@@ -410,7 +428,7 @@ public class UIManager implements Serializable
      *
      * @param infos set of <code>LookAndFeelInfo</code> objects specifying
      *        the available look and feels
-     * 
+     *
      * @see #getInstalledLookAndFeels
      * @throws NullPointerException if {@code infos} is {@code null}
      */
@@ -430,7 +448,7 @@ public class UIManager implements Serializable
      * it is strongly recommended that a {@code non-null} value be used.
      *
      * @param info a <code>LookAndFeelInfo</code> object that names the
-     *		look and feel and identifies the class that implements it
+     *          look and feel and identifies the class that implements it
      * @see #setInstalledLookAndFeels
      */
     public static void installLookAndFeel(LookAndFeelInfo info) {
@@ -467,10 +485,10 @@ public class UIManager implements Serializable
         maybeInitialize();
         return getLAFState().lookAndFeel;
     }
-    
+
 
     /**
-     * Sets the current look and feel to {@code newLookAndFeel}. 
+     * Sets the current look and feel to {@code newLookAndFeel}.
      * If the current look and feel is {@code non-null} {@code
      * uninitialize} is invoked on it. If {@code newLookAndFeel} is
      * {@code non-null}, {@code initialize} is invoked on it followed
@@ -493,8 +511,8 @@ public class UIManager implements Serializable
      *          {@code false}
      * @see #getLookAndFeel
      */
-    public static void setLookAndFeel(LookAndFeel newLookAndFeel) 
-        throws UnsupportedLookAndFeelException 
+    public static void setLookAndFeel(LookAndFeel newLookAndFeel)
+        throws UnsupportedLookAndFeelException
     {
         if ((newLookAndFeel != null) && !newLookAndFeel.isSupportedLookAndFeel()) {
             String s = newLookAndFeel.toString() + " not supported on this platform";
@@ -525,7 +543,7 @@ public class UIManager implements Serializable
         }
     }
 
-    
+
     /**
      * Loads the {@code LookAndFeel} specified by the given class
      * name, using the current thread's context class loader, and
@@ -534,20 +552,20 @@ public class UIManager implements Serializable
      * @param className  a string specifying the name of the class that implements
      *        the look and feel
      * @exception ClassNotFoundException if the <code>LookAndFeel</code>
-     *		 class could not be found
+     *           class could not be found
      * @exception InstantiationException if a new instance of the class
-     *		couldn't be created
+     *          couldn't be created
      * @exception IllegalAccessException if the class or initializer isn't accessible
      * @exception UnsupportedLookAndFeelException if
-     *		<code>lnf.isSupportedLookAndFeel()</code> is false
+     *          <code>lnf.isSupportedLookAndFeel()</code> is false
      * @throws ClassCastException if {@code className} does not identify
      *         a class that extends {@code LookAndFeel}
      */
-    public static void setLookAndFeel(String className) 
-        throws ClassNotFoundException, 
-               InstantiationException, 
+    public static void setLookAndFeel(String className)
+        throws ClassNotFoundException,
+               InstantiationException,
                IllegalAccessException,
-               UnsupportedLookAndFeelException 
+               UnsupportedLookAndFeelException
     {
         if ("javax.swing.plaf.metal.MetalLookAndFeel".equals(className)) {
             // Avoid reflection for the common case of metal.
@@ -559,44 +577,39 @@ public class UIManager implements Serializable
         }
     }
 
-
     /**
      * Returns the name of the <code>LookAndFeel</code> class that implements
      * the native system look and feel if there is one, otherwise
      * the name of the default cross platform <code>LookAndFeel</code>
      * class. This value can be overriden by setting the
      * <code>swing.systemlaf</code> system property.
-     * 
+     *
      * @return the <code>String</code> of the <code>LookAndFeel</code>
-     *		class
-     * 
+     *          class
+     *
      * @see #setLookAndFeel
      * @see #getCrossPlatformLookAndFeelClassName
      */
     public static String getSystemLookAndFeelClassName() {
-	String systemLAF = (String)AccessController.doPrivileged(
+        String systemLAF = AccessController.doPrivileged(
                              new GetPropertyAction("swing.systemlaf"));
         if (systemLAF != null) {
             return systemLAF;
         }
-	String osName = (String)AccessController.doPrivileged(
-                             new GetPropertyAction("os.name"));
-
-        if (osName != null) {
-            if (osName.indexOf("Windows") != -1) {
-                return "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        OSInfo.OSType osType = AccessController.doPrivileged(OSInfo.getOSTypeAction());
+        if (osType == OSInfo.OSType.WINDOWS) {
+            return "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+        } else {
+            String desktop = AccessController.doPrivileged(new GetPropertyAction("sun.desktop"));
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            if ("gnome".equals(desktop) &&
+                    toolkit instanceof SunToolkit &&
+                    ((SunToolkit) toolkit).isNativeGTKAvailable()) {
+                // May be set on Linux and Solaris boxs.
+                return "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
             }
-            else {
-                String desktop = (String)AccessController.doPrivileged(
-                             new GetPropertyAction("sun.desktop"));
-                if ("gnome".equals(desktop)) {
-                    // May be set on Linux and Solaris boxs.
-                    return "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-                }
-                if ((osName.indexOf("Solaris") != -1) || 
-		             (osName.indexOf("SunOS") != -1)) {
-                    return "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
-                }
+            if (osType == OSInfo.OSType.SOLARIS) {
+                return "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
             }
         }
         return getCrossPlatformLookAndFeelClassName();
@@ -608,13 +621,13 @@ public class UIManager implements Serializable
      * the default cross platform look and feel -- the Java
      * Look and Feel (JLF).  This value can be overriden by setting the
      * <code>swing.crossplatformlaf</code> system property.
-     * 
+     *
      * @return  a string with the JLF implementation-class
      * @see #setLookAndFeel
      * @see #getSystemLookAndFeelClassName
      */
     public static String getCrossPlatformLookAndFeelClassName() {
-	String laf = (String)AccessController.doPrivileged(
+        String laf = AccessController.doPrivileged(
                              new GetPropertyAction("swing.crossplatformlaf"));
         if (laf != null) {
             return laf;
@@ -633,7 +646,7 @@ public class UIManager implements Serializable
         maybeInitialize();
         return getLAFState().multiUIDefaults;
     }
-    
+
     /**
      * Returns a font from the defaults. If the value for {@code key} is
      * not a {@code Font}, {@code null} is returned.
@@ -642,8 +655,8 @@ public class UIManager implements Serializable
      * @return the <code>Font</code> object
      * @throws NullPointerException if {@code key} is {@code null}
      */
-    public static Font getFont(Object key) { 
-        return getDefaults().getFont(key); 
+    public static Font getFont(Object key) {
+        return getDefaults().getFont(key);
     }
 
     /**
@@ -659,8 +672,8 @@ public class UIManager implements Serializable
      * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
-    public static Font getFont(Object key, Locale l) { 
-        return getDefaults().getFont(key,l); 
+    public static Font getFont(Object key, Locale l) {
+        return getDefaults().getFont(key,l);
     }
 
     /**
@@ -671,8 +684,8 @@ public class UIManager implements Serializable
      * @return the <code>Color</code> object
      * @throws NullPointerException if {@code key} is {@code null}
      */
-    public static Color getColor(Object key) { 
-        return getDefaults().getColor(key); 
+    public static Color getColor(Object key) {
+        return getDefaults().getColor(key);
     }
 
     /**
@@ -688,8 +701,8 @@ public class UIManager implements Serializable
      * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
-    public static Color getColor(Object key, Locale l) { 
-        return getDefaults().getColor(key,l); 
+    public static Color getColor(Object key, Locale l) {
+        return getDefaults().getColor(key,l);
     }
 
     /**
@@ -700,8 +713,8 @@ public class UIManager implements Serializable
      * @return the <code>Icon</code> object
      * @throws NullPointerException if {@code key} is {@code null}
      */
-    public static Icon getIcon(Object key) { 
-        return getDefaults().getIcon(key); 
+    public static Icon getIcon(Object key) {
+        return getDefaults().getIcon(key);
     }
 
     /**
@@ -717,8 +730,8 @@ public class UIManager implements Serializable
      * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
-    public static Icon getIcon(Object key, Locale l) { 
-        return getDefaults().getIcon(key,l); 
+    public static Icon getIcon(Object key, Locale l) {
+        return getDefaults().getIcon(key,l);
     }
 
     /**
@@ -729,8 +742,8 @@ public class UIManager implements Serializable
      * @return the <code>Border</code> object
      * @throws NullPointerException if {@code key} is {@code null}
      */
-    public static Border getBorder(Object key) { 
-        return getDefaults().getBorder(key); 
+    public static Border getBorder(Object key) {
+        return getDefaults().getBorder(key);
     }
 
     /**
@@ -746,8 +759,8 @@ public class UIManager implements Serializable
      * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
-    public static Border getBorder(Object key, Locale l) { 
-        return getDefaults().getBorder(key,l); 
+    public static Border getBorder(Object key, Locale l) {
+        return getDefaults().getBorder(key,l);
     }
 
     /**
@@ -758,8 +771,8 @@ public class UIManager implements Serializable
      * @return the <code>String</code>
      * @throws NullPointerException if {@code key} is {@code null}
      */
-    public static String getString(Object key) { 
-        return getDefaults().getString(key); 
+    public static String getString(Object key) {
+        return getDefaults().getString(key);
     }
 
     /**
@@ -775,8 +788,8 @@ public class UIManager implements Serializable
      * @since 1.4
      * @throws NullPointerException if {@code key} is {@code null}
      */
-    public static String getString(Object key, Locale l) { 
-        return getDefaults().getString(key,l); 
+    public static String getString(Object key, Locale l) {
+        return getDefaults().getString(key,l);
     }
 
     /**
@@ -791,7 +804,7 @@ public class UIManager implements Serializable
      * @return the <code>String</code>
      * @throws NullPointerException if {@code key} is {@code null}
      */
-    static String getString(Object key, Component c) { 
+    static String getString(Object key, Component c) {
         Locale l = (c == null) ? Locale.getDefault() : c.getLocale();
         return getString(key, l);
     }
@@ -847,7 +860,7 @@ public class UIManager implements Serializable
      * found or the key doesn't represent
      * a boolean value then {@code false} will be returned.
      *
-     * @param key  an <code>Object</code> specifying the key for the desired 
+     * @param key  an <code>Object</code> specifying the key for the desired
      *             boolean value
      * @param l the <code>Locale</code> for which the boolean is desired; refer
      *        to {@code UIDefaults} for details on how a {@code null}
@@ -873,7 +886,7 @@ public class UIManager implements Serializable
     }
 
     /**
-     * Returns an <code>Insets</code> object from the defaults that is 
+     * Returns an <code>Insets</code> object from the defaults that is
      * appropriate for the given locale. If the value
      * for {@code key} is not an {@code Insets}, {@code null} is returned.
      *
@@ -925,8 +938,8 @@ public class UIManager implements Serializable
      * @return the <code>Object</code>
      * @throws NullPointerException if {@code key} is {@code null}
      */
-    public static Object get(Object key) { 
-        return getDefaults().get(key); 
+    public static Object get(Object key) {
+        return getDefaults().get(key);
     }
 
     /**
@@ -941,8 +954,8 @@ public class UIManager implements Serializable
      * @throws NullPointerException if {@code key} is {@code null}
      * @since 1.4
      */
-    public static Object get(Object key, Locale l) { 
-        return getDefaults().get(key,l); 
+    public static Object get(Object key, Locale l) {
+        return getDefaults().get(key,l);
     }
 
     /**
@@ -958,12 +971,12 @@ public class UIManager implements Serializable
      * @throws NullPointerException if {@code key} is {@code null}
      * @see UIDefaults#put
      */
-    public static Object put(Object key, Object value) { 
-        return getDefaults().put(key, value); 
+    public static Object put(Object key, Object value) {
+        return getDefaults().put(key, value);
     }
 
     /**
-     * Returns the appropriate {@code ComponentUI} implementation for 
+     * Returns the appropriate {@code ComponentUI} implementation for
      * {@code target}. Typically, this is a cover for
      * {@code getDefaults().getUI(target)}. However, if an auxiliary
      * look and feel has been installed, this first invokes
@@ -1015,8 +1028,8 @@ public class UIManager implements Serializable
      * Finds the Multiplexing <code>LookAndFeel</code>.
      */
     private static LookAndFeel getMultiLookAndFeel() {
-	LookAndFeel multiLookAndFeel = getLAFState().multiLookAndFeel;
-	if (multiLookAndFeel == null) {
+        LookAndFeel multiLookAndFeel = getLAFState().multiLookAndFeel;
+        if (multiLookAndFeel == null) {
             String defaultName = "javax.swing.plaf.multi.MultiLookAndFeel";
             String className = getLAFState().swingProps.getProperty(multiplexingLAFKey, defaultName);
             try {
@@ -1025,15 +1038,15 @@ public class UIManager implements Serializable
             } catch (Exception exc) {
                 System.err.println("UIManager: failed loading " + className);
             }
-	}
-	return multiLookAndFeel;
+        }
+        return multiLookAndFeel;
     }
 
     /**
      * Adds a <code>LookAndFeel</code> to the list of auxiliary look and feels.
      * The auxiliary look and feels tell the multiplexing look and feel what
-     * other <code>LookAndFeel</code> classes for a component instance are to be used 
-     * in addition to the default <code>LookAndFeel</code> class when creating a 
+     * other <code>LookAndFeel</code> classes for a component instance are to be used
+     * in addition to the default <code>LookAndFeel</code> class when creating a
      * multiplexing UI.  The change will only take effect when a new
      * UI class is created or when the default look and feel is changed
      * on a component instance.
@@ -1053,27 +1066,27 @@ public class UIManager implements Serializable
             // for that.
             return;
         }
-        Vector v = getLAFState().auxLookAndFeels;
+        Vector<LookAndFeel> v = getLAFState().auxLookAndFeels;
         if (v == null) {
-            v = new Vector();
-        } 
+            v = new Vector<LookAndFeel>();
+        }
 
-	if (!v.contains(laf)) {
-	    v.addElement(laf);
-	    laf.initialize();
+        if (!v.contains(laf)) {
+            v.addElement(laf);
+            laf.initialize();
             getLAFState().auxLookAndFeels = v;
 
-	    if (getLAFState().multiLookAndFeel == null) {
-	        getLAFState().multiLookAndFeel = getMultiLookAndFeel();
+            if (getLAFState().multiLookAndFeel == null) {
+                getLAFState().multiLookAndFeel = getMultiLookAndFeel();
             }
-	}
+        }
     }
 
     /**
      * Removes a <code>LookAndFeel</code> from the list of auxiliary look and feels.
      * The auxiliary look and feels tell the multiplexing look and feel what
-     * other <code>LookAndFeel</code> classes for a component instance are to be used 
-     * in addition to the default <code>LookAndFeel</code> class when creating a 
+     * other <code>LookAndFeel</code> classes for a component instance are to be used
+     * in addition to the default <code>LookAndFeel</code> class when creating a
      * multiplexing UI.  The change will only take effect when a new
      * UI class is created or when the default look and feel is changed
      * on a component instance.
@@ -1087,33 +1100,33 @@ public class UIManager implements Serializable
     static public boolean removeAuxiliaryLookAndFeel(LookAndFeel laf) {
         maybeInitialize();
 
-	boolean result;
+        boolean result;
 
-        Vector v = getLAFState().auxLookAndFeels;
+        Vector<LookAndFeel> v = getLAFState().auxLookAndFeels;
         if ((v == null) || (v.size() == 0)) {
             return false;
-        } 
-	
-	result = v.removeElement(laf);
-	if (result) {
-	    if (v.size() == 0) {
-	        getLAFState().auxLookAndFeels = null;
-	        getLAFState().multiLookAndFeel = null;
-	    } else {
-	        getLAFState().auxLookAndFeels = v;
+        }
+
+        result = v.removeElement(laf);
+        if (result) {
+            if (v.size() == 0) {
+                getLAFState().auxLookAndFeels = null;
+                getLAFState().multiLookAndFeel = null;
+            } else {
+                getLAFState().auxLookAndFeels = v;
             }
         }
-	laf.uninitialize();
+        laf.uninitialize();
 
-	return result;
+        return result;
     }
 
     /**
      * Returns the list of auxiliary look and feels (can be <code>null</code>).
      * The auxiliary look and feels tell the multiplexing look and feel what
-     * other <code>LookAndFeel</code> classes for a component instance are 
-     * to be used in addition to the default LookAndFeel class when creating a 
-     * multiplexing UI.  
+     * other <code>LookAndFeel</code> classes for a component instance are
+     * to be used in addition to the default LookAndFeel class when creating a
+     * multiplexing UI.
      * <p>Note these are not the same as the installed look and feels.
      *
      * @return list of auxiliary <code>LookAndFeel</code>s or <code>null</code>
@@ -1125,14 +1138,14 @@ public class UIManager implements Serializable
     static public LookAndFeel[] getAuxiliaryLookAndFeels() {
         maybeInitialize();
 
-        Vector v = getLAFState().auxLookAndFeels;
+        Vector<LookAndFeel> v = getLAFState().auxLookAndFeels;
         if ((v == null) || (v.size() == 0)) {
             return null;
-        } 
+        }
         else {
             LookAndFeel[] rv = new LookAndFeel[v.size()];
             for (int i = 0; i < rv.length; i++) {
-                rv[i] = (LookAndFeel)v.elementAt(i);
+                rv[i] = v.elementAt(i);
             }
             return rv;
         }
@@ -1146,12 +1159,12 @@ public class UIManager implements Serializable
      * @param listener  the <code>PropertyChangeListener</code> to be added
      * @see java.beans.PropertyChangeSupport
      */
-    public static void addPropertyChangeListener(PropertyChangeListener listener) 
+    public static void addPropertyChangeListener(PropertyChangeListener listener)
     {
-	synchronized (classLock) {
-	    getLAFState().getPropertyChangeSupport(true).
+        synchronized (classLock) {
+            getLAFState().getPropertyChangeSupport(true).
                              addPropertyChangeListener(listener);
-	}
+        }
     }
 
 
@@ -1163,12 +1176,12 @@ public class UIManager implements Serializable
      * @param listener  the <code>PropertyChangeListener</code> to be removed
      * @see java.beans.PropertyChangeSupport
      */
-    public static void removePropertyChangeListener(PropertyChangeListener listener) 
+    public static void removePropertyChangeListener(PropertyChangeListener listener)
     {
         synchronized (classLock) {
-	    getLAFState().getPropertyChangeSupport(true).
+            getLAFState().getPropertyChangeSupport(true).
                           removePropertyChangeListener(listener);
-	}
+        }
     }
 
 
@@ -1189,20 +1202,20 @@ public class UIManager implements Serializable
 
     private static Properties loadSwingProperties()
     {
-	/* Don't bother checking for Swing properties if untrusted, as
-	 * there's no way to look them up without triggering SecurityExceptions.
-	 */
+        /* Don't bother checking for Swing properties if untrusted, as
+         * there's no way to look them up without triggering SecurityExceptions.
+         */
         if (UIManager.class.getClassLoader() != null) {
-	    return new Properties();
-	}
-	else {
-	    final Properties props = new Properties();
+            return new Properties();
+        }
+        else {
+            final Properties props = new Properties();
 
             java.security.AccessController.doPrivileged(
-                new java.security.PrivilegedAction() {
+                new java.security.PrivilegedAction<Object>() {
                 public Object run() {
-		    try {
-			File file = new File(makeSwingPropertiesFilename());
+                    try {
+                        File file = new File(makeSwingPropertiesFilename());
 
                         if (file.exists()) {
                             // InputStream has been buffered in Properties
@@ -1211,24 +1224,24 @@ public class UIManager implements Serializable
                             props.load(ins);
                             ins.close();
                         }
-		    } 
-		    catch (Exception e) {
-			// No such file, or file is otherwise non-readable.
-		    }
+                    }
+                    catch (Exception e) {
+                        // No such file, or file is otherwise non-readable.
+                    }
 
-		    // Check whether any properties were overridden at the
-		    // command line.
-		    checkProperty(props, defaultLAFKey);
-		    checkProperty(props, auxiliaryLAFsKey);
-		    checkProperty(props, multiplexingLAFKey);
-		    checkProperty(props, installedLAFsKey);
-		    checkProperty(props, disableMnemonicKey);
+                    // Check whether any properties were overridden at the
+                    // command line.
+                    checkProperty(props, defaultLAFKey);
+                    checkProperty(props, auxiliaryLAFsKey);
+                    checkProperty(props, multiplexingLAFKey);
+                    checkProperty(props, installedLAFsKey);
+                    checkProperty(props, disableMnemonicKey);
                     // Don't care about return value.
                     return null;
-		}
-	    });
-	    return props;
-	}
+                }
+            });
+            return props;
+        }
     }
 
     private static void checkProperty(Properties props, String key) {
@@ -1244,10 +1257,10 @@ public class UIManager implements Serializable
     /**
      * If a swing.properties file exist and it has a swing.installedlafs property
      * then initialize the <code>installedLAFs</code> field.
-     * 
+     *
      * @see #getInstalledLookAndFeels
      */
-    private static void initializeInstalledLAFs(Properties swingProps) 
+    private static void initializeInstalledLAFs(Properties swingProps)
     {
         String ilafsString = swingProps.getProperty(installedLAFsKey);
         if (ilafsString == null) {
@@ -1258,19 +1271,18 @@ public class UIManager implements Serializable
          * property.  For example given "swing.installedlafs=motif,windows"
          * lafs = {"motif", "windows"}.
          */
-        Vector lafs = new Vector();
+        Vector<String> lafs = new Vector<String>();
         StringTokenizer st = new StringTokenizer(ilafsString, ",", false);
         while (st.hasMoreTokens()) {
             lafs.addElement(st.nextToken());
         }
 
         /* Look up the name and class for each name in the "swing.installedlafs"
-         * list.  If they both exist then add a LookAndFeelInfo to 
+         * list.  If they both exist then add a LookAndFeelInfo to
          * the installedLafs array.
          */
-        Vector ilafs = new Vector(lafs.size());
-        for(int i = 0; i < lafs.size(); i++) {
-            String laf = (String)lafs.elementAt(i);
+        Vector<LookAndFeelInfo> ilafs = new Vector<LookAndFeelInfo>(lafs.size());
+        for (String laf : lafs) {
             String name = swingProps.getProperty(makeInstalledLAFKey(laf, "name"), laf);
             String cls = swingProps.getProperty(makeInstalledLAFKey(laf, "class"));
             if (cls != null) {
@@ -1280,14 +1292,14 @@ public class UIManager implements Serializable
 
         LookAndFeelInfo[] installedLAFs = new LookAndFeelInfo[ilafs.size()];
         for(int i = 0; i < ilafs.size(); i++) {
-            installedLAFs[i] = (LookAndFeelInfo)(ilafs.elementAt(i));
+            installedLAFs[i] = ilafs.elementAt(i);
         }
         getLAFState().installedLAFs = installedLAFs;
     }
 
 
     /**
-     * If the user has specified a default look and feel, use that.  
+     * If the user has specified a default look and feel, use that.
      * Otherwise use the look and feel that's native to this platform.
      * If this code is called after the application has explicitly
      * set it's look and feel, do nothing.
@@ -1304,7 +1316,7 @@ public class UIManager implements Serializable
         // (6653395), then use cross-platform one by default.
         String lafName = null;
         HashMap lafData =
-                (HashMap) AppContext.getAppContext().get("swing.lafdata");
+                (HashMap) AppContext.getAppContext().remove("swing.lafdata");
         if (lafData != null) {
             lafName = (String) lafData.remove("defaultlaf");
         }
@@ -1312,13 +1324,13 @@ public class UIManager implements Serializable
             lafName = getCrossPlatformLookAndFeelClassName();
         }
         lafName = swingProps.getProperty(defaultLAFKey, lafName);
-        
+
         try {
             setLookAndFeel(lafName);
         } catch (Exception e) {
             throw new Error("Cannot load " + lafName);
         }
-        
+
         // Set any properties passed through AppContext (6653395).
         if (lafData != null) {
             for (Object key: lafData.keySet()) {
@@ -1335,7 +1347,7 @@ public class UIManager implements Serializable
             return;
         }
 
-        Vector auxLookAndFeels = new Vector();
+        Vector<LookAndFeel> auxLookAndFeels = new Vector<LookAndFeel>();
 
         StringTokenizer p = new StringTokenizer(auxLookAndFeelNames,",");
         String factoryName;
@@ -1347,28 +1359,28 @@ public class UIManager implements Serializable
             String className = p.nextToken();
             try {
                 Class lnfClass = SwingUtilities.loadSystemClass(className);
-		LookAndFeel newLAF = (LookAndFeel)lnfClass.newInstance();
-		newLAF.initialize();
+                LookAndFeel newLAF = (LookAndFeel)lnfClass.newInstance();
+                newLAF.initialize();
                 auxLookAndFeels.addElement(newLAF);
-            } 
+            }
             catch (Exception e) {
                 System.err.println("UIManager: failed loading auxiliary look and feel " + className);
             }
         }
 
-        /* If there were problems and no auxiliary look and feels were 
+        /* If there were problems and no auxiliary look and feels were
          * loaded, make sure we reset auxLookAndFeels to null.
          * Otherwise, we are going to use the MultiLookAndFeel to get
          * all component UI's, so we need to load it now.
          */
         if (auxLookAndFeels.size() == 0) {
             auxLookAndFeels = null;
-        } 
+        }
         else {
-	    getLAFState().multiLookAndFeel = getMultiLookAndFeel();
-	    if (getLAFState().multiLookAndFeel == null) {
+            getLAFState().multiLookAndFeel = getMultiLookAndFeel();
+            if (getLAFState().multiLookAndFeel == null) {
                 auxLookAndFeels = null;
-	    }
+            }
         }
 
         getLAFState().auxLookAndFeels = auxLookAndFeels;
@@ -1376,23 +1388,23 @@ public class UIManager implements Serializable
 
 
     private static void initializeSystemDefaults(Properties swingProps) {
-	getLAFState().swingProps = swingProps;
+        getLAFState().swingProps = swingProps;
     }
 
 
-    /* 
-     * This method is called before any code that depends on the 
+    /*
+     * This method is called before any code that depends on the
      * <code>AppContext</code> specific LAFState object runs.  When the AppContext
-     * corresponds to a set of applets it's possible for this method 
+     * corresponds to a set of applets it's possible for this method
      * to be re-entered, which is why we grab a lock before calling
      * initialize().
      */
     private static void maybeInitialize() {
-	synchronized (classLock) {
-	    if (!getLAFState().initialized) {
-		getLAFState().initialized = true;
-		initialize();
-	    }
+        synchronized (classLock) {
+            if (!getLAFState().initialized) {
+                getLAFState().initialized = true;
+                initialize();
+            }
         }
     }
 
@@ -1436,7 +1448,7 @@ public class UIManager implements Serializable
                         Component c = e.getComponent();
 
                         if ((!(c instanceof JComponent) ||
-                             (c != null && !((JComponent)c).isEnabled())) &&
+                             (c != null && !c.isEnabled())) &&
                                 JComponent.KeyboardState.shouldProcess(e) &&
                                 SwingUtilities.processKeyBindings(e)) {
                             e.consume();
@@ -1445,9 +1457,7 @@ public class UIManager implements Serializable
                         return false;
                     }
                 });
-
         AWTAccessor.getComponentAccessor().
             setRequestFocusController(JComponent.focusController);
     }
 }
-

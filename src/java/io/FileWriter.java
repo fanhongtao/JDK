@@ -1,8 +1,26 @@
 /*
- * @(#)FileWriter.java	1.19 05/11/17
+ * Copyright (c) 1996, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -27,9 +45,8 @@ package java.io;
  * @see OutputStreamWriter
  * @see FileOutputStream
  *
- * @version 	1.19, 05/11/17
- * @author	Mark Reinhold
- * @since	JDK1.1
+ * @author      Mark Reinhold
+ * @since       JDK1.1
  */
 
 public class FileWriter extends OutputStreamWriter {
@@ -43,7 +60,7 @@ public class FileWriter extends OutputStreamWriter {
      *                  created, or cannot be opened for any other reason
      */
     public FileWriter(String fileName) throws IOException {
-	super(new FileOutputStream(fileName));
+        super(new FileOutputStream(fileName));
     }
 
     /**
@@ -58,7 +75,7 @@ public class FileWriter extends OutputStreamWriter {
      *                  created, or cannot be opened for any other reason
      */
     public FileWriter(String fileName, boolean append) throws IOException {
-	super(new FileOutputStream(fileName, append));
+        super(new FileOutputStream(fileName, append));
     }
 
     /**
@@ -70,7 +87,7 @@ public class FileWriter extends OutputStreamWriter {
      *                  or cannot be opened for any other reason
      */
     public FileWriter(File file) throws IOException {
-	super(new FileOutputStream(file));
+        super(new FileOutputStream(file));
     }
 
     /**
@@ -96,7 +113,7 @@ public class FileWriter extends OutputStreamWriter {
      * @param fd  FileDescriptor object to write to.
      */
     public FileWriter(FileDescriptor fd) {
-	super(new FileOutputStream(fd));
+        super(new FileOutputStream(fd));
     }
 
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)Random.java	1.47 06/02/07
+ * Copyright (c) 1995, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -14,7 +32,7 @@ import sun.misc.Unsafe;
  * An instance of this class is used to generate a stream of
  * pseudorandom numbers. The class uses a 48-bit seed, which is
  * modified using a linear congruential formula. (See Donald Knuth,
- * <i>The Art of Computer Programming, Volume 3</i>, Section 3.2.1.)
+ * <i>The Art of Computer Programming, Volume 2</i>, Section 3.2.1.)
  * <p>
  * If two instances of {@code Random} are created with the same
  * seed, and the same sequence of method calls is made for each, they
@@ -32,8 +50,19 @@ import sun.misc.Unsafe;
  * <p>
  * Many applications will find the method {@link Math#random} simpler to use.
  *
+ * <p>Instances of {@code java.util.Random} are threadsafe.
+ * However, the concurrent use of the same {@code java.util.Random}
+ * instance across threads may encounter contention and consequent
+ * poor performance. Consider instead using
+ * {@link java.util.concurrent.ThreadLocalRandom} in multithreaded
+ * designs.
+ *
+ * <p>Instances of {@code java.util.Random} are not cryptographically
+ * secure.  Consider instead using {@link java.security.SecureRandom} to
+ * get a cryptographically secure pseudo-random number generator for use
+ * by security-sensitive applications.
+ *
  * @author  Frank Yellin
- * @version 1.47, 02/07/06
  * @since   1.0
  */
 public
@@ -45,22 +74,35 @@ class Random implements java.io.Serializable {
      * The internal state associated with this pseudorandom number generator.
      * (The specs for the methods in this class describe the ongoing
      * computation of this value.)
-     *
-     * @serial
      */
     private final AtomicLong seed;
 
-    private final static long multiplier = 0x5DEECE66DL;
-    private final static long addend = 0xBL;
-    private final static long mask = (1L << 48) - 1;
+    private static final long multiplier = 0x5DEECE66DL;
+    private static final long addend = 0xBL;
+    private static final long mask = (1L << 48) - 1;
 
     /**
      * Creates a new random number generator. This constructor sets
      * the seed of the random number generator to a value very likely
      * to be distinct from any other invocation of this constructor.
      */
-    public Random() { this(++seedUniquifier + System.nanoTime()); }
-    private static volatile long seedUniquifier = 8682522807148012L;
+    public Random() {
+        this(seedUniquifier() ^ System.nanoTime());
+    }
+
+    private static long seedUniquifier() {
+        // L'Ecuyer, "Tables of Linear Congruential Generators of
+        // Different Sizes and Good Lattice Structure", 1999
+        for (;;) {
+            long current = seedUniquifier.get();
+            long next = current * 181783497276652981L;
+            if (seedUniquifier.compareAndSet(current, next))
+                return next;
+        }
+    }
+
+    private static final AtomicLong seedUniquifier
+        = new AtomicLong(8682522807148012L);
 
     /**
      * Creates a new random number generator using a single {@code long} seed.
@@ -76,8 +118,11 @@ class Random implements java.io.Serializable {
      * @see   #setSeed(long)
      */
     public Random(long seed) {
-        this.seed = new AtomicLong(0L);
-        setSeed(seed);
+        this.seed = new AtomicLong(initialScramble(seed));
+    }
+
+    private static long initialScramble(long seed) {
+        return (seed ^ multiplier) & mask;
     }
 
     /**
@@ -100,9 +145,8 @@ class Random implements java.io.Serializable {
      * @param seed the initial seed
      */
     synchronized public void setSeed(long seed) {
-        seed = (seed ^ multiplier) & mask;
-        this.seed.set(seed);
-    	haveNextNextGaussian = false;
+        this.seed.set(initialScramble(seed));
+        haveNextNextGaussian = false;
     }
 
     /**
@@ -134,8 +178,8 @@ class Random implements java.io.Serializable {
         long oldseed, nextseed;
         AtomicLong seed = this.seed;
         do {
-	    oldseed = seed.get();
-	    nextseed = (oldseed * multiplier + addend) & mask;
+            oldseed = seed.get();
+            nextseed = (oldseed * multiplier + addend) & mask;
         } while (!seed.compareAndSet(oldseed, nextseed));
         return (int)(nextseed >>> (48 - bits));
     }
@@ -160,11 +204,11 @@ class Random implements java.io.Serializable {
      * @since  1.1
      */
     public void nextBytes(byte[] bytes) {
-	for (int i = 0, len = bytes.length; i < len; )
-	    for (int rnd = nextInt(),
-		     n = Math.min(len - i, Integer.SIZE/Byte.SIZE);
-		 n-- > 0; rnd >>= Byte.SIZE)
-		bytes[i++] = (byte)rnd;
+        for (int i = 0, len = bytes.length; i < len; )
+            for (int rnd = nextInt(),
+                     n = Math.min(len - i, Integer.SIZE/Byte.SIZE);
+                 n-- > 0; rnd >>= Byte.SIZE)
+                bytes[i++] = (byte)rnd;
     }
 
     /**
@@ -186,7 +230,7 @@ class Random implements java.io.Serializable {
      *         value from this random number generator's sequence
      */
     public int nextInt() {
-	return next(32);
+        return next(32);
     }
 
     /**
@@ -237,11 +281,11 @@ class Random implements java.io.Serializable {
      * successive calls to this method if n is a small power of two.
      *
      * @param n the bound on the random number to be returned.  Must be
-     *	      positive.
+     *        positive.
      * @return the next pseudorandom, uniformly distributed {@code int}
      *         value between {@code 0} (inclusive) and {@code n} (exclusive)
      *         from this random number generator's sequence
-     * @exception IllegalArgumentException if n is not positive
+     * @throws IllegalArgumentException if n is not positive
      * @since 1.2
      */
 
@@ -301,11 +345,11 @@ class Random implements java.io.Serializable {
      *
      * @return the next pseudorandom, uniformly distributed
      *         {@code boolean} value from this random number generator's
-     *	       sequence
+     *         sequence
      * @since 1.2
      */
     public boolean nextBoolean() {
-	return next(1) != 0;
+        return next(1) != 0;
     }
 
     /**
@@ -392,7 +436,7 @@ class Random implements java.io.Serializable {
      */
     public double nextDouble() {
         return (((long)(next(26)) << 27) + next(27))
-	    / (double)(1L << 53);
+            / (double)(1L << 53);
     }
 
     private double nextNextGaussian;
@@ -446,28 +490,28 @@ class Random implements java.io.Serializable {
     synchronized public double nextGaussian() {
         // See Knuth, ACP, Section 3.4.1 Algorithm C.
         if (haveNextNextGaussian) {
-    	    haveNextNextGaussian = false;
-    	    return nextNextGaussian;
-    	} else {
+            haveNextNextGaussian = false;
+            return nextNextGaussian;
+        } else {
             double v1, v2, s;
-    	    do {
+            do {
                 v1 = 2 * nextDouble() - 1; // between -1 and 1
-            	v2 = 2 * nextDouble() - 1; // between -1 and 1
+                v2 = 2 * nextDouble() - 1; // between -1 and 1
                 s = v1 * v1 + v2 * v2;
-    	    } while (s >= 1 || s == 0);
-    	    double multiplier = StrictMath.sqrt(-2 * StrictMath.log(s)/s);
-    	    nextNextGaussian = v2 * multiplier;
-    	    haveNextNextGaussian = true;
-    	    return v1 * multiplier;
+            } while (s >= 1 || s == 0);
+            double multiplier = StrictMath.sqrt(-2 * StrictMath.log(s)/s);
+            nextNextGaussian = v2 * multiplier;
+            haveNextNextGaussian = true;
+            return v1 * multiplier;
         }
     }
 
     /**
      * Serializable fields for Random.
      *
-     * @serialField    seed long;
+     * @serialField    seed long
      *              seed for random computations
-     * @serialField    nextNextGaussian double;
+     * @serialField    nextNextGaussian double
      *              next Gaussian to be returned
      * @serialField      haveNextNextGaussian boolean
      *              nextNextGaussian is valid
@@ -487,9 +531,9 @@ class Random implements java.io.Serializable {
 
         ObjectInputStream.GetField fields = s.readFields();
 
-	// The seed is read in as {@code long} for
-	// historical reasons, but it is converted to an AtomicLong.
-	long seedVal = (long) fields.get("seed", -1L);
+        // The seed is read in as {@code long} for
+        // historical reasons, but it is converted to an AtomicLong.
+        long seedVal = fields.get("seed", -1L);
         if (seedVal < 0)
           throw new java.io.StreamCorruptedException(
                               "Random: invalid seed");
@@ -502,12 +546,12 @@ class Random implements java.io.Serializable {
      * Save the {@code Random} instance to a stream.
      */
     synchronized private void writeObject(ObjectOutputStream s)
-	throws IOException {
+        throws IOException {
 
         // set the values of the Serializable fields
         ObjectOutputStream.PutField fields = s.putFields();
 
-	// The seed is serialized as a long for historical reasons.
+        // The seed is serialized as a long for historical reasons.
         fields.put("seed", seed.get());
         fields.put("nextNextGaussian", nextNextGaussian);
         fields.put("haveNextNextGaussian", haveNextNextGaussian);
@@ -523,7 +567,7 @@ class Random implements java.io.Serializable {
         try {
             seedOffset = unsafe.objectFieldOffset
                 (Random.class.getDeclaredField("seed"));
-	} catch (Exception ex) { throw new Error(ex); }
+        } catch (Exception ex) { throw new Error(ex); }
     }
     private void resetSeed(long seedVal) {
         unsafe.putObjectVolatile(this, seedOffset, new AtomicLong(seedVal));

@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidAlgorithmParameterException.java	1.15 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -12,7 +30,6 @@ package java.security;
  *
  * @author Jan Luehe
  *
- * @version 1.15, 11/17/05
  *
  * @see AlgorithmParameters
  * @see java.security.spec.AlgorithmParameterSpec
@@ -32,19 +49,19 @@ extends GeneralSecurityException {
      * exception.
      */
     public InvalidAlgorithmParameterException() {
-	super();
+        super();
     }
 
     /**
      * Constructs an InvalidAlgorithmParameterException with the specified
      * detail message.
      * A detail message is a String that describes this
-     * particular exception.  
+     * particular exception.
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public InvalidAlgorithmParameterException(String msg) {
-	super(msg);
+        super(msg);
     }
 
     /**

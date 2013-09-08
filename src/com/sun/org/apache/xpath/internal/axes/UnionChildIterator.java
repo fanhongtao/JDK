@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,17 +28,17 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
 import com.sun.org.apache.xpath.internal.patterns.NodeTest;
 
 /**
- * This class defines a simplified type of union iterator that only 
- * tests along the child axes.  If the conditions are right, it is 
+ * This class defines a simplified type of union iterator that only
+ * tests along the child axes.  If the conditions are right, it is
  * much faster than using a UnionPathIterator.
  */
 public class UnionChildIterator extends ChildTestIterator
 {
     static final long serialVersionUID = 3500298482193003495L;
   /**
-   * Even though these may hold full LocPathIterators, this array does 
-   * not have to be cloned, since only the node test and predicate 
-   * portion are used, and these only need static information.  However, 
+   * Even though these may hold full LocPathIterators, this array does
+   * not have to be cloned, since only the node test and predicate
+   * portion are used, and these only need static information.  However,
    * also note that index predicates can not be used!
    */
   private PredicatedNodeTest[] m_nodeTests = null;
@@ -50,9 +54,9 @@ public class UnionChildIterator extends ChildTestIterator
   /**
    * Add a node test to the union list.
    *
-   * @param test reference to a NodeTest, which will be added 
-   * directly to the list of node tests (in other words, it will 
-   * not be cloned).  The parent of this test will be set to 
+   * @param test reference to a NodeTest, which will be added
+   * directly to the list of node tests (in other words, it will
+   * not be cloned).  The parent of this test will be set to
    * this object.
    */
   public void addNodeTest(PredicatedNodeTest test)
@@ -80,13 +84,13 @@ public class UnionChildIterator extends ChildTestIterator
   }
 
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)

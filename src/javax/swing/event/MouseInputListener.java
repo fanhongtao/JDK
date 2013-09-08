@@ -1,8 +1,26 @@
 /*
- * @(#)MouseInputListener.java	1.12 06/06/12
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.event;
@@ -15,10 +33,8 @@ import java.awt.event.MouseMotionListener;
  * {@code MouseMotionListener} interfaces.
  *
  * @see MouseInputAdapter
- * @version 1.12 06/12/06
  * @author Philip Milne
  */
 
 public interface MouseInputListener extends MouseListener, MouseMotionListener {
 }
-

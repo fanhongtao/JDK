@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: QName.java,v 1.5 2005/11/03 19:34:20 jeffsuttor Exp $
- * @(#)QName.java	1.17 06/04/07
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.namespace;
@@ -64,7 +62,7 @@ import javax.xml.XMLConstants;
  * <p><code>QName</code> is immutable.</p>
  *
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.5 $, $Date: 2005/11/03 19:34:20 $
+ * @version $Revision: 1.8 $, $Date: 2010/03/18 03:06:17 $
  * @see <a href="http://www.w3.org/TR/xmlschema-2/#QName">
  *   XML Schema Part2: Datatypes specification</a>
  * @see <a href="http://www.w3.org/TR/REC-xml-names/#ns-qualnames">
@@ -358,14 +356,18 @@ public class QName implements Serializable {
      * equal to this <code>QName</code> else <code>false</code>
      */
     public final boolean equals(Object objectToTest) {
+        if (objectToTest == this) {
+            return true;
+        }
+
         if (objectToTest == null || !(objectToTest instanceof QName)) {
             return false;
         }
 
         QName qName = (QName) objectToTest;
 
-        return namespaceURI.equals(qName.namespaceURI)
-            && localPart.equals(qName.localPart);
+        return localPart.equals(qName.localPart)
+            && namespaceURI.equals(qName.namespaceURI);
     }
 
     /**

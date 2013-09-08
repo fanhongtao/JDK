@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +20,7 @@
  */
 package com.sun.org.apache.xml.internal.security.utils;
 
-
-
 import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
-
 
 /**
  * Provides all constants and some translation functions for i18n.
@@ -28,13 +29,9 @@ import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
  * <A HREF="http://www.w3.org/TR/xmldsig-core/#sec-TransformAlg">XML
  * Signature specification</A>.
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class Constants {
-
-   /** {@link java.util.logging} logging facility */
-   static java.util.logging.Logger log = 
-        java.util.logging.Logger.getLogger(Constants.class.getName());
 
    /** Field configurationFile */
    public static final String configurationFile = "data/websig.conf";

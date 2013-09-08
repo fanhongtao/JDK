@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,10 +36,9 @@ import org.w3c.dom.Element;
  * The DOM API requires that it be a real object rather than static
  * methods. However, there's nothing that says it can't be a singleton,
  * so that's how I've implemented it.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: DOMImplementationImpl.java,v 1.2.6.1 2005/08/30 13:11:37 sunithareddy Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public class DOMImplementationImpl extends CoreDOMImplementationImpl
@@ -134,7 +137,7 @@ public class DOMImplementationImpl extends CoreDOMImplementationImpl
         //no document element
             return new DocumentImpl();
         }
-    	else if (doctype != null && doctype.getOwnerDocument() != null) {
+        else if (doctype != null && doctype.getOwnerDocument() != null) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null);
             throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, msg);
         }

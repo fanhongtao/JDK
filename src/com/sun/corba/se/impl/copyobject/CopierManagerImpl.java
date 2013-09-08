@@ -1,8 +1,26 @@
 /*
- * @(#)CopierManagerImpl.java	1.10 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.copyobject ;
@@ -23,34 +41,33 @@ public class CopierManagerImpl implements CopierManager
 
     public CopierManagerImpl( ORB orb )
     {
-	defaultId = 0 ;
-	map = new DenseIntMapImpl() ;
-	this.orb = orb ;
+        defaultId = 0 ;
+        map = new DenseIntMapImpl() ;
+        this.orb = orb ;
     }
 
-    public void setDefaultId( int id ) 
+    public void setDefaultId( int id )
     {
-	defaultId = id ;
+        defaultId = id ;
     }
 
-    public int getDefaultId() 
+    public int getDefaultId()
     {
-	return defaultId ;
+        return defaultId ;
     }
 
-    public ObjectCopierFactory getObjectCopierFactory( int id ) 
+    public ObjectCopierFactory getObjectCopierFactory( int id )
     {
-	return (ObjectCopierFactory)(map.get( id )) ;
+        return (ObjectCopierFactory)(map.get( id )) ;
     }
 
     public ObjectCopierFactory getDefaultObjectCopierFactory()
     {
-	return (ObjectCopierFactory)(map.get( defaultId )) ;
+        return (ObjectCopierFactory)(map.get( defaultId )) ;
     }
 
-    public void registerObjectCopierFactory( ObjectCopierFactory factory, int id ) 
+    public void registerObjectCopierFactory( ObjectCopierFactory factory, int id )
     {
-	map.set( id, factory ) ;
+        map.set( id, factory ) ;
     }
 }
-

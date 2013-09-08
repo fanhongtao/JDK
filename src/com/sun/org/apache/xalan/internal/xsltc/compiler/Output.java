@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +63,7 @@ final class Output extends TopLevelElement {
     private boolean _indent = false;
     private String  _mediaType;
     private String _indentamount;
-    
+
     // Disables this output element (when other element has higher precedence)
     private boolean _disabled = false;
 
@@ -72,8 +76,8 @@ final class Output extends TopLevelElement {
      * Displays the contents of this element (for debugging)
      */
     public void display(int indent) {
-	indent(indent);
-	Util.println("Output " + _method);
+        indent(indent);
+        Util.println("Output " + _method);
     }
 
     /**
@@ -82,39 +86,39 @@ final class Output extends TopLevelElement {
      * with higher precedence.
      */
     public void disable() {
-	_disabled = true;
+        _disabled = true;
     }
 
     public boolean enabled() {
-	return !_disabled;
+        return !_disabled;
     }
 
     public String getCdata() {
-	return _cdata;
+        return _cdata;
     }
 
     public String getOutputMethod() {
-    	return _method;
+        return _method;
     }
-    
+
     private void transferAttribute(Output previous, String qname) {
         if (!hasAttribute(qname) && previous.hasAttribute(qname)) {
-            addAttribute(qname, previous.getAttribute(qname));            
-        }        
+            addAttribute(qname, previous.getAttribute(qname));
+        }
     }
-    
+
     public void mergeOutput(Output previous) {
         // Transfer attributes from previous xsl:output
         transferAttribute(previous, "version");
         transferAttribute(previous, "method");
         transferAttribute(previous, "encoding");
         transferAttribute(previous, "doctype-system");
-        transferAttribute(previous, "doctype-public");      
+        transferAttribute(previous, "doctype-public");
         transferAttribute(previous, "media-type");
-        transferAttribute(previous, "indent");        
+        transferAttribute(previous, "indent");
         transferAttribute(previous, "omit-xml-declaration");
         transferAttribute(previous, "standalone");
-        
+
         // Merge cdata-section-elements
         if (previous.hasAttribute("cdata-section-elements")) {
             // addAttribute works as a setter if it already exists
@@ -131,142 +135,142 @@ final class Output extends TopLevelElement {
         prefix = lookupPrefix("http://xml.apache.org/xslt");
         if (prefix != null) {
             transferAttribute(previous, prefix + ':' + "indent-amount");
-        }                
+        }
     }
 
     /**
      * Scans the attribute list for the xsl:output instruction
      */
     public void parseContents(Parser parser) {
-	final Properties outputProperties = new Properties();
+        final Properties outputProperties = new Properties();
 
-	// Ask the parser if it wants this <xsl:output> element
-	parser.setOutput(this);
+        // Ask the parser if it wants this <xsl:output> element
+        parser.setOutput(this);
 
-	// Do nothing if other <xsl:output> element has higher precedence
-	if (_disabled) return;
+        // Do nothing if other <xsl:output> element has higher precedence
+        if (_disabled) return;
 
-	String attrib = null;
+        String attrib = null;
 
-	// Get the output version
-	_version = getAttribute("version");
-	if (_version.equals(Constants.EMPTYSTRING)) {
-	    _version = null;
-	}
-	else {
-	    outputProperties.setProperty(OutputKeys.VERSION, _version);
-	}
+        // Get the output version
+        _version = getAttribute("version");
+        if (_version.equals(Constants.EMPTYSTRING)) {
+            _version = null;
+        }
+        else {
+            outputProperties.setProperty(OutputKeys.VERSION, _version);
+        }
 
-	// Get the output method - "xml", "html", "text" or <qname> (but not ncname)
-	_method = getAttribute("method");
-	if (_method.equals(Constants.EMPTYSTRING)) {
-	    _method = null;
-	}
-	if (_method != null) {
+        // Get the output method - "xml", "html", "text" or <qname> (but not ncname)
+        _method = getAttribute("method");
+        if (_method.equals(Constants.EMPTYSTRING)) {
+            _method = null;
+        }
+        if (_method != null) {
             _method = _method.toLowerCase();
             if ((_method.equals("xml"))||
                 (_method.equals("html"))||
                 (_method.equals("text"))||
                 ((XML11Char.isXML11ValidQName(_method)&&(_method.indexOf(":") > 0)))) {
-	       outputProperties.setProperty(OutputKeys.METHOD, _method);
+               outputProperties.setProperty(OutputKeys.METHOD, _method);
             } else {
                 reportError(this, parser, ErrorMsg.INVALID_METHOD_IN_OUTPUT, _method);
             }
-	}
+        }
 
-	// Get the output encoding - any value accepted here
-	_encoding = getAttribute("encoding");
-	if (_encoding.equals(Constants.EMPTYSTRING)) {
-	    _encoding = null;
-	}
-	else {
-	    try {
-		// Create a write to verify encoding support
+        // Get the output encoding - any value accepted here
+        _encoding = getAttribute("encoding");
+        if (_encoding.equals(Constants.EMPTYSTRING)) {
+            _encoding = null;
+        }
+        else {
+            try {
+                // Create a write to verify encoding support
                 String canonicalEncoding;
                 canonicalEncoding = Encodings.convertMime2JavaEncoding(_encoding);
-		OutputStreamWriter writer =
-		    new OutputStreamWriter(System.out, canonicalEncoding); 
-	    }
-	    catch (java.io.UnsupportedEncodingException e) {
-		ErrorMsg msg = new ErrorMsg(ErrorMsg.UNSUPPORTED_ENCODING,
-					    _encoding, this);
-		parser.reportError(Constants.WARNING, msg);
-	    }
-	    outputProperties.setProperty(OutputKeys.ENCODING, _encoding);
-	}
+                OutputStreamWriter writer =
+                    new OutputStreamWriter(System.out, canonicalEncoding);
+            }
+            catch (java.io.UnsupportedEncodingException e) {
+                ErrorMsg msg = new ErrorMsg(ErrorMsg.UNSUPPORTED_ENCODING,
+                                            _encoding, this);
+                parser.reportError(Constants.WARNING, msg);
+            }
+            outputProperties.setProperty(OutputKeys.ENCODING, _encoding);
+        }
 
-	// Should the XML header be omitted - translate to true/false
-	attrib = getAttribute("omit-xml-declaration");
-	if (!attrib.equals(Constants.EMPTYSTRING)) {
-	    if (attrib.equals("yes")) {
-		_omitHeader = true;
-	    }
-	    outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION, attrib);
-	}
+        // Should the XML header be omitted - translate to true/false
+        attrib = getAttribute("omit-xml-declaration");
+        if (!attrib.equals(Constants.EMPTYSTRING)) {
+            if (attrib.equals("yes")) {
+                _omitHeader = true;
+            }
+            outputProperties.setProperty(OutputKeys.OMIT_XML_DECLARATION, attrib);
+        }
 
-	// Add 'standalone' decaration to output - use text as is
-	_standalone = getAttribute("standalone");
-	if (_standalone.equals(Constants.EMPTYSTRING)) {
-	    _standalone = null;
-	}
-	else {
-	    outputProperties.setProperty(OutputKeys.STANDALONE, _standalone);
-	}
+        // Add 'standalone' decaration to output - use text as is
+        _standalone = getAttribute("standalone");
+        if (_standalone.equals(Constants.EMPTYSTRING)) {
+            _standalone = null;
+        }
+        else {
+            outputProperties.setProperty(OutputKeys.STANDALONE, _standalone);
+        }
 
-	// Get system/public identifiers for output DOCTYPE declaration
-	_doctypeSystem = getAttribute("doctype-system");
-	if (_doctypeSystem.equals(Constants.EMPTYSTRING)) {
-	    _doctypeSystem = null;
-	}
-	else {
-	    outputProperties.setProperty(OutputKeys.DOCTYPE_SYSTEM, _doctypeSystem);
-	}
+        // Get system/public identifiers for output DOCTYPE declaration
+        _doctypeSystem = getAttribute("doctype-system");
+        if (_doctypeSystem.equals(Constants.EMPTYSTRING)) {
+            _doctypeSystem = null;
+        }
+        else {
+            outputProperties.setProperty(OutputKeys.DOCTYPE_SYSTEM, _doctypeSystem);
+        }
 
 
-	_doctypePublic = getAttribute("doctype-public");
-	if (_doctypePublic.equals(Constants.EMPTYSTRING)) {
-	    _doctypePublic = null;
-	}
-	else {
-	    outputProperties.setProperty(OutputKeys.DOCTYPE_PUBLIC, _doctypePublic);
-	}
+        _doctypePublic = getAttribute("doctype-public");
+        if (_doctypePublic.equals(Constants.EMPTYSTRING)) {
+            _doctypePublic = null;
+        }
+        else {
+            outputProperties.setProperty(OutputKeys.DOCTYPE_PUBLIC, _doctypePublic);
+        }
 
-	// Names the elements of whose text contents should be output as CDATA
-	_cdata = getAttribute("cdata-section-elements");
-	if (_cdata.equals(Constants.EMPTYSTRING)) {
-	    _cdata = null;
-	}
-	else {
-	    StringBuffer expandedNames = new StringBuffer();
-	    StringTokenizer tokens = new StringTokenizer(_cdata);
+        // Names the elements of whose text contents should be output as CDATA
+        _cdata = getAttribute("cdata-section-elements");
+        if (_cdata.equals(Constants.EMPTYSTRING)) {
+            _cdata = null;
+        }
+        else {
+            StringBuffer expandedNames = new StringBuffer();
+            StringTokenizer tokens = new StringTokenizer(_cdata);
 
-	    // Make sure to store names in expanded form
-	    while (tokens.hasMoreTokens()) {
-            	String qname = tokens.nextToken();
+            // Make sure to store names in expanded form
+            while (tokens.hasMoreTokens()) {
+                String qname = tokens.nextToken();
                 if (!XML11Char.isXML11ValidQName(qname)) {
                     ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, qname, this);
-                    parser.reportError(Constants.ERROR, err);	
-                }	    	
-		expandedNames.append(
-        	   parser.getQName(qname).toString()).append(' ');
-	    }
-	    _cdata = expandedNames.toString();
-	    outputProperties.setProperty(OutputKeys.CDATA_SECTION_ELEMENTS, 
-		_cdata);
-	}
+                    parser.reportError(Constants.ERROR, err);
+                }
+                expandedNames.append(
+                   parser.getQName(qname).toString()).append(' ');
+            }
+            _cdata = expandedNames.toString();
+            outputProperties.setProperty(OutputKeys.CDATA_SECTION_ELEMENTS,
+                _cdata);
+        }
 
-	// Get the indent setting - only has effect for xml and html output
-	attrib = getAttribute("indent");
-	if (!attrib.equals(EMPTYSTRING)) {
-	    if (attrib.equals("yes")) {
-		_indent = true;
-	    }
-	    outputProperties.setProperty(OutputKeys.INDENT, attrib);
-	}
-	else if (_method != null && _method.equals("html")) {
-	    _indent = true;
-	}
-	
+        // Get the indent setting - only has effect for xml and html output
+        attrib = getAttribute("indent");
+        if (!attrib.equals(EMPTYSTRING)) {
+            if (attrib.equals("yes")) {
+                _indent = true;
+            }
+            outputProperties.setProperty(OutputKeys.INDENT, attrib);
+        }
+        else if (_method != null && _method.equals("html")) {
+            _indent = true;
+        }
+
         // indent-amount: extension attribute of xsl:output
         _indentamount = getAttribute(
             lookupPrefix("http://xml.apache.org/xalan"), "indent-amount");
@@ -278,35 +282,35 @@ final class Output extends TopLevelElement {
         if (!_indentamount.equals(EMPTYSTRING)) {
             outputProperties.setProperty("indent_amount", _indentamount);
         }
-        
-	// Get the MIME type for the output file
-	_mediaType = getAttribute("media-type");
-	if (_mediaType.equals(Constants.EMPTYSTRING)) {
-	    _mediaType = null;
-	}
-	else {
-	    outputProperties.setProperty(OutputKeys.MEDIA_TYPE, _mediaType);
-	}
 
-	// Implied properties
-	if (_method != null) {
-	    if (_method.equals("html")) {
-		if (_version == null) {
-		    _version = HTML_VERSION;
-		}
-		if (_mediaType == null) {
-		    _mediaType = "text/html";
-		}
-	    }
-	    else if (_method.equals("text")) {
-		if (_mediaType == null) {
-		    _mediaType = "text/plain";
-		}
-	    }
-	}
+        // Get the MIME type for the output file
+        _mediaType = getAttribute("media-type");
+        if (_mediaType.equals(Constants.EMPTYSTRING)) {
+            _mediaType = null;
+        }
+        else {
+            outputProperties.setProperty(OutputKeys.MEDIA_TYPE, _mediaType);
+        }
 
-	// Set output properties in current stylesheet
-	parser.getCurrentStylesheet().setOutputProperties(outputProperties);
+        // Implied properties
+        if (_method != null) {
+            if (_method.equals("html")) {
+                if (_version == null) {
+                    _version = HTML_VERSION;
+                }
+                if (_mediaType == null) {
+                    _mediaType = "text/html";
+                }
+            }
+            else if (_method.equals("text")) {
+                if (_mediaType == null) {
+                    _mediaType = "text/plain";
+                }
+            }
+        }
+
+        // Set output properties in current stylesheet
+        parser.getCurrentStylesheet().setOutputProperties(outputProperties);
     }
 
     /**
@@ -315,103 +319,103 @@ final class Output extends TopLevelElement {
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
 
-	// Do nothing if other <xsl:output> element has higher precedence
-	if (_disabled) return;
+        // Do nothing if other <xsl:output> element has higher precedence
+        if (_disabled) return;
 
-	ConstantPoolGen cpg = classGen.getConstantPool();
-	InstructionList il = methodGen.getInstructionList();
+        ConstantPoolGen cpg = classGen.getConstantPool();
+        InstructionList il = methodGen.getInstructionList();
 
-	int field = 0;
+        int field = 0;
         il.append(classGen.loadTranslet());
 
-	// Only update _version field if set and different from default
-	if ((_version != null) && (!_version.equals(XML_VERSION))) {
-	    field = cpg.addFieldref(TRANSLET_CLASS, "_version", STRING_SIG);
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, _version));
-	    il.append(new PUTFIELD(field));
-	}
+        // Only update _version field if set and different from default
+        if ((_version != null) && (!_version.equals(XML_VERSION))) {
+            field = cpg.addFieldref(TRANSLET_CLASS, "_version", STRING_SIG);
+            il.append(DUP);
+            il.append(new PUSH(cpg, _version));
+            il.append(new PUTFIELD(field));
+        }
 
-	// Only update _method field if "method" attribute used
-	if (_method != null) {
-	    field = cpg.addFieldref(TRANSLET_CLASS, "_method", STRING_SIG);
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, _method));
-	    il.append(new PUTFIELD(field));
-	}
+        // Only update _method field if "method" attribute used
+        if (_method != null) {
+            field = cpg.addFieldref(TRANSLET_CLASS, "_method", STRING_SIG);
+            il.append(DUP);
+            il.append(new PUSH(cpg, _method));
+            il.append(new PUTFIELD(field));
+        }
 
-	// Only update if _encoding field is "encoding" attribute used
-	if (_encoding != null) {
-	    field = cpg.addFieldref(TRANSLET_CLASS, "_encoding", STRING_SIG);
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, _encoding));
-	    il.append(new PUTFIELD(field));
-	}
+        // Only update if _encoding field is "encoding" attribute used
+        if (_encoding != null) {
+            field = cpg.addFieldref(TRANSLET_CLASS, "_encoding", STRING_SIG);
+            il.append(DUP);
+            il.append(new PUSH(cpg, _encoding));
+            il.append(new PUTFIELD(field));
+        }
 
-	// Only update if "omit-xml-declaration" used and set to 'yes'
-	if (_omitHeader) {
-	    field = cpg.addFieldref(TRANSLET_CLASS, "_omitHeader", "Z");
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, _omitHeader));
-	    il.append(new PUTFIELD(field));
-	}
+        // Only update if "omit-xml-declaration" used and set to 'yes'
+        if (_omitHeader) {
+            field = cpg.addFieldref(TRANSLET_CLASS, "_omitHeader", "Z");
+            il.append(DUP);
+            il.append(new PUSH(cpg, _omitHeader));
+            il.append(new PUTFIELD(field));
+        }
 
-	// Add 'standalone' decaration to output - use text as is
-	if (_standalone != null) {
-	    field = cpg.addFieldref(TRANSLET_CLASS, "_standalone", STRING_SIG);
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, _standalone));
-	    il.append(new PUTFIELD(field));
-	}
+        // Add 'standalone' decaration to output - use text as is
+        if (_standalone != null) {
+            field = cpg.addFieldref(TRANSLET_CLASS, "_standalone", STRING_SIG);
+            il.append(DUP);
+            il.append(new PUSH(cpg, _standalone));
+            il.append(new PUTFIELD(field));
+        }
 
-	// Set system/public doctype only if both are set
-	field = cpg.addFieldref(TRANSLET_CLASS,"_doctypeSystem",STRING_SIG);
-	il.append(DUP);
-	il.append(new PUSH(cpg, _doctypeSystem));
-	il.append(new PUTFIELD(field));
-	field = cpg.addFieldref(TRANSLET_CLASS,"_doctypePublic",STRING_SIG);
-	il.append(DUP);
-	il.append(new PUSH(cpg, _doctypePublic));
-	il.append(new PUTFIELD(field));
-	
-	// Add 'medye-type' decaration to output - if used
-	if (_mediaType != null) {
-	    field = cpg.addFieldref(TRANSLET_CLASS, "_mediaType", STRING_SIG);
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, _mediaType));
-	    il.append(new PUTFIELD(field));
-	}
+        // Set system/public doctype only if both are set
+        field = cpg.addFieldref(TRANSLET_CLASS,"_doctypeSystem",STRING_SIG);
+        il.append(DUP);
+        il.append(new PUSH(cpg, _doctypeSystem));
+        il.append(new PUTFIELD(field));
+        field = cpg.addFieldref(TRANSLET_CLASS,"_doctypePublic",STRING_SIG);
+        il.append(DUP);
+        il.append(new PUSH(cpg, _doctypePublic));
+        il.append(new PUTFIELD(field));
 
-	// Compile code to set output indentation on/off
-	if (_indent) {
-	    field = cpg.addFieldref(TRANSLET_CLASS, "_indent", "Z");
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, _indent));
-	    il.append(new PUTFIELD(field));
-	}
+        // Add 'medye-type' decaration to output - if used
+        if (_mediaType != null) {
+            field = cpg.addFieldref(TRANSLET_CLASS, "_mediaType", STRING_SIG);
+            il.append(DUP);
+            il.append(new PUSH(cpg, _mediaType));
+            il.append(new PUTFIELD(field));
+        }
+
+        // Compile code to set output indentation on/off
+        if (_indent) {
+            field = cpg.addFieldref(TRANSLET_CLASS, "_indent", "Z");
+            il.append(DUP);
+            il.append(new PUSH(cpg, _indent));
+            il.append(new PUTFIELD(field));
+        }
 
         //Compile code to set indent amount.
         if(_indentamount != null && !_indentamount.equals(EMPTYSTRING)){
             field = cpg.addFieldref(TRANSLET_CLASS, "_indentamount", "I");
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, Integer.parseInt(_indentamount)));
-	    il.append(new PUTFIELD(field));
+            il.append(DUP);
+            il.append(new PUSH(cpg, Integer.parseInt(_indentamount)));
+            il.append(new PUTFIELD(field));
         }
-        
-	// Forward to the translet any elements that should be output as CDATA
-	if (_cdata != null) {
-	    int index = cpg.addMethodref(TRANSLET_CLASS,
-					 "addCdataElement",
-					 "(Ljava/lang/String;)V");
 
-	    StringTokenizer tokens = new StringTokenizer(_cdata);
-	    while (tokens.hasMoreTokens()) {
-		il.append(DUP);
-		il.append(new PUSH(cpg, tokens.nextToken()));
-		il.append(new INVOKEVIRTUAL(index));
-	    }
-	}
-	il.append(POP); // Cleanup - pop last translet reference off stack
+        // Forward to the translet any elements that should be output as CDATA
+        if (_cdata != null) {
+            int index = cpg.addMethodref(TRANSLET_CLASS,
+                                         "addCdataElement",
+                                         "(Ljava/lang/String;)V");
+
+            StringTokenizer tokens = new StringTokenizer(_cdata);
+            while (tokens.hasMoreTokens()) {
+                il.append(DUP);
+                il.append(new PUSH(cpg, tokens.nextToken()));
+                il.append(new INVOKEVIRTUAL(index));
+            }
+        }
+        il.append(POP); // Cleanup - pop last translet reference off stack
     }
 
 }

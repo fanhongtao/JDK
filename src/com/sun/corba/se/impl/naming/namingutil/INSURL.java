@@ -1,15 +1,33 @@
 /*
- * @(#)INSURL.java	1.5 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.naming.namingutil;
 
 /**
- * INS URL is a generic interface for two different types of URL's specified 
- * in INS spec. 
+ * INS URL is a generic interface for two different types of URL's specified
+ * in INS spec.
  *
  * @Author Hemanth
  */
@@ -25,11 +43,9 @@ public interface INSURL {
     public String getStringifiedName( );
 
     // This method will return true only in CorbanameURL, It is provided because
-    // corbaname: URL needs special handling. 
+    // corbaname: URL needs special handling.
     public boolean isCorbanameURL( );
 
     // A debug method, which is not required for normal operation
     public void dPrint( );
 }
-
-    

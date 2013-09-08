@@ -1,8 +1,26 @@
 /*
- * @(#)InconsistentTypeCode.java	1.18 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -20,7 +38,7 @@ public final class InconsistentTypeCode
      * with no reason message.
     */
     public InconsistentTypeCode() {
-	super();
+        super();
     }
 
     /**
@@ -29,6 +47,6 @@ public final class InconsistentTypeCode
     * @param reason The String containing a reason message
     */
     public InconsistentTypeCode(String reason) {
-	super(reason);
+        super(reason);
     }
 }

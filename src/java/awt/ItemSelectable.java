@@ -1,8 +1,26 @@
 /*
- * @(#)ItemSelectable.java	1.17 05/11/17
+ * Copyright (c) 1996, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -13,7 +31,6 @@ import java.awt.event.*;
  * The interface for objects which contain a set of items for
  * which zero or more can be selected.
  *
- * @version 1.17 11/17/05
  * @author Amy Fowler
  */
 
@@ -33,7 +50,7 @@ public interface ItemSelectable {
      *
      * @param    l the listener to receive events
      * @see ItemEvent
-     */    
+     */
     public void addItemListener(ItemListener l);
 
     /**
@@ -41,8 +58,8 @@ public interface ItemSelectable {
      * If <code>l</code> is <code>null</code>,
      * no exception is thrown and no action is performed.
      *
-     * @param 	l the listener being removed
+     * @param   l the listener being removed
      * @see ItemEvent
-     */ 
+     */
     public void removeItemListener(ItemListener l);
 }

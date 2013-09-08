@@ -1,8 +1,26 @@
 /*
- * @(#)TOAImpl.java	1.52 05/11/17
+ * Copyright (c) 2001, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.oa.toa ;
@@ -56,155 +74,155 @@ import com.sun.corba.se.impl.protocol.JIDLLocalCRDImpl ;
 * an adapter state changes that is not due to an adapter manager state change.</LI>
 * </UL>
 */
-public class TOAImpl extends ObjectAdapterBase implements TOA 
+public class TOAImpl extends ObjectAdapterBase implements TOA
 {
     private TransientObjectManager servants ;
 
-    public TOAImpl( ORB orb, TransientObjectManager tom, String codebase ) 
+    public TOAImpl( ORB orb, TransientObjectManager tom, String codebase )
     {
-	super( orb ) ;
-	servants = tom ;
+        super( orb ) ;
+        servants = tom ;
 
-	// Make the object key template
-	int serverid = ((ORB)getORB()).getTransientServerId();
-	int scid = ORBConstants.TOA_SCID ;
+        // Make the object key template
+        int serverid = ((ORB)getORB()).getTransientServerId();
+        int scid = ORBConstants.TOA_SCID ;
 
-	ObjectKeyTemplate oktemp = new JIDLObjectKeyTemplate( orb, scid, serverid ) ;
+        ObjectKeyTemplate oktemp = new JIDLObjectKeyTemplate( orb, scid, serverid ) ;
 
-	// REVISIT - POA specific
-	Policies policies = Policies.defaultPolicies;
+        // REVISIT - POA specific
+        Policies policies = Policies.defaultPolicies;
 
-	// REVISIT - absorb codebase into a policy
-	initializeTemplate( oktemp, true,
-			    policies, 
-			    codebase,
-			    null, // manager id
-			    oktemp.getObjectAdapterId()
-			    ) ;
+        // REVISIT - absorb codebase into a policy
+        initializeTemplate( oktemp, true,
+                            policies,
+                            codebase,
+                            null, // manager id
+                            oktemp.getObjectAdapterId()
+                            ) ;
     }
 
     // Methods required for dispatching requests
 
     public ObjectCopierFactory getObjectCopierFactory()
     {
-	CopierManager cm = getORB().getCopierManager() ;
-	return cm.getDefaultObjectCopierFactory() ;
+        CopierManager cm = getORB().getCopierManager() ;
+        return cm.getDefaultObjectCopierFactory() ;
     }
 
-    public org.omg.CORBA.Object getLocalServant( byte[] objectId ) 
+    public org.omg.CORBA.Object getLocalServant( byte[] objectId )
     {
-	return (org.omg.CORBA.Object)(servants.lookupServant( objectId ) ) ;
+        return (org.omg.CORBA.Object)(servants.lookupServant( objectId ) ) ;
     }
 
-    /** Get the servant for the request given by the parameters. 
+    /** Get the servant for the request given by the parameters.
     * This will update thread Current, so that subsequent calls to
     * returnServant and removeCurrent from the same thread are for the
     * same request.
     * @param request is the request containing the rest of the request
     */
-    public void getInvocationServant( OAInvocationInfo info ) 
+    public void getInvocationServant( OAInvocationInfo info )
     {
-	java.lang.Object servant = servants.lookupServant( info.id() ) ;
-	if (servant == null)
-	    // This is expected to result in an RMI-IIOP NoSuchObjectException.
-	    // See bug 4973160.
-	    servant = new NullServantImpl( lifecycleWrapper().nullServant() ) ;
-	info.setServant( servant ) ;
+        java.lang.Object servant = servants.lookupServant( info.id() ) ;
+        if (servant == null)
+            // This is expected to result in an RMI-IIOP NoSuchObjectException.
+            // See bug 4973160.
+            servant = new NullServantImpl( lifecycleWrapper().nullServant() ) ;
+        info.setServant( servant ) ;
     }
 
     public void returnServant()
     {
-	// NO-OP
+        // NO-OP
     }
 
     /** Return the most derived interface for the given servant and objectId.
     */
-    public String[] getInterfaces( Object servant, byte[] objectId ) 
+    public String[] getInterfaces( Object servant, byte[] objectId )
     {
-	return StubAdapter.getTypeIds( servant ) ;
+        return StubAdapter.getTypeIds( servant ) ;
     }
 
     // XXX For now, this does nothing.
     // This will need fixing once we support ORB and thread level policies,
     // but for now, there is no way to associate policies with the TOA, so
     // getEffectivePolicy must always return null.
-    public Policy getEffectivePolicy( int type ) 
+    public Policy getEffectivePolicy( int type )
     {
-	return null ;
+        return null ;
     }
 
-    public int getManagerId() 
+    public int getManagerId()
     {
-	return -1 ;
+        return -1 ;
     }
 
-    public short getState() 
+    public short getState()
     {
-	return ACTIVE.value ;
+        return ACTIVE.value ;
     }
 
     public void enter() throws OADestroyed
     {
     }
 
-    public void exit() 
+    public void exit()
     {
     }
- 
+
     // Methods unique to the TOA
 
-    public void connect( org.omg.CORBA.Object objref) 
+    public void connect( org.omg.CORBA.Object objref)
     {
         // Store the objref and get a userkey allocated by the transient
         // object manager.
         byte[] key = servants.storeServant(objref, null);
 
         // Find out the repository ID for this objref.
-	String id = StubAdapter.getTypeIds( objref )[0] ;
+        String id = StubAdapter.getTypeIds( objref )[0] ;
 
-	// Create the new objref
-	ObjectReferenceFactory orf = getCurrentFactory() ;
-	org.omg.CORBA.Object obj = orf.make_object( id, key ) ;
+        // Create the new objref
+        ObjectReferenceFactory orf = getCurrentFactory() ;
+        org.omg.CORBA.Object obj = orf.make_object( id, key ) ;
 
-	// Copy the delegate from the new objref to the argument
-	// XXX handle the case of an attempt to connect a local object.
+        // Copy the delegate from the new objref to the argument
+        // XXX handle the case of an attempt to connect a local object.
 
-	org.omg.CORBA.portable.Delegate delegate = StubAdapter.getDelegate( 
-	    obj ) ;
-	CorbaContactInfoList ccil = (CorbaContactInfoList)
-	    ((ClientDelegate)delegate).getContactInfoList() ;
-	LocalClientRequestDispatcher lcs = 
-	    ccil.getLocalClientRequestDispatcher() ;
+        org.omg.CORBA.portable.Delegate delegate = StubAdapter.getDelegate(
+            obj ) ;
+        CorbaContactInfoList ccil = (CorbaContactInfoList)
+            ((ClientDelegate)delegate).getContactInfoList() ;
+        LocalClientRequestDispatcher lcs =
+            ccil.getLocalClientRequestDispatcher() ;
 
-	if (lcs instanceof JIDLLocalCRDImpl) {
-	    JIDLLocalCRDImpl jlcs = (JIDLLocalCRDImpl)lcs ;
-	    jlcs.setServant( objref ) ;
-	} else {	
-	    throw new RuntimeException( 
-		"TOAImpl.connect can not be called on " + lcs ) ;
-	}
+        if (lcs instanceof JIDLLocalCRDImpl) {
+            JIDLLocalCRDImpl jlcs = (JIDLLocalCRDImpl)lcs ;
+            jlcs.setServant( objref ) ;
+        } else {
+            throw new RuntimeException(
+                "TOAImpl.connect can not be called on " + lcs ) ;
+        }
 
-	StubAdapter.setDelegate( objref, delegate ) ;
+        StubAdapter.setDelegate( objref, delegate ) ;
     }
 
-    public void disconnect( org.omg.CORBA.Object objref ) 
+    public void disconnect( org.omg.CORBA.Object objref )
     {
         // Get the delegate, then ior, then transientKey, then delete servant
-        org.omg.CORBA.portable.Delegate del = StubAdapter.getDelegate( 
-	    objref ) ; 
-	CorbaContactInfoList ccil = (CorbaContactInfoList)
-	    ((ClientDelegate)del).getContactInfoList() ;
-	LocalClientRequestDispatcher lcs = 
-	    ccil.getLocalClientRequestDispatcher() ;
+        org.omg.CORBA.portable.Delegate del = StubAdapter.getDelegate(
+            objref ) ;
+        CorbaContactInfoList ccil = (CorbaContactInfoList)
+            ((ClientDelegate)del).getContactInfoList() ;
+        LocalClientRequestDispatcher lcs =
+            ccil.getLocalClientRequestDispatcher() ;
 
-	if (lcs instanceof JIDLLocalCRDImpl) {
-	    JIDLLocalCRDImpl jlcs = (JIDLLocalCRDImpl)lcs ;
-	    byte[] oid = jlcs.getObjectId() ;
-	    servants.deleteServant(oid);
-	    jlcs.unexport() ;
-	} else {	
-	    throw new RuntimeException( 
-		"TOAImpl.disconnect can not be called on " + lcs ) ;
-	}
+        if (lcs instanceof JIDLLocalCRDImpl) {
+            JIDLLocalCRDImpl jlcs = (JIDLLocalCRDImpl)lcs ;
+            byte[] oid = jlcs.getObjectId() ;
+            servants.deleteServant(oid);
+            jlcs.unexport() ;
+        } else {
+            throw new RuntimeException(
+                "TOAImpl.disconnect can not be called on " + lcs ) ;
+        }
     }
-} 
+}

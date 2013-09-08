@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -107,7 +111,7 @@ public class SourceTreeManager
    * @param base The base URI that should be used.
    * @param urlString Value from an xsl:import or xsl:include's href attribute,
    * or a URI specified in the document() function.
-   * 
+   *
    * @return a Source that can be used to process the resource.
    *
    * @throws IOException
@@ -149,12 +153,12 @@ public class SourceTreeManager
       SourceTree st=(SourceTree)m_sourceTree.elementAt(i);
       if(st!=null && st.m_root==n)
       {
-	m_sourceTree.removeElementAt(i);
-	return;
+        m_sourceTree.removeElementAt(i);
+        return;
       }
     }
   }
-  
+
 
 
   /**
@@ -227,7 +231,7 @@ public class SourceTreeManager
    * @param urlString An absolute or relative URL string.
    * @param locator The location of the caller, for diagnostic purposes.
    *
-   * @return should be a non-null reference to the node identified by the 
+   * @return should be a non-null reference to the node identified by the
    * base and urlString.
    *
    * @throws TransformerException If the URL can not resolve to a node.
@@ -264,7 +268,7 @@ public class SourceTreeManager
    *
    * @return non-null reference to a node.
    *
-   * @throws TransformerException if the Source argument can't be resolved to 
+   * @throws TransformerException if the Source argument can't be resolved to
    *         a node.
    */
   public int getSourceTree(Source source, SourceLocator locator, XPathContext xctxt)
@@ -292,7 +296,7 @@ public class SourceTreeManager
    *
    * @return non-null reference to node identified by the source argument.
    *
-   * @throws TransformerException if the source argument can not be resolved 
+   * @throws TransformerException if the source argument can not be resolved
    *         to a source node.
    */
   public int parseToNode(Source source, SourceLocator locator, XPathContext xctxt)
@@ -300,12 +304,12 @@ public class SourceTreeManager
   {
 
     try
-    {      
+    {
       Object xowner = xctxt.getOwnerObject();
       DTM dtm;
       if(null != xowner && xowner instanceof com.sun.org.apache.xml.internal.dtm.DTMWSFilter)
       {
-        dtm = xctxt.getDTM(source, false, 
+        dtm = xctxt.getDTM(source, false,
                           (com.sun.org.apache.xml.internal.dtm.DTMWSFilter)xowner, false, true);
       }
       else
@@ -344,7 +348,7 @@ public class SourceTreeManager
     {
       XMLReader reader = (inputSource instanceof SAXSource)
                          ? ((SAXSource) inputSource).getXMLReader() : null;
-                         
+
       if (null == reader)
       {
         try {
@@ -354,7 +358,7 @@ public class SourceTreeManager
           javax.xml.parsers.SAXParser jaxpParser=
               factory.newSAXParser();
           reader=jaxpParser.getXMLReader();
-          
+
         } catch( javax.xml.parsers.ParserConfigurationException ex ) {
           throw new org.xml.sax.SAXException( ex );
         } catch( javax.xml.parsers.FactoryConfigurationError ex1 ) {

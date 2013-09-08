@@ -1,12 +1,7 @@
 /*
- * @(#)file      SnmpVarBind.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.15
- * @(#)date      09/03/09
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 // Copyright (c) 1995-96 by Cisco Systems, Inc.
 
@@ -15,7 +10,6 @@ package com.sun.jmx.snmp;
 // java imports
 //
 import java.io.Serializable;
-
 
 /**
  * This class holds information for a MIB variable contained in an {@link com.sun.jmx.snmp.SnmpVarBindList}.
@@ -33,6 +27,7 @@ import java.io.Serializable;
  */
 
 public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
+    private static final long serialVersionUID = 491778383240759376L;
 
     // PUBLIC VARIABLES
     //-----------------
@@ -628,9 +623,9 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
             setValueValid() ;
         } else {
             status = var.getValueStatus() ;
-	    if (status == stValueEndOfMibView)        value=endOfMibView;
-	    else if (status == stValueNoSuchObject)   value=noSuchObject;
-	    else if (status == stValueNoSuchInstance) value=noSuchInstance;
+            if (status == stValueEndOfMibView)        value=endOfMibView;
+            else if (status == stValueNoSuchObject)   value=noSuchObject;
+            else if (status == stValueNoSuchInstance) value=noSuchInstance;
         }
     }
 
@@ -649,14 +644,9 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      */
     @Override
     public Object clone() {
-//         SnmpVarBind v = null ;
-//         try {
-//             v = (SnmpVarBind) super.clone() ;
-//             v.copyValueAndOid(this) ;
-//         } catch (CloneNotSupportedException e) {
-//             throw new InternalError() ;
-//         }
-//         return v ;
+        // FindBugs will issue a warning here, because super.clone()
+        // is not called. But this is actually OK because we construct
+        // a brand new object.
         SnmpVarBind v = new SnmpVarBind() ;
         v.copyValueAndOid(this) ;
         return v ;
@@ -675,8 +665,8 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * <code>setSnmpValue(SnmpVarBind.noSuchObject)</code>.
      **/
     final public void setNoSuchObject() {
-	value=noSuchObject;
-	status=stValueNoSuchObject;
+        value=noSuchObject;
+        status=stValueNoSuchObject;
     }
 
     /**
@@ -684,8 +674,8 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * <code>setSnmpValue(SnmpVarBind.noSuchInstance)</code>.
      **/
     final public void setNoSuchInstance() {
-	value=noSuchInstance;
-	status=stValueNoSuchInstance;
+        value=noSuchInstance;
+        status=stValueNoSuchInstance;
     }
 
     /**
@@ -693,8 +683,8 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * <code>setSnmpValue(SnmpVarBind.endOfMibView)</code>.
      **/
     final public void setEndOfMibView() {
-	value=endOfMibView;
-	status=stValueEndOfMibView;
+        value=endOfMibView;
+        status=stValueEndOfMibView;
     }
 
      /**
@@ -723,9 +713,9 @@ public class SnmpVarBind implements SnmpDataTypeEnums, Cloneable, Serializable {
      * Sets the status to indicate that the value for this <CODE>SnmpVarBind</CODE> is valid.
      */
     private void setValueValid() {
-	if (value == endOfMibView)        status=stValueEndOfMibView;
-	else if (value == noSuchObject)   status=stValueNoSuchObject;
-	else if (value == noSuchInstance) status=stValueNoSuchInstance;
+        if (value == endOfMibView)        status=stValueEndOfMibView;
+        else if (value == noSuchObject)   status=stValueNoSuchObject;
+        else if (value == noSuchInstance) status=stValueNoSuchInstance;
         else status = stValueOk ;
     }
 

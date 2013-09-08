@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +19,6 @@
  *
  */
 package com.sun.org.apache.xml.internal.security.keys.content.keyvalues;
-
-
 
 import java.math.BigInteger;
 import java.security.Key;
@@ -35,17 +37,12 @@ import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-
 /**
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class DSAKeyValue extends SignatureElementProxy
         implements KeyValueContent {
-
-   /** {@link java.util.logging} logging facility */
-    static java.util.logging.Logger log = 
-        java.util.logging.Logger.getLogger(DSAKeyValue.class.getName());
 
    /**
     * Constructor DSAKeyValue

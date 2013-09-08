@@ -1,8 +1,26 @@
 /*
- * @(#)AccessibleTable.java	1.11 06/04/07
+ * Copyright (c) 1999, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.accessibility;
@@ -11,7 +29,6 @@ package javax.accessibility;
  * Class AccessibleTable describes a user-interface component that
  * presents data in a two-dimensional table format.
  *
- * @version     1.2 10/12/99 
  * @author      Lynn Monsanto
  * @since 1.3
  */
@@ -33,7 +50,7 @@ public interface AccessibleTable {
 
     /**
      * Returns the summary description of the table.
-     * 
+     *
      * @return the summary description of the table
      */
     public Accessible getAccessibleSummary();
@@ -158,7 +175,7 @@ public interface AccessibleTable {
      * @param r zero-based row of the table
      * @param c zero-based column of the table
      * @return the boolean value true if the accessible at the
-     * row and column is selected. Otherwise, the boolean value 
+     * row and column is selected. Otherwise, the boolean value
      * false
      */
     public boolean isAccessibleSelected(int r, int c);
@@ -199,5 +216,3 @@ public interface AccessibleTable {
      */
     public int [] getSelectedAccessibleColumns();
 }
-
-

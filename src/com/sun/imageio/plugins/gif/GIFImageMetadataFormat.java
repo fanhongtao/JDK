@@ -1,8 +1,26 @@
 /*
- * @(#)GIFImageMetadataFormat.java	1.8 05/11/17
+ * Copyright (c) 2001, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.gif;
@@ -26,16 +44,16 @@ public class GIFImageMetadataFormat extends IIOMetadataFormatImpl {
                    CHILD_POLICY_EMPTY);
         addAttribute("ImageDescriptor", "imageLeftPosition",
                      DATATYPE_INTEGER, true, null,
-                     "0", "65535", true, true); 
+                     "0", "65535", true, true);
         addAttribute("ImageDescriptor", "imageTopPosition",
                      DATATYPE_INTEGER, true, null,
-                     "0", "65535", true, true); 
+                     "0", "65535", true, true);
         addAttribute("ImageDescriptor", "imageWidth",
                      DATATYPE_INTEGER, true, null,
-                     "1", "65535", true, true); 
+                     "1", "65535", true, true);
         addAttribute("ImageDescriptor", "imageHeight",
                      DATATYPE_INTEGER, true, null,
-                     "1", "65535", true, true); 
+                     "1", "65535", true, true);
         addBooleanAttribute("ImageDescriptor", "interlaceFlag",
                             false, false);
 
@@ -111,7 +129,7 @@ public class GIFImageMetadataFormat extends IIOMetadataFormatImpl {
         addAttribute("PlainTextExtension", "textBackgroundColor",
                      DATATYPE_INTEGER, true, null,
                      "0", "255", true, true);
-        
+
         // root -> ApplicationExtensions
         addElement("ApplicationExtensions",
                    GIFImageMetadata.nativeMetadataFormatName,

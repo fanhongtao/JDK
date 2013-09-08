@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -70,7 +74,6 @@ import com.sun.org.apache.bcel.internal.classfile.*;
  *
  * @see com.sun.org.apache.bcel.internal.Repository
  *
- * @version $Id: ClassLoaderRepository.java,v 1.1.2.1 2005/07/31 23:47:01 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @author David Dixon-Peugh
  */
@@ -90,7 +93,7 @@ public class ClassLoaderRepository
    */
   public void storeClass( JavaClass clazz ) {
     loadedClasses.put( clazz.getClassName(),
-		       clazz );
+                       clazz );
     clazz.setRepository( this );
   }
 
@@ -115,7 +118,7 @@ public class ClassLoaderRepository
   /**
    * Lookup a JavaClass object from the Class Name provided.
    */
-  public JavaClass loadClass( String className ) 
+  public JavaClass loadClass( String className )
     throws ClassNotFoundException
   {
     String classFile = className.replace('.', '/');
@@ -124,16 +127,16 @@ public class ClassLoaderRepository
     if (RC != null) { return RC; }
 
     try {
-      InputStream is = 
-	loader.getResourceAsStream( classFile + ".class" );
-	    
+      InputStream is =
+        loader.getResourceAsStream( classFile + ".class" );
+
       if(is == null) {
-	throw new ClassNotFoundException(className + " not found.");
+        throw new ClassNotFoundException(className + " not found.");
       }
 
       ClassParser parser = new ClassParser( is, className );
       RC = parser.parse();
-	    
+
       storeClass( RC );
 
       return RC;
@@ -152,4 +155,3 @@ public class ClassLoaderRepository
     loadedClasses.clear();
   }
 }
-

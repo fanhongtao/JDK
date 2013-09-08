@@ -1,8 +1,26 @@
 /*
- * @(#)StringMonitoredAttributeBase.java	1.4 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.monitoring;
 
@@ -10,7 +28,7 @@ import java.util.*;
 
 /**
  * <p>
- * 
+ *
  * @author Hemanth Puttaswamy
  * </p>
  * <p>
@@ -18,8 +36,8 @@ import java.util.*;
  * of the examples of StringMonitoredAttribute is the State information.
  * </p>
  */
-public abstract class StringMonitoredAttributeBase 
-    extends MonitoredAttributeBase 
+public abstract class StringMonitoredAttributeBase
+    extends MonitoredAttributeBase
 {
 
   ///////////////////////////////////////
@@ -32,27 +50,24 @@ public abstract class StringMonitoredAttributeBase
  * built with the class type of String.
  * </p>
  * <p>
- * 
+ *
  * @param name of this attribute
  * </p>
  * <p>
  * @param description of this attribute
  * </p>
  * <p>
- * @return a StringMonitoredAttributeBase 
+ * @return a StringMonitoredAttributeBase
  * </p>
  */
-    public  StringMonitoredAttributeBase(String name, String description) {      
+    public  StringMonitoredAttributeBase(String name, String description) {
         super( name );
         MonitoredAttributeInfoFactory f =
             MonitoringFactories.getMonitoredAttributeInfoFactory();
         MonitoredAttributeInfo maInfo = f.createMonitoredAttributeInfo(
             description, String.class, false, false );
        this.setMonitoredAttributeInfo( maInfo );
-    } // end StringMonitoredAttributeBase        
+    } // end StringMonitoredAttributeBase
 
 
 } // end StringMonitoredAttributeBase
-
-
-

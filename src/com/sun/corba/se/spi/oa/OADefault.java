@@ -1,8 +1,26 @@
 /*
- * @(#)OADefault.java	1.9 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.oa ;
@@ -18,15 +36,15 @@ import com.sun.corba.se.spi.orb.ORB ;
 public class OADefault {
     public static ObjectAdapterFactory makePOAFactory( ORB orb )
     {
-	ObjectAdapterFactory oaf = new POAFactory() ;
-	oaf.init( orb ) ;
-	return oaf ;
+        ObjectAdapterFactory oaf = new POAFactory() ;
+        oaf.init( orb ) ;
+        return oaf ;
     }
 
     public static ObjectAdapterFactory makeTOAFactory( ORB orb )
     {
-	ObjectAdapterFactory oaf = new TOAFactory() ;
-	oaf.init( orb ) ;
-	return oaf ;
+        ObjectAdapterFactory oaf = new TOAFactory() ;
+        oaf.init( orb ) ;
+        return oaf ;
     }
 }

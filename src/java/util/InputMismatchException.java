@@ -1,8 +1,26 @@
 /*
- * @(#)InputMismatchException.java	1.5 06/03/24
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -13,28 +31,29 @@ package java.util;
  * that the token is out of range for the expected type.
  *
  * @author  unascribed
- * @version 1.5 03/24/06
  * @see     java.util.Scanner
  * @since   1.5
  */
 public
 class InputMismatchException extends NoSuchElementException {
+    private static final long serialVersionUID = 8811230760997066428L;
+
     /**
-     * Constructs an <code>InputMismatchException</code> with <tt>null</tt> 
+     * Constructs an <code>InputMismatchException</code> with <tt>null</tt>
      * as its error message string.
      */
     public InputMismatchException() {
-	super();
+        super();
     }
 
     /**
-     * Constructs an <code>InputMismatchException</code>, saving a reference 
-     * to the error message string <tt>s</tt> for later retrieval by the 
+     * Constructs an <code>InputMismatchException</code>, saving a reference
+     * to the error message string <tt>s</tt> for later retrieval by the
      * <tt>getMessage</tt> method.
      *
      * @param   s   the detail message.
      */
     public InputMismatchException(String s) {
-	super(s);
+        super(s);
     }
 }

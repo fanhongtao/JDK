@@ -1,16 +1,32 @@
 /*
- * @(#)OutputStream.java	1.17 05/11/17
+ * Copyright (c) 1998, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package org.omg.CORBA_2_3.portable;
@@ -22,7 +38,6 @@ package org.omg.CORBA_2_3.portable;
  *
  * @see org.omg.CORBA.portable.OutputStream
  * @author  OMG
- * @version 1.17 11/17/05
  * @since   JDK1.2
  */
 
@@ -48,7 +63,7 @@ public abstract class OutputStream extends org.omg.CORBA.portable.OutputStream {
     /**
      * Marshals a value type to the output stream.
      * @param value is the acutal value to write
-     * @param repository_id identifies the type of the value type to 
+     * @param repository_id identifies the type of the value type to
      * be marshaled
      */
     public void write_value(java.io.Serializable value, String repository_id) {

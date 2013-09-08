@@ -1,8 +1,26 @@
 /*
- * @(#)StringCharacterIterator.java	1.22 05/11/17
+ * Copyright (c) 1996, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -24,7 +42,7 @@ package java.text;
 
 /**
  * <code>StringCharacterIterator</code> implements the
- * <code>CharacterIterater</code> protocol for a <code>String</code>.
+ * <code>CharacterIterator</code> protocol for a <code>String</code>.
  * The <code>StringCharacterIterator</code> class iterates over the
  * entire <code>String</code>.
  *

@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsSplitPaneUI.java	1.15 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -29,22 +47,21 @@ public class WindowsSplitPaneUI extends BasicSplitPaneUI
 {
 
     public WindowsSplitPaneUI() {
-	super();
+        super();
     }
 
     /**
       * Creates a new WindowsSplitPaneUI instance
       */
     public static ComponentUI createUI(JComponent x) {
-	return new WindowsSplitPaneUI();
+        return new WindowsSplitPaneUI();
     }
 
     /**
       * Creates the default divider.
       */
     public BasicSplitPaneDivider createDefaultDivider() {
-	return new WindowsSplitPaneDivider(this);
+        return new WindowsSplitPaneDivider(this);
     }
 
 }
-

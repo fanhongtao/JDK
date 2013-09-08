@@ -1,8 +1,26 @@
 /*
- * @(#)RMIClientSocketFactory.java	1.12 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.server;
@@ -34,7 +52,6 @@ import java.net.*;
  * implement {@link Object#hashCode} consistently with its
  * <code>Object.equals</code> implementation).
  *
- * @version 1.12, 11/17/05
  * @author  Ann Wollrath
  * @author  Peter Jones
  * @since   1.2
@@ -53,5 +70,5 @@ public interface RMIClientSocketFactory {
      * @since 1.2
      */
     public Socket createSocket(String host, int port)
-	throws IOException;
+        throws IOException;
 }

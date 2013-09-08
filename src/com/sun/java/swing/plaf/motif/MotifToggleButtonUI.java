@@ -1,10 +1,28 @@
 /*
- * @(#)MotifToggleButtonUI.java	1.23 09/08/10
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package com.sun.java.swing.plaf.motif;
 
 import sun.awt.AppContext;
@@ -28,23 +46,22 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.23 08/10/09
  * @author Rich Schiavi
  */
-public class MotifToggleButtonUI extends BasicToggleButtonUI 
+public class MotifToggleButtonUI extends BasicToggleButtonUI
 {
     private static final Object MOTIF_TOGGLE_BUTTON_UI_KEY = new Object();
 
     protected Color selectColor;
 
     private boolean defaults_initialized = false;
-    
+
     // ********************************
     //         Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent b) {
         AppContext appContext = AppContext.getAppContext();
-        MotifToggleButtonUI motifToggleButtonUI = 
+        MotifToggleButtonUI motifToggleButtonUI =
                 (MotifToggleButtonUI) appContext.get(MOTIF_TOGGLE_BUTTON_UI_KEY);
         if (motifToggleButtonUI == null) {
             motifToggleButtonUI = new MotifToggleButtonUI();
@@ -57,54 +74,52 @@ public class MotifToggleButtonUI extends BasicToggleButtonUI
     //          Install Defaults
     // ********************************
     public void installDefaults(AbstractButton b) {
-	super.installDefaults(b);
-	if(!defaults_initialized) {
-	    selectColor = UIManager.getColor(getPropertyPrefix() + "select");
-	    defaults_initialized = true;
-	}
+        super.installDefaults(b);
+        if(!defaults_initialized) {
+            selectColor = UIManager.getColor(getPropertyPrefix() + "select");
+            defaults_initialized = true;
+        }
         LookAndFeel.installProperty(b, "opaque", Boolean.FALSE);
     }
 
     protected void uninstallDefaults(AbstractButton b) {
-	super.uninstallDefaults(b);
-	defaults_initialized = false;
+        super.uninstallDefaults(b);
+        defaults_initialized = false;
     }
-    
+
     // ********************************
     //          Default Accessors
     // ********************************
 
     protected Color getSelectColor() {
-	return selectColor;
+        return selectColor;
     }
-    
+
     // ********************************
     //         Paint Methods
     // ********************************
     protected void paintButtonPressed(Graphics g, AbstractButton b) {
         if (b.isContentAreaFilled()) {
-	    Color oldColor = g.getColor();
-	    Dimension size = b.getSize();
-	    Insets insets = b.getInsets();
-	    Insets margin = b.getMargin();
+            Color oldColor = g.getColor();
+            Dimension size = b.getSize();
+            Insets insets = b.getInsets();
+            Insets margin = b.getMargin();
 
-	    if(b.getBackground() instanceof UIResource) {
-		g.setColor(getSelectColor());
-	    }
-	    g.fillRect(insets.left - margin.left,
-		       insets.top - margin.top, 
-		       size.width - (insets.left-margin.left) - (insets.right - margin.right),
-		       size.height - (insets.top-margin.top) - (insets.bottom - margin.bottom));
-	    g.setColor(oldColor);
-	}
-    }
-    
-    public Insets getInsets(JComponent c) { 
-	Border border = c.getBorder();
-	Insets i = border != null? border.getBorderInsets(c) : new Insets(0,0,0,0);
-	return i;
+            if(b.getBackground() instanceof UIResource) {
+                g.setColor(getSelectColor());
+            }
+            g.fillRect(insets.left - margin.left,
+                       insets.top - margin.top,
+                       size.width - (insets.left-margin.left) - (insets.right - margin.right),
+                       size.height - (insets.top-margin.top) - (insets.bottom - margin.bottom));
+            g.setColor(oldColor);
+        }
     }
 
-} 
+    public Insets getInsets(JComponent c) {
+        Border border = c.getBorder();
+        Insets i = border != null? border.getBorderInsets(c) : new Insets(0,0,0,0);
+        return i;
+    }
 
-
+}

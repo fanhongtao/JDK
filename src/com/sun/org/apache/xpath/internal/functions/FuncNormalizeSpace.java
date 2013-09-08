@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,9 +51,9 @@ public class FuncNormalizeSpace extends FunctionDef1Arg
 
     return (XString)s1.fixWhiteSpace(true, true, false);
   }
-  
+
   /**
-   * Execute an expression in the XPath runtime context, and return the 
+   * Execute an expression in the XPath runtime context, and return the
    * result of the expression.
    *
    *
@@ -57,10 +61,10 @@ public class FuncNormalizeSpace extends FunctionDef1Arg
    *
    * @return The result of the expression in the form of a <code>XObject</code>.
    *
-   * @throws javax.xml.transform.TransformerException if a runtime exception 
+   * @throws javax.xml.transform.TransformerException if a runtime exception
    *         occurs.
    */
-  public void executeCharsToContentHandler(XPathContext xctxt, 
+  public void executeCharsToContentHandler(XPathContext xctxt,
                                               ContentHandler handler)
     throws javax.xml.transform.TransformerException,
            org.xml.sax.SAXException

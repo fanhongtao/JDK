@@ -1,8 +1,26 @@
 /*
- * @(#)POAHelper.java	1.5 05/11/17
+ * Copyright (c) 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.PortableServer;
@@ -29,7 +47,7 @@ abstract public class POAHelper
 {
     private static String  _id = "IDL:omg.org/PortableServer/POA:2.3";
 
-    public static void insert (org.omg.CORBA.Any a, 
+    public static void insert (org.omg.CORBA.Any a,
         org.omg.PortableServer.POA that)
     {
         org.omg.CORBA.portable.OutputStream out = a.create_output_stream ();
@@ -64,7 +82,7 @@ abstract public class POAHelper
         throw new org.omg.CORBA.MARSHAL ();
     }
 
-    public static void write (org.omg.CORBA.portable.OutputStream ostream, 
+    public static void write (org.omg.CORBA.portable.OutputStream ostream,
        org.omg.PortableServer.POA value)
     {
         throw new org.omg.CORBA.MARSHAL ();
@@ -81,4 +99,3 @@ abstract public class POAHelper
        return null;
     }
 }
-

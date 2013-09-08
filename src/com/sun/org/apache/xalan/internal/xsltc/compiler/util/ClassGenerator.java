@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,17 +31,17 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.Parser;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.Stylesheet;
 
 /**
- * The class that implements any class that inherits from 
- * <tt>AbstractTranslet</tt>, i.e. any translet. Methods in this 
- * class may be of the following kinds: 
+ * The class that implements any class that inherits from
+ * <tt>AbstractTranslet</tt>, i.e. any translet. Methods in this
+ * class may be of the following kinds:
  *
- * 1. Main method: applyTemplates, implemented by intances of 
+ * 1. Main method: applyTemplates, implemented by intances of
  * <tt>MethodGenerator</tt>.
  *
- * 2. Named methods: for named templates, implemented by instances 
+ * 2. Named methods: for named templates, implemented by instances
  * of <tt>NamedMethodGenerator</tt>.
  *
- * 3. Rt methods: for result tree fragments, implemented by 
+ * 3. Rt methods: for result tree fragments, implemented by
  * instances of <tt>RtMethodGenerator</tt>.
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
@@ -47,78 +51,78 @@ public class ClassGenerator extends ClassGen {
     protected static int INVALID_INDEX  = -1;
 
     private Stylesheet _stylesheet;
-    private final Parser _parser;		// --> can be moved to XSLT
+    private final Parser _parser;               // --> can be moved to XSLT
     // a  single instance cached here
     private final Instruction _aloadTranslet;
     private final String _domClass;
     private final String _domClassSig;
     private final String _applyTemplatesSig;
-	private final String _applyTemplatesSigForImport;
-    
-    public ClassGenerator(String class_name, String super_class_name,
-			  String file_name,
-			  int access_flags, String[] interfaces,
-			  Stylesheet stylesheet) {
-	super(class_name, super_class_name, file_name,
-	      access_flags, interfaces);
-	_stylesheet = stylesheet;
-	_parser = stylesheet.getParser();
-	_aloadTranslet = new ALOAD(TRANSLET_INDEX);
-	
-	if (stylesheet.isMultiDocument()) {
-	    _domClass = "com.sun.org.apache.xalan.internal.xsltc.dom.MultiDOM";
-	    _domClassSig = "Lcom/sun/org/apache/xalan/internal/xsltc/dom/MultiDOM;";
-	}
-	else {
-	    _domClass = "com.sun.org.apache.xalan.internal.xsltc.dom.DOMAdapter";
-	    _domClassSig = "Lcom/sun/org/apache/xalan/internal/xsltc/dom/DOMAdapter;";
-	}
-	_applyTemplatesSig = "(" 
-	    + Constants.DOM_INTF_SIG
-	    + Constants.NODE_ITERATOR_SIG
-	    + Constants.TRANSLET_OUTPUT_SIG
-	    + ")V";
+        private final String _applyTemplatesSigForImport;
 
-    _applyTemplatesSigForImport = "(" 
+    public ClassGenerator(String class_name, String super_class_name,
+                          String file_name,
+                          int access_flags, String[] interfaces,
+                          Stylesheet stylesheet) {
+        super(class_name, super_class_name, file_name,
+              access_flags, interfaces);
+        _stylesheet = stylesheet;
+        _parser = stylesheet.getParser();
+        _aloadTranslet = new ALOAD(TRANSLET_INDEX);
+
+        if (stylesheet.isMultiDocument()) {
+            _domClass = "com.sun.org.apache.xalan.internal.xsltc.dom.MultiDOM";
+            _domClassSig = "Lcom/sun/org/apache/xalan/internal/xsltc/dom/MultiDOM;";
+        }
+        else {
+            _domClass = "com.sun.org.apache.xalan.internal.xsltc.dom.DOMAdapter";
+            _domClassSig = "Lcom/sun/org/apache/xalan/internal/xsltc/dom/DOMAdapter;";
+        }
+        _applyTemplatesSig = "("
+            + Constants.DOM_INTF_SIG
+            + Constants.NODE_ITERATOR_SIG
+            + Constants.TRANSLET_OUTPUT_SIG
+            + ")V";
+
+    _applyTemplatesSigForImport = "("
         + Constants.DOM_INTF_SIG
         + Constants.NODE_ITERATOR_SIG
         + Constants.TRANSLET_OUTPUT_SIG
         + Constants.NODE_FIELD_SIG
-        + ")V";  
+        + ")V";
     }
 
     public final Parser getParser() {
-	return _parser;
+        return _parser;
     }
 
     public final Stylesheet getStylesheet() {
-	return _stylesheet;
+        return _stylesheet;
     }
 
     /**
-     * Pretend this is the stylesheet class. Useful when compiling 
+     * Pretend this is the stylesheet class. Useful when compiling
      * references to global variables inside a predicate.
      */
     public final String getClassName() {
-	return _stylesheet.getClassName();
+        return _stylesheet.getClassName();
     }
 
     public Instruction loadTranslet() {
-	return _aloadTranslet;
+        return _aloadTranslet;
     }
 
     public final String getDOMClass() {
-	return _domClass;
+        return _domClass;
     }
 
     public final String getDOMClassSig() {
-	return _domClassSig;
+        return _domClassSig;
     }
 
     public final String getApplyTemplatesSig() {
-	return _applyTemplatesSig;
+        return _applyTemplatesSig;
     }
-    
+
     public final String getApplyTemplatesSigForImport() {
     return _applyTemplatesSigForImport;
     }
@@ -128,6 +132,6 @@ public class ClassGenerator extends ClassGen {
      * this class inherits from <tt>AbstractTranslet</tt> or not.
      */
     public boolean isExternal() {
-	return false;
+        return false;
     }
 }

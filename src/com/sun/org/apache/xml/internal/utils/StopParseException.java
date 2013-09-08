@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +23,8 @@
 package com.sun.org.apache.xml.internal.utils;
 
 /**
- * This is a special exception that is used to stop parsing when 
- * search for an element.  For instance, when searching for xml:stylesheet 
+ * This is a special exception that is used to stop parsing when
+ * search for an element.  For instance, when searching for xml:stylesheet
  * PIs, it is used to stop the parse once the document element is found.
  * @see StylesheetPIHandler
  * @xsl.usage internal

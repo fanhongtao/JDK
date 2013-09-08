@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -58,11 +62,10 @@ import com.sun.org.apache.bcel.internal.generic.Type;
 import java.io.*;
 
 /**
- * This class represents the method info structure, i.e., the representation 
+ * This class represents the method info structure, i.e., the representation
  * for a method in the class. See JVM specification for details.
  * A method has access flags, a name, a signature and a number of attributes.
  *
- * @version $Id: Method.java,v 1.1.2.1 2005/07/31 23:46:20 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class Method extends FieldOrMethod {
@@ -100,7 +103,7 @@ public final class Method extends FieldOrMethod {
    * @param constant_pool Array of constants
    */
   public Method(int access_flags, int name_index, int signature_index,
-		Attribute[] attributes, ConstantPool constant_pool)
+                Attribute[] attributes, ConstantPool constant_pool)
   {
     super(access_flags, name_index, signature_index, attributes, constant_pool);
   }
@@ -118,11 +121,11 @@ public final class Method extends FieldOrMethod {
 
   /**
    * @return Code attribute of method, if any
-   */   
+   */
   public final Code getCode() {
     for(int i=0; i < attributes_count; i++)
       if(attributes[i] instanceof Code)
-	return (Code)attributes[i];
+        return (Code)attributes[i];
 
     return null;
   }
@@ -134,7 +137,7 @@ public final class Method extends FieldOrMethod {
   public final ExceptionTable getExceptionTable() {
     for(int i=0; i < attributes_count; i++)
       if(attributes[i] instanceof ExceptionTable)
-	return (ExceptionTable)attributes[i];
+        return (ExceptionTable)attributes[i];
 
     return null;
   }
@@ -177,31 +180,31 @@ public final class Method extends FieldOrMethod {
     access = Utility.accessToString(access_flags);
 
     // Get name and signature from constant pool
-    c = (ConstantUtf8)constant_pool.getConstant(signature_index, 
-						Constants.CONSTANT_Utf8);
+    c = (ConstantUtf8)constant_pool.getConstant(signature_index,
+                                                Constants.CONSTANT_Utf8);
     signature = c.getBytes();
 
     c = (ConstantUtf8)constant_pool.getConstant(name_index, Constants.CONSTANT_Utf8);
     name = c.getBytes();
 
     signature = Utility.methodSignatureToString(signature, name, access, true,
-						getLocalVariableTable());
+                                                getLocalVariableTable());
     buf = new StringBuffer(signature);
 
     for(int i=0; i < attributes_count; i++) {
       Attribute a = attributes[i];
 
       if(!((a instanceof Code) || (a instanceof ExceptionTable)))
-	buf.append(" [" + a.toString() + "]");
+        buf.append(" [" + a.toString() + "]");
     }
 
     ExceptionTable e = getExceptionTable();
     if(e != null) {
       String str = e.toString();
       if(!str.equals(""))
-	buf.append("\n\t\tthrows " + str);
+        buf.append("\n\t\tthrows " + str);
     }
- 
+
     return buf.toString();
   }
 

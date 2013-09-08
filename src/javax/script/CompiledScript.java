@@ -1,8 +1,26 @@
 /*
- * @(#)CompiledScript.java	1.3 05/11/17 14:24:13
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTAIL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.script;
@@ -21,11 +39,10 @@ import java.util.Map;
  * of tne <code>CompiledScript</code>  may visible during subsequent executions of scripts by the engine.
  *
  * @author Mike Grogan
- * @version 1.0
  * @since 1.6
  */
 public abstract class CompiledScript {
-    
+
     /**
      * Executes the program stored in this <code>CompiledScript</code> object.
      *
@@ -39,9 +56,9 @@ public abstract class CompiledScript {
      * @throws ScriptException if an error occurs.
      * @throws NullPointerException if context is null.
      */
-    
+
     public abstract Object eval(ScriptContext context) throws ScriptException;
-    
+
     /**
      * Executes the program stored in the <code>CompiledScript</code> object using
      * the supplied <code>Bindings</code> of attributes as the <code>ENGINE_SCOPE</code> of the
@@ -58,9 +75,9 @@ public abstract class CompiledScript {
      * @throws ScriptException if an error occurs.
      */
     public Object eval(Bindings bindings) throws ScriptException {
-        
+
         ScriptContext ctxt = getEngine().getContext();
-        
+
         if (bindings != null) {
             SimpleScriptContext tempctxt = new SimpleScriptContext();
             tempctxt.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
@@ -71,14 +88,14 @@ public abstract class CompiledScript {
             tempctxt.setErrorWriter(ctxt.getErrorWriter());
             ctxt = tempctxt;
         }
-        
+
         return eval(ctxt);
     }
-    
-    
+
+
     /**
      * Executes the program stored in the <code>CompiledScript</code> object.  The
-     * default <code>ScriptContext</code> of the associated <code>ScriptEngine</code> is used. 
+     * default <code>ScriptContext</code> of the associated <code>ScriptEngine</code> is used.
      * The effect of calling this method is same as that of eval(getEngine().getContext()).
      *
      * @return The return value from the script execution
@@ -88,13 +105,13 @@ public abstract class CompiledScript {
     public Object eval() throws ScriptException {
         return eval(getEngine().getContext());
     }
-    
+
     /**
-     * Returns the <code>ScriptEngine</code> wbose <code>compile</code> method created this <code>CompiledScript</code>.
+     * Returns the <code>ScriptEngine</code> whose <code>compile</code> method created this <code>CompiledScript</code>.
      * The <code>CompiledScript</code> will execute in this engine.
      *
      * @return The <code>ScriptEngine</code> that created this <code>CompiledScript</code>
      */
     public abstract ScriptEngine getEngine();
-    
+
 }

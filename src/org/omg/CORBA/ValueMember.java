@@ -1,8 +1,26 @@
 /*
- * @(#)ValueMember.java	1.19 05/11/17
+ * Copyright (c) 1998, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * File: ./org/omg/CORBA/ValueMember.java
@@ -19,7 +37,7 @@ package org.omg.CORBA;
  */
 public final class ValueMember implements org.omg.CORBA.portable.IDLEntity {
 
-    //	instance variables
+    //  instance variables
 
     /**
      * The name of the <code>value</code> member described by this
@@ -55,19 +73,19 @@ public final class ValueMember implements org.omg.CORBA.portable.IDLEntity {
     public org.omg.CORBA.TypeCode type;
 
     /**
-     * The typedef that represents the IDL type of the <code>value</code> 
+     * The typedef that represents the IDL type of the <code>value</code>
      * member described by this <code>ValueMember</code> object.
      * @serial
      */
     public org.omg.CORBA.IDLType type_def;
 
     /**
-     * The type of access (public, private) for the <code>value</code> 
+     * The type of access (public, private) for the <code>value</code>
      * member described by this <code>ValueMember</code> object.
      * @serial
      */
     public short access;
-    //	constructors
+    //  constructors
 
     /**
      * Constructs a default <code>ValueMember</code> object.
@@ -86,18 +104,18 @@ public final class ValueMember implements org.omg.CORBA.portable.IDLEntity {
      * is defined.
      *@param __version The version of the <code>value</code> in which this member is defined.
      *@param __type The type of of this <code>value</code> member.
-     *@param __type_def The typedef that represents the IDL type of the <code>value</code> 
+     *@param __type_def The typedef that represents the IDL type of the <code>value</code>
      * member described by this <code>ValueMember</code> object.
-     *@param __access The type of access (public, private) for the <code>value</code> 
+     *@param __access The type of access (public, private) for the <code>value</code>
      * member described by this <code>ValueMember</code> object.
      */
     public ValueMember(String __name, String __id, String __defined_in, String __version, org.omg.CORBA.TypeCode __type, org.omg.CORBA.IDLType __type_def, short __access) {
-	name = __name;
-	id = __id;
-	defined_in = __defined_in;
-	version = __version;
-	type = __type;
-	type_def = __type_def;
-	access = __access;
+        name = __name;
+        id = __id;
+        defined_in = __defined_in;
+        version = __version;
+        type = __type;
+        type_def = __type_def;
+        access = __access;
     }
 }

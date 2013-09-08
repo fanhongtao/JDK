@@ -1,39 +1,56 @@
 /*
- * @(#)IllegalArgumentException.java	1.24 05/11/17
+ * Copyright (c) 1994, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 /**
- * Thrown to indicate that a method has been passed an illegal or 
+ * Thrown to indicate that a method has been passed an illegal or
  * inappropriate argument.
  *
  * @author  unascribed
- * @version 1.24, 11/17/05
- * @see	    java.lang.Thread#setPriority(int)
+ * @see     java.lang.Thread#setPriority(int)
  * @since   JDK1.0
  */
 public
 class IllegalArgumentException extends RuntimeException {
     /**
-     * Constructs an <code>IllegalArgumentException</code> with no 
-     * detail message. 
+     * Constructs an <code>IllegalArgumentException</code> with no
+     * detail message.
      */
     public IllegalArgumentException() {
-	super();
+        super();
     }
 
     /**
-     * Constructs an <code>IllegalArgumentException</code> with the 
-     * specified detail message. 
+     * Constructs an <code>IllegalArgumentException</code> with the
+     * specified detail message.
      *
      * @param   s   the detail message.
      */
     public IllegalArgumentException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -55,7 +72,7 @@ class IllegalArgumentException extends RuntimeException {
     public IllegalArgumentException(String message, Throwable cause) {
         super(message, cause);
     }
- 
+
     /**
      * Constructs a new exception with the specified cause and a detail
      * message of <tt>(cause==null ? null : cause.toString())</tt> (which

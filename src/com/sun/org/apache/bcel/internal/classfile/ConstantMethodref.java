@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -57,10 +61,9 @@ package com.sun.org.apache.bcel.internal.classfile;
 import com.sun.org.apache.bcel.internal.Constants;
 import java.io.*;
 
-/** 
+/**
  * This class represents a constant pool reference to a method.
  *
- * @version $Id: ConstantMethodref.java,v 1.1.2.1 2005/07/31 23:46:24 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class ConstantMethodref extends ConstantCP {
@@ -86,10 +89,10 @@ public final class ConstantMethodref extends ConstantCP {
    * @param class_index Reference to the class containing the method
    * @param name_and_type_index and the method signature
    */
-  public ConstantMethodref(int class_index, 
-			   int name_and_type_index) {
+  public ConstantMethodref(int class_index,
+                           int name_and_type_index) {
     super(Constants.CONSTANT_Methodref, class_index, name_and_type_index);
-  }    
+  }
 
   /**
    * Called by objects that are traversing the nodes of the tree implicitely
@@ -100,5 +103,5 @@ public final class ConstantMethodref extends ConstantCP {
    */
   public void accept(Visitor v) {
     v.visitConstantMethodref(this);
-  }    
+  }
 }

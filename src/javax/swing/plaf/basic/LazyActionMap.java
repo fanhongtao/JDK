@@ -1,8 +1,26 @@
 /*
- * @(#)LazyActionMap.java	1.6 05/11/17
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.basic;
 
@@ -15,7 +33,6 @@ import javax.swing.plaf.*;
  * contents are populated by invoking the <code>loadActionMap</code>
  * method on the passed in Object.
  *
- * @version 1.6, 11/17/05
  * @author Scott Violet
  */
 class LazyActionMap extends ActionMapUIResource {
@@ -125,7 +142,7 @@ class LazyActionMap extends ActionMapUIResource {
             Object loader = _loader;
 
             _loader = null;
-            Class klass = (Class)loader;
+            Class<?> klass = (Class<?>)loader;
             try {
                 Method method = klass.getDeclaredMethod("loadActionMap",
                                       new Class[] { LazyActionMap.class });

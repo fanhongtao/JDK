@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,11 +41,11 @@ import org.xml.sax.SAXParseException;
 
 /**
  * This class is an adapter class. Its only purpose is to be extended and
- * for that extended class to over-ride all methods that are to be used. 
- * 
+ * for that extended class to over-ride all methods that are to be used.
+ *
  * This class is not a public API, it is only public because it is used
  * across package boundaries.
- * 
+ *
  * @xsl.usage internal
  */
 public class EmptySerializer implements SerializationHandler
@@ -50,27 +54,27 @@ public class EmptySerializer implements SerializationHandler
     /**
      * @see SerializationHandler#asContentHandler()
      */
-    
+
     protected void couldThrowIOException() throws IOException
     {
         return; // don't do anything.
     }
-    
+
     protected void couldThrowSAXException() throws SAXException
     {
         return; // don't do anything.
     }
-    
+
     protected void couldThrowSAXException(char[] chars, int off, int len) throws SAXException
     {
         return; // don't do anything.
     }
-    
+
     protected void couldThrowSAXException(String elemQName) throws SAXException
     {
         return; // don't do anything.
     }
-    
+
     protected void couldThrowException() throws Exception
     {
         return; // don't do anything.
@@ -82,8 +86,8 @@ public class EmptySerializer implements SerializationHandler
         // throw new RuntimeException(err);
         return;
     }
-  
-    
+
+
     /**
      * @see SerializationHandler#asContentHandler()
      */
@@ -233,7 +237,7 @@ public class EmptySerializer implements SerializationHandler
         String rawName,
         String type,
         String value,
-        boolean XSLAttribute)        
+        boolean XSLAttribute)
         throws SAXException
     {
         couldThrowSAXException();
@@ -684,7 +688,7 @@ public class EmptySerializer implements SerializationHandler
     public void setNamespaceMappings(NamespaceMappings mappings) {
         aMethodIsCalled();
     }
-    
+
     /**
      * @see ExtendedContentHandler#setSourceLocator(javax.xml.transform.SourceLocator)
      */
@@ -707,30 +711,30 @@ public class EmptySerializer implements SerializationHandler
      */
     public void characters(Node node) throws SAXException
     {
-        couldThrowSAXException();        
+        couldThrowSAXException();
     }
-    
+
     /**
      * @see ExtendedContentHandler#addXSLAttribute(java.lang.String, java.lang.String, java.lang.String)
      */
     public void addXSLAttribute(String qName, String value, String uri)
     {
-        aMethodIsCalled();        
+        aMethodIsCalled();
     }
 
     /**
      * @see ExtendedContentHandler#addAttribute(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
      */
-    public void addAttribute(String uri, String localName, String rawName, String type, String value) throws SAXException 
+    public void addAttribute(String uri, String localName, String rawName, String type, String value) throws SAXException
     {
-        couldThrowSAXException();        
+        couldThrowSAXException();
     }
     /**
      * @see org.xml.sax.DTDHandler#notationDecl(java.lang.String, java.lang.String, java.lang.String)
      */
-    public void notationDecl(String arg0, String arg1, String arg2) throws SAXException 
+    public void notationDecl(String arg0, String arg1, String arg2) throws SAXException
     {
-        couldThrowSAXException(); 
+        couldThrowSAXException();
     }
 
     /**

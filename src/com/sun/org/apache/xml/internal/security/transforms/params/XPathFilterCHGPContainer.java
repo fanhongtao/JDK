@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +36,7 @@ import org.w3c.dom.Node;
  * Implements the parameters for a custom Transform which has a better performance
  * thatn the xfilter2.
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class XPathFilterCHGPContainer extends ElementProxy
         implements TransformParam {
@@ -100,7 +104,7 @@ public class XPathFilterCHGPContainer extends ElementProxy
          includeButSearchElem
             .appendChild(this._doc
                .createTextNode(indentXPathText(includeButSearch)));
-         this._constructionElement.appendChild(doc.createTextNode("\n"));
+         XMLUtils.addReturnToElement(this._constructionElement);
          this._constructionElement.appendChild(includeButSearchElem);
       }
 
@@ -114,7 +118,7 @@ public class XPathFilterCHGPContainer extends ElementProxy
          excludeButSearchElem
             .appendChild(this._doc
                .createTextNode(indentXPathText(excludeButSearch)));
-         this._constructionElement.appendChild(doc.createTextNode("\n"));
+         XMLUtils.addReturnToElement(this._constructionElement);
          this._constructionElement.appendChild(excludeButSearchElem);
       }
 
@@ -125,11 +129,11 @@ public class XPathFilterCHGPContainer extends ElementProxy
 
          excludeElem
             .appendChild(this._doc.createTextNode(indentXPathText(exclude)));
-         this._constructionElement.appendChild(doc.createTextNode("\n"));
+         XMLUtils.addReturnToElement(this._constructionElement);
          this._constructionElement.appendChild(excludeElem);
       }
 
-      this._constructionElement.appendChild(doc.createTextNode("\n"));
+      XMLUtils.addReturnToElement(this._constructionElement);
    }
 
    /**
@@ -142,9 +146,9 @@ public class XPathFilterCHGPContainer extends ElementProxy
 
       if ((xp.length() > 2) && (!Character.isWhitespace(xp.charAt(0)))) {
          return "\n" + xp + "\n";
-      } 
+      }
       return xp;
-      
+
    }
 
    /**

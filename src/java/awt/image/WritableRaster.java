@@ -1,8 +1,26 @@
 /*
- * @(#)WritableRaster.java	1.49 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ****************************************************************
@@ -93,7 +111,7 @@ public class WritableRaster extends Raster {
      * constructors or create methods, it should not be used directly.
      * @param sampleModel     The SampleModel that specifies the layout.
      * @param dataBuffer      The DataBuffer that contains the image data.
-     * @param aRegion         The Rectangle that specifies the image area.     
+     * @param aRegion         The Rectangle that specifies the image area.
      * @param sampleModelTranslate  The Point that specifies the translation
      *                        from SampleModel to Raster coordinates.
      * @param parent          The parent (if any) of this raster.
@@ -113,7 +131,7 @@ public class WritableRaster extends Raster {
 
     /** Returns the parent WritableRaster (if any) of this WritableRaster,
      *  or else null.
-     *  @return the parent of this <code>WritableRaster</code>, or 
+     *  @return the parent of this <code>WritableRaster</code>, or
      *          <code>null</code>.
      */
     public WritableRaster getWritableParent() {
@@ -229,9 +247,6 @@ public class WritableRaster extends Raster {
         int deltaX = childMinX - parentX;
         int deltaY = childMinY - parentY;
 
-        // we use getDataBuffer() here, which will ensure that notifyStolen()
-        // is invoked if this is a SunWritableRaster, thus disabling future
-        // acceleration of this WritableRaster
         return new WritableRaster(sm,
                                   getDataBuffer(),
                                   new Rectangle(childMinX,childMinY,
@@ -347,7 +362,7 @@ public class WritableRaster extends Raster {
 
     /**
      * Copies pixels from Raster srcRaster to this WritableRaster.  Each pixel
-     * in srcRaster is copied to the same x,y address in this raster, unless 
+     * in srcRaster is copied to the same x,y address in this raster, unless
      * the address falls outside the bounds of this raster.  srcRaster
      * must have the same number of bands as this WritableRaster.  The
      * copy is a simple copy of source samples to the corresponding destination
@@ -443,7 +458,7 @@ public class WritableRaster extends Raster {
         case DataBuffer.TYPE_SHORT:
         case DataBuffer.TYPE_USHORT:
         case DataBuffer.TYPE_INT:
-            int[] iData = null;    
+            int[] iData = null;
             for (int startY=0; startY < height; startY++) {
                 // Grab one scanline at a time
                 iData =
@@ -454,7 +469,7 @@ public class WritableRaster extends Raster {
             break;
 
         case DataBuffer.TYPE_FLOAT:
-            float[] fData = null;    
+            float[] fData = null;
             for (int startY=0; startY < height; startY++) {
                 fData =
                     srcRaster.getPixels(srcOffX, srcOffY+startY, width, 1,
@@ -464,7 +479,7 @@ public class WritableRaster extends Raster {
             break;
 
         case DataBuffer.TYPE_DOUBLE:
-            double[] dData = null;    
+            double[] dData = null;
             for (int startY=0; startY < height; startY++) {
                 // Grab one scanline at a time
                 dData =
@@ -476,7 +491,7 @@ public class WritableRaster extends Raster {
         }
     }
 
-    /** 
+    /**
      * Sets a pixel in the DataBuffer using an int array of samples for input.
      * An ArrayIndexOutOfBoundsException may be thrown if the coordinates are
      * not in bounds.
@@ -509,7 +524,7 @@ public class WritableRaster extends Raster {
      */
     public void setPixel(int x, int y, float fArray[]) {
         sampleModel.setPixel(x-sampleModelTranslateX,y-sampleModelTranslateY,
-			     fArray,dataBuffer);
+                             fArray,dataBuffer);
     }
 
     /**
@@ -527,10 +542,10 @@ public class WritableRaster extends Raster {
      */
     public void setPixel(int x, int y, double dArray[]) {
         sampleModel.setPixel(x-sampleModelTranslateX,y-sampleModelTranslateY,
-			     dArray,dataBuffer);
+                             dArray,dataBuffer);
     }
 
-    /** 
+    /**
      * Sets all samples for a rectangle of pixels from an int array containing
      * one sample per array element.
      * An ArrayIndexOutOfBoundsException may be thrown if the coordinates are
@@ -551,7 +566,7 @@ public class WritableRaster extends Raster {
                               w,h,iArray,dataBuffer);
     }
 
-    /** 
+    /**
      * Sets all samples for a rectangle of pixels from a float array containing
      * one sample per array element.
      * An ArrayIndexOutOfBoundsException may be thrown if the coordinates are
@@ -572,7 +587,7 @@ public class WritableRaster extends Raster {
                               w,h,fArray,dataBuffer);
     }
 
-    /** 
+    /**
      * Sets all samples for a rectangle of pixels from a double array containing
      * one sample per array element.
      * An ArrayIndexOutOfBoundsException may be thrown if the coordinates are
@@ -593,7 +608,7 @@ public class WritableRaster extends Raster {
                               w,h,dArray,dataBuffer);
     }
 
-    /** 
+    /**
      * Sets a sample in the specified band for the pixel located at (x,y)
      * in the DataBuffer using an int for input.
      * An ArrayIndexOutOfBoundsException may be thrown if the coordinates are
@@ -613,7 +628,7 @@ public class WritableRaster extends Raster {
                               dataBuffer);
     }
 
-    /** 
+    /**
      * Sets a sample in the specified band for the pixel located at (x,y)
      * in the DataBuffer using a float for input.
      * An ArrayIndexOutOfBoundsException may be thrown if the coordinates are
@@ -629,7 +644,7 @@ public class WritableRaster extends Raster {
      */
     public void setSample(int x, int y, int b, float s){
         sampleModel.setSample(x-sampleModelTranslateX,y-sampleModelTranslateY,
-			      b,s,dataBuffer);
+                              b,s,dataBuffer);
     }
 
     /**
@@ -651,7 +666,7 @@ public class WritableRaster extends Raster {
                                     b,s,dataBuffer);
     }
 
-    /** 
+    /**
      * Sets the samples in the specified band for the specified rectangle
      * of pixels from an int array containing one sample per array element.
      * An ArrayIndexOutOfBoundsException may be thrown if the coordinates are
@@ -720,7 +735,7 @@ public class WritableRaster extends Raster {
     public void setSamples(int x, int y, int w, int h, int b,
                            double dArray[]) {
         sampleModel.setSamples(x-sampleModelTranslateX,y-sampleModelTranslateY,
-			      w,h,b,dArray,dataBuffer);
+                              w,h,b,dArray,dataBuffer);
     }
 
 }

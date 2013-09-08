@@ -1,17 +1,35 @@
 /*
- * @(#)AclNotFoundException.java	1.14 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.acl;
 
 /**
- * This is an exception that is thrown whenever a reference is made to a 
+ * This is an exception that is thrown whenever a reference is made to a
  * non-existent ACL (Access Control List).
  *
- * @author 	Satish Dharmaraj
+ * @author      Satish Dharmaraj
  */
 public class AclNotFoundException extends Exception {
 

@@ -1,8 +1,26 @@
 /*
- * @(#)Referenceable.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -22,7 +40,6 @@ package javax.naming;
   * @author Rosanna Lee
   * @author Scott Seligman
   * @author R. Vasudevan
-  * @version 1.8 05/11/17
   *
   * @see Context#bind
   * @see javax.naming.spi.NamingManager#getObjectInstance
@@ -35,7 +52,7 @@ public interface Referenceable {
       *
       * @return The non-null Reference of this object.
       * @exception NamingException If a naming exception was encountered
-      *		while retrieving the reference.
+      *         while retrieving the reference.
       */
     Reference getReference() throws NamingException;
 }

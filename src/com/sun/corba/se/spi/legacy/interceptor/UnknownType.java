@@ -1,23 +1,41 @@
 /*
- * @(#)UnknownType.java	1.9 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.legacy.interceptor;
 
 public class UnknownType
     extends
-	Exception
+        Exception
 {
     public UnknownType()
     {
-	super();
+        super();
     }
 
     public UnknownType(String msg)
     {
-	super(msg);
+        super(msg);
     }
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +34,7 @@ import org.w3c.dom.Node;
 /**
  * This resolver is used for resolving same-document URIs like URI="" of URI="#id".
  *
- * @author $Author: dims $
+ * @author $Author: mullan $
  * @see <A HREF="http://www.w3.org/TR/xmldsig-core/#sec-ReferenceProcessingModel">The Reference processing model in the XML Signature spec</A>
  * @see <A HREF="http://www.w3.org/TR/xmldsig-core/#sec-Same-Document">Same-Document URI-References in the XML Signature spec</A>
  * @see <A HREF="http://www.ietf.org/rfc/rfc2396.txt">Section 4.2 of RFC 2396</A>
@@ -38,10 +42,12 @@ import org.w3c.dom.Node;
 public class ResolverFragment extends ResourceResolverSpi {
 
    /** {@link java.util.logging} logging facility */
-    static java.util.logging.Logger log = 
+    static java.util.logging.Logger log =
         java.util.logging.Logger.getLogger(
                             ResolverFragment.class.getName());
-
+   public boolean engineIsThreadSafe() {
+           return true;
+   }
    /**
     * Method engineResolve
     *
@@ -52,7 +58,7 @@ public class ResolverFragment extends ResourceResolverSpi {
     * @param BaseURI
     *
     */
-   public XMLSignatureInput engineResolve(Attr uri, String BaseURI) 
+   public XMLSignatureInput engineResolve(Attr uri, String BaseURI)
        throws ResourceResolverException
    {
 
@@ -68,8 +74,8 @@ public class ResolverFragment extends ResourceResolverSpi {
           * resource containing the signature
           */
 
-         if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "ResolverFragment with empty URI (means complete document)");
-	 selectedElem = doc;
+         log.log(java.util.logging.Level.FINE, "ResolverFragment with empty URI (means complete document)");
+         selectedElem = doc;
       } else {
 
          /*
@@ -85,21 +91,21 @@ public class ResolverFragment extends ResourceResolverSpi {
          // Element selectedElem = doc.getElementById(id);
          selectedElem = IdResolver.getElementById(doc, id);
          if (selectedElem==null) {
-         	Object exArgs[] = { id };
+                Object exArgs[] = { id };
             throw new ResourceResolverException(
                "signature.Verification.MissingID", exArgs, uri, BaseURI);
          }
-         if (true)
-         	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Try to catch an Element with ID " + id + " and Element was " + selectedElem);
+         if (log.isLoggable(java.util.logging.Level.FINE))
+                log.log(java.util.logging.Level.FINE, "Try to catch an Element with ID " + id + " and Element was " + selectedElem);
       }
 
       XMLSignatureInput result = new XMLSignatureInput(selectedElem);
       result.setExcludeComments(true);
 
-      //if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "We return a nodeset with " + resultSet.size() + " nodes");
-      result.setMIMEType("text/xml");	  
-	  result.setSourceURI((BaseURI != null) ? BaseURI.concat(uri.getNodeValue()) :
-		  uri.getNodeValue());      
+      //log.log(java.util.logging.Level.FINE, "We return a nodeset with " + resultSet.size() + " nodes");
+      result.setMIMEType("text/xml");
+          result.setSourceURI((BaseURI != null) ? BaseURI.concat(uri.getNodeValue()) :
+                  uri.getNodeValue());
       return result;
    }
 
@@ -113,21 +119,24 @@ public class ResolverFragment extends ResourceResolverSpi {
    public boolean engineCanResolve(Attr uri, String BaseURI) {
 
       if (uri == null) {
-         if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Quick fail for null uri");
+         log.log(java.util.logging.Level.FINE, "Quick fail for null uri");
          return false;
       }
 
       String uriNodeValue = uri.getNodeValue();
 
-      if (uriNodeValue.equals("")
-              || ((uriNodeValue.charAt(0)=='#')
-                  &&!uriNodeValue.startsWith("#xpointer("))) {
-         if (true)
-         	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "State I can resolve reference: \"" + uriNodeValue + "\"");
+      if  (uriNodeValue.equals("") ||
+             (
+            (uriNodeValue.charAt(0)=='#')
+              && !((uriNodeValue.charAt(1)=='x') && uriNodeValue.startsWith("#xpointer("))
+              )
+           ){
+         if (log.isLoggable(java.util.logging.Level.FINE))
+                log.log(java.util.logging.Level.FINE, "State I can resolve reference: \"" + uriNodeValue + "\"");
          return true;
       }
-      if (true)
-      	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Do not seem to be able to resolve reference: \"" + uriNodeValue + "\"");
+      if (log.isLoggable(java.util.logging.Level.FINE))
+        log.log(java.util.logging.Level.FINE, "Do not seem to be able to resolve reference: \"" + uriNodeValue + "\"");
       return false;
    }
 

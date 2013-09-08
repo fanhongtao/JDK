@@ -1,11 +1,25 @@
 /*
- * @(#)file      SnmpScopedPduPacket.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.18
- * @(#)date      06/11/29
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -19,15 +33,15 @@ import com.sun.jmx.snmp.SnmpDefinitions;
 /**
  * Is the fully decoded representation of an SNMP V3 packet.
  * <P>
- * 
+ *
  * Classes are derived from <CODE>SnmpPdu</CODE> to
  * represent the different forms of SNMP pdu
  * ({@link com.sun.jmx.snmp.SnmpScopedPduRequest SnmpScopedPduRequest},
  * {@link com.sun.jmx.snmp.SnmpScopedPduBulk SnmpScopedPduBulk}).
- * <BR>The <CODE>SnmpScopedPduPacket</CODE> class defines the attributes 
+ * <BR>The <CODE>SnmpScopedPduPacket</CODE> class defines the attributes
  * common to every scoped SNMP packets.
- * 
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ *
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  * @see SnmpV3Message
  *
@@ -76,8 +90,8 @@ public abstract class SnmpScopedPduPacket extends SnmpPdu
     public byte[] contextName = null;
 
     /**
-     * The security parameters. This is an opaque member that is 
-     * interpreted by the concerned security model. 
+     * The security parameters. This is an opaque member that is
+     * interpreted by the concerned security model.
      */
     public SnmpSecurityParameters securityParameters = null;
 
@@ -85,7 +99,6 @@ public abstract class SnmpScopedPduPacket extends SnmpPdu
      * Constructor. Is only called by a son. Set the version to <CODE>SnmpDefinitions.snmpVersionThree</CODE>.
      */
     protected SnmpScopedPduPacket() {
-	version = SnmpDefinitions.snmpVersionThree;
+        version = SnmpDefinitions.snmpVersionThree;
     }
 }
-

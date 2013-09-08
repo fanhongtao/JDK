@@ -1,8 +1,26 @@
 /*
- * @(#)FilerException.java	1.6 06/08/15
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.annotation.processing;
@@ -20,7 +38,6 @@ import javax.annotation.processing.Filer;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.6 06/08/15
  * @since 1.6
  */
 public class FilerException extends IOException {
@@ -31,6 +48,6 @@ public class FilerException extends IOException {
      * the file attempting to be opened; may be {@code null}
      */
     public FilerException(String s) {
-	super(s);
+        super(s);
     }
 }

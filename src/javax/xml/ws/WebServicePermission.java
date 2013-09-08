@@ -1,6 +1,26 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.ws;
@@ -23,12 +43,18 @@ import java.security.BasicPermission;
  * The <code>publishEndpoint</code> permission allows publishing a
  * web service endpoint using the <code>publish</code> methods
  * defined by the <code>javax.xml.ws.Endpoint</code> class.
+ * <p>
+ * Granting <code>publishEndpoint</code> allows the application to be
+ * exposed as a network service. Depending on the security of the runtime and
+ * the security of the application, this may introduce a security hole that
+ * is remotely exploitable.
  *
  * @see javax.xml.ws.Endpoint
  * @see java.security.BasicPermission
  * @see java.security.Permission
  * @see java.security.Permissions
  * @see java.lang.SecurityManager
+ * @see java.net.SocketPermission
  */
 public final class WebServicePermission extends BasicPermission {
 

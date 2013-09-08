@@ -1,8 +1,26 @@
 /*
- * @(#)LoggingPermission.java	1.11 06/04/21
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -25,7 +43,6 @@ import java.security.*;
  * the security policy file.
  *
  *
- * @version 1.11, 04/21/06
  * @since 1.4
  * @see java.security.BasicPermission
  * @see java.security.Permission
@@ -51,11 +68,11 @@ public final class LoggingPermission extends java.security.BasicPermission {
      */
     public LoggingPermission(String name, String actions) throws IllegalArgumentException {
         super(name);
-	if (!name.equals("control")) {
-	    throw new IllegalArgumentException("name: " + name);
-	}
-	if (actions != null && actions.length() > 0) {
-	    throw new IllegalArgumentException("actions: " + actions);
-	}
+        if (!name.equals("control")) {
+            throw new IllegalArgumentException("name: " + name);
+        }
+        if (actions != null && actions.length() > 0) {
+            throw new IllegalArgumentException("actions: " + actions);
+        }
     }
 }

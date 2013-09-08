@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -62,7 +66,6 @@ import  java.io.*;
  * deprecated method.
  * It is instantiated from the <em>Attribute.readAttribute()</em> method.
  *
- * @version $Id: Deprecated.java,v 1.1.2.1 2005/07/31 23:46:39 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  */
@@ -75,7 +78,7 @@ public final class Deprecated extends Attribute {
    */
   public Deprecated(Deprecated c) {
     this(c.getNameIndex(), c.getLength(), c.getBytes(), c.getConstantPool());
-  }    
+  }
 
   /**
    * @param name_index Index in constant pool to CONSTANT_Utf8
@@ -84,11 +87,11 @@ public final class Deprecated extends Attribute {
    * @param constant_pool Array of constants
    */
   public Deprecated(int name_index, int length, byte[] bytes,
-		    ConstantPool constant_pool)
+                    ConstantPool constant_pool)
   {
     super(Constants.ATTR_DEPRECATED, name_index, length, constant_pool);
     this.bytes = bytes;
-  }    
+  }
 
   /**
    * Construct object from file stream.
@@ -99,7 +102,7 @@ public final class Deprecated extends Attribute {
    * @throws IOException
    */
   Deprecated(int name_index, int length, DataInputStream file,
-	     ConstantPool constant_pool) throws IOException
+             ConstantPool constant_pool) throws IOException
   {
     this(name_index, length, (byte [])null, constant_pool);
 
@@ -108,7 +111,7 @@ public final class Deprecated extends Attribute {
       file.readFully(bytes);
       System.err.println("Deprecated attribute with length > 0");
     }
-  }    
+  }
 
   /**
    * Called by objects that are traversing the nodes of the tree implicitely
@@ -119,37 +122,37 @@ public final class Deprecated extends Attribute {
    */
   public void accept(Visitor v) {
     v.visitDeprecated(this);
-  }    
+  }
 
   /**
    * Dump source file attribute to file stream in binary format.
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     super.dump(file);
 
     if(length > 0)
       file.write(bytes, 0, length);
-  }    
+  }
 
   /**
    * @return data bytes.
-   */  
-  public final byte[] getBytes() { return bytes; }    
+   */
+  public final byte[] getBytes() { return bytes; }
 
   /**
    * @param bytes.
    */
   public final void setBytes(byte[] bytes) {
     this.bytes = bytes;
-  }    
+  }
 
   /**
    * @return attribute name
-   */ 
+   */
   public final String toString() {
     return Constants.ATTRIBUTE_NAMES[Constants.ATTR_DEPRECATED];
   }

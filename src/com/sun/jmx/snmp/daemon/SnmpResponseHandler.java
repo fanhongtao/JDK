@@ -1,30 +1,24 @@
 /*
- * @(#)file      SnmpResponseHandler.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.10
- * @(#)date      06/11/29
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
+// Copyright (c) 1995-96 by Cisco Systems, Inc.
 
 package com.sun.jmx.snmp.daemon;
 
 // JAVA imports
 //
 import java.net.DatagramPacket;
+import java.util.logging.Level;
 
 // JMX imports
 //
+import static com.sun.jmx.defaults.JmxProperties.SNMP_ADAPTOR_LOGGER;
 import com.sun.jmx.snmp.SnmpMessage;
 import com.sun.jmx.snmp.SnmpPduFactory;
 import com.sun.jmx.snmp.SnmpPduPacket;
 import com.sun.jmx.snmp.SnmpPduRequest;
-
-// SNMP Runtime imports
-//
-import com.sun.jmx.trace.Trace;
 
 /**
  * This class is used to handle received inform request responses.
@@ -32,16 +26,16 @@ import com.sun.jmx.trace.Trace;
  */
 
 class SnmpResponseHandler {
-    
+
     // VARIABLES
     //----------
-    
+
     SnmpAdaptorServer adaptor = null;
     SnmpQManager snmpq = null;
 
     // CONSTRUCTORS
     //-------------
-    
+
     public SnmpResponseHandler(SnmpAdaptorServer adp, SnmpQManager s) {
         adaptor = adp;
         snmpq = s;
@@ -49,100 +43,69 @@ class SnmpResponseHandler {
 
     // PUBLIC METHODS
     //---------------
-    
+
     public synchronized void processDatagram(DatagramPacket dgrm) {
-        
+
         byte []data = dgrm.getData();
         int datalen = dgrm.getLength();
-        
-        if (isTraceOn()) {
-            trace("processDatagram", "Received from " + dgrm.getAddress().toString() + " Length = " + datalen +
-                  "\nDump : \n" + SnmpMessage.dumpHexBuffer(data, 0, datalen));
+
+        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+            SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpResponseHandler.class.getName(),
+                "action", "processDatagram", "Received from " + dgrm.getAddress().toString() +
+                 " Length = " + datalen + "\nDump : \n" + SnmpMessage.dumpHexBuffer(data, 0, datalen));
         }
-	
+
         try {
             SnmpMessage msg = new SnmpMessage();
             msg.decodeMessage(data, datalen);
             msg.address = dgrm.getAddress();
             msg.port = dgrm.getPort();
-            
+
             // Retreive the PDU factory of the SNMP adaptor to decode the received inform response.
             //
             SnmpPduFactory pduFactory = adaptor.getPduFactory();
             if (pduFactory == null) {
-                if (isDebugOn()) {
-                    debug("processDatagram", "Dropping packet. Unable to find the pdu factory of the SNMP adaptor server");
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpResponseHandler.class.getName(),
+                        "processDatagram", "Dropping packet. Unable to find the pdu factory of the SNMP adaptor server");
                 }
             }
             else {
                 SnmpPduPacket snmpProt = (SnmpPduPacket)pduFactory.decodeSnmpPdu(msg);
-                
+
                 if (snmpProt == null) {
-                    if (isDebugOn()) {
-                        debug("processDatagram", "Dropping packet. Pdu factory returned a null value");
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpResponseHandler.class.getName(),
+                            "processDatagram", "Dropping packet. Pdu factory returned a null value");
                     }
                 }
                 else if (snmpProt instanceof SnmpPduRequest) {
-                    
+
                     SnmpPduRequest pduReq = (SnmpPduRequest)snmpProt;
                     SnmpInformRequest req = snmpq.removeRequest(pduReq.requestId) ;
                     if (req != null) {
                         req.invokeOnResponse(pduReq);
                     } else {
-                        if (isDebugOn()) {
-                            debug("processDatagram", "Dropping packet. Unable to find corresponding for InformRequestId = " + pduReq.requestId);
+                        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                            SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpResponseHandler.class.getName(),
+                                "processDatagram", "Dropping packet. Unable to find corresponding for InformRequestId = " + pduReq.requestId);
                         }
                     }
                 }
                 else {
-                    if (isDebugOn()) {
-                        debug("processDatagram", "Dropping packet. The packet does not contain an inform response");
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpResponseHandler.class.getName(),
+                            "processDatagram", "Dropping packet. The packet does not contain an inform response");
                     }
                 }
                 snmpProt = null ;
             }
         } catch (Exception e) {
-            if (isDebugOn()) {
-                debug("processDatagram", "Exception while processsing");
-                debug("processDatagram", e);
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpResponseHandler.class.getName(),
+                    "processDatagram", "Exception while processsing", e);
             }
-        }    
+        }
     }
 
-    // TRACES & DEBUG
-    //---------------
-    
-    boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_ADAPTOR_SNMP);
-    }
-
-    void trace(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_ADAPTOR_SNMP, clz, func, info);
-    }
-
-    void trace(String func, String info) {
-        trace(dbgTag, func, info);
-    }
-    
-    boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP);
-    }
-
-    void debug(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP, clz, func, info);
-    }
-
-    void debug(String clz, String func, Throwable exception) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP, clz, func, exception);
-    }
-
-    void debug(String func, String info) {
-        debug(dbgTag, func, info);
-    }
-    
-    void debug(String func, Throwable exception) {
-        debug(dbgTag, func, exception);
-    }
-
-    String dbgTag = "SnmpResponseHandler";
 }

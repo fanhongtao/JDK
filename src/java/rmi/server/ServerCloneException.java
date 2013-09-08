@@ -1,8 +1,26 @@
 /*
- * @(#)ServerCloneException.java	1.21 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.server;
@@ -22,7 +40,6 @@ package java.rmi.server;
  * instance of <code>ServerCloneException</code> always throws {@link
  * IllegalStateException}.
  *
- * @version 1.21, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @see     java.rmi.server.UnicastRemoteObject#clone()
@@ -50,7 +67,7 @@ public class ServerCloneException extends CloneNotSupportedException {
      * @param s the detail message.
      */
     public ServerCloneException(String s) {
-	super(s);
+        super(s);
         initCause(null);  // Disallow subsequent initCause
     }
 
@@ -62,24 +79,24 @@ public class ServerCloneException extends CloneNotSupportedException {
      * @param cause the cause
      */
     public ServerCloneException(String s, Exception cause) {
-	super(s);
+        super(s);
         initCause(null);  // Disallow subsequent initCause
-	detail = cause;
+        detail = cause;
     }
 
     /**
      * Returns the detail message, including the message from the cause, if
      * any, of this exception.
-     * 
+     *
      * @return the detail message
      */
     public String getMessage() {
-	if (detail == null)
-	    return super.getMessage();
-	else
-	    return super.getMessage() +
-		"; nested exception is: \n\t" +
-		detail.toString();
+        if (detail == null)
+            return super.getMessage();
+        else
+            return super.getMessage() +
+                "; nested exception is: \n\t" +
+                detail.toString();
     }
 
     /**

@@ -1,9 +1,26 @@
 /*
- * @(#)TypeVariable.java	1.3 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
- * 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.javadoc;
@@ -17,7 +34,6 @@ package com.sun.javadoc;
  * {@code C<R extends Remote>}.
  *
  * @author Scott Seligman
- * @version 1.3 05/11/17
  * @since 1.5
  */
 public interface TypeVariable extends Type {

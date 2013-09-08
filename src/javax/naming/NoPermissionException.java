@@ -1,8 +1,26 @@
 /*
- * @(#)NoPermissionException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -18,7 +36,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
 
@@ -27,10 +44,10 @@ public class NoPermissionException extends NamingSecurityException {
      * Constructs a new instance of NoPermissionException using an
      * explanation. All other fields default to null.
      *
-     * @param	explanation	Possibly null additional detail about this exception.
+     * @param   explanation     Possibly null additional detail about this exception.
      */
     public NoPermissionException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -38,7 +55,7 @@ public class NoPermissionException extends NamingSecurityException {
       * All fields are initialized to null.
       */
     public NoPermissionException() {
-	super();
+        super();
     }
     /**
      * Use serialVersionUID from JNDI 1.1.1 for interoperability

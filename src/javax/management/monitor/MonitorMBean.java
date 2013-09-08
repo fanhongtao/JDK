@@ -1,11 +1,29 @@
 /*
- * @(#)MonitorMBean.java	4.24 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
-package javax.management.monitor; 
+package javax.management.monitor;
 
 // jmx imports
 //
@@ -14,64 +32,58 @@ import javax.management.ObjectName;
 /**
  * Exposes the remote management interface of monitor MBeans.
  *
- * @version     4.24     11/17/05
- * @author      Sun Microsystems, Inc
  *
  * @since 1.5
  */
-public interface MonitorMBean { 
-    
+public interface MonitorMBean {
+
     /**
      * Starts the monitor.
      */
     public void start();
-    
+
     /**
      * Stops the monitor.
      */
     public void stop();
-    
+
     // GETTERS AND SETTERS
-    //-------------------- 
-    
+    //--------------------
+
     /**
      * Adds the specified object in the set of observed MBeans.
      *
      * @param object The object to observe.
      * @exception java.lang.IllegalArgumentException the specified object is null.
      *
-     * @since.unbundled JMX 1.2
      */
     public void addObservedObject(ObjectName object) throws java.lang.IllegalArgumentException;
-    
+
     /**
      * Removes the specified object from the set of observed MBeans.
      *
      * @param object The object to remove.
      *
-     * @since.unbundled JMX 1.2
      */
     public void removeObservedObject(ObjectName object);
-    
+
     /**
      * Tests whether the specified object is in the set of observed MBeans.
      *
      * @param object The object to check.
      * @return <CODE>true</CODE> if the specified object is in the set, <CODE>false</CODE> otherwise.
      *
-     * @since.unbundled JMX 1.2
      */
     public boolean containsObservedObject(ObjectName object);
-    
+
     /**
      * Returns an array containing the objects being observed.
      *
      * @return The objects being observed.
      *
-     * @since.unbundled JMX 1.2
      */
-    public ObjectName[] getObservedObjects();   
-    
+    public ObjectName[] getObservedObjects();
+
     /**
      * Gets the object name of the object being observed.
      *
@@ -83,7 +95,7 @@ public interface MonitorMBean {
      */
     @Deprecated
     public ObjectName getObservedObject();
-    
+
     /**
      * Sets the object to observe identified by its object name.
      *
@@ -95,7 +107,7 @@ public interface MonitorMBean {
      */
     @Deprecated
     public void setObservedObject(ObjectName object);
-    
+
     /**
      * Gets the attribute being observed.
      *
@@ -104,7 +116,7 @@ public interface MonitorMBean {
      * @see #setObservedAttribute
      */
     public String getObservedAttribute();
-    
+
     /**
      * Sets the attribute to observe.
      *
@@ -113,7 +125,7 @@ public interface MonitorMBean {
      * @see #getObservedAttribute
      */
     public void setObservedAttribute(String attribute);
-        
+
     /**
      * Gets the granularity period (in milliseconds).
      *
@@ -122,7 +134,7 @@ public interface MonitorMBean {
      * @see #setGranularityPeriod
      */
     public long getGranularityPeriod();
-    
+
     /**
      * Sets the granularity period (in milliseconds).
      *
@@ -133,7 +145,7 @@ public interface MonitorMBean {
      * @see #getGranularityPeriod
      */
     public void setGranularityPeriod(long period) throws java.lang.IllegalArgumentException;
-    
+
     /**
      * Tests if the monitor MBean is active.
      * A monitor MBean is marked active when the {@link #start start} method is called.

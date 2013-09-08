@@ -1,8 +1,26 @@
 /*
- * @(#)FSMImpl.java	1.14 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.orbutil.fsm ;
@@ -21,7 +39,6 @@ import com.sun.corba.se.spi.orbutil.fsm.FSM ;
  * using a state engine.  It may be used as a base class, in which case
  * the guards and actions have access to the derived class.
  *
- * @version @(#)FSMImpl.java	1.14 05/11/17
  * @author Ken Cavanaugh
  */
 public class FSMImpl implements FSM
@@ -35,30 +52,30 @@ public class FSMImpl implements FSM
     */
     public FSMImpl( StateEngine se, State startState )
     {
-	this( se, startState, false ) ;
+        this( se, startState, false ) ;
     }
 
     public FSMImpl( StateEngine se, State startState, boolean debug )
     {
-	state = startState ;
-	stateEngine = (StateEngineImpl)se ;
-	this.debug = debug ;
+        state = startState ;
+        stateEngine = (StateEngineImpl)se ;
+        this.debug = debug ;
     }
 
     /** Return the current state.
     */
     public State getState()
     {
-	return state ;
+        return state ;
     }
 
     /** Perform the transition for the given input in the current state.  This proceeds as follows:
-    * <p>Let S be the current state of the FSM.  
+    * <p>Let S be the current state of the FSM.
     * If there are guarded actions for S with input in, evaluate their guards successively until
-    * all have been evaluted, or one returns a non-DISABLED Result. 
+    * all have been evaluted, or one returns a non-DISABLED Result.
     * <ol>
     * <li>If a DEFERED result is returned, retry the input
-    * <li>If a ENABLED result is returned, the action for the guarded action 
+    * <li>If a ENABLED result is returned, the action for the guarded action
     * is the current action
     * <li>Otherwise there is no enabled action.  If S has a default action and next state, use them; otherwise
     * use the state engine default action (the next state is always the current state).
@@ -73,26 +90,25 @@ public class FSMImpl implements FSM
     */
     public void doIt( Input in )
     {
-	stateEngine.doIt( this, in, debug ) ;
+        stateEngine.doIt( this, in, debug ) ;
     }
 
     // Methods for use only by StateEngineImpl
 
-    public void internalSetState( State nextState ) 
+    public void internalSetState( State nextState )
     {
-	if (debug) {
-	    ORBUtility.dprint( this, "Calling internalSetState with nextState = " +
-		nextState ) ;
-	}
+        if (debug) {
+            ORBUtility.dprint( this, "Calling internalSetState with nextState = " +
+                nextState ) ;
+        }
 
-	state = nextState ;
+        state = nextState ;
 
-	if (debug) {
-	    ORBUtility.dprint( this, "Exiting internalSetState with state = " +
-		state ) ;
-	}
+        if (debug) {
+            ORBUtility.dprint( this, "Exiting internalSetState with state = " +
+                state ) ;
+        }
     }
 }
 
 // end of FSMImpl.java
-

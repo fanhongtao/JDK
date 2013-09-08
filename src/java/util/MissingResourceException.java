@@ -1,8 +1,26 @@
 /*
- * @(#)MissingResourceException.java	1.19 05/11/17
+ * Copyright (c) 1996, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -26,7 +44,6 @@ package java.util;
  * Signals that a resource is missing.
  * @see java.lang.Exception
  * @see ResourceBundle
- * @version     1.19, 11/17/05
  * @author      Mark Davis
  * @since       JDK1.1
  */
@@ -65,7 +82,7 @@ class MissingResourceException extends RuntimeException {
      *        or unknown.)
      */
     MissingResourceException(String message, String className, String key, Throwable cause) {
-	super(message, cause);
+        super(message, cause);
         this.className = className;
         this.key = key;
     }

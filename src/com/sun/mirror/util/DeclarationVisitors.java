@@ -1,8 +1,26 @@
 /*
- * @(#)DeclarationVisitors.java	1.5 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.util;
@@ -10,11 +28,17 @@ package com.sun.mirror.util;
 /**
  * Utilities to create specialized <tt>DeclarationVisitor</tt> instances.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  There is no direct
+ * replacement for the functionality of this class in the standardized
+ * API due to that API's different visitor structure.
+ *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.5 05/11/17
  * @since 1.5
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class DeclarationVisitors {
     private DeclarationVisitors(){} // do not instantiate.
 
@@ -38,7 +62,7 @@ public class DeclarationVisitors {
      * and post processing is needed, use {@link
      * DeclarationVisitors#NO_OP DeclarationVisitors.NO_OP} for the
      * other parameter.
-     * 
+     *
      * @param pre visitor representing processing to do before
      * visiting contained declarations.
      *
@@ -46,8 +70,8 @@ public class DeclarationVisitors {
      * visiting contained declarations.
      */
     public static DeclarationVisitor getDeclarationScanner(DeclarationVisitor pre,
-							   DeclarationVisitor post) {
-	return new DeclarationScanner(pre, post);
+                                                           DeclarationVisitor post) {
+        return new DeclarationScanner(pre, post);
     }
 
     /**
@@ -66,7 +90,7 @@ public class DeclarationVisitors {
      * after visiting the contained declarations.  If only one of pre
      * and post processing is needed, use {@link
      * DeclarationVisitors#NO_OP DeclarationVisitors.NO_OP} for the other parameter.
-     * 
+     *
      * @param pre visitor representing processing to do before
      * visiting contained declarations.
      *
@@ -74,7 +98,7 @@ public class DeclarationVisitors {
      * visiting contained declarations.
      */
     public static DeclarationVisitor getSourceOrderDeclarationScanner(DeclarationVisitor pre,
-								      DeclarationVisitor post) {
-	return new SourceOrderDeclScanner(pre, post);
+                                                                      DeclarationVisitor post) {
+        return new SourceOrderDeclScanner(pre, post);
     }
 }

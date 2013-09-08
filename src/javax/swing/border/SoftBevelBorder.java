@@ -1,8 +1,26 @@
 /*
- * @(#)SoftBevelBorder.java	1.17 05/11/17
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.border;
 
@@ -11,7 +29,7 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Color;
 import java.awt.Component;
-
+import java.beans.ConstructorProperties;
 
 /**
  * A class which implements a raised or lowered bevel with
@@ -26,7 +44,6 @@ import java.awt.Component;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 11/17/05
  * @author Amy Fowler
  * @author Chester Rose
  */
@@ -63,10 +80,11 @@ public class SoftBevelBorder extends BevelBorder
      * @param shadowOuterColor the color to use for the bevel outer shadow
      * @param shadowInnerColor the color to use for the bevel inner shadow
      */
-    public SoftBevelBorder(int bevelType, Color highlightOuterColor, 
-                        Color highlightInnerColor, Color shadowOuterColor, 
+    @ConstructorProperties({"bevelType", "highlightOuterColor", "highlightInnerColor", "shadowOuterColor", "shadowInnerColor"})
+    public SoftBevelBorder(int bevelType, Color highlightOuterColor,
+                        Color highlightInnerColor, Color shadowOuterColor,
                         Color shadowInnerColor) {
-        super(bevelType, highlightOuterColor, highlightInnerColor, 
+        super(bevelType, highlightOuterColor, highlightInnerColor,
               shadowOuterColor, shadowInnerColor);
     }
 
@@ -85,66 +103,58 @@ public class SoftBevelBorder extends BevelBorder
         g.translate(x, y);
 
         if (bevelType == RAISED) {
-	    g.setColor(getHighlightOuterColor(c));
-	    g.drawLine(0, 0, width-2, 0);
-	    g.drawLine(0, 0, 0, height-2);
-	    g.drawLine(1, 1, 1, 1);
-	    
-	    g.setColor(getHighlightInnerColor(c));
-	    g.drawLine(2, 1, width-2, 1);
-	    g.drawLine(1, 2, 1, height-2);
-	    g.drawLine(2, 2, 2, 2);
-	    g.drawLine(0, height-1, 0, height-2);
-	    g.drawLine(width-1, 0, width-1, 0);
-	    
-	    g.setColor(getShadowOuterColor(c));
-	    g.drawLine(2, height-1, width-1, height-1);
-	    g.drawLine(width-1, 2, width-1, height-1);
-	    
-	    g.setColor(getShadowInnerColor(c));
-	    g.drawLine(width-2, height-2, width-2, height-2);        
+            g.setColor(getHighlightOuterColor(c));
+            g.drawLine(0, 0, width-2, 0);
+            g.drawLine(0, 0, 0, height-2);
+            g.drawLine(1, 1, 1, 1);
+
+            g.setColor(getHighlightInnerColor(c));
+            g.drawLine(2, 1, width-2, 1);
+            g.drawLine(1, 2, 1, height-2);
+            g.drawLine(2, 2, 2, 2);
+            g.drawLine(0, height-1, 0, height-2);
+            g.drawLine(width-1, 0, width-1, 0);
+
+            g.setColor(getShadowOuterColor(c));
+            g.drawLine(2, height-1, width-1, height-1);
+            g.drawLine(width-1, 2, width-1, height-1);
+
+            g.setColor(getShadowInnerColor(c));
+            g.drawLine(width-2, height-2, width-2, height-2);
 
 
         } else if (bevelType == LOWERED) {
-	    g.setColor(getShadowOuterColor(c));
-	    g.drawLine(0, 0, width-2, 0);
-	    g.drawLine(0, 0, 0, height-2);
-	    g.drawLine(1, 1, 1, 1);
-	    
-	    g.setColor(getShadowInnerColor(c));
-	    g.drawLine(2, 1, width-2, 1);
-	    g.drawLine(1, 2, 1, height-2);
-	    g.drawLine(2, 2, 2, 2);
-	    g.drawLine(0, height-1, 0, height-2);
-	    g.drawLine(width-1, 0, width-1, 0);
-	    
-	    g.setColor(getHighlightOuterColor(c));
-	    g.drawLine(2, height-1, width-1, height-1);
-	    g.drawLine(width-1, 2, width-1, height-1);
-	    
-	    g.setColor(getHighlightInnerColor(c));
-	    g.drawLine(width-2, height-2, width-2, height-2);        
+            g.setColor(getShadowOuterColor(c));
+            g.drawLine(0, 0, width-2, 0);
+            g.drawLine(0, 0, 0, height-2);
+            g.drawLine(1, 1, 1, 1);
+
+            g.setColor(getShadowInnerColor(c));
+            g.drawLine(2, 1, width-2, 1);
+            g.drawLine(1, 2, 1, height-2);
+            g.drawLine(2, 2, 2, 2);
+            g.drawLine(0, height-1, 0, height-2);
+            g.drawLine(width-1, 0, width-1, 0);
+
+            g.setColor(getHighlightOuterColor(c));
+            g.drawLine(2, height-1, width-1, height-1);
+            g.drawLine(width-1, 2, width-1, height-1);
+
+            g.setColor(getHighlightInnerColor(c));
+            g.drawLine(width-2, height-2, width-2, height-2);
         }
         g.translate(-x, -y);
         g.setColor(oldColor);
     }
 
     /**
-     * Returns the insets of the border.
-     * @param c the component for which this border insets value applies
-     */
-    public Insets getBorderInsets(Component c)       {
-	return getBorderInsets(c, new Insets(0,0,0,0));
-    }
-
-    /** 
-     * Reinitialize the insets parameter with this Border's current Insets. 
+     * Reinitialize the insets parameter with this Border's current Insets.
      * @param c the component for which this border insets value applies
      * @param insets the object to be reinitialized
      */
     public Insets getBorderInsets(Component c, Insets insets)       {
-        insets.top = insets.left = insets.bottom = insets.right = 3;
-	return insets;
+        insets.set(3, 3, 3, 3);
+        return insets;
     }
 
     /**

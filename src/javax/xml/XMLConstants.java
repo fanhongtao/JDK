@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)XMLConstants.java	1.15 05/11/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml;
@@ -31,7 +29,7 @@ package javax.xml;
  * <p>Utility class to contain basic XML values as constants.</p>
  *
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.2 $, $Date: 2005/06/10 03:50:26 $
+ * @version $Revision: 1.8 $, $Date: 2010/05/25 16:19:45 $
  * @see <a href="http://www.w3.org/TR/xml11/">Extensible Markup Language (XML) 1.1</a>
  * @see <a href="http://www.w3.org/TR/REC-xml">Extensible Markup Language (XML) 1.0 (Second Edition)</a>
  * @see <a href="http://www.w3.org/XML/xml-V10-2e-errata">XML 1.0 Second Edition Specification Errata</a>
@@ -43,7 +41,7 @@ package javax.xml;
  **/
 
 public final class XMLConstants {
-	
+
     /**
      * <p>Private constructor to prevent instantiation.</p>
      */
@@ -107,7 +105,7 @@ public final class XMLConstants {
      * href="http://www.w3.org/TR/REC-xml-names/#ns-qualnames">
      * Namespaces in XML, 3. Qualified Names</a>
      * @see <a
-     * href="http://www.w3.org/XML/xml-names-19990114-errata/">
+     * href="http://www.w3.org/XML/xml-names-19990114-errata">
      * Namespaces in XML Errata</a>
      */
     public static final String XMLNS_ATTRIBUTE_NS_URI =

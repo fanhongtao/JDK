@@ -1,8 +1,26 @@
 /*
- * @(#)SimpleTypeVisitor.java	1.5 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.util;
@@ -19,12 +37,17 @@ import com.sun.mirror.type.*;
  * methods that correspond to the kinds of types on which it will
  * operate.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  The replacement for the
+ * functionality of this class is {@link
+ * javax.lang.model.util.SimpleTypeVisitor6}.
+ *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.5 05/11/17
  * @since 1.5
  */
-
+@Deprecated
+@SuppressWarnings("deprecation")
 public class SimpleTypeVisitor implements TypeVisitor {
 
     /**
@@ -47,7 +70,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitPrimitiveType(PrimitiveType t) {
-	visitTypeMirror(t);
+        visitTypeMirror(t);
     }
 
     /**
@@ -57,7 +80,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitVoidType(VoidType t) {
-	visitTypeMirror(t);
+        visitTypeMirror(t);
     }
 
     /**
@@ -67,7 +90,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitReferenceType(ReferenceType t) {
-	visitTypeMirror(t);
+        visitTypeMirror(t);
     }
 
     /**
@@ -77,7 +100,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitDeclaredType(DeclaredType t) {
-	visitReferenceType(t);
+        visitReferenceType(t);
     }
 
     /**
@@ -87,7 +110,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitClassType(ClassType t) {
-	visitDeclaredType(t);
+        visitDeclaredType(t);
     }
 
     /**
@@ -97,7 +120,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitEnumType(EnumType t) {
-	visitClassType(t);
+        visitClassType(t);
     }
 
     /**
@@ -107,7 +130,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitInterfaceType(InterfaceType t) {
-	visitDeclaredType(t);
+        visitDeclaredType(t);
     }
 
     /**
@@ -117,7 +140,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitAnnotationType(AnnotationType t) {
-	visitInterfaceType(t);
+        visitInterfaceType(t);
     }
 
     /**
@@ -127,7 +150,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitArrayType(ArrayType t) {
-	visitReferenceType(t);
+        visitReferenceType(t);
     }
 
     /**
@@ -137,7 +160,7 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitTypeVariable(TypeVariable t) {
-	visitReferenceType(t);
+        visitReferenceType(t);
     }
 
     /**
@@ -147,6 +170,6 @@ public class SimpleTypeVisitor implements TypeVisitor {
      * @param t the type to visit
      */
     public void visitWildcardType(WildcardType t) {
-	visitTypeMirror(t);
+        visitTypeMirror(t);
     }
 }

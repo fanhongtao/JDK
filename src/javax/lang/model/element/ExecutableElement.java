@@ -1,8 +1,26 @@
 /*
- * @(#)ExecutableElement.java	1.4 06/07/11
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
@@ -19,11 +37,10 @@ import javax.lang.model.type.*;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/07/11
  * @see ExecutableType
  * @since 1.6
  */
-public interface ExecutableElement extends Element {
+public interface ExecutableElement extends Element, Parameterizable {
     /**
      * Returns the formal type parameters of this executable
      * in declaration order.
@@ -80,4 +97,17 @@ public interface ExecutableElement extends Element {
      * @return the default value, or {@code null} if none
      */
     AnnotationValue getDefaultValue();
+
+    /**
+     * Returns the simple name of a constructor, method, or
+     * initializer.  For a constructor, the name {@code "<init>"} is
+     * returned, for a static initializer, the name {@code "<clinit>"}
+     * is returned, and for an anonymous class or instance
+     * initializer, an empty name is returned.
+     *
+     * @return the simple name of a constructor, method, or
+     * initializer
+     */
+    @Override
+    Name getSimpleName();
 }

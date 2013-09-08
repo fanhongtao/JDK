@@ -1,8 +1,26 @@
 /*
- * @(#)SecurityPermission.java	1.30 06/04/21
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -39,10 +57,10 @@ import java.util.StringTokenizer;
  *   <td>createAccessControlContext</td>
  *   <td>Creation of an AccessControlContext</td>
  *   <td>This allows someone to instantiate an AccessControlContext
- * with a <code>DomainCombiner</code>.  Since DomainCombiners are given
- * a reference to the ProtectionDomains currently on the stack,
- * this could potentially lead to a privacy leak if the DomainCombiner
- * is malicious.</td>
+ * with a <code>DomainCombiner</code>.  Extreme care must be taken when
+ * granting this permission. Malicious code could create a DomainCombiner
+ * that augments the set of permissions granted to code, and even grant the
+ * code {@link java.security.AllPermission}.</td>
  * </tr>
  *
  * <tr>
@@ -100,7 +118,7 @@ import java.util.StringTokenizer;
  *   <td>setProperty.{key}</td>
  *   <td>Setting of the security property with the specified key</td>
  *   <td>This could include setting a security provider or defining
- * the location of the the system-wide security policy.  Malicious
+ * the location of the system-wide security policy.  Malicious
  * code that has permission to set a new security provider may
  * set a rogue provider that steals confidential information such
  * as cryptographic private keys. In addition, malicious code with
@@ -136,12 +154,57 @@ import java.util.StringTokenizer;
  * </tr>
  *
  * <tr>
+ *   <td>clearProviderProperties.{provider name}</td>
+ *   <td>"Clearing" of a Provider so that it no longer contains the properties
+ * used to look up services implemented by the provider</td>
+ *   <td>This disables the lookup of services implemented by the provider.
+ * This may thus change the behavior or disable execution of other
+ * parts of the program that would normally utilize the Provider, as
+ * described under the "removeProvider.{provider name}" permission.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>putProviderProperty.{provider name}</td>
+ *   <td>Setting of properties for the specified Provider</td>
+ *   <td>The provider properties each specify the name and location
+ * of a particular service implemented by the provider. By granting
+ * this permission, you let code replace the service specification
+ * with another one, thereby specifying a different implementation.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>removeProviderProperty.{provider name}</td>
+ *   <td>Removal of properties from the specified Provider</td>
+ *   <td>This disables the lookup of services implemented by the
+ * provider. They are no longer accessible due to removal of the properties
+ * specifying their names and locations. This
+ * may change the behavior or disable execution of other
+ * parts of the program that would normally utilize the Provider, as
+ * described under the "removeProvider.{provider name}" permission.</td>
+ * </tr>
+ *
+ * </table>
+ *
+ * <P>
+ * The following permissions are associated with classes that have been
+ * deprecated: {@link Identity}, {@link IdentityScope}, {@link Signer}. Use of
+ * them is discouraged. See the applicable classes for more information.
+ * <P>
+ *
+ * <table border=1 cellpadding=5 summary="target name,what the permission allows, and associated risks">
+ * <tr>
+ * <th>Permission Target Name</th>
+ * <th>What the Permission Allows</th>
+ * <th>Risks of Allowing this Permission</th>
+ * </tr>
+ *
+ * <tr>
  *   <td>setSystemScope</td>
  *   <td>Setting of the system identity scope</td>
  *   <td>This would allow an attacker to configure the system identity scope with
  * certificates that should not be trusted, thereby granting applet or
  * application code signed with those certificates privileges that
- * would have been denied by the system's original identity scope</td>
+ * would have been denied by the system's original identity scope.</td>
  * </tr>
  *
  * <tr>
@@ -192,36 +255,6 @@ import java.util.StringTokenizer;
  * marked not trusted in the user's identity database:<br>
  *   carol[/home/luehe/identitydb.obj][not trusted]</td>
  *</tr>
- * 
- * <tr>
- *   <td>clearProviderProperties.{provider name}</td>
- *   <td>"Clearing" of a Provider so that it no longer contains the properties
- * used to look up services implemented by the provider</td>
- *   <td>This disables the lookup of services implemented by the provider.
- * This may thus change the behavior or disable execution of other
- * parts of the program that would normally utilize the Provider, as
- * described under the "removeProvider.{provider name}" permission.</td>
- * </tr>
- *
- * <tr>
- *   <td>putProviderProperty.{provider name}</td>
- *   <td>Setting of properties for the specified Provider</td>
- *   <td>The provider properties each specify the name and location
- * of a particular service implemented by the provider. By granting
- * this permission, you let code replace the service specification
- * with another one, thereby specifying a different implementation.</td>
- * </tr>
- *
- * <tr>
- *   <td>removeProviderProperty.{provider name}</td>
- *   <td>Removal of properties from the specified Provider</td>
- *   <td>This disables the lookup of services implemented by the
- * provider. They are no longer accessible due to removal of the properties
- * specifying their names and locations. This
- * may change the behavior or disable execution of other
- * parts of the program that would normally utilize the Provider, as
- * described under the "removeProvider.{provider name}" permission.</td>
- * </tr>
  *
  * <tr>
  *   <td>getSignerPrivateKey</td>
@@ -253,7 +286,6 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.30 06/04/21
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -277,7 +309,7 @@ public final class SecurityPermission extends BasicPermission {
 
     public SecurityPermission(String name)
     {
-	super(name);
+        super(name);
     }
 
     /**
@@ -294,6 +326,6 @@ public final class SecurityPermission extends BasicPermission {
 
     public SecurityPermission(String name, String actions)
     {
-	super(name, actions);
+        super(name, actions);
     }
 }

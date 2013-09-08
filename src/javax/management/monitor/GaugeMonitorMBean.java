@@ -1,11 +1,29 @@
 /*
- * @(#)GaugeMonitorMBean.java	4.26 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
-package javax.management.monitor; 
+package javax.management.monitor;
 
 // jmx imports
 //
@@ -14,16 +32,14 @@ import javax.management.ObjectName;
 /**
  * Exposes the remote management interface of the gauge monitor MBean.
  *
- * @version     4.26     11/17/05
- * @author      Sun Microsystems, Inc
  *
  * @since 1.5
  */
-public interface GaugeMonitorMBean extends MonitorMBean { 
-    
+public interface GaugeMonitorMBean extends MonitorMBean {
+
     // GETTERS AND SETTERS
-    //--------------------    
-    
+    //--------------------
+
     /**
      * Gets the derived gauge.
      *
@@ -32,7 +48,7 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      */
     @Deprecated
     public Number getDerivedGauge();
-    
+
     /**
      * Gets the derived gauge timestamp.
      *
@@ -40,8 +56,8 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      * @deprecated As of JMX 1.2, replaced by {@link #getDerivedGaugeTimeStamp(ObjectName)}
      */
     @Deprecated
-    public long getDerivedGaugeTimeStamp();  
-    
+    public long getDerivedGaugeTimeStamp();
+
     /**
      * Gets the derived gauge for the specified MBean.
      *
@@ -49,10 +65,9 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      * @return The derived gauge for the specified MBean if this MBean is in the
      *         set of observed MBeans, or <code>null</code> otherwise.
      *
-     * @since.unbundled JMX 1.2
      */
     public Number getDerivedGauge(ObjectName object);
-    
+
     /**
      * Gets the derived gauge timestamp for the specified MBean.
      *
@@ -60,23 +75,22 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      * @return The derived gauge timestamp for the specified MBean if this MBean
      *         is in the set of observed MBeans, or <code>null</code> otherwise.
      *
-     * @since.unbundled JMX 1.2
      */
     public long getDerivedGaugeTimeStamp(ObjectName object);
-    
+
     /**
      * Gets the high threshold value.
      *
      * @return The high threshold value.
      */
-    public Number getHighThreshold(); 
+    public Number getHighThreshold();
 
     /**
      * Gets the low threshold value.
      *
      * @return The low threshold value.
      */
-    public Number getLowThreshold(); 
+    public Number getLowThreshold();
 
     /**
      * Sets the high and the low threshold values.
@@ -88,7 +102,7 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      * or the high threshold and the low threshold are not of the same type.
      */
     public void setThresholds(Number highValue, Number lowValue) throws java.lang.IllegalArgumentException;
-    
+
     /**
      * Gets the high notification's on/off switch value.
      *
@@ -97,7 +111,7 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      *
      * @see #setNotifyHigh
      */
-    public boolean getNotifyHigh(); 
+    public boolean getNotifyHigh();
 
     /**
      * Sets the high notification's on/off switch value.
@@ -106,7 +120,7 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      *
      * @see #getNotifyHigh
      */
-    public void setNotifyHigh(boolean value); 
+    public void setNotifyHigh(boolean value);
 
     /**
      * Gets the low notification's on/off switch value.
@@ -116,7 +130,7 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      *
      * @see #setNotifyLow
      */
-    public boolean getNotifyLow(); 
+    public boolean getNotifyLow();
 
     /**
      * Sets the low notification's on/off switch value.
@@ -125,7 +139,7 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      *
      * @see #getNotifyLow
      */
-    public void setNotifyLow(boolean value); 
+    public void setNotifyLow(boolean value);
 
     /**
      * Gets the difference mode flag value.
@@ -135,7 +149,7 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      *
      * @see #setDifferenceMode
      */
-    public boolean getDifferenceMode(); 
+    public boolean getDifferenceMode();
 
     /**
      * Sets the difference mode flag value.
@@ -144,5 +158,5 @@ public interface GaugeMonitorMBean extends MonitorMBean {
      *
      * @see #getDifferenceMode
      */
-    public void setDifferenceMode(boolean value); 
+    public void setDifferenceMode(boolean value);
 }

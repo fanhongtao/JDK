@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,22 +32,21 @@ import org.xml.sax.ext.Attributes2;
  * @author Arnaud Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: AttributesProxy.java,v 1.3 2005/09/26 13:02:58 sunithareddy Exp $
  */
 public final class AttributesProxy
     implements AttributeList, Attributes2 {
-    
+
     //
     // Data
     //
 
     /** XML attributes. */
     private XMLAttributes fAttributes;
-    
+
     //
     // Constructors
     //
-    
+
     public AttributesProxy(XMLAttributes attributes) {
         fAttributes = attributes;
     }
@@ -56,7 +59,7 @@ public final class AttributesProxy
     public void setAttributes(XMLAttributes attributes) {
         fAttributes = attributes;
     } // setAttributes(XMLAttributes)
-    
+
     public XMLAttributes getAttributes() {
         return fAttributes;
     }
@@ -107,7 +110,7 @@ public final class AttributesProxy
     }
 
     public String getValue(String uri, String localName) {
-        return uri.equals(XMLSymbols.EMPTY_STRING) ? 
+        return uri.equals(XMLSymbols.EMPTY_STRING) ?
                 fAttributes.getValue(null, localName) :
                     fAttributes.getValue(uri, localName);
     }
@@ -117,15 +120,15 @@ public final class AttributesProxy
     }
 
     public int getIndex(String uri, String localPart) {
-        return uri.equals(XMLSymbols.EMPTY_STRING) ? 
+        return uri.equals(XMLSymbols.EMPTY_STRING) ?
                 fAttributes.getIndex(null, localPart) :
                     fAttributes.getIndex(uri, localPart);
     }
-    
+
     /*
      * Attributes2 methods
      */
-    
+
     public boolean isDeclared(int index) {
         if (index < 0 || index >= fAttributes.getLength()) {
             throw new ArrayIndexOutOfBoundsException(index);
@@ -134,7 +137,7 @@ public final class AttributesProxy
             fAttributes.getAugmentations(index).getItem(
             Constants.ATTRIBUTE_DECLARED));
     }
-    
+
     public boolean isDeclared(String qName) {
         int index = getIndex(qName);
         if (index == -1) {
@@ -144,7 +147,7 @@ public final class AttributesProxy
             fAttributes.getAugmentations(index).getItem(
             Constants.ATTRIBUTE_DECLARED));
     }
-    
+
     public boolean isDeclared(String uri, String localName) {
         int index = getIndex(uri, localName);
         if (index == -1) {
@@ -154,14 +157,14 @@ public final class AttributesProxy
             fAttributes.getAugmentations(index).getItem(
             Constants.ATTRIBUTE_DECLARED));
     }
-            
+
     public boolean isSpecified(int index) {
         if (index < 0 || index >= fAttributes.getLength()) {
             throw new ArrayIndexOutOfBoundsException(index);
         }
         return fAttributes.isSpecified(index);
     }
-    
+
     public boolean isSpecified(String qName) {
         int index = getIndex(qName);
         if (index == -1) {
@@ -169,7 +172,7 @@ public final class AttributesProxy
         }
         return fAttributes.isSpecified(index);
     }
-    
+
     public boolean isSpecified(String uri, String localName) {
         int index = getIndex(uri, localName);
         if (index == -1) {
@@ -177,7 +180,7 @@ public final class AttributesProxy
         }
         return fAttributes.isSpecified(index);
     }
-    
+
     /*
      * AttributeList methods
      */

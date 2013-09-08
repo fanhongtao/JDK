@@ -1,8 +1,26 @@
 /*
- * @(#)InitialContextFactoryBuilder.java	1.12 05/11/17
+ * Copyright (c) 1999, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.spi;
@@ -24,7 +42,6 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.12 05/11/17
   *
   * @see InitialContextFactory
   * @see NamingManager#getInitialContext
@@ -44,11 +61,11 @@ public interface InitialContextFactoryBuilder {
       * to it, although it may keep a reference to a clone or copy.
       *
       * @param environment Environment used in creating an initial
-      *			context implementation. Can be null.
+      *                 context implementation. Can be null.
       * @return A non-null initial context factory.
       * @exception NamingException If an initial context factory could not be created.
       */
     public InitialContextFactory
-	createInitialContextFactory(Hashtable<?,?> environment)
-	throws NamingException;
+        createInitialContextFactory(Hashtable<?,?> environment)
+        throws NamingException;
 }

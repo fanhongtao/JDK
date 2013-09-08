@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,25 +36,25 @@ public class NodeVector implements Serializable, Cloneable
 
   /**
    * Size of blocks to allocate.
-   *  @serial          
+   *  @serial
    */
   private int m_blocksize;
 
   /**
    * Array of nodes this points to.
-   *  @serial          
+   *  @serial
    */
   private int m_map[];
 
   /**
    * Number of nodes in this NodeVector.
-   *  @serial          
+   *  @serial
    */
   protected int m_firstFree = 0;
 
   /**
    * Size of the array this points to.
-   *  @serial           
+   *  @serial
    */
   private int m_mapSize;  // lazy initialization
 
@@ -436,7 +440,7 @@ public class NodeVector implements Serializable, Cloneable
 
     m_firstFree = 0;
   }
-  
+
   /**
    * Set the length to zero, but don't clear the array.
    */
@@ -524,9 +528,9 @@ public class NodeVector implements Serializable, Cloneable
       m_map = new int[m_blocksize];
       m_mapSize = m_blocksize;
     }
-    
+
     if(index == -1)
-    	addElement(node);
+        addElement(node);
 
     m_map[index] = node;
   }

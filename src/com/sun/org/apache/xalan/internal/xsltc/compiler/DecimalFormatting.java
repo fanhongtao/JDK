@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,35 +53,35 @@ final class DecimalFormatting extends TopLevelElement {
      * No type check needed for the <xsl:decimal-formatting/> element
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	return Type.Void;
+        return Type.Void;
     }
 
     /**
      * Parse the name of the <xsl:decimal-formatting/> element
      */
     public void parseContents(Parser parser) {
-	// Get the name of these decimal formatting symbols
+        // Get the name of these decimal formatting symbols
         final String name = getAttribute("name");
         if (name.length() > 0) {
             if (!XML11Char.isXML11ValidQName(name)){
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
-                parser.reportError(Constants.ERROR, err);           
+                parser.reportError(Constants.ERROR, err);
             }
         }
         _name = parser.getQNameIgnoreDefaultNs(name);
         if (_name == null) {
             _name = parser.getQNameIgnoreDefaultNs(EMPTYSTRING);
-        }         
+        }
 
-	// Check if a set of symbols has already been registered under this name
-	SymbolTable stable = parser.getSymbolTable();
-	if (stable.getDecimalFormatting(_name) != null) {
-	    reportWarning(this, parser, ErrorMsg.SYMBOLS_REDEF_ERR,
-		_name.toString());
-	}
-	else {
-	    stable.addDecimalFormatting(_name, this);
-	}
+        // Check if a set of symbols has already been registered under this name
+        SymbolTable stable = parser.getSymbolTable();
+        if (stable.getDecimalFormatting(_name) != null) {
+            reportWarning(this, parser, ErrorMsg.SYMBOLS_REDEF_ERR,
+                _name.toString());
+        }
+        else {
+            stable.addDecimalFormatting(_name, this);
+        }
     }
 
     /**
@@ -86,121 +90,121 @@ final class DecimalFormatting extends TopLevelElement {
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
 
-	ConstantPoolGen cpg = classGen.getConstantPool();
-	InstructionList il = methodGen.getInstructionList();
-	
-	// DecimalFormatSymbols.<init>(Locale);
+        ConstantPoolGen cpg = classGen.getConstantPool();
+        InstructionList il = methodGen.getInstructionList();
+
+        // DecimalFormatSymbols.<init>(Locale);
         // xsl:decimal-format - except for the NaN and infinity attributes.
-	final int init = cpg.addMethodref(DFS_CLASS, "<init>",
+        final int init = cpg.addMethodref(DFS_CLASS, "<init>",
                                           "("+LOCALE_SIG+")V");
 
-	// Push the format name on the stack for call to addDecimalFormat()
-	il.append(classGen.loadTranslet());
-	il.append(new PUSH(cpg, _name.toString()));
+        // Push the format name on the stack for call to addDecimalFormat()
+        il.append(classGen.loadTranslet());
+        il.append(new PUSH(cpg, _name.toString()));
 
-	// Manufacture a DecimalFormatSymbols on the stack
-	// for call to addDecimalFormat()
+        // Manufacture a DecimalFormatSymbols on the stack
+        // for call to addDecimalFormat()
         // Use the US Locale as the default, as most of its settings
         // are equivalent to the default settings required of
-	il.append(new NEW(cpg.addClass(DFS_CLASS)));
-	il.append(DUP);
+        il.append(new NEW(cpg.addClass(DFS_CLASS)));
+        il.append(DUP);
         il.append(new GETSTATIC(cpg.addFieldref(LOCALE_CLASS, "US",
                                                 LOCALE_SIG)));
-	il.append(new INVOKESPECIAL(init));
+        il.append(new INVOKESPECIAL(init));
 
-	String tmp = getAttribute("NaN");
-	if ((tmp == null) || (tmp.equals(EMPTYSTRING))) {
-	    int nan = cpg.addMethodref(DFS_CLASS,
-				       "setNaN", "(Ljava/lang/String;)V");
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, "NaN"));
-	    il.append(new INVOKEVIRTUAL(nan));
-	}
+        String tmp = getAttribute("NaN");
+        if ((tmp == null) || (tmp.equals(EMPTYSTRING))) {
+            int nan = cpg.addMethodref(DFS_CLASS,
+                                       "setNaN", "(Ljava/lang/String;)V");
+            il.append(DUP);
+            il.append(new PUSH(cpg, "NaN"));
+            il.append(new INVOKEVIRTUAL(nan));
+        }
 
-	tmp = getAttribute("infinity");
-	if ((tmp == null) || (tmp.equals(EMPTYSTRING))) {
-	    int inf = cpg.addMethodref(DFS_CLASS,
-				       "setInfinity",
-				       "(Ljava/lang/String;)V");
-	    il.append(DUP);
-	    il.append(new PUSH(cpg, "Infinity"));
-	    il.append(new INVOKEVIRTUAL(inf));
-	}
-	    
-	final int nAttributes = _attributes.getLength();
-	for (int i = 0; i < nAttributes; i++) {
-	    final String name = _attributes.getQName(i);
-	    final String value = _attributes.getValue(i);
+        tmp = getAttribute("infinity");
+        if ((tmp == null) || (tmp.equals(EMPTYSTRING))) {
+            int inf = cpg.addMethodref(DFS_CLASS,
+                                       "setInfinity",
+                                       "(Ljava/lang/String;)V");
+            il.append(DUP);
+            il.append(new PUSH(cpg, "Infinity"));
+            il.append(new INVOKEVIRTUAL(inf));
+        }
 
-	    boolean valid = true;
-	    int method = 0;
+        final int nAttributes = _attributes.getLength();
+        for (int i = 0; i < nAttributes; i++) {
+            final String name = _attributes.getQName(i);
+            final String value = _attributes.getValue(i);
 
-	    if (name.equals("decimal-separator")) {
-		// DecimalFormatSymbols.setDecimalSeparator();
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setDecimalSeparator", "(C)V");
-	    }
-	    else if (name.equals("grouping-separator")) {
-		method =  cpg.addMethodref(DFS_CLASS,
-					   "setGroupingSeparator", "(C)V");
-	    }
-	    else if (name.equals("minus-sign")) {
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setMinusSign", "(C)V");
-	    }
-	    else if (name.equals("percent")) {
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setPercent", "(C)V");
-	    }
-	    else if (name.equals("per-mille")) {
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setPerMill", "(C)V");
-	    }
-	    else if (name.equals("zero-digit")) {
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setZeroDigit", "(C)V");
-	    }
-	    else if (name.equals("digit")) {
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setDigit", "(C)V");
-	    }
-	    else if (name.equals("pattern-separator")) {
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setPatternSeparator", "(C)V");
-	    }
-	    else if (name.equals("NaN")) {
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setNaN", "(Ljava/lang/String;)V");
-	        il.append(DUP);
-		il.append(new PUSH(cpg, value));
-		il.append(new INVOKEVIRTUAL(method));
-		valid = false;
-	    }
-	    else if (name.equals("infinity")) {
-		method = cpg.addMethodref(DFS_CLASS,
-					  "setInfinity",
-					  "(Ljava/lang/String;)V");
-	        il.append(DUP);
-		il.append(new PUSH(cpg, value));
-		il.append(new INVOKEVIRTUAL(method));
-		valid = false;
-	    }
-	    else {
-		valid = false;
-	    }
+            boolean valid = true;
+            int method = 0;
 
-	    if (valid) {
-		il.append(DUP);
-		il.append(new PUSH(cpg, value.charAt(0)));
-		il.append(new INVOKEVIRTUAL(method));
-	    }
+            if (name.equals("decimal-separator")) {
+                // DecimalFormatSymbols.setDecimalSeparator();
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setDecimalSeparator", "(C)V");
+            }
+            else if (name.equals("grouping-separator")) {
+                method =  cpg.addMethodref(DFS_CLASS,
+                                           "setGroupingSeparator", "(C)V");
+            }
+            else if (name.equals("minus-sign")) {
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setMinusSign", "(C)V");
+            }
+            else if (name.equals("percent")) {
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setPercent", "(C)V");
+            }
+            else if (name.equals("per-mille")) {
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setPerMill", "(C)V");
+            }
+            else if (name.equals("zero-digit")) {
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setZeroDigit", "(C)V");
+            }
+            else if (name.equals("digit")) {
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setDigit", "(C)V");
+            }
+            else if (name.equals("pattern-separator")) {
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setPatternSeparator", "(C)V");
+            }
+            else if (name.equals("NaN")) {
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setNaN", "(Ljava/lang/String;)V");
+                il.append(DUP);
+                il.append(new PUSH(cpg, value));
+                il.append(new INVOKEVIRTUAL(method));
+                valid = false;
+            }
+            else if (name.equals("infinity")) {
+                method = cpg.addMethodref(DFS_CLASS,
+                                          "setInfinity",
+                                          "(Ljava/lang/String;)V");
+                il.append(DUP);
+                il.append(new PUSH(cpg, value));
+                il.append(new INVOKEVIRTUAL(method));
+                valid = false;
+            }
+            else {
+                valid = false;
+            }
 
-	}
+            if (valid) {
+                il.append(DUP);
+                il.append(new PUSH(cpg, value.charAt(0)));
+                il.append(new INVOKEVIRTUAL(method));
+            }
 
-	final int put = cpg.addMethodref(TRANSLET_CLASS,
-					 "addDecimalFormat",
-					 "("+STRING_SIG+DFS_SIG+")V");
-	il.append(new INVOKEVIRTUAL(put));
+        }
+
+        final int put = cpg.addMethodref(TRANSLET_CLASS,
+                                         "addDecimalFormat",
+                                         "("+STRING_SIG+DFS_SIG+")V");
+        il.append(new INVOKEVIRTUAL(put));
     }
 
     /**
@@ -210,45 +214,45 @@ final class DecimalFormatting extends TopLevelElement {
      * may be overridden by later nameless xsl:decimal-format instructions.
      */
     public static void translateDefaultDFS(ClassGenerator classGen,
-					   MethodGenerator methodGen) {
+                                           MethodGenerator methodGen) {
 
-	ConstantPoolGen cpg = classGen.getConstantPool();
-	InstructionList il = methodGen.getInstructionList();
-	final int init = cpg.addMethodref(DFS_CLASS, "<init>",
+        ConstantPoolGen cpg = classGen.getConstantPool();
+        InstructionList il = methodGen.getInstructionList();
+        final int init = cpg.addMethodref(DFS_CLASS, "<init>",
                                           "("+LOCALE_SIG+")V");
 
-	// Push the format name, which is empty, on the stack
-	// for call to addDecimalFormat()
-	il.append(classGen.loadTranslet());
-	il.append(new PUSH(cpg, EMPTYSTRING));
+        // Push the format name, which is empty, on the stack
+        // for call to addDecimalFormat()
+        il.append(classGen.loadTranslet());
+        il.append(new PUSH(cpg, EMPTYSTRING));
 
-	// Manufacture a DecimalFormatSymbols on the stack for
-	// call to addDecimalFormat().  Use the US Locale as the
+        // Manufacture a DecimalFormatSymbols on the stack for
+        // call to addDecimalFormat().  Use the US Locale as the
         // default, as most of its settings are equivalent to
         // the default settings required of xsl:decimal-format -
         // except for the NaN and infinity attributes.
-	il.append(new NEW(cpg.addClass(DFS_CLASS)));
-	il.append(DUP);
+        il.append(new NEW(cpg.addClass(DFS_CLASS)));
+        il.append(DUP);
         il.append(new GETSTATIC(cpg.addFieldref(LOCALE_CLASS, "US",
                                                 LOCALE_SIG)));
-	il.append(new INVOKESPECIAL(init));
+        il.append(new INVOKESPECIAL(init));
 
-	int nan = cpg.addMethodref(DFS_CLASS,
-				   "setNaN", "(Ljava/lang/String;)V");
-	il.append(DUP);
-	il.append(new PUSH(cpg, "NaN"));
-	il.append(new INVOKEVIRTUAL(nan));
+        int nan = cpg.addMethodref(DFS_CLASS,
+                                   "setNaN", "(Ljava/lang/String;)V");
+        il.append(DUP);
+        il.append(new PUSH(cpg, "NaN"));
+        il.append(new INVOKEVIRTUAL(nan));
 
-	int inf = cpg.addMethodref(DFS_CLASS,
-				   "setInfinity",
-				   "(Ljava/lang/String;)V");
-	il.append(DUP);
-	il.append(new PUSH(cpg, "Infinity"));
-	il.append(new INVOKEVIRTUAL(inf));
+        int inf = cpg.addMethodref(DFS_CLASS,
+                                   "setInfinity",
+                                   "(Ljava/lang/String;)V");
+        il.append(DUP);
+        il.append(new PUSH(cpg, "Infinity"));
+        il.append(new INVOKEVIRTUAL(inf));
 
-	final int put = cpg.addMethodref(TRANSLET_CLASS,
-					 "addDecimalFormat",
-					 "("+STRING_SIG+DFS_SIG+")V");
-	il.append(new INVOKEVIRTUAL(put));
+        final int put = cpg.addMethodref(TRANSLET_CLASS,
+                                         "addDecimalFormat",
+                                         "("+STRING_SIG+DFS_SIG+")V");
+        il.append(new INVOKEVIRTUAL(put));
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)RandomAccess.java	1.9 06/04/21
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -22,7 +40,7 @@ package java.util;
  * provide poor performance if it were applied to a sequential access list,
  * and to alter their behavior if necessary to guarantee acceptable
  * performance.
- * 
+ *
  * <p>It is recognized that the distinction between random and sequential
  * access is often fuzzy.  For example, some <tt>List</tt> implementations
  * provide asymptotically linear access times if they get huge, but constant
@@ -40,7 +58,7 @@ package java.util;
  *         i.next();
  * </pre>
  *
- * <p>This interface is a member of the 
+ * <p>This interface is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *

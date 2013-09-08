@@ -1,8 +1,26 @@
 /*
- * @(#)UnsolicitedNotificationListener.java	1.8 05/11/17
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.ldap;
@@ -12,7 +30,7 @@ import javax.naming.event.NamingListener;
 /**
  * This interface is for handling <tt>UnsolicitedNotificationEvent</tt>.
  * "Unsolicited notification" is defined in
- * <A HREF="ftp://ftp.isi.edu/in-notes/rfc2251.txt">RFC 2251</A>.
+ * <A HREF="http://www.ietf.org/rfc/rfc2251.txt">RFC 2251</A>.
  * It allows the server to send unsolicited notifications to the client.
  * A <tt>UnsolicitedNotificationListener</tt> must:
  *<ol>
@@ -27,11 +45,10 @@ import javax.naming.event.NamingListener;
  * (These arguments might be applicable to the listener if it implements
  * other listener interfaces).
  *</ol>
- * 
+ *
  * @author Rosanna Lee
  * @author Scott Seligman
  * @author Vincent Ryan
- * @version 1.8 05/11/17
  *
  * @see UnsolicitedNotificationEvent
  * @see UnsolicitedNotification

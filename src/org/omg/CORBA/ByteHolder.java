@@ -1,8 +1,26 @@
 /*
- * @(#)ByteHolder.java	1.23 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -13,7 +31,7 @@ import org.omg.CORBA.portable.InputStream;
 import org.omg.CORBA.portable.OutputStream;
 
 /**
- * The Holder for <tt>Byte</tt>.  For more information on 
+ * The Holder for <tt>Byte</tt>.  For more information on
  * Holder files, see <a href="doc-files/generatedfiles.html#holder">
  * "Generated Files: Holder Files"</a>.<P>
  * A Holder class for a <code>byte</code>
@@ -30,7 +48,6 @@ import org.omg.CORBA.portable.OutputStream;
  * the value stored in its <code>value</code> field can be accessed with
  * <code>myByteHolder.value</code>.
  *
- * @version	1.14, 09/09/97
  * @since       JDK1.2
  */
 public final class ByteHolder implements Streamable {
@@ -56,7 +73,7 @@ public final class ByteHolder implements Streamable {
      *                <code>ByteHolder</code> object
      */
     public ByteHolder(byte initial) {
-	value = initial;
+        value = initial;
     }
 
     /**
@@ -67,27 +84,27 @@ public final class ByteHolder implements Streamable {
      * @param input the InputStream containing CDR formatted data from the wire.
      */
     public void _read(InputStream input) {
-	value = input.read_octet();
+        value = input.read_octet();
     }
 
     /**
-     * Marshals to <code>output</code> the value in 
+     * Marshals to <code>output</code> the value in
      * this <code>ByteHolder</code> object.
      *
      * @param output the OutputStream which will contain the CDR formatted data.
      */
     public void _write(OutputStream output) {
-	output.write_octet(value);
+        output.write_octet(value);
     }
 
     /**
      * Returns the TypeCode corresponding to the value held in
      * this <code>ByteHolder</code> object.
      *
-     * @return    the TypeCode of the value held in 
+     * @return    the TypeCode of the value held in
      *               this <code>ByteHolder</code> object
      */
     public org.omg.CORBA.TypeCode _type() {
-	return ORB.init().get_primitive_tc(TCKind.tk_octet);
+        return ORB.init().get_primitive_tc(TCKind.tk_octet);
     }
 }

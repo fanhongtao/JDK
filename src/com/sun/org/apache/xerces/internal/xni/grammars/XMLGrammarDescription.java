@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +27,6 @@ import com.sun.org.apache.xerces.internal.xni.XMLResourceIdentifier;
  * physical location and their type. </p>
  *
  * @author Neil Graham, IBM
- * @version $Id: XMLGrammarDescription.java,v 1.2.6.1 2005/09/06 08:56:55 neerajbj Exp $
  */
 public interface XMLGrammarDescription extends XMLResourceIdentifier {
 
@@ -38,7 +41,7 @@ public interface XMLGrammarDescription extends XMLResourceIdentifier {
      * the XMLSchemaDescription interface.
      */
     public static final String XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
-    
+
     /**
      * The grammar type constant for DTD grammars. When getGrammarType()
      * method returns this constant, the object should be an instance of
@@ -48,7 +51,7 @@ public interface XMLGrammarDescription extends XMLResourceIdentifier {
 
     /**
      * Return the type of this grammar.
-     * 
+     *
      * @return  the type of this grammar
      */
     public String getGrammarType();

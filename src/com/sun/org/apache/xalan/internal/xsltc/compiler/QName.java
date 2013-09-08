@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +40,7 @@ final class QName {
 	_prefix    = prefix;
 	_localname = localname;
 
-	_stringRep = 
+	_stringRep =
 	    (namespace != null && !namespace.equals(Constants.EMPTYSTRING)) ?
 	    (namespace + ':' + localname) : localname;
 
@@ -56,7 +60,9 @@ final class QName {
     }
 
     public boolean equals(Object other) {
-	return (this == other);
+	return (this == other)
+	           || (other instanceof QName
+	                   && _stringRep.equals(((QName) other).getStringRep()));
     }
 
     public String getLocalPart() {
@@ -76,7 +82,6 @@ final class QName {
     }
 
     public String dump() {
-	return new String("QName: " + _namespace + "(" + _prefix + "):" 
-	    + _localname);
+	return "QName: " + _namespace + "(" + _prefix + "):" + _localname;
     }
 }

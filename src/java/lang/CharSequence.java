@@ -1,8 +1,26 @@
 /*
- * @(#)CharSequence.java	1.9 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
@@ -27,7 +45,6 @@ package java.lang;
  * a map. </p>
  *
  * @author Mike McCloskey
- * @version 1.9 05/11/17
  * @since 1.4
  * @spec JSR-51
  */
@@ -49,7 +66,7 @@ public interface CharSequence {
      * indexing. </p>
      *
      * <p>If the <code>char</code> value specified by the index is a
-     * <a href="Character.html#unicode">surrogate</a>, the surrogate
+     * <a href="{@docRoot}/java/lang/Character.html#unicode">surrogate</a>, the surrogate
      * value is returned.
      *
      * @param   index   the index of the <code>char</code> value to be returned
@@ -69,7 +86,7 @@ public interface CharSequence {
      * (in <code>char</code>s) of the
      * returned sequence is <tt>end - start</tt>, so if <tt>start == end</tt>
      * then an empty sequence is returned. </p>
-     * 
+     *
      * @param   start   the start index, inclusive
      * @param   end     the end index, exclusive
      *

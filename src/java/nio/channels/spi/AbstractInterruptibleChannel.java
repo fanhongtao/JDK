@@ -1,10 +1,29 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * @(#)AbstractInterruptibleChannel.java	1.17 05/11/17
  */
 
 package java.nio.channels.spi;
@@ -62,7 +81,6 @@ import sun.nio.ch.Interruptible;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.17, 05/11/17
  * @since 1.4
  */
 
@@ -70,7 +88,7 @@ public abstract class AbstractInterruptibleChannel
     implements Channel, InterruptibleChannel
 {
 
-    private Object closeLock = new Object();
+    private final Object closeLock = new Object();
     private volatile boolean open = true;
 
     /**
@@ -90,12 +108,12 @@ public abstract class AbstractInterruptibleChannel
      *          If an I/O error occurs
      */
     public final void close() throws IOException {
-	synchronized (closeLock) {
-	    if (!open)
-		return;
-	    open = false;
-	    implCloseChannel();
-	}
+        synchronized (closeLock) {
+            if (!open)
+                return;
+            open = false;
+            implCloseChannel();
+        }
     }
 
     /**
@@ -117,14 +135,14 @@ public abstract class AbstractInterruptibleChannel
     protected abstract void implCloseChannel() throws IOException;
 
     public final boolean isOpen() {
-	return open;
+        return open;
     }
 
-
+
     // -- Interruption machinery --
 
     private Interruptible interruptor;
-    private volatile boolean interrupted = false;
+    private volatile Thread interrupted;
 
     /**
      * Marks the beginning of an I/O operation that might block indefinitely.
@@ -135,23 +153,24 @@ public abstract class AbstractInterruptibleChannel
      * closing and interruption for this channel.  </p>
      */
     protected final void begin() {
-	if (interruptor == null) {
-	    interruptor = new Interruptible() {
-		    public void interrupt() {
-			synchronized (closeLock) {
-			    if (!open)
-				return;
-			    interrupted = true;
-			    open = false;
-			    try {
-				AbstractInterruptibleChannel.this.implCloseChannel();
-			    } catch (IOException x) { }
-			}
-		    }};
-	}
-	blockedOn(interruptor);
-	if (Thread.currentThread().isInterrupted())
-	    interruptor.interrupt();
+        if (interruptor == null) {
+            interruptor = new Interruptible() {
+                    public void interrupt(Thread target) {
+                        synchronized (closeLock) {
+                            if (!open)
+                                return;
+                            open = false;
+                            interrupted = target;
+                            try {
+                                AbstractInterruptibleChannel.this.implCloseChannel();
+                            } catch (IOException x) { }
+                        }
+                    }};
+        }
+        blockedOn(interruptor);
+        Thread me = Thread.currentThread();
+        if (me.isInterrupted())
+            interruptor.interrupt(me);
     }
 
     /**
@@ -174,21 +193,22 @@ public abstract class AbstractInterruptibleChannel
      *          If the thread blocked in the I/O operation was interrupted
      */
     protected final void end(boolean completed)
-	throws AsynchronousCloseException
+        throws AsynchronousCloseException
     {
-	blockedOn(null);
-	if (completed) {
-	    interrupted = false;
-	    return;
-	}
-	if (interrupted) throw new ClosedByInterruptException();
-	if (!open) throw new AsynchronousCloseException();
+        blockedOn(null);
+        Thread interrupted = this.interrupted;
+        if (interrupted != null && interrupted == Thread.currentThread()) {
+            interrupted = null;
+            throw new ClosedByInterruptException();
+        }
+        if (!completed && !open)
+            throw new AsynchronousCloseException();
     }
 
-
+
     // -- sun.misc.SharedSecrets --
-    static void blockedOn(Interruptible intr) { 	// package-private
+    static void blockedOn(Interruptible intr) {         // package-private
         sun.misc.SharedSecrets.getJavaLangAccess().blockedOn(Thread.currentThread(),
-							     intr);
+                                                             intr);
     }
 }

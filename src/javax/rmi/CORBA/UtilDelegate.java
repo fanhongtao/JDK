@@ -1,16 +1,32 @@
 /*
- * @(#)UtilDelegate.java	1.16 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package javax.rmi.CORBA;
@@ -32,7 +48,7 @@ import org.omg.CORBA.SystemException;
  * methods of <code>javax.rmi.CORBA.Util</code>.
  *
  * Delegation is enabled by providing the delegate's class name as the
- * value of the 
+ * value of the
  * <code>javax.rmi.CORBA.UtilClass</code>
  * system property.
  *
@@ -69,12 +85,12 @@ public interface UtilDelegate {
      * Delegation call for {@link Util#registerTarget}.
      */
     void registerTarget(Tie tie, Remote target);
-    
+
     /**
      * Delegation call for {@link Util#unexportObject}.
      */
     void unexportObject(Remote target) throws java.rmi.NoSuchObjectException;
-    
+
     /**
      * Delegation call for {@link Util#getTie}.
      */
@@ -93,7 +109,7 @@ public interface UtilDelegate {
     /**
      * Delegation call for {@link Util#loadClass}.
      */
-    Class loadClass(String className, String remoteCodebase, ClassLoader loader) 
+    Class loadClass(String className, String remoteCodebase, ClassLoader loader)
         throws ClassNotFoundException;
 
     /**
@@ -110,11 +126,10 @@ public interface UtilDelegate {
      * Delegation call for {@link Util#copyObject}.
      */
     Object copyObject(Object obj, ORB orb) throws RemoteException;
-    
+
     /**
      * Delegation call for {@link Util#copyObjects}.
      */
     Object[] copyObjects(Object[] obj, ORB orb) throws RemoteException;
 
 }
-	    

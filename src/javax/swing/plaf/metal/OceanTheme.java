@@ -1,8 +1,26 @@
 /*
- * @(#)OceanTheme.java	1.21 06/07/12
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -14,6 +32,7 @@ import javax.swing.*;
 import javax.swing.plaf.*;
 import sun.swing.SwingUtilities2;
 import sun.swing.PrintColorUIResource;
+import sun.swing.SwingLazyValue;
 
 /**
  * The default theme for the {@code MetalLookAndFeel}.
@@ -29,7 +48,6 @@ import sun.swing.PrintColorUIResource;
  * All colors returned by {@code OceanTheme} are completely
  * opaque.
  *
- * @version 1.21 07/12/06
  * @since 1.5
  * @see MetalLookAndFeel#setCurrentTheme
  */
@@ -69,7 +87,7 @@ public class OceanTheme extends DefaultMetalTheme {
             this.rtl = rtl;
         }
 
-        public void paintIcon(Component c, Graphics g, int x, int y) {        
+        public void paintIcon(Component c, Graphics g, int x, int y) {
             if (MetalUtils.isLeftToRight(c)) {
                 super.paintIcon(c, g, x, y);
             } else {
@@ -87,7 +105,7 @@ public class OceanTheme extends DefaultMetalTheme {
             super(normal);
             this.pressed = pressed;
         }
-        
+
         public void paintIcon(Component c, Graphics g, int x, int y) {
             ButtonModel model = ((AbstractButton)c).getModel();
             if (model.isPressed() && model.isArmed()) {
@@ -111,7 +129,7 @@ public class OceanTheme extends DefaultMetalTheme {
      * @throws NullPointerException if {@code table} is {@code null}
      */
     public void addCustomEntriesToTable(UIDefaults table) {
-        Object focusBorder = new UIDefaults.ProxyLazyValue(
+        Object focusBorder = new SwingLazyValue(
                       "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
                       new Object[] {getPrimary1()});
         // .30 0 DDE8F3 white secondary2
@@ -138,7 +156,7 @@ public class OceanTheme extends DefaultMetalTheme {
         Object[] defaults = new Object[] {
             "Button.gradient", buttonGradient,
             "Button.rollover", Boolean.TRUE,
-            "Button.toolBarBorderBackground", INACTIVE_CONTROL_TEXT_COLOR, 
+            "Button.toolBarBorderBackground", INACTIVE_CONTROL_TEXT_COLOR,
             "Button.disabledToolBarBorderBackground", cccccc,
             "Button.rolloverIconType", "ocean",
 
@@ -170,12 +188,12 @@ public class OceanTheme extends DefaultMetalTheme {
                  getIconResource("icons/ocean/floppy.gif"),
 
             "Label.disabledForeground", getInactiveControlTextColor(),
-            
+
             "Menu.opaque", Boolean.FALSE,
 
             "MenuBar.gradient", Arrays.asList(new Object[] {
                      new Float(1f), new Float(0f),
-                     getWhite(), dadada, 
+                     getWhite(), dadada,
                      new ColorUIResource(dadada) }),
             "MenuBar.borderColor", cccccc,
 
@@ -286,7 +304,7 @@ public class OceanTheme extends DefaultMetalTheme {
             "Tree.dropLineColor", getPrimary1(),
             "Table.dropLineColor", getPrimary1(),
             "Table.dropLineShortColor", OCEAN_BLACK,
-            
+
             "Table.dropCellBackground", OCEAN_DROP,
             "Tree.dropCellBackground", OCEAN_DROP,
             "List.dropCellBackground", OCEAN_DROP,
@@ -320,7 +338,7 @@ public class OceanTheme extends DefaultMetalTheme {
      */
     protected ColorUIResource getPrimary1() {
         return PRIMARY1;
-    } 
+    }
 
     /**
      * Returns the primary 2 color. This returns a color with an rgb hex value

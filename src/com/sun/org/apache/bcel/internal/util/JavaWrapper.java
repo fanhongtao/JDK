@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -68,7 +72,6 @@ import java.lang.reflect.*;
  * <pre>java com.sun.org.apache.bcel.internal.util.JavaWrapper -Dbcel.classloader=foo.MyLoader &lt;real.class.name&gt; [arguments]</pre>
  * </p>
  *
- * @version $Id: JavaWrapper.java,v 1.1.2.1 2005/07/31 23:47:01 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see ClassLoader
  */
@@ -87,7 +90,7 @@ public class JavaWrapper {
       throw new RuntimeException(e.toString());
     }
   }
-      
+
   public JavaWrapper(java.lang.ClassLoader loader) {
     this.loader = loader;
   }
@@ -108,21 +111,21 @@ public class JavaWrapper {
 
     try {
       method = cl.getMethod("_main",  new Class[] { argv.getClass() });
-      
+
       /* Method _main is sane ?
        */
       int   m = method.getModifiers();
       Class r = method.getReturnType();
-      
+
       if(!(Modifier.isPublic(m) && Modifier.isStatic(m)) ||
-	 Modifier.isAbstract(m) || (r != Void.TYPE))
-	throw new NoSuchMethodException();
+         Modifier.isAbstract(m) || (r != Void.TYPE))
+        throw new NoSuchMethodException();
     } catch(NoSuchMethodException no) {
       System.out.println("In class " + class_name +
-			 ": public static void _main(String[] argv) is not defined");
+                         ": public static void _main(String[] argv) is not defined");
       return;
     }
-    
+
     try {
       method.invoke(null, new Object[] { argv });
     } catch(Exception ex) {
@@ -149,4 +152,3 @@ public class JavaWrapper {
     wrapper.runMain(class_name, new_argv);
   }
 }
-

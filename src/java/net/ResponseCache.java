@@ -1,8 +1,26 @@
 /*
- * @(#)ResponseCache.java	1.1 03/09/22
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -34,10 +52,9 @@ import sun.security.util.SecurityConstants;
  * protocol is allowed to use a cached response.
  *
  * For more information on HTTP caching, see <a
- * href="http://www.ietf.org/rfc/rfc2616.txt""><i>RFC&nbsp;2616: Hypertext
+ * href="http://www.ietf.org/rfc/rfc2616.txt"><i>RFC&nbsp;2616: Hypertext
  * Transfer Protocol -- HTTP/1.1</i></a>
  *
- * @version 1.1, 03/09/22
  * @author Yingxian Wang
  * @since 1.5
  */
@@ -64,11 +81,11 @@ public abstract class ResponseCache {
      * @since 1.5
      */
     public synchronized  static ResponseCache getDefault() {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkPermission(SecurityConstants.GET_RESPONSECACHE_PERMISSION);
-	}
-	return theResponseCache;
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(SecurityConstants.GET_RESPONSECACHE_PERMISSION);
+        }
+        return theResponseCache;
     }
 
     /**
@@ -77,7 +94,7 @@ public abstract class ResponseCache {
      * Note: non-standard procotol handlers may ignore this setting.
      *
      * @param responseCache The response cache, or
-     *		<code>null</code> to unset the cache.
+     *          <code>null</code> to unset the cache.
      *
      * @throws  SecurityException
      *          If a security manager has been installed and it denies
@@ -87,11 +104,11 @@ public abstract class ResponseCache {
      * @since 1.5
      */
     public synchronized static void setDefault(ResponseCache responseCache) {
-	SecurityManager sm = System.getSecurityManager();
-	if (sm != null) {
-	    sm.checkPermission(SecurityConstants.SET_RESPONSECACHE_PERMISSION);
-	}
-	theResponseCache = responseCache;
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(SecurityConstants.SET_RESPONSECACHE_PERMISSION);
+        }
+        theResponseCache = responseCache;
     }
 
     /**
@@ -110,7 +127,7 @@ public abstract class ResponseCache {
      *            the current request headers
      * @return a <code>CacheResponse</code> instance if available
      *          from cache, or null otherwise
-     * @throws	IOException if an I/O error occurs 
+     * @throws  IOException if an I/O error occurs
      * @throws  IllegalArgumentException if any one of the arguments is null
      *
      * @see     java.net.URLConnection#setUseCaches(boolean)
@@ -119,15 +136,15 @@ public abstract class ResponseCache {
      * @see     java.net.URLConnection#getDefaultUseCaches()
      */
     public abstract CacheResponse
-	get(URI uri, String rqstMethod, Map<String, List<String>> rqstHeaders)
-	throws IOException;
+        get(URI uri, String rqstMethod, Map<String, List<String>> rqstHeaders)
+        throws IOException;
 
     /**
      * The protocol handler calls this method after a resource has
      * been retrieved, and the ResponseCache must decide whether or
      * not to store the resource in its cache. If the resource is to
      * be cached, then put() must return a CacheRequest object which
-     * contains a WriteableByteChannel that the protocol handler will
+     * contains an OutputStream that the protocol handler will
      * use to write the resource into the cache. If the resource is
      * not to be cached, then put must return null.
      *

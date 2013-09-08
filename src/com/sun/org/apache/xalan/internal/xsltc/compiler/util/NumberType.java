@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,11 +30,10 @@ package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
  */
 public abstract class NumberType extends Type {
     public boolean isNumber() {
-	return true;
+        return true;
     }
 
     public boolean isSimple() {
-	return true;
+        return true;
     }
 }
-

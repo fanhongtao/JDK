@@ -1,16 +1,37 @@
 /*
- * @(#)MXBeanIntrospector.java	1.10 06/04/12
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.mbeanserver;
 
+import com.sun.jmx.mbeanserver.MBeanIntrospector.MBeanInfoMap;
+import com.sun.jmx.mbeanserver.MBeanIntrospector.PerInterfaceMap;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
@@ -34,66 +55,66 @@ class MXBeanIntrospector extends MBeanIntrospector<ConvertingMethod> {
     private static final MXBeanIntrospector instance = new MXBeanIntrospector();
 
     static MXBeanIntrospector getInstance() {
-	return instance;
+        return instance;
     }
 
     @Override
     PerInterfaceMap<ConvertingMethod> getPerInterfaceMap() {
-	return perInterfaceMap;
+        return perInterfaceMap;
     }
 
     @Override
     MBeanInfoMap getMBeanInfoMap() {
-	return mbeanInfoMap;
+        return mbeanInfoMap;
     }
 
     @Override
     MBeanAnalyzer<ConvertingMethod> getAnalyzer(Class<?> mbeanInterface)
-	    throws NotCompliantMBeanException {
-	return MBeanAnalyzer.analyzer(mbeanInterface, this);
+            throws NotCompliantMBeanException {
+        return MBeanAnalyzer.analyzer(mbeanInterface, this);
     }
 
     @Override
     boolean isMXBean() {
-	return true;
+        return true;
     }
 
     @Override
     ConvertingMethod mFrom(Method m) {
-	return ConvertingMethod.from(m);
+        return ConvertingMethod.from(m);
     }
 
     @Override
     String getName(ConvertingMethod m) {
-	return m.getName();
+        return m.getName();
     }
 
     @Override
     Type getGenericReturnType(ConvertingMethod m) {
-	return m.getGenericReturnType();
+        return m.getGenericReturnType();
     }
 
     @Override
     Type[] getGenericParameterTypes(ConvertingMethod m) {
-	return m.getGenericParameterTypes();
+        return m.getGenericParameterTypes();
     }
 
     @Override
     String[] getSignature(ConvertingMethod m) {
-	return m.getOpenSignature();
+        return m.getOpenSignature();
     }
 
     @Override
     void checkMethod(ConvertingMethod m) {
-	m.checkCallFromOpen();
+        m.checkCallFromOpen();
     }
 
     @Override
     Object invokeM2(ConvertingMethod m, Object target, Object[] args,
-		    Object cookie)
-	    throws InvocationTargetException, IllegalAccessException,
-		   MBeanException {
-	return m.invokeWithOpenReturn((MXBeanLookup) cookie, target, args);
+                    Object cookie)
+            throws InvocationTargetException, IllegalAccessException,
+                   MBeanException {
+        return m.invokeWithOpenReturn((MXBeanLookup) cookie, target, args);
     }
 
     @Override
@@ -105,7 +126,7 @@ class MXBeanIntrospector extends MBeanIntrospector<ConvertingMethod> {
             // matched to the corresponding Java type, except when that
             // type is primitive.
             Type t = m.getGenericParameterTypes()[paramNo];
-            return (!(t instanceof Class) || !((Class) t).isPrimitive());
+            return (!(t instanceof Class<?>) || !((Class<?>) t).isPrimitive());
         } else {
             Object v;
             try {
@@ -128,7 +149,7 @@ class MXBeanIntrospector extends MBeanIntrospector<ConvertingMethod> {
         final boolean isIs = isReadable && getName(getter).startsWith("is");
 
         final String description = attributeName;
-        
+
         final OpenType<?> openType;
         final Type originalType;
         if (isReadable) {
@@ -168,7 +189,7 @@ class MXBeanIntrospector extends MBeanIntrospector<ConvertingMethod> {
         }
         // could also consult annotations for defaultValue,
         // minValue, maxValue, legalValues
-        
+
         return ai;
     }
 
@@ -204,14 +225,14 @@ class MXBeanIntrospector extends MBeanIntrospector<ConvertingMethod> {
                     Introspector.descriptorForAnnotations(annots[i]));
             final MBeanParameterInfo pi;
             if (canUseOpenInfo(originalType)) {
-                pi = new OpenMBeanParameterInfoSupport("p" + i,
+                pi = new OpenMBeanParameterInfoSupport(paramName,
                                                        paramDescription,
                                                        openType,
                                                        descriptor);
             } else {
                 openParameterTypes = false;
                 pi = new MBeanParameterInfo(
-                    "p" + i,
+                    paramName,
                     originalTypeString(originalType),
                     paramDescription,
                     descriptor);
@@ -252,28 +273,28 @@ class MXBeanIntrospector extends MBeanIntrospector<ConvertingMethod> {
                                         impact,
                                         descriptor);
         }
-        
+
         return oi;
     }
 
     @Override
     Descriptor getBasicMBeanDescriptor() {
-	return new ImmutableDescriptor("mxbean=true",
-				       "immutableInfo=true");
+        return new ImmutableDescriptor("mxbean=true",
+                                       "immutableInfo=true");
     }
 
     @Override
     Descriptor getMBeanDescriptor(Class<?> resourceClass) {
-	/* We already have immutableInfo=true in the Descriptor
-	 * included in the MBeanInfo for the MXBean interface.  This
-	 * method is being called for the MXBean *class* to add any
-	 * new items beyond those in the interface Descriptor, which
-	 * currently it does not.
-	 */
-	return ImmutableDescriptor.EMPTY_DESCRIPTOR;
+        /* We already have immutableInfo=true in the Descriptor
+         * included in the MBeanInfo for the MXBean interface.  This
+         * method is being called for the MXBean *class* to add any
+         * new items beyond those in the interface Descriptor, which
+         * currently it does not.
+         */
+        return ImmutableDescriptor.EMPTY_DESCRIPTOR;
     }
 
-    private static Descriptor typeDescriptor(OpenType openType,
+    private static Descriptor typeDescriptor(OpenType<?> openType,
                                              Type originalType) {
         return new ImmutableDescriptor(
             new String[] {"openType",
@@ -299,21 +320,45 @@ class MXBeanIntrospector extends MBeanIntrospector<ConvertingMethod> {
         if (type instanceof GenericArrayType) {
             return canUseOpenInfo(
                 ((GenericArrayType) type).getGenericComponentType());
-        } else if (type instanceof Class && ((Class<?>) type).isArray()) {
+        } else if (type instanceof Class<?> && ((Class<?>) type).isArray()) {
             return canUseOpenInfo(
                 ((Class<?>) type).getComponentType());
         }
-        return (!(type instanceof Class && ((Class<?>) type).isPrimitive()));
+        return (!(type instanceof Class<?> && ((Class<?>) type).isPrimitive()));
     }
 
     private static String originalTypeString(Type type) {
-        if (type instanceof Class)
-            return ((Class) type).getName();
+        if (type instanceof Class<?>)
+            return ((Class<?>) type).getName();
         else
-            return type.toString();
+            return typeName(type);
     }
 
-    private static final PerInterfaceMap<ConvertingMethod>
+    static String typeName(Type type) {
+        if (type instanceof Class<?>) {
+            Class<?> c = (Class<?>) type;
+            if (c.isArray())
+                return typeName(c.getComponentType()) + "[]";
+            else
+                return c.getName();
+        } else if (type instanceof GenericArrayType) {
+            GenericArrayType gat = (GenericArrayType) type;
+            return typeName(gat.getGenericComponentType()) + "[]";
+        } else if (type instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) type;
+            StringBuilder sb = new StringBuilder();
+            sb.append(typeName(pt.getRawType())).append("<");
+            String sep = "";
+            for (Type t : pt.getActualTypeArguments()) {
+                sb.append(sep).append(typeName(t));
+                sep = ", ";
+            }
+            return sb.append(">").toString();
+        } else
+            return "???";
+    }
+
+    private final PerInterfaceMap<ConvertingMethod>
         perInterfaceMap = new PerInterfaceMap<ConvertingMethod>();
 
     private static final MBeanInfoMap mbeanInfoMap = new MBeanInfoMap();

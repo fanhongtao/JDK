@@ -1,8 +1,26 @@
 /*
- * @(#)BufferManagerFactory.java	1.16 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.encoding;
@@ -40,11 +58,11 @@ public class BufferManagerFactory
         // fragments on a given connection to determine what fragment size
         // they're using, then use that ourselves?
 
-	if (encodingVersion != Message.CDR_ENC_VERSION) {
-	    return new BufferManagerReadGrow(orb);
-	}
+        if (encodingVersion != Message.CDR_ENC_VERSION) {
+            return new BufferManagerReadGrow(orb);
+        }
 
-        switch (version.intValue()) 
+        switch (version.intValue())
         {
             case GIOPVersion.VERSION_1_0:
                 return new BufferManagerReadGrow(orb);
@@ -63,15 +81,15 @@ public class BufferManagerFactory
     public static BufferManagerRead newBufferManagerRead(
             int strategy, byte encodingVersion, ORB orb) {
 
-	if (encodingVersion != Message.CDR_ENC_VERSION) {
-	    if (strategy != BufferManagerFactory.GROW) {
-		ORBUtilSystemException wrapper =
-		    ORBUtilSystemException.get((ORB)orb,
-					       CORBALogDomains.RPC_ENCODING);
-		throw wrapper.invalidBuffMgrStrategy("newBufferManagerRead");
-	    }
-	    return new BufferManagerReadGrow(orb);
-	}
+        if (encodingVersion != Message.CDR_ENC_VERSION) {
+            if (strategy != BufferManagerFactory.GROW) {
+                ORBUtilSystemException wrapper =
+                    ORBUtilSystemException.get((ORB)orb,
+                                               CORBALogDomains.RPC_ENCODING);
+                throw wrapper.invalidBuffMgrStrategy("newBufferManagerRead");
+            }
+            return new BufferManagerReadGrow(orb);
+        }
         switch (strategy) {
             case BufferManagerFactory.GROW:
                 return new BufferManagerReadGrow(orb);
@@ -86,16 +104,16 @@ public class BufferManagerFactory
     }
 
     public static BufferManagerWrite newBufferManagerWrite(
-            int strategy, byte encodingVersion,	ORB orb) {
-	if (encodingVersion != Message.CDR_ENC_VERSION) {
-	    if (strategy != BufferManagerFactory.GROW) {
-		ORBUtilSystemException wrapper =
-		    ORBUtilSystemException.get((ORB)orb,
-					       CORBALogDomains.RPC_ENCODING);
-		throw wrapper.invalidBuffMgrStrategy("newBufferManagerWrite");
-	    }
-	    return new BufferManagerWriteGrow(orb);
-	}
+            int strategy, byte encodingVersion, ORB orb) {
+        if (encodingVersion != Message.CDR_ENC_VERSION) {
+            if (strategy != BufferManagerFactory.GROW) {
+                ORBUtilSystemException wrapper =
+                    ORBUtilSystemException.get((ORB)orb,
+                                               CORBALogDomains.RPC_ENCODING);
+                throw wrapper.invalidBuffMgrStrategy("newBufferManagerWrite");
+            }
+            return new BufferManagerWriteGrow(orb);
+        }
         switch (strategy) {
             case BufferManagerFactory.GROW:
                 return new BufferManagerWriteGrow(orb);
@@ -111,12 +129,12 @@ public class BufferManagerFactory
 
     public static BufferManagerWrite newBufferManagerWrite(
         GIOPVersion version, byte encodingVersion, ORB orb) {
-	if (encodingVersion != Message.CDR_ENC_VERSION) {
-	    return new BufferManagerWriteGrow(orb);
-	}
+        if (encodingVersion != Message.CDR_ENC_VERSION) {
+            return new BufferManagerWriteGrow(orb);
+        }
         return BufferManagerFactory.newBufferManagerWrite(
-	    orb.getORBData().getGIOPBuffMgrStrategy(version),
-	    encodingVersion, orb);
+            orb.getORBData().getGIOPBuffMgrStrategy(version),
+            encodingVersion, orb);
     }
 
     public static BufferManagerRead defaultBufferManagerRead(ORB orb) {

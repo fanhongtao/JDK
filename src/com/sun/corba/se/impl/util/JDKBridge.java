@@ -1,16 +1,32 @@
 /*
- * @(#)JDKBridge.java	1.101 05/11/17
+ * Copyright (c) 1995, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.util;
@@ -34,7 +50,7 @@ import com.sun.corba.se.impl.orbutil.GetPropertyAction;
  *  by multiple classes
  */
 public class JDKBridge {
- 
+
     /**
      * Get local codebase System property (java.rmi.server.codebase).
      * May be null or a space separated array of URLS.
@@ -42,7 +58,7 @@ public class JDKBridge {
     public static String getLocalCodebase () {
         return localCodebase;
     }
-  
+
     /**
      * Return true if the system property "java.rmi.server.useCodebaseOnly"
      * is set, false otherwise.
@@ -50,9 +66,9 @@ public class JDKBridge {
     public static boolean useCodebaseOnly () {
         return useCodebaseOnly;
     }
-    
+
     /**
-     * Returns a class instance for the specified class. 
+     * Returns a class instance for the specified class.
      * @param className the name of the class
      * @param remoteCodebase a space-separated array of urls at which
      * the class might be found. May be null.
@@ -64,8 +80,8 @@ public class JDKBridge {
     public static Class loadClass (String className,
                                    String remoteCodebase,
                                    ClassLoader loader)
-	throws ClassNotFoundException {
-        
+        throws ClassNotFoundException {
+
         if (loader == null) {
             return loadClassM(className,remoteCodebase,useCodebaseOnly);
         } else {
@@ -76,9 +92,9 @@ public class JDKBridge {
             }
         }
     }
-    
+
     /**
-     * Returns a class instance for the specified class. 
+     * Returns a class instance for the specified class.
      * @param className the name of the class
      * @param remoteCodebase a space-separated array of urls at which
      * the class might be found. May be null.
@@ -87,18 +103,18 @@ public class JDKBridge {
      */
     public static Class loadClass (String className,
                                    String remoteCodebase)
-	throws ClassNotFoundException {
+        throws ClassNotFoundException {
         return loadClass(className,remoteCodebase,null);
     }
-    
+
     /**
-     * Returns a class instance for the specified class. 
+     * Returns a class instance for the specified class.
      * @param className the name of the class
      * @return the <code>Class</code> object representing the loaded class.
      * @exception throws ClassNotFoundException if class cannot be loaded.
      */
     public static Class loadClass (String className)
-	throws ClassNotFoundException {
+        throws ClassNotFoundException {
         return loadClass(className,null,null);
     }
 
@@ -110,25 +126,25 @@ public class JDKBridge {
     static {
         setCodebaseProperties();
     }
- 
+
     public static final void main (String[] args) {
         System.out.println("1.2 VM");
-        
-	/*       
-		 // If on 1.2, use a policy with all permissions.
-		 System.setSecurityManager (new javax.rmi.download.SecurityManager());
-		 String targetClass = "[[Lrmic.Typedef;";
-		 System.out.println("localCodebase =  "+localCodebase);
-		 System.out.println("Trying to load "+targetClass);
-		 try {
-		 Class clz = loadClass(targetClass,null,localCodebase);
-		 System.out.println("Loaded: "+clz);
-		 } catch (ClassNotFoundException e) {
-		 System.out.println("Caught "+e);
-		 }
-	*/
+
+        /*
+                 // If on 1.2, use a policy with all permissions.
+                 System.setSecurityManager (new javax.rmi.download.SecurityManager());
+                 String targetClass = "[[Lrmic.Typedef;";
+                 System.out.println("localCodebase =  "+localCodebase);
+                 System.out.println("Trying to load "+targetClass);
+                 try {
+                 Class clz = loadClass(targetClass,null,localCodebase);
+                 System.out.println("Loaded: "+clz);
+                 } catch (ClassNotFoundException e) {
+                 System.out.println("Caught "+e);
+                 }
+        */
     }
- 
+
     /**
      * Set the codebase and useCodebaseOnly properties. This is public
      * only for test code.
@@ -154,9 +170,9 @@ public class JDKBridge {
      * for test code.
      */
     public static synchronized void setLocalCodebase(String codebase) {
-        localCodebase = codebase;    
+        localCodebase = codebase;
     }
- 
+
     private static Class loadClassM (String className,
                             String remoteCodebase,
                             boolean useCodebaseOnly)
@@ -179,4 +195,3 @@ public class JDKBridge {
         throw new ClassNotFoundException(className);
     }
 }
-

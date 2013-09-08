@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,14 +35,14 @@ public class Parameter {
     public boolean _isDefault;
 
     public Parameter(String name, Object value) {
-	_name = name;
-	_value = value;
-	_isDefault = true;
+        _name = name;
+        _value = value;
+        _isDefault = true;
     }
 
     public Parameter(String name, Object value, boolean isDefault) {
-	_name = name;
-	_value = value;
-	_isDefault = isDefault;
+        _name = name;
+        _value = value;
+        _isDefault = isDefault;
     }
 }

@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -106,10 +110,9 @@ package com.sun.org.apache.xerces.internal.impl.dtd;
  * one" and "one or more" nodes.  The leaf nodes would always have a valid
  * string pool index, as the "#PCDATA" leaf is not used in the declarations
  * for element content models.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: XMLContentSpec.java,v 1.1.2.1 2005/08/01 03:36:40 jeffsuttor Exp $
  */
 public class XMLContentSpec {
 
@@ -117,7 +120,7 @@ public class XMLContentSpec {
     // Constants
     //
 
-    /** 
+    /**
      * Name or #PCDATA. Leaf nodes that represent parsed character
      * data (#PCDATA) have values of -1.
      */
@@ -128,19 +131,19 @@ public class XMLContentSpec {
 
     /** Represents a zero or more occurence count, '*'. */
     public static final short CONTENTSPECNODE_ZERO_OR_MORE = 2;
-    
+
     /** Represents a one or more occurence count, '+'. */
     public static final short CONTENTSPECNODE_ONE_OR_MORE = 3;
-    
+
     /** Represents choice, '|'. */
     public static final short CONTENTSPECNODE_CHOICE = 4;
-    
+
     /** Represents sequence, ','. */
     public static final short CONTENTSPECNODE_SEQ = 5;
 
-    /** 
+    /**
      * Represents any namespace specified namespace. When the element
-     * found in the document must belong to a specific namespace, 
+     * found in the document must belong to a specific namespace,
      * <code>otherValue</code> will contain the name of the namespace.
      * If <code>otherValue</code> is <code>-1</code> then the element
      * can be from any namespace.
@@ -150,10 +153,10 @@ public class XMLContentSpec {
      */
     public static final short CONTENTSPECNODE_ANY = 6;
 
-    /** 
-     * Represents any other namespace (XML Schema: ##other). 
+    /**
+     * Represents any other namespace (XML Schema: ##other).
      * <p>
-     * When the content spec node type is set to CONTENTSPECNODE_ANY_OTHER, 
+     * When the content spec node type is set to CONTENTSPECNODE_ANY_OTHER,
      * <code>value</code> will contain the namespace that <em>cannot</em>
      * occur.
      */
@@ -170,7 +173,7 @@ public class XMLContentSpec {
     public static final short CONTENTSPECNODE_ANY_LOCAL_LAX = 24;
 
     /** processContent is 'skip' **/
-    
+
     public static final short CONTENTSPECNODE_ANY_SKIP = 38;
 
     public static final short CONTENTSPECNODE_ANY_OTHER_SKIP = 39;
@@ -180,8 +183,8 @@ public class XMLContentSpec {
     // Data
     //
 
-    /** 
-     * The content spec node type. 
+    /**
+     * The content spec node type.
      *
      * @see #CONTENTSPECNODE_LEAF
      * @see #CONTENTSPECNODE_ZERO_OR_ONE
@@ -218,7 +221,7 @@ public class XMLContentSpec {
         setValues(type, value, otherValue);
     }
 
-    /** 
+    /**
      * Constructs a content spec from the values in the specified content spec.
      */
     public XMLContentSpec(XMLContentSpec contentSpec) {
@@ -251,7 +254,7 @@ public class XMLContentSpec {
         this.value = value;
         this.otherValue = otherValue;
     }
-    
+
     /** Sets the values of the specified content spec. */
     public void setValues(XMLContentSpec contentSpec) {
         type = contentSpec.type;
@@ -278,7 +281,7 @@ public class XMLContentSpec {
 
     /** Returns a hash code for this node. */
     public int hashCode() {
-        return type << 16 | 
+        return type << 16 |
                value.hashCode() << 8 |
                otherValue.hashCode();
     }
@@ -300,13 +303,13 @@ public class XMLContentSpec {
     //
 
     /**
-     * Provides a means for walking the structure built out of 
+     * Provides a means for walking the structure built out of
      * content spec "nodes". The user of this provider interface is
      * responsible for knowing what the content spec node values
      * "mean". If those values refer to content spec identifiers,
      * then the user can call back into the provider to get the
      * next content spec node in the structure.
-     * 
+     *
      * @xerces.internal
      */
     public interface Provider {
@@ -331,4 +334,3 @@ public class XMLContentSpec {
     } // interface Provider
 
 } // class XMLContentSpec
-

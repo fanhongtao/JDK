@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,20 +38,20 @@ public final class NodeSortRecordGenerator extends ClassGenerator {
     private final Instruction _aloadTranslet;
 
     public NodeSortRecordGenerator(String className, String superClassName,
-				   String fileName,
-				   int accessFlags, String[] interfaces,
-				   Stylesheet stylesheet) {
-	super(className, superClassName, fileName,
-	      accessFlags, interfaces, stylesheet);
-	_aloadTranslet = new ALOAD(TRANSLET_INDEX);
+                                   String fileName,
+                                   int accessFlags, String[] interfaces,
+                                   Stylesheet stylesheet) {
+        super(className, superClassName, fileName,
+              accessFlags, interfaces, stylesheet);
+        _aloadTranslet = new ALOAD(TRANSLET_INDEX);
     }
-    
+
     /**
      * The index of the translet pointer within the execution of
      * the test method.
      */
     public Instruction loadTranslet() {
-	return _aloadTranslet;
+        return _aloadTranslet;
     }
 
     /**
@@ -55,7 +59,7 @@ public final class NodeSortRecordGenerator extends ClassGenerator {
      * translet.
      */
     public boolean isExternal() {
-	return true;
+        return true;
     }
 
 }

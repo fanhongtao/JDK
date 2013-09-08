@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +26,9 @@ import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
+
+import org.xml.sax.SAXNotSupportedException;
+import org.xml.sax.SAXNotRecognizedException;
 
 /**
  * Base class of all XML-related parsers.
@@ -40,7 +47,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLParser.java,v 1.2.6.1 2005/09/08 04:05:10 sunithareddy Exp $
+ * @version $Id: XMLParser.java,v 1.5 2007/07/20 14:11:21 spericas Exp $
  */
 public abstract class XMLParser {
 
@@ -75,6 +82,15 @@ public abstract class XMLParser {
     // Constructors
     //
 
+    /**
+     * Query the state of a feature.
+     */
+    public boolean getFeature(String featureId) 
+            throws SAXNotSupportedException, SAXNotRecognizedException {
+        return fConfiguration.getFeature(featureId);
+
+    }
+    
     /**
      * Default Constructor.
      */

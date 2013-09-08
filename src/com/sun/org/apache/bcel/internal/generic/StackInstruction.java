@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,7 +61,6 @@ package com.sun.org.apache.bcel.internal.generic;
 /**
  * Super class for stack operations like DUP and POP.
  *
- * @version $Id: StackInstruction.java,v 1.1.2.1 2005/07/31 23:45:17 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class StackInstruction extends Instruction {
@@ -78,6 +81,5 @@ public abstract class StackInstruction extends Instruction {
    */
   public Type getType(ConstantPoolGen cp) {
     return Type.UNKNOWN;
-  }  
+  }
 }
-

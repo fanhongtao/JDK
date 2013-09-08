@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,12 +48,12 @@ final class WithParam extends Instruction {
      * Parameter's name.
      */
     private QName _name;
-    
+
     /**
      * The escaped qname of the with-param.
      */
     protected String _escapedName;
-    
+
     /**
      * Parameter's default value.
      */
@@ -57,7 +61,7 @@ final class WithParam extends Instruction {
 
     /**
      * %OPT% This is set to true when the WithParam is used in a CallTemplate
-     * for a simple named template. If this is true, the parameters are 
+     * for a simple named template. If this is true, the parameters are
      * passed to the named template through method arguments rather than
      * using the expensive Translet.addParameter() call.
      */
@@ -67,68 +71,68 @@ final class WithParam extends Instruction {
      * Displays the contents of this element
      */
     public void display(int indent) {
-	indent(indent);
-	Util.println("with-param " + _name);
-	if (_select != null) {
-	    indent(indent + IndentIncrement);
-	    Util.println("select " + _select.toString());
-	}
-	displayContents(indent + IndentIncrement);
+        indent(indent);
+        Util.println("with-param " + _name);
+        if (_select != null) {
+            indent(indent + IndentIncrement);
+            Util.println("select " + _select.toString());
+        }
+        displayContents(indent + IndentIncrement);
     }
-    
+
     /**
      * Returns the escaped qname of the parameter
      */
     public String getEscapedName() {
-	return _escapedName;
-    }    
-    
+        return _escapedName;
+    }
+
     /**
      * Return the name of this WithParam.
      */
     public QName getName() {
-        return _name;	
+        return _name;
     }
-    
+
     /**
      * Set the name of the variable or paremeter. Escape all special chars.
      */
     public void setName(QName name) {
-	_name = name;
-	_escapedName = Util.escape(name.getStringRep());
-    }    
-    
+        _name = name;
+        _escapedName = Util.escape(name.getStringRep());
+    }
+
     /**
      * Set the do parameter optimization flag
      */
     public void setDoParameterOptimization(boolean flag) {
-    	_doParameterOptimization = flag;
+        _doParameterOptimization = flag;
     }
-    
+
     /**
      * The contents of a <xsl:with-param> elements are either in the element's
      * 'select' attribute (this has precedence) or in the element body.
      */
     public void parseContents(Parser parser) {
-	final String name = getAttribute("name");
-	if (name.length() > 0) {
+        final String name = getAttribute("name");
+        if (name.length() > 0) {
             if (!XML11Char.isXML11ValidQName(name)) {
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name,
                                             this);
                 parser.reportError(Constants.ERROR, err);
             }
-	    setName(parser.getQNameIgnoreDefaultNs(name));
-	}
-        else {
-	    reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "name");
+            setName(parser.getQNameIgnoreDefaultNs(name));
         }
-	
-	final String select = getAttribute("select");
-	if (select.length() > 0) {
-	    _select = parser.parseExpression(this, "select", null);
-	}
-	
-	parseChildren(parser);
+        else {
+            reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "name");
+        }
+
+        final String select = getAttribute("select");
+        if (select.length() > 0) {
+            _select = parser.parseExpression(this, "select", null);
+        }
+
+        parseChildren(parser);
     }
 
     /**
@@ -136,16 +140,16 @@ final class WithParam extends Instruction {
      * on which is in use.
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	if (_select != null) {
-	    final Type tselect = _select.typeCheck(stable);
-	    if (tselect instanceof ReferenceType == false) {
-		_select = new CastExpr(_select, Type.Reference);
-	    }
-	}
-	else {
-	    typeCheckContents(stable);
-	}
-	return Type.Void;
+        if (_select != null) {
+            final Type tselect = _select.typeCheck(stable);
+            if (tselect instanceof ReferenceType == false) {
+                _select = new CastExpr(_select, Type.Reference);
+            }
+        }
+        else {
+            typeCheckContents(stable);
+        }
+        return Type.Void;
     }
 
     /**
@@ -153,22 +157,22 @@ final class WithParam extends Instruction {
      * a 'select' attribute, or in the with-param element's body
      */
     public void translateValue(ClassGenerator classGen,
-			       MethodGenerator methodGen) {
-	// Compile expression is 'select' attribute if present
-	if (_select != null) {
-	    _select.translate(classGen, methodGen);
-	    _select.startIterator(classGen, methodGen);
-	}
-	// If not, compile result tree from parameter body if present.
-	else if (hasContents()) {
-	    compileResultTree(classGen, methodGen);
-	}
-	// If neither are present then store empty string in parameter slot
-	else {
-	    final ConstantPoolGen cpg = classGen.getConstantPool();
-	    final InstructionList il = methodGen.getInstructionList();
-	    il.append(new PUSH(cpg, Constants.EMPTYSTRING));
-	}
+                               MethodGenerator methodGen) {
+        // Compile expression is 'select' attribute if present
+        if (_select != null) {
+            _select.translate(classGen, methodGen);
+            _select.startIterator(classGen, methodGen);
+        }
+        // If not, compile result tree from parameter body if present.
+        else if (hasContents()) {
+            compileResultTree(classGen, methodGen);
+        }
+        // If neither are present then store empty string in parameter slot
+        else {
+            final ConstantPoolGen cpg = classGen.getConstantPool();
+            final InstructionList il = methodGen.getInstructionList();
+            il.append(new PUSH(cpg, Constants.EMPTYSTRING));
+        }
     }
 
     /**
@@ -177,31 +181,31 @@ final class WithParam extends Instruction {
      * (or update) the parameter frame with the new parameter value.
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// Translate the value and put it on the stack
-	if (_doParameterOptimization) {
-	    translateValue(classGen, methodGen);
-	    return;
-	}
-	
-	// Make name acceptable for use as field name in class
-	String name = Util.escape(getEscapedName());
+        // Translate the value and put it on the stack
+        if (_doParameterOptimization) {
+            translateValue(classGen, methodGen);
+            return;
+        }
 
-	// Load reference to the translet (method is in AbstractTranslet)
-	il.append(classGen.loadTranslet());
+        // Make name acceptable for use as field name in class
+        String name = Util.escape(getEscapedName());
 
-	// Load the name of the parameter
-	il.append(new PUSH(cpg, name)); // TODO: namespace ?
-	// Generete the value of the parameter (use value in 'select' by def.)
-	translateValue(classGen, methodGen);
-	// Mark this parameter value is not being the default value
-	il.append(new PUSH(cpg, false));
-	// Pass the parameter to the template
-	il.append(new INVOKEVIRTUAL(cpg.addMethodref(TRANSLET_CLASS,
-						     ADD_PARAMETER,
-						     ADD_PARAMETER_SIG)));
-	il.append(POP); // cleanup stack
+        // Load reference to the translet (method is in AbstractTranslet)
+        il.append(classGen.loadTranslet());
+
+        // Load the name of the parameter
+        il.append(new PUSH(cpg, name)); // TODO: namespace ?
+        // Generete the value of the parameter (use value in 'select' by def.)
+        translateValue(classGen, methodGen);
+        // Mark this parameter value is not being the default value
+        il.append(new PUSH(cpg, false));
+        // Pass the parameter to the template
+        il.append(new INVOKEVIRTUAL(cpg.addMethodref(TRANSLET_CLASS,
+                                                     ADD_PARAMETER,
+                                                     ADD_PARAMETER_SIG)));
+        il.append(POP); // cleanup stack
     }
 }

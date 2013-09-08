@@ -1,11 +1,29 @@
 /*
- * @(#)MBeanRegistrationException.java	4.17 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
-package javax.management; 
+package javax.management;
 
 
 /**
@@ -14,8 +32,8 @@ package javax.management;
  *
  * @since 1.5
  */
-public class MBeanRegistrationException extends MBeanException   { 
-    
+public class MBeanRegistrationException extends MBeanException   {
+
     /* Serial version */
     private static final long serialVersionUID = 4482382455277067805L;
 
@@ -24,10 +42,10 @@ public class MBeanRegistrationException extends MBeanException   {
      * the actual <CODE>java.lang.Exception</CODE>.
      *
      * @param e the wrapped exception.
-     */       
-    public MBeanRegistrationException(java.lang.Exception e) { 
-	super(e) ;
-    } 
+     */
+    public MBeanRegistrationException(java.lang.Exception e) {
+        super(e) ;
+    }
 
     /**
      * Creates an <CODE>MBeanRegistrationException</CODE> that wraps
@@ -37,7 +55,7 @@ public class MBeanRegistrationException extends MBeanException   {
      * @param e the wrapped exception.
      * @param message the detail message.
      */
-    public MBeanRegistrationException(java.lang.Exception e, String message) { 
-	super(e, message) ;
-    }    
+    public MBeanRegistrationException(java.lang.Exception e, String message) {
+        super(e, message) ;
+    }
 }

@@ -1,16 +1,32 @@
 /*
- * @(#)ORB.java	1.11 03/01/23
+ * Copyright (c) 1998, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package org.omg.CORBA_2_3;
@@ -22,17 +38,17 @@ package org.omg.CORBA_2_3;
 public abstract class ORB extends org.omg.CORBA.ORB {
 
 /**
- * 
+ *
  */
     public org.omg.CORBA.portable.ValueFactory register_value_factory(String id,
-								     org.omg.CORBA.portable.ValueFactory factory)
+                                                                     org.omg.CORBA.portable.ValueFactory factory)
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
- 
+
 
 /**
- * 
+ *
  */
     public void unregister_value_factory(String id)
     {
@@ -41,13 +57,13 @@ public abstract class ORB extends org.omg.CORBA.ORB {
 
 
 /**
- * 
+ *
  */
     public org.omg.CORBA.portable.ValueFactory lookup_value_factory(String id)
     {
         throw new org.omg.CORBA.NO_IMPLEMENT();
     }
-    
+
 
 /**
  * @see <a href="package-summary.html#unimpl"><code>CORBA_2_3</code> package

@@ -1,8 +1,26 @@
 /*
- * @(#)SocketTimeoutException.java	1.6 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -14,14 +32,15 @@ package java.net;
  */
 
 public class SocketTimeoutException extends java.io.InterruptedIOException {
+    private static final long serialVersionUID = -8846654841826352300L;
 
     /**
-     * Constructs a new SocketTimeoutException with a detail 
+     * Constructs a new SocketTimeoutException with a detail
      * message.
      * @param msg the detail message
      */
     public SocketTimeoutException(String msg) {
-	super(msg);
+        super(msg);
     }
 
     /**

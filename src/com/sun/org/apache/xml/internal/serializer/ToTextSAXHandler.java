@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,13 +36,13 @@ import org.xml.sax.ext.LexicalHandler;
 
 /**
  * This class converts SAX-like event to SAX events for
- * xsl:output method "text". 
- * 
+ * xsl:output method "text".
+ *
  * This class is only to be used internally. This class is not a public API.
- * 
+ *
  * @xsl.usage internal
  */
-public final class ToTextSAXHandler extends ToSAXHandler 
+public final class ToTextSAXHandler extends ToSAXHandler
 {
     /**
      * From XSLTC
@@ -56,15 +60,15 @@ public final class ToTextSAXHandler extends ToSAXHandler
     public void endElement(String arg0, String arg1, String arg2)
         throws SAXException
     {
-		if (m_tracer != null)
-            super.fireEndElem(arg2);    	
+                if (m_tracer != null)
+            super.fireEndElem(arg2);
     }
 
     public ToTextSAXHandler(ContentHandler hdlr, LexicalHandler lex, String encoding)
     {
         super(hdlr, lex, encoding);
     }
-    
+
         /**
      * From XSLTC
      */
@@ -116,7 +120,7 @@ public final class ToTextSAXHandler extends ToSAXHandler
     }
 
     /**
-     * Does nothing because 
+     * Does nothing because
      * the indent attribute is ignored for text output.
      *
      */
@@ -320,62 +324,62 @@ public final class ToTextSAXHandler extends ToSAXHandler
     {
         super.startElement(elementNamespaceURI, elementLocalName, elementName);
     }
-    
+
     public void startElement(
     String elementName) throws SAXException
     {
         super.startElement(elementName);
     }
-    
+
 
     /**
      * From XSLTC
      * @see org.xml.sax.ContentHandler#endDocument()
      */
-    public void endDocument() throws SAXException { 
-        
+    public void endDocument() throws SAXException {
+
         flushPending();
         m_saxHandler.endDocument();
-		
+
         if (m_tracer != null)
             super.fireEndDoc();
     }
- 
+
     /**
-	 *	
+         *
      * @see ExtendedContentHandler#characters(String)
      */
-    public void characters(String characters) 
-    throws SAXException 
-    { 
+    public void characters(String characters)
+    throws SAXException
+    {
         final int length = characters.length();
         if (length > m_charsBuff.length)
         {
             m_charsBuff = new char[length*2 + 1];
         }
         characters.getChars(0, length, m_charsBuff, 0);
-   
+
         m_saxHandler.characters(m_charsBuff, 0, length);
-    
+
     }
     /**
-	 * @see org.xml.sax.ContentHandler#characters(char[], int, int)
+         * @see org.xml.sax.ContentHandler#characters(char[], int, int)
      */
     public void characters(char[] characters, int offset, int length)
-    throws SAXException 
-    { 
-    
+    throws SAXException
+    {
+
         m_saxHandler.characters(characters, offset, length);
 
         // time to fire off characters event
-		if (m_tracer != null)
-            super.fireCharEvent(characters, offset, length);                
+                if (m_tracer != null)
+            super.fireCharEvent(characters, offset, length);
     }
 
     /**
      * From XSLTC
      */
-    public void addAttribute(String name, String value) 
+    public void addAttribute(String name, String value)
     {
         // do nothing
     }

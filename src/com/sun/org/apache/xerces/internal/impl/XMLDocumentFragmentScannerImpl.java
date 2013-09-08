@@ -1,28 +1,5 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
- *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLDocumentFragmentScannerImpl.java,v 1.13 2007/05/09 15:23:31 ndw Exp $
- * @(#)XMLDocumentFragmentScannerImpl.java	1.24 08/03/28
- *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -95,7 +72,7 @@ import javax.xml.stream.events.XMLEvent;
  * @author Arnaud  Le Hors, IBM
  * @author Eric Ye, IBM
  * @author Sunitha Reddy, SUN Microsystems
- * @version $Id: XMLDocumentFragmentScannerImpl.java,v 1.13 2007/05/09 15:23:31 ndw Exp $
+ * @version $Id: XMLDocumentFragmentScannerImpl.java,v 1.19 2010-11-02 19:54:55 joehw Exp $
  *
  */
 public class XMLDocumentFragmentScannerImpl
@@ -276,6 +253,7 @@ public class XMLDocumentFragmentScannerImpl
     protected boolean fHasExternalDTD;
     
     /** Standalone. */
+    protected boolean fStandaloneSet;
     protected boolean fStandalone;
     protected String fVersion;
     
@@ -568,40 +546,23 @@ public class XMLDocumentFragmentScannerImpl
         //fAttributes.setNamespaces(fNamespaces);
                 
         // xerces features
-        try{
-            fReportCdataEvent = componentManager.getFeature(Constants.STAX_REPORT_CDATA_EVENT);
-        } catch (XMLConfigurationException e) {
-            e.printStackTrace();
-            //note that default value of this feature is true in stax configuration
-            fReportCdataEvent = true;
-        }
-        
-        try {
-            fSecurityManager = (SecurityManager)componentManager.getProperty(Constants.SECURITY_MANAGER);
-        } catch (XMLConfigurationException e) {
-            fSecurityManager = null;
-        }
+        fReportCdataEvent = componentManager.getFeature(Constants.STAX_REPORT_CDATA_EVENT, true);
+
+        fSecurityManager = (SecurityManager)componentManager.getProperty(Constants.SECURITY_MANAGER, null);
         fElementAttributeLimit = (fSecurityManager != null)?fSecurityManager.getElementAttrLimit():0;
         
-        try {
-            fNotifyBuiltInRefs = componentManager.getFeature(NOTIFY_BUILTIN_REFS);
-        } catch (XMLConfigurationException e) {
-            fNotifyBuiltInRefs = false;
-        }
-        
-        try {
-            Object resolver = componentManager.getProperty(ENTITY_RESOLVER);
-            fExternalSubsetResolver = (resolver instanceof ExternalSubsetResolver) ?
+        fNotifyBuiltInRefs = componentManager.getFeature(NOTIFY_BUILTIN_REFS, false);
+
+        Object resolver = componentManager.getProperty(ENTITY_RESOLVER, null);
+        fExternalSubsetResolver = (resolver instanceof ExternalSubsetResolver) ?
                 (ExternalSubsetResolver) resolver : null;
-        } catch (XMLConfigurationException e) {
-            fExternalSubsetResolver = null;
-        }
-                        
+
         // initialize vars
         fMarkupDepth = 0;
         fCurrentElement = null;
         fElementStack.clear();
         fHasExternalDTD = false;
+        fStandaloneSet = false;
         fStandalone = false;
         fInScanContent = false;
         //skipping algorithm
@@ -647,6 +608,7 @@ public class XMLDocumentFragmentScannerImpl
         fElementStack.clear();
         //fElementStack2.clear();
         fHasExternalDTD = false;
+        fStandaloneSet = false;
         fStandalone = false;
         //fReplaceEntityReferences = true;
         //fSupportExternalEntities = true;
@@ -957,7 +919,8 @@ public class XMLDocumentFragmentScannerImpl
         String standalone = fStrings[2];
         fDeclaredEncoding = encoding;
         // set standalone
-        fStandalone = standalone != null && standalone.equals("yes");
+        fStandaloneSet = standalone != null;
+        fStandalone = fStandaloneSet && standalone.equals("yes");
         ///xxx see where its used.. this is not used anywhere. it may be useful for entity to store this information
         //but this information is only related with Document Entity.
         fEntityManager.setStandalone(fStandalone);
@@ -1482,6 +1445,10 @@ public class XMLDocumentFragmentScannerImpl
         return fAttributes;
     }
     
+    /** return if standalone is set */
+    public boolean standaloneSet(){
+        return fStandaloneSet;
+    }
     /** return if the doucment is standalone */
     public boolean isStandAlone(){
         return fStandalone ;
@@ -2665,15 +2632,16 @@ public class XMLDocumentFragmentScannerImpl
          */
         
         public int next() throws IOException, XNIException {
+            while (true) {
             try {
                 if(DEBUG_NEXT){
                     System.out.println("NOW IN FragmentContentDriver");
                     System.out.println("Entering the FragmentContentDriver with = " + getScannerStateName(fScannerState));
                 }
-                
+
                 //decide the actual sub state of the scanner.For more information refer to the javadoc of
                 //decideSubState.
-                
+
                 switch (fScannerState) {
                     case SCANNER_STATE_CONTENT: {
                         final int ch = fEntityScanner.peekChar();
@@ -2690,21 +2658,21 @@ public class XMLDocumentFragmentScannerImpl
                             break;
                         }
                     }
-                    
+
                     case SCANNER_STATE_START_OF_MARKUP: {
                         startOfMarkup();
                         break;
                     }//case: SCANNER_STATE_START_OF_MARKUP
-                    
+
                 }//end of switch
                 //decideSubState() ;
-                
+
                 //do some special handling if isCoalesce is set to true.
                 if(fIsCoalesce){
                     fUsebuffer = true ;
                     //if the last section was character data
                     if(fLastSectionWasCharacterData){
-                        
+
                         //if we dont encounter any CDATA or ENITY REFERENCE and current state is also not SCANNER_STATE_CHARACTER_DATA
                         //return the last scanned charactrer data.
                         if((fScannerState != SCANNER_STATE_CDATA) && (fScannerState != SCANNER_STATE_REFERENCE)
@@ -2722,26 +2690,26 @@ public class XMLDocumentFragmentScannerImpl
                         //return the CHARACTERS event.
                         if((fScannerState != SCANNER_STATE_CDATA) && (fScannerState != SCANNER_STATE_REFERENCE)
                         && (fScannerState != SCANNER_STATE_CHARACTER_DATA)){
-                            
+
                             fLastSectionWasCData = false;
                             fLastSectionWasEntityReference = false;
                             return XMLEvent.CHARACTERS;
                         }
                     }
                 }
-                
-                
+
+
                 if(DEBUG_NEXT){
                     System.out.println("Actual scanner state set by decideSubState is = " + getScannerStateName(fScannerState));
                 }
-                
+
                 switch(fScannerState){
-                    
+
                     case XMLEvent.START_DOCUMENT :
                         return XMLEvent.START_DOCUMENT;
-                        
+
                     case SCANNER_STATE_START_ELEMENT_TAG :{
-                        
+
                         //xxx this function returns true when element is empty.. can be linked to end element event.
                         //returns true if the element is empty
                         fEmptyElement = scanStartElement() ;
@@ -2754,7 +2722,7 @@ public class XMLDocumentFragmentScannerImpl
                         }
                         return XMLEvent.START_ELEMENT ;
                     }
-                    
+
                     case SCANNER_STATE_CHARACTER_DATA: {
                         if(DEBUG_COALESCE){
                             System.out.println("fLastSectionWasCData = " + fLastSectionWasCData);
@@ -2762,7 +2730,7 @@ public class XMLDocumentFragmentScannerImpl
                         }
                         //if last section was either entity reference or cdata or character data we should be using buffer
                         fUsebuffer = fLastSectionWasEntityReference || fLastSectionWasCData || fLastSectionWasCharacterData ;
-                        
+
                         //When coalesce is set to true and last state was REFERENCE or CDATA or CHARACTER_DATA, buffer should not be cleared.
                         if( fIsCoalesce && (fLastSectionWasEntityReference || fLastSectionWasCData || fLastSectionWasCharacterData) ){
                             fLastSectionWasEntityReference = false;
@@ -2773,10 +2741,10 @@ public class XMLDocumentFragmentScannerImpl
                             //clear the buffer
                             fContentBuffer.clear();
                         }
-                        
+
                         //set the fTempString length to 0 before passing it on to scanContent
                         //scanContent sets the correct co-ordinates as per the content read
-                        fTempString.length = 0;                        
+                        fTempString.length = 0;
                         int c = fEntityScanner.scanContent(fTempString);
                         if(DEBUG){
                             System.out.println("fTempString = " + fTempString);
@@ -2801,7 +2769,7 @@ public class XMLDocumentFragmentScannerImpl
                                     fLastSectionWasCharacterData = true;
                                     fContentBuffer.append(fTempString);
                                     fTempString.length = 0;
-                                    return fDriver.next();
+                                    continue;
                                 }
                             }
                             //in case last section was either entity reference or cdata or character data -- we should be using buffer
@@ -2817,7 +2785,7 @@ public class XMLDocumentFragmentScannerImpl
                                 return XMLEvent.SPACE;
                             }else
                                 return XMLEvent.CHARACTERS;
-                            
+
                         } else{
                             fUsebuffer = true ;
                             if(DEBUG){
@@ -2846,7 +2814,7 @@ public class XMLDocumentFragmentScannerImpl
                             // could flush the buffer out - this happens when we're parsing an
                             // entity which ends with a ]
                             fInScanContent = true;
-                            
+
                             // We work on a single character basis to handle cases such as:
                             // ']]]>' which we might otherwise miss.
                             //
@@ -2862,11 +2830,11 @@ public class XMLDocumentFragmentScannerImpl
                             c = -1 ;
                             fInScanContent = false;
                         }
-                        
+
                         do{
                             //xxx: we should be using only one buffer..
                             // we need not to grow the buffer only when isCoalesce() is not true;
-                            
+
                             if (c == '<') {
                                 fEntityScanner.scanChar();
                                 setScannerState(SCANNER_STATE_START_OF_MARKUP);
@@ -2893,14 +2861,14 @@ public class XMLDocumentFragmentScannerImpl
                             //xxx: scanContent also gives character callback.
                             c = scanContent(fContentBuffer) ;
                             //we should not be iterating again if fIsCoalesce is not set to true
-                            
+
                             if(!fIsCoalesce){
                                 setScannerState(SCANNER_STATE_CONTENT);
                                 break;
                             }
-                            
+
                         }while(true);
-                        
+
                         //if (fDocumentHandler != null) {
                         //  fDocumentHandler.characters(fContentBuffer, null);
                         //}
@@ -2908,7 +2876,7 @@ public class XMLDocumentFragmentScannerImpl
                         //if fIsCoalesce is true there might be more data so call fDriver.next()
                         if(fIsCoalesce){
                             fLastSectionWasCharacterData = true ;
-                            return fDriver.next();
+                            continue;
                         }else{
                             if(dtdGrammarUtil!= null && dtdGrammarUtil.isIgnorableWhiteSpace(fContentBuffer)){
                                 if(DEBUG)System.out.println("Return SPACE EVENT");
@@ -2917,7 +2885,7 @@ public class XMLDocumentFragmentScannerImpl
                                 return XMLEvent.CHARACTERS ;
                         }
                     }
-                    
+
                     case SCANNER_STATE_END_ELEMENT_TAG :{
                         if(fEmptyElement){
                             //set it back to false.
@@ -2926,7 +2894,7 @@ public class XMLDocumentFragmentScannerImpl
                             //check the case when there is comment after single element document
                             //<foo/> and some comment after this
                             return (fMarkupDepth == 0 && elementDepthIsZeroHook() ) ? XMLEvent.END_ELEMENT : XMLEvent.END_ELEMENT ;
-                            
+
                         } else if(scanEndElement() == 0) {
                             //It is last element of the document
                             if (elementDepthIsZeroHook()) {
@@ -2935,12 +2903,12 @@ public class XMLDocumentFragmentScannerImpl
                                 //xxx understand this point once again..
                                 return XMLEvent.END_ELEMENT ;
                             }
-                            
+
                         }
                         setScannerState(SCANNER_STATE_CONTENT);
                         return XMLEvent.END_ELEMENT ;
                     }
-                    
+
                     case SCANNER_STATE_COMMENT: { //SCANNER_STATE_COMMENT:
                         scanComment();
                         setScannerState(SCANNER_STATE_CONTENT);
@@ -2961,7 +2929,7 @@ public class XMLDocumentFragmentScannerImpl
                     case SCANNER_STATE_CDATA :{ //SCANNER_STATE_CDATA: {
                         //xxx: What if CDATA is the first event
                         //<foo><![CDATA[hello<><>]]>append</foo>
-                        
+
                         //we should not clear the buffer only when the last state was either SCANNER_STATE_REFERENCE or
                         //SCANNER_STATE_CHARACTER_DATA or SCANNER_STATE_REFERENCE
                         if(fIsCoalesce && ( fLastSectionWasEntityReference || fLastSectionWasCData || fLastSectionWasCharacterData)){
@@ -2986,18 +2954,18 @@ public class XMLDocumentFragmentScannerImpl
                         if(fIsCoalesce){
                             fLastSectionWasCData = true ;
                             //there might be more data to coalesce.
-                            return fDriver.next();
+                            continue;
                         }else if(fReportCdataEvent){
                             return XMLEvent.CDATA;
                         } else{
                             return XMLEvent.CHARACTERS;
                         }
                     }
-                    
+
                     case SCANNER_STATE_REFERENCE :{
                         fMarkupDepth++;
                         foundBuiltInRefs = false;
-                        
+
                         //we should not clear the buffer only when the last state was either CDATA or
                         //SCANNER_STATE_CHARACTER_DATA or SCANNER_STATE_REFERENCE
                         if(fIsCoalesce && ( fLastSectionWasEntityReference || fLastSectionWasCData || fLastSectionWasCharacterData)){
@@ -3028,18 +2996,18 @@ public class XMLDocumentFragmentScannerImpl
                                 setScannerState(SCANNER_STATE_CONTENT);
                                 return XMLEvent.CHARACTERS;
                             }
-                            
+
                             //if there was a text declaration, call next() it will be taken care.
                             if(fScannerState == SCANNER_STATE_TEXT_DECL){
                                 fLastSectionWasEntityReference = true ;
-                                return fDriver.next();
+                                continue;
                             }
-                            
+
                             if(fScannerState == SCANNER_STATE_REFERENCE){
                                 setScannerState(SCANNER_STATE_CONTENT);
                                 if (fReplaceEntityReferences && fEntityStore.isDeclaredEntity(fCurrentEntityName)) {
                                     // Skip the entity reference, we don't care
-                                    return fDriver.next();
+                                    continue;
                                 }
                                 return XMLEvent.ENTITY_REFERENCE;
                             }
@@ -3048,9 +3016,9 @@ public class XMLDocumentFragmentScannerImpl
                         //set the next possible state to SCANNER_STATE_CONTENT
                         setScannerState(SCANNER_STATE_CONTENT);
                         fLastSectionWasEntityReference = true ;
-                        return fDriver.next();
+                        continue;
                     }
-                    
+
                     case SCANNER_STATE_TEXT_DECL: {
                         // scan text decl
                         if (fEntityScanner.skipString("<?xml")) {
@@ -3060,7 +3028,7 @@ public class XMLDocumentFragmentScannerImpl
                             if (isValidNameChar(fEntityScanner.peekChar())) {
                                 fStringBuffer.clear();
                                 fStringBuffer.append("xml");
-                                
+
                                 if (fNamespaces) {
                                     while (isValidNCName(fEntityScanner.peekChar())) {
                                         fStringBuffer.append((char)fEntityScanner.scanChar());
@@ -3071,10 +3039,10 @@ public class XMLDocumentFragmentScannerImpl
                                     }
                                 }
                                 String target = fSymbolTable.addSymbol(fStringBuffer.ch, fStringBuffer.offset, fStringBuffer.length);
-                                fStringBuffer.clear();
-                                scanPIData(target, fStringBuffer);
+                                fContentBuffer.clear();
+                                scanPIData(target, fContentBuffer);
                             }
-                            
+
                             // standard text declaration
                             else {
                                 //xxx: this function gives callback
@@ -3087,10 +3055,10 @@ public class XMLDocumentFragmentScannerImpl
                         //xxx: we don't return any state, so how do we get to know about TEXT declarations.
                         //it seems we have to careful when to allow function issue a callback
                         //and when to allow adapter issue a callback.
-                        return fDriver.next();
+                        continue;
                     }
-                    
-                    
+
+
                     case SCANNER_STATE_ROOT_ELEMENT: {
                         if (scanRootElementHook()) {
                             fEmptyElement = true;
@@ -3098,7 +3066,7 @@ public class XMLDocumentFragmentScannerImpl
                             return XMLEvent.START_ELEMENT;
                         }
                         setScannerState(SCANNER_STATE_CONTENT);
-                        return XMLEvent.START_ELEMENT ;                        
+                        return XMLEvent.START_ELEMENT ;
                     }
                     case SCANNER_STATE_CHAR_REFERENCE : {
                         fContentBuffer.clear();
@@ -3109,15 +3077,15 @@ public class XMLDocumentFragmentScannerImpl
                     }
                     default:
                         throw new XNIException("Scanner State " + fScannerState + " not Recognized ");
-                        
+
                 }//switch
             }
             // premature end of file
             catch (EOFException e) {
                 endOfFileHook(e);
                 return -1;
-            }            
-            
+            }
+            } //while loop
         }//next
         
         

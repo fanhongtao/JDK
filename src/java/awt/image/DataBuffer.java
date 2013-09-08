@@ -1,8 +1,26 @@
 /*
- * @(#)DataBuffer.java	1.30 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ****************************************************************
@@ -16,6 +34,12 @@
  ******************************************************************/
 
 package java.awt.image;
+
+import sun.java2d.StateTrackable.State;
+import static sun.java2d.StateTrackable.State.*;
+import sun.java2d.StateTrackableDelegate;
+
+import sun.awt.image.SunWritableRaster;
 
 /**
  * This class exists to wrap one or more data arrays.  Each data array in
@@ -35,22 +59,20 @@ package java.awt.image;
  * or one of the types defined below.  Other types may be added in
  * the future.  Generally, an object of class DataBuffer will be cast down
  * to one of its data type specific subclasses to access data type specific
- * methods for improved performance.  Currently, the Java 2D(tm) API 
+ * methods for improved performance.  Currently, the Java 2D(tm) API
  * image classes use TYPE_BYTE, TYPE_USHORT, TYPE_INT, TYPE_SHORT,
  * TYPE_FLOAT, and TYPE_DOUBLE DataBuffers to store image data.
  * @see java.awt.image.Raster
  * @see java.awt.image.SampleModel
  */
-
-public abstract class DataBuffer
-{
+public abstract class DataBuffer {
 
     /** Tag for unsigned byte data. */
     public static final int TYPE_BYTE  = 0;
 
     /** Tag for unsigned short data. */
     public static final int TYPE_USHORT = 1;
- 
+
     /** Tag for signed short data.  Placeholder for future use. */
     public static final int TYPE_SHORT = 2;
 
@@ -65,29 +87,32 @@ public abstract class DataBuffer
 
     /** Tag for undefined data. */
     public static final int TYPE_UNDEFINED = 32;
- 
+
     /** The data type of this DataBuffer. */
     protected int dataType;
- 
+
     /** The number of banks in this DataBuffer. */
     protected int banks;
 
     /** Offset into default (first) bank from which to get the first element. */
     protected int offset;
- 
+
     /** Usable size of all banks. */
     protected int size;
 
     /** Offsets into all banks. */
     protected int offsets[];
 
+    /* The current StateTrackable state. */
+    StateTrackableDelegate theTrackable;
+
     /** Size of the data types indexed by DataType tags defined above. */
     private static final int dataTypeSize[] = {8,16,16,32,32,64};
- 
-    /** Returns the size (in bits) of the data type, given a datatype tag. 
+
+    /** Returns the size (in bits) of the data type, given a datatype tag.
       * @param type the value of one of the defined datatype tags
       * @return the size of the data type
-      * @throws IllegalArgumentException if <code>type</code> is less than 
+      * @throws IllegalArgumentException if <code>type</code> is less than
       *         zero or greater than {@link #TYPE_DOUBLE}
       */
     public static int getDataTypeSize(int type) {
@@ -100,10 +125,27 @@ public abstract class DataBuffer
     /**
      *  Constructs a DataBuffer containing one bank of the specified
      *  data type and size.
+     *
      *  @param dataType the data type of this <code>DataBuffer</code>
      *  @param size the size of the banks
      */
     protected DataBuffer(int dataType, int size) {
+        this(UNTRACKABLE, dataType, size);
+    }
+
+    /**
+     *  Constructs a DataBuffer containing one bank of the specified
+     *  data type and size with the indicated initial {@link State State}.
+     *
+     *  @param initialState the initial {@link State State} state of the data
+     *  @param dataType the data type of this <code>DataBuffer</code>
+     *  @param size the size of the banks
+     *  @since 1.7
+     */
+    DataBuffer(State initialState,
+               int dataType, int size)
+    {
+        this.theTrackable = StateTrackableDelegate.createInstance(initialState);
         this.dataType = dataType;
         this.banks = 1;
         this.size = size;
@@ -114,12 +156,32 @@ public abstract class DataBuffer
     /**
      *  Constructs a DataBuffer containing the specified number of
      *  banks.  Each bank has the specified size and an offset of 0.
+     *
      *  @param dataType the data type of this <code>DataBuffer</code>
      *  @param size the size of the banks
      *  @param numBanks the number of banks in this
      *         <code>DataBuffer</code>
      */
     protected DataBuffer(int dataType, int size, int numBanks) {
+        this(UNTRACKABLE, dataType, size, numBanks);
+    }
+
+    /**
+     *  Constructs a DataBuffer containing the specified number of
+     *  banks with the indicated initial {@link State State}.
+     *  Each bank has the specified size and an offset of 0.
+     *
+     *  @param initialState the initial {@link State State} state of the data
+     *  @param dataType the data type of this <code>DataBuffer</code>
+     *  @param size the size of the banks
+     *  @param numBanks the number of banks in this
+     *         <code>DataBuffer</code>
+     *  @since 1.7
+     */
+    DataBuffer(State initialState,
+               int dataType, int size, int numBanks)
+    {
+        this.theTrackable = StateTrackableDelegate.createInstance(initialState);
         this.dataType = dataType;
         this.banks = numBanks;
         this.size = size;
@@ -130,6 +192,7 @@ public abstract class DataBuffer
     /**
      *  Constructs a DataBuffer that contains the specified number
      *  of banks.  Each bank has the specified datatype, size and offset.
+     *
      *  @param dataType the data type of this <code>DataBuffer</code>
      *  @param size the size of the banks
      *  @param numBanks the number of banks in this
@@ -137,6 +200,26 @@ public abstract class DataBuffer
      *  @param offset the offset for each bank
      */
     protected DataBuffer(int dataType, int size, int numBanks, int offset) {
+        this(UNTRACKABLE, dataType, size, numBanks, offset);
+    }
+
+    /**
+     *  Constructs a DataBuffer that contains the specified number
+     *  of banks with the indicated initial {@link State State}.
+     *  Each bank has the specified datatype, size and offset.
+     *
+     *  @param initialState the initial {@link State State} state of the data
+     *  @param dataType the data type of this <code>DataBuffer</code>
+     *  @param size the size of the banks
+     *  @param numBanks the number of banks in this
+     *         <code>DataBuffer</code>
+     *  @param offset the offset for each bank
+     *  @since 1.7
+     */
+    DataBuffer(State initialState,
+               int dataType, int size, int numBanks, int offset)
+    {
+        this.theTrackable = StateTrackableDelegate.createInstance(initialState);
         this.dataType = dataType;
         this.banks = numBanks;
         this.size = size;
@@ -152,6 +235,7 @@ public abstract class DataBuffer
      *  of banks.  Each bank has the specified datatype and size.  The
      *  offset for each bank is specified by its respective entry in
      *  the offsets array.
+     *
      *  @param dataType the data type of this <code>DataBuffer</code>
      *  @param size the size of the banks
      *  @param numBanks the number of banks in this
@@ -161,24 +245,48 @@ public abstract class DataBuffer
      *          does not equal the length of <code>offsets</code>
      */
     protected DataBuffer(int dataType, int size, int numBanks, int offsets[]) {
+        this(UNTRACKABLE, dataType, size, numBanks, offsets);
+    }
+
+    /**
+     *  Constructs a DataBuffer which contains the specified number
+     *  of banks with the indicated initial {@link State State}.
+     *  Each bank has the specified datatype and size.  The
+     *  offset for each bank is specified by its respective entry in
+     *  the offsets array.
+     *
+     *  @param initialState the initial {@link State State} state of the data
+     *  @param dataType the data type of this <code>DataBuffer</code>
+     *  @param size the size of the banks
+     *  @param numBanks the number of banks in this
+     *         <code>DataBuffer</code>
+     *  @param offsets an array containing an offset for each bank.
+     *  @throws ArrayIndexOutOfBoundsException if <code>numBanks</code>
+     *          does not equal the length of <code>offsets</code>
+     *  @since 1.7
+     */
+    DataBuffer(State initialState,
+               int dataType, int size, int numBanks, int offsets[])
+    {
         if (numBanks != offsets.length) {
             throw new ArrayIndexOutOfBoundsException("Number of banks" +
                  " does not match number of bank offsets");
         }
+        this.theTrackable = StateTrackableDelegate.createInstance(initialState);
         this.dataType = dataType;
         this.banks = numBanks;
         this.size = size;
         this.offset = offsets[0];
         this.offsets = (int[])offsets.clone();
     }
- 
+
     /**  Returns the data type of this DataBuffer.
      *   @return the data type of this <code>DataBuffer</code>.
      */
     public int getDataType() {
         return dataType;
     }
-  
+
     /**  Returns the size (in array elements) of all banks.
      *   @return the size of all banks.
      */
@@ -192,7 +300,7 @@ public abstract class DataBuffer
     public int getOffset() {
         return offset;
     }
- 
+
     /** Returns the offsets (in array elements) of all the banks.
      *  @return the offsets of all banks.
      */
@@ -200,7 +308,7 @@ public abstract class DataBuffer
         return (int[])offsets.clone();
     }
 
-    /** Returns the number of banks in this DataBuffer. 
+    /** Returns the number of banks in this DataBuffer.
      *  @return the number of banks.
      */
     public int getNumBanks() {
@@ -273,9 +381,9 @@ public abstract class DataBuffer
 
     /**
      * Returns the requested data array element from the specified bank
-     * as a float.  The implementation in this class is to cast 
+     * as a float.  The implementation in this class is to cast
      * {@link #getElem(int, int)}
-     * to a float.  Subclasses can override this method if another 
+     * to a float.  Subclasses can override this method if another
      * implementation is needed.
      * @param bank the specified bank
      * @param i the index of the requested data array element
@@ -291,25 +399,25 @@ public abstract class DataBuffer
     /**
      * Sets the requested data array element in the first (default) bank
      * from the given float.  The implementation in this class is to cast
-     * val to an int and call {@link #setElem(int, int)}.  Subclasses 
+     * val to an int and call {@link #setElem(int, int)}.  Subclasses
      * can override this method if another implementation is needed.
      * @param i the specified index
      * @param val the value to set the element at the specified index in
      * the data array
      * @see #getElemFloat(int)
      * @see #getElemFloat(int, int)
-     */ 
+     */
     public void setElemFloat(int i, float val) {
         setElem(i,(int)val);
     }
 
     /**
      * Sets the requested data array element in the specified bank
-     * from the given float.  The implementation in this class is to cast            
+     * from the given float.  The implementation in this class is to cast
      * val to an int and call {@link #setElem(int, int)}.  Subclasses can
      * override this method if another implementation is needed.
      * @param bank the specified bank
-     * @param i the specified index  
+     * @param i the specified index
      * @param val the value to set the element in the specified bank at
      * the specified index in the data array
      * @see #getElemFloat(int)
@@ -321,9 +429,9 @@ public abstract class DataBuffer
 
     /**
      * Returns the requested data array element from the first (default) bank
-     * as a double.  The implementation in this class is to cast 
+     * as a double.  The implementation in this class is to cast
      * {@link #getElem(int)}
-     * to a double.  Subclasses can override this method if another 
+     * to a double.  Subclasses can override this method if another
      * implementation is needed.
      * @param i the specified index
      * @return a double value representing the element at the specified
@@ -404,4 +512,30 @@ public abstract class DataBuffer
         }
         return null;
     }
- }
+
+    static {
+        SunWritableRaster.setDataStealer(new SunWritableRaster.DataStealer() {
+            public byte[] getData(DataBufferByte dbb, int bank) {
+                return dbb.bankdata[bank];
+            }
+
+            public short[] getData(DataBufferUShort dbus, int bank) {
+                return dbus.bankdata[bank];
+            }
+
+            public int[] getData(DataBufferInt dbi, int bank) {
+                return dbi.bankdata[bank];
+            }
+
+            public StateTrackableDelegate getTrackable(DataBuffer db) {
+                return db.theTrackable;
+            }
+
+            public void setTrackable(DataBuffer db,
+                                     StateTrackableDelegate trackable)
+            {
+                db.theTrackable = trackable;
+            }
+        });
+    }
+}

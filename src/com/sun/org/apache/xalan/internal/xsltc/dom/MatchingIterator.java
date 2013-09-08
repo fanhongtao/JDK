@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,21 +28,21 @@ import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
 import com.sun.org.apache.xml.internal.dtm.ref.DTMAxisIteratorBase;
 
 /**
- * This is a special kind of iterator that takes a source iterator and a 
- * node N. If initialized with a node M (the parent of N) it computes the 
- * position of N amongst the children of M. This position can be obtained 
+ * This is a special kind of iterator that takes a source iterator and a
+ * node N. If initialized with a node M (the parent of N) it computes the
+ * position of N amongst the children of M. This position can be obtained
  * by calling getPosition().
  * It is an iterator even though next() will never be called. It is used to
  * match patterns with a single predicate like:
  *
  *    BOOK[position() = last()]
  *
- * In this example, the source iterator will return elements of type BOOK, 
- * a call to position() will return the position of N. Notice that because 
- * of the way the pattern matching is implemented, N will always be a node 
- * in the source since (i) it is a BOOK or the test sequence would not be 
- * considered and (ii) the source iterator is initialized with M which is 
- * the parent of N. Also, and still in this example, a call to last() will 
+ * In this example, the source iterator will return elements of type BOOK,
+ * a call to position() will return the position of N. Notice that because
+ * of the way the pattern matching is implemented, N will always be a node
+ * in the source since (i) it is a BOOK or the test sequence would not be
+ * considered and (ii) the source iterator is initialized with M which is
+ * the parent of N. Also, and still in this example, a call to last() will
  * return the number of elements in the source (i.e. the number of BOOKs).
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
@@ -56,54 +60,54 @@ public final class MatchingIterator extends DTMAxisIteratorBase {
     private final int _match;
 
     public MatchingIterator(int match, DTMAxisIterator source) {
-	_source = source;
-	_match = match;
+        _source = source;
+        _match = match;
     }
 
 
     public void setRestartable(boolean isRestartable) {
-	_isRestartable = isRestartable;
-	_source.setRestartable(isRestartable);
+        _isRestartable = isRestartable;
+        _source.setRestartable(isRestartable);
     }
 
     public DTMAxisIterator cloneIterator() {
 
-	try {
-	    final MatchingIterator clone = (MatchingIterator) super.clone();
-	    clone._source = _source.cloneIterator();
-	    clone._isRestartable = false;
-	    return clone.reset();
-	}
-	catch (CloneNotSupportedException e) {
-	    BasisLibrary.runTimeError(BasisLibrary.ITERATOR_CLONE_ERR,
-				      e.toString());
-	    return null;
-	}
+        try {
+            final MatchingIterator clone = (MatchingIterator) super.clone();
+            clone._source = _source.cloneIterator();
+            clone._isRestartable = false;
+            return clone.reset();
+        }
+        catch (CloneNotSupportedException e) {
+            BasisLibrary.runTimeError(BasisLibrary.ITERATOR_CLONE_ERR,
+                                      e.toString());
+            return null;
+        }
     }
-    
-    public DTMAxisIterator setStartNode(int node) {
-	if (_isRestartable) {
-	    // iterator is not a clone
-	    _source.setStartNode(node);
 
-	    // Calculate the position of the node in the set
-	    _position = 1;
-	    while ((node = _source.next()) != END && node != _match) {
-		_position++;
-	    }
-	}
-	return this;
+    public DTMAxisIterator setStartNode(int node) {
+        if (_isRestartable) {
+            // iterator is not a clone
+            _source.setStartNode(node);
+
+            // Calculate the position of the node in the set
+            _position = 1;
+            while ((node = _source.next()) != END && node != _match) {
+                _position++;
+            }
+        }
+        return this;
     }
 
     public DTMAxisIterator reset() {
-	_source.reset();
-	return resetPosition();
+        _source.reset();
+        return resetPosition();
     }
-    
+
     public int next() {
-	return _source.next();
+        return _source.next();
     }
-	
+
     public int getLast() {
         if (_last == -1) {
             _last = _source.getLast();
@@ -112,14 +116,14 @@ public final class MatchingIterator extends DTMAxisIteratorBase {
     }
 
     public int getPosition() {
-	return _position;
+        return _position;
     }
 
     public void setMark() {
-	_source.setMark();
+        _source.setMark();
     }
 
     public void gotoMark() {
-	_source.gotoMark();
+        _source.gotoMark();
     }
 }

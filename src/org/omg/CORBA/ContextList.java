@@ -1,8 +1,26 @@
 /*
- * @(#)ContextList.java	1.25 05/11/17
+ * Copyright (c) 1996, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -34,7 +52,6 @@ package org.omg.CORBA;
  * method <code>remove</code>.
  *
  * @see Context
- * @version 1.2, 09/09/97
  * @since   JDK1.2
  */
 
@@ -44,7 +61,7 @@ public abstract class ContextList {
      * Returns the number of <code>String</code> objects in this
      * <code>ContextList</code> object.
      *
-     * @return			an <code>int</code> representing the number of
+     * @return                  an <code>int</code> representing the number of
      * <code>String</code>s in this <code>ContextList</code> object
      */
 
@@ -54,7 +71,7 @@ public abstract class ContextList {
      * Adds a <code>String</code> object to this <code>ContextList</code>
      * object.
      *
-     * @param ctx		the <code>String</code> object to be added
+     * @param ctx               the <code>String</code> object to be added
      */
 
     public abstract void add(String ctx);
@@ -62,11 +79,11 @@ public abstract class ContextList {
     /**
      * Returns the <code>String</code> object at the given index.
      *
-     * @param index		the index of the string desired, with 0 being the
+     * @param index             the index of the string desired, with 0 being the
      index of the first string
-     * @return			the string at the given index
+     * @return                  the string at the given index
      * @exception org.omg.CORBA.Bounds  if the index is greater than
-     *				or equal to the number of strings in this
+     *                          or equal to the number of strings in this
      *                <code>ContextList</code> object
      */
 
@@ -77,10 +94,10 @@ public abstract class ContextList {
      * the indices of all strings following the one removed are
      * shifted down by one.
      *
-     * @param index	the index of the <code>String</code> object to be removed,
+     * @param index     the index of the <code>String</code> object to be removed,
      *                with 0 designating the first string
      * @exception org.omg.CORBA.Bounds  if the index is greater than
-     *				or equal to the number of <code>String</code> objects in
+     *                          or equal to the number of <code>String</code> objects in
      *                this <code>ContextList</code> object
      */
 

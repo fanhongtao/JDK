@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidNameException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -18,7 +36,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   *
   * @see Context
   * @see javax.naming.directory.DirContext
@@ -33,11 +50,11 @@ public class InvalidNameException extends NamingException {
       * Constructs an instance of InvalidNameException using an
       * explanation of the problem.
       * All other fields are initialized to null.
-      * @param explanation	A possibly null message explaining the problem.
+      * @param explanation      A possibly null message explaining the problem.
       * @see java.lang.Throwable#getMessage
       */
     public InvalidNameException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -45,7 +62,7 @@ public class InvalidNameException extends NamingException {
       * all fields set to null.
       */
     public InvalidNameException() {
-	super();
+        super();
     }
 
     /**

@@ -1,8 +1,26 @@
 /*
- * @(#)MonitoredObjectImpl.java	1.5 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.monitoring;
@@ -18,7 +36,7 @@ import com.sun.corba.se.spi.monitoring.MonitoredAttribute;
 public class MonitoredObjectImpl implements MonitoredObject {
     private final String name;
     private final String description;
-   
+
     // List of all child Monitored Objects
     private Map children = new HashMap();
 
@@ -38,9 +56,9 @@ public class MonitoredObjectImpl implements MonitoredObject {
         synchronized( this ) {
             return (MonitoredObject) children.get( name );
         }
-    } 
+    }
 
-    public Collection getChildren( ) { 
+    public Collection getChildren( ) {
         synchronized( this ) {
             return children.values();
         }
@@ -52,7 +70,7 @@ public class MonitoredObjectImpl implements MonitoredObject {
                 children.put( m.getName(), m);
                 m.setParent( this );
             }
-        }         
+        }
     }
 
     public void removeChild( String name ) {
@@ -60,7 +78,7 @@ public class MonitoredObjectImpl implements MonitoredObject {
             synchronized( this ) {
                 children.remove( name );
             }
-        }         
+        }
     }
 
     public synchronized MonitoredObject getParent( ) {
@@ -75,9 +93,9 @@ public class MonitoredObjectImpl implements MonitoredObject {
         synchronized( this ) {
             return (MonitoredAttribute) monitoredAttributes.get( name );
         }
-    } 
+    }
 
-    public Collection getAttributes( ) { 
+    public Collection getAttributes( ) {
         synchronized( this ) {
             return monitoredAttributes.values();
         }
@@ -100,8 +118,8 @@ public class MonitoredObjectImpl implements MonitoredObject {
     }
 
     /**
-     * calls clearState() on all the registered children MonitoredObjects and 
-     * MonitoredAttributes. 
+     * calls clearState() on all the registered children MonitoredObjects and
+     * MonitoredAttributes.
      */
     public void clearState( ) {
         synchronized( this ) {
@@ -126,8 +144,3 @@ public class MonitoredObjectImpl implements MonitoredObject {
         return description;
     }
 }
-        
-    
-
-   
-

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,11 +61,10 @@ package com.sun.org.apache.bcel.internal.generic;
 import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.classfile.*;
 
-/** 
+/**
  * This class represents a line number within a method, i.e., give an instruction
  * a line number corresponding to the source code line.
  *
- * @version $Id: LineNumberGen.java,v 1.1.2.1 2005/07/31 23:45:39 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     LineNumber
  * @see     MethodGen

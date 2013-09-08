@@ -1,8 +1,26 @@
 /*
- * @(#)MetalLookAndFeel.java	1.206 06/07/12
+ * Copyright (c) 1998, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -13,26 +31,18 @@ import java.beans.PropertyChangeListener;
 import javax.swing.plaf.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.*;
-import javax.swing.border.*;
-import javax.swing.text.JTextComponent;
 import javax.swing.text.DefaultEditorKit;
-import java.util.*;
 
-import java.awt.Font;
 import java.awt.Color;
-import java.awt.SystemColor;
 import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
 import java.lang.reflect.*;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.io.Serializable;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import sun.awt.AppContext;
-import sun.awt.SunToolkit;
+
+import sun.awt.*;
 import sun.security.action.GetPropertyAction;
 import sun.swing.DefaultLayoutStyle;
 import sun.swing.SwingLazyValue;
@@ -52,7 +62,7 @@ import sun.swing.SwingUtilities2;
  * {@code MetalLookAndFeel} derives it's color palette and fonts from
  * {@code MetalTheme}. The default theme is {@code OceanTheme}. The theme
  * can be changed using the {@code setCurrentTheme} method, refer to it
- * for details on changing the theme. Prior to 1.5 the default 
+ * for details on changing the theme. Prior to 1.5 the default
  * theme was {@code DefaultMetalTheme}. The system property
  * {@code "swing.metalTheme"} can be set to {@code "steel"} to indicate
  * the default should be {@code DefaultMetalTheme}.
@@ -70,7 +80,6 @@ import sun.swing.SwingUtilities2;
  * @see DefaultMetalTheme
  * @see OceanTheme
  *
- * @version @(#)MetalLookAndFeel.java	1.206 06/07/12
  * @author Steve Wilson
  */
 public class MetalLookAndFeel extends BasicLookAndFeel
@@ -78,9 +87,6 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
     private static boolean METAL_LOOK_AND_FEEL_INITED = false;
 
-    private static MetalTheme currentTheme;
-    private static boolean isOnlyOneContext = true;
-    private static AppContext cachedAppContext;
 
     /**
      * True if checked for windows yet.
@@ -108,11 +114,10 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      */
     static boolean isWindows() {
         if (!checkedWindows) {
-            String osName = (String)AccessController.doPrivileged(
-                new GetPropertyAction("os.name"));
-            if (osName != null && osName.indexOf("Windows") != -1) {
+            OSInfo.OSType osType = AccessController.doPrivileged(OSInfo.getOSTypeAction());
+            if (osType == OSInfo.OSType.WINDOWS) {
                 isWindows = true;
-                String systemFonts = (String)AccessController.doPrivileged(
+                String systemFonts = AccessController.doPrivileged(
                     new GetPropertyAction("swing.useSystemFontSettings"));
                 useSystemFonts = (systemFonts != null &&
                                (Boolean.valueOf(systemFonts).booleanValue()));
@@ -167,7 +172,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     }
 
     /**
-     * Returns the name of this look and feel. This returns 
+     * Returns the name of this look and feel. This returns
      * {@code "Metal"}.
      *
      * @return the name of this look and feel
@@ -215,7 +220,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     public boolean isSupportedLookAndFeel() {
         return true;
     }
-    
+
     /**
      * Returns {@code true}; metal can provide {@code Window}
      * decorations.
@@ -231,7 +236,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         return true;
     }
 
-    /** 
+    /**
      * Populates {@code table} with mappings from {@code uiClassID} to
      * the fully qualified name of the ui class. {@code
      * MetalLookAndFeel} registers an entry for each of the classes in
@@ -242,7 +247,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      * used. For example, metal does not have a class named {@code
      * "MetalColorChooserUI"}, as such, {@code
      * javax.swing.plaf.basic.BasicColorChooserUI} is used.
-     * 
+     *
      * @param table the {@code UIDefaults} instance the entries are
      *        added to
      * @throws NullPointerException if {@code table} is {@code null}
@@ -285,7 +290,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     /**
      * Populates {@code table} with system colors. The following values are
      * added to {@code table}:
-     * <table border="1" cellpadding="1" cellspacing="0" 
+     * <table border="1" cellpadding="1" cellspacing="0"
      *         summary="Metal's system color mapping"
      *         valign="top" >
      *  <tr valign="top"  align="left">
@@ -296,82 +301,82 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *    <td>{@code theme.getDesktopColor()}
      *  <tr valign="top"  align="left">
      *    <td>"activeCaption"
-     *    <td>{@code theme.getWindowTitleBackground()} 
+     *    <td>{@code theme.getWindowTitleBackground()}
      *  <tr valign="top"  align="left">
      *    <td>"activeCaptionText"
-     *    <td>{@code theme.getWindowTitleForeground()} 
+     *    <td>{@code theme.getWindowTitleForeground()}
      *  <tr valign="top"  align="left">
      *    <td>"activeCaptionBorder"
-     *    <td>{@code theme.getPrimaryControlShadow()} 
+     *    <td>{@code theme.getPrimaryControlShadow()}
      *  <tr valign="top"  align="left">
      *    <td>"inactiveCaption"
-     *    <td>{@code theme.getWindowTitleInactiveBackground()} 
+     *    <td>{@code theme.getWindowTitleInactiveBackground()}
      *  <tr valign="top"  align="left">
      *    <td>"inactiveCaptionText"
-     *    <td>{@code theme.getWindowTitleInactiveForeground()} 
+     *    <td>{@code theme.getWindowTitleInactiveForeground()}
      *  <tr valign="top"  align="left">
      *    <td>"inactiveCaptionBorder"
-     *    <td>{@code theme.getControlShadow()} 
+     *    <td>{@code theme.getControlShadow()}
      *  <tr valign="top"  align="left">
      *    <td>"window"
-     *    <td>{@code theme.getWindowBackground()} 
+     *    <td>{@code theme.getWindowBackground()}
      *  <tr valign="top"  align="left">
      *    <td>"windowBorder"
-     *    <td>{@code theme.getControl()} 
+     *    <td>{@code theme.getControl()}
      *  <tr valign="top"  align="left">
      *    <td>"windowText"
-     *    <td>{@code theme.getUserTextColor()} 
+     *    <td>{@code theme.getUserTextColor()}
      *  <tr valign="top"  align="left">
      *    <td>"menu"
-     *    <td>{@code theme.getMenuBackground()} 
+     *    <td>{@code theme.getMenuBackground()}
      *  <tr valign="top"  align="left">
      *    <td>"menuText"
-     *    <td>{@code theme.getMenuForeground()} 
+     *    <td>{@code theme.getMenuForeground()}
      *  <tr valign="top"  align="left">
      *    <td>"text"
-     *    <td>{@code theme.getWindowBackground()} 
+     *    <td>{@code theme.getWindowBackground()}
      *  <tr valign="top"  align="left">
      *    <td>"textText"
-     *    <td>{@code theme.getUserTextColor()} 
+     *    <td>{@code theme.getUserTextColor()}
      *  <tr valign="top"  align="left">
      *    <td>"textHighlight"
-     *    <td>{@code theme.getTextHighlightColor()} 
+     *    <td>{@code theme.getTextHighlightColor()}
      *  <tr valign="top"  align="left">
      *    <td>"textHighlightText"
-     *    <td>{@code theme.getHighlightedTextColor()} 
+     *    <td>{@code theme.getHighlightedTextColor()}
      *  <tr valign="top"  align="left">
      *    <td>"textInactiveText"
-     *    <td>{@code theme.getInactiveSystemTextColor()} 
+     *    <td>{@code theme.getInactiveSystemTextColor()}
      *  <tr valign="top"  align="left">
      *    <td>"control"
-     *    <td>{@code theme.getControl()} 
+     *    <td>{@code theme.getControl()}
      *  <tr valign="top"  align="left">
      *    <td>"controlText"
-     *    <td>{@code theme.getControlTextColor()} 
+     *    <td>{@code theme.getControlTextColor()}
      *  <tr valign="top"  align="left">
      *    <td>"controlHighlight"
-     *    <td>{@code theme.getControlHighlight()} 
+     *    <td>{@code theme.getControlHighlight()}
      *  <tr valign="top"  align="left">
      *    <td>"controlLtHighlight"
-     *    <td>{@code theme.getControlHighlight()} 
+     *    <td>{@code theme.getControlHighlight()}
      *  <tr valign="top"  align="left">
      *    <td>"controlShadow"
-     *    <td>{@code theme.getControlShadow()} 
+     *    <td>{@code theme.getControlShadow()}
      *  <tr valign="top"  align="left">
      *    <td>"controlDkShadow"
-     *    <td>{@code theme.getControlDarkShadow()} 
+     *    <td>{@code theme.getControlDarkShadow()}
      *  <tr valign="top"  align="left">
      *    <td>"scrollbar"
-     *    <td>{@code theme.getControl()} 
+     *    <td>{@code theme.getControl()}
      *  <tr valign="top"  align="left">
      *    <td>"info"
-     *    <td>{@code theme.getPrimaryControl()} 
+     *    <td>{@code theme.getPrimaryControl()}
      *  <tr valign="top"  align="left">
      *    <td>"infoText"
-     *    <td>{@code theme.getPrimaryControlInfo()} 
+     *    <td>{@code theme.getPrimaryControlInfo()}
      * </table>
      * The value {@code theme} corresponds to the current {@code MetalTheme}.
-     * 
+     *
      * @param table the {@code UIDefaults} object the values are added to
      * @throws NullPointerException if {@code table} is {@code null}
      */
@@ -450,11 +455,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
         Insets zeroInsets = new InsetsUIResource(0, 0, 0, 0);
 
-        Integer zero = new Integer(0);
+        Integer zero = Integer.valueOf(0);
 
-	Object textFieldBorder = 
-	    new SwingLazyValue("javax.swing.plaf.metal.MetalBorders",
-					  "getTextFieldBorder");
+        Object textFieldBorder =
+            new SwingLazyValue("javax.swing.plaf.metal.MetalBorders",
+                                          "getTextFieldBorder");
 
         Object dialogBorder = new MetalLazyValue(
                           "javax.swing.plaf.metal.MetalBorders$DialogBorder");
@@ -462,33 +467,33 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         Object questionDialogBorder = new MetalLazyValue(
                   "javax.swing.plaf.metal.MetalBorders$QuestionDialogBorder");
 
-	Object fieldInputMap = new UIDefaults.LazyInputMap(new Object[] {
-			   "ctrl C", DefaultEditorKit.copyAction,
-			   "ctrl V", DefaultEditorKit.pasteAction,
-			   "ctrl X", DefaultEditorKit.cutAction,
-			     "COPY", DefaultEditorKit.copyAction,
-			    "PASTE", DefaultEditorKit.pasteAction,
-			      "CUT", DefaultEditorKit.cutAction,
+        Object fieldInputMap = new UIDefaults.LazyInputMap(new Object[] {
+                           "ctrl C", DefaultEditorKit.copyAction,
+                           "ctrl V", DefaultEditorKit.pasteAction,
+                           "ctrl X", DefaultEditorKit.cutAction,
+                             "COPY", DefaultEditorKit.copyAction,
+                            "PASTE", DefaultEditorKit.pasteAction,
+                              "CUT", DefaultEditorKit.cutAction,
                    "control INSERT", DefaultEditorKit.copyAction,
                      "shift INSERT", DefaultEditorKit.pasteAction,
                      "shift DELETE", DefaultEditorKit.cutAction,
-		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
+                       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
-		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
-		   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
-			"ctrl LEFT", DefaultEditorKit.previousWordAction,
-		     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
-		       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
-		    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
-		  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
-	       "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
-		 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
-	      "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
-			   "ctrl A", DefaultEditorKit.selectAllAction,
-			     "HOME", DefaultEditorKit.beginLineAction,
-			      "END", DefaultEditorKit.endLineAction,
-		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
-		        "shift END", DefaultEditorKit.selectionEndLineAction,
+                      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
+                   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
+                        "ctrl LEFT", DefaultEditorKit.previousWordAction,
+                     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
+                       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
+                    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
+                  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
+               "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
+                 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
+              "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
+                           "ctrl A", DefaultEditorKit.selectAllAction,
+                             "HOME", DefaultEditorKit.beginLineAction,
+                              "END", DefaultEditorKit.endLineAction,
+                       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
+                        "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                  "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
@@ -499,10 +504,10 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
                           "KP_LEFT", DefaultEditorKit.backwardAction,
-			    "ENTER", JTextField.notifyAction,
-		  "ctrl BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
+                            "ENTER", JTextField.notifyAction,
+                  "ctrl BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
                    "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
-	});
+        });
 
         Object passwordInputMap = new UIDefaults.LazyInputMap(new Object[] {
                            "ctrl C", DefaultEditorKit.copyAction,
@@ -544,49 +549,49 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                    "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
         });
 
-	Object multilineInputMap = new UIDefaults.LazyInputMap(new Object[] {
-			   "ctrl C", DefaultEditorKit.copyAction,
-			   "ctrl V", DefaultEditorKit.pasteAction,
-			   "ctrl X", DefaultEditorKit.cutAction,
-			     "COPY", DefaultEditorKit.copyAction,
-			    "PASTE", DefaultEditorKit.pasteAction,
-			      "CUT", DefaultEditorKit.cutAction,
+        Object multilineInputMap = new UIDefaults.LazyInputMap(new Object[] {
+                           "ctrl C", DefaultEditorKit.copyAction,
+                           "ctrl V", DefaultEditorKit.pasteAction,
+                           "ctrl X", DefaultEditorKit.cutAction,
+                             "COPY", DefaultEditorKit.copyAction,
+                            "PASTE", DefaultEditorKit.pasteAction,
+                              "CUT", DefaultEditorKit.cutAction,
                    "control INSERT", DefaultEditorKit.copyAction,
                      "shift INSERT", DefaultEditorKit.pasteAction,
                      "shift DELETE", DefaultEditorKit.cutAction,
-		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
+                       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
-		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
-		   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
-			"ctrl LEFT", DefaultEditorKit.previousWordAction,
-		     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
-		       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
-		    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
-		  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
-	       "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
-		 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
-	      "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
-			   "ctrl A", DefaultEditorKit.selectAllAction,
-			     "HOME", DefaultEditorKit.beginLineAction,
-			      "END", DefaultEditorKit.endLineAction,
-		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
-		        "shift END", DefaultEditorKit.selectionEndLineAction,
+                      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
+                   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
+                        "ctrl LEFT", DefaultEditorKit.previousWordAction,
+                     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
+                       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
+                    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
+                  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
+               "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
+                 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
+              "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
+                           "ctrl A", DefaultEditorKit.selectAllAction,
+                             "HOME", DefaultEditorKit.beginLineAction,
+                              "END", DefaultEditorKit.endLineAction,
+                       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
+                        "shift END", DefaultEditorKit.selectionEndLineAction,
 
-			       "UP", DefaultEditorKit.upAction,
-			    "KP_UP", DefaultEditorKit.upAction,
-			     "DOWN", DefaultEditorKit.downAction,
-			  "KP_DOWN", DefaultEditorKit.downAction,
-			  "PAGE_UP", DefaultEditorKit.pageUpAction,
-			"PAGE_DOWN", DefaultEditorKit.pageDownAction,
-		    "shift PAGE_UP", "selection-page-up",
- 	          "shift PAGE_DOWN", "selection-page-down",
-	       "ctrl shift PAGE_UP", "selection-page-left",
- 	     "ctrl shift PAGE_DOWN", "selection-page-right",
-			 "shift UP", DefaultEditorKit.selectionUpAction,
-		      "shift KP_UP", DefaultEditorKit.selectionUpAction,
-		       "shift DOWN", DefaultEditorKit.selectionDownAction,
-		    "shift KP_DOWN", DefaultEditorKit.selectionDownAction,
-			    "ENTER", DefaultEditorKit.insertBreakAction,
+                               "UP", DefaultEditorKit.upAction,
+                            "KP_UP", DefaultEditorKit.upAction,
+                             "DOWN", DefaultEditorKit.downAction,
+                          "KP_DOWN", DefaultEditorKit.downAction,
+                          "PAGE_UP", DefaultEditorKit.pageUpAction,
+                        "PAGE_DOWN", DefaultEditorKit.pageDownAction,
+                    "shift PAGE_UP", "selection-page-up",
+                  "shift PAGE_DOWN", "selection-page-down",
+               "ctrl shift PAGE_UP", "selection-page-left",
+             "ctrl shift PAGE_DOWN", "selection-page-right",
+                         "shift UP", DefaultEditorKit.selectionUpAction,
+                      "shift KP_UP", DefaultEditorKit.selectionUpAction,
+                       "shift DOWN", DefaultEditorKit.selectionDownAction,
+                    "shift KP_DOWN", DefaultEditorKit.selectionDownAction,
+                            "ENTER", DefaultEditorKit.insertBreakAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                  "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
@@ -594,82 +599,82 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                       "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
                   "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
-                             "LEFT", DefaultEditorKit.backwardAction, 
+                             "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
                           "KP_LEFT", DefaultEditorKit.backwardAction,
-			      "TAB", DefaultEditorKit.insertTabAction,
-		  "ctrl BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
-			"ctrl HOME", DefaultEditorKit.beginAction,
-			 "ctrl END", DefaultEditorKit.endAction,
-		  "ctrl shift HOME", DefaultEditorKit.selectionBeginAction,
-		   "ctrl shift END", DefaultEditorKit.selectionEndAction,
+                              "TAB", DefaultEditorKit.insertTabAction,
+                  "ctrl BACK_SLASH", "unselect"/*DefaultEditorKit.unselectAction*/,
+                        "ctrl HOME", DefaultEditorKit.beginAction,
+                         "ctrl END", DefaultEditorKit.endAction,
+                  "ctrl shift HOME", DefaultEditorKit.selectionBeginAction,
+                   "ctrl shift END", DefaultEditorKit.selectionEndAction,
                            "ctrl T", "next-link-action",
                      "ctrl shift T", "previous-link-action",
                        "ctrl SPACE", "activate-link-action",
                    "control shift O", "toggle-componentOrientation"/*DefaultEditorKit.toggleComponentOrientation*/
-	});
+        });
 
         Object scrollPaneBorder = new SwingLazyValue("javax.swing.plaf.metal.MetalBorders$ScrollPaneBorder");
-        Object buttonBorder = 
-	    	    new SwingLazyValue("javax.swing.plaf.metal.MetalBorders",
-					  "getButtonBorder");
-  
-        Object toggleButtonBorder =  
-	    new SwingLazyValue("javax.swing.plaf.metal.MetalBorders",
-					  "getToggleButtonBorder");
+        Object buttonBorder =
+                    new SwingLazyValue("javax.swing.plaf.metal.MetalBorders",
+                                          "getButtonBorder");
 
-        Object titledBorderBorder = 
-	    new SwingLazyValue(
-			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
-			  new Object[] {controlShadow});
+        Object toggleButtonBorder =
+            new SwingLazyValue("javax.swing.plaf.metal.MetalBorders",
+                                          "getToggleButtonBorder");
 
-        Object desktopIconBorder = 
-	    new SwingLazyValue(
-			  "javax.swing.plaf.metal.MetalBorders",
-			  "getDesktopIconBorder");
+        Object titledBorderBorder =
+            new SwingLazyValue(
+                          "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
+                          new Object[] {controlShadow});
 
-        Object menuBarBorder = 
-	    new SwingLazyValue(
-			  "javax.swing.plaf.metal.MetalBorders$MenuBarBorder");
+        Object desktopIconBorder =
+            new SwingLazyValue(
+                          "javax.swing.plaf.metal.MetalBorders",
+                          "getDesktopIconBorder");
 
-        Object popupMenuBorder = 
-	    new SwingLazyValue(
-			 "javax.swing.plaf.metal.MetalBorders$PopupMenuBorder");
-        Object menuItemBorder = 
-	    new SwingLazyValue(
-			 "javax.swing.plaf.metal.MetalBorders$MenuItemBorder");
+        Object menuBarBorder =
+            new SwingLazyValue(
+                          "javax.swing.plaf.metal.MetalBorders$MenuBarBorder");
 
-	Object menuItemAcceleratorDelimiter = new String("-");
+        Object popupMenuBorder =
+            new SwingLazyValue(
+                         "javax.swing.plaf.metal.MetalBorders$PopupMenuBorder");
+        Object menuItemBorder =
+            new SwingLazyValue(
+                         "javax.swing.plaf.metal.MetalBorders$MenuItemBorder");
+
+        Object menuItemAcceleratorDelimiter = "-";
         Object toolBarBorder = new SwingLazyValue("javax.swing.plaf.metal.MetalBorders$ToolBarBorder");
 
-	Object progressBarBorder = new SwingLazyValue(
-			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
-			  new Object[] {controlDarkShadow, new Integer(1)});
+        Object progressBarBorder = new SwingLazyValue(
+                          "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
+                          new Object[] {controlDarkShadow, new Integer(1)});
 
         Object toolTipBorder = new SwingLazyValue(
-			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
-			  new Object[] {primaryControlDarkShadow});
+                          "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
+                          new Object[] {primaryControlDarkShadow});
 
         Object toolTipBorderInactive = new SwingLazyValue(
-			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
-			  new Object[] {controlDarkShadow});
+                          "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
+                          new Object[] {controlDarkShadow});
 
         Object focusCellHighlightBorder = new SwingLazyValue(
-			  "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
-			  new Object[] {focusColor});
+                          "javax.swing.plaf.BorderUIResource$LineBorderUIResource",
+                          new Object[] {focusColor});
 
         Object tabbedPaneTabAreaInsets = new InsetsUIResource(4, 2, 0, 6);
 
         Object tabbedPaneTabInsets = new InsetsUIResource(0, 9, 1, 9);
 
-	final Object[] internalFrameIconArgs = new Object[1];
-	internalFrameIconArgs[0] = new Integer(16);
+        final Object[] internalFrameIconArgs = new Object[1];
+        internalFrameIconArgs[0] = new Integer(16);
 
-	Object[] defaultCueList = new Object[] {
-		"OptionPane.errorSound",
-		"OptionPane.informationSound",
-		"OptionPane.questionSound",
-		"OptionPane.warningSound" };
+        Object[] defaultCueList = new Object[] {
+                "OptionPane.errorSound",
+                "OptionPane.informationSound",
+                "OptionPane.questionSound",
+                "OptionPane.warningSound" };
 
         MetalTheme theme = getCurrentTheme();
         Object menuTextValue = new FontActiveValue(theme,
@@ -689,15 +694,15 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         //
 
         Object[] defaults = {
-	    // *** Auditory Feedback
-	    "AuditoryCues.defaultCueList", defaultCueList,
-	    // this key defines which of the various cues to render 
+            // *** Auditory Feedback
+            "AuditoryCues.defaultCueList", defaultCueList,
+            // this key defines which of the various cues to render
             // This is disabled until sound bugs can be resolved.
-	    "AuditoryCues.playList", null, // defaultCueList,
+            "AuditoryCues.playList", null, // defaultCueList,
 
             // Text (Note: many are inherited)
             "TextField.border", textFieldBorder,
-	    "TextField.font", userTextValue,
+            "TextField.font", userTextValue,
 
             "PasswordField.border", textFieldBorder,
             // passwordField.font should actually map to
@@ -709,49 +714,49 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             // on windows.
             "TextArea.font", userTextValue,
 
-	    "TextPane.background", table.get("window"),
+            "TextPane.background", table.get("window"),
             "TextPane.font", userTextValue,
 
-	    "EditorPane.background", table.get("window"),
-	    "EditorPane.font", userTextValue,
+            "EditorPane.background", table.get("window"),
+            "EditorPane.font", userTextValue,
 
-	    "TextField.focusInputMap", fieldInputMap,
-	    "PasswordField.focusInputMap", passwordInputMap,
-	    "TextArea.focusInputMap", multilineInputMap,
-	    "TextPane.focusInputMap", multilineInputMap,
-	    "EditorPane.focusInputMap", multilineInputMap,
+            "TextField.focusInputMap", fieldInputMap,
+            "PasswordField.focusInputMap", passwordInputMap,
+            "TextArea.focusInputMap", multilineInputMap,
+            "TextPane.focusInputMap", multilineInputMap,
+            "EditorPane.focusInputMap", multilineInputMap,
 
             // FormattedTextFields
             "FormattedTextField.border", textFieldBorder,
             "FormattedTextField.font", userTextValue,
             "FormattedTextField.focusInputMap",
               new UIDefaults.LazyInputMap(new Object[] {
-			   "ctrl C", DefaultEditorKit.copyAction,
-			   "ctrl V", DefaultEditorKit.pasteAction,
-			   "ctrl X", DefaultEditorKit.cutAction,
-			     "COPY", DefaultEditorKit.copyAction,
-			    "PASTE", DefaultEditorKit.pasteAction,
-			      "CUT", DefaultEditorKit.cutAction,
+                           "ctrl C", DefaultEditorKit.copyAction,
+                           "ctrl V", DefaultEditorKit.pasteAction,
+                           "ctrl X", DefaultEditorKit.cutAction,
+                             "COPY", DefaultEditorKit.copyAction,
+                            "PASTE", DefaultEditorKit.pasteAction,
+                              "CUT", DefaultEditorKit.cutAction,
                    "control INSERT", DefaultEditorKit.copyAction,
                      "shift INSERT", DefaultEditorKit.pasteAction,
                      "shift DELETE", DefaultEditorKit.cutAction,
-		       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
+                       "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
-		      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
-		   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
-			"ctrl LEFT", DefaultEditorKit.previousWordAction,
-		     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
-		       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
-		    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
-		  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
-	       "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
-		 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
-	      "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
-			   "ctrl A", DefaultEditorKit.selectAllAction,
-			     "HOME", DefaultEditorKit.beginLineAction,
-			      "END", DefaultEditorKit.endLineAction,
-		       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
-		        "shift END", DefaultEditorKit.selectionEndLineAction,
+                      "shift RIGHT", DefaultEditorKit.selectionForwardAction,
+                   "shift KP_RIGHT", DefaultEditorKit.selectionForwardAction,
+                        "ctrl LEFT", DefaultEditorKit.previousWordAction,
+                     "ctrl KP_LEFT", DefaultEditorKit.previousWordAction,
+                       "ctrl RIGHT", DefaultEditorKit.nextWordAction,
+                    "ctrl KP_RIGHT", DefaultEditorKit.nextWordAction,
+                  "ctrl shift LEFT", DefaultEditorKit.selectionPreviousWordAction,
+               "ctrl shift KP_LEFT", DefaultEditorKit.selectionPreviousWordAction,
+                 "ctrl shift RIGHT", DefaultEditorKit.selectionNextWordAction,
+              "ctrl shift KP_RIGHT", DefaultEditorKit.selectionNextWordAction,
+                           "ctrl A", DefaultEditorKit.selectAllAction,
+                             "HOME", DefaultEditorKit.beginLineAction,
+                              "END", DefaultEditorKit.endLineAction,
+                       "shift HOME", DefaultEditorKit.selectionBeginLineAction,
+                        "shift END", DefaultEditorKit.selectionEndLineAction,
                        "BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                  "shift BACK_SPACE", DefaultEditorKit.deletePrevCharAction,
                            "ctrl H", DefaultEditorKit.deletePrevCharAction,
@@ -762,8 +767,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                              "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
                           "KP_LEFT", DefaultEditorKit.backwardAction,
-			    "ENTER", JTextField.notifyAction,
-		  "ctrl BACK_SLASH", "unselect",
+                            "ENTER", JTextField.notifyAction,
+                  "ctrl BACK_SLASH", "unselect",
                    "control shift O", "toggle-componentOrientation",
                            "ESCAPE", "reset-field-edit",
                                "UP", "increment",
@@ -771,7 +776,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                              "DOWN", "decrement",
                           "KP_DOWN", "decrement",
               }),
-            
+
 
             // Buttons
             "Button.defaultButtonFollowsFocus", Boolean.FALSE,
@@ -790,11 +795,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "CheckBox.font", controlTextValue,
             "CheckBox.focus", focusColor,
             "CheckBox.icon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getCheckBoxIcon"),
-	    "CheckBox.focusInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		            "SPACE", "pressed",
-                   "released SPACE", "released"  
-		 }),
+            "CheckBox.focusInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                            "SPACE", "pressed",
+                   "released SPACE", "released"
+                 }),
             // margin is 2 all the way around, BasicBorders.RadioButtonBorder
             // (checkbox uses RadioButtonBorder) is 2 all the way around too.
             "CheckBox.totalInsets", new Insets(4, 4, 4, 4),
@@ -804,11 +809,11 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "RadioButton.icon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getRadioButtonIcon"),
             "RadioButton.font", controlTextValue,
             "RadioButton.focus", focusColor,
-	    "RadioButton.focusInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
+            "RadioButton.focusInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
                           "SPACE", "pressed",
-                 "released SPACE", "released" 
-	      }),
+                 "released SPACE", "released"
+              }),
             // margin is 2 all the way around, BasicBorders.RadioButtonBorder
             // is 2 all the way around too.
             "RadioButton.totalInsets", new Insets(4, 4, 4, 4),
@@ -818,14 +823,14 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ToggleButton.focus", focusColor,
             "ToggleButton.border", toggleButtonBorder,
             "ToggleButton.font", controlTextValue,
-	    "ToggleButton.focusInputMap",
-	      new UIDefaults.LazyInputMap(new Object[] {
-		            "SPACE", "pressed",
-                   "released SPACE", "released" 
-	        }),
+            "ToggleButton.focusInputMap",
+              new UIDefaults.LazyInputMap(new Object[] {
+                            "SPACE", "pressed",
+                   "released SPACE", "released"
+                }),
 
 
-            // File View 
+            // File View
             "FileView.directoryIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getTreeFolderIcon"),
             "FileView.fileIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getTreeLeafIcon"),
             "FileView.computerIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getTreeComputerIcon"),
@@ -842,16 +847,14 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "FileChooser.lookInLabelMnemonic", new Integer(KeyEvent.VK_I),
             "FileChooser.fileNameLabelMnemonic", new Integer(KeyEvent.VK_N),
             "FileChooser.filesOfTypeLabelMnemonic", new Integer(KeyEvent.VK_T),
-	    "FileChooser.usesSingleFilePane", Boolean.TRUE,
-	    "FileChooser.ancestorInputMap", 
-	       new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "cancelSelection",
-		     "F2", "editFileName",
-		     "F5", "refresh",
-		     "BACK_SPACE", "Go Up",
-		     "ENTER", "approveSelection",
-		"ctrl ENTER", "approveSelection"
-		 }),
+            "FileChooser.usesSingleFilePane", Boolean.TRUE,
+            "FileChooser.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                     "ESCAPE", "cancelSelection",
+                     "F2", "editFileName",
+                     "F5", "refresh",
+                     "BACK_SPACE", "Go Up"
+                 }),
 
 
             // ToolTip
@@ -861,45 +864,45 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ToolTip.backgroundInactive", control,
             "ToolTip.foregroundInactive", controlDarkShadow,
             "ToolTip.hideAccelerator", Boolean.FALSE,
-                
+
             // ToolTipManager
             "ToolTipManager.enableToolTipMode", "activeApplication",
- 
+
             // Slider Defaults
             "Slider.font", controlTextValue,
             "Slider.border", null,
             "Slider.foreground", primaryControlShadow,
             "Slider.focus", focusColor,
-	    "Slider.focusInsets", zeroInsets,
+            "Slider.focusInsets", zeroInsets,
             "Slider.trackWidth", new Integer( 7 ),
             "Slider.majorTickLength", new Integer( 6 ),
             "Slider.horizontalThumbIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getHorizontalSliderThumbIcon"),
             "Slider.verticalThumbIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getVerticalSliderThumbIcon"),
-	    "Slider.focusInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "positiveUnitIncrement",
-		    "KP_RIGHT", "positiveUnitIncrement",
-		        "DOWN", "negativeUnitIncrement",
-		     "KP_DOWN", "negativeUnitIncrement",
-		   "PAGE_DOWN", "negativeBlockIncrement",
-	      "ctrl PAGE_DOWN", "negativeBlockIncrement",
-		        "LEFT", "negativeUnitIncrement",
-		     "KP_LEFT", "negativeUnitIncrement",
-		          "UP", "positiveUnitIncrement",
-		       "KP_UP", "positiveUnitIncrement",
-		     "PAGE_UP", "positiveBlockIncrement",
+            "Slider.focusInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                       "RIGHT", "positiveUnitIncrement",
+                    "KP_RIGHT", "positiveUnitIncrement",
+                        "DOWN", "negativeUnitIncrement",
+                     "KP_DOWN", "negativeUnitIncrement",
+                   "PAGE_DOWN", "negativeBlockIncrement",
+              "ctrl PAGE_DOWN", "negativeBlockIncrement",
+                        "LEFT", "negativeUnitIncrement",
+                     "KP_LEFT", "negativeUnitIncrement",
+                          "UP", "positiveUnitIncrement",
+                       "KP_UP", "positiveUnitIncrement",
+                     "PAGE_UP", "positiveBlockIncrement",
                 "ctrl PAGE_UP", "positiveBlockIncrement",
-		        "HOME", "minScroll",
-		         "END", "maxScroll"
-		 }),
+                        "HOME", "minScroll",
+                         "END", "maxScroll"
+                 }),
 
             // Progress Bar
-	    "ProgressBar.font", controlTextValue,
-            "ProgressBar.foreground", primaryControlShadow, 
-	    "ProgressBar.selectionBackground", primaryControlDarkShadow, 
-	    "ProgressBar.border", progressBarBorder,
+            "ProgressBar.font", controlTextValue,
+            "ProgressBar.foreground", primaryControlShadow,
+            "ProgressBar.selectionBackground", primaryControlDarkShadow,
+            "ProgressBar.border", progressBarBorder,
             "ProgressBar.cellSpacing", zero,
-            "ProgressBar.cellLength", new Integer(1),
+            "ProgressBar.cellLength", Integer.valueOf(1),
 
             // Combo Box
             "ComboBox.background", control,
@@ -907,54 +910,54 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ComboBox.selectionBackground", primaryControlShadow,
             "ComboBox.selectionForeground", controlTextColor,
             "ComboBox.font", controlTextValue,
-	    "ComboBox.ancestorInputMap", new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "hidePopup",
-		    "PAGE_UP", "pageUpPassThrough",
-		  "PAGE_DOWN", "pageDownPassThrough",
-		       "HOME", "homePassThrough",
-		        "END", "endPassThrough",
-		       "DOWN", "selectNext",
-		    "KP_DOWN", "selectNext",
-		   "alt DOWN", "togglePopup",
-		"alt KP_DOWN", "togglePopup",
-		     "alt UP", "togglePopup",
-		  "alt KP_UP", "togglePopup",
-		      "SPACE", "spacePopup",
-		     "ENTER", "enterPressed",
-		         "UP", "selectPrevious",
-		      "KP_UP", "selectPrevious"
-	      }),
+            "ComboBox.ancestorInputMap", new UIDefaults.LazyInputMap(new Object[] {
+                     "ESCAPE", "hidePopup",
+                    "PAGE_UP", "pageUpPassThrough",
+                  "PAGE_DOWN", "pageDownPassThrough",
+                       "HOME", "homePassThrough",
+                        "END", "endPassThrough",
+                       "DOWN", "selectNext",
+                    "KP_DOWN", "selectNext",
+                   "alt DOWN", "togglePopup",
+                "alt KP_DOWN", "togglePopup",
+                     "alt UP", "togglePopup",
+                  "alt KP_UP", "togglePopup",
+                      "SPACE", "spacePopup",
+                     "ENTER", "enterPressed",
+                         "UP", "selectPrevious",
+                      "KP_UP", "selectPrevious"
+              }),
 
             // Internal Frame Defaults
             "InternalFrame.icon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getInternalFrameDefaultMenuIcon"),
             "InternalFrame.border", new SwingLazyValue("javax.swing.plaf.metal.MetalBorders$InternalFrameBorder"),
             "InternalFrame.optionDialogBorder", new SwingLazyValue("javax.swing.plaf.metal.MetalBorders$OptionDialogBorder"),
             "InternalFrame.paletteBorder", new SwingLazyValue("javax.swing.plaf.metal.MetalBorders$PaletteBorder"),
-	    "InternalFrame.paletteTitleHeight", new Integer(11),
-	    "InternalFrame.paletteCloseIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory$PaletteCloseIcon"),
-            "InternalFrame.closeIcon", 
+            "InternalFrame.paletteTitleHeight", new Integer(11),
+            "InternalFrame.paletteCloseIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory$PaletteCloseIcon"),
+            "InternalFrame.closeIcon",
                   new SwingLazyValue(
-				     "javax.swing.plaf.metal.MetalIconFactory", 
-				     "getInternalFrameCloseIcon",
-				     internalFrameIconArgs),
-            "InternalFrame.maximizeIcon", 
+                                     "javax.swing.plaf.metal.MetalIconFactory",
+                                     "getInternalFrameCloseIcon",
+                                     internalFrameIconArgs),
+            "InternalFrame.maximizeIcon",
                   new SwingLazyValue(
-				     "javax.swing.plaf.metal.MetalIconFactory", 
-				     "getInternalFrameMaximizeIcon",
-				     internalFrameIconArgs),
-            "InternalFrame.iconifyIcon", 
+                                     "javax.swing.plaf.metal.MetalIconFactory",
+                                     "getInternalFrameMaximizeIcon",
+                                     internalFrameIconArgs),
+            "InternalFrame.iconifyIcon",
                   new SwingLazyValue(
-				     "javax.swing.plaf.metal.MetalIconFactory", 
-				     "getInternalFrameMinimizeIcon",
-				     internalFrameIconArgs),
-            "InternalFrame.minimizeIcon", 
+                                     "javax.swing.plaf.metal.MetalIconFactory",
+                                     "getInternalFrameMinimizeIcon",
+                                     internalFrameIconArgs),
+            "InternalFrame.minimizeIcon",
                   new SwingLazyValue(
-				     "javax.swing.plaf.metal.MetalIconFactory", 
-				     "getInternalFrameAltMaximizeIcon",
-				     internalFrameIconArgs),
+                                     "javax.swing.plaf.metal.MetalIconFactory",
+                                     "getInternalFrameAltMaximizeIcon",
+                                     internalFrameIconArgs),
             "InternalFrame.titleFont",  windowTitleValue,
-	    "InternalFrame.windowBindings", null,
-	    // Internal Frame Auditory Cue Mappings
+            "InternalFrame.windowBindings", null,
+            // Internal Frame Auditory Cue Mappings
             "InternalFrame.closeSound", "sounds/FrameClose.wav",
             "InternalFrame.maximizeSound", "sounds/FrameMaximize.wav",
             "InternalFrame.minimizeSound", "sounds/FrameMinimize.wav",
@@ -966,40 +969,40 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "DesktopIcon.font", controlTextValue,
             "DesktopIcon.foreground", controlTextColor,
             "DesktopIcon.background", control,
-            "DesktopIcon.width", new Integer(160),
+            "DesktopIcon.width", Integer.valueOf(160),
 
-	    "Desktop.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		 "ctrl F5", "restore", 
-		 "ctrl F4", "close",
-		 "ctrl F7", "move", 
-		 "ctrl F8", "resize",
-		   "RIGHT", "right",
-		"KP_RIGHT", "right",
+            "Desktop.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                 "ctrl F5", "restore",
+                 "ctrl F4", "close",
+                 "ctrl F7", "move",
+                 "ctrl F8", "resize",
+                   "RIGHT", "right",
+                "KP_RIGHT", "right",
              "shift RIGHT", "shrinkRight",
           "shift KP_RIGHT", "shrinkRight",
-		    "LEFT", "left",
-		 "KP_LEFT", "left",
+                    "LEFT", "left",
+                 "KP_LEFT", "left",
               "shift LEFT", "shrinkLeft",
            "shift KP_LEFT", "shrinkLeft",
-		      "UP", "up",
-		   "KP_UP", "up",
+                      "UP", "up",
+                   "KP_UP", "up",
                 "shift UP", "shrinkUp",
              "shift KP_UP", "shrinkUp",
-		    "DOWN", "down",
-		 "KP_DOWN", "down",
+                    "DOWN", "down",
+                 "KP_DOWN", "down",
               "shift DOWN", "shrinkDown",
            "shift KP_DOWN", "shrinkDown",
-		  "ESCAPE", "escape",
-		 "ctrl F9", "minimize", 
-		"ctrl F10", "maximize",
-		 "ctrl F6", "selectNextFrame",
-		"ctrl TAB", "selectNextFrame",
-	     "ctrl alt F6", "selectNextFrame",
+                  "ESCAPE", "escape",
+                 "ctrl F9", "minimize",
+                "ctrl F10", "maximize",
+                 "ctrl F6", "selectNextFrame",
+                "ctrl TAB", "selectNextFrame",
+             "ctrl alt F6", "selectNextFrame",
        "shift ctrl alt F6", "selectPreviousFrame",
                 "ctrl F12", "navigateNext",
            "shift ctrl F12", "navigatePrevious"
-	      }),
+              }),
 
             // Titled Border
             "TitledBorder.font", controlTextValue,
@@ -1014,8 +1017,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             // List
             "List.font", controlTextValue,
             "List.focusCellHighlightBorder", focusCellHighlightBorder,
-	    "List.focusInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
+            "List.focusInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
                            "ctrl C", "copy",
                            "ctrl V", "paste",
                            "ctrl X", "cut",
@@ -1025,62 +1028,62 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                    "control INSERT", "copy",
                      "shift INSERT", "paste",
                      "shift DELETE", "cut",
-		               "UP", "selectPreviousRow",
-		            "KP_UP", "selectPreviousRow",
-		         "shift UP", "selectPreviousRowExtendSelection",
-		      "shift KP_UP", "selectPreviousRowExtendSelection",
+                               "UP", "selectPreviousRow",
+                            "KP_UP", "selectPreviousRow",
+                         "shift UP", "selectPreviousRowExtendSelection",
+                      "shift KP_UP", "selectPreviousRowExtendSelection",
                     "ctrl shift UP", "selectPreviousRowExtendSelection",
                  "ctrl shift KP_UP", "selectPreviousRowExtendSelection",
                           "ctrl UP", "selectPreviousRowChangeLead",
                        "ctrl KP_UP", "selectPreviousRowChangeLead",
-		             "DOWN", "selectNextRow",
-		          "KP_DOWN", "selectNextRow",
-		       "shift DOWN", "selectNextRowExtendSelection",
-		    "shift KP_DOWN", "selectNextRowExtendSelection",
+                             "DOWN", "selectNextRow",
+                          "KP_DOWN", "selectNextRow",
+                       "shift DOWN", "selectNextRowExtendSelection",
+                    "shift KP_DOWN", "selectNextRowExtendSelection",
                   "ctrl shift DOWN", "selectNextRowExtendSelection",
                "ctrl shift KP_DOWN", "selectNextRowExtendSelection",
                         "ctrl DOWN", "selectNextRowChangeLead",
                      "ctrl KP_DOWN", "selectNextRowChangeLead",
-		             "LEFT", "selectPreviousColumn",
-		          "KP_LEFT", "selectPreviousColumn",
-		       "shift LEFT", "selectPreviousColumnExtendSelection",
-		    "shift KP_LEFT", "selectPreviousColumnExtendSelection",
+                             "LEFT", "selectPreviousColumn",
+                          "KP_LEFT", "selectPreviousColumn",
+                       "shift LEFT", "selectPreviousColumnExtendSelection",
+                    "shift KP_LEFT", "selectPreviousColumnExtendSelection",
                   "ctrl shift LEFT", "selectPreviousColumnExtendSelection",
                "ctrl shift KP_LEFT", "selectPreviousColumnExtendSelection",
                         "ctrl LEFT", "selectPreviousColumnChangeLead",
                      "ctrl KP_LEFT", "selectPreviousColumnChangeLead",
-		            "RIGHT", "selectNextColumn",
-		         "KP_RIGHT", "selectNextColumn",
-		      "shift RIGHT", "selectNextColumnExtendSelection",
-		   "shift KP_RIGHT", "selectNextColumnExtendSelection",
+                            "RIGHT", "selectNextColumn",
+                         "KP_RIGHT", "selectNextColumn",
+                      "shift RIGHT", "selectNextColumnExtendSelection",
+                   "shift KP_RIGHT", "selectNextColumnExtendSelection",
                  "ctrl shift RIGHT", "selectNextColumnExtendSelection",
               "ctrl shift KP_RIGHT", "selectNextColumnExtendSelection",
                        "ctrl RIGHT", "selectNextColumnChangeLead",
                     "ctrl KP_RIGHT", "selectNextColumnChangeLead",
-		             "HOME", "selectFirstRow",
-		       "shift HOME", "selectFirstRowExtendSelection",
+                             "HOME", "selectFirstRow",
+                       "shift HOME", "selectFirstRowExtendSelection",
                   "ctrl shift HOME", "selectFirstRowExtendSelection",
                         "ctrl HOME", "selectFirstRowChangeLead",
-		              "END", "selectLastRow",
-		        "shift END", "selectLastRowExtendSelection",
+                              "END", "selectLastRow",
+                        "shift END", "selectLastRowExtendSelection",
                    "ctrl shift END", "selectLastRowExtendSelection",
                          "ctrl END", "selectLastRowChangeLead",
-		          "PAGE_UP", "scrollUp",
-		    "shift PAGE_UP", "scrollUpExtendSelection",
+                          "PAGE_UP", "scrollUp",
+                    "shift PAGE_UP", "scrollUpExtendSelection",
                "ctrl shift PAGE_UP", "scrollUpExtendSelection",
                      "ctrl PAGE_UP", "scrollUpChangeLead",
-		        "PAGE_DOWN", "scrollDown",
-		  "shift PAGE_DOWN", "scrollDownExtendSelection",
+                        "PAGE_DOWN", "scrollDown",
+                  "shift PAGE_DOWN", "scrollDownExtendSelection",
              "ctrl shift PAGE_DOWN", "scrollDownExtendSelection",
                    "ctrl PAGE_DOWN", "scrollDownChangeLead",
-		           "ctrl A", "selectAll",
-		       "ctrl SLASH", "selectAll",
-		  "ctrl BACK_SLASH", "clearSelection",
+                           "ctrl A", "selectAll",
+                       "ctrl SLASH", "selectAll",
+                  "ctrl BACK_SLASH", "clearSelection",
                             "SPACE", "addToSelection",
                        "ctrl SPACE", "toggleAndAnchor",
                       "shift SPACE", "extendTo",
                  "ctrl shift SPACE", "moveSelectionTo"
-		 }),
+                 }),
 
             // ScrollBar
             "ScrollBar.background", control,
@@ -1091,42 +1094,42 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ScrollBar.thumbShadow", primaryControlDarkShadow,
             "ScrollBar.thumbHighlight", primaryControl,
             "ScrollBar.width", new Integer( 17 ),
-	    "ScrollBar.allowsAbsolutePositioning", Boolean.TRUE,
-	    "ScrollBar.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "positiveUnitIncrement",
-		    "KP_RIGHT", "positiveUnitIncrement",
-		        "DOWN", "positiveUnitIncrement",
-		     "KP_DOWN", "positiveUnitIncrement",
-		   "PAGE_DOWN", "positiveBlockIncrement",
-		        "LEFT", "negativeUnitIncrement",
-		     "KP_LEFT", "negativeUnitIncrement",
-		          "UP", "negativeUnitIncrement",
-		       "KP_UP", "negativeUnitIncrement",
-		     "PAGE_UP", "negativeBlockIncrement",
-		        "HOME", "minScroll",
-		         "END", "maxScroll"
-		 }),
+            "ScrollBar.allowsAbsolutePositioning", Boolean.TRUE,
+            "ScrollBar.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                       "RIGHT", "positiveUnitIncrement",
+                    "KP_RIGHT", "positiveUnitIncrement",
+                        "DOWN", "positiveUnitIncrement",
+                     "KP_DOWN", "positiveUnitIncrement",
+                   "PAGE_DOWN", "positiveBlockIncrement",
+                        "LEFT", "negativeUnitIncrement",
+                     "KP_LEFT", "negativeUnitIncrement",
+                          "UP", "negativeUnitIncrement",
+                       "KP_UP", "negativeUnitIncrement",
+                     "PAGE_UP", "negativeBlockIncrement",
+                        "HOME", "minScroll",
+                         "END", "maxScroll"
+                 }),
 
-	    // ScrollPane
-	    "ScrollPane.border", scrollPaneBorder,
-	    "ScrollPane.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		           "RIGHT", "unitScrollRight",
-		        "KP_RIGHT", "unitScrollRight",
-		            "DOWN", "unitScrollDown",
-		         "KP_DOWN", "unitScrollDown",
-		            "LEFT", "unitScrollLeft",
-		         "KP_LEFT", "unitScrollLeft",
-		              "UP", "unitScrollUp",
-		           "KP_UP", "unitScrollUp",
-		         "PAGE_UP", "scrollUp",
-		       "PAGE_DOWN", "scrollDown",
-		    "ctrl PAGE_UP", "scrollLeft",
-		  "ctrl PAGE_DOWN", "scrollRight",
-		       "ctrl HOME", "scrollHome",
-		        "ctrl END", "scrollEnd"
-		 }),
+            // ScrollPane
+            "ScrollPane.border", scrollPaneBorder,
+            "ScrollPane.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                           "RIGHT", "unitScrollRight",
+                        "KP_RIGHT", "unitScrollRight",
+                            "DOWN", "unitScrollDown",
+                         "KP_DOWN", "unitScrollDown",
+                            "LEFT", "unitScrollLeft",
+                         "KP_LEFT", "unitScrollLeft",
+                              "UP", "unitScrollUp",
+                           "KP_UP", "unitScrollUp",
+                         "PAGE_UP", "scrollUp",
+                       "PAGE_DOWN", "scrollDown",
+                    "ctrl PAGE_UP", "scrollLeft",
+                  "ctrl PAGE_DOWN", "scrollRight",
+                       "ctrl HOME", "scrollHome",
+                        "ctrl END", "scrollEnd"
+                 }),
 
             // Tabbed Pane
             "TabbedPane.font", controlTextValue,
@@ -1138,36 +1141,36 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "TabbedPane.selectHighlight", controlHighlight,
             "TabbedPane.tabAreaInsets", tabbedPaneTabAreaInsets,
             "TabbedPane.tabInsets", tabbedPaneTabInsets,
-	    "TabbedPane.focusInputMap",
-	      new UIDefaults.LazyInputMap(new Object[] {
-		         "RIGHT", "navigateRight",
-	              "KP_RIGHT", "navigateRight",
-	                  "LEFT", "navigateLeft",
-	               "KP_LEFT", "navigateLeft",
-	                    "UP", "navigateUp",
-	                 "KP_UP", "navigateUp",
-	                  "DOWN", "navigateDown",
-	               "KP_DOWN", "navigateDown",
-	             "ctrl DOWN", "requestFocusForVisibleComponent",
-	          "ctrl KP_DOWN", "requestFocusForVisibleComponent",
-		}),
-	    "TabbedPane.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		   "ctrl PAGE_DOWN", "navigatePageDown",
-	             "ctrl PAGE_UP", "navigatePageUp",
-	                  "ctrl UP", "requestFocus",
-	               "ctrl KP_UP", "requestFocus",
-		 }),
-            
+            "TabbedPane.focusInputMap",
+              new UIDefaults.LazyInputMap(new Object[] {
+                         "RIGHT", "navigateRight",
+                      "KP_RIGHT", "navigateRight",
+                          "LEFT", "navigateLeft",
+                       "KP_LEFT", "navigateLeft",
+                            "UP", "navigateUp",
+                         "KP_UP", "navigateUp",
+                          "DOWN", "navigateDown",
+                       "KP_DOWN", "navigateDown",
+                     "ctrl DOWN", "requestFocusForVisibleComponent",
+                  "ctrl KP_DOWN", "requestFocusForVisibleComponent",
+                }),
+            "TabbedPane.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                   "ctrl PAGE_DOWN", "navigatePageDown",
+                     "ctrl PAGE_UP", "navigatePageUp",
+                          "ctrl UP", "requestFocus",
+                       "ctrl KP_UP", "requestFocus",
+                 }),
+
             // Table
-	    "Table.font", userTextValue,
+            "Table.font", userTextValue,
             "Table.focusCellHighlightBorder", focusCellHighlightBorder,
             "Table.scrollPaneBorder", scrollPaneBorder,
             "Table.dropLineColor", focusColor,
             "Table.dropLineShortColor", primaryControlDarkShadow,
-      	    "Table.gridColor", controlShadow,  // grid line color
-	    "Table.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
+            "Table.gridColor", controlShadow,  // grid line color
+            "Table.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
                                "ctrl C", "copy",
                                "ctrl V", "paste",
                                "ctrl X", "cut",
@@ -1177,32 +1180,32 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                        "control INSERT", "copy",
                          "shift INSERT", "paste",
                          "shift DELETE", "cut",
-		                "RIGHT", "selectNextColumn",
-		             "KP_RIGHT", "selectNextColumn",
+                                "RIGHT", "selectNextColumn",
+                             "KP_RIGHT", "selectNextColumn",
                           "shift RIGHT", "selectNextColumnExtendSelection",
                        "shift KP_RIGHT", "selectNextColumnExtendSelection",
                      "ctrl shift RIGHT", "selectNextColumnExtendSelection",
                   "ctrl shift KP_RIGHT", "selectNextColumnExtendSelection",
                            "ctrl RIGHT", "selectNextColumnChangeLead",
                         "ctrl KP_RIGHT", "selectNextColumnChangeLead",
-		                 "LEFT", "selectPreviousColumn",
-		              "KP_LEFT", "selectPreviousColumn",
+                                 "LEFT", "selectPreviousColumn",
+                              "KP_LEFT", "selectPreviousColumn",
                            "shift LEFT", "selectPreviousColumnExtendSelection",
                         "shift KP_LEFT", "selectPreviousColumnExtendSelection",
                       "ctrl shift LEFT", "selectPreviousColumnExtendSelection",
                    "ctrl shift KP_LEFT", "selectPreviousColumnExtendSelection",
                             "ctrl LEFT", "selectPreviousColumnChangeLead",
                          "ctrl KP_LEFT", "selectPreviousColumnChangeLead",
-		                 "DOWN", "selectNextRow",
-		              "KP_DOWN", "selectNextRow",
+                                 "DOWN", "selectNextRow",
+                              "KP_DOWN", "selectNextRow",
                            "shift DOWN", "selectNextRowExtendSelection",
                         "shift KP_DOWN", "selectNextRowExtendSelection",
                       "ctrl shift DOWN", "selectNextRowExtendSelection",
                    "ctrl shift KP_DOWN", "selectNextRowExtendSelection",
                             "ctrl DOWN", "selectNextRowChangeLead",
                          "ctrl KP_DOWN", "selectNextRowChangeLead",
-		                   "UP", "selectPreviousRow",
-		                "KP_UP", "selectPreviousRow",
+                                   "UP", "selectPreviousRow",
+                                "KP_UP", "selectPreviousRow",
                              "shift UP", "selectPreviousRowExtendSelection",
                           "shift KP_UP", "selectPreviousRowExtendSelection",
                         "ctrl shift UP", "selectPreviousRowExtendSelection",
@@ -1217,29 +1220,29 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                             "shift END", "selectLastColumnExtendSelection",
                        "ctrl shift END", "selectLastRowExtendSelection",
                              "ctrl END", "selectLastRow",
-		              "PAGE_UP", "scrollUpChangeSelection",
+                              "PAGE_UP", "scrollUpChangeSelection",
                         "shift PAGE_UP", "scrollUpExtendSelection",
                    "ctrl shift PAGE_UP", "scrollLeftExtendSelection",
                          "ctrl PAGE_UP", "scrollLeftChangeSelection",
-		            "PAGE_DOWN", "scrollDownChangeSelection",
-		      "shift PAGE_DOWN", "scrollDownExtendSelection",
+                            "PAGE_DOWN", "scrollDownChangeSelection",
+                      "shift PAGE_DOWN", "scrollDownExtendSelection",
                  "ctrl shift PAGE_DOWN", "scrollRightExtendSelection",
-		       "ctrl PAGE_DOWN", "scrollRightChangeSelection",
-		                  "TAB", "selectNextColumnCell",
-		            "shift TAB", "selectPreviousColumnCell",
-		                "ENTER", "selectNextRowCell",
-		          "shift ENTER", "selectPreviousRowCell",
-		               "ctrl A", "selectAll",
+                       "ctrl PAGE_DOWN", "scrollRightChangeSelection",
+                                  "TAB", "selectNextColumnCell",
+                            "shift TAB", "selectPreviousColumnCell",
+                                "ENTER", "selectNextRowCell",
+                          "shift ENTER", "selectPreviousRowCell",
+                               "ctrl A", "selectAll",
                            "ctrl SLASH", "selectAll",
                       "ctrl BACK_SLASH", "clearSelection",
-		               "ESCAPE", "cancel",
-		                   "F2", "startEditing",
+                               "ESCAPE", "cancel",
+                                   "F2", "startEditing",
                                 "SPACE", "addToSelection",
                            "ctrl SPACE", "toggleAndAnchor",
                           "shift SPACE", "extendTo",
                      "ctrl shift SPACE", "moveSelectionTo",
                                    "F8", "focusHeader"
-		 }),
+                 }),
             "Table.ascendingSortIcon",
                 SwingUtilities2.makeIcon(getClass(), MetalLookAndFeel.class,
                 "icons/sortUp.png"),
@@ -1247,23 +1250,23 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                 SwingUtilities2.makeIcon(getClass(), MetalLookAndFeel.class,
                 "icons/sortDown.png"),
 
-	    "TableHeader.font", userTextValue,
-	    "TableHeader.cellBorder", new SwingLazyValue(
-					  "javax.swing.plaf.metal.MetalBorders$TableHeaderBorder"),
+            "TableHeader.font", userTextValue,
+            "TableHeader.cellBorder", new SwingLazyValue(
+                                          "javax.swing.plaf.metal.MetalBorders$TableHeaderBorder"),
 
             // MenuBar
             "MenuBar.border", menuBarBorder,
             "MenuBar.font", menuTextValue,
-	    "MenuBar.windowBindings", new Object[] {
-		"F10", "takeFocus" },
+            "MenuBar.windowBindings", new Object[] {
+                "F10", "takeFocus" },
 
             // Menu
             "Menu.border", menuItemBorder,
             "Menu.borderPainted", Boolean.TRUE,
-	    "Menu.menuPopupOffsetX", zero,
-	    "Menu.menuPopupOffsetY", zero,
-	    "Menu.submenuPopupOffsetX", new Integer(-4),
-	    "Menu.submenuPopupOffsetY", new Integer(-3),
+            "Menu.menuPopupOffsetX", zero,
+            "Menu.menuPopupOffsetY", zero,
+            "Menu.submenuPopupOffsetX", new Integer(-4),
+            "Menu.submenuPopupOffsetY", new Integer(-3),
             "Menu.font", menuTextValue,
             "Menu.selectionForeground", menuSelectedForeground,
             "Menu.selectionBackground", menuSelectedBackground,
@@ -1284,16 +1287,16 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "MenuItem.acceleratorFont", subTextValue,
             "MenuItem.acceleratorForeground", acceleratorForeground,
             "MenuItem.acceleratorSelectionForeground", acceleratorSelectedForeground,
-	    "MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
+            "MenuItem.acceleratorDelimiter", menuItemAcceleratorDelimiter,
             "MenuItem.checkIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemCheckIcon"),
             "MenuItem.arrowIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemArrowIcon"),
-	         // Menu Item Auditory Cue Mapping
-	    "MenuItem.commandSound", "sounds/MenuItemCommand.wav",
+                 // Menu Item Auditory Cue Mapping
+            "MenuItem.commandSound", "sounds/MenuItemCommand.wav",
 
-	    // OptionPane.
-	    "OptionPane.windowBindings", new Object[] {
-		"ESCAPE", "close" },
-	    // Option Pane Auditory Cue Mappings
+            // OptionPane.
+            "OptionPane.windowBindings", new Object[] {
+                "ESCAPE", "close" },
+            // Option Pane Auditory Cue Mappings
             "OptionPane.informationSound", "sounds/OptionPaneInformation.wav",
             "OptionPane.warningSound", "sounds/OptionPaneWarning.wav",
             "OptionPane.errorSound", "sounds/OptionPaneError.wav",
@@ -1326,14 +1329,14 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "OptionPane.warningDialog.titlePane.shadow",
                         new ColorUIResource(204, 153, 102),
             // OptionPane fonts are defined below
-           
+
             // Separator
             "Separator.background", getSeparatorBackground(),
             "Separator.foreground", getSeparatorForeground(),
 
             // Popup Menu
-            "PopupMenu.border", popupMenuBorder,          
-	         // Popup Menu Auditory Cue Mappings
+            "PopupMenu.border", popupMenuBorder,
+                 // Popup Menu Auditory Cue Mappings
             "PopupMenu.popupSound", "sounds/PopupMenuPopup.wav",
             "PopupMenu.font", menuTextValue,
 
@@ -1349,7 +1352,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "CheckBoxMenuItem.acceleratorSelectionForeground", acceleratorSelectedForeground,
             "CheckBoxMenuItem.checkIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getCheckBoxMenuItemIcon"),
             "CheckBoxMenuItem.arrowIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemArrowIcon"),
-	    "CheckBoxMenuItem.commandSound", "sounds/MenuItemCommand.wav",
+            "CheckBoxMenuItem.commandSound", "sounds/MenuItemCommand.wav",
 
             "RadioButtonMenuItem.border", menuItemBorder,
             "RadioButtonMenuItem.borderPainted", Boolean.TRUE,
@@ -1362,40 +1365,40 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "RadioButtonMenuItem.acceleratorSelectionForeground", acceleratorSelectedForeground,
             "RadioButtonMenuItem.checkIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getRadioButtonMenuItemIcon"),
             "RadioButtonMenuItem.arrowIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getMenuItemArrowIcon"),
-	    "RadioButtonMenuItem.commandSound", "sounds/MenuItemCommand.wav",
+            "RadioButtonMenuItem.commandSound", "sounds/MenuItemCommand.wav",
 
             "Spinner.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
+               new UIDefaults.LazyInputMap(new Object[] {
                                "UP", "increment",
                             "KP_UP", "increment",
                              "DOWN", "decrement",
                           "KP_DOWN", "decrement",
                }),
-	    "Spinner.arrowButtonInsets", zeroInsets,
-	    "Spinner.border", textFieldBorder,
-	    "Spinner.arrowButtonBorder", buttonBorder,
+            "Spinner.arrowButtonInsets", zeroInsets,
+            "Spinner.border", textFieldBorder,
+            "Spinner.arrowButtonBorder", buttonBorder,
             "Spinner.font", controlTextValue,
 
-	    // SplitPane
+            // SplitPane
 
-	    "SplitPane.dividerSize", new Integer(10),
-	    "SplitPane.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		        "UP", "negativeIncrement",
-		      "DOWN", "positiveIncrement",
-		      "LEFT", "negativeIncrement",
-		     "RIGHT", "positiveIncrement",
-		     "KP_UP", "negativeIncrement",
-		   "KP_DOWN", "positiveIncrement",
-		   "KP_LEFT", "negativeIncrement",
-		  "KP_RIGHT", "positiveIncrement",
-		      "HOME", "selectMin",
-		       "END", "selectMax",
-		        "F8", "startResize",
-		        "F6", "toggleFocus",
-		  "ctrl TAB", "focusOutForward",
- 	    "ctrl shift TAB", "focusOutBackward"
-		 }),
+            "SplitPane.dividerSize", new Integer(10),
+            "SplitPane.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                        "UP", "negativeIncrement",
+                      "DOWN", "positiveIncrement",
+                      "LEFT", "negativeIncrement",
+                     "RIGHT", "positiveIncrement",
+                     "KP_UP", "negativeIncrement",
+                   "KP_DOWN", "positiveIncrement",
+                   "KP_LEFT", "negativeIncrement",
+                  "KP_RIGHT", "positiveIncrement",
+                      "HOME", "selectMin",
+                       "END", "selectMax",
+                        "F8", "startResize",
+                        "F6", "toggleFocus",
+                  "ctrl TAB", "focusOutForward",
+            "ctrl shift TAB", "focusOutBackward"
+                 }),
             "SplitPane.centerOneTouchButtons", Boolean.FALSE,
             "SplitPane.dividerFocusColor", primaryControl,
 
@@ -1408,19 +1411,19 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "Tree.closedIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getTreeFolderIcon"),
             "Tree.leafIcon", new SwingLazyValue("javax.swing.plaf.metal.MetalIconFactory", "getTreeLeafIcon"),
             "Tree.expandedIcon", new SwingLazyValue(
-				     "javax.swing.plaf.metal.MetalIconFactory", 
-				     "getTreeControlIcon",
-				     new Object[] {Boolean.valueOf(MetalIconFactory.DARK)}),
+                                     "javax.swing.plaf.metal.MetalIconFactory",
+                                     "getTreeControlIcon",
+                                     new Object[] {Boolean.valueOf(MetalIconFactory.DARK)}),
             "Tree.collapsedIcon", new SwingLazyValue(
-				     "javax.swing.plaf.metal.MetalIconFactory", 
-				     "getTreeControlIcon",
-				     new Object[] {Boolean.valueOf( MetalIconFactory.LIGHT )}),
+                                     "javax.swing.plaf.metal.MetalIconFactory",
+                                     "getTreeControlIcon",
+                                     new Object[] {Boolean.valueOf( MetalIconFactory.LIGHT )}),
 
             "Tree.line", primaryControl, // horiz lines
             "Tree.hash", primaryControl,  // legs
-	    "Tree.rowHeight", zero,
-	    "Tree.focusInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
+            "Tree.rowHeight", zero,
+            "Tree.focusInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
                                     "ADD", "expand",
                                "SUBTRACT", "collapse",
                                  "ctrl C", "copy",
@@ -1432,59 +1435,59 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                          "control INSERT", "copy",
                            "shift INSERT", "paste",
                            "shift DELETE", "cut",
-		                     "UP", "selectPrevious",
-		                  "KP_UP", "selectPrevious",
-		               "shift UP", "selectPreviousExtendSelection",
-		            "shift KP_UP", "selectPreviousExtendSelection",
+                                     "UP", "selectPrevious",
+                                  "KP_UP", "selectPrevious",
+                               "shift UP", "selectPreviousExtendSelection",
+                            "shift KP_UP", "selectPreviousExtendSelection",
                           "ctrl shift UP", "selectPreviousExtendSelection",
                        "ctrl shift KP_UP", "selectPreviousExtendSelection",
                                 "ctrl UP", "selectPreviousChangeLead",
                              "ctrl KP_UP", "selectPreviousChangeLead",
-		                   "DOWN", "selectNext",
-		                "KP_DOWN", "selectNext",
-		             "shift DOWN", "selectNextExtendSelection",
-		          "shift KP_DOWN", "selectNextExtendSelection",
+                                   "DOWN", "selectNext",
+                                "KP_DOWN", "selectNext",
+                             "shift DOWN", "selectNextExtendSelection",
+                          "shift KP_DOWN", "selectNextExtendSelection",
                         "ctrl shift DOWN", "selectNextExtendSelection",
                      "ctrl shift KP_DOWN", "selectNextExtendSelection",
                               "ctrl DOWN", "selectNextChangeLead",
                            "ctrl KP_DOWN", "selectNextChangeLead",
-		                  "RIGHT", "selectChild",
-		               "KP_RIGHT", "selectChild",
-		                   "LEFT", "selectParent",
-		                "KP_LEFT", "selectParent",
-		                "PAGE_UP", "scrollUpChangeSelection",
-		          "shift PAGE_UP", "scrollUpExtendSelection",
+                                  "RIGHT", "selectChild",
+                               "KP_RIGHT", "selectChild",
+                                   "LEFT", "selectParent",
+                                "KP_LEFT", "selectParent",
+                                "PAGE_UP", "scrollUpChangeSelection",
+                          "shift PAGE_UP", "scrollUpExtendSelection",
                      "ctrl shift PAGE_UP", "scrollUpExtendSelection",
                            "ctrl PAGE_UP", "scrollUpChangeLead",
-		              "PAGE_DOWN", "scrollDownChangeSelection",
-		        "shift PAGE_DOWN", "scrollDownExtendSelection",
+                              "PAGE_DOWN", "scrollDownChangeSelection",
+                        "shift PAGE_DOWN", "scrollDownExtendSelection",
                    "ctrl shift PAGE_DOWN", "scrollDownExtendSelection",
                          "ctrl PAGE_DOWN", "scrollDownChangeLead",
-		                   "HOME", "selectFirst",
-		             "shift HOME", "selectFirstExtendSelection",
+                                   "HOME", "selectFirst",
+                             "shift HOME", "selectFirstExtendSelection",
                         "ctrl shift HOME", "selectFirstExtendSelection",
                               "ctrl HOME", "selectFirstChangeLead",
-		                    "END", "selectLast",
-		              "shift END", "selectLastExtendSelection",
+                                    "END", "selectLast",
+                              "shift END", "selectLastExtendSelection",
                          "ctrl shift END", "selectLastExtendSelection",
                                "ctrl END", "selectLastChangeLead",
-		                     "F2", "startEditing",
-		                 "ctrl A", "selectAll",
-		             "ctrl SLASH", "selectAll",
-		        "ctrl BACK_SLASH", "clearSelection",
-		              "ctrl LEFT", "scrollLeft",
-		           "ctrl KP_LEFT", "scrollLeft",
-		             "ctrl RIGHT", "scrollRight",
-		          "ctrl KP_RIGHT", "scrollRight",
+                                     "F2", "startEditing",
+                                 "ctrl A", "selectAll",
+                             "ctrl SLASH", "selectAll",
+                        "ctrl BACK_SLASH", "clearSelection",
+                              "ctrl LEFT", "scrollLeft",
+                           "ctrl KP_LEFT", "scrollLeft",
+                             "ctrl RIGHT", "scrollRight",
+                          "ctrl KP_RIGHT", "scrollRight",
                                   "SPACE", "addToSelection",
                              "ctrl SPACE", "toggleAndAnchor",
                             "shift SPACE", "extendTo",
                        "ctrl shift SPACE", "moveSelectionTo"
-		 }),
-	    "Tree.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "cancel"
-		 }),
+                 }),
+            "Tree.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                     "ESCAPE", "cancel"
+                 }),
 
             // ToolBar
             "ToolBar.border", toolBarBorder,
@@ -1493,7 +1496,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ToolBar.font", menuTextValue,
             "ToolBar.dockingBackground", menuBackground,
             "ToolBar.floatingBackground", menuBackground,
-            "ToolBar.dockingForeground", primaryControlDarkShadow, 
+            "ToolBar.dockingForeground", primaryControlDarkShadow,
             "ToolBar.floatingForeground", primaryControl,
             "ToolBar.rolloverBorder", new MetalLazyValue(
                          "javax.swing.plaf.metal.MetalBorders",
@@ -1501,17 +1504,17 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "ToolBar.nonrolloverBorder", new MetalLazyValue(
                          "javax.swing.plaf.metal.MetalBorders",
                          "getToolBarNonrolloverBorder"),
-	    "ToolBar.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		        "UP", "navigateUp",
-		     "KP_UP", "navigateUp",
-		      "DOWN", "navigateDown",
-		   "KP_DOWN", "navigateDown",
-		      "LEFT", "navigateLeft",
-		   "KP_LEFT", "navigateLeft",
-		     "RIGHT", "navigateRight",
-		  "KP_RIGHT", "navigateRight"
-		 }),
+            "ToolBar.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                        "UP", "navigateUp",
+                     "KP_UP", "navigateUp",
+                      "DOWN", "navigateDown",
+                   "KP_DOWN", "navigateDown",
+                      "LEFT", "navigateLeft",
+                   "KP_LEFT", "navigateLeft",
+                     "RIGHT", "navigateRight",
+                  "KP_RIGHT", "navigateRight"
+                 }),
 
             // RootPane
             "RootPane.frameBorder", new MetalLazyValue(
@@ -1525,23 +1528,21 @@ public class MetalLookAndFeel extends BasicLookAndFeel
             "RootPane.questionDialogBorder", questionDialogBorder,
             "RootPane.warningDialogBorder", new MetalLazyValue(
                     "javax.swing.plaf.metal.MetalBorders$WarningDialogBorder"),
-	    // These bindings are only enabled when there is a default
-	    // button set on the rootpane.
-	    "RootPane.defaultButtonWindowKeyBindings", new Object[] {
-		             "ENTER", "press",
-		    "released ENTER", "release",
-		        "ctrl ENTER", "press",
-	       "ctrl released ENTER", "release"
-	      },
+            // These bindings are only enabled when there is a default
+            // button set on the rootpane.
+            "RootPane.defaultButtonWindowKeyBindings", new Object[] {
+                             "ENTER", "press",
+                    "released ENTER", "release",
+                        "ctrl ENTER", "press",
+               "ctrl released ENTER", "release"
+              },
         };
 
         table.putDefaults(defaults);
 
         if (isWindows() && useSystemFonts() && theme.isSystemTheme()) {
-            Toolkit kit = Toolkit.getDefaultToolkit();
             Object messageFont = new MetalFontDesktopProperty(
-                              "win.messagebox.font.height", kit, MetalTheme.
-                              CONTROL_TEXT_FONT);
+                "win.messagebox.font.height", MetalTheme.CONTROL_TEXT_FONT);
 
             defaults = new Object[] {
                 "OptionPane.messageFont", messageFont,
@@ -1589,6 +1590,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
 
         createDefaultTheme();
         UIDefaults table = super.getDefaults();
+        MetalTheme currentTheme = getCurrentTheme();
         currentTheme.addCustomEntriesToTable(table);
         currentTheme.install();
         return table;
@@ -1600,7 +1602,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      * @since 1.4
      */
     public void provideErrorFeedback(Component component) {
-	super.provideErrorFeedback(component);
+        super.provideErrorFeedback(component);
     }
 
     /**
@@ -1619,7 +1621,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *   // needs to be invoked for all windows.
      *   SwingUtilities.updateComponentTreeUI(rootComponent);
      * </pre>
-     * If this is not done the results are undefined. 
+     * If this is not done the results are undefined.
      *
      * @param theme the theme to use
      * @throws NullPointerException if {@code theme} is {@code null}
@@ -1632,9 +1634,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         if (theme == null) {
             throw new NullPointerException("Can't have null theme");
         }
-        currentTheme = theme;
-	cachedAppContext = AppContext.getAppContext();
-	cachedAppContext.put( "currentMetalTheme", theme );
+        AppContext.getAppContext().put( "currentMetalTheme", theme );
     }
 
     /**
@@ -1646,39 +1646,35 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      * @since 1.5
      */
     public static MetalTheme getCurrentTheme() {
+        MetalTheme currentTheme;
         AppContext context = AppContext.getAppContext();
-
-	if ( cachedAppContext != context ) {
-	    currentTheme = (MetalTheme)context.get( "currentMetalTheme" );
-            if (currentTheme == null) {
-                // This will happen in two cases:
-                // . When MetalLookAndFeel is first being initialized.
-                // . When a new AppContext has been created that hasn't
-                //   triggered UIManager to load a LAF. Rather than invoke
-                //   a method on the UIManager, which would trigger the loading
-                //   of a potentially different LAF, we directly set the
-                //   Theme here.
-                if (useHighContrastTheme()) {
-                    currentTheme = new MetalHighContrastTheme();
+        currentTheme = (MetalTheme) context.get( "currentMetalTheme" );
+        if (currentTheme == null) {
+            // This will happen in two cases:
+            // . When MetalLookAndFeel is first being initialized.
+            // . When a new AppContext has been created that hasn't
+            //   triggered UIManager to load a LAF. Rather than invoke
+            //   a method on the UIManager, which would trigger the loading
+            //   of a potentially different LAF, we directly set the
+            //   Theme here.
+            if (useHighContrastTheme()) {
+                currentTheme = new MetalHighContrastTheme();
+            }
+            else {
+                // Create the default theme. We prefer Ocean, but will
+                // use DefaultMetalTheme if told to.
+                String theme = AccessController.doPrivileged(
+                               new GetPropertyAction("swing.metalTheme"));
+                if ("steel".equals(theme)) {
+                    currentTheme = new DefaultMetalTheme();
                 }
                 else {
-                    // Create the default theme. We prefer Ocean, but will
-                    // use DefaultMetalTheme if told to.
-                    String theme = (String)AccessController.doPrivileged(
-                                   new GetPropertyAction("swing.metalTheme"));
-                    if ("steel".equals(theme)) {
-                        currentTheme = new DefaultMetalTheme();
-                    }
-                    else {
-                        currentTheme = new OceanTheme();
-                    }
+                    currentTheme = new OceanTheme();
                 }
-                setCurrentTheme(currentTheme);
             }
-	    cachedAppContext = context;
-	}
-
-	return currentTheme;
+            setCurrentTheme(currentTheme);
+        }
+        return currentTheme;
     }
 
     /**
@@ -1688,7 +1684,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      * <code>JButton</code> and only specify an <code>Icon</code> via
      * <code>setIcon</code> this method will be called to generate the
      * disabled <code>Icon</code>. If null is passed as <code>icon</code>
-     * this method returns null. 
+     * this method returns null.
      * <p>
      * Some look and feels might not render the disabled Icon, in which
      * case they will ignore this.
@@ -1716,7 +1712,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      * specify an <code>Icon</code> via <code>setIcon</code> this method
      * will be called to generate the disabled and selected
      * <code>Icon</code>. If null is passed as <code>icon</code> this method
-     * returns null. 
+     * returns null.
      * <p>
      * Some look and feels might not render the disabled and selected Icon,
      * in which case they will ignore this.
@@ -1873,7 +1869,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *
      * @see MetalTheme
      */
-    public static ColorUIResource getControlInfo() { return getCurrentTheme().getControlInfo(); } 
+    public static ColorUIResource getControlInfo() { return getCurrentTheme().getControlInfo(); }
 
     /**
      * Returns the control highlight color of the current theme. This is a
@@ -1903,7 +1899,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *
      * @see MetalTheme
      */
-    public static ColorUIResource getPrimaryControl() { return getCurrentTheme().getPrimaryControl(); }  
+    public static ColorUIResource getPrimaryControl() { return getCurrentTheme().getPrimaryControl(); }
 
     /**
      * Returns the primary control shadow color of the current theme. This is a
@@ -1913,7 +1909,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *
      * @see MetalTheme
      */
-    public static ColorUIResource getPrimaryControlShadow() { return getCurrentTheme().getPrimaryControlShadow(); }  
+    public static ColorUIResource getPrimaryControlShadow() { return getCurrentTheme().getPrimaryControlShadow(); }
 
     /**
      * Returns the primary control dark shadow color of the current
@@ -1924,7 +1920,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *
      * @see MetalTheme
      */
-    public static ColorUIResource getPrimaryControlDarkShadow() { return getCurrentTheme().getPrimaryControlDarkShadow(); }  
+    public static ColorUIResource getPrimaryControlDarkShadow() { return getCurrentTheme().getPrimaryControlDarkShadow(); }
 
     /**
      * Returns the primary control info color of the current theme. This is a
@@ -1934,7 +1930,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *
      * @see MetalTheme
      */
-    public static ColorUIResource getPrimaryControlInfo() { return getCurrentTheme().getPrimaryControlInfo(); } 
+    public static ColorUIResource getPrimaryControlInfo() { return getCurrentTheme().getPrimaryControlInfo(); }
 
     /**
      * Returns the primary control highlight color of the current
@@ -1945,7 +1941,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *
      * @see MetalTheme
      */
-    public static ColorUIResource getPrimaryControlHighlight() { return getCurrentTheme().getPrimaryControlHighlight(); }  
+    public static ColorUIResource getPrimaryControlHighlight() { return getCurrentTheme().getPrimaryControlHighlight(); }
 
     /**
      * Returns the system text color of the current theme. This is a
@@ -1965,7 +1961,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *
      * @see MetalTheme
      */
-    public static ColorUIResource getControlTextColor() { return getCurrentTheme().getControlTextColor(); }  
+    public static ColorUIResource getControlTextColor() { return getCurrentTheme().getControlTextColor(); }
 
     /**
      * Returns the inactive control text color of the current theme. This is a
@@ -1976,7 +1972,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
      *
      * @see MetalTheme
      */
-    public static ColorUIResource getInactiveControlTextColor() { return getCurrentTheme().getInactiveControlTextColor(); }  
+    public static ColorUIResource getInactiveControlTextColor() { return getCurrentTheme().getInactiveControlTextColor(); }
 
     /**
      * Returns the inactive system text color of the current theme. This is a
@@ -2210,9 +2206,9 @@ public class MetalLookAndFeel extends BasicLookAndFeel
                 if (methodName == null) {
                     return c.newInstance();
                 }
-                Method method = (Method)AccessController.doPrivileged(
-                    new PrivilegedAction() {
-                    public Object run() {
+                Method method = AccessController.doPrivileged(
+                    new PrivilegedAction<Method>() {
+                    public Method run() {
                         Method[] methods = c.getDeclaredMethods();
                         for (int counter = methods.length - 1; counter >= 0;
                              counter--) {
@@ -2275,7 +2271,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         }
     }
 
-    static ReferenceQueue queue = new ReferenceQueue();
+    static ReferenceQueue<LookAndFeel> queue = new ReferenceQueue<LookAndFeel>();
 
     static void flushUnreferenced() {
         AATextListener aatl;
@@ -2285,7 +2281,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
     }
 
     static class AATextListener
-        extends WeakReference implements PropertyChangeListener {
+        extends WeakReference<LookAndFeel> implements PropertyChangeListener {
 
         private String key = SunToolkit.DESKTOPFONTHINTS;
 
@@ -2296,7 +2292,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         }
 
         public void propertyChange(PropertyChangeEvent pce) {
-            LookAndFeel laf = (LookAndFeel)get();
+            LookAndFeel laf = get();
             if (laf == null || laf != UIManager.getLookAndFeel()) {
                 dispose();
                 return;
@@ -2320,8 +2316,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
         private static void updateWindowUI(Window window) {
             SwingUtilities.updateComponentTreeUI(window);
             Window ownedWins[] = window.getOwnedWindows();
-            for (int i=0; i < ownedWins.length; i++) {
-                updateWindowUI(ownedWins[i]);
+            for (Window w : ownedWins) {
+                updateWindowUI(w);
             }
         }
 
@@ -2330,8 +2326,8 @@ public class MetalLookAndFeel extends BasicLookAndFeel
          */
         private static void updateAllUIs() {
             Frame appFrames[] = Frame.getFrames();
-            for (int j=0; j < appFrames.length; j++) {
-                updateWindowUI(appFrames[j]);
+            for (Frame frame : appFrames) {
+                updateWindowUI(frame);
             }
         }
 
@@ -2339,7 +2335,7 @@ public class MetalLookAndFeel extends BasicLookAndFeel
          * Indicates if an updateUI call is pending.
          */
         private static boolean updatePending;
-    
+
         /**
          * Sets whether or not an updateUI call is pending.
          */

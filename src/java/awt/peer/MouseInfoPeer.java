@@ -1,8 +1,26 @@
 /*
- * @(#)MouseInfoPeer.java	1.3 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.peer;
@@ -11,6 +29,9 @@ import java.awt.Window;
 import java.awt.Point;
 
 /**
+ * Peer interface for {@link MouseInfo}. This is used to get some additional
+ * information about the mouse.
+ *
  * The peer interfaces are intended only for use in porting
  * the AWT. They are not intended for use by application
  * developers, and developers should not implement peers
@@ -32,7 +53,7 @@ public interface MouseInfoPeer {
      * coordinate system. Otherwise, coordinates are calculated in
      * the coordinate system of the screen device where the pointer
      * is located.
-     * See java.awt.GraphicsConfiguration documentation for more 
+     * See java.awt.GraphicsConfiguration documentation for more
      * details about virtual screen devices.
      */
     int fillPointWithCoords(Point point);

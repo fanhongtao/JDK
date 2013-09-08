@@ -1,8 +1,26 @@
 /*
- * @(#)AttributeInUseException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.directory;
@@ -18,7 +36,6 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   *
   * @see DirContext#modifyAttributes
   * @since 1.3
@@ -28,11 +45,11 @@ public class AttributeInUseException extends NamingException {
      * Constructs a new instance of AttributeInUseException with
      * an explanation. All other fields are set to null.
      *
-     * @param	explanation	Possibly null additional detail about this exception.
+     * @param   explanation     Possibly null additional detail about this exception.
      * @see java.lang.Throwable#getMessage
      */
     public AttributeInUseException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -40,7 +57,7 @@ public class AttributeInUseException extends NamingException {
       * All fields are initialized to null.
       */
     public AttributeInUseException() {
-	super();
+        super();
     }
 
     /**

@@ -1,8 +1,26 @@
 /*
- * @(#)DebugGraphics.java	1.27 05/11/17
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing;
@@ -26,7 +44,6 @@ import java.text.AttributedCharacterIterator;
  * @see RepaintManager#currentManager
  * @see RepaintManager#setDoubleBufferingEnabled
  *
- * @version 1.27 11/17/05
  * @author Dave Karlton
  */
 public class DebugGraphics extends Graphics {
@@ -119,7 +136,7 @@ public class DebugGraphics extends Graphics {
     //  NEW METHODS
     //------------------------------------------------
 
-    /** 
+    /**
      * Sets the Color used to flash drawing operations.
      */
     public static void setFlashColor(Color flashColor) {
@@ -559,7 +576,7 @@ public class DebugGraphics extends Graphics {
      * Overrides <code>Graphics.fill3DRect</code>.
      */
     public void fill3DRect(int x, int y, int width, int height,
-			   boolean raised) {
+                           boolean raised) {
         DebugGraphicsInfo info = info();
 
         if (debugLog()) {
@@ -986,8 +1003,8 @@ public class DebugGraphics extends Graphics {
 
         if (debugLog()) {
             info.log(toShortString() +
-		     " Drawing image: " + img +
-		     " at: " + new Point(x, y));
+                     " Drawing image: " + img +
+                     " at: " + new Point(x, y));
         }
 
         if (isDrawingBuffer()) {
@@ -1008,10 +1025,10 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
-	    Image imageToDraw;
+            Image imageToDraw;
             for (i = 0; i < count; i++) {
-		imageToDraw = (i % 2) == 0 ? newImage : img;
-		loadImage(imageToDraw);
+                imageToDraw = (i % 2) == 0 ? newImage : img;
+                loadImage(imageToDraw);
                 graphics.drawImage(imageToDraw, x, y,
                                    imageObserver);
                 Toolkit.getDefaultToolkit().sync();
@@ -1030,8 +1047,8 @@ public class DebugGraphics extends Graphics {
 
         if (debugLog()) {
             info.log(toShortString() +
-		     " Drawing image: " + img +
-		     " at: " + new Rectangle(x, y, width, height));
+                     " Drawing image: " + img +
+                     " at: " + new Rectangle(x, y, width, height));
         }
 
         if (isDrawingBuffer()) {
@@ -1052,10 +1069,10 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
-	    Image imageToDraw;
+            Image imageToDraw;
             for (i = 0; i < count; i++) {
-		imageToDraw = (i % 2) == 0 ? newImage : img;
-		loadImage(imageToDraw);
+                imageToDraw = (i % 2) == 0 ? newImage : img;
+                loadImage(imageToDraw);
                 graphics.drawImage(imageToDraw, x, y,
                                    width, height, imageObserver);
                 Toolkit.getDefaultToolkit().sync();
@@ -1075,9 +1092,9 @@ public class DebugGraphics extends Graphics {
 
         if (debugLog()) {
             info.log(toShortString() +
-		     " Drawing image: " + img +
-		     " at: " + new Point(x, y) + 
-		     ", bgcolor: " + bgcolor);
+                     " Drawing image: " + img +
+                     " at: " + new Point(x, y) +
+                     ", bgcolor: " + bgcolor);
         }
 
         if (isDrawingBuffer()) {
@@ -1098,10 +1115,10 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
-	    Image imageToDraw;
+            Image imageToDraw;
             for (i = 0; i < count; i++) {
-		imageToDraw = (i % 2) == 0 ? newImage : img;
-		loadImage(imageToDraw);
+                imageToDraw = (i % 2) == 0 ? newImage : img;
+                loadImage(imageToDraw);
                 graphics.drawImage(imageToDraw, x, y,
                                    bgcolor, imageObserver);
                 Toolkit.getDefaultToolkit().sync();
@@ -1121,17 +1138,17 @@ public class DebugGraphics extends Graphics {
 
         if (debugLog()) {
             info.log(toShortString() +
-		     " Drawing image: " + img +
-		     " at: " + new Rectangle(x, y, width, height) + 
-		     ", bgcolor: " + bgcolor);
+                     " Drawing image: " + img +
+                     " at: " + new Rectangle(x, y, width, height) +
+                     ", bgcolor: " + bgcolor);
         }
 
         if (isDrawingBuffer()) {
             if (debugBuffered()) {
                 Graphics debugGraphics = debugGraphics();
 
-                debugGraphics.drawImage(img, x, y, width, height, 
-					bgcolor, observer);
+                debugGraphics.drawImage(img, x, y, width, height,
+                                        bgcolor, observer);
                 debugGraphics.dispose();
             }
         } else if (debugFlash()) {
@@ -1145,10 +1162,10 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
-	    Image imageToDraw;
+            Image imageToDraw;
             for (i = 0; i < count; i++) {
-		imageToDraw = (i % 2) == 0 ? newImage : img;
-		loadImage(imageToDraw);
+                imageToDraw = (i % 2) == 0 ? newImage : img;
+                loadImage(imageToDraw);
                 graphics.drawImage(imageToDraw, x, y,
                                    width, height, bgcolor, imageObserver);
                 Toolkit.getDefaultToolkit().sync();
@@ -1169,17 +1186,17 @@ public class DebugGraphics extends Graphics {
 
         if (debugLog()) {
             info.log(toShortString() +
-		     " Drawing image: " + img +
-		     " destination: " + new Rectangle(dx1, dy1, dx2, dy2) + 
-		     " source: " + new Rectangle(sx1, sy1, sx2, sy2));
+                     " Drawing image: " + img +
+                     " destination: " + new Rectangle(dx1, dy1, dx2, dy2) +
+                     " source: " + new Rectangle(sx1, sy1, sx2, sy2));
         }
 
         if (isDrawingBuffer()) {
             if (debugBuffered()) {
                 Graphics debugGraphics = debugGraphics();
 
-                debugGraphics.drawImage(img, dx1, dy1, dx2, dy2, 
-					sx1, sy1, sx2, sy2, observer);
+                debugGraphics.drawImage(img, dx1, dy1, dx2, dy2,
+                                        sx1, sy1, sx2, sy2, observer);
                 debugGraphics.dispose();
             }
         } else if (debugFlash()) {
@@ -1193,12 +1210,12 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
-	    Image imageToDraw;
+            Image imageToDraw;
             for (i = 0; i < count; i++) {
-		imageToDraw = (i % 2) == 0 ? newImage : img;
-		loadImage(imageToDraw);
-                graphics.drawImage(imageToDraw, 
-				   dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, 
+                imageToDraw = (i % 2) == 0 ? newImage : img;
+                loadImage(imageToDraw);
+                graphics.drawImage(imageToDraw,
+                                   dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2,
                                    imageObserver);
                 Toolkit.getDefaultToolkit().sync();
                 sleep(info.flashTime);
@@ -1220,18 +1237,18 @@ public class DebugGraphics extends Graphics {
 
         if (debugLog()) {
             info.log(toShortString() +
-		     " Drawing image: " + img +
-		     " destination: " + new Rectangle(dx1, dy1, dx2, dy2) + 
-		     " source: " + new Rectangle(sx1, sy1, sx2, sy2) + 
-		     ", bgcolor: " + bgcolor);
+                     " Drawing image: " + img +
+                     " destination: " + new Rectangle(dx1, dy1, dx2, dy2) +
+                     " source: " + new Rectangle(sx1, sy1, sx2, sy2) +
+                     ", bgcolor: " + bgcolor);
         }
 
         if (isDrawingBuffer()) {
             if (debugBuffered()) {
                 Graphics debugGraphics = debugGraphics();
 
-                debugGraphics.drawImage(img, dx1, dy1, dx2, dy2, 
-					sx1, sy1, sx2, sy2, bgcolor, observer);
+                debugGraphics.drawImage(img, dx1, dy1, dx2, dy2,
+                                        sx1, sy1, sx2, sy2, bgcolor, observer);
                 debugGraphics.dispose();
             }
         } else if (debugFlash()) {
@@ -1245,12 +1262,12 @@ public class DebugGraphics extends Graphics {
             DebugGraphicsObserver imageObserver
                 = new DebugGraphicsObserver();
 
-	    Image imageToDraw;
+            Image imageToDraw;
             for (i = 0; i < count; i++) {
-		imageToDraw = (i % 2) == 0 ? newImage : img;
-		loadImage(imageToDraw);
-                graphics.drawImage(imageToDraw, 
-				   dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, 
+                imageToDraw = (i % 2) == 0 ? newImage : img;
+                loadImage(imageToDraw);
+                graphics.drawImage(imageToDraw,
+                                   dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2,
                                    bgcolor, imageObserver);
                 Toolkit.getDefaultToolkit().sync();
                 sleep(info.flashTime);
@@ -1261,7 +1278,7 @@ public class DebugGraphics extends Graphics {
     }
 
     static void loadImage(Image img) {
-	imageLoadingIcon.loadImage(img);
+        imageLoadingIcon.loadImage(img);
     }
 
 
@@ -1305,13 +1322,11 @@ public class DebugGraphics extends Graphics {
     }
 
     String toShortString() {
-        StringBuffer buffer = new StringBuffer("Graphics" + (isDrawingBuffer() ? "<B>" : "") + "(" + graphicsID + "-" + debugOptions + ")");
-        return buffer.toString();
+        return "Graphics" + (isDrawingBuffer() ? "<B>" : "") + "(" + graphicsID + "-" + debugOptions + ")";
     }
 
     String pointToString(int x, int y) {
-        StringBuffer buffer = new StringBuffer("(" + x + ", " + y + ")");
-        return buffer.toString();
+        return "(" + x + ", " + y + ")";
     }
 
     /** Enables/disables diagnostic information about every graphics

@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2000 World Wide Web Consortium,
  * (Massachusetts Institute of Technology, Institut National de
  * Recherche en Informatique et en Automatique, Keio University). All
@@ -13,16 +42,15 @@
 package org.w3c.dom.html;
 
 /**
- *  Organizes form controls into logical groups. See the   FIELDSET  element 
+ *  Organizes form controls into logical groups. See the   FIELDSET  element
  * definition in HTML 4.0.
  * <p>See also the <a href='http://www.w3.org/TR/2000/CR-DOM-Level-2-20000510'>Document Object Model (DOM) Level 2 Specification</a>.
  */
 public interface HTMLFieldSetElement extends HTMLElement {
     /**
-     *  Returns the <code>FORM</code> element containing this control. Returns 
-     * <code>null</code> if this control is not within the context of a form. 
+     *  Returns the <code>FORM</code> element containing this control. Returns
+     * <code>null</code> if this control is not within the context of a form.
      */
     public HTMLFormElement getForm();
 
 }
-

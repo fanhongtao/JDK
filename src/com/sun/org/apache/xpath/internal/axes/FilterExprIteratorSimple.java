@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +33,7 @@ import com.sun.org.apache.xpath.internal.XPathVisitor;
 import com.sun.org.apache.xpath.internal.objects.XNodeSet;
 
 /**
- * Class to use for one-step iteration that doesn't have a predicate, and 
+ * Class to use for one-step iteration that doesn't have a predicate, and
  * doesn't need to set the context.
  */
 public class FilterExprIteratorSimple extends LocPathIterator
@@ -53,7 +57,7 @@ public class FilterExprIteratorSimple extends LocPathIterator
   {
     super(null);
   }
-  
+
   /**
    * Create a FilterExprIteratorSimple object.
    *
@@ -63,7 +67,7 @@ public class FilterExprIteratorSimple extends LocPathIterator
     super(null);
     m_expr = expr;
   }
-  
+
   /**
    * Initialize the context values for this expression
    * after it is cloned.
@@ -73,20 +77,20 @@ public class FilterExprIteratorSimple extends LocPathIterator
    */
   public void setRoot(int context, Object environment)
   {
-  	super.setRoot(context, environment);
-  	m_exprObj = executeFilterExpr(context, m_execContext, getPrefixResolver(), 
-  	                  getIsTopLevel(), m_stackFrame, m_expr);
+        super.setRoot(context, environment);
+        m_exprObj = executeFilterExpr(context, m_execContext, getPrefixResolver(),
+                          getIsTopLevel(), m_stackFrame, m_expr);
   }
 
   /**
-   * Execute the expression.  Meant for reuse by other FilterExpr iterators 
+   * Execute the expression.  Meant for reuse by other FilterExpr iterators
    * that are not derived from this object.
    */
-  public static XNodeSet executeFilterExpr(int context, XPathContext xctxt, 
-  												PrefixResolver prefixResolver,
-  												boolean isTopLevel,
-  												int stackFrame,
-  												Expression expr )
+  public static XNodeSet executeFilterExpr(int context, XPathContext xctxt,
+                                                                                                PrefixResolver prefixResolver,
+                                                                                                boolean isTopLevel,
+                                                                                                int stackFrame,
+                                                                                                Expression expr )
     throws com.sun.org.apache.xml.internal.utils.WrappedRuntimeException
   {
     PrefixResolver savedResolver = xctxt.getNamespaceContext();
@@ -97,9 +101,9 @@ public class FilterExprIteratorSimple extends LocPathIterator
       xctxt.pushCurrentNode(context);
       xctxt.setNamespaceContext(prefixResolver);
 
-      // The setRoot operation can take place with a reset operation, 
-      // and so we may not be in the context of LocPathIterator#nextNode, 
-      // so we have to set up the variable context, execute the expression, 
+      // The setRoot operation can take place with a reset operation,
+      // and so we may not be in the context of LocPathIterator#nextNode,
+      // so we have to set up the variable context, execute the expression,
       // and then restore the variable context.
 
       if (isTopLevel)
@@ -134,7 +138,7 @@ public class FilterExprIteratorSimple extends LocPathIterator
     }
     return result;
   }
-  
+
   /**
    *  Returns the next node in the set and advances the position of the
    * iterator in the set. After a NodeIterator is created, the first call
@@ -145,8 +149,8 @@ public class FilterExprIteratorSimple extends LocPathIterator
    */
   public int nextNode()
   {
-  	if(m_foundLast)
-  		return DTM.NULL;
+        if(m_foundLast)
+                return DTM.NULL;
 
     int next;
 
@@ -170,30 +174,30 @@ public class FilterExprIteratorSimple extends LocPathIterator
       return DTM.NULL;
     }
   }
-  
+
   /**
    * Detaches the walker from the set which it iterated over, releasing
    * any computational resources and placing the iterator in the INVALID
    * state.
    */
   public void detach()
-  {  
+  {
     if(m_allowDetach)
     {
-  		super.detach();
-  		m_exprObj.detach();
-  		m_exprObj = null;
+                super.detach();
+                m_exprObj.detach();
+                m_exprObj = null;
     }
   }
 
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -219,7 +223,7 @@ public class FilterExprIteratorSimple extends LocPathIterator
     m_expr = expr;
   }
 
-  /** 
+  /**
    * Get the analysis bits for this walker, as defined in the WalkerFactory.
    * @return One of WalkerFactory#BIT_DESCENDANT, etc.
    */
@@ -233,10 +237,10 @@ public class FilterExprIteratorSimple extends LocPathIterator
   }
 
   /**
-   * Returns true if all the nodes in the iteration well be returned in document 
+   * Returns true if all the nodes in the iteration well be returned in document
    * order.
    * Warning: This can only be called after setRoot has been called!
-   * 
+   *
    * @return true as a default.
    */
   public boolean isDocOrdered()
@@ -266,10 +270,10 @@ public class FilterExprIteratorSimple extends LocPathIterator
   }
 
   /**
-   * This will traverse the heararchy, calling the visitor for 
-   * each member.  If the called visitor method returns 
+   * This will traverse the heararchy, calling the visitor for
+   * each member.  If the called visitor method returns
    * false, the subtree should not be called.
-   * 
+   *
    * @param visitor The visitor whose appropriate method will be called.
    */
   public void callPredicateVisitors(XPathVisitor visitor)
@@ -293,21 +297,20 @@ public class FilterExprIteratorSimple extends LocPathIterator
 
     return true;
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
   {
-  	if(null != m_exprObj)
-    	return m_exprObj.getAxis();
+        if(null != m_exprObj)
+        return m_exprObj.getAxis();
     else
-    	return Axis.FILTEREDLIST;
+        return Axis.FILTEREDLIST;
   }
 
 
 }
-

@@ -1,8 +1,26 @@
 /*
- * @(#)AccessException.java	1.13 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi;
@@ -15,8 +33,7 @@ package java.rmi;
  * indicate that the caller does not have permission to perform the action
  * requested by the method call.  If the method was invoked from a non-local
  * host, then an <code>AccessException</code> is thrown.
- * 
- * @version 1.13, 11/17/05
+ *
  * @author  Ann Wollrath
  * @author  Roger Riggs
  * @since   JDK1.1
@@ -36,7 +53,7 @@ public class AccessException extends java.rmi.RemoteException {
      * @since JDK1.1
      */
     public AccessException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -48,6 +65,6 @@ public class AccessException extends java.rmi.RemoteException {
      * @since JDK1.1
      */
     public AccessException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

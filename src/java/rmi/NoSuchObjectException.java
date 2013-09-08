@@ -1,8 +1,26 @@
 /*
- * @(#)NoSuchObjectException.java	1.13 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi;
@@ -19,8 +37,7 @@ package java.rmi;
  * <code>unexportObject</code> methods of
  * <code>java.rmi.server.UnicastRemoteObject</code> and
  * <code>java.rmi.activation.Activatable</code> and
- * 
- * @version 1.13, 11/17/05
+ *
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @see     java.rmi.server.RemoteObject#toStub(Remote)
@@ -40,6 +57,6 @@ public class NoSuchObjectException extends RemoteException {
      * @since   JDK1.1
      */
     public NoSuchObjectException(String s) {
-	super(s);
+        super(s);
     }
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,15 +32,7 @@ package com.sun.org.apache.xml.internal.utils.res;
  */
 public class XResources_zh_CN extends XResourceBundle
 {
-
-  /**
-   * Get the association list.
-   *
-   * @return The association list.
-   */
-  public Object[][] getContents()
-  {
-    return new Object[][]
+  private static final Object[][] _contents = new Object[][]
   {
     { "ui_language", "zh" }, { "help_language", "zh" }, { "language", "zh" },
     { "alphabet", new CharArrayWrapper(
@@ -49,23 +45,23 @@ public class XResources_zh_CN extends XResourceBundle
                   'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
                   'Y', 'Z' }) },
 
-    //language orientation 
+    //language orientation
     { "orientation", "LeftToRight" },
 
-    //language numbering   
+    //language numbering
     { "numbering", "multiplicative-additive" },
     { "multiplierOrder", "follows" },
 
     // largest numerical value
     //{"MaxNumericalValue", new Integer(100000000)},
-    //These would not be used for EN. Only used for traditional numbering   
+    //These would not be used for EN. Only used for traditional numbering
     { "numberGroups", new IntArrayWrapper(new int[]{ 1 }) },
 
-    // simplified chinese  
+    // simplified chinese
     { "zero", new CharArrayWrapper(new char[]{ 0x96f6 }) },
 
     //These only used for mutiplicative-additive numbering
-    { "multiplier", new LongArrayWrapper(new long[]{ 100000000, 10000, 1000, 
+    { "multiplier", new LongArrayWrapper(new long[]{ 100000000, 10000, 1000,
         100, 10 }) },
     { "multiplierChar", new CharArrayWrapper(
       new char[]{ 0x4ebf, 0x4e07, 0x5343, 0x767e, 0x5341 }) },
@@ -74,5 +70,14 @@ public class XResources_zh_CN extends XResourceBundle
                   0x516b, 0x4e5d }) }, { "tables", new StringArrayWrapper(
                       new String[]{ "digits" }) }
   };
+
+  /**
+   * Get the association list.
+   *
+   * @return The association list.
+   */
+  public Object[][] getContents()
+  {
+    return _contents;
   }
 }

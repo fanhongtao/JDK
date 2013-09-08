@@ -1,8 +1,26 @@
 /*
- * @(#)DeflaterInputStream.java	1.1 06/01/30
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.zip;
@@ -15,13 +33,12 @@ import java.io.IOException;
  * Implements an input stream filter for compressing data in the "deflate"
  * compression format.
  *
- * @version	1.1
- * @since	1.6
- * @author	David R Tribble (david@tribble.com)
+ * @since       1.6
+ * @author      David R Tribble (david@tribble.com)
  *
- * @see	DeflaterOutputStream
- * @see	InflaterOutputStream
- * @see	InflaterInputStream
+ * @see DeflaterOutputStream
+ * @see InflaterOutputStream
+ * @see InflaterInputStream
  */
 
 public class DeflaterInputStream extends FilterInputStream {

@@ -1,8 +1,26 @@
 /*
- * @(#)Filter.java	1.6 05/11/17
+ * Copyright (c) 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -17,7 +35,6 @@ package java.util.logging;
  * if a given LogRecord should be published.  If isLoggable returns
  * false, the LogRecord will be discarded.
  *
- * @version 1.6, 11/17/05
  * @since 1.4
  */
 

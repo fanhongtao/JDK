@@ -1,8 +1,26 @@
 /*
- * @(#)RelationServiceMBean.java	1.30 06/01/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.relation;
@@ -31,7 +49,7 @@ public interface RelationServiceMBean {
      * registered
      */
     public void isActive()
-	throws RelationServiceNotRegisteredException;
+        throws RelationServiceNotRegisteredException;
 
     //
     // Accessors
@@ -85,9 +103,9 @@ public interface RelationServiceMBean {
      * <P>- one null role info provided
      */
     public void createRelationType(String relationTypeName,
-				   RoleInfo[] roleInfoArray)
-	throws IllegalArgumentException,
-	       InvalidRelationTypeException;
+                                   RoleInfo[] roleInfoArray)
+        throws IllegalArgumentException,
+               InvalidRelationTypeException;
 
     /**
      * Adds given object as a relation type. The object is expected to
@@ -103,8 +121,8 @@ public interface RelationServiceMBean {
      * type with that name
      */
     public void addRelationType(RelationType relationTypeObj)
-	throws IllegalArgumentException,
-	       InvalidRelationTypeException;
+        throws IllegalArgumentException,
+               InvalidRelationTypeException;
 
     /**
      * Retrieves names of all known relation types.
@@ -126,8 +144,8 @@ public interface RelationServiceMBean {
      * with that name.
      */
     public List<RoleInfo> getRoleInfos(String relationTypeName)
-	throws IllegalArgumentException,
-	       RelationTypeNotFoundException;
+        throws IllegalArgumentException,
+               RelationTypeNotFoundException;
 
     /**
      * Retrieves role info for given role of a given relation type.
@@ -144,9 +162,9 @@ public interface RelationServiceMBean {
      * relation type.
      */
     public RoleInfo getRoleInfo(String relationTypeName,
-				String roleInfoName)
-	throws IllegalArgumentException,
-	       RelationTypeNotFoundException,
+                                String roleInfoName)
+        throws IllegalArgumentException,
+               RelationTypeNotFoundException,
                RoleInfoNotFoundException;
 
     /**
@@ -163,9 +181,9 @@ public interface RelationServiceMBean {
      * with that name
      */
     public void removeRelationType(String relationTypeName)
-	throws RelationServiceNotRegisteredException,
-	       IllegalArgumentException,
-	       RelationTypeNotFoundException;
+        throws RelationServiceNotRegisteredException,
+               IllegalArgumentException,
+               RelationTypeNotFoundException;
 
     //
     // Relation handling
@@ -205,10 +223,10 @@ public interface RelationServiceMBean {
      * <P>- an MBean provided for that role does not exist
      */
     public void createRelation(String relationId,
-			       String relationTypeName,
-			       RoleList roleList)
-	throws RelationServiceNotRegisteredException,
-	       IllegalArgumentException,
+                               String relationTypeName,
+                               RoleList roleList)
+        throws RelationServiceNotRegisteredException,
+               IllegalArgumentException,
                RoleNotFoundException,
                InvalidRelationIdException,
                RelationTypeNotFoundException,
@@ -260,15 +278,15 @@ public interface RelationServiceMBean {
      * that does not exist in the relation type
      */
     public void addRelation(ObjectName relationObjectName)
-	throws IllegalArgumentException,
-	       RelationServiceNotRegisteredException,
-	       NoSuchMethodException,
-	       InvalidRelationIdException,
-	       InstanceNotFoundException,
-	       InvalidRelationServiceException,
+        throws IllegalArgumentException,
+               RelationServiceNotRegisteredException,
+               NoSuchMethodException,
+               InvalidRelationIdException,
+               InstanceNotFoundException,
+               InvalidRelationServiceException,
                RelationTypeNotFoundException,
                RoleNotFoundException,
-	       InvalidRoleValueException;
+               InvalidRoleValueException;
 
     /**
      * If the relation is represented by an MBean (created by the user and
@@ -285,8 +303,8 @@ public interface RelationServiceMBean {
      * to that id
      */
     public ObjectName isRelationMBean(String relationId)
-	throws IllegalArgumentException,
-	       RelationNotFoundException;
+        throws IllegalArgumentException,
+               RelationNotFoundException;
 
     /**
      * Returns the relation id associated to the given ObjectName if the
@@ -300,7 +318,7 @@ public interface RelationServiceMBean {
      * @exception IllegalArgumentException  if null parameter
      */
     public String isRelation(ObjectName objectName)
-	throws IllegalArgumentException;
+        throws IllegalArgumentException;
 
     /**
      * Checks if there is a relation identified in Relation Service with given
@@ -313,7 +331,7 @@ public interface RelationServiceMBean {
      * @exception IllegalArgumentException  if null parameter
      */
     public Boolean hasRelation(String relationId)
-	throws IllegalArgumentException;
+        throws IllegalArgumentException;
 
     /**
      * Returns all the relation ids for all the relations handled by the
@@ -340,8 +358,8 @@ public interface RelationServiceMBean {
      * known in the Relation Service
      */
     public Integer checkRoleReading(String roleName,
-				    String relationTypeName)
-	throws IllegalArgumentException,
+                                    String relationTypeName)
+        throws IllegalArgumentException,
                RelationTypeNotFoundException;
 
     /**
@@ -366,10 +384,10 @@ public interface RelationServiceMBean {
      * @exception RelationTypeNotFoundException  if unknown relation type
      */
     public Integer checkRoleWriting(Role role,
-				    String relationTypeName,
-				    Boolean initFlag)
-	throws IllegalArgumentException,
-	       RelationTypeNotFoundException;
+                                    String relationTypeName,
+                                    Boolean initFlag)
+        throws IllegalArgumentException,
+               RelationTypeNotFoundException;
 
     /**
      * Sends a notification (RelationNotification) for a relation creation.
@@ -389,8 +407,8 @@ public interface RelationServiceMBean {
      * relation id
      */
     public void sendRelationCreationNotification(String relationId)
-	throws IllegalArgumentException,
-	       RelationNotFoundException;
+        throws IllegalArgumentException,
+               RelationNotFoundException;
 
     /**
      * Sends a notification (RelationNotification) for a role update in the
@@ -415,10 +433,10 @@ public interface RelationServiceMBean {
      * relation id
      */
     public void sendRoleUpdateNotification(String relationId,
-					   Role newRole,
-					   List<ObjectName> oldRoleValue)
-	throws IllegalArgumentException,
-	       RelationNotFoundException;
+                                           Role newRole,
+                                           List<ObjectName> oldRoleValue)
+        throws IllegalArgumentException,
+               RelationNotFoundException;
 
     /**
      * Sends a notification (RelationNotification) for a relation removal.
@@ -439,9 +457,9 @@ public interface RelationServiceMBean {
      * relation id
      */
     public void sendRelationRemovalNotification(String relationId,
-						List<ObjectName> unregMBeanList)
-	throws IllegalArgumentException,
-	       RelationNotFoundException;
+                                                List<ObjectName> unregMBeanList)
+        throws IllegalArgumentException,
+               RelationNotFoundException;
 
     /**
      * Handles update of the Relation Service role map for the update of given
@@ -465,10 +483,10 @@ public interface RelationServiceMBean {
      * @exception RelationNotFoundException  if no relation for given id.
      */
     public void updateRoleMap(String relationId,
-			      Role newRole,
-			      List<ObjectName> oldRoleValue)
-	throws IllegalArgumentException,
-	       RelationServiceNotRegisteredException,
+                              Role newRole,
+                              List<ObjectName> oldRoleValue)
+        throws IllegalArgumentException,
+               RelationServiceNotRegisteredException,
                RelationNotFoundException;
 
     /**
@@ -489,9 +507,9 @@ public interface RelationServiceMBean {
      * given relation id
      */
     public void removeRelation(String relationId)
-	throws RelationServiceNotRegisteredException,
-	       IllegalArgumentException,
-	       RelationNotFoundException;
+        throws RelationServiceNotRegisteredException,
+               IllegalArgumentException,
+               RelationNotFoundException;
 
     /**
      * Purges the relations.
@@ -520,7 +538,7 @@ public interface RelationServiceMBean {
      * Service is not registered in the MBean Server.
      */
     public void purgeRelations()
-	throws RelationServiceNotRegisteredException;
+        throws RelationServiceNotRegisteredException;
 
     /**
      * Retrieves the relations where a given MBean is referenced.
@@ -543,10 +561,10 @@ public interface RelationServiceMBean {
      * @exception IllegalArgumentException  if null parameter
      */
     public Map<String,List<String>>
-	findReferencingRelations(ObjectName mbeanName,
-				 String relationTypeName,
-				 String roleName)
-	    throws IllegalArgumentException;
+        findReferencingRelations(ObjectName mbeanName,
+                                 String relationTypeName,
+                                 String roleName)
+            throws IllegalArgumentException;
 
     /**
      * Retrieves the MBeans associated to given one in a relation.
@@ -569,10 +587,10 @@ public interface RelationServiceMBean {
      * @exception IllegalArgumentException  if null parameter
      */
     public Map<ObjectName,List<String>>
-	findAssociatedMBeans(ObjectName mbeanName,
-			     String relationTypeName,
-			     String roleName)
-	    throws IllegalArgumentException;
+        findAssociatedMBeans(ObjectName mbeanName,
+                             String relationTypeName,
+                             String roleName)
+            throws IllegalArgumentException;
 
     /**
      * Returns the relation ids for relations of the given type.
@@ -586,7 +604,7 @@ public interface RelationServiceMBean {
      * with that name.
      */
     public List<String> findRelationsOfType(String relationTypeName)
-	throws IllegalArgumentException,
+        throws IllegalArgumentException,
                RelationTypeNotFoundException;
 
     /**
@@ -609,9 +627,9 @@ public interface RelationServiceMBean {
      * @see #setRole
      */
     public List<ObjectName> getRole(String relationId,
-				    String roleName)
-	throws RelationServiceNotRegisteredException,
-	       IllegalArgumentException,
+                                    String roleName)
+        throws RelationServiceNotRegisteredException,
+               IllegalArgumentException,
                RelationNotFoundException,
                RoleNotFoundException;
 
@@ -633,10 +651,10 @@ public interface RelationServiceMBean {
      * @see #setRoles
      */
     public RoleResult getRoles(String relationId,
-			       String[] roleNameArray)
-	throws RelationServiceNotRegisteredException,
-	       IllegalArgumentException,
-	       RelationNotFoundException;
+                               String[] roleNameArray)
+        throws RelationServiceNotRegisteredException,
+               IllegalArgumentException,
+               RelationNotFoundException;
 
     /**
      * Returns all roles present in the relation.
@@ -654,8 +672,8 @@ public interface RelationServiceMBean {
      */
     public RoleResult getAllRoles(String relationId)
         throws IllegalArgumentException,
-	       RelationNotFoundException,
-	       RelationServiceNotRegisteredException;
+               RelationNotFoundException,
+               RelationServiceNotRegisteredException;
 
     /**
      * Retrieves the number of MBeans currently referenced in the
@@ -671,8 +689,8 @@ public interface RelationServiceMBean {
      * @exception RoleNotFoundException  if there is no role with given name
      */
     public Integer getRoleCardinality(String relationId,
-				      String roleName)
-	throws IllegalArgumentException,
+                                      String roleName)
+        throws IllegalArgumentException,
                RelationNotFoundException,
                RoleNotFoundException;
 
@@ -711,13 +729,13 @@ public interface RelationServiceMBean {
      * @see #getRole
      */
     public void setRole(String relationId,
-			Role role)
-	throws RelationServiceNotRegisteredException,
-	       IllegalArgumentException,
-	       RelationNotFoundException,
-	       RoleNotFoundException,
-	       InvalidRoleValueException,
-	       RelationTypeNotFoundException;
+                        Role role)
+        throws RelationServiceNotRegisteredException,
+               IllegalArgumentException,
+               RelationNotFoundException,
+               RoleNotFoundException,
+               InvalidRoleValueException,
+               RelationTypeNotFoundException;
 
     /**
      * Sets the given roles in given relation.
@@ -741,9 +759,9 @@ public interface RelationServiceMBean {
      * @see #getRoles
      */
     public RoleResult setRoles(String relationId,
-			       RoleList roleList)
-	throws RelationServiceNotRegisteredException,
-	       IllegalArgumentException,
+                               RoleList roleList)
+        throws RelationServiceNotRegisteredException,
+               IllegalArgumentException,
                RelationNotFoundException;
 
     /**
@@ -760,8 +778,8 @@ public interface RelationServiceMBean {
      * relation id
      */
     public Map<ObjectName,List<String>> getReferencedMBeans(String relationId)
-	throws IllegalArgumentException,
-	       RelationNotFoundException;
+        throws IllegalArgumentException,
+               RelationNotFoundException;
 
     /**
      * Returns name of associated relation type for given relation.
@@ -775,6 +793,6 @@ public interface RelationServiceMBean {
      * relation id
      */
     public String getRelationTypeName(String relationId)
-	throws IllegalArgumentException,
-	       RelationNotFoundException;
+        throws IllegalArgumentException,
+               RelationNotFoundException;
 }

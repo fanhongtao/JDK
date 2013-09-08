@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,41 +25,40 @@ package com.sun.org.apache.xerces.internal.xni;
  * XML resource (a Schema grammar, a DTD, a general entity etc.) </p>
  *
  * @author Neil Graham, IBM
- * @version $Id: XMLResourceIdentifier.java,v 1.2.6.1 2005/09/06 08:53:26 neerajbj Exp $
  */
 
 public interface XMLResourceIdentifier {
-    
+
     /** Sets the public identifier. */
     public void setPublicId(String publicId);
 
     /** Returns the public identifier. */
     public String getPublicId();
-    
+
     /** Sets the expanded system identifier. */
     public void setExpandedSystemId(String systemId);
-    
+
     /** Returns the expanded system identifier. */
     public String getExpandedSystemId();
-    
+
     /** Sets the literal system identifier. */
     public void setLiteralSystemId(String systemId);
-     
+
     /** Returns the literal system identifier. */
     public String getLiteralSystemId();
-    
-    /** Setsthe base URI against which the literal SystemId is to be 
+
+    /** Setsthe base URI against which the literal SystemId is to be
         resolved.*/
-    public void setBaseSystemId(String systemId); 
-    
-    /** <p> Returns the base URI against which the literal SystemId is to be 
+    public void setBaseSystemId(String systemId);
+
+    /** <p> Returns the base URI against which the literal SystemId is to be
         resolved. </p> */
     public String getBaseSystemId();
 
     /** Sets the namespace of the resource. */
     public void setNamespace(String namespace);
-     
+
     /** Returns the namespace of the resource. */
     public String getNamespace();
-    
+
 } // XMLResourceIdentifier

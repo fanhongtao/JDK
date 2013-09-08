@@ -1,8 +1,26 @@
 /*
- * @(#)MouseMotionAdapter.java	1.17 06/04/13
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -16,19 +34,18 @@ package java.awt.event;
  * (Many such events will be generated in a normal program.
  * To track clicks and other mouse events, use the MouseAdapter.)
  * <P>
- * Extend this class to create a <code>MouseEvent</code> listener 
- * and override the methods for the events of interest. (If you implement the 
+ * Extend this class to create a <code>MouseEvent</code> listener
+ * and override the methods for the events of interest. (If you implement the
  * <code>MouseMotionListener</code> interface, you have to define all of
  * the methods in it. This abstract class defines null methods for them
  * all, so you can only have to define methods for events you care about.)
  * <P>
- * Create a listener object using the extended class and then register it with 
- * a component using the component's <code>addMouseMotionListener</code> 
- * method. When the mouse is moved or dragged, the relevant method in the 
+ * Create a listener object using the extended class and then register it with
+ * a component using the component's <code>addMouseMotionListener</code>
+ * method. When the mouse is moved or dragged, the relevant method in the
  * listener object is invoked and the <code>MouseEvent</code> is passed to it.
  *
  * @author Amy Fowler
- * @version 1.17 04/13/06
  *
  * @see MouseEvent
  * @see MouseMotionListener
@@ -38,7 +55,7 @@ package java.awt.event;
  */
 public abstract class MouseMotionAdapter implements MouseMotionListener {
     /**
-     * Invoked when a mouse button is pressed on a component and then 
+     * Invoked when a mouse button is pressed on a component and then
      * dragged.  Mouse drag events will continue to be delivered to
      * the component where the first originated until the mouse button is
      * released (regardless of whether the mouse position is within the

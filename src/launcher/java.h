@@ -1,19 +1,78 @@
 /*
- * @(#)java.h	1.34 05/12/20
+ * Copyright (c) 1998, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 #ifndef _JAVA_H_
 #define _JAVA_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+
+#include <jni.h>
+#include <jvm.h>
+
 /*
  * Get system specific defines.
  */
-#include "jni.h"
+#include "emessages.h"
 #include "java_md.h"
 #include "jli_util.h"
+
+#include "manifest_info.h"
+#include "version_comp.h"
+#include "wildcard.h"
+#include "splashscreen.h"
+
+# define KB (1024UL)
+# define MB (1024UL * KB)
+# define GB (1024UL * MB)
+
+#define CURRENT_DATA_MODEL (CHAR_BIT * sizeof(void*))
+
+/*
+ * The following environment variable is used to influence the behavior
+ * of the jre exec'd through the SelectVersion routine.  The command line
+ * options which specify the version are not passed to the exec'd version,
+ * because that jre may be an older version which wouldn't recognize them.
+ * This environment variable is known to this (and later) version and serves
+ * to suppress the version selection code.  This is not only for efficiency,
+ * but also for correctness, since any command line options have been
+ * removed which would cause any value found in the manifest to be used.
+ * This would be incorrect because the command line options are defined
+ * to take precedence.
+ *
+ * The value associated with this environment variable is the MainClass
+ * name from within the executable jar file (if any). This is strictly a
+ * performance enhancement to avoid re-reading the jar file manifest.
+ *
+ */
+#define ENV_ENTRY "_JAVA_VERSION_SET"
+
+#define SPLASH_FILE_ENV_ENTRY "_JAVA_SPLASH_FILE"
+#define SPLASH_JAR_ENV_ENTRY "_JAVA_SPLASH_JAR"
 
 /*
  * Pointers to the needed JNI invocation API, initialized by LoadJavaVM.
@@ -25,6 +84,20 @@ typedef struct {
     CreateJavaVM_t CreateJavaVM;
     GetDefaultJavaVMInitArgs_t GetDefaultJavaVMInitArgs;
 } InvocationFunctions;
+
+int
+JLI_Launch(int argc, char ** argv,              /* main argc, argc */
+        int jargc, const char** jargv,          /* java args */
+        int appclassc, const char** appclassv,  /* app classpath */
+        const char* fullversion,                /* full version defined */
+        const char* dotversion,                 /* dot version defined */
+        const char* pname,                      /* program name */
+        const char* lname,                      /* launcher name */
+        jboolean javaargs,                      /* JAVA_ARGS */
+        jboolean cpwildcard,                    /* classpath wildcard */
+        jboolean javaw,                         /* windows-only javaw */
+        jint     ergo_class                     /* ergnomics policy */
+);
 
 /*
  * Prototypes for launcher functions in the system specific java_md.c.
@@ -39,55 +112,88 @@ GetXUsagePath(char *buf, jint bufsize);
 jboolean
 GetApplicationHome(char *buf, jint bufsize);
 
-const char *
-GetArch();
-
-void CreateExecutionEnvironment(int *_argc,
-				       char ***_argv,
-				       char jrepath[],
-				       jint so_jrepath,
-				       char jvmpath[],
-				       jint so_jvmpath,
-				       char **original_argv);
+#define GetArch() GetArchPath(CURRENT_DATA_MODEL)
 
 /*
- * Report an error message to stderr or a window as appropriate.  The
- * flag always is set to JNI_TRUE if message is to be reported to both
- * strerr and windows and set to JNI_FALSE if the message should only
- * be sent to a window.
+ * Different platforms will implement this, here
+ * pargc is a pointer to the original argc,
+ * pargv is a pointer to the original argv,
+ * jrepath is an accessible path to the jre as determined by the call
+ * so_jrepath is the length of the buffer jrepath
+ * jvmpath is an accessible path to the jvm as determined by the call
+ * so_jvmpath is the length of the buffer jvmpath
  */
-void ReportErrorMessage(char * message, jboolean always);
-void ReportErrorMessage2(char * format, char * string, jboolean always);
+void CreateExecutionEnvironment(int *argc, char ***argv,
+                                char *jrepath, jint so_jrepath,
+                                char *jvmpath, jint so_jvmpath);
+
+/* Reports an error message to stderr or a window as appropriate. */
+void JLI_ReportErrorMessage(const char * message, ...);
+
+/* Reports a system error message to stderr or a window */
+void JLI_ReportErrorMessageSys(const char * message, ...);
+
+/* Reports an error message only to stderr. */
+void JLI_ReportMessage(const char * message, ...);
 
 /*
- * Report an exception which terminates the vm to stderr or a window
+ * Reports an exception which terminates the vm to stderr or a window
  * as appropriate.
  */
-void ReportExceptionDescription(JNIEnv * env);
-
-jboolean RemovableMachineDependentOption(char * option);
+void JLI_ReportExceptionDescription(JNIEnv * env);
 void PrintMachineDependentOptions();
 
 const char *jlong_format_specifier();
+
 /*
  * Block current thread and continue execution in new thread
  */
-int ContinueInNewThread(int (JNICALL *continuation)(void *), 
+int ContinueInNewThread0(int (JNICALL *continuation)(void *),
                         jlong stack_size, void * args);
 
 /* sun.java.launcher.* platform properties. */
 void SetJavaLauncherPlatformProps(void);
+void SetJavaCommandLineProp(char* what, int argc, char** argv);
+void SetJavaLauncherProp(void);
 
-/* 
+/*
  * Functions defined in java.c and used in java_md.c.
  */
-jint ReadKnownVMs(const char *jrepath, char * arch, jboolean speculative); 
+jint ReadKnownVMs(const char *jrepath, const char * arch, jboolean speculative);
 char *CheckJvmType(int *argc, char ***argv, jboolean speculative);
 void AddOption(char *str, void *info);
 
-/*
- * Make launcher spit debug output.
- */
-extern jboolean _launcher_debug;
+enum ergo_policy {
+   DEFAULT_POLICY = 0,
+   NEVER_SERVER_CLASS,
+   ALWAYS_SERVER_CLASS
+};
 
+const char* GetProgramName();
+const char* GetDotVersion();
+const char* GetFullVersion();
+jboolean IsJavaArgs();
+jboolean IsJavaw();
+jint GetErgoPolicy();
+
+jboolean ServerClassMachine();
+
+static int ContinueInNewThread(InvocationFunctions* ifn,
+                               int argc, char** argv,
+                               int mode, char *what, int ret);
+
+/*
+ * Initialize platform specific settings
+ */
+void InitLauncher(jboolean javaw);
+
+/*
+ * This allows for finding classes from the VM's bootstrap class loader directly,
+ * FindClass uses the application class loader internally, this will cause
+ * unnecessary searching of the classpath for the required classes.
+ *
+ */
+typedef jclass (JNICALL FindClassFromBootLoader_t(JNIEnv *env,
+                                                  const char *name));
+jclass FindBootStrapClass(JNIEnv *env, const char *classname);
 #endif /* _JAVA_H_ */

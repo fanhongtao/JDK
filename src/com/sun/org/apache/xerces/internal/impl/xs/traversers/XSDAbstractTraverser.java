@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +20,7 @@
 
 package com.sun.org.apache.xerces.internal.impl.xs.traversers;
 
+import java.util.Locale;
 import java.util.Vector;
 
 import com.sun.org.apache.xerces.internal.impl.dv.InvalidDatatypeValueException;
@@ -31,17 +36,16 @@ import com.sun.org.apache.xerces.internal.impl.xs.XSComplexTypeDecl;
 import com.sun.org.apache.xerces.internal.impl.xs.XSElementDecl;
 import com.sun.org.apache.xerces.internal.impl.xs.XSParticleDecl;
 import com.sun.org.apache.xerces.internal.impl.xs.XSWildcardDecl;
-import com.sun.org.apache.xerces.internal.xs.XSObjectList;
-import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
 import com.sun.org.apache.xerces.internal.impl.xs.util.XInt;
 import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
 import com.sun.org.apache.xerces.internal.util.DOMUtil;
 import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.xni.QName;
+import com.sun.org.apache.xerces.internal.xs.XSAttributeUse;
+import com.sun.org.apache.xerces.internal.xs.XSObjectList;
+import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
 
 /**
  * Class <code>XSDAbstractTraverser</code> serves as the base class for all
@@ -54,12 +58,12 @@ import org.w3c.dom.Text;
  * @author Rahul Srivastava, Sun Microsystems Inc.
  * @author Neeraj Bajaj, Sun Microsystems Inc.
  *
- * @version $Id: XSDAbstractTraverser.java,v 1.2.6.1 2005/09/08 12:01:12 sunithareddy Exp $
+ * @version $Id: XSDAbstractTraverser.java,v 1.8 2010-11-01 04:40:02 joehw Exp $
  */
 abstract class XSDAbstractTraverser {
-    
+
     protected static final String NO_NAME      = "(no name)";
-    
+
     // Flags for checkOccurrences to indicate any special
     // restrictions on minOccurs and maxOccurs relating to "all".
     //    NOT_ALL_CONTEXT    - not processing an <all>
@@ -67,35 +71,36 @@ abstract class XSDAbstractTraverser {
     //    GROUP_REF_WITH_ALL - processing <group> reference that contained <all>
     //    CHILD_OF_GROUP     - processing a child of a model group definition
     //    PROCESSING_ALL_GP  - processing an <all> group itself
-    
+
     protected static final int NOT_ALL_CONTEXT    = 0;
     protected static final int PROCESSING_ALL_EL  = 1;
     protected static final int GROUP_REF_WITH_ALL = 2;
     protected static final int CHILD_OF_GROUP     = 4;
     protected static final int PROCESSING_ALL_GP  = 8;
-    
+
     //Shared data
     protected XSDHandler            fSchemaHandler = null;
     protected SymbolTable           fSymbolTable = null;
     protected XSAttributeChecker    fAttrChecker = null;
     protected boolean               fValidateAnnotations = false;
-    
+
     // used to validate default/fixed attribute values
     ValidationState fValidationState = new ValidationState();
-    
+
     XSDAbstractTraverser (XSDHandler handler,
             XSAttributeChecker attrChecker) {
         fSchemaHandler = handler;
         fAttrChecker = attrChecker;
     }
-    
-    void reset(SymbolTable symbolTable, boolean validateAnnotations) {
+
+    void reset(SymbolTable symbolTable, boolean validateAnnotations, Locale locale) {
         fSymbolTable = symbolTable;
         fValidateAnnotations = validateAnnotations;
         fValidationState.setExtraChecking(false);
         fValidationState.setSymbolTable(symbolTable);
+        fValidationState.setLocale(locale);
     }
-    
+
     // traverse the annotation declaration
     // REVISIT: how to pass the parentAttrs? as DOM attributes?
     //          as name/value pairs (string)? in parsed form?
@@ -105,51 +110,35 @@ abstract class XSDAbstractTraverser {
         // General Attribute Checking
         Object[] attrValues = fAttrChecker.checkAttributes(annotationDecl, isGlobal, schemaDoc);
         fAttrChecker.returnAttrArray(attrValues, schemaDoc);
-        
-        String contents = null;
+
+        String contents = DOMUtil.getAnnotation(annotationDecl);
         Element child = DOMUtil.getFirstChildElement(annotationDecl);
         if (child != null) {
             do {
                 String name = DOMUtil.getLocalName(child);
-                
+
                 // the only valid children of "annotation" are
                 // "appinfo" and "documentation"
                 if (!((name.equals(SchemaSymbols.ELT_APPINFO)) ||
                         (name.equals(SchemaSymbols.ELT_DOCUMENTATION)))) {
                     reportSchemaError("src-annotation", new Object[]{name}, child);
-                } else { // the annotation, as we currently know it, is a Text child
-                    Node textContent = child.getFirstChild();
-                    if(textContent != null && textContent.getNodeType() == Node.TEXT_NODE) {
-                        contents = ((Text)textContent).getData();
-                    }
                 }
-                
-                // General Attribute Checking
-                // There is no difference between global or local appinfo/documentation,
-                // so we assume it's always global.
-                attrValues = fAttrChecker.checkAttributes(child, true, schemaDoc);
-                fAttrChecker.returnAttrArray(attrValues, schemaDoc);
-                
+                else {
+                    // General Attribute Checking
+                    // There is no difference between global or local appinfo/documentation,
+                    // so we assume it's always global.
+                    attrValues = fAttrChecker.checkAttributes(child, true, schemaDoc);
+                    fAttrChecker.returnAttrArray(attrValues, schemaDoc);
+                }
+
                 child = DOMUtil.getNextSiblingElement(child);
             }
             while (child != null);
         }
-        // REVISIT: When an annotation has no <documentation> or
-        // <appinfo> children the text child is stored on the first child of its
-        // parent. Only if the annotation is the first child will we find the
-        // text node there. See SchemaDOM. We need to store the string representation
-        // in a consistent place so it can be reliably retrieved, perhaps as 
-        // user data. -- mrglavas
-        else {
-            Node textContent = annotationDecl.getFirstChild();
-            if(textContent != null && textContent.getNodeType() == Node.TEXT_NODE) {
-                contents = ((Text)textContent).getData();
-            }
-        }
         // if contents was null, must have been some kind of error;
         // nothing to contribute to PSVI
         if (contents == null) return null;
-        
+
         // find the grammar; fSchemaHandler must be known!
         SchemaGrammar grammar = fSchemaHandler.getGrammar(schemaDoc.fTargetNamespace);
         // fish out local attributes passed from parent
@@ -172,15 +161,15 @@ abstract class XSDAbstractTraverser {
                     prefix = rawname.substring(0,colonIndex);
                     localpart = rawname.substring(colonIndex+1);
                 }
-                String uri = schemaDoc.fNamespaceSupport.getURI(prefix.intern());
-                if (!annotationDecl.getAttributeNS(uri, localpart).equals("")) {
+                String uri = schemaDoc.fNamespaceSupport.getURI(fSymbolTable.addSymbol(prefix));
+                if (annotationDecl.getAttributeNS(uri, localpart).length() != 0) {
                     i++; // skip the next value, too
                     continue;
                 }
                 localStrBuffer.append(rawname)
                 .append("=\"");
                 String value = (String)annotationLocalAttrs.elementAt(i++);
-                // search for pesky "s and >s within attr value:
+                // search for pesky "s and <s within attr value:
                 value = processAttValue(value);
                 localStrBuffer.append(value)
                 .append("\" ");
@@ -205,14 +194,14 @@ abstract class XSDAbstractTraverser {
             }
             return new XSAnnotationImpl(contents, grammar);
         }
-        
+
     }
-    
+
     XSAnnotationImpl traverseSyntheticAnnotation(Element annotationParent, String initialContent,
             Object[] parentAttrs, boolean isGlobal, XSDocumentInfo schemaDoc) {
-        
+
         String contents = initialContent;
-        
+
         // find the grammar; fSchemaHandler must be known!
         SchemaGrammar grammar = fSchemaHandler.getGrammar(schemaDoc.fTargetNamespace);
         // fish out local attributes passed from parent
@@ -235,11 +224,11 @@ abstract class XSDAbstractTraverser {
                     prefix = rawname.substring(0,colonIndex);
                     localpart = rawname.substring(colonIndex+1);
                 }
-                String uri = schemaDoc.fNamespaceSupport.getURI(prefix.intern());
+                String uri = schemaDoc.fNamespaceSupport.getURI(fSymbolTable.addSymbol(prefix));
                 localStrBuffer.append(rawname)
                 .append("=\"");
                 String value = (String)annotationLocalAttrs.elementAt(i++);
-                // search for pesky "s and >s within attr value:
+                // search for pesky "s and <s within attr value:
                 value = processAttValue(value);
                 localStrBuffer.append(value)
                 .append("\" ");
@@ -265,56 +254,82 @@ abstract class XSDAbstractTraverser {
             return new XSAnnotationImpl(contents, grammar);
         }
     }
-    
+
     // the QName simple type used to resolve qnames
     private static final XSSimpleType fQNameDV = (XSSimpleType)SchemaGrammar.SG_SchemaNS.getGlobalTypeDecl(SchemaSymbols.ATTVAL_QNAME);
     // Temp data structures to be re-used in traversing facets
     private StringBuffer fPattern = new StringBuffer();
     private final XSFacets xsFacets = new XSFacets();
-    
-    class FacetInfo {
-        XSFacets facetdata;
-        Element nodeAfterFacets;
-        short fPresentFacets;
-        short fFixedFacets;
+
+    static final class FacetInfo {
+
+        final XSFacets facetdata;
+        final Element nodeAfterFacets;
+        final short fPresentFacets;
+        final short fFixedFacets;
+
+        FacetInfo(XSFacets facets, Element nodeAfterFacets, short presentFacets, short fixedFacets) {
+            facetdata = facets;
+            this.nodeAfterFacets = nodeAfterFacets;
+            fPresentFacets = presentFacets;
+            fFixedFacets = fixedFacets;
+        }
     }
-    
+
     FacetInfo traverseFacets(Element content,
             XSSimpleType baseValidator,
             XSDocumentInfo schemaDoc) {
-        
+
         short facetsPresent = 0 ;
-        short facetsFixed = 0; // facets that have fixed="true"        
+        short facetsFixed = 0; // facets that have fixed="true"
         String facet;
         boolean hasQName = containsQName(baseValidator);
         Vector enumData = null;
         XSObjectListImpl enumAnnotations = null;
         XSObjectListImpl patternAnnotations = null;
-        Vector enumNSDecls = hasQName ? new Vector() : null;       
+        Vector enumNSDecls = hasQName ? new Vector() : null;
         int currentFacet = 0;
         xsFacets.reset();
-        while (content != null) {           
+        while (content != null) {
             // General Attribute Checking
             Object[] attrs = null;
             facet = DOMUtil.getLocalName(content);
             if (facet.equals(SchemaSymbols.ELT_ENUMERATION)) {
                 attrs = fAttrChecker.checkAttributes(content, false, schemaDoc, hasQName);
                 String enumVal = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
+                // The facet can't be used if the value is missing. Ignore
+                // this facet element.
+                if (enumVal == null) {
+                    reportSchemaError("s4s-att-must-appear", new Object[]{SchemaSymbols.ELT_ENUMERATION, SchemaSymbols.ATT_VALUE}, content);
+                    fAttrChecker.returnAttrArray (attrs, schemaDoc);
+                    content = DOMUtil.getNextSiblingElement(content);
+                    continue;
+                }
+
                 NamespaceSupport nsDecls = (NamespaceSupport)attrs[XSAttributeChecker.ATTIDX_ENUMNSDECLS];
-                
+
                 // for NOTATION types, need to check whether there is a notation
                 // declared with the same name as the enumeration value.
                 if (baseValidator.getVariety() == XSSimpleType.VARIETY_ATOMIC &&
                         baseValidator.getPrimitiveKind() == XSSimpleType.PRIMITIVE_NOTATION) {
                     // need to use the namespace context returned from checkAttributes
                     schemaDoc.fValidationContext.setNamespaceSupport(nsDecls);
+                    Object notation = null;
                     try{
                         QName temp = (QName)fQNameDV.validate(enumVal, schemaDoc.fValidationContext, null);
                         // try to get the notation decl. if failed, getGlobalDecl
                         // reports an error, so we don't need to report one again.
-                        fSchemaHandler.getGlobalDecl(schemaDoc, XSDHandler.NOTATION_TYPE, temp, content);
+                        notation = fSchemaHandler.getGlobalDecl(schemaDoc, XSDHandler.NOTATION_TYPE, temp, content);
                     }catch(InvalidDatatypeValueException ex){
                         reportSchemaError(ex.getKey(), ex.getArgs(), content);
+                    }
+                    if (notation == null) {
+                        // Either the QName value is invalid, or it doens't
+                        // resolve to a notation declaration.
+                        // Ignore this facet, to avoid instance validation problems
+                        fAttrChecker.returnAttrArray (attrs, schemaDoc);
+                        content = DOMUtil.getNextSiblingElement(content);
+                        continue;
                     }
                     // restore to the normal namespace context
                     schemaDoc.fValidationContext.setNamespaceSupport(schemaDoc.fNamespaceSupport);
@@ -324,61 +339,71 @@ abstract class XSDAbstractTraverser {
                     enumAnnotations = new XSObjectListImpl();
                 }
                 enumData.addElement(enumVal);
-                enumAnnotations.add(null);
+                enumAnnotations.addXSObject(null);
                 if (hasQName)
                     enumNSDecls.addElement(nsDecls);
                 Element child = DOMUtil.getFirstChildElement( content );
-                
-                if (child != null) {
+
+                if (child != null &&
+                    DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
                     // traverse annotation if any
-                    
-                    if (DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
-                        enumAnnotations.add(enumAnnotations.getLength()-1,traverseAnnotationDecl(child, attrs, false, schemaDoc));
-                        child = DOMUtil.getNextSiblingElement(child);
-                    }
-                    else {
-                        String text = DOMUtil.getSyntheticAnnotation(content);
-                        if (text != null) {
-                            enumAnnotations.add(enumAnnotations.getLength()-1, traverseSyntheticAnnotation(content, text, attrs, false, schemaDoc));
-                        }
-                    }
-                    if (child !=null && DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
-                        reportSchemaError("s4s-elt-must-match.1", new Object[]{"enumeration", "(annotation?)", DOMUtil.getLocalName(child)}, child);
-                    }
+                    enumAnnotations.addXSObject(enumAnnotations.getLength()-1,traverseAnnotationDecl(child, attrs, false, schemaDoc));
+                    child = DOMUtil.getNextSiblingElement(child);
                 }
                 else {
                     String text = DOMUtil.getSyntheticAnnotation(content);
                     if (text != null) {
-                        enumAnnotations.add(enumAnnotations.getLength() - 1, traverseSyntheticAnnotation(content, text, attrs, false, schemaDoc));
+                        enumAnnotations.addXSObject(enumAnnotations.getLength()-1, traverseSyntheticAnnotation(content, text, attrs, false, schemaDoc));
                     }
+                }
+                if (child !=null) {
+                    reportSchemaError("s4s-elt-must-match.1", new Object[]{"enumeration", "(annotation?)", DOMUtil.getLocalName(child)}, child);
                 }
             }
             else if (facet.equals(SchemaSymbols.ELT_PATTERN)) {
+                facetsPresent |= XSSimpleType.FACET_PATTERN;
                 attrs = fAttrChecker.checkAttributes(content, false, schemaDoc);
+                String patternVal = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
+                // The facet can't be used if the value is missing. Ignore
+                // this facet element.
+                if (patternVal == null) {
+                    reportSchemaError("s4s-att-must-appear", new Object[]{SchemaSymbols.ELT_PATTERN, SchemaSymbols.ATT_VALUE}, content);
+                    fAttrChecker.returnAttrArray (attrs, schemaDoc);
+                    content = DOMUtil.getNextSiblingElement(content);
+                    continue;
+                }
+
                 if (fPattern.length() == 0) {
-                    fPattern.append((String)attrs[XSAttributeChecker.ATTIDX_VALUE]);
+                    fPattern.append(patternVal);
                 } else {
                     // ---------------------------------------------
                     //datatypes: 5.2.4 pattern: src-multiple-pattern
                     // ---------------------------------------------
                     fPattern.append("|");
-                    fPattern.append((String)attrs[XSAttributeChecker.ATTIDX_VALUE]);
+                    fPattern.append(patternVal);
                 }
                 Element child = DOMUtil.getFirstChildElement( content );
-                if (child != null) {
+                if (child != null &&
+                        DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
                     // traverse annotation if any
-                    if (DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
+                    if (patternAnnotations == null){
+                        patternAnnotations = new XSObjectListImpl();
+                    }
+                    patternAnnotations.addXSObject(traverseAnnotationDecl(child, attrs, false, schemaDoc));
+                    child = DOMUtil.getNextSiblingElement(child);
+                }
+                else {
+                    String text = DOMUtil.getSyntheticAnnotation(content);
+                    if (text != null) {
                         if (patternAnnotations == null){
                             patternAnnotations = new XSObjectListImpl();
                         }
-                        patternAnnotations.add(traverseAnnotationDecl(child, attrs, false, schemaDoc));
-                        child = DOMUtil.getNextSiblingElement(child);
-                    }
-                    if (child !=null && DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
-                        reportSchemaError("s4s-elt-must-match.1", new Object[]{"pattern", "(annotation?)", DOMUtil.getLocalName(child)}, child);
+                        patternAnnotations.addXSObject(traverseSyntheticAnnotation(content, text, attrs, false, schemaDoc));
                     }
                 }
-                
+                if (child !=null) {
+                    reportSchemaError("s4s-elt-must-match.1", new Object[]{"pattern", "(annotation?)", DOMUtil.getLocalName(child)}, child);
+                }
             }
             else {
                 if (facet.equals(SchemaSymbols.ELT_MINLENGTH)) {
@@ -414,134 +439,119 @@ abstract class XSDAbstractTraverser {
                 else {
                     break;   // a non-facet
                 }
-                
+
                 attrs = fAttrChecker.checkAttributes(content, false, schemaDoc);
-                
+
                 // check for duplicate facets
                 if ((facetsPresent & currentFacet) != 0) {
+                    // Ignore this facet, to avoid corrupting the previous facet
                     reportSchemaError("src-single-facet-value", new Object[]{facet}, content);
-                } else if (attrs[XSAttributeChecker.ATTIDX_VALUE] != null) {
-                    facetsPresent |= currentFacet;
-                    // check for fixed facet
-                    if (((Boolean)attrs[XSAttributeChecker.ATTIDX_FIXED]).booleanValue()) {
-                        facetsFixed |= currentFacet;
-                    }
-                    switch (currentFacet) {
-                    case XSSimpleType.FACET_MINLENGTH:
-                        xsFacets.minLength = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
-                    break;
-                    case XSSimpleType.FACET_MAXLENGTH:
-                        xsFacets.maxLength = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
-                    break;
-                    case XSSimpleType.FACET_MAXEXCLUSIVE:
-                        xsFacets.maxExclusive = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
-                    break;
-                    case XSSimpleType.FACET_MAXINCLUSIVE:
-                        xsFacets.maxInclusive = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
-                    break;
-                    case XSSimpleType.FACET_MINEXCLUSIVE:
-                        xsFacets.minExclusive = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
-                    break;
-                    case XSSimpleType.FACET_MININCLUSIVE:
-                        xsFacets.minInclusive = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
-                    break;
-                    case XSSimpleType.FACET_TOTALDIGITS:
-                        xsFacets.totalDigits = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
-                    break;
-                    case XSSimpleType.FACET_FRACTIONDIGITS:
-                        xsFacets.fractionDigits = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
-                    break;
-                    case XSSimpleType.FACET_WHITESPACE:
-                        xsFacets.whiteSpace = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).shortValue();
-                    break;
-                    case XSSimpleType.FACET_LENGTH:
-                        xsFacets.length = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
-                    break;
-                    }
+                    fAttrChecker.returnAttrArray (attrs, schemaDoc);
+                    content = DOMUtil.getNextSiblingElement(content);
+                    continue;
                 }
-                
+
+                // The facet can't be used if the value is missing. Ignore
+                // this facet element.
+                if (attrs[XSAttributeChecker.ATTIDX_VALUE] == null) {
+                    // Report an error if the "value" attribute is missing.
+                    // If it's not missing, then its value is invalid, and an
+                    // error should have already been reported by the
+                    // attribute checker.
+                    if (content.getAttributeNodeNS(null, "value") == null) {
+                        reportSchemaError("s4s-att-must-appear", new Object[]{content.getLocalName(), SchemaSymbols.ATT_VALUE}, content);
+                    }
+                    fAttrChecker.returnAttrArray (attrs, schemaDoc);
+                    content = DOMUtil.getNextSiblingElement(content);
+                    continue;
+                }
+
+                facetsPresent |= currentFacet;
+                // check for fixed facet
+                if (((Boolean)attrs[XSAttributeChecker.ATTIDX_FIXED]).booleanValue()) {
+                    facetsFixed |= currentFacet;
+                }
+                switch (currentFacet) {
+                case XSSimpleType.FACET_MINLENGTH:
+                    xsFacets.minLength = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
+                    break;
+                case XSSimpleType.FACET_MAXLENGTH:
+                    xsFacets.maxLength = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
+                    break;
+                case XSSimpleType.FACET_MAXEXCLUSIVE:
+                    xsFacets.maxExclusive = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
+                    break;
+                case XSSimpleType.FACET_MAXINCLUSIVE:
+                    xsFacets.maxInclusive = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
+                    break;
+                case XSSimpleType.FACET_MINEXCLUSIVE:
+                    xsFacets.minExclusive = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
+                    break;
+                case XSSimpleType.FACET_MININCLUSIVE:
+                    xsFacets.minInclusive = (String)attrs[XSAttributeChecker.ATTIDX_VALUE];
+                    break;
+                case XSSimpleType.FACET_TOTALDIGITS:
+                    xsFacets.totalDigits = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
+                    break;
+                case XSSimpleType.FACET_FRACTIONDIGITS:
+                    xsFacets.fractionDigits = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
+                    break;
+                case XSSimpleType.FACET_WHITESPACE:
+                    xsFacets.whiteSpace = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).shortValue();
+                    break;
+                case XSSimpleType.FACET_LENGTH:
+                    xsFacets.length = ((XInt)attrs[XSAttributeChecker.ATTIDX_VALUE]).intValue();
+                    break;
+                }
+
                 Element child = DOMUtil.getFirstChildElement( content );
-                if (child != null) {
+                XSAnnotationImpl annotation = null;
+                if (child != null &&
+                    DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
                     // traverse annotation if any
-                    if (DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
-                        XSAnnotationImpl annotation = traverseAnnotationDecl(child, attrs, false, schemaDoc);
-                        switch (currentFacet) {
-                        case XSSimpleType.FACET_MINLENGTH:
-                            xsFacets.minLengthAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_MAXLENGTH:
-                            xsFacets.maxLengthAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_MAXEXCLUSIVE:
-                            xsFacets.maxExclusiveAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_MAXINCLUSIVE:
-                            xsFacets.maxInclusiveAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_MINEXCLUSIVE:
-                            xsFacets.minExclusiveAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_MININCLUSIVE:
-                            xsFacets.minInclusiveAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_TOTALDIGITS:
-                            xsFacets.totalDigitsAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_FRACTIONDIGITS:
-                            xsFacets.fractionDigitsAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_WHITESPACE:
-                            xsFacets.whiteSpaceAnnotation = annotation;
-                        break;
-                        case XSSimpleType.FACET_LENGTH:
-                            xsFacets.lengthAnnotation = annotation;
-                        break;
-                        }
-                        
-                        
-                        child = DOMUtil.getNextSiblingElement(child);
+                    annotation = traverseAnnotationDecl(child, attrs, false, schemaDoc);
+                    child = DOMUtil.getNextSiblingElement(child);
+                }
+                else {
+                    String text = DOMUtil.getSyntheticAnnotation(content);
+                    if (text != null) {
+                        annotation = traverseSyntheticAnnotation(content, text, attrs, false, schemaDoc);
                     }
-                    else {
-                        String text = DOMUtil.getSyntheticAnnotation(content);
-                        if (text != null) {
-                            XSAnnotationImpl annotation = traverseSyntheticAnnotation(content, text, attrs, false, schemaDoc);
-                            switch (currentFacet) {
-                                case XSSimpleType.FACET_MINLENGTH:
-                                    xsFacets.minLengthAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_MAXLENGTH:
-                                    xsFacets.maxLengthAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_MAXEXCLUSIVE:
-                                    xsFacets.maxExclusiveAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_MAXINCLUSIVE:
-                                    xsFacets.maxInclusiveAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_MINEXCLUSIVE:
-                                    xsFacets.minExclusiveAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_MININCLUSIVE:
-                                    xsFacets.minInclusiveAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_TOTALDIGITS:
-                                    xsFacets.totalDigitsAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_FRACTIONDIGITS:
-                                    xsFacets.fractionDigitsAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_WHITESPACE:
-                                    xsFacets.whiteSpaceAnnotation = annotation;
-                                    break;
-                                case XSSimpleType.FACET_LENGTH:
-                                    xsFacets.lengthAnnotation = annotation;
-                                    break;
-                            }
-                        }
-                    }
-                    if (child != null && DOMUtil.getLocalName(child).equals(SchemaSymbols.ELT_ANNOTATION)) {
-                        reportSchemaError("s4s-elt-must-match.1", new Object[]{facet, "(annotation?)", DOMUtil.getLocalName(child)}, child);
-                    }
+               }
+                switch (currentFacet) {
+                case XSSimpleType.FACET_MINLENGTH:
+                    xsFacets.minLengthAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_MAXLENGTH:
+                    xsFacets.maxLengthAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_MAXEXCLUSIVE:
+                    xsFacets.maxExclusiveAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_MAXINCLUSIVE:
+                    xsFacets.maxInclusiveAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_MINEXCLUSIVE:
+                    xsFacets.minExclusiveAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_MININCLUSIVE:
+                    xsFacets.minInclusiveAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_TOTALDIGITS:
+                    xsFacets.totalDigitsAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_FRACTIONDIGITS:
+                    xsFacets.fractionDigitsAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_WHITESPACE:
+                    xsFacets.whiteSpaceAnnotation = annotation;
+                break;
+                case XSSimpleType.FACET_LENGTH:
+                    xsFacets.lengthAnnotation = annotation;
+                break;
+                }
+                if (child != null) {
+                    reportSchemaError("s4s-elt-must-match.1", new Object[]{facet, "(annotation?)", DOMUtil.getLocalName(child)}, child);
                 }
             }
             fAttrChecker.returnAttrArray (attrs, schemaDoc);
@@ -553,23 +563,17 @@ abstract class XSDAbstractTraverser {
             xsFacets.enumNSDecls = enumNSDecls;
             xsFacets.enumAnnotations = enumAnnotations;
         }
-        if (fPattern.length() != 0) {
-            facetsPresent |= XSSimpleType.FACET_PATTERN;
+        if ((facetsPresent & XSSimpleType.FACET_PATTERN) != 0) {
             xsFacets.pattern = fPattern.toString();
             xsFacets.patternAnnotations = patternAnnotations;
         }
-        
+
         fPattern.setLength(0);
-        
-        FacetInfo fi = new FacetInfo();
-        fi.facetdata = xsFacets;
-        fi.nodeAfterFacets = content;
-        fi.fPresentFacets = facetsPresent;
-        fi.fFixedFacets = facetsFixed;
-        return fi;
+
+        return new FacetInfo(xsFacets, content, facetsPresent, facetsFixed);
     }
-    
-    
+
+
     // return whether QName/NOTATION is part of the given type
     private boolean containsQName(XSSimpleType type) {
         if (type.getVariety() == XSSimpleType.VARIETY_ATOMIC) {
@@ -589,7 +593,7 @@ abstract class XSDAbstractTraverser {
         }
         return false;
     }
-    
+
     //
     // Traverse a set of attribute and attribute group elements
     // Needed by complexType and attributeGroup traversal
@@ -598,12 +602,13 @@ abstract class XSDAbstractTraverser {
     Element traverseAttrsAndAttrGrps(Element firstAttr, XSAttributeGroupDecl attrGrp,
             XSDocumentInfo schemaDoc, SchemaGrammar grammar,
             XSComplexTypeDecl enclosingCT) {
-        
+
         Element child=null;
         XSAttributeGroupDecl tempAttrGrp = null;
         XSAttributeUseImpl tempAttrUse = null;
+        XSAttributeUse otherUse = null;
         String childName;
-        
+
         for (child=firstAttr; child!=null; child=DOMUtil.getNextSiblingElement(child)) {
             childName = DOMUtil.getLocalName(child);
             if (childName.equals(SchemaSymbols.ELT_ATTRIBUTE)) {
@@ -611,9 +616,15 @@ abstract class XSDAbstractTraverser {
                         schemaDoc,
                         grammar,
                         enclosingCT);
-                if (tempAttrUse == null) break;
-                if (attrGrp.getAttributeUse(tempAttrUse.fAttrDecl.getNamespace(),
-                        tempAttrUse.fAttrDecl.getName())==null) {
+                if (tempAttrUse == null) continue;
+                if (tempAttrUse.fUse == SchemaSymbols.USE_PROHIBITED) {
+                    attrGrp.addAttributeUse(tempAttrUse);
+                    continue;
+                }
+                otherUse = attrGrp.getAttributeUseNoProhibited(
+                        tempAttrUse.fAttrDecl.getNamespace(),
+                        tempAttrUse.fAttrDecl.getName());
+                if (otherUse==null) {
                     String idName = attrGrp.addAttributeUse(tempAttrUse);
                     if (idName != null) {
                         String code = (enclosingCT == null) ? "ag-props-correct.3" : "ct-props-correct.5";
@@ -621,8 +632,7 @@ abstract class XSDAbstractTraverser {
                         reportSchemaError(code, new Object[]{name, tempAttrUse.fAttrDecl.getName(), idName}, child);
                     }
                 }
-                else {
-                    // REVISIT: what if one of the attribute uses is "prohibited"
+                else if (otherUse != tempAttrUse) {
                     String code = (enclosingCT == null) ? "ag-props-correct.2" : "ct-props-correct.4";
                     String name = (enclosingCT == null) ? attrGrp.fName : enclosingCT.getName();
                     reportSchemaError(code, new Object[]{name, tempAttrUse.fAttrDecl.getName()}, child);
@@ -632,14 +642,20 @@ abstract class XSDAbstractTraverser {
                 //REVISIT: do we need to save some state at this point??
                 tempAttrGrp = fSchemaHandler.fAttributeGroupTraverser.traverseLocal(
                         child, schemaDoc, grammar);
-                if(tempAttrGrp == null ) break;
+                if(tempAttrGrp == null ) continue;
                 XSObjectList attrUseS = tempAttrGrp.getAttributeUses();
-                XSAttributeUseImpl existingAttrUse = null, oneAttrUse;
+                XSAttributeUseImpl oneAttrUse;
                 int attrCount = attrUseS.getLength();
                 for (int i=0; i<attrCount; i++) {
                     oneAttrUse = (XSAttributeUseImpl)attrUseS.item(i);
-                    if (existingAttrUse == attrGrp.getAttributeUse(oneAttrUse.fAttrDecl.getNamespace(),
-                            oneAttrUse.fAttrDecl.getName())) {
+                    if (oneAttrUse.fUse == SchemaSymbols.USE_PROHIBITED) {
+                        attrGrp.addAttributeUse(oneAttrUse);
+                        continue;
+                    }
+                    otherUse = attrGrp.getAttributeUseNoProhibited(
+                            oneAttrUse.fAttrDecl.getNamespace(),
+                            oneAttrUse.fAttrDecl.getName());
+                    if (otherUse==null) {
                         String idName = attrGrp.addAttributeUse(oneAttrUse);
                         if (idName != null) {
                             String code = (enclosingCT == null) ? "ag-props-correct.3" : "ct-props-correct.5";
@@ -647,14 +663,13 @@ abstract class XSDAbstractTraverser {
                             reportSchemaError(code, new Object[]{name, oneAttrUse.fAttrDecl.getName(), idName}, child);
                         }
                     }
-                    else {
-                        // REVISIT: what if one of the attribute uses is "prohibited"
+                    else if (oneAttrUse != otherUse) {
                         String code = (enclosingCT == null) ? "ag-props-correct.2" : "ct-props-correct.4";
                         String name = (enclosingCT == null) ? attrGrp.fName : enclosingCT.getName();
                         reportSchemaError(code, new Object[]{name, oneAttrUse.fAttrDecl.getName()}, child);
                     }
                 }
-                
+
                 if (tempAttrGrp.fAttributeWC != null) {
                     if (attrGrp.fAttributeWC == null) {
                         attrGrp.fAttributeWC = tempAttrGrp.fAttributeWC;
@@ -674,7 +689,7 @@ abstract class XSDAbstractTraverser {
             else
                 break;
         } // for
-        
+
         if (child != null) {
             childName = DOMUtil.getLocalName(child);
             if (childName.equals(SchemaSymbols.ELT_ANYATTRIBUTE)) {
@@ -696,16 +711,16 @@ abstract class XSDAbstractTraverser {
                 child = DOMUtil.getNextSiblingElement(child);
             }
         }
-        
+
         // Success
         return child;
-        
+
     }
-    
+
     void reportSchemaError (String key, Object[] args, Element ele) {
         fSchemaHandler.reportSchemaError(key, args, ele);
     }
-    
+
     /**
      * Element/Attribute traversers call this method to check whether
      * the type is NOTATION without enumeration facet
@@ -719,23 +734,23 @@ abstract class XSDAbstractTraverser {
             }
         }
     }
-    
+
     // Checks constraints for minOccurs, maxOccurs
     protected XSParticleDecl checkOccurrences(XSParticleDecl particle,
             String particleName, Element parent,
             int allContextFlags,
             long defaultVals) {
-        
+
         int min = particle.fMinOccurs;
         int max = particle.fMaxOccurs;
         boolean defaultMin = (defaultVals & (1 << XSAttributeChecker.ATTIDX_MINOCCURS)) != 0;
         boolean defaultMax = (defaultVals & (1 << XSAttributeChecker.ATTIDX_MAXOCCURS)) != 0;
-        
+
         boolean processingAllEl = ((allContextFlags & PROCESSING_ALL_EL) != 0);
         boolean processingAllGP = ((allContextFlags & PROCESSING_ALL_GP) != 0);
         boolean groupRefWithAll = ((allContextFlags & GROUP_REF_WITH_ALL) != 0);
         boolean isGroupChild    = ((allContextFlags & CHILD_OF_GROUP) != 0);
-        
+
         // Neither minOccurs nor maxOccurs may be specified
         // for the child of a model group definition.
         if (isGroupChild) {
@@ -750,13 +765,13 @@ abstract class XSDAbstractTraverser {
                 max = 1;
             }
         }
-        
+
         // If minOccurs=maxOccurs=0, no component is specified
         if (min == 0 && max== 0) {
             particle.fType = XSParticleDecl.PARTICLE_EMPTY;
             return null;
         }
-        
+
         // For the elements referenced in an <all>, minOccurs attribute
         // must be zero or one, and maxOccurs attribute must be one.
         // For a complex type definition that contains an <all> or a
@@ -764,7 +779,8 @@ abstract class XSDAbstractTraverser {
         // minOccurs and maxOccurs must be one.
         if (processingAllEl) {
             if (max != 1) {
-                reportSchemaError("cos-all-limited.2", new Object[]{new Integer(max),
+                reportSchemaError("cos-all-limited.2", new Object[]{
+                        (max == SchemaSymbols.OCCURRENCE_UNBOUNDED) ? SchemaSymbols.ATTVAL_UNBOUNDED : Integer.toString(max),
                         ((XSElementDecl)particle.fValue).getName()}, parent);
                 max = 1;
                 if (min > 1)
@@ -779,26 +795,56 @@ abstract class XSDAbstractTraverser {
                 max = 1;
             }
         }
-        
-        particle.fMaxOccurs = min;
+
+        particle.fMinOccurs = min;
         particle.fMaxOccurs = max;
-        
+
         return particle;
     }
-    
-    // this is not terribly performant!
+
     private static String processAttValue(String original) {
+        final int length = original.length();
         // normally, nothing will happen
-        StringBuffer newVal = new StringBuffer(original.length());
-        for(int i=0; i<original.length(); i++) {
+        for (int i = 0; i < length; ++i) {
             char currChar = original.charAt(i);
-            if(currChar == '"') {
+            if (currChar == '"' || currChar == '<' || currChar == '&' ||
+                    currChar == 0x09 || currChar == 0x0A || currChar == 0x0D) {
+                return escapeAttValue(original, i);
+            }
+        }
+        return original;
+    }
+
+    // this is not terribly performant!
+    private static String escapeAttValue(String original, int from) {
+        int i;
+        final int length = original.length();
+        StringBuffer newVal = new StringBuffer(length);
+        newVal.append(original.substring(0, from));
+        for (i = from; i < length; ++i) {
+            char currChar = original.charAt(i);
+            if (currChar == '"') {
                 newVal.append("&quot;");
-            } else if (currChar == '>') {
-                newVal.append("&gt;");
-            } else if (currChar == '&') {
+            }
+            else if (currChar == '<') {
+                newVal.append("&lt;");
+            }
+            else if (currChar == '&') {
                 newVal.append("&amp;");
-            } else {
+            }
+            // Must escape 0x09, 0x0A and 0x0D if they appear in attribute
+            // value so that they may be round-tripped. They would otherwise
+            // be transformed to a 0x20 during attribute value normalization.
+            else if (currChar == 0x09) {
+                newVal.append("&#x9;");
+            }
+            else if (currChar == 0x0A) {
+                newVal.append("&#xA;");
+            }
+            else if (currChar == 0x0D) {
+                newVal.append("&#xD;");
+            }
+            else {
                 newVal.append(currChar);
             }
         }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,7 +61,6 @@ package com.sun.org.apache.bcel.internal.generic;
 /**
  * Super class for instructions dealing with array access such as IALOAD.
  *
- * @version $Id: ArrayInstruction.java,v 1.1.2.1 2005/07/31 23:45:01 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class ArrayInstruction extends Instruction
@@ -83,19 +86,19 @@ public abstract class ArrayInstruction extends Instruction
    */
   public Type getType(ConstantPoolGen cp) {
     switch(opcode) {
-    case com.sun.org.apache.bcel.internal.Constants.IALOAD: case com.sun.org.apache.bcel.internal.Constants.IASTORE: 
+    case com.sun.org.apache.bcel.internal.Constants.IALOAD: case com.sun.org.apache.bcel.internal.Constants.IASTORE:
       return Type.INT;
-    case com.sun.org.apache.bcel.internal.Constants.CALOAD: case com.sun.org.apache.bcel.internal.Constants.CASTORE: 
+    case com.sun.org.apache.bcel.internal.Constants.CALOAD: case com.sun.org.apache.bcel.internal.Constants.CASTORE:
       return Type.CHAR;
     case com.sun.org.apache.bcel.internal.Constants.BALOAD: case com.sun.org.apache.bcel.internal.Constants.BASTORE:
       return Type.BYTE;
     case com.sun.org.apache.bcel.internal.Constants.SALOAD: case com.sun.org.apache.bcel.internal.Constants.SASTORE:
       return Type.SHORT;
-    case com.sun.org.apache.bcel.internal.Constants.LALOAD: case com.sun.org.apache.bcel.internal.Constants.LASTORE: 
+    case com.sun.org.apache.bcel.internal.Constants.LALOAD: case com.sun.org.apache.bcel.internal.Constants.LASTORE:
       return Type.LONG;
-    case com.sun.org.apache.bcel.internal.Constants.DALOAD: case com.sun.org.apache.bcel.internal.Constants.DASTORE: 
+    case com.sun.org.apache.bcel.internal.Constants.DALOAD: case com.sun.org.apache.bcel.internal.Constants.DASTORE:
       return Type.DOUBLE;
-    case com.sun.org.apache.bcel.internal.Constants.FALOAD: case com.sun.org.apache.bcel.internal.Constants.FASTORE: 
+    case com.sun.org.apache.bcel.internal.Constants.FALOAD: case com.sun.org.apache.bcel.internal.Constants.FASTORE:
       return Type.FLOAT;
     case com.sun.org.apache.bcel.internal.Constants.AALOAD: case com.sun.org.apache.bcel.internal.Constants.AASTORE:
       return Type.OBJECT;

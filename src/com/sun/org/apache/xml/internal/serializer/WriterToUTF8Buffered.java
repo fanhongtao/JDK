@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,15 +32,15 @@ import java.io.Writer;
  * This class writes unicode characters to a byte stream (java.io.OutputStream)
  * as quickly as possible. It buffers the output in an internal
  * buffer which must be flushed to the OutputStream when done. This flushing
- * is done via the close() flush() or flushBuffer() method. 
- * 
+ * is done via the close() flush() or flushBuffer() method.
+ *
  * This class is only used internally within Xalan.
- * 
+ *
  * @xsl.usage internal
  */
 final class WriterToUTF8Buffered extends Writer implements WriterChain
 {
-    
+
   /** number of bytes that the byte buffer can hold.
    * This is a fixed constant is used rather than m_outputBytes.lenght for performance.
    */
@@ -46,9 +50,9 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
    * can expand one unicode character by up to 3 bytes.
    */
   private static final int CHARS_MAX=(BYTES_MAX/3);
-  
- // private static final int 
-  
+
+ // private static final int
+
   /** The byte stream to write to. (sc & sb remove final to compile in JDK 1.1.8) */
   private final OutputStream m_os;
 
@@ -57,7 +61,7 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
    * (sc & sb remove final to compile in JDK 1.1.8)
    */
   private final byte m_outputBytes[];
-  
+
   private final char m_inputChars[];
 
   /**
@@ -83,13 +87,13 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
       // get 3 extra bytes to make buffer overflow checking simpler and faster
       // we won't have to keep checking for a few extra characters
       m_outputBytes = new byte[BYTES_MAX + 3];
-      
+
       // Big enough to hold the input chars that will be transformed
       // into output bytes in m_ouputBytes.
       m_inputChars = new char[CHARS_MAX + 2];
       count = 0;
-      
-//      the old body of this constructor, before the buffersize was changed to a constant      
+
+//      the old body of this constructor, before the buffersize was changed to a constant
 //      this(out, 8*1024);
   }
 
@@ -130,10 +134,10 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
    */
   public void write(final int c) throws IOException
   {
-    
+
     /* If we are close to the end of the buffer then flush it.
      * Remember the buffer can hold a few more bytes than BYTES_MAX
-     */ 
+     */
     if (count >= BYTES_MAX)
         flushBuffer();
 
@@ -152,13 +156,13 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
       m_outputBytes[count++] = (byte) (0x80 + ((c >> 6) & 0x3f));
       m_outputBytes[count++] = (byte) (0x80 + (c & 0x3f));
     }
-	else
-	{
-	  m_outputBytes[count++] = (byte) (0xf0 + (c >> 18));
-	  m_outputBytes[count++] = (byte) (0x80 + ((c >> 12) & 0x3f));
-	  m_outputBytes[count++] = (byte) (0x80 + ((c >> 6) & 0x3f));
-	  m_outputBytes[count++] = (byte) (0x80 + (c & 0x3f));
-	}
+        else
+        {
+          m_outputBytes[count++] = (byte) (0xf0 + (c >> 18));
+          m_outputBytes[count++] = (byte) (0x80 + ((c >> 12) & 0x3f));
+          m_outputBytes[count++] = (byte) (0x80 + ((c >> 6) & 0x3f));
+          m_outputBytes[count++] = (byte) (0x80 + (c & 0x3f));
+        }
 
   }
 
@@ -198,7 +202,7 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
          * and make multiple recursive calls.
          * Be careful about integer overflows in multiplication.
          */
-        int split = length/CHARS_MAX; 
+        int split = length/CHARS_MAX;
         final int chunks;
         if (split > 1)
             chunks = split;
@@ -209,11 +213,11 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
         {
             int start_chunk = end_chunk;
             end_chunk = start + (int) ((((long) length) * chunk) / chunks);
-            
-            // Adjust the end of the chunk if it ends on a high char 
+
+            // Adjust the end of the chunk if it ends on a high char
             // of a Unicode surrogate pair and low char of the pair
             // is not going to be in the same chunk
-            final char c = chars[end_chunk - 1]; 
+            final char c = chars[end_chunk - 1];
             int ic = chars[end_chunk - 1];
             if (c >= 0xD800 && c <= 0xDBFF) {
                 // The last Java char that we were going
@@ -232,7 +236,7 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
                      * TODO: error message needed.
                      * The char array incorrectly ends in a high char
                      * of a high/low surrogate pair, but there is
-                     * no corresponding low as the high is the last char 
+                     * no corresponding low as the high is the last char
                      */
                     end_chunk--;
                 }
@@ -256,8 +260,8 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
         /* This block could be omitted and the code would produce
          * the same result. But this block exists to give the JIT
          * a better chance of optimizing a tight and common loop which
-         * occurs when writing out ASCII characters. 
-         */ 
+         * occurs when writing out ASCII characters.
+         */
         char c;
         for(; i < n && (c = chars[i])< 0x80 ; i++ )
             buf_loc[count_loc++] = (byte)c;
@@ -275,13 +279,13 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
         buf_loc[count_loc++] = (byte) (0x80 + (c & 0x3f));
       }
       /**
-        * The following else if condition is added to support XML 1.1 Characters for 
+        * The following else if condition is added to support XML 1.1 Characters for
         * UTF-8:   [1111 0uuu] [10uu zzzz] [10yy yyyy] [10xx xxxx]*
         * Unicode: [1101 10ww] [wwzz zzyy] (high surrogate)
         *          [1101 11yy] [yyxx xxxx] (low surrogate)
         *          * uuuuu = wwww + 1
         */
-      else if (c >= 0xD800 && c <= 0xDBFF) 
+      else if (c >= 0xD800 && c <= 0xDBFF)
       {
           char high, low;
           high = c;
@@ -333,7 +337,7 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
          * so break it up in chunks that don't exceed the buffer size.
          */
          final int start = 0;
-         int split = length/CHARS_MAX; 
+         int split = length/CHARS_MAX;
          final int chunks;
          if (split > 1)
              chunks = split;
@@ -347,13 +351,13 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
              s.getChars(start_chunk,end_chunk, m_inputChars,0);
              int len_chunk = (end_chunk - start_chunk);
 
-             // Adjust the end of the chunk if it ends on a high char 
+             // Adjust the end of the chunk if it ends on a high char
              // of a Unicode surrogate pair and low char of the pair
              // is not going to be in the same chunk
              final char c = m_inputChars[len_chunk - 1];
              if (c >= 0xD800 && c <= 0xDBFF) {
-                 // Exclude char in this chunk, 
-                 // to avoid spanning a Unicode character 
+                 // Exclude char in this chunk,
+                 // to avoid spanning a Unicode character
                  // that is in two Java chars as a high/low surrogate
                  end_chunk--;
                  len_chunk--;
@@ -384,8 +388,8 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
         /* This block could be omitted and the code would produce
          * the same result. But this block exists to give the JIT
          * a better chance of optimizing a tight and common loop which
-         * occurs when writing out ASCII characters. 
-         */ 
+         * occurs when writing out ASCII characters.
+         */
         char c;
         for(; i < n && (c = chars[i])< 0x80 ; i++ )
             buf_loc[count_loc++] = (byte)c;
@@ -403,13 +407,13 @@ final class WriterToUTF8Buffered extends Writer implements WriterChain
         buf_loc[count_loc++] = (byte) (0x80 + (c & 0x3f));
       }
     /**
-      * The following else if condition is added to support XML 1.1 Characters for 
+      * The following else if condition is added to support XML 1.1 Characters for
       * UTF-8:   [1111 0uuu] [10uu zzzz] [10yy yyyy] [10xx xxxx]*
       * Unicode: [1101 10ww] [wwzz zzyy] (high surrogate)
       *          [1101 11yy] [yyxx xxxx] (low surrogate)
       *          * uuuuu = wwww + 1
       */
-    else if (c >= 0xD800 && c <= 0xDBFF) 
+    else if (c >= 0xD800 && c <= 0xDBFF)
     {
         char high, low;
         high = c;

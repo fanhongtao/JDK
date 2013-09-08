@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +20,11 @@
 
 package com.sun.org.apache.xerces.internal.util;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
@@ -36,7 +43,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: ParserConfigurationSettings.java,v 1.2.6.1 2005/09/05 08:46:57 neerajbj Exp $
+ * @version $Id: ParserConfigurationSettings.java,v 1.6 2010-11-01 04:40:14 joehw Exp $
  */
 public class ParserConfigurationSettings
     implements XMLComponentManager {
@@ -51,16 +58,16 @@ public class ParserConfigurationSettings
     // data
 
     /** Recognized properties. */
-    protected ArrayList fRecognizedProperties;
+    protected Set<String> fRecognizedProperties;
 
     /** Properties. */
-    protected HashMap fProperties;
+    protected Map<String, Object> fProperties;
 
     /** Recognized features. */
-    protected ArrayList fRecognizedFeatures;
+    protected Set<String> fRecognizedFeatures;
 
     /** Features. */
-    protected HashMap fFeatures;
+    protected Map<String, Boolean> fFeatures;
 
     /** Parent parser configuration settings. */
     protected XMLComponentManager fParentSettings;
@@ -81,12 +88,12 @@ public class ParserConfigurationSettings
     public ParserConfigurationSettings(XMLComponentManager parent) {
 
         // create storage for recognized features and properties
-        fRecognizedFeatures = new ArrayList();
-        fRecognizedProperties = new ArrayList();
+        fRecognizedFeatures = new HashSet<String>();
+        fRecognizedProperties = new HashSet<String>();
 
         // create table for features and properties
-        fFeatures = new HashMap();
-        fProperties = new HashMap();
+        fFeatures = new HashMap<String, Boolean>();
+        fProperties = new HashMap<String, Object>();
 
         // save parent
         fParentSettings = parent;
@@ -105,16 +112,7 @@ public class ParserConfigurationSettings
      *                   to be recognized.
      */
     public void addRecognizedFeatures(String[] featureIds) {
-
-        // add recognized features
-        int featureIdsCount = featureIds != null ? featureIds.length : 0;
-        for (int i = 0; i < featureIdsCount; i++) {
-            String featureId = featureIds[i];
-            if (!fRecognizedFeatures.contains(featureId)) {
-                fRecognizedFeatures.add(featureId);
-            }
-        }
-
+        fRecognizedFeatures.addAll(Arrays.asList(featureIds));
     } // addRecognizedFeatures(String[])
 
     /**
@@ -134,9 +132,12 @@ public class ParserConfigurationSettings
         throws XMLConfigurationException {
 
         // check and store
-        checkFeature(featureId);
+        FeatureState checkState = checkFeature(featureId);
+        if (checkState.isExceptional()) {
+            throw new XMLConfigurationException(checkState.status, featureId);
+        }
 
-        fFeatures.put(featureId, state ? Boolean.TRUE : Boolean.FALSE);
+        fFeatures.put(featureId, state);
     } // setFeature(String,boolean)
 
     /**
@@ -147,16 +148,7 @@ public class ParserConfigurationSettings
      *                    to be recognized.
      */
     public void addRecognizedProperties(String[] propertyIds) {
-
-        // add recognizedProperties
-        int propertyIdsCount = propertyIds != null ? propertyIds.length : 0;
-        for (int i = 0; i < propertyIdsCount; i++) {
-            String propertyId = propertyIds[i];
-            if (!fRecognizedProperties.contains(propertyId)) {
-                fRecognizedProperties.add(propertyId);
-            }
-        }
-
+        fRecognizedProperties.addAll(Arrays.asList(propertyIds));
     } // addRecognizedProperties(String[])
 
     /**
@@ -171,7 +163,10 @@ public class ParserConfigurationSettings
         throws XMLConfigurationException {
 
         // check and store
-        checkProperty(propertyId);
+        PropertyState checkState = checkProperty(propertyId);
+        if (checkState.isExceptional()) {
+            throw new XMLConfigurationException(checkState.status, propertyId);
+        }
         fProperties.put(propertyId, value);
 
     } // setProperty(String,Object)
@@ -192,18 +187,36 @@ public class ParserConfigurationSettings
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    public boolean getFeature(String featureId)
+    public final boolean getFeature(String featureId)
         throws XMLConfigurationException {
 
+        FeatureState state = getFeatureState(featureId);
+        if (state.isExceptional()) {
+            throw new XMLConfigurationException(state.status, featureId);
+        }
+        return state.state;
+    } // getFeature(String):boolean
+
+    public final boolean getFeature(String featureId, boolean defaultValue) {
+        FeatureState state = getFeatureState(featureId);
+        if (state.isExceptional()) {
+            return defaultValue;
+        }
+        return state.state;
+    }
+
+    public FeatureState getFeatureState(String featureId) {
         Boolean state = (Boolean) fFeatures.get(featureId);
 
         if (state == null) {
-            checkFeature(featureId);
-            return false;
+            FeatureState checkState = checkFeature(featureId);
+            if (checkState.isExceptional()) {
+                return checkState;
+            }
+            return FeatureState.is(false);
         }
-        return state.booleanValue();
-
-    } // getFeature(String):boolean
+        return FeatureState.is(state);
+    }
 
     /**
      * Returns the value of a property.
@@ -217,18 +230,38 @@ public class ParserConfigurationSettings
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    public Object getProperty(String propertyId)
+    public final Object getProperty(String propertyId)
         throws XMLConfigurationException {
 
+        PropertyState state = getPropertyState(propertyId);
+        if (state.isExceptional()) {
+            throw new XMLConfigurationException(state.status, propertyId);
+        }
+
+        return state.state;
+    } // getProperty(String):Object
+
+    public final Object getProperty(String propertyId, Object defaultValue) {
+        PropertyState state = getPropertyState(propertyId);
+        if (state.isExceptional()) {
+            return defaultValue;
+        }
+
+        return state.state;
+    }
+
+    public PropertyState getPropertyState(String propertyId) {
         Object propertyValue = fProperties.get(propertyId);
 
         if (propertyValue == null) {
-            checkProperty(propertyId);
+            PropertyState state = checkProperty(propertyId);
+            if (state.isExceptional()) {
+                return state;
+            }
         }
 
-        return propertyValue;
-
-    } // getProperty(String):Object
+        return PropertyState.is(propertyValue);
+    }
 
     //
     // Protected methods
@@ -243,20 +276,21 @@ public class ParserConfigurationSettings
      * @exception com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException If the
      *            requested feature is not known.
      */
-    protected void checkFeature(String featureId)
+    protected FeatureState checkFeature(String featureId)
         throws XMLConfigurationException {
 
         // check feature
         if (!fRecognizedFeatures.contains(featureId)) {
             if (fParentSettings != null) {
-                fParentSettings.getFeature(featureId);
+                return fParentSettings.getFeatureState(featureId);
             }
             else {
-                short type = XMLConfigurationException.NOT_RECOGNIZED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_RECOGNIZED;
             }
         }
 
+        // TODO: reasonable default?
+        return FeatureState.RECOGNIZED;
     } // checkFeature(String)
 
     /**
@@ -268,20 +302,22 @@ public class ParserConfigurationSettings
      * @exception com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException If the
      *            requested feature is not known.
      */
-    protected void checkProperty(String propertyId)
+    protected PropertyState checkProperty(String propertyId)
         throws XMLConfigurationException {
 
         // check property
         if (!fRecognizedProperties.contains(propertyId)) {
             if (fParentSettings != null) {
-                fParentSettings.getProperty(propertyId);
+                PropertyState state = fParentSettings.getPropertyState(propertyId);
+                if (state.isExceptional()) {
+                    return state;
+                }
             }
             else {
-                short type = XMLConfigurationException.NOT_RECOGNIZED;
-                throw new XMLConfigurationException(type, propertyId);
+                return PropertyState.NOT_RECOGNIZED;
             }
         }
-
+        return PropertyState.RECOGNIZED;
     } // checkProperty(String)
 
 } // class ParserConfigurationSettings

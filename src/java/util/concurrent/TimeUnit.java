@@ -1,8 +1,36 @@
 /*
- * @(#)TimeUnit.java	1.9 06/01/13
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -25,12 +53,12 @@ package java.util.concurrent;
  * java.util.concurrent.locks.Lock lock} is not available:
  *
  * <pre>  Lock lock = ...;
- *  if ( lock.tryLock(50L, TimeUnit.MILLISECONDS) ) ...
+ *  if (lock.tryLock(50L, TimeUnit.MILLISECONDS)) ...
  * </pre>
  * while this code will timeout in 50 seconds:
  * <pre>
  *  Lock lock = ...;
- *  if ( lock.tryLock(50L, TimeUnit.SECONDS) ) ...
+ *  if (lock.tryLock(50L, TimeUnit.SECONDS)) ...
  * </pre>
  *
  * Note however, that there is no guarantee that a particular timeout
@@ -263,7 +291,8 @@ public enum TimeUnit {
     abstract int excessNanos(long d, long m);
 
     /**
-     * Performs a timed <tt>Object.wait</tt> using this time unit.
+     * Performs a timed {@link Object#wait(long, int) Object.wait}
+     * using this time unit.
      * This is a convenience method that converts timeout arguments
      * into the form required by the <tt>Object.wait</tt> method.
      *
@@ -271,21 +300,22 @@ public enum TimeUnit {
      * method (see {@link BlockingQueue#poll BlockingQueue.poll})
      * using:
      *
-     * <pre>  public synchronized Object poll(long timeout, TimeUnit unit) throws InterruptedException {
-     *    while (empty) {
-     *      unit.timedWait(this, timeout);
-     *      ...
-     *    }
-     *  }</pre>
+     *  <pre> {@code
+     * public synchronized Object poll(long timeout, TimeUnit unit)
+     *     throws InterruptedException {
+     *   while (empty) {
+     *     unit.timedWait(this, timeout);
+     *     ...
+     *   }
+     * }}</pre>
      *
      * @param obj the object to wait on
      * @param timeout the maximum time to wait. If less than
      * or equal to zero, do not wait at all.
-     * @throws InterruptedException if interrupted while waiting.
-     * @see Object#wait(long, int)
+     * @throws InterruptedException if interrupted while waiting
      */
     public void timedWait(Object obj, long timeout)
-    throws InterruptedException {
+            throws InterruptedException {
         if (timeout > 0) {
             long ms = toMillis(timeout);
             int ns = excessNanos(timeout, ms);
@@ -294,17 +324,18 @@ public enum TimeUnit {
     }
 
     /**
-     * Performs a timed <tt>Thread.join</tt> using this time unit.
+     * Performs a timed {@link Thread#join(long, int) Thread.join}
+     * using this time unit.
      * This is a convenience method that converts time arguments into the
      * form required by the <tt>Thread.join</tt> method.
+     *
      * @param thread the thread to wait for
      * @param timeout the maximum time to wait. If less than
      * or equal to zero, do not wait at all.
-     * @throws InterruptedException if interrupted while waiting.
-     * @see Thread#join(long, int)
+     * @throws InterruptedException if interrupted while waiting
      */
     public void timedJoin(Thread thread, long timeout)
-    throws InterruptedException {
+            throws InterruptedException {
         if (timeout > 0) {
             long ms = toMillis(timeout);
             int ns = excessNanos(timeout, ms);
@@ -313,13 +344,14 @@ public enum TimeUnit {
     }
 
     /**
-     * Performs a <tt>Thread.sleep</tt> using this unit.
+     * Performs a {@link Thread#sleep(long, int) Thread.sleep} using
+     * this time unit.
      * This is a convenience method that converts time arguments into the
      * form required by the <tt>Thread.sleep</tt> method.
+     *
      * @param timeout the minimum time to sleep. If less than
      * or equal to zero, do not sleep at all.
-     * @throws InterruptedException if interrupted while sleeping.
-     * @see Thread#sleep
+     * @throws InterruptedException if interrupted while sleeping
      */
     public void sleep(long timeout) throws InterruptedException {
         if (timeout > 0) {

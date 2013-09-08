@@ -1,8 +1,26 @@
 /*
- * @(#)Activator.java	1.20 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.activation;
@@ -37,12 +55,11 @@ import java.rmi.activation.UnknownObjectException;
  * activation groups fail so that it can remove stale remote references
  * to groups and active object's within those groups.<p>
  *
- * @author 	Ann Wollrath
- * @version	1.20, 11/17/05
- * @see 	ActivationInstantiator
- * @see		ActivationGroupDesc
- * @see		ActivationGroupID
- * @since 	1.2
+ * @author      Ann Wollrath
+ * @see         ActivationInstantiator
+ * @see         ActivationGroupDesc
+ * @see         ActivationGroupID
+ * @since       1.2
  */
 public interface Activator extends Remote {
     /**
@@ -91,7 +108,7 @@ public interface Activator extends Remote {
      * @since 1.2
      */
     public MarshalledObject<? extends Remote> activate(ActivationID id,
-						       boolean force)
-	throws ActivationException, UnknownObjectException, RemoteException;
+                                                       boolean force)
+        throws ActivationException, UnknownObjectException, RemoteException;
 
 }

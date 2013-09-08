@@ -1,8 +1,26 @@
 /*
- * @(#)TextAction.java	1.30 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -16,9 +34,9 @@ import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
 
 /**
- * An Action implementation useful for key bindings that are 
+ * An Action implementation useful for key bindings that are
  * shared across a number of different text components.  Because
- * the action is shared, it must have a way of getting it's 
+ * the action is shared, it must have a way of getting it's
  * target to act upon.  This class provides support to try and
  * find a text component to operate on.  The preferred way of
  * getting the component to act upon is through the ActionEvent
@@ -26,7 +44,7 @@ import javax.swing.KeyStroke;
  * be narrowed to a text component, it will be used.  If the
  * action event is null or can't be narrowed, the last focused
  * text component is tried.  This is determined by being
- * used in conjunction with a JTextController which 
+ * used in conjunction with a JTextController which
  * arranges to share that information with a TextAction.
  * <p>
  * <strong>Warning:</strong>
@@ -39,7 +57,6 @@ import javax.swing.KeyStroke;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Timothy Prinzing
- * @version 1.30 11/17/05
  */
 public abstract class TextAction extends AbstractAction {
 
@@ -49,7 +66,7 @@ public abstract class TextAction extends AbstractAction {
      * @param name the name of the action
      */
     public TextAction(String name) {
-	super(name);
+        super(name);
     }
 
     /**
@@ -62,17 +79,17 @@ public abstract class TextAction extends AbstractAction {
      * @return the component
      */
     protected final JTextComponent getTextComponent(ActionEvent e) {
-	if (e != null) {
-	    Object o = e.getSource();
-	    if (o instanceof JTextComponent) {
-		return (JTextComponent) o;
-	    }
-	}
-	return getFocusedComponent();
+        if (e != null) {
+            Object o = e.getSource();
+            if (o instanceof JTextComponent) {
+                return (JTextComponent) o;
+            }
+        }
+        return getFocusedComponent();
     }
-	
+
     /**
-     * Takes one list of 
+     * Takes one list of
      * commands and augments it with another list
      * of commands.  The second list takes precedence
      * over the first list; that is, when both lists
@@ -86,23 +103,21 @@ public abstract class TextAction extends AbstractAction {
      * @return the augmented list
      */
     public static final Action[] augmentList(Action[] list1, Action[] list2) {
-	Hashtable h = new Hashtable();
-	for (int i = 0; i < list1.length; i++) {
-	    Action a = list1[i];
-	    String value = (String)a.getValue(Action.NAME);
-	    h.put((value!=null ? value:""), a);
-	}
-	for (int i = 0; i < list2.length; i++) {
-	    Action a = list2[i];
-	    String value = (String)a.getValue(Action.NAME);
-	    h.put((value!=null ? value:""), a);
-	}
-	Action[] actions = new Action[h.size()];
-	int index = 0;
+        Hashtable<String, Action> h = new Hashtable<String, Action>();
+        for (Action a : list1) {
+            String value = (String)a.getValue(Action.NAME);
+            h.put((value!=null ? value:""), a);
+        }
+        for (Action a : list2) {
+            String value = (String)a.getValue(Action.NAME);
+            h.put((value!=null ? value:""), a);
+        }
+        Action[] actions = new Action[h.size()];
+        int index = 0;
         for (Enumeration e = h.elements() ; e.hasMoreElements() ;) {
             actions[index++] = (Action) e.nextElement();
         }
-	return actions;
+        return actions;
     }
 
     /**

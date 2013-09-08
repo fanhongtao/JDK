@@ -1,8 +1,26 @@
 /*
- * @(#)BufferManagerReadGrow.java	1.21 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.encoding;
@@ -23,13 +41,13 @@ public class BufferManagerReadGrow
     //           BufferManagerReadBase.
     private ORB orb ;
 
-    private ORBUtilSystemException wrapper ; 
+    private ORBUtilSystemException wrapper ;
 
-    BufferManagerReadGrow( ORB orb ) 
+    BufferManagerReadGrow( ORB orb )
     {
-	this.orb = orb ;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_ENCODING ) ;
+        this.orb = orb ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_ENCODING ) ;
     }
 
     public void processFragment (ByteBuffer byteBuffer, FragmentMessage header)
@@ -42,11 +60,11 @@ public class BufferManagerReadGrow
 
     public ByteBufferWithInfo underflow (ByteBufferWithInfo bbwi)
     {
-	throw wrapper.unexpectedEof() ;
+        throw wrapper.unexpectedEof() ;
     }
 
     public void cancelProcessing(int requestId) {}
-    
+
     // Mark and reset handler -------------------------
 
     private Object streamMemento;

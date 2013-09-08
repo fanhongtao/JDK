@@ -1,8 +1,26 @@
 /*
- * @(#)ElementScanner6.java	1.7 06/08/15
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.util;
@@ -43,7 +61,7 @@ import static javax.lang.model.SourceVersion.*;
  * general contract.  Note that annotating methods in concrete
  * subclasses with {@link java.lang.Override @Override} will help
  * ensure that methods are overridden as intended.
- * 
+ *
  * <p> <b>WARNING:</b> The {@code ElementVisitor} interface
  * implemented by this class may have methods added to it in the
  * future to accommodate new, currently unknown, language structures
@@ -52,7 +70,7 @@ import static javax.lang.model.SourceVersion.*;
  * added to this class in the future; to avoid incompatibilities,
  * classes which extend this class should not declare any instance
  * methods with names beginning with {@code "visit"}.
- * 
+ *
  * <p>When such a new visit method is added, the default
  * implementation in this class will be to call the {@link
  * #visitUnknown visitUnknown} method.  A new element scanner visitor
@@ -62,7 +80,7 @@ import static javax.lang.model.SourceVersion.*;
  * or portions of this visitor may be deprecated.
  *
  * @param <R> the return type of this visitor's methods.  Use {@link
- * 	      Void} for visitors that do not need to return results.
+ *            Void} for visitors that do not need to return results.
  * @param <P> the type of the additional parameter to this visitor's
  *            methods.  Use {@code Void} for visitors that do not need an
  *            additional parameter.
@@ -70,7 +88,8 @@ import static javax.lang.model.SourceVersion.*;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.7 06/08/15
+ *
+ * @see ElementScanner7
  * @since 1.6
  */
 @SupportedSourceVersion(RELEASE_6)
@@ -85,7 +104,7 @@ public class ElementScanner6<R, P> extends AbstractElementVisitor6<R, P> {
      * default value.
      */
     protected ElementScanner6(){
-	DEFAULT_VALUE = null;
+        DEFAULT_VALUE = null;
     }
 
     /**
@@ -93,7 +112,7 @@ public class ElementScanner6<R, P> extends AbstractElementVisitor6<R, P> {
      * default value.
      */
     protected ElementScanner6(R defaultValue){
-	DEFAULT_VALUE = defaultValue;
+        DEFAULT_VALUE = defaultValue;
     }
 
     /**
@@ -107,10 +126,10 @@ public class ElementScanner6<R, P> extends AbstractElementVisitor6<R, P> {
      * @return the scan of the last element or {@code DEFAULT_VALUE} if no elements
      */
     public final R scan(Iterable<? extends Element> iterable, P p) {
-	R result = DEFAULT_VALUE;
-	for(Element e : iterable)
-	    result = scan(e, p);
-	return result;
+        R result = DEFAULT_VALUE;
+        for(Element e : iterable)
+            result = scan(e, p);
+        return result;
     }
 
     /**
@@ -119,7 +138,7 @@ public class ElementScanner6<R, P> extends AbstractElementVisitor6<R, P> {
      * @return the result of visiting {@code e}.
      */
     public R scan(Element e, P p) {
-	return e.accept(this, p);
+        return e.accept(this, p);
     }
 
     /**
@@ -127,61 +146,68 @@ public class ElementScanner6<R, P> extends AbstractElementVisitor6<R, P> {
      * @return the result of scanning {@code e}.
      */
     public final R scan(Element e) {
-	return scan(e, null);
+        return scan(e, null);
     }
 
     /**
      * {@inheritDoc} This implementation scans the enclosed elements.
      *
-     * @param e  the element to visit
-     * @param p  a visitor-specified parameter
+     * @param e  {@inheritDoc}
+     * @param p  {@inheritDoc}
      * @return the result of scanning
      */
     public R visitPackage(PackageElement e, P p) {
-	return scan(e.getEnclosedElements(), p);
+        return scan(e.getEnclosedElements(), p);
     }
 
     /**
      * {@inheritDoc} This implementation scans the enclosed elements.
      *
-     * @param e  the element to visit
-     * @param p  a visitor-specified parameter
+     * @param e  {@inheritDoc}
+     * @param p  {@inheritDoc}
      * @return the result of scanning
      */
     public R visitType(TypeElement e, P p) {
-	return scan(e.getEnclosedElements(), p);
+        return scan(e.getEnclosedElements(), p);
     }
 
     /**
-     * {@inheritDoc} This implementation scans the enclosed elements.
+     * {@inheritDoc}
      *
-     * @param e  the element to visit
-     * @param p  a visitor-specified parameter
+     * This implementation scans the enclosed elements, unless the
+     * element is a {@code RESOURCE_VARIABLE} in which case {@code
+     * visitUnknown} is called.
+     *
+     * @param e  {@inheritDoc}
+     * @param p  {@inheritDoc}
      * @return the result of scanning
      */
     public R visitVariable(VariableElement e, P p) {
-	return scan(e.getEnclosedElements(), p);
+        if (e.getKind() != ElementKind.RESOURCE_VARIABLE)
+            return scan(e.getEnclosedElements(), p);
+        else
+            return visitUnknown(e, p);
     }
 
     /**
      * {@inheritDoc} This implementation scans the parameters.
      *
-     * @param e  the element to visit
-     * @param p  a visitor-specified parameter
+     * @param e  {@inheritDoc}
+     * @param p  {@inheritDoc}
      * @return the result of scanning
      */
     public R visitExecutable(ExecutableElement e, P p) {
-	return scan(e.getParameters(), p);
+        return scan(e.getParameters(), p);
     }
 
     /**
      * {@inheritDoc} This implementation scans the enclosed elements.
      *
-     * @param e  the element to visit
-     * @param p  a visitor-specified parameter
+     * @param e  {@inheritDoc}
+     * @param p  {@inheritDoc}
      * @return the result of scanning
      */
     public R visitTypeParameter(TypeParameterElement e, P p) {
-	return scan(e.getEnclosedElements(), p);
+        return scan(e.getEnclosedElements(), p);
     }
 }

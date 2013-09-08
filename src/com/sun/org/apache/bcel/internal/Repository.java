@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal;
 
 /* ====================================================================
@@ -66,7 +70,6 @@ import java.io.*;
  * @see com.sun.org.apache.bcel.internal.util.Repository
  * @see com.sun.org.apache.bcel.internal.util.SyntheticRepository
  *
- * @version $Id: Repository.java,v 1.1.2.1 2005/07/31 23:46:55 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class Repository {
@@ -96,9 +99,9 @@ public abstract class Repository {
       JavaClass clazz = _repository.findClass(class_name);
 
       if(clazz == null) {
-	return _repository.loadClass(class_name);
+        return _repository.loadClass(class_name);
       } else {
-	return clazz;
+        return clazz;
       }
     } catch(ClassNotFoundException ex) { return null; }
   }
@@ -245,4 +248,3 @@ public abstract class Repository {
     return implementationOf(lookupClass(clazz), inter);
   }
 }
-

@@ -1,8 +1,26 @@
 /*
- * @(#)MXBeanSupport.java	1.24 07/09/11
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.mbeanserver;
@@ -50,30 +68,29 @@ public class MXBeanSupport extends MBeanSupport<ConvertingMethod> {
 
     @Override
     MBeanIntrospector<ConvertingMethod> getMBeanIntrospector() {
-	return MXBeanIntrospector.getInstance();
+        return MXBeanIntrospector.getInstance();
     }
 
     @Override
     Object getCookie() {
-	return mxbeanLookup;
+        return mxbeanLookup;
     }
 
-    static Class<?> findMXBeanInterface(Class<?> resourceClass) 
-        throws IllegalArgumentException {
-	if (resourceClass == null)
-	    throw new IllegalArgumentException("Null resource class");
-        final Set<Class> intfs = transitiveInterfaces(resourceClass);
-        final Set<Class> candidates = newSet();
-        for (Class intf : intfs) {
+    static <T> Class<? super T> findMXBeanInterface(Class<T> resourceClass) {
+        if (resourceClass == null)
+            throw new IllegalArgumentException("Null resource class");
+        final Set<Class<?>> intfs = transitiveInterfaces(resourceClass);
+        final Set<Class<?>> candidates = newSet();
+        for (Class<?> intf : intfs) {
             if (JMX.isMXBeanInterface(intf))
                 candidates.add(intf);
         }
     reduce:
         while (candidates.size() > 1) {
-            for (Class intf : candidates) {
-                for (Iterator<Class> it = candidates.iterator(); it.hasNext();
+            for (Class<?> intf : candidates) {
+                for (Iterator<Class<?>> it = candidates.iterator(); it.hasNext();
                     ) {
-                    final Class intf2 = it.next();
+                    final Class<?> intf2 = it.next();
                     if (intf != intf2 && intf2.isAssignableFrom(intf)) {
                         it.remove();
                         continue reduce;
@@ -86,7 +103,7 @@ public class MXBeanSupport extends MBeanSupport<ConvertingMethod> {
             throw new IllegalArgumentException(msg);
         }
         if (candidates.iterator().hasNext()) {
-            return candidates.iterator().next();
+            return Util.cast(candidates.iterator().next());
         } else {
             final String msg =
                 "Class " + resourceClass.getName() +
@@ -98,18 +115,18 @@ public class MXBeanSupport extends MBeanSupport<ConvertingMethod> {
     /* Return all interfaces inherited by this class, directly or
      * indirectly through the parent class and interfaces.
      */
-    private static Set<Class> transitiveInterfaces(Class c) {
-        Set<Class> set = newSet();
+    private static Set<Class<?>> transitiveInterfaces(Class<?> c) {
+        Set<Class<?>> set = newSet();
         transitiveInterfaces(c, set);
         return set;
     }
-    private static void transitiveInterfaces(Class c, Set<Class> intfs) {
+    private static void transitiveInterfaces(Class<?> c, Set<Class<?>> intfs) {
         if (c == null)
             return;
         if (c.isInterface())
             intfs.add(c);
         transitiveInterfaces(c.getSuperclass(), intfs);
-        for (Class sup : c.getInterfaces())
+        for (Class<?> sup : c.getInterfaces())
             transitiveInterfaces(sup, intfs);
     }
 
@@ -137,7 +154,7 @@ public class MXBeanSupport extends MBeanSupport<ConvertingMethod> {
         if (name == null)
             throw new IllegalArgumentException("Null object name");
         // eventually we could have some logic to supply a default name
-        
+
         synchronized (lock) {
             this.mxbeanLookup = MXBeanLookup.lookupFor(server);
             this.mxbeanLookup.addReference(name, getResource());
@@ -148,12 +165,14 @@ public class MXBeanSupport extends MBeanSupport<ConvertingMethod> {
     @Override
     public void unregister() {
         synchronized (lock) {
-            if (mxbeanLookup.removeReference(objectName, getResource()))
-                objectName = null;
+            if (mxbeanLookup != null) {
+                if (mxbeanLookup.removeReference(objectName, getResource()))
+                    objectName = null;
+            }
         }
     }
+    private final Object lock = new Object(); // for mxbeanLookup and objectName
 
-    private Object lock = new Object(); // for mxbeanLookup and objectName
     private MXBeanLookup mxbeanLookup;
     private ObjectName objectName;
 }

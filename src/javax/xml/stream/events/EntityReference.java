@@ -1,10 +1,38 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream.events;
 /**
  * An interface for handling Entity events.
- * 
+ *
  * This event reports entities that have not been resolved
  * and reports their replacement text unprocessed (if
- * available).  This event will be reported if javax.xml.stream.isReplacingEntityReferences 
+ * available).  This event will be reported if javax.xml.stream.isReplacingEntityReferences
  * is set to false.  If javax.xml.stream.isReplacingEntityReferences is set to true
  * entity references will be resolved transparently.
  *
@@ -16,7 +44,7 @@ package javax.xml.stream.events;
  * Entity references are reported as an EntityReference Event.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @since 1.6
  */
 public interface EntityReference extends XMLEvent {

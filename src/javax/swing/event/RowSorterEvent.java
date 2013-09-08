@@ -1,8 +1,26 @@
 /*
- * @(#)RowSorterEvent.java	1.3 05/11/17
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.event;
 
@@ -19,7 +37,6 @@ import javax.swing.RowSorter;
  *     been sorted or filtered.
  * </ul>
  *
- * @version 1.3 11/17/05
  * @see javax.swing.RowSorter
  * @since 1.6
  */
@@ -62,7 +79,7 @@ public class RowSorterEvent extends java.util.EventObject {
      *
      * @param source the source of the change
      * @param type the type of event
-     * @param previousRowIndexToModel the mapping from model indices to 
+     * @param previousRowIndexToModel the mapping from model indices to
      *        view indices prior to the sort, may be <code>null</code>
      * @throws IllegalArgumentException if source or <code>type</code> is
      *         <code>null</code>
@@ -101,7 +118,7 @@ public class RowSorterEvent extends java.util.EventObject {
      * of type <code>SORTED</code>.  This method will return -1 if the
      * index is not valid, or the locations prior to the sort have not
      * been provided.
-     * 
+     *
      * @param index the index in terms of the view
      * @return the index in terms of the model prior to the sort, or -1 if
      *         the location is not valid or the mapping was not provided.

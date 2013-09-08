@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)Transformer.java	1.34 05/11/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.transform;
@@ -45,9 +43,8 @@ import java.util.Properties;
  *
  * <p>A <code>Transformer</code> may be used multiple times.  Parameters and
  * output properties are preserved across transformations.</p>
- * 
+ *
  * @author <a href="Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.3 $, $Date: 2005/10/12 17:14:20 $
  */
 public abstract class Transformer {
 
@@ -55,36 +52,36 @@ public abstract class Transformer {
      * Default constructor is protected on purpose.
      */
     protected Transformer() { }
-    
-	/**
-	 * <p>Reset this <code>Transformer</code> to its original configuration.</p>
-	 * 
-	 * <p><code>Transformer</code> is reset to the same state as when it was created with
-	 * {@link TransformerFactory#newTransformer()},
-	 * {@link TransformerFactory#newTransformer(Source source)} or
-	 * {@link Templates#newTransformer()}.
-	 * <code>reset()</code> is designed to allow the reuse of existing <code>Transformer</code>s
-	 * thus saving resources associated with the creation of new <code>Transformer</code>s.</p>
-	 * 
-	 * <p>The reset <code>Transformer</code> is not guaranteed to have the same {@link URIResolver}
-	 * or {@link ErrorListener} <code>Object</code>s, e.g. {@link Object#equals(Object obj)}.
-	 * It is guaranteed to have a functionally equal <code>URIResolver</code>
-	 * and <code>ErrorListener</code>.</p>
-     * 
+
+        /**
+         * <p>Reset this <code>Transformer</code> to its original configuration.</p>
+         *
+         * <p><code>Transformer</code> is reset to the same state as when it was created with
+         * {@link TransformerFactory#newTransformer()},
+         * {@link TransformerFactory#newTransformer(Source source)} or
+         * {@link Templates#newTransformer()}.
+         * <code>reset()</code> is designed to allow the reuse of existing <code>Transformer</code>s
+         * thus saving resources associated with the creation of new <code>Transformer</code>s.</p>
+         *
+         * <p>The reset <code>Transformer</code> is not guaranteed to have the same {@link URIResolver}
+         * or {@link ErrorListener} <code>Object</code>s, e.g. {@link Object#equals(Object obj)}.
+         * It is guaranteed to have a functionally equal <code>URIResolver</code>
+         * and <code>ErrorListener</code>.</p>
+     *
      * @throws UnsupportedOperationException When implementation does not
      *   override this method.
-	 * 
-	 * @since 1.5
-	 */
-	public void reset() {
+         *
+         * @since 1.5
+         */
+        public void reset() {
 
-		// implementors should override this method
-		throw new UnsupportedOperationException(
-			"This Transformer, \"" + this.getClass().getName() + "\", does not support the reset functionality."
-			+ "  Specification \"" + this.getClass().getPackage().getSpecificationTitle() + "\""
-			+ " version \"" + this.getClass().getPackage().getSpecificationVersion() + "\""
-			);
-	}
+                // implementors should override this method
+                throw new UnsupportedOperationException(
+                        "This Transformer, \"" + this.getClass().getName() + "\", does not support the reset functionality."
+                        + "  Specification \"" + this.getClass().getPackage().getSpecificationTitle() + "\""
+                        + " version \"" + this.getClass().getPackage().getSpecificationVersion() + "\""
+                        );
+        }
 
     /**
      * <p>Transform the XML <code>Source</code> to a <code>Result</code>.
@@ -145,10 +142,10 @@ public abstract class Transformer {
      * @return A parameter that has been set with setParameter.
      */
     public abstract Object getParameter(String name);
-    
+
     /**
      * <p>Set a list of parameters.</p>
-     * 
+     *
      * <p>Note that the list of parameters is specified as a
      * <code>Properties</code> <code>Object</code> which limits the parameter
      * values to <code>String</code>s.  Multiple calls to
@@ -158,14 +155,14 @@ public abstract class Transformer {
      * {@link #setParameter(String name, Object value)}.
      * An <code>IllegalArgumentException</code> is thrown if any names do not
      * conform.</p>
-     * 
+     *
      * <p>New parameters in the list are added to any existing parameters.
      * If the name of a new parameter is equal to the name of an existing
      * parameter as determined by {@link java.lang.Object#equals(Object obj)},
      *  the existing parameter is set to the new value.</p>
-     * 
+     *
      * @param params Parameters to set.
-     * 
+     *
      * @throws IllegalArgumentException If any parameter names do not conform
      *   to the naming rules.
      */

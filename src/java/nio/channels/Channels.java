@@ -1,8 +1,26 @@
 /*
- * @(#)Channels.java	1.25 05/11/17
+ * Copyright (c) 2000, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.channels;
@@ -15,15 +33,12 @@ import java.io.Reader;
 import java.io.Writer;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.BufferOverflowException;
-import java.nio.BufferUnderflowException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CoderResult;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.channels.spi.AbstractInterruptibleChannel;
+import java.util.concurrent.ExecutionException;
 import sun.nio.ch.ChannelInputStream;
 import sun.nio.cs.StreamDecoder;
 import sun.nio.cs.StreamEncoder;
@@ -40,31 +55,53 @@ import sun.nio.cs.StreamEncoder;
  * @author Mark Reinhold
  * @author Mike McCloskey
  * @author JSR-51 Expert Group
- * @version 1.25, 05/11/17
  * @since 1.4
  */
 
 public final class Channels {
 
-    private Channels() { }		// No instantiation
+    private Channels() { }              // No instantiation
 
-
-    private static int write(WritableByteChannel ch, ByteBuffer bb)
-	throws IOException
-    {
-	if (ch instanceof SelectableChannel) {
-	    SelectableChannel sc = (SelectableChannel)ch;
-	    synchronized (sc.blockingLock()) {
-		if (!sc.isBlocking())
-		    throw new IllegalBlockingModeException();
-		return ch.write(bb);
-	    }
-	} else {
-	    return ch.write(bb);
-	}
+    private static void checkNotNull(Object o, String name) {
+        if (o == null)
+            throw new NullPointerException("\"" + name + "\" is null!");
     }
 
-
+    /**
+     * Write all remaining bytes in buffer to the given channel.
+     * If the channel is selectable then it must be configured blocking.
+     */
+    private static void writeFullyImpl(WritableByteChannel ch, ByteBuffer bb)
+        throws IOException
+    {
+        while (bb.remaining() > 0) {
+            int n = ch.write(bb);
+            if (n <= 0)
+                throw new RuntimeException("no bytes written");
+        }
+    }
+
+    /**
+     * Write all remaining bytes in buffer to the given channel.
+     *
+     * @throws  IllegalBlockingException
+     *          If the channel is selectable and configured non-blocking.
+     */
+    private static void writeFully(WritableByteChannel ch, ByteBuffer bb)
+        throws IOException
+    {
+        if (ch instanceof SelectableChannel) {
+            SelectableChannel sc = (SelectableChannel)ch;
+            synchronized (sc.blockingLock()) {
+                if (!sc.isBlocking())
+                    throw new IllegalBlockingModeException();
+                writeFullyImpl(ch, bb);
+            }
+        } else {
+            writeFullyImpl(ch, bb);
+        }
+    }
+
     // -- Byte streams from channels --
 
     /**
@@ -84,7 +121,8 @@ public final class Channels {
      * @return  A new input stream
      */
     public static InputStream newInputStream(ReadableByteChannel ch) {
-	return new sun.nio.ch.ChannelInputStream(ch);
+        checkNotNull(ch, "ch");
+        return new sun.nio.ch.ChannelInputStream(ch);
     }
 
     /**
@@ -102,11 +140,13 @@ public final class Channels {
      * @return  A new output stream
      */
     public static OutputStream newOutputStream(final WritableByteChannel ch) {
-	return new OutputStream() {
+        checkNotNull(ch, "ch");
 
-		private ByteBuffer bb = null;
-		private byte[] bs = null; 	// Invoker's previous array
-		private byte[] b1 = null;
+        return new OutputStream() {
+
+                private ByteBuffer bb = null;
+                private byte[] bs = null;       // Invoker's previous array
+                private byte[] b1 = null;
 
                 public synchronized void write(int b) throws IOException {
                    if (b1 == null)
@@ -131,17 +171,164 @@ public final class Channels {
                     bb.position(off);
                     this.bb = bb;
                     this.bs = bs;
-                    Channels.write(ch, bb);
+                    Channels.writeFully(ch, bb);
                 }
 
-		public void close() throws IOException {
-		    ch.close();
-		}
+                public void close() throws IOException {
+                    ch.close();
+                }
 
-	    };
+            };
     }
 
-
+    /**
+     * Constructs a stream that reads bytes from the given channel.
+     *
+     * <p> The stream will not be buffered, and it will not support the {@link
+     * InputStream#mark mark} or {@link InputStream#reset reset} methods.  The
+     * stream will be safe for access by multiple concurrent threads.  Closing
+     * the stream will in turn cause the channel to be closed.  </p>
+     *
+     * @param  ch
+     *         The channel from which bytes will be read
+     *
+     * @return  A new input stream
+     *
+     * @since 1.7
+     */
+    public static InputStream newInputStream(final AsynchronousByteChannel ch) {
+        checkNotNull(ch, "ch");
+        return new InputStream() {
+
+            private ByteBuffer bb = null;
+            private byte[] bs = null;           // Invoker's previous array
+            private byte[] b1 = null;
+
+            @Override
+            public synchronized int read() throws IOException {
+                if (b1 == null)
+                    b1 = new byte[1];
+                int n = this.read(b1);
+                if (n == 1)
+                    return b1[0] & 0xff;
+                return -1;
+            }
+
+            @Override
+            public synchronized int read(byte[] bs, int off, int len)
+                throws IOException
+            {
+                if ((off < 0) || (off > bs.length) || (len < 0) ||
+                    ((off + len) > bs.length) || ((off + len) < 0)) {
+                    throw new IndexOutOfBoundsException();
+                } else if (len == 0)
+                    return 0;
+
+                ByteBuffer bb = ((this.bs == bs)
+                                 ? this.bb
+                                 : ByteBuffer.wrap(bs));
+                bb.position(off);
+                bb.limit(Math.min(off + len, bb.capacity()));
+                this.bb = bb;
+                this.bs = bs;
+
+                boolean interrupted = false;
+                try {
+                    for (;;) {
+                        try {
+                            return ch.read(bb).get();
+                        } catch (ExecutionException ee) {
+                            throw new IOException(ee.getCause());
+                        } catch (InterruptedException ie) {
+                            interrupted = true;
+                        }
+                    }
+                } finally {
+                    if (interrupted)
+                        Thread.currentThread().interrupt();
+                }
+            }
+
+            @Override
+            public void close() throws IOException {
+                ch.close();
+            }
+        };
+    }
+
+    /**
+     * Constructs a stream that writes bytes to the given channel.
+     *
+     * <p> The stream will not be buffered. The stream will be safe for access
+     * by multiple concurrent threads.  Closing the stream will in turn cause
+     * the channel to be closed.  </p>
+     *
+     * @param  ch
+     *         The channel to which bytes will be written
+     *
+     * @return  A new output stream
+     *
+     * @since 1.7
+     */
+    public static OutputStream newOutputStream(final AsynchronousByteChannel ch) {
+        checkNotNull(ch, "ch");
+        return new OutputStream() {
+
+            private ByteBuffer bb = null;
+            private byte[] bs = null;   // Invoker's previous array
+            private byte[] b1 = null;
+
+            @Override
+            public synchronized void write(int b) throws IOException {
+               if (b1 == null)
+                    b1 = new byte[1];
+                b1[0] = (byte)b;
+                this.write(b1);
+            }
+
+            @Override
+            public synchronized void write(byte[] bs, int off, int len)
+                throws IOException
+            {
+                if ((off < 0) || (off > bs.length) || (len < 0) ||
+                    ((off + len) > bs.length) || ((off + len) < 0)) {
+                    throw new IndexOutOfBoundsException();
+                } else if (len == 0) {
+                    return;
+                }
+                ByteBuffer bb = ((this.bs == bs)
+                                 ? this.bb
+                                 : ByteBuffer.wrap(bs));
+                bb.limit(Math.min(off + len, bb.capacity()));
+                bb.position(off);
+                this.bb = bb;
+                this.bs = bs;
+
+                boolean interrupted = false;
+                try {
+                    while (bb.remaining() > 0) {
+                        try {
+                            ch.write(bb).get();
+                        } catch (ExecutionException ee) {
+                            throw new IOException(ee.getCause());
+                        } catch (InterruptedException ie) {
+                            interrupted = true;
+                        }
+                    }
+                } finally {
+                    if (interrupted)
+                        Thread.currentThread().interrupt();
+                }
+            }
+
+            @Override
+            public void close() throws IOException {
+                ch.close();
+            }
+        };
+    }
+
+
     // -- Channels from streams --
 
     /**
@@ -157,20 +344,18 @@ public final class Channels {
      * @return  A new readable byte channel
      */
     public static ReadableByteChannel newChannel(final InputStream in) {
-	if (in == null) {
-	    throw new NullPointerException();
-	}
-	
-	if (in instanceof FileInputStream &&
-	    FileInputStream.class.equals(in.getClass())) {
-	    return ((FileInputStream)in).getChannel();
+        checkNotNull(in, "in");
+
+        if (in instanceof FileInputStream &&
+            FileInputStream.class.equals(in.getClass())) {
+            return ((FileInputStream)in).getChannel();
         }
 
-	return new ReadableByteChannelImpl(in);
+        return new ReadableByteChannelImpl(in);
     }
 
     private static class ReadableByteChannelImpl
-        extends AbstractInterruptibleChannel	// Not really interruptible
+        extends AbstractInterruptibleChannel    // Not really interruptible
         implements ReadableByteChannel
     {
         InputStream in;
@@ -234,20 +419,18 @@ public final class Channels {
      * @return  A new writable byte channel
      */
     public static WritableByteChannel newChannel(final OutputStream out) {
-	if (out == null) {
-	    throw new NullPointerException();
-	}
+        checkNotNull(out, "out");
 
         if (out instanceof FileOutputStream &&
-	    FileOutputStream.class.equals(out.getClass())) {
+            FileOutputStream.class.equals(out.getClass())) {
                 return ((FileOutputStream)out).getChannel();
         }
 
-	return new WritableByteChannelImpl(out);
+        return new WritableByteChannelImpl(out);
     }
 
     private static class WritableByteChannelImpl
-        extends AbstractInterruptibleChannel	// Not really interruptible
+        extends AbstractInterruptibleChannel    // Not really interruptible
         implements WritableByteChannel
     {
         OutputStream out;
@@ -276,7 +459,7 @@ public final class Channels {
                     } finally {
                         end(bytesToWrite > 0);
                     }
-		    totalWritten += bytesToWrite;
+                    totalWritten += bytesToWrite;
                 }
                 return totalWritten;
             }
@@ -288,7 +471,7 @@ public final class Channels {
         }
     }
 
-
+
     // -- Character streams from channels --
 
     /**
@@ -318,11 +501,11 @@ public final class Channels {
      * @return  A new reader
      */
     public static Reader newReader(ReadableByteChannel ch,
-				   CharsetDecoder dec,
-				   int minBufferCap)
+                                   CharsetDecoder dec,
+                                   int minBufferCap)
     {
-	dec.reset();
-	return StreamDecoder.forDecoder(ch, dec, minBufferCap);
+        checkNotNull(ch, "ch");
+        return StreamDecoder.forDecoder(ch, dec.reset(), minBufferCap);
     }
 
     /**
@@ -355,9 +538,10 @@ public final class Channels {
      *          in this instance of the Java virtual machine
      */
     public static Reader newReader(ReadableByteChannel ch,
-				   String csName)
+                                   String csName)
     {
-	return newReader(ch, Charset.forName(csName).newDecoder(), -1);
+        checkNotNull(csName, "csName");
+        return newReader(ch, Charset.forName(csName).newDecoder(), -1);
     }
 
     /**
@@ -386,11 +570,11 @@ public final class Channels {
      * @return  A new writer
      */
     public static Writer newWriter(final WritableByteChannel ch,
-				   final CharsetEncoder enc,
-				   final int minBufferCap)
+                                   final CharsetEncoder enc,
+                                   final int minBufferCap)
     {
-        enc.reset();
-	return StreamEncoder.forEncoder(ch, enc, minBufferCap);
+        checkNotNull(ch, "ch");
+        return StreamEncoder.forEncoder(ch, enc.reset(), minBufferCap);
     }
 
     /**
@@ -423,9 +607,9 @@ public final class Channels {
      *          in this instance of the Java virtual machine
      */
     public static Writer newWriter(WritableByteChannel ch,
-				   String csName)
+                                   String csName)
     {
-	return newWriter(ch, Charset.forName(csName).newEncoder(), -1);
+        checkNotNull(csName, "csName");
+        return newWriter(ch, Charset.forName(csName).newEncoder(), -1);
     }
-
 }

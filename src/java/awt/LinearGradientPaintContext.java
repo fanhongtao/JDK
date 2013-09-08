@@ -1,8 +1,26 @@
 /*
- * @(#)LinearGradientPaintContext.java	1.2 06/04/24
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -17,34 +35,34 @@ import java.awt.image.ColorModel;
 /**
  * Provides the actual implementation for the LinearGradientPaint.
  * This is where the pixel processing is done.
- * 
+ *
  * @see java.awt.LinearGradientPaint
  * @see java.awt.PaintContext
  * @see java.awt.Paint
  * @author Nicholas Talian, Vincent Hardy, Jim Graham, Jerry Evans
  */
 final class LinearGradientPaintContext extends MultipleGradientPaintContext {
-    
+
     /**
-     * The following invariants are used to process the gradient value from 
+     * The following invariants are used to process the gradient value from
      * a device space coordinate, (X, Y):
      *     g(X, Y) = dgdX*X + dgdY*Y + gc
      */
-    private float dgdX, dgdY, gc;    
-           
-    /** 
+    private float dgdX, dgdY, gc;
+
+    /**
      * Constructor for LinearGradientPaintContext.
      *
      * @param paint the {@code LinearGradientPaint} from which this context
      *              is created
      * @param cm {@code ColorModel} that receives
      *           the <code>Paint</code> data. This is used only as a hint.
-     * @param deviceBounds the device space bounding box of the 
+     * @param deviceBounds the device space bounding box of the
      *                     graphics primitive being rendered
-     * @param userBounds the user space bounding box of the 
+     * @param userBounds the user space bounding box of the
      *                   graphics primitive being rendered
      * @param t the {@code AffineTransform} from user
-     *          space into device space (gradientTransform should be 
+     *          space into device space (gradientTransform should be
      *          concatenated with this)
      * @param hints the hints that the context object uses to choose
      *              between rendering alternatives
@@ -53,7 +71,7 @@ final class LinearGradientPaintContext extends MultipleGradientPaintContext {
      * @param fractions the fractions specifying the gradient distribution
      * @param colors the gradient colors
      * @param cycleMethod either NO_CYCLE, REFLECT, or REPEAT
-     * @param colorSpace which colorspace to use for interpolation, 
+     * @param colorSpace which colorspace to use for interpolation,
      *                   either SRGB or LINEAR_RGB
      */
     LinearGradientPaintContext(LinearGradientPaint paint,
@@ -65,10 +83,10 @@ final class LinearGradientPaintContext extends MultipleGradientPaintContext {
                                Point2D start,
                                Point2D end,
                                float[] fractions,
-                               Color[] colors, 
+                               Color[] colors,
                                CycleMethod cycleMethod,
                                ColorSpaceType colorSpace)
-    {        
+    {
         super(paint, cm, deviceBounds, userBounds, t, hints, fractions,
               colors, cycleMethod, colorSpace);
 
@@ -90,7 +108,7 @@ final class LinearGradientPaintContext extends MultipleGradientPaintContext {
         float dx = endx - startx;  // change in x from start to end
         float dy = endy - starty;  // change in y from start to end
         float dSq = dx*dx + dy*dy; // total distance squared
-        
+
         // avoid repeated calculations by doing these divides once
         float constX = dx/dSq;
         float constY = dy/dSq;
@@ -112,23 +130,23 @@ final class LinearGradientPaintContext extends MultipleGradientPaintContext {
      * @param x,y,w,h the area in device space for which colors are
      * generated.
      */
-    protected void fillRaster(int[] pixels, int off, int adjust, 
+    protected void fillRaster(int[] pixels, int off, int adjust,
                               int x, int y, int w, int h)
     {
         // current value for row gradients
         float g = 0;
-        
+
         // used to end iteration on rows
         int rowLimit = off + w;
-        
+
         // constant which can be pulled out of the inner loop
         float initConst = (dgdX*x) + gc;
-        
+
         for (int i = 0; i < h; i++) { // for every row
 
             // initialize current value to be start
             g = initConst + dgdY*(y+i);
-            
+
             while (off < rowLimit) { // for every pixel in this row
                 // get the color
                 pixels[off++] = indexIntoGradientsArrays(g);

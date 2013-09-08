@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,17 +39,17 @@ import org.w3c.dom.xpath.XPathExpression;
 import org.w3c.dom.xpath.XPathNamespace;
 
 /**
- * 
- * The class provides an implementation of XPathExpression according 
+ *
+ * The class provides an implementation of XPathExpression according
  * to the DOM L3 XPath Specification, Working Group Note 26 February 2004.
  *
  * <p>See also the <a href='http://www.w3.org/TR/2004/NOTE-DOM-Level-3-XPath-20040226'>Document Object Model (DOM) Level 3 XPath Specification</a>.</p>
  *
- * <p>The <code>XPathExpression</code> interface represents a parsed and resolved 
+ * <p>The <code>XPathExpression</code> interface represents a parsed and resolved
  * XPath expression.</p>
- * 
+ *
  * @see org.w3c.dom.xpath.XPathExpression
- *  
+ *
  * @xsl.usage internal
  */
 class XPathExpressionImpl implements XPathExpression {
@@ -54,16 +58,16 @@ class XPathExpressionImpl implements XPathExpression {
    * The xpath object that this expression wraps
    */
   final private XPath m_xpath;
-  
+
   /**
    * The document to be searched to parallel the case where the XPathEvaluator
    * is obtained by casting a Document.
-   */  
-  final private Document m_doc;  
+   */
+  final private Document m_doc;
 
     /**
      * Constructor for XPathExpressionImpl.
-     * 
+     *
      * @param xpath The wrapped XPath object.
      * @param doc The document to be searched, to parallel the case where''
      *            the XPathEvaluator is obtained by casting the document.
@@ -75,45 +79,45 @@ class XPathExpressionImpl implements XPathExpression {
 
     /**
      *
-     * This method provides an implementation XPathResult.evaluate according 
+     * This method provides an implementation XPathResult.evaluate according
      * to the DOM L3 XPath Specification, Working Group Note 26 February 2004.
      *
      * <p>See also the <a href='http://www.w3.org/TR/2004/NOTE-DOM-Level-3-XPath-20040226'>Document Object Model (DOM) Level 3 XPath Specification</a>.</p>
-     * 
+     *
      * <p>Evaluates this XPath expression and returns a result.</p>
-     * @param contextNode The <code>context</code> is context node for the 
-     *   evaluation of this XPath expression.If the XPathEvaluator was 
-     *   obtained by casting the <code>Document</code> then this must be 
-     *   owned by the same document and must be a <code>Document</code>, 
-     *   <code>Element</code>, <code>Attribute</code>, <code>Text</code>, 
-     *   <code>CDATASection</code>, <code>Comment</code>, 
-     *   <code>ProcessingInstruction</code>, or <code>XPathNamespace</code> 
-     *   node.If the context node is a <code>Text</code> or a 
-     *   <code>CDATASection</code>, then the context is interpreted as the 
-     *   whole logical text node as seen by XPath, unless the node is empty 
+     * @param contextNode The <code>context</code> is context node for the
+     *   evaluation of this XPath expression.If the XPathEvaluator was
+     *   obtained by casting the <code>Document</code> then this must be
+     *   owned by the same document and must be a <code>Document</code>,
+     *   <code>Element</code>, <code>Attribute</code>, <code>Text</code>,
+     *   <code>CDATASection</code>, <code>Comment</code>,
+     *   <code>ProcessingInstruction</code>, or <code>XPathNamespace</code>
+     *   node.If the context node is a <code>Text</code> or a
+     *   <code>CDATASection</code>, then the context is interpreted as the
+     *   whole logical text node as seen by XPath, unless the node is empty
      *   in which case it may not serve as the XPath context.
-     * @param type If a specific <code>type</code> is specified, then the 
-     *   result will be coerced to return the specified type relying on 
-     *   XPath conversions and fail if the desired coercion is not possible. 
+     * @param type If a specific <code>type</code> is specified, then the
+     *   result will be coerced to return the specified type relying on
+     *   XPath conversions and fail if the desired coercion is not possible.
      *   This must be one of the type codes of <code>XPathResult</code>.
-    *  @param result The <code>result</code> specifies a specific result 
-     *   object which may be reused and returned by this method. If this is 
-     *   specified as <code>null</code>or the implementation does not reuse 
-     *   the specified result, a new result object will be constructed and 
-     *   returned.For XPath 1.0 results, this object will be of type 
+    *  @param result The <code>result</code> specifies a specific result
+     *   object which may be reused and returned by this method. If this is
+     *   specified as <code>null</code>or the implementation does not reuse
+     *   the specified result, a new result object will be constructed and
+     *   returned.For XPath 1.0 results, this object will be of type
      *   <code>XPathResult</code>.
-     * @return The result of the evaluation of the XPath expression.For XPath 
+     * @return The result of the evaluation of the XPath expression.For XPath
      *   1.0 results, this object will be of type <code>XPathResult</code>.
      * @exception XPathException
-     *   TYPE_ERR: Raised if the result cannot be converted to return the 
+     *   TYPE_ERR: Raised if the result cannot be converted to return the
      *   specified type.
      * @exception DOMException
-     *   WRONG_DOCUMENT_ERR: The Node is from a document that is not supported 
-     *   by the XPathEvaluator that created this 
+     *   WRONG_DOCUMENT_ERR: The Node is from a document that is not supported
+     *   by the XPathEvaluator that created this
      *   <code>XPathExpression</code>.
-     *   <br>NOT_SUPPORTED_ERR: The Node is not a type permitted as an XPath 
-     *   context node.   
-     * 
+     *   <br>NOT_SUPPORTED_ERR: The Node is not a type permitted as an XPath
+     *   context node.
+     *
      * @see org.w3c.dom.xpath.XPathExpression#evaluate(Node, short, XPathResult)
      * @xsl.usage internal
      */
@@ -122,53 +126,53 @@ class XPathExpressionImpl implements XPathExpression {
         short type,
         Object result)
         throws XPathException, DOMException {
-            
-        // If the XPathEvaluator was determined by "casting" the document    
+
+        // If the XPathEvaluator was determined by "casting" the document
         if (m_doc != null) {
-        
+
             // Check that the context node is owned by the same document
             if ((contextNode != m_doc) && (!contextNode.getOwnerDocument().equals(m_doc))) {
-                String fmsg = XPATHMessages.createXPATHMessage(XPATHErrorResources.ER_WRONG_DOCUMENT, null);       
+                String fmsg = XPATHMessages.createXPATHMessage(XPATHErrorResources.ER_WRONG_DOCUMENT, null);
                 throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, fmsg);
             }
-            
+
             // Check that the context node is an acceptable node type
             short nodeType = contextNode.getNodeType();
             if ((nodeType != Document.DOCUMENT_NODE) &&
-                (nodeType != Document.ELEMENT_NODE) && 
+                (nodeType != Document.ELEMENT_NODE) &&
                 (nodeType != Document.ATTRIBUTE_NODE) &&
                 (nodeType != Document.TEXT_NODE) &&
                 (nodeType != Document.CDATA_SECTION_NODE) &&
                 (nodeType != Document.COMMENT_NODE) &&
                 (nodeType != Document.PROCESSING_INSTRUCTION_NODE) &&
                 (nodeType != XPathNamespace.XPATH_NAMESPACE_NODE)) {
-                    String fmsg = XPATHMessages.createXPATHMessage(XPATHErrorResources.ER_WRONG_NODETYPE, null);       
+                    String fmsg = XPATHMessages.createXPATHMessage(XPATHErrorResources.ER_WRONG_NODETYPE, null);
                     throw new DOMException(DOMException.NOT_SUPPORTED_ERR, fmsg);
             }
         }
-            
-        //     
+
+        //
         // If the type is not a supported type, throw an exception and be
         // done with it!
         if (!XPathResultImpl.isValidType(type)) {
-            String fmsg = XPATHMessages.createXPATHMessage(XPATHErrorResources.ER_INVALID_XPATH_TYPE, new Object[] {new Integer(type)});       
-            throw new XPathException(XPathException.TYPE_ERR,fmsg); // Invalid XPath type argument: {0}               
+            String fmsg = XPATHMessages.createXPATHMessage(XPATHErrorResources.ER_INVALID_XPATH_TYPE, new Object[] {new Integer(type)});
+            throw new XPathException(XPathException.TYPE_ERR,fmsg); // Invalid XPath type argument: {0}
         }
-        
+
         // Cache xpath context?
         XPathContext xpathSupport = new XPathContext();
-        
-        // if m_document is not null, build the DTM from the document 
+
+        // if m_document is not null, build the DTM from the document
         if (null != m_doc) {
             xpathSupport.getDTMHandleFromNode(m_doc);
         }
 
         XObject xobj = null;
         try {
-            xobj = m_xpath.execute(xpathSupport, contextNode, null);         
+            xobj = m_xpath.execute(xpathSupport, contextNode, null);
         } catch (TransformerException te) {
             // What should we do here?
-            throw new XPathException(XPathException.INVALID_EXPRESSION_ERR,te.getMessageAndLocation()); 
+            throw new XPathException(XPathException.INVALID_EXPRESSION_ERR,te.getMessageAndLocation());
         }
 
         // Create a new XPathResult object

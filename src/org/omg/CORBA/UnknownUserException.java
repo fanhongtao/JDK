@@ -1,8 +1,26 @@
 /*
- * @(#)UnknownUserException.java	1.23 06/04/21
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -38,7 +56,7 @@ public final class UnknownUserException extends UserException {
      * Constructs an <code>UnknownUserException</code> object that contains the given
      * <code>Any</code> object.
      *
-     * @ param a an <code>Any</code> object that contains a user exception returned
+     * @param a an <code>Any</code> object that contains a user exception returned
      *         by the server
      */
     public UnknownUserException(Any a) {
@@ -46,4 +64,3 @@ public final class UnknownUserException extends UserException {
         except = a;
     }
 }
-

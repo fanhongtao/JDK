@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -61,7 +65,6 @@ import com.sun.org.apache.bcel.internal.Constants;
 /**
  * Abstract super class for instructions dealing with local variables.
  *
- * @version $Id: LocalVariableInstruction.java,v 1.1.2.1 2005/07/31 23:45:45 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class LocalVariableInstruction extends Instruction
@@ -116,16 +119,16 @@ public abstract class LocalVariableInstruction extends Instruction
 
     if(length > 1) { // Otherwise ILOAD_n, instruction, e.g.
       if(wide())
-	out.writeShort(n);
+        out.writeShort(n);
       else
-	out.writeByte(n);
+        out.writeByte(n);
     }
   }
 
   /**
    * Long output format:
    *
-   * &lt;name of opcode&gt; "["&lt;opcode number&gt;"]" 
+   * &lt;name of opcode&gt; "["&lt;opcode number&gt;"]"
    * "("&lt;length of instruction&gt;")" "&lt;"&lt; local variable index&gt;"&gt;"
    *
    * @param verbose long/short format switch
@@ -133,9 +136,9 @@ public abstract class LocalVariableInstruction extends Instruction
    */
   public String toString(boolean verbose) {
     if(((opcode >= Constants.ILOAD_0) &&
-	(opcode <= Constants.ALOAD_3)) ||
+        (opcode <= Constants.ALOAD_3)) ||
        ((opcode >= Constants.ISTORE_0) &&
-	(opcode <= Constants.ASTORE_3)))
+        (opcode <= Constants.ASTORE_3)))
       return super.toString(verbose);
     else
       return super.toString(verbose) + " " + n;
@@ -152,9 +155,9 @@ public abstract class LocalVariableInstruction extends Instruction
       n         = bytes.readUnsignedShort();
       length    = 4;
     } else if(((opcode >= Constants.ILOAD) &&
-	       (opcode <= Constants.ALOAD)) ||
-	      ((opcode >= Constants.ISTORE) &&
-	       (opcode <= Constants.ASTORE))) {
+               (opcode <= Constants.ALOAD)) ||
+              ((opcode >= Constants.ISTORE) &&
+               (opcode <= Constants.ASTORE))) {
       n      = bytes.readUnsignedByte();
       length = 2;
     } else if(opcode <= Constants.ALOAD_3) { // compact load instruction such as ILOAD_2
@@ -174,7 +177,7 @@ public abstract class LocalVariableInstruction extends Instruction
   /**
    * Set the local variable index
    */
-  public void setIndex(int n) { 
+  public void setIndex(int n) {
     if((n < 0) || (n > Constants.MAX_SHORT))
       throw new ClassGenException("Illegal value: " + n);
 
@@ -185,11 +188,11 @@ public abstract class LocalVariableInstruction extends Instruction
       length = 1;
     } else {
       opcode = canon_tag;
-      
+
       if(wide()) // Need WIDE prefix ?
-	length = 4;
+        length = 4;
       else
-	length = 2;
+        length = 2;
     }
   }
 
@@ -200,7 +203,7 @@ public abstract class LocalVariableInstruction extends Instruction
   }
 
   /**
-   * Returns the type associated with the instruction - 
+   * Returns the type associated with the instruction -
    * in case of ALOAD or ASTORE Type.OBJECT is returned.
    * This is just a bit incorrect, because ALOAD and ASTORE
    * may work on every ReferenceType (including Type.NULL) and
@@ -209,13 +212,13 @@ public abstract class LocalVariableInstruction extends Instruction
    */
   public Type getType(ConstantPoolGen cp) {
     switch(canon_tag) {
-    case Constants.ILOAD: case Constants.ISTORE: 
+    case Constants.ILOAD: case Constants.ISTORE:
       return Type.INT;
-    case Constants.LLOAD: case Constants.LSTORE: 
+    case Constants.LLOAD: case Constants.LSTORE:
       return Type.LONG;
-    case Constants.DLOAD: case Constants.DSTORE: 
+    case Constants.DLOAD: case Constants.DSTORE:
       return Type.DOUBLE;
-    case Constants.FLOAD: case Constants.FSTORE: 
+    case Constants.FLOAD: case Constants.FSTORE:
       return Type.FLOAT;
     case Constants.ALOAD: case Constants.ASTORE:
       return Type.OBJECT;

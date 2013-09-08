@@ -1,8 +1,26 @@
 /*
- * @(#)ByteBufferWithInfo.java	1.11 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.encoding;
@@ -37,26 +55,26 @@ public class ByteBufferWithInfo
     public int     buflen;     // Total length of buffer. // Unnecessary...
     public int     needed;     // How many more bytes are needed on overflow.
     public boolean fragmented; // Did the overflow operation fragment?
-	
+
     public ByteBufferWithInfo(org.omg.CORBA.ORB orb,
                               ByteBuffer byteBuffer,
                               int index)
     {
         this.orb = (com.sun.corba.se.spi.orb.ORB)orb;
         debug = this.orb.transportDebugFlag;
-	this.byteBuffer = byteBuffer;
+        this.byteBuffer = byteBuffer;
         if (byteBuffer != null)
         {
             this.buflen = byteBuffer.limit();
         }
         position(index);
-	this.needed = 0;
+        this.needed = 0;
         this.fragmented = false;
     }
 
     public ByteBufferWithInfo(org.omg.CORBA.ORB orb, ByteBuffer byteBuffer)
     {
-	this(orb, byteBuffer, 0);
+        this(orb, byteBuffer, 0);
     }
 
     public ByteBufferWithInfo(org.omg.CORBA.ORB orb,
@@ -70,7 +88,7 @@ public class ByteBufferWithInfo
     // byte buffers. Hence, the reason for the boolean 'usePooledByteBuffers'.
     // See EncapsOutputStream for additional information.
 
-    public ByteBufferWithInfo(org.omg.CORBA.ORB orb, 
+    public ByteBufferWithInfo(org.omg.CORBA.ORB orb,
                               BufferManagerWrite bufferManager,
                               boolean usePooledByteBuffers)
     {
@@ -123,7 +141,7 @@ public class ByteBufferWithInfo
     }
 
     // So IIOPOutputStream seems more intuitive
-    public int getSize() 
+    public int getSize()
     {
         return position();
     }
@@ -216,7 +234,7 @@ public class ByteBufferWithInfo
         buflen = newLength;
         byteBuffer.limit(buflen);
     }
-   
+
     public String toString()
     {
         StringBuffer str = new StringBuffer("ByteBufferWithInfo:");

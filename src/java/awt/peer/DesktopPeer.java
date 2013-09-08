@@ -1,8 +1,26 @@
 /*
- * @(#)DesktopPeer.java
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.peer;
@@ -14,75 +32,76 @@ import java.net.URI;
 import java.awt.Desktop.Action;
 
 /**
- * The <code>DesktopPeer</code> interface provides methods for the operation
- * of open, edit, print, browse and mail with the given URL or file, by 
- * launching the associated application. 
+ * The {@code DesktopPeer} interface provides methods for the operation
+ * of open, edit, print, browse and mail with the given URL or file, by
+ * launching the associated application.
  * <p>
  * Each platform has an implementation class for this interface.
- * 
+ *
  */
-public interface DesktopPeer {    
-    /**
-     * Returns whether the given action is supported on the current platform. 
-     * @param action the action type to be tested if it's supported on the 
-     *        current platform. 
-     * @return <code>true</code> if the given action is supported on 
-     *         the current platform; <code>false</code> otherwise.
-     */    
-    public boolean isSupported(Action action);
+public interface DesktopPeer {
 
     /**
-     * Launches the associated application to open the given file. The 
-     * associated application is registered to be the default file viewer for 
-     * the file type of the given file. 
-     * 
-     * @param file the given file.
-     * @throws IOException If the given file has no associated application, 
-     *         or the associated application fails to be launched.          
+     * Returns whether the given action is supported on the current platform.
+     * @param action the action type to be tested if it's supported on the
+     *        current platform.
+     * @return {@code true} if the given action is supported on
+     *         the current platform; {@code false} otherwise.
      */
-    public void open(File file) throws IOException;
-    
+    boolean isSupported(Action action);
+
     /**
-     * Launches the associated editor and opens the given file for editing. The 
-     * associated editor is registered to be the default editor for the file 
-     * type of the given file. 
+     * Launches the associated application to open the given file. The
+     * associated application is registered to be the default file viewer for
+     * the file type of the given file.
      *
      * @param file the given file.
-     * @throws IOException If the given file has no associated editor, or 
-     *         the associated application fails to be launched. 
+     * @throws IOException If the given file has no associated application,
+     *         or the associated application fails to be launched.
      */
-    public void edit(File file) throws IOException;
-    
+    void open(File file) throws IOException;
+
     /**
-     * Prints the given file with the native desktop printing facility, using 
+     * Launches the associated editor and opens the given file for editing. The
+     * associated editor is registered to be the default editor for the file
+     * type of the given file.
+     *
+     * @param file the given file.
+     * @throws IOException If the given file has no associated editor, or
+     *         the associated application fails to be launched.
+     */
+    void edit(File file) throws IOException;
+
+    /**
+     * Prints the given file with the native desktop printing facility, using
      * the associated application's print command.
      *
      * @param file the given file.
-     * @throws IOException If the given file has no associated application 
+     * @throws IOException If the given file has no associated application
      *         that can be used to print it.
      */
-    public void print(File file) throws IOException;
-    
+    void print(File file) throws IOException;
+
     /**
-     * Launches the mail composing window of the user default mail client, 
-     * filling the message fields including to, cc, etc, with the values 
-     * specified by the given mailto URL. 
-     * 
+     * Launches the mail composing window of the user default mail client,
+     * filling the message fields including to, cc, etc, with the values
+     * specified by the given mailto URL.
+     *
      * @param uri represents a mailto URL with specified values of the message.
-     *        The syntax of mailto URL is defined by 
-     *        <a href="http://www.ietf.org/rfc/rfc2368.txt">RFC2368: The mailto 
+     *        The syntax of mailto URL is defined by
+     *        <a href="http://www.ietf.org/rfc/rfc2368.txt">RFC2368: The mailto
      *        URL scheme</a>
-     * @throws IOException If the user default mail client is not found, 
+     * @throws IOException If the user default mail client is not found,
      *         or it fails to be launched.
      */
-    public void mail(URI mailtoURL) throws IOException;
-    
+    void mail(URI mailtoURL) throws IOException;
+
     /**
-     * Launches the user default browser to display the given URI. 
+     * Launches the user default browser to display the given URI.
      *
      * @param uri the given URI.
-     * @throws IOException If the user default browser is not found, 
+     * @throws IOException If the user default browser is not found,
      *         or it fails to be launched.
      */
-    public void browse(URI url) throws IOException;
+    void browse(URI url) throws IOException;
 }

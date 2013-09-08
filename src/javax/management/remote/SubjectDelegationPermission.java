@@ -1,8 +1,26 @@
 /*
- * @(#)SubjectDelegationPermission.java	1.10 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.remote;
@@ -36,7 +54,6 @@ import java.security.BasicPermission;
  * <code>javax.management.remote.JMXPrincipal</code>.</p>
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public final class SubjectDelegationPermission extends BasicPermission {
 
@@ -73,7 +90,7 @@ public final class SubjectDelegationPermission extends BasicPermission {
     public SubjectDelegationPermission(String name, String actions) {
         super(name, actions);
 
-	if (actions != null)
-	    throw new IllegalArgumentException("Non-null actions");
+        if (actions != null)
+            throw new IllegalArgumentException("Non-null actions");
     }
 }

@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,7 +42,7 @@ import org.w3c.dom.DOMException;
  * 
  * @author Elena litani, IBM
  * @author Neeraj Bajaj, Sun Microsystems
- * @version $Id: ElementNSImpl.java,v 1.2.6.1 2005/08/31 12:17:52 sunithareddy Exp $
+ * @version $Id: ElementNSImpl.java,v 1.7 2010-11-01 04:39:39 joehw Exp $
  */
 public class ElementNSImpl
     extends ElementImpl {
@@ -424,9 +428,9 @@ public class ElementNSImpl
      */
     public String getTypeName() {
         if (type !=null){
-            if (type instanceof XSSimpleTypeDefinition) {
+            if (type instanceof XSSimpleTypeDecl) {
                 return ((XSSimpleTypeDecl) type).getTypeName();
-            } else {
+            } else if (type instanceof XSComplexTypeDecl) {
                 return ((XSComplexTypeDecl) type).getTypeName();
             }
         }
@@ -464,10 +468,10 @@ public class ElementNSImpl
             synchronizeData();
         }
         if (type != null) {
-            if (type instanceof XSSimpleTypeDefinition) {
+            if (type instanceof XSSimpleTypeDecl) {
                 return ((XSSimpleTypeDecl) type).isDOMDerivedFrom(
                         typeNamespaceArg, typeNameArg, derivationMethod);
-            } else {
+            } else if (type instanceof XSComplexTypeDecl) {
                 return ((XSComplexTypeDecl) type).isDOMDerivedFrom(
                         typeNamespaceArg, typeNameArg, derivationMethod);
             }

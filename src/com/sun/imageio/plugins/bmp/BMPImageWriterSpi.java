@@ -1,8 +1,26 @@
 /*
- * @(#)BMPImageWriterSpi.java	1.5 09/04/29 07:41:30
+ * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.bmp;
@@ -32,7 +50,7 @@ public class BMPImageWriterSpi extends ImageWriterSpi {
     private boolean registered = false;
 
     public BMPImageWriterSpi() {
-        super("Sun Microsystems, Inc.",
+        super("Oracle Corporation",
               "1.0",
               formatNames,
               entensions,
@@ -65,19 +83,19 @@ public class BMPImageWriterSpi extends ImageWriterSpi {
         int dataType= type.getSampleModel().getDataType();
         if (dataType < DataBuffer.TYPE_BYTE || dataType > DataBuffer.TYPE_INT)
             return false;
-       
+
         SampleModel sm = type.getSampleModel();
         int numBands = sm.getNumBands();
         if (!(numBands == 1 || numBands == 3))
             return false;
-        
+
         if (numBands == 1 && dataType != DataBuffer.TYPE_BYTE)
             return false;
-        
-        if (dataType > DataBuffer.TYPE_BYTE && 
+
+        if (dataType > DataBuffer.TYPE_BYTE &&
               !(sm instanceof SinglePixelPackedSampleModel))
             return false;
-        
+
         return true;
     }
 

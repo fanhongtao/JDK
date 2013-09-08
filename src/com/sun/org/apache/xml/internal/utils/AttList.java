@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +66,7 @@ public class AttList implements Attributes
    *
    *
    * @param attrs List of attributes this will contain
-   * @param dh DOMHelper 
+   * @param dh DOMHelper
    */
   public AttList(NamedNodeMap attrs, DOMHelper dh)
   {
@@ -73,7 +77,7 @@ public class AttList implements Attributes
   }
 
   /**
-   * Get the number of attribute nodes in the list 
+   * Get the number of attribute nodes in the list
    *
    *
    * @return number of attribute nodes
@@ -190,7 +194,7 @@ public class AttList implements Attributes
   public String getValue(String name)
   {
     Attr attr = ((Attr) m_attrs.getNamedItem(name));
-    return (null != attr) 
+    return (null != attr)
           ? attr.getValue() : null;
   }
 
@@ -205,8 +209,8 @@ public class AttList implements Attributes
    */
   public String getValue(String uri, String localName)
   {
-		Node a=m_attrs.getNamedItemNS(uri,localName);
-		return (a==null) ? null : a.getNodeValue();
+                Node a=m_attrs.getNamedItemNS(uri,localName);
+                return (a==null) ? null : a.getNodeValue();
   }
 
   /**
@@ -225,9 +229,9 @@ public class AttList implements Attributes
       Node a=m_attrs.item(i);
       String u=a.getNamespaceURI();
       if( (u==null ? uri==null : u.equals(uri))
-	  &&
-	  a.getLocalName().equals(localPart) )
-	return i;
+          &&
+          a.getLocalName().equals(localPart) )
+        return i;
     }
     return -1;
   }
@@ -245,9 +249,8 @@ public class AttList implements Attributes
     {
       Node a=m_attrs.item(i);
       if(a.getNodeName().equals(qName) )
-	return i;
+        return i;
     }
     return -1;
   }
 }
-

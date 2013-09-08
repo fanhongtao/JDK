@@ -1,8 +1,26 @@
 /*
- * @(#)Adler32.java	1.29 05/11/17
+ * Copyright (c) 1996, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.zip;
@@ -12,9 +30,8 @@ package java.util.zip;
  * stream. An Adler-32 checksum is almost as reliable as a CRC-32 but
  * can be computed much faster.
  *
- * @see		Checksum
- * @version 	1.29, 11/17/05
- * @author 	David Connelly
+ * @see         Checksum
+ * @author      David Connelly
  */
 public
 class Adler32 implements Checksum {
@@ -25,52 +42,54 @@ class Adler32 implements Checksum {
      */
     public Adler32() {
     }
-   
 
     /**
-     * Updates checksum with specified byte.
-     * 
-     * @param b an array of bytes
+     * Updates the checksum with the specified byte (the low eight
+     * bits of the argument b).
+     *
+     * @param b the byte to update the checksum with
      */
     public void update(int b) {
-	adler = update(adler, b);
+        adler = update(adler, b);
     }
 
     /**
-     * Updates checksum with specified array of bytes.
+     * Updates the checksum with the specified array of bytes.
      */
     public void update(byte[] b, int off, int len) {
-	if (b == null) {
-	    throw new NullPointerException();
-	}
+        if (b == null) {
+            throw new NullPointerException();
+        }
         if (off < 0 || len < 0 || off > b.length - len) {
-	    throw new ArrayIndexOutOfBoundsException();
-	}
-	adler = updateBytes(adler, b, off, len);
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        adler = updateBytes(adler, b, off, len);
     }
 
     /**
-     * Updates checksum with specified array of bytes.
+     * Updates the checksum with the specified array of bytes.
+     *
+     * @param b the byte array to update the checksum with
      */
     public void update(byte[] b) {
-	adler = updateBytes(adler, b, 0, b.length);
+        adler = updateBytes(adler, b, 0, b.length);
     }
 
     /**
-     * Resets checksum to initial value.
+     * Resets the checksum to initial value.
      */
     public void reset() {
-	adler = 1;
+        adler = 1;
     }
 
     /**
-     * Returns checksum value.
+     * Returns the checksum value.
      */
     public long getValue() {
-	return (long)adler & 0xffffffffL;
+        return (long)adler & 0xffffffffL;
     }
 
     private native static int update(int adler, int b);
     private native static int updateBytes(int adler, byte[] b, int off,
-					  int len);
+                                          int len);
 }

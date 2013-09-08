@@ -1,11 +1,26 @@
 /*
- * @(#)ParameterizedTypeTree.java	1.2 05/11/17
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Use and Distribution is subject to the Java Research License available
- * at <http://wwws.sun.com/software/communitysource/jrl.html>.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.source.tree;
@@ -20,7 +35,7 @@ import java.util.List;
  *   <em>type</em> &lt; <em>typeArguments</em> &gt;
  * </pre>
  *
- * @see "The Java Language Specification, 3rd ed, section 4.5.1"
+ * @jls section 4.5.1
  *
  * @author Peter von der Ah&eacute;
  * @author Jonathan Gibbons

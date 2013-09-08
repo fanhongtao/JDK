@@ -1,4 +1,7 @@
-
+/*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 /*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
@@ -24,14 +27,14 @@ import com.sun.org.apache.xml.internal.security.exceptions.XMLSecurityException;
 
 /**
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class StorageResolverException extends XMLSecurityException {
 
    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+         *
+         */
+        private static final long serialVersionUID = 1L;
 
    /**
     * Constructor StorageResolverException

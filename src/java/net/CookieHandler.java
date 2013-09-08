@@ -1,8 +1,26 @@
 /*
- * @(#)CookieHandler.java	1.4 03/08/09
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -25,10 +43,9 @@ import sun.security.util.SecurityConstants;
  * CookieHandler.getDefault().
  *
  * For more information on HTTP state management, see <a
- * href="http://www.ietf.org/rfc/rfc2965.txt""><i>RFC&nbsp;2965: HTTP
+ * href="http://www.ietf.org/rfc/rfc2965.txt"><i>RFC&nbsp;2965: HTTP
  * State Management Mechanism</i></a>
  *
- * @version 1.4, 03/08/09
  * @author Yingxian Wang
  * @since 1.5
  */
@@ -53,16 +70,16 @@ public abstract class CookieHandler {
      * @see #setDefault(CookieHandler)
      */
     public synchronized static CookieHandler getDefault() {
-	SecurityManager sm = System.getSecurityManager();
- 	if (sm != null) {
-  	    sm.checkPermission(SecurityConstants.GET_COOKIEHANDLER_PERMISSION);
- 	}
-	return cookieHandler;
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(SecurityConstants.GET_COOKIEHANDLER_PERMISSION);
+        }
+        return cookieHandler;
     }
 
     /**
      * Sets (or unsets) the system-wide cookie handler.
-     * 
+     *
      * Note: non-standard http protocol handlers may ignore this setting.
      *
      * @param cHandler The HTTP cookie handler, or
@@ -73,22 +90,32 @@ public abstract class CookieHandler {
      * @see #getDefault()
      */
     public synchronized static void setDefault(CookieHandler cHandler) {
-	SecurityManager sm = System.getSecurityManager();
- 	if (sm != null) {
- 	    sm.checkPermission(SecurityConstants.SET_COOKIEHANDLER_PERMISSION);
- 	}
-	cookieHandler = cHandler;
+        SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(SecurityConstants.SET_COOKIEHANDLER_PERMISSION);
+        }
+        cookieHandler = cHandler;
     }
 
     /**
      * Gets all the applicable cookies from a cookie cache for the
      * specified uri in the request header.
      *
-     * HTTP protocol implementers should make sure that this method is
-     * called after all request headers related to choosing cookies
-     * are added, and before the request is sent.
+     * <P>The {@code URI} passed as an argument specifies the intended use for
+     * the cookies. In particular the scheme should reflect whether the cookies
+     * will be sent over http, https or used in another context like javascript.
+     * The host part should reflect either the destination of the cookies or
+     * their origin in the case of javascript.</P>
+     * <P>It is up to the implementation to take into account the {@code URI} and
+     * the cookies attributes and security settings to determine which ones
+     * should be returned.</P>
      *
-     * @param uri a <code>URI</code> to send cookies to in a request
+     * <P>HTTP protocol implementers should make sure that this method is
+     * called after all request headers related to choosing cookies
+     * are added, and before the request is sent.</P>
+     *
+     * @param uri a <code>URI</code> representing the intended use for the
+     *            cookies
      * @param requestHeaders - a Map from request header
      *            field names to lists of field values representing
      *            the current request headers
@@ -101,9 +128,9 @@ public abstract class CookieHandler {
      * @see #put(URI, Map)
      */
     public abstract Map<String, List<String>>
-	get(URI uri, Map<String, List<String>> requestHeaders)
+        get(URI uri, Map<String, List<String>> requestHeaders)
         throws IOException;
- 
+
     /**
      * Sets all the applicable cookies, examples are response header
      * fields that are named Set-Cookie2, present in the response
@@ -113,11 +140,11 @@ public abstract class CookieHandler {
      * @param responseHeaders an immutable map from field names to
      *            lists of field values representing the response
      *            header fields returned
-     * @throws	IOException if an I/O error occurs 
+     * @throws  IOException if an I/O error occurs
      * @throws  IllegalArgumentException if either argument is null
      * @see #get(URI, Map)
      */
     public abstract void
-	put(URI uri, Map<String, List<String>> responseHeaders)
-	throws IOException;
+        put(URI uri, Map<String, List<String>> responseHeaders)
+        throws IOException;
 }

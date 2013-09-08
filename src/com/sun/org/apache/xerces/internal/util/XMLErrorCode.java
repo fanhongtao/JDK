@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,28 +21,27 @@
 package com.sun.org.apache.xerces.internal.util;
 
 /**
- * <p>A structure that represents an error code, characterized by 
+ * <p>A structure that represents an error code, characterized by
  * a domain and a message key.</p>
  *
  * @author Naela Nissar, IBM
- * 
- * @version $Id: XMLErrorCode.java,v 1.3 2005/09/26 13:03:01 sunithareddy Exp $
+ *
  */
 final class XMLErrorCode {
 
     //
     // Data
     //
-    
+
     /** error domain **/
     private String fDomain;
-    
+
     /** message key **/
     private String fKey;
-    
+
     /**
      * <p>Constructs an XMLErrorCode with the given domain and key.</p>
-     * 
+     *
      * @param domain The error domain.
      * @param key The key of the error message.
      */
@@ -46,10 +49,10 @@ final class XMLErrorCode {
         fDomain = domain;
         fKey = key;
     }
-    
+
     /**
      * <p>Convenience method to set the values of an XMLErrorCode.</p>
-     * 
+     *
      * @param domain The error domain.
      * @param key The key of the error message.
      */
@@ -60,7 +63,7 @@ final class XMLErrorCode {
 
     /**
      * <p>Indicates whether some other object is equal to this XMLErrorCode.</p>
-     * 
+     *
      * @param obj the object with which to compare.
      */
     public boolean equals(Object obj) {
@@ -72,7 +75,7 @@ final class XMLErrorCode {
 
     /**
      * <p>Returns a hash code value for this XMLErrorCode.</p>
-     * 
+     *
      * @return a hash code value for this XMLErrorCode.
      */
     public int hashCode() {

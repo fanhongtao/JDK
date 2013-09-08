@@ -1,8 +1,26 @@
 /*
- * @(#)ViewFactory.java	1.19 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -10,11 +28,10 @@ import java.awt.Container;
 
 /**
  * A factory to create a view of some portion of document subject.
- * This is intended to enable customization of how views get 
- * mapped over a document model. 
+ * This is intended to enable customization of how views get
+ * mapped over a document model.
  *
  * @author  Timothy Prinzing
- * @version 1.19 11/17/05
  */
 public interface ViewFactory {
 

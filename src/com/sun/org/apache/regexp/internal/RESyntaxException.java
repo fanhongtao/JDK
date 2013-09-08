@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +29,6 @@ package com.sun.org.apache.regexp.internal;
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
  * @author <a href="mailto:gholam@xtra.co.nz>Michael McCallum</a>
- * @version $Id: RESyntaxException.java,v 1.1.2.1 2005/08/01 00:02:59 jeffsuttor Exp $
  */
 public class RESyntaxException extends RuntimeException
 {

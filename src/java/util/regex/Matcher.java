@@ -1,8 +1,26 @@
 /*
- * @(#)Matcher.java	1.64 06/04/07
+ * Copyright (c) 1999, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.regex;
@@ -33,12 +51,12 @@ package java.util.regex;
  * More information about a successful match can be obtained by querying the
  * state of the matcher.
  *
- * <p> A matcher finds matches in a subset of its input called the 
- * <i>region</i>. By default, the region contains all of the matcher's input. 
+ * <p> A matcher finds matches in a subset of its input called the
+ * <i>region</i>. By default, the region contains all of the matcher's input.
  * The region can be modified via the{@link #region region} method and queried
- * via the {@link #regionStart regionStart} and {@link #regionEnd regionEnd} 
+ * via the {@link #regionStart regionStart} and {@link #regionEnd regionEnd}
  * methods. The way that the region boundaries interact with some pattern
- * constructs can be changed. See {@link #useAnchoringBounds 
+ * constructs can be changed. See {@link #useAnchoringBounds
  * useAnchoringBounds} and {@link #useTransparentBounds useTransparentBounds}
  * for more details.
  *
@@ -77,10 +95,9 @@ package java.util.regex;
  *
  *
  * @author      Mike McCloskey
- * @author	Mark Reinhold
- * @author	JSR-51 Expert Group
- * @version 	1.64, 06/04/07
- * @since	1.4
+ * @author      Mark Reinhold
+ * @author      JSR-51 Expert Group
+ * @since       1.4
  * @spec        JSR-51
  */
 
@@ -151,8 +168,8 @@ public final class Matcher implements MatchResult {
 
     /**
      * Boolean indicating whether or not more input could change
-     * the results of the last match. 
-     * 
+     * the results of the last match.
+     *
      * If hitEnd is true, and a match was found, then more input
      * might cause a different match to be found.
      * If hitEnd is true and a match was not found, then more
@@ -184,7 +201,7 @@ public final class Matcher implements MatchResult {
     boolean transparentBounds = false;
 
     /**
-     * If anchoringBounds is true then the boundaries of this 
+     * If anchoringBounds is true then the boundaries of this
      * matcher's region match anchors such as ^ and $.
      */
     boolean anchoringBounds = true;
@@ -232,7 +249,7 @@ public final class Matcher implements MatchResult {
         Matcher result = new Matcher(this.parentPattern, text.toString());
         result.first = this.first;
         result.last = this.last;
-        result.groups = (int[])(this.groups.clone());
+        result.groups = this.groups.clone();
         return result;
     }
 
@@ -256,7 +273,7 @@ public final class Matcher implements MatchResult {
         if (newPattern == null)
             throw new IllegalArgumentException("Pattern cannot be null");
         parentPattern = newPattern;
-     
+
         // Reallocate state storage
         int parentGroupCount = Math.max(newPattern.capturingGroupCount, 10);
         groups = new int[parentGroupCount * 2];
@@ -289,7 +306,7 @@ public final class Matcher implements MatchResult {
         lastAppendPosition = 0;
         from = 0;
         to = getTextLength();
-	return this;
+        return this;
     }
 
     /**
@@ -297,8 +314,8 @@ public final class Matcher implements MatchResult {
      *
      * <p> Resetting a matcher discards all of its explicit state information
      * and sets its append position to zero.  The matcher's region is set to
-     * the default region, which is its entire character sequence.  The 
-     * anchoring and transparency of this matcher's region boundaries are 
+     * the default region, which is its entire character sequence.  The
+     * anchoring and transparency of this matcher's region boundaries are
      * unaffected.
      *
      * @param  input
@@ -408,7 +425,7 @@ public final class Matcher implements MatchResult {
     /**
      * Returns the input subsequence matched by the previous match.
      *
-     * <p> For a matcher <i>m</i> with input sequence <i>s</i>, 
+     * <p> For a matcher <i>m</i> with input sequence <i>s</i>,
      * the expressions <i>m.</i><tt>group()</tt> and
      * <i>s.</i><tt>substring(</tt><i>m.</i><tt>start(),</tt>&nbsp;<i>m.</i><tt>end())</tt>
      * are equivalent.  </p>
@@ -436,7 +453,7 @@ public final class Matcher implements MatchResult {
      * <i>g</i>, the expressions <i>m.</i><tt>group(</tt><i>g</i><tt>)</tt> and
      * <i>s.</i><tt>substring(</tt><i>m.</i><tt>start(</tt><i>g</i><tt>),</tt>&nbsp;<i>m.</i><tt>end(</tt><i>g</i><tt>))</tt>
      * are equivalent.  </p>
-     * 
+     *
      * <p> <a href="Pattern.html#cg">Capturing groups</a> are indexed from left
      * to right, starting at one.  Group zero denotes the entire pattern, so
      * the expression <tt>m.group(0)</tt> is equivalent to <tt>m.group()</tt>.
@@ -468,6 +485,45 @@ public final class Matcher implements MatchResult {
             throw new IllegalStateException("No match found");
         if (group < 0 || group > groupCount())
             throw new IndexOutOfBoundsException("No group " + group);
+        if ((groups[group*2] == -1) || (groups[group*2+1] == -1))
+            return null;
+        return getSubSequence(groups[group * 2], groups[group * 2 + 1]).toString();
+    }
+
+    /**
+     * Returns the input subsequence captured by the given
+     * <a href="Pattern.html#groupname">named-capturing group</a> during the previous
+     * match operation.
+     *
+     * <p> If the match was successful but the group specified failed to match
+     * any part of the input sequence, then <tt>null</tt> is returned. Note
+     * that some groups, for example <tt>(a*)</tt>, match the empty string.
+     * This method will return the empty string when such a group successfully
+     * matches the empty string in the input.  </p>
+     *
+     * @param  name
+     *         The name of a named-capturing group in this matcher's pattern
+     *
+     * @return  The (possibly empty) subsequence captured by the named group
+     *          during the previous match, or <tt>null</tt> if the group
+     *          failed to match part of the input
+     *
+     * @throws  IllegalStateException
+     *          If no match has yet been attempted,
+     *          or if the previous match operation failed
+     *
+     * @throws  IllegalArgumentException
+     *          If there is no capturing group in the pattern
+     *          with the given name
+     */
+    public String group(String name) {
+        if (name == null)
+            throw new NullPointerException("Null group name");
+        if (first < 0)
+            throw new IllegalStateException("No match found");
+        if (!parentPattern.namedGroups().containsKey(name))
+            throw new IllegalArgumentException("No group with name <" + name + ">");
+        int group = parentPattern.namedGroups().get(name);
         if ((groups[group*2] == -1) || (groups[group*2+1] == -1))
             return null;
         return getSubSequence(groups[group * 2], groups[group * 2 + 1]).toString();
@@ -507,7 +563,7 @@ public final class Matcher implements MatchResult {
      * the pattern.
      *
      * <p> This method starts at the beginning of this matcher's region, or, if
-     * a previous invocation of the method was successful and the matcher has 
+     * a previous invocation of the method was successful and the matcher has
      * not since been reset, at the first character not matched by the previous
      * match.
      *
@@ -562,7 +618,7 @@ public final class Matcher implements MatchResult {
     }
 
     /**
-     * Attempts to match the input sequence, starting at the beginning of the 
+     * Attempts to match the input sequence, starting at the beginning of the
      * region, against the pattern.
      *
      * <p> Like the {@link #matches matches} method, this method always starts
@@ -597,16 +653,13 @@ public final class Matcher implements MatchResult {
     public static String quoteReplacement(String s) {
         if ((s.indexOf('\\') == -1) && (s.indexOf('$') == -1))
             return s;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i=0; i<s.length(); i++) {
             char c = s.charAt(i);
-            if (c == '\\') {
-                sb.append('\\'); sb.append('\\');
-            } else if (c == '$') {
-                sb.append('\\'); sb.append('$');
-            } else {
-                sb.append(c);
+            if (c == '\\' || c == '$') {
+                sb.append('\\');
             }
+            sb.append(c);
         }
         return sb.toString();
     }
@@ -635,9 +688,11 @@ public final class Matcher implements MatchResult {
      *
      * <p> The replacement string may contain references to subsequences
      * captured during the previous match: Each occurrence of
-     * <tt>$</tt><i>g</i><tt></tt> will be replaced by the result of
-     * evaluating {@link #group(int) group}<tt>(</tt><i>g</i><tt>)</tt>. 
-     * The first number after the <tt>$</tt> is always treated as part of
+     * <tt>${</tt><i>name</i><tt>}</tt> or <tt>$</tt><i>g</i>
+     * will be replaced by the result of evaluating the corresponding
+     * {@link #group(String) group(name)} or {@link #group(int) group(g)</tt>}
+     * respectively. For  <tt>$</tt><i>g</i><tt></tt>,
+     * the first number after the <tt>$</tt> is always treated as part of
      * the group reference. Subsequent numbers are incorporated into g if
      * they would form a legal group reference. Only the numerals '0'
      * through '9' are considered as potential components of the group
@@ -681,6 +736,10 @@ public final class Matcher implements MatchResult {
      *          If no match has yet been attempted,
      *          or if the previous match operation failed
      *
+     * @throws  IllegalArgumentException
+     *          If the replacement string refers to a named-capturing
+     *          group that does not exist in the pattern
+     *
      * @throws  IndexOutOfBoundsException
      *          If the replacement string refers to a capturing group
      *          that does not exist in the pattern
@@ -693,8 +752,7 @@ public final class Matcher implements MatchResult {
 
         // Process substitution string to replace group references with groups
         int cursor = 0;
-        String s = replacement;
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
 
         while (cursor < replacement.length()) {
             char nextChar = replacement.charAt(cursor);
@@ -706,49 +764,83 @@ public final class Matcher implements MatchResult {
             } else if (nextChar == '$') {
                 // Skip past $
                 cursor++;
-
-                // The first number is always a group
-                int refNum = (int)replacement.charAt(cursor) - '0';
-                if ((refNum < 0)||(refNum > 9))
-                    throw new IllegalArgumentException(
-                        "Illegal group reference");
-                cursor++;
-
-                // Capture the largest legal group string
-                boolean done = false;
-                while (!done) {
-                    if (cursor >= replacement.length()) {
-                        break;
+                // A StringIndexOutOfBoundsException is thrown if
+                // this "$" is the last character in replacement
+                // string in current implementation, a IAE might be
+                // more appropriate.
+                nextChar = replacement.charAt(cursor);
+                int refNum = -1;
+                if (nextChar == '{') {
+                    cursor++;
+                    StringBuilder gsb = new StringBuilder();
+                    while (cursor < replacement.length()) {
+                        nextChar = replacement.charAt(cursor);
+                        if (ASCII.isLower(nextChar) ||
+                            ASCII.isUpper(nextChar) ||
+                            ASCII.isDigit(nextChar)) {
+                            gsb.append(nextChar);
+                            cursor++;
+                        } else {
+                            break;
+                        }
                     }
-                    int nextDigit = replacement.charAt(cursor) - '0';
-                    if ((nextDigit < 0)||(nextDigit > 9)) { // not a number
-                        break;
-                    }
-                    int newRefNum = (refNum * 10) + nextDigit;
-                    if (groupCount() < newRefNum) {
-                        done = true;
-                    } else {
-                        refNum = newRefNum;
-                        cursor++;
+                    if (gsb.length() == 0)
+                        throw new IllegalArgumentException(
+                            "named capturing group has 0 length name");
+                    if (nextChar != '}')
+                        throw new IllegalArgumentException(
+                            "named capturing group is missing trailing '}'");
+                    String gname = gsb.toString();
+                    if (ASCII.isDigit(gname.charAt(0)))
+                        throw new IllegalArgumentException(
+                            "capturing group name {" + gname +
+                            "} starts with digit character");
+                    if (!parentPattern.namedGroups().containsKey(gname))
+                        throw new IllegalArgumentException(
+                            "No group with name {" + gname + "}");
+                    refNum = parentPattern.namedGroups().get(gname);
+                    cursor++;
+                } else {
+                    // The first number is always a group
+                    refNum = (int)nextChar - '0';
+                    if ((refNum < 0)||(refNum > 9))
+                        throw new IllegalArgumentException(
+                            "Illegal group reference");
+                    cursor++;
+                    // Capture the largest legal group string
+                    boolean done = false;
+                    while (!done) {
+                        if (cursor >= replacement.length()) {
+                            break;
+                        }
+                        int nextDigit = replacement.charAt(cursor) - '0';
+                        if ((nextDigit < 0)||(nextDigit > 9)) { // not a number
+                            break;
+                        }
+                        int newRefNum = (refNum * 10) + nextDigit;
+                        if (groupCount() < newRefNum) {
+                            done = true;
+                        } else {
+                            refNum = newRefNum;
+                            cursor++;
+                        }
                     }
                 }
-
                 // Append group
-                if (group(refNum) != null)
-                    result.append(group(refNum));
+                if (start(refNum) != -1 && end(refNum) != -1)
+                    result.append(text, start(refNum), end(refNum));
             } else {
                 result.append(nextChar);
                 cursor++;
             }
         }
-
         // Append the intervening text
-        sb.append(getSubSequence(lastAppendPosition, first));
+        sb.append(text, lastAppendPosition, first);
         // Append the match substitution
-        sb.append(result.toString());
+        sb.append(result);
 
         lastAppendPosition = last;
-	return this;
+        return this;
     }
 
     /**
@@ -766,8 +858,8 @@ public final class Matcher implements MatchResult {
      * @return  The target string buffer
      */
     public StringBuffer appendTail(StringBuffer sb) {
-        sb.append(getSubSequence(lastAppendPosition, getTextLength()).toString());
-	return sb;
+        sb.append(text, lastAppendPosition, getTextLength());
+        return sb;
     }
 
     /**
@@ -855,10 +947,11 @@ public final class Matcher implements MatchResult {
     public String replaceFirst(String replacement) {
         if (replacement == null)
             throw new NullPointerException("replacement");
-        StringBuffer sb = new StringBuffer();
         reset();
-        if (find())
-            appendReplacement(sb, replacement);
+        if (!find())
+            return text.toString();
+        StringBuffer sb = new StringBuffer();
+        appendReplacement(sb, replacement);
         appendTail(sb);
         return sb.toString();
     }
@@ -871,7 +964,7 @@ public final class Matcher implements MatchResult {
      * index specified by the <code>end</code> parameter.
      *
      * <p>Depending on the transparency and anchoring being used (see
-     * {@link #useTransparentBounds useTransparentBounds} and 
+     * {@link #useTransparentBounds useTransparentBounds} and
      * {@link #useAnchoringBounds useAnchoringBounds}), certain constructs such
      * as anchors may behave differently at or around the boundaries of the
      * region.
@@ -934,7 +1027,7 @@ public final class Matcher implements MatchResult {
      * <i>transparent</i> bounds, <tt>false</tt> if it uses <i>opaque</i>
      * bounds.
      *
-     * <p> See {@link #useTransparentBounds useTransparentBounds} for a 
+     * <p> See {@link #useTransparentBounds useTransparentBounds} for a
      * description of transparent and opaque bounds.
      *
      * <p> By default, a matcher uses opaque region boundaries.
@@ -952,16 +1045,16 @@ public final class Matcher implements MatchResult {
      * Sets the transparency of region bounds for this matcher.
      *
      * <p> Invoking this method with an argument of <tt>true</tt> will set this
-     * matcher to use <i>transparent</i> bounds. If the boolean 
+     * matcher to use <i>transparent</i> bounds. If the boolean
      * argument is <tt>false</tt>, then <i>opaque</i> bounds will be used.
-     * 
-     * <p> Using transparent bounds, the boundaries of this 
+     *
+     * <p> Using transparent bounds, the boundaries of this
      * matcher's region are transparent to lookahead, lookbehind,
-     * and boundary matching constructs. Those constructs can see beyond the 
+     * and boundary matching constructs. Those constructs can see beyond the
      * boundaries of the region to see if a match is appropriate.
      *
-     * <p> Using opaque bounds, the boundaries of this matcher's 
-     * region are opaque to lookahead, lookbehind, and boundary matching 
+     * <p> Using opaque bounds, the boundaries of this matcher's
+     * region are opaque to lookahead, lookbehind, and boundary matching
      * constructs that may try to see beyond them. Those constructs cannot
      * look past the boundaries so they will fail to match anything outside
      * of the region.
@@ -978,14 +1071,14 @@ public final class Matcher implements MatchResult {
         transparentBounds = b;
         return this;
     }
- 
+
     /**
      * Queries the anchoring of region bounds for this matcher.
      *
      * <p> This method returns <tt>true</tt> if this matcher uses
      * <i>anchoring</i> bounds, <tt>false</tt> otherwise.
      *
-     * <p> See {@link #useAnchoringBounds useAnchoringBounds} for a 
+     * <p> See {@link #useAnchoringBounds useAnchoringBounds} for a
      * description of anchoring bounds.
      *
      * <p> By default, a matcher uses anchoring region boundaries.
@@ -1003,14 +1096,14 @@ public final class Matcher implements MatchResult {
      * Sets the anchoring of region bounds for this matcher.
      *
      * <p> Invoking this method with an argument of <tt>true</tt> will set this
-     * matcher to use <i>anchoring</i> bounds. If the boolean 
-     * argument is <tt>false</tt>, then <i>non-anchoring</i> bounds will be 
+     * matcher to use <i>anchoring</i> bounds. If the boolean
+     * argument is <tt>false</tt>, then <i>non-anchoring</i> bounds will be
      * used.
-     * 
-     * <p> Using anchoring bounds, the boundaries of this 
+     *
+     * <p> Using anchoring bounds, the boundaries of this
      * matcher's region match anchors such as ^ and $.
      *
-     * <p> Without anchoring bounds, the boundaries of this 
+     * <p> Without anchoring bounds, the boundaries of this
      * matcher's region will not match anchors such as ^ and $.
      *
      * <p> By default, a matcher uses anchoring region boundaries.
@@ -1034,24 +1127,24 @@ public final class Matcher implements MatchResult {
      * @since 1.5
      */
     public String toString() {
-        StringBuffer sb = new StringBuffer();
-	sb.append("java.util.regex.Matcher");
-	sb.append("[pattern=" + pattern());
-	sb.append(" region=");
-	sb.append(regionStart() + "," + regionEnd());
+        StringBuilder sb = new StringBuilder();
+        sb.append("java.util.regex.Matcher");
+        sb.append("[pattern=" + pattern());
+        sb.append(" region=");
+        sb.append(regionStart() + "," + regionEnd());
         sb.append(" lastmatch=");
         if ((first >= 0) && (group() != null)) {
             sb.append(group());
         }
-	sb.append("]");
-	return sb.toString();
+        sb.append("]");
+        return sb.toString();
     }
 
     /**
      * <p>Returns true if the end of input was hit by the search engine in
      * the last match operation performed by this matcher.
      *
-     * <p>When this method returns true, then it is possible that more input 
+     * <p>When this method returns true, then it is possible that more input
      * would have changed the result of the last search.
      *
      * @return  true iff the end of input was hit in the last match; false
@@ -1063,16 +1156,16 @@ public final class Matcher implements MatchResult {
     }
 
     /**
-     * <p>Returns true if more input could change a positive match into a 
+     * <p>Returns true if more input could change a positive match into a
      * negative one.
      *
      * <p>If this method returns true, and a match was found, then more
-     * input could cause the match to be lost. If this method returns false 
-     * and a match was found, then more input might change the match but the 
-     * match won't be lost. If a match was not found, then requireEnd has no 
+     * input could cause the match to be lost. If this method returns false
+     * and a match was found, then more input might change the match but the
+     * match won't be lost. If a match was not found, then requireEnd has no
      * meaning.
      *
-     * @return  true iff more input could change a positive match into a 
+     * @return  true iff more input could change a positive match into a
      *          negative one.
      * @since 1.5
      */
@@ -1085,7 +1178,7 @@ public final class Matcher implements MatchResult {
      * The groups are filled with default values and the match of the root
      * of the state machine is called. The state machine will hold the state
      * of the match as it proceeds in this matcher.
-     * 
+     *
      * Matcher.from is not set here, because it is the "hard" boundary
      * of the start of the search which anchors will set to. The from param
      * is the "soft" boundary of the start of the search, meaning that the

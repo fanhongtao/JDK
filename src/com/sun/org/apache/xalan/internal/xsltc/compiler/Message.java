@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,24 +43,24 @@ final class Message extends Instruction {
     private boolean _terminate = false;
 
     public void parseContents(Parser parser) {
-	String termstr = getAttribute("terminate");
-	if (termstr != null) {
+        String termstr = getAttribute("terminate");
+        if (termstr != null) {
             _terminate = termstr.equals("yes");
-	}
-	parseChildren(parser);
+        }
+        parseChildren(parser);
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	typeCheckContents(stable);
-	return Type.Void;
+        typeCheckContents(stable);
+        return Type.Void;
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// Load the translet (for call to displayMessage() function)
-	il.append(classGen.loadTranslet());
+        // Load the translet (for call to displayMessage() function)
+        il.append(classGen.loadTranslet());
 
         switch (elementCount()) {
             case 0:
@@ -135,25 +139,25 @@ final class Message extends Instruction {
             break;
         }
 
-	// Send the resulting string to the message handling method
-	il.append(new INVOKEVIRTUAL(cpg.addMethodref(TRANSLET_CLASS,
-						     "displayMessage",
-						     "("+STRING_SIG+")V")));
+        // Send the resulting string to the message handling method
+        il.append(new INVOKEVIRTUAL(cpg.addMethodref(TRANSLET_CLASS,
+                                                     "displayMessage",
+                                                     "("+STRING_SIG+")V")));
 
-	// If 'terminate' attribute is set to 'yes': Instanciate a
-	// RunTimeException, but it on the stack and throw an exception
-	if (_terminate == true) {
-	    // Create a new instance of RunTimeException
-	    final int einit = cpg.addMethodref("java.lang.RuntimeException",
-					       "<init>",
-					       "(Ljava/lang/String;)V");
-	    il.append(new NEW(cpg.addClass("java.lang.RuntimeException")));
-	    il.append(DUP);
-	    il.append(new PUSH(cpg,"Termination forced by an " +
-			           "xsl:message instruction"));
-	    il.append(new INVOKESPECIAL(einit));
-	    il.append(ATHROW);
-	}
+        // If 'terminate' attribute is set to 'yes': Instanciate a
+        // RunTimeException, but it on the stack and throw an exception
+        if (_terminate == true) {
+            // Create a new instance of RunTimeException
+            final int einit = cpg.addMethodref("java.lang.RuntimeException",
+                                               "<init>",
+                                               "(Ljava/lang/String;)V");
+            il.append(new NEW(cpg.addClass("java.lang.RuntimeException")));
+            il.append(DUP);
+            il.append(new PUSH(cpg,"Termination forced by an " +
+                                   "xsl:message instruction"));
+            il.append(new INVOKESPECIAL(einit));
+            il.append(ATHROW);
+        }
     }
 
 }

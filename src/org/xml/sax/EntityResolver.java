@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // SAX entity resolver.
 // http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
@@ -62,13 +87,12 @@ import java.io.IOException;
  *
  * @since SAX 1.0
  * @author David Megginson
- * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.XMLReader#setEntityResolver
  * @see org.xml.sax.InputSource
  */
 public interface EntityResolver {
-    
-    
+
+
     /**
      * Allow the application to resolve external entities.
      *
@@ -111,9 +135,9 @@ public interface EntityResolver {
      * @see org.xml.sax.InputSource
      */
     public abstract InputSource resolveEntity (String publicId,
-					       String systemId)
-	throws SAXException, IOException;
-    
+                                               String systemId)
+        throws SAXException, IOException;
+
 }
 
 // end of EntityResolver.java

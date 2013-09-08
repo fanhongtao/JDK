@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -61,7 +65,6 @@ import  java.io.*;
  * This class is derived from <em>Attribute</em> and represents a reference
  * to a <href="http://wwwipd.ira.uka.de/~pizza/gj/">GJ</a> attribute.
  *
- * @version $Id: Signature.java,v 1.1.2.1 2005/07/31 23:46:34 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  */
@@ -85,7 +88,7 @@ public final class Signature extends Attribute {
    * @throws IOException
    */
   Signature(int name_index, int length, DataInputStream file,
-	   ConstantPool constant_pool) throws IOException
+           ConstantPool constant_pool) throws IOException
   {
     this(name_index, length, file.readUnsignedShort(), constant_pool);
   }
@@ -97,7 +100,7 @@ public final class Signature extends Attribute {
    * @param Signature_index Index in constant pool to CONSTANT_Utf8
    */
   public Signature(int name_index, int length, int signature_index,
-		  ConstantPool constant_pool)
+                  ConstantPool constant_pool)
   {
     super(Constants.ATTR_SIGNATURE, name_index, length, constant_pool);
     this.signature_index = signature_index;
@@ -114,37 +117,37 @@ public final class Signature extends Attribute {
      System.err.println("Visiting non-standard Signature object");
      v.visitSignature(this);
    }
-   
+
   /**
    * Dump source file attribute to file stream in binary format.
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     super.dump(file);
     file.writeShort(signature_index);
-  }    
+  }
 
   /**
    * @return Index in constant pool of source file name.
-   */  
-  public final int getSignatureIndex() { return signature_index; }    
+   */
+  public final int getSignatureIndex() { return signature_index; }
 
   /**
    * @param Signature_index.
    */
   public final void setSignatureIndex(int signature_index) {
     this.signature_index = signature_index;
-  }    
+  }
 
   /**
    * @return GJ signature.
-   */ 
+   */
   public final String getSignature() {
-    ConstantUtf8 c = (ConstantUtf8)constant_pool.getConstant(signature_index, 
-							     Constants.CONSTANT_Utf8);
+    ConstantUtf8 c = (ConstantUtf8)constant_pool.getConstant(signature_index,
+                                                             Constants.CONSTANT_Utf8);
     return c.getBytes();
   }
 
@@ -172,7 +175,7 @@ public final class Signature extends Attribute {
 
     if((ch = in.read()) == -1)
       throw new RuntimeException("Illegal signature: " + in.getData() +
-				 " no ident, reaching EOF");
+                                 " no ident, reaching EOF");
 
     //System.out.println("return from ident:" + (char)ch);
 
@@ -181,21 +184,21 @@ public final class Signature extends Attribute {
 
       int count = 1;
       while(Character.isJavaIdentifierPart((char)ch)) {
-	buf2.append((char)ch);
-	count++;
-	ch = in.read();
+        buf2.append((char)ch);
+        count++;
+        ch = in.read();
       }
-      
+
       if(ch == ':') { // Ok, formal parameter
-	in.skip("Ljava/lang/Object".length());
-	buf.append(buf2);
+        in.skip("Ljava/lang/Object".length());
+        buf.append(buf2);
 
         ch = in.read();
-	in.unread();
-	//System.out.println("so far:" + buf2 + ":next:" +(char)ch);
+        in.unread();
+        //System.out.println("so far:" + buf2 + ":next:" +(char)ch);
       } else {
-	for(int i=0; i < count; i++)
-	  in.unread();
+        for(int i=0; i < count; i++)
+          in.unread();
       }
 
       return;
@@ -220,7 +223,7 @@ public final class Signature extends Attribute {
   }
 
   private static final void matchGJIdent(MyByteArrayInputStream in,
-					 StringBuffer buf)
+                                         StringBuffer buf)
   {
     int ch;
 
@@ -231,16 +234,16 @@ public final class Signature extends Attribute {
       //System.out.println("Enter <");
       buf.append((char)ch);
       matchGJIdent(in, buf);
-      
-      while(((ch = in.read()) != '>') && (ch != ')')) { // List of parameters
-	if(ch == -1)
-	  throw new RuntimeException("Illegal signature: " + in.getData() +
-				     " reaching EOF");
 
-	//System.out.println("Still no >");
-	buf.append(", ");
-	in.unread();
-	matchGJIdent(in, buf); // Recursive call
+      while(((ch = in.read()) != '>') && (ch != ')')) { // List of parameters
+        if(ch == -1)
+          throw new RuntimeException("Illegal signature: " + in.getData() +
+                                     " reaching EOF");
+
+        //System.out.println("Still no >");
+        buf.append(", ");
+        in.unread();
+        matchGJIdent(in, buf); // Recursive call
       }
 
       //System.out.println("Exit >");
@@ -258,7 +261,7 @@ public final class Signature extends Attribute {
       return;
     } else if(ch != ';')
       throw new RuntimeException("Illegal signature: " + in.getData() + " read " +
-				 (char)ch);
+                                 (char)ch);
   }
 
   public static String translate(String s) {
@@ -276,16 +279,16 @@ public final class Signature extends Attribute {
 
   public static final boolean isActualParameterList(String s) {
     return s.startsWith("L") && s.endsWith(">;");
-  }    
+  }
 
   /**
    * @return String representation
-   */ 
+   */
   public final String toString() {
     String s = getSignature();
 
     return "Signature(" + s + ")";
-  }    
+  }
 
   /**
    * @return deep copy of this attribute

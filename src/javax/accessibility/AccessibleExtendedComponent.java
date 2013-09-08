@@ -1,19 +1,37 @@
 /*
- * @(#)AccessibleExtendedComponent.java	1.7 06/04/07
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.accessibility;
 
 /**
- * The AccessibleExtendedComponent interface should be supported by any object 
- * that is rendered on the screen.  This interface provides the standard 
+ * The AccessibleExtendedComponent interface should be supported by any object
+ * that is rendered on the screen.  This interface provides the standard
  * mechanism for an assistive technology to determine the extended
  * graphical representation of an object.  Applications can determine
  * if an object supports the AccessibleExtendedComponent interface by first
- * obtaining its AccessibleContext 
+ * obtaining its AccessibleContext
  * and then calling the
  * {@link AccessibleContext#getAccessibleComponent} method.
  * If the return value is not null and the type of the return value is
@@ -24,8 +42,7 @@ package javax.accessibility;
  * @see AccessibleContext
  * @see AccessibleContext#getAccessibleComponent
  *
- * @version     1.7 04/07/06
- * @author	Lynn Monsanto
+ * @author      Lynn Monsanto
  * @since 1.4
  */
 public interface AccessibleExtendedComponent extends AccessibleComponent {
@@ -33,7 +50,7 @@ public interface AccessibleExtendedComponent extends AccessibleComponent {
     /**
      * Returns the tool tip text
      *
-     * @return the tool tip text, if supported, of the object; 
+     * @return the tool tip text, if supported, of the object;
      * otherwise, null
      */
     public String getToolTipText();
@@ -41,7 +58,7 @@ public interface AccessibleExtendedComponent extends AccessibleComponent {
     /**
      * Returns the titled border text
      *
-     * @return the titled border text, if supported, of the object; 
+     * @return the titled border text, if supported, of the object;
      * otherwise, null
      */
     public String getTitledBorderText();
@@ -49,7 +66,7 @@ public interface AccessibleExtendedComponent extends AccessibleComponent {
     /**
      * Returns key bindings associated with this object
      *
-     * @return the key bindings, if supported, of the object; 
+     * @return the key bindings, if supported, of the object;
      * otherwise, null
      * @see AccessibleKeyBinding
      */

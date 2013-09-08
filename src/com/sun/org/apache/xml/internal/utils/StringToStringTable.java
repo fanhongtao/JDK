@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +57,7 @@ public class StringToStringTable
   /**
    * Construct a StringToStringTable, using the given block size.
    *
-   * @param blocksize Size of blocks to allocate 
+   * @param blocksize Size of blocks to allocate
    */
   public StringToStringTable(int blocksize)
   {
@@ -75,10 +79,10 @@ public class StringToStringTable
 
   /**
    * Append a string onto the vector.
-   * The strings go to the even locations in the array 
-   * and the values in the odd. 
+   * The strings go to the even locations in the array
+   * and the values in the odd.
    *
-   * @param key String to add to the list 
+   * @param key String to add to the list
    * @param value Value of the string
    */
   public final void put(String key, String value)
@@ -109,7 +113,7 @@ public class StringToStringTable
    *
    * @param key String to look up
    *
-   * @return return the value of the string or null if not found. 
+   * @return return the value of the string or null if not found.
    */
   public final String get(String key)
   {
@@ -205,7 +209,7 @@ public class StringToStringTable
    *
    * @param key String to look up
    *
-   * @return True if the given string is in this table 
+   * @return True if the given string is in this table
    */
   public final boolean contains(String key)
   {

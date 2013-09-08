@@ -1,8 +1,26 @@
 /*
- * @(#)OldJIDLObjectKeyTemplate.java	1.14 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior;
@@ -24,7 +42,7 @@ import com.sun.corba.se.impl.ior.ObjectKeyFactoryImpl ;
 import com.sun.corba.se.impl.encoding.CDRInputStream ;
 
 /**
- * Handles object keys created by JDK ORBs from before JDK 1.4.0. 
+ * Handles object keys created by JDK ORBs from before JDK 1.4.0.
  */
 public final class OldJIDLObjectKeyTemplate extends OldObjectKeyTemplateBase
 {
@@ -37,13 +55,13 @@ public final class OldJIDLObjectKeyTemplate extends OldObjectKeyTemplateBase
 
     byte patchVersion = OldJIDLObjectKeyTemplate.NULL_PATCH_VERSION;
 
-    public OldJIDLObjectKeyTemplate( ORB orb, int magic, int scid, 
-	InputStream is, OctetSeqHolder osh ) 
+    public OldJIDLObjectKeyTemplate( ORB orb, int magic, int scid,
+        InputStream is, OctetSeqHolder osh )
     {
-	this( orb, magic, scid, is );
+        this( orb, magic, scid, is );
 
-	osh.value = readObjectKey( is ) ;
-        
+        osh.value = readObjectKey( is ) ;
+
         /**
          * Beginning with JDK 1.3.1_01, a byte was placed at the end of
          * the object key with a value indicating the patch version.
@@ -69,33 +87,33 @@ public final class OldJIDLObjectKeyTemplate extends OldObjectKeyTemplateBase
             else if (patchVersion > ObjectKeyFactoryImpl.JDK1_3_1_01_PATCH_LEVEL)
                 setORBVersion(ORBVersionFactory.getORBVersion());
             else
-		throw wrapper.invalidJdk131PatchLevel( new Integer( patchVersion ) ) ;
+                throw wrapper.invalidJdk131PatchLevel( new Integer( patchVersion ) ) ;
         }
     }
-    
-    
-    public OldJIDLObjectKeyTemplate( ORB orb, int magic, int scid, int serverid) 
+
+
+    public OldJIDLObjectKeyTemplate( ORB orb, int magic, int scid, int serverid)
     {
-	super( orb, magic, scid, serverid, JIDL_ORB_ID, JIDL_OAID ) ; 
-    }
-   
-    public OldJIDLObjectKeyTemplate(ORB orb, int magic, int scid, InputStream is) 
-    {
-	this( orb, magic, scid, is.read_long() ) ; 
-    }
-   
-    protected void writeTemplate( OutputStream os )
-    {
-	os.write_long( getMagic() ) ;
-	os.write_long( getSubcontractId() ) ;
-	os.write_long( getServerId() ) ;
+        super( orb, magic, scid, serverid, JIDL_ORB_ID, JIDL_OAID ) ;
     }
 
-    public void write(ObjectId objectId, OutputStream os) 
+    public OldJIDLObjectKeyTemplate(ORB orb, int magic, int scid, InputStream is)
+    {
+        this( orb, magic, scid, is.read_long() ) ;
+    }
+
+    protected void writeTemplate( OutputStream os )
+    {
+        os.write_long( getMagic() ) ;
+        os.write_long( getSubcontractId() ) ;
+        os.write_long( getServerId() ) ;
+    }
+
+    public void write(ObjectId objectId, OutputStream os)
     {
         super.write(objectId, os);
 
         if (patchVersion != OldJIDLObjectKeyTemplate.NULL_PATCH_VERSION)
-           os.write_octet( patchVersion ) ;        
+           os.write_octet( patchVersion ) ;
     }
 }

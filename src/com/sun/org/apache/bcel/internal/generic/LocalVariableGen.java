@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,20 +61,19 @@ package com.sun.org.apache.bcel.internal.generic;
 import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.classfile.*;
 
-/** 
+/**
  * This class represents a local variable within a method. It contains its
  * scope, name and type. The generated LocalVariable object can be obtained
  * with getLocalVariable which needs the instruction list and the constant
  * pool as parameters.
  *
- * @version $Id: LocalVariableGen.java,v 1.1.2.1 2005/07/31 23:45:23 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     LocalVariable
  * @see     MethodGen
  */
 public class LocalVariableGen
   implements InstructionTargeter, NamedAndTyped, Cloneable,
-	     java.io.Serializable
+             java.io.Serializable
 {
   private int         index;
   private String      name;
@@ -88,10 +91,10 @@ public class LocalVariableGen
    * @param end until where the instruction is valid (null means to the end)
    */
   public LocalVariableGen(int index, String name, Type type,
-			  InstructionHandle start, InstructionHandle end) {
+                          InstructionHandle start, InstructionHandle end) {
     if((index < 0) || (index > Constants.MAX_SHORT))
       throw new ClassGenException("Invalid index index: " + index);
-    
+
     this.name  = name;
     this.type  = type;
     this.index  = index;
@@ -120,12 +123,12 @@ public class LocalVariableGen
 
     if(length > 0)
       length += end.getInstruction().getLength();
-    
+
     int name_index      = cp.addUtf8(name);
     int signature_index = cp.addUtf8(type.getSignature());
 
     return new LocalVariable(start_pc, length, name_index,
-			     signature_index, index, cp.getConstantPool());
+                             signature_index, index, cp.getConstantPool());
   }
 
   public void        setIndex(int index)           { this.index = index; }
@@ -167,7 +170,7 @@ public class LocalVariableGen
 
     if(!targeted)
       throw new ClassGenException("Not targeting " + old_ih + ", but {" + start + ", " +
-				  end + "}");
+                                  end + "}");
   }
 
   /**
@@ -187,7 +190,7 @@ public class LocalVariableGen
 
     LocalVariableGen l = (LocalVariableGen)o;
     return (l.index == index) && (l.start == start) && (l.end == end);
-  } 
+  }
 
   public String toString() {
     return "LocalVariableGen(" + name +  ", " + type +  ", " + start + ", " + end + ")";

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,17 +25,17 @@ package com.sun.org.apache.xml.internal.utils;
 /**
  * A very simple table that stores a list of byte. Very similar API to our
  * IntVector class (same API); different internal storage.
- * 
+ *
  * This version uses an array-of-arrays solution. Read/write access is thus
  * a bit slower than the simple IntVector, and basic storage is a trifle
  * higher due to the top-level array -- but appending is O(1) fast rather
  * than O(N**2) slow, which will swamp those costs in situations where
  * long vectors are being built up.
- * 
+ *
  * Known issues:
- * 
+ *
  * Some methods are private because they haven't yet been tested properly.
- * 
+ *
  * If an element has not been set (because we skipped it), its value will
  * initially be 0. Shortening the vector does not clear old storage; if you
  * then skip values and setElementAt a higher index again, you may see old data
@@ -43,10 +47,10 @@ public class SuballocatedByteVector
 {
   /** Size of blocks to allocate          */
   protected int m_blocksize;
-  
+
   /** Number of blocks to (over)allocate by */
   protected  int m_numblocks=32;
-  
+
   /** Array of arrays of bytes          */
   protected byte m_map[][];
 
@@ -77,7 +81,7 @@ public class SuballocatedByteVector
     m_map = new byte[m_numblocks][];
     m_map[0]=m_map0;
   }
-  
+
   /**
    * Construct a ByteVector, using the given block size.
    *
@@ -99,7 +103,7 @@ public class SuballocatedByteVector
   {
     return m_firstFree;
   }
-  
+
   /**
    * Set the length of the list.
    *
@@ -114,7 +118,7 @@ public class SuballocatedByteVector
   /**
    * Append a byte onto the vector.
    *
-   * @param value Byte to add to the list 
+   * @param value Byte to add to the list
    */
   public  void addElement(byte value)
   {
@@ -139,16 +143,16 @@ public class SuballocatedByteVector
       block[offset]=value;
     }
   }
-  
+
   /**
    * Append several byte values onto the vector.
    *
-   * @param value Byte to add to the list 
+   * @param value Byte to add to the list
    */
   private  void addElements(byte value, int numberOfElements)
   {
     if(m_firstFree+numberOfElements<m_blocksize)
-      for (int i = 0; i < numberOfElements; i++) 
+      for (int i = 0; i < numberOfElements; i++)
       {
         m_map0[m_firstFree++]=value;
       }
@@ -179,7 +183,7 @@ public class SuballocatedByteVector
       }
     }
   }
-  
+
   /**
    * Append several slots onto the vector, but do not set the values.
    * Note: "Not Set" means the value is unspecified.
@@ -198,7 +202,7 @@ public class SuballocatedByteVector
     }
     m_firstFree=newlen;
   }
-  
+
   /**
    * Inserts the specified node in this vector at the specified index.
    * Each component in this vector with an index greater or equal to
@@ -208,7 +212,7 @@ public class SuballocatedByteVector
    * Insertion may be an EXPENSIVE operation!
    *
    * @param value Byte to insert
-   * @param at Index of where to insert 
+   * @param at Index of where to insert
    */
   private  void insertElementAt(byte value, int at)
   {
@@ -238,7 +242,7 @@ public class SuballocatedByteVector
       ++m_firstFree;
       int offset=at%m_blocksize;
       byte push;
-      
+
       // ***** Easier to work down from top?
       while(index<=maxindex)
       {
@@ -263,7 +267,7 @@ public class SuballocatedByteVector
   }
 
   /**
-   * Wipe it out. 
+   * Wipe it out.
    */
   public void removeAllElements()
   {
@@ -300,13 +304,13 @@ public class SuballocatedByteVector
    */
   private  void removeElementAt(int at)
   {
-    // No point in removing elements that "don't exist"...  
+    // No point in removing elements that "don't exist"...
     if(at<m_firstFree)
     {
       int index=at/m_blocksize;
       int maxindex=m_firstFree/m_blocksize;
       int offset=at%m_blocksize;
-      
+
       while(index<=maxindex)
       {
         int copylen=m_blocksize-offset-1;
@@ -350,7 +354,7 @@ public class SuballocatedByteVector
 
     int index=at/m_blocksize;
     int offset=at%m_blocksize;
-        
+
     if(index>=m_map.length)
     {
       int newsize=index+m_numblocks;
@@ -426,12 +430,12 @@ public class SuballocatedByteVector
   {
     if(index>=m_firstFree)
       return -1;
-          
+
     int bindex=index/m_blocksize;
     int boffset=index%m_blocksize;
     int maxindex=m_firstFree/m_blocksize;
     byte[] block;
-    
+
     for(;bindex<maxindex;++bindex)
     {
       block=m_map[bindex];
@@ -448,7 +452,7 @@ public class SuballocatedByteVector
       if(block[offset]==elem)
         return offset+maxindex*m_blocksize;
 
-    return -1;    
+    return -1;
   }
 
   /**

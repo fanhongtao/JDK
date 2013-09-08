@@ -1,8 +1,26 @@
 /*
- * @(#)StreamCorruptedException.java	1.17 05/11/17
+ * Copyright (c) 1996, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -12,7 +30,6 @@ package java.io;
  * violates internal consistency checks.
  *
  * @author  unascribed
- * @version 1.17, 11/17/05
  * @since   JDK1.1
  */
 public class StreamCorruptedException extends ObjectStreamException {
@@ -25,13 +42,13 @@ public class StreamCorruptedException extends ObjectStreamException {
      * @param reason  String describing the reason for the exception.
      */
     public StreamCorruptedException(String reason) {
-	super(reason);
+        super(reason);
     }
 
     /**
      * Create a StreamCorruptedException and list no reason why thrown.
      */
     public StreamCorruptedException() {
-	super();
+        super();
     }
 }

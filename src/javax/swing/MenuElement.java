@@ -1,8 +1,26 @@
 /*
- * @(#)MenuElement.java	1.13 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -14,12 +32,11 @@ import java.awt.event.*;
  * This interface is used by <code>MenuSelectionManager</code>
  * to handle selection and navigation in menu hierarchies.
  *
- * @version 1.13 11/17/05
  * @author Arnaud Weber
  */
 
 public interface MenuElement {
-    
+
     /**
      * Processes a mouse event. <code>event</code> is a <code>MouseEvent</code>
      * with source being the receiving element's component.
@@ -37,13 +54,13 @@ public interface MenuElement {
 
 
     /**
-     *  Process a key event. 
+     *  Process a key event.
      */
     public void processKeyEvent(KeyEvent event,MenuElement path[],MenuSelectionManager manager);
 
     /**
      * Call by the <code>MenuSelectionManager</code> when the
-     * <code>MenuElement</code> is added or remove from 
+     * <code>MenuElement</code> is added or remove from
      * the menu selection.
      */
     public void menuSelectionChanged(boolean isIncluded);
@@ -54,7 +71,7 @@ public interface MenuElement {
      * @return an array of MenuElements
      */
     public MenuElement[] getSubElements();
-    
+
     /**
      * This method should return the java.awt.Component used to paint the receiving element.
      * The returned component will be used to convert events and detect if an event is inside
@@ -64,4 +81,3 @@ public interface MenuElement {
      */
     public Component getComponent();
 }
-

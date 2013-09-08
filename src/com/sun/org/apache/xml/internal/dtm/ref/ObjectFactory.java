@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +47,7 @@ import java.io.InputStreamReader;
  * class and modified to be used as a general utility for creating objects 
  * dynamically.
  *
- * @version $Id: ObjectFactory.java,v 1.2.4.1 2005/09/15 08:15:08 suresh_emailid Exp $
+ * @version $Id: ObjectFactory.java,v 1.7 2008/04/02 00:41:01 joehw Exp $
  */
 class ObjectFactory {
 
@@ -379,7 +383,9 @@ class ObjectFactory {
 
     /** Prints a message to standard error if debugging is enabled. */
     private static void debugPrintln(String msg) {
-        System.err.println("JAXP: " + msg);
+        if (DEBUG) {
+            System.err.println("JAXP: " + msg);
+        }
     } // debugPrintln(String)
 
     /**

@@ -1,68 +1,98 @@
 /*
- * @(#)SynthInternalFrameUI.java	1.22 06/03/28
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.synth;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.peer.LightweightPeer;
-
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
-import javax.swing.event.*;
-
 import java.beans.*;
-import java.io.Serializable;
-import sun.swing.plaf.synth.SynthUI;
 
 
 /**
- * Synth's InternalFrameUI.
+ * Provides the Synth L&F UI delegate for
+ * {@link javax.swing.JInternalFrame}.
  *
- * @version 1.22 03/28/06
  * @author David Kloba
  * @author Joshua Outwater
  * @author Rich Schiavi
+ * @since 1.7
  */
-class SynthInternalFrameUI extends BasicInternalFrameUI implements SynthUI,
-        PropertyChangeListener {
+public class SynthInternalFrameUI extends BasicInternalFrameUI
+                                  implements SynthUI, PropertyChangeListener {
     private SynthStyle style;
- 
-    private static DesktopManager sharedDesktopManager;
-    private boolean componentListenerAdded = false;
 
-    private Rectangle parentBounds;
-
+    /**
+     * Creates a new UI object for the given component.
+     *
+     * @param b component to create UI object for
+     * @return the UI object
+     */
     public static ComponentUI createUI(JComponent b) {
         return new SynthInternalFrameUI((JInternalFrame)b);
     }
 
-    public SynthInternalFrameUI(JInternalFrame b) {
+    protected SynthInternalFrameUI(JInternalFrame b) {
         super(b);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void installDefaults() {
         frame.setLayout(internalFrameLayout = createLayoutManager());
         updateStyle(frame);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installListeners() {
         super.installListeners();
         frame.addPropertyChangeListener(this);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallComponents() {
-	if (frame.getComponentPopupMenu() instanceof UIResource) {
-	    frame.setComponentPopupMenu(null);
-	}
-	super.uninstallComponents();
+        if (frame.getComponentPopupMenu() instanceof UIResource) {
+            frame.setComponentPopupMenu(null);
+        }
+        super.uninstallComponents();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallListeners() {
         frame.removePropertyChangeListener(this);
         super.uninstallListeners();
@@ -87,6 +117,10 @@ class SynthInternalFrameUI extends BasicInternalFrameUI implements SynthUI,
         context.dispose();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallDefaults() {
         SynthContext context = getContext(frame, ENABLED);
         style.uninstallDefaults(context);
@@ -98,6 +132,10 @@ class SynthInternalFrameUI extends BasicInternalFrameUI implements SynthUI,
 
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public SynthContext getContext(JComponent c) {
         return getContext(c, getComponentState(c));
     }
@@ -107,50 +145,67 @@ class SynthInternalFrameUI extends BasicInternalFrameUI implements SynthUI,
                             SynthLookAndFeel.getRegion(c), style, state);
     }
 
-    private Region getRegion(JComponent c) {
-        return SynthLookAndFeel.getRegion(c);
-    }
-
-    public int getComponentState(JComponent c) {
+    private int getComponentState(JComponent c) {
         return SynthLookAndFeel.getComponentState(c);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected JComponent createNorthPane(JInternalFrame w) {
         titlePane = new SynthInternalFrameTitlePane(w);
-	titlePane.setName("InternalFrame.northPane");
+        titlePane.setName("InternalFrame.northPane");
         return titlePane;
     }
-    
-    protected ComponentListener createComponentListener() {
-	if (UIManager.getBoolean("InternalFrame.useTaskBar")) {
-	    return new ComponentHandler() {
-		public void componentResized(ComponentEvent e) {
-		    if (frame != null && frame.isMaximum()) {
-			JDesktopPane desktop = (JDesktopPane)e.getSource();
-			for (Component comp : desktop.getComponents()) {
-			    if (comp instanceof SynthDesktopPaneUI.TaskBar) {
-				frame.setBounds(0, 0,
-						desktop.getWidth(),
-						desktop.getHeight() - comp.getHeight());
-				frame.revalidate();
-				break;
-			    }
-			}
-		    }
 
-		    // Update the new parent bounds for next resize, but don't
-		    // let the super method touch this frame
-		    JInternalFrame f = frame;
-		    frame = null;
-		    super.componentResized(e);
-		    frame = f;
-		}
-	    };
-	} else {
-	    return super.createComponentListener();
-	}
+    /**
+     * @inheritDoc
+     */
+    @Override
+    protected ComponentListener createComponentListener() {
+        if (UIManager.getBoolean("InternalFrame.useTaskBar")) {
+            return new ComponentHandler() {
+                @Override public void componentResized(ComponentEvent e) {
+                    if (frame != null && frame.isMaximum()) {
+                        JDesktopPane desktop = (JDesktopPane)e.getSource();
+                        for (Component comp : desktop.getComponents()) {
+                            if (comp instanceof SynthDesktopPaneUI.TaskBar) {
+                                frame.setBounds(0, 0,
+                                                desktop.getWidth(),
+                                                desktop.getHeight() - comp.getHeight());
+                                frame.revalidate();
+                                break;
+                            }
+                        }
+                    }
+
+                    // Update the new parent bounds for next resize, but don't
+                    // let the super method touch this frame
+                    JInternalFrame f = frame;
+                    frame = null;
+                    super.componentResized(e);
+                    frame = f;
+                }
+            };
+        } else {
+            return super.createComponentListener();
+        }
     }
 
+    /**
+     * Notifies this UI delegate to repaint the specified component.
+     * This method paints the component background, then calls
+     * the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * <p>In general, this method does not need to be overridden by subclasses.
+     * All Look and Feel rendering code should reside in the {@code paint} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void update(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -161,6 +216,16 @@ class SynthInternalFrameUI extends BasicInternalFrameUI implements SynthUI,
         context.dispose();
     }
 
+    /**
+     * Paints the specified component according to the Look and Feel.
+     * <p>This method is not used by Synth Look and Feel.
+     * Painting is handled by the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void paint(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -168,15 +233,30 @@ class SynthInternalFrameUI extends BasicInternalFrameUI implements SynthUI,
         context.dispose();
     }
 
+    /**
+     * Paints the specified component. This implementation does nothing.
+     *
+     * @param context context for the component being painted
+     * @param g the {@code Graphics} object used for painting
+     * @see #update(Graphics,JComponent)
+     */
     protected void paint(SynthContext context, Graphics g) {
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
         context.getPainter().paintInternalFrameBorder(context,
                                                             g, x, y, w, h);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void propertyChange(PropertyChangeEvent evt) {
         SynthStyle oldStyle = style;
         JInternalFrame f = (JInternalFrame)evt.getSource();

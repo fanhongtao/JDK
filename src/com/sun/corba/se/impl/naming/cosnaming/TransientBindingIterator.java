@@ -1,8 +1,26 @@
 /*
- * @(#)TransientBindingIterator.java	1.46 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.naming.cosnaming;
@@ -51,12 +69,12 @@ public class TransientBindingIterator extends BindingIteratorImpl
    */
     public TransientBindingIterator(ORB orb, Hashtable aTable,
         POA thePOA )
-	throws java.lang.Exception
+        throws java.lang.Exception
     {
-	super(orb);
-	theHashtable = aTable;
-	theEnumeration = this.theHashtable.elements();
-	currentSize = this.theHashtable.size();
+        super(orb);
+        theHashtable = aTable;
+        theEnumeration = this.theHashtable.elements();
+        currentSize = this.theHashtable.size();
         this.nsPOA = thePOA;
     }
 
@@ -69,33 +87,33 @@ public class TransientBindingIterator extends BindingIteratorImpl
    */
     final public boolean NextOne(org.omg.CosNaming.BindingHolder b)
     {
-	// If there are more elements get the next element
-	boolean hasMore = theEnumeration.hasMoreElements();
-	if (hasMore) {
-	    b.value =
-		((InternalBindingValue)theEnumeration.nextElement()).theBinding;
-	    currentSize--;
-	} else {
-	    // Return empty but marshalable binding
-	    b.value = new Binding(new NameComponent[0],BindingType.nobject);
-	}
-	return hasMore;
+        // If there are more elements get the next element
+        boolean hasMore = theEnumeration.hasMoreElements();
+        if (hasMore) {
+            b.value =
+                ((InternalBindingValue)theEnumeration.nextElement()).theBinding;
+            currentSize--;
+        } else {
+            // Return empty but marshalable binding
+            b.value = new Binding(new NameComponent[0],BindingType.nobject);
+        }
+        return hasMore;
     }
 
     /**
      * Destroys this BindingIterator by disconnecting from the ORB
-     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA 
+     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA
      * system exceptions.
      */
     final public void Destroy()
     {
-	// Remove the object from the Active Object Map.
+        // Remove the object from the Active Object Map.
         try {
             byte[] objectId = nsPOA.servant_to_id( this );
             if( objectId != null ) {
                 nsPOA.deactivate_object( objectId );
             }
-        } 
+        }
         catch( Exception e ) {
             NamingUtils.errprint("BindingIterator.Destroy():caught exception:");
             NamingUtils.printException(e);
@@ -104,10 +122,10 @@ public class TransientBindingIterator extends BindingIteratorImpl
 
     /**
      * Returns the remaining number of elements in the iterator.
-     * @return the remaining number of elements in the iterator.   
+     * @return the remaining number of elements in the iterator.
      */
     public final int RemainingElements() {
-	return currentSize;
+        return currentSize;
     }
 
     private int currentSize;

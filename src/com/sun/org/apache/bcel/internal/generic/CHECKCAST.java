@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -54,11 +58,10 @@ package com.sun.org.apache.bcel.internal.generic;
  * <http://www.apache.org/>.
  */
 import com.sun.org.apache.bcel.internal.ExceptionConstants;
-/** 
+/**
  * CHECKCAST - Check whether object is of given type
  * <PRE>Stack: ..., objectref -&gt; ..., objectref</PRE>
  *
- * @version $Id: CHECKCAST.java,v 1.1.2.1 2005/07/31 23:44:46 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class CHECKCAST extends CPInstruction
@@ -82,7 +85,7 @@ public class CHECKCAST extends CPInstruction
     Class[] cs = new Class[1 + ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION.length];
 
     System.arraycopy(ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION, 0,
-		     cs, 0, ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION.length);
+                     cs, 0, ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION.length);
     cs[ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION.length] =
       ExceptionConstants.CLASS_CAST_EXCEPTION;
     return cs;

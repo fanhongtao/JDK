@@ -1,8 +1,26 @@
 /*
- * @(#)splashscreen_stubs.c	1.5 05/11/17
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 #include <stdio.h>
@@ -17,7 +35,7 @@ typedef int (*SplashLoadMemory_t)(void* pdata, int size);
 typedef int (*SplashLoadFile_t)(const char* filename);
 typedef void (*SplashInit_t)(void);
 typedef void (*SplashClose_t)(void);
-typedef void (*SplashSetFileJarName_t)(const char* fileName, 
+typedef void (*SplashSetFileJarName_t)(const char* fileName,
                                        const char* jarName);
 
 /*
@@ -37,7 +55,7 @@ typedef void (*SplashSetFileJarName_t)(const char* fileName,
     ret ((name##_t)proc)
 
 #define INVOKE(name,def) _INVOKE(name,def,return)
-#define INVOKEV(name) _INVOKE(name,;,;)
+#define INVOKEV(name) _INVOKE(name, ,;)
 
 int     DoSplashLoadMemory(void* pdata, int size) {
     INVOKE(SplashLoadMemory,0)(pdata, size);

@@ -1,15 +1,32 @@
 /*
- * @(#)TexturePaint.java	1.40 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
 
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 
@@ -22,13 +39,13 @@ import java.awt.image.ColorModel;
  * At construction time, the texture is anchored to the upper
  * left corner of a {@link Rectangle2D} that is
  * specified in user space.  Texture is computed for
- * locations in the device space by conceptually replicating the   
+ * locations in the device space by conceptually replicating the
  * specified <code>Rectangle2D</code> infinitely in all directions
  * in user space and mapping the <code>BufferedImage</code> to each
  * replicated <code>Rectangle2D</code>.
  * @see Paint
  * @see Graphics2D#setPaint
- * @version 1.40, 11/17/05
+ * @version 1.48, 06/05/07
  */
 
 public class TexturePaint implements Paint {
@@ -47,21 +64,21 @@ public class TexturePaint implements Paint {
      * anchor and replicate the texture
      */
     public TexturePaint(BufferedImage txtr,
-			Rectangle2D anchor) {
+                        Rectangle2D anchor) {
         this.bufImg = txtr;
-	this.tx = anchor.getX();
-	this.ty = anchor.getY();
-	this.sx = anchor.getWidth() / bufImg.getWidth();
-	this.sy = anchor.getHeight() / bufImg.getHeight();
+        this.tx = anchor.getX();
+        this.ty = anchor.getY();
+        this.sx = anchor.getWidth() / bufImg.getWidth();
+        this.sy = anchor.getHeight() / bufImg.getHeight();
     }
 
     /**
-     * Returns the <code>BufferedImage</code> texture used to 
+     * Returns the <code>BufferedImage</code> texture used to
      * fill the shapes.
      * @return a <code>BufferedImage</code>.
      */
     public BufferedImage getImage() {
-	return bufImg;
+        return bufImg;
     }
 
     /**
@@ -71,48 +88,60 @@ public class TexturePaint implements Paint {
      * size this <code>TexturePaint</code>.
      */
     public Rectangle2D getAnchorRect() {
-	return new Rectangle2D.Double(tx, ty,
-				      sx * bufImg.getWidth(),
-				      sy * bufImg.getHeight());
+        return new Rectangle2D.Double(tx, ty,
+                                      sx * bufImg.getWidth(),
+                                      sy * bufImg.getHeight());
     }
 
     /**
-     * Creates and returns a context used to generate the color pattern.
-     * @param cm the {@link ColorModel} that receives the
-     * <code>Paint</code> data. This is used only as a hint.
-     * @param deviceBounds the device space bounding box of the graphics
-     * primitive being rendered
-     * @param userBounds the user space bounding box of the graphics
-     * primitive being rendered
-     * @param xform the {@link AffineTransform} from user space
-     *          into device space
-     * @param hints a {@link RenderingHints} object that can be used to
-     *          specify how the pattern is ultimately rendered
-     * @return the {@link PaintContext} used for generating color
-     *          patterns.
+     * Creates and returns a {@link PaintContext} used to
+     * generate a tiled image pattern.
+     * See the {@link Paint#createContext specification} of the
+     * method in the {@link Paint} interface for information
+     * on null parameter handling.
+     *
+     * @param cm the preferred {@link ColorModel} which represents the most convenient
+     *           format for the caller to receive the pixel data, or {@code null}
+     *           if there is no preference.
+     * @param deviceBounds the device space bounding box
+     *                     of the graphics primitive being rendered.
+     * @param userBounds the user space bounding box
+     *                   of the graphics primitive being rendered.
+     * @param xform the {@link AffineTransform} from user
+     *              space into device space.
+     * @param hints the set of hints that the context object can use to
+     *              choose between rendering alternatives.
+     * @return the {@code PaintContext} for
+     *         generating color patterns.
+     * @see Paint
      * @see PaintContext
+     * @see ColorModel
+     * @see Rectangle
+     * @see Rectangle2D
+     * @see AffineTransform
+     * @see RenderingHints
      */
     public PaintContext createContext(ColorModel cm,
-				      Rectangle deviceBounds,
-				      Rectangle2D userBounds,
-				      AffineTransform xform,
+                                      Rectangle deviceBounds,
+                                      Rectangle2D userBounds,
+                                      AffineTransform xform,
                                       RenderingHints hints) {
-	if (xform == null) {
-	    xform = new AffineTransform();
-	} else {
-	    xform = (AffineTransform) xform.clone();
-	}
-	xform.translate(tx, ty);
-	xform.scale(sx, sy);
+        if (xform == null) {
+            xform = new AffineTransform();
+        } else {
+            xform = (AffineTransform) xform.clone();
+        }
+        xform.translate(tx, ty);
+        xform.scale(sx, sy);
 
-	return TexturePaintContext.getContext(bufImg, xform, hints,
-					      deviceBounds);
+        return TexturePaintContext.getContext(bufImg, xform, hints,
+                                              deviceBounds);
     }
 
     /**
      * Returns the transparency mode for this <code>TexturePaint</code>.
      * @return the transparency mode for this <code>TexturePaint</code>
-     * as an integer value. 
+     * as an integer value.
      * @see Transparency
      */
     public int getTransparency() {
@@ -120,4 +149,3 @@ public class TexturePaint implements Paint {
     }
 
 }
-

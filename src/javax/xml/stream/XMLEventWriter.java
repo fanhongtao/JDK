@@ -1,3 +1,31 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream;
 
 import javax.xml.stream.events.*;
@@ -8,11 +36,11 @@ import javax.xml.namespace.NamespaceContext;
  *
  * This is the top level interface for writing XML documents.
  *
- * Instances of this interface are not required to validate the 
- * form of the XML.  
+ * Instances of this interface are not required to validate the
+ * form of the XML.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see XMLEventReader
  * @see javax.xml.stream.events.XMLEvent
  * @see javax.xml.stream.events.Characters
@@ -37,13 +65,13 @@ public interface XMLEventWriter extends XMLEventConsumer {
 
   /**
    * Add an event to the output stream
-   * Adding a START_ELEMENT will open a new namespace scope that 
+   * Adding a START_ELEMENT will open a new namespace scope that
    * will be closed when the corresponding END_ELEMENT is written.
    * <table border="2" rules="all" cellpadding="4">
    *   <thead>
    *     <tr>
    *       <th align="center" colspan="2">
-   *         Required and optional fields for events added to the writer 
+   *         Required and optional fields for events added to the writer
    *       </th>
    *     </tr>
    *   </thead>
@@ -58,20 +86,20 @@ public interface XMLEventWriter extends XMLEventConsumer {
    *       <td> START_ELEMENT  </td>
    *       <td> QName name </td>
    *       <td> namespaces , attributes </td>
-   *       <td> A START_ELEMENT will be written by writing the name, 
+   *       <td> A START_ELEMENT will be written by writing the name,
    *       namespaces, and attributes of the event in XML 1.0 valid
-   *       syntax for START_ELEMENTs.  
+   *       syntax for START_ELEMENTs.
    *       The name is written by looking up the prefix for
-   *       the namespace uri.  The writer can be configured to 
+   *       the namespace uri.  The writer can be configured to
    *       respect prefixes of QNames.  If the writer is respecting
    *       prefixes it must use the prefix set on the QName.  The
    *       default behavior is to lookup the value for the prefix
-   *       on the EventWriter's internal namespace context.   
+   *       on the EventWriter's internal namespace context.
    *       Each attribute (if any)
    *       is written using the behavior specified in the attribute
    *       section of this table.  Each namespace (if any) is written
    *       using the behavior specified in the namespace section of this
-   *       table. 
+   *       table.
    *       </td>
    *     </tr>
    *     <tr>
@@ -80,11 +108,11 @@ public interface XMLEventWriter extends XMLEventConsumer {
    *       <td> None </td>
    *       <td> A well formed END_ELEMENT tag is written.
    *       The name is written by looking up the prefix for
-   *       the namespace uri.  The writer can be configured to 
+   *       the namespace uri.  The writer can be configured to
    *       respect prefixes of QNames.  If the writer is respecting
    *       prefixes it must use the prefix set on the QName.  The
    *       default behavior is to lookup the value for the prefix
-   *       on the EventWriter's internal namespace context. 
+   *       on the EventWriter's internal namespace context.
    *       If the END_ELEMENT name does not match the START_ELEMENT
    *       name an XMLStreamException is thrown.
    *       </td>
@@ -102,16 +130,16 @@ public interface XMLEventWriter extends XMLEventConsumer {
    *     </tr>
    *     <tr>
    *       <td> NAMESPACE  </td>
-   *       <td> String prefix, String namespaceURI, 
+   *       <td> String prefix, String namespaceURI,
    *            boolean isDefaultNamespaceDeclaration
    *      </td>
    *       <td> None  </td>
-   *       <td> A namespace declaration is written.  If the 
+   *       <td> A namespace declaration is written.  If the
    *            namespace is a default namespace declaration
    *            (isDefault is true) then xmlns="$namespaceURI"
-   *            is written and the prefix is optional.  If 
+   *            is written and the prefix is optional.  If
    *            isDefault is false, the prefix must be declared
-   *            and the writer must prepend xmlns to the prefix 
+   *            and the writer must prepend xmlns to the prefix
    *            and write out a standard prefix declaration.
    *      </td>
    *     </tr>
@@ -120,10 +148,10 @@ public interface XMLEventWriter extends XMLEventConsumer {
    *       <td>   None</td>
    *       <td>   String target, String data</td>
    *       <td>   The data does not need to be present and may be
-   *              null.  Target is required and many not be null.  
+   *              null.  Target is required and many not be null.
    *              The writer
-   *              will write data section 
-   *              directly after the target, 
+   *              will write data section
+   *              directly after the target,
    *              enclosed in appropriate XML 1.0 syntax
    *      </td>
    *     </tr>
@@ -164,7 +192,7 @@ public interface XMLEventWriter extends XMLEventConsumer {
   public void add(XMLEvent event) throws XMLStreamException;
 
   /**
-   * Adds an entire stream to an output stream, 
+   * Adds an entire stream to an output stream,
    * calls next() on the inputStream argument until hasNext() returns false
    * This should be treated as a convenience method that will
    * perform the following loop over all the events in an
@@ -224,6 +252,5 @@ public interface XMLEventWriter extends XMLEventConsumer {
    */
   public NamespaceContext getNamespaceContext();
 
-  
-}
 
+}

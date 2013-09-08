@@ -1,16 +1,32 @@
 /*
- * @(#)TransientObjectManager.java	1.31 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.oa.toa;
@@ -21,56 +37,56 @@ import com.sun.corba.se.spi.orb.ORB ;
 public final class TransientObjectManager {
     private ORB orb ;
     private int maxSize = 128;
-    private Element[] elementArray; 
+    private Element[] elementArray;
     private Element freeList;
 
     void dprint( String msg ) {
-	ORBUtility.dprint( this, msg ) ;
+        ORBUtility.dprint( this, msg ) ;
     }
 
     public TransientObjectManager( ORB orb )
     {
-	this.orb = orb ;
+        this.orb = orb ;
 
         elementArray = new Element[maxSize];
         elementArray[maxSize-1] = new Element(maxSize-1,null);
-        for ( int i=maxSize-2; i>=0; i-- ) 
+        for ( int i=maxSize-2; i>=0; i-- )
             elementArray[i] = new Element(i,elementArray[i+1]);
         freeList = elementArray[0];
     }
 
     public synchronized byte[] storeServant(java.lang.Object servant, java.lang.Object servantData)
     {
-        if ( freeList == null ) 
+        if ( freeList == null )
             doubleSize();
 
         Element elem = freeList;
         freeList = (Element)freeList.servant;
-        
+
         byte[] result = elem.getKey(servant, servantData);
-	if (orb.transientObjectManagerDebugFlag)
-	    dprint( "storeServant returns key for element " + elem ) ;
-	return result ;
+        if (orb.transientObjectManagerDebugFlag)
+            dprint( "storeServant returns key for element " + elem ) ;
+        return result ;
     }
 
-    public synchronized java.lang.Object lookupServant(byte transientKey[]) 
+    public synchronized java.lang.Object lookupServant(byte transientKey[])
     {
         int index = ORBUtility.bytesToInt(transientKey,0);
         int counter = ORBUtility.bytesToInt(transientKey,4);
 
-	if (orb.transientObjectManagerDebugFlag)
-	    dprint( "lookupServant called with index=" + index + ", counter=" + counter ) ;
+        if (orb.transientObjectManagerDebugFlag)
+            dprint( "lookupServant called with index=" + index + ", counter=" + counter ) ;
 
         if (elementArray[index].counter == counter &&
             elementArray[index].valid ) {
-	    if (orb.transientObjectManagerDebugFlag)
-	        dprint( "\tcounter is valid" ) ;
+            if (orb.transientObjectManagerDebugFlag)
+                dprint( "\tcounter is valid" ) ;
             return elementArray[index].servant;
-	}
+        }
 
-        // servant not found 
-	if (orb.transientObjectManagerDebugFlag)
-	    dprint( "\tcounter is invalid" ) ;
+        // servant not found
+        if (orb.transientObjectManagerDebugFlag)
+            dprint( "\tcounter is invalid" ) ;
         return null;
     }
 
@@ -79,27 +95,27 @@ public final class TransientObjectManager {
         int index = ORBUtility.bytesToInt(transientKey,0);
         int counter = ORBUtility.bytesToInt(transientKey,4);
 
-	if (orb.transientObjectManagerDebugFlag)
-	    dprint( "lookupServantData called with index=" + index + ", counter=" + counter ) ;
+        if (orb.transientObjectManagerDebugFlag)
+            dprint( "lookupServantData called with index=" + index + ", counter=" + counter ) ;
 
         if (elementArray[index].counter == counter &&
             elementArray[index].valid ) {
-	    if (orb.transientObjectManagerDebugFlag)
-	        dprint( "\tcounter is valid" ) ;
+            if (orb.transientObjectManagerDebugFlag)
+                dprint( "\tcounter is valid" ) ;
             return elementArray[index].servantData;
-	}
+        }
 
-        // servant not found 
-	if (orb.transientObjectManagerDebugFlag)
-	    dprint( "\tcounter is invalid" ) ;
+        // servant not found
+        if (orb.transientObjectManagerDebugFlag)
+            dprint( "\tcounter is invalid" ) ;
         return null;
     }
 
     public synchronized void deleteServant(byte transientKey[])
     {
         int index = ORBUtility.bytesToInt(transientKey,0);
-	if (orb.transientObjectManagerDebugFlag)
-	    dprint( "deleting servant at index=" + index ) ;
+        if (orb.transientObjectManagerDebugFlag)
+            dprint( "deleting servant at index=" + index ) ;
 
         elementArray[index].delete(freeList);
         freeList = elementArray[index];
@@ -108,12 +124,12 @@ public final class TransientObjectManager {
     public synchronized byte[] getKey(java.lang.Object servant)
     {
         for ( int i=0; i<maxSize; i++ )
-            if ( elementArray[i].valid && 
+            if ( elementArray[i].valid &&
                  elementArray[i].servant == servant )
                 return elementArray[i].toBytes();
 
         // if we come here Object does not exist
-	return null;
+        return null;
     }
 
     private void doubleSize()
@@ -126,10 +142,10 @@ public final class TransientObjectManager {
         elementArray = new Element[maxSize];
 
         for ( int i=0; i<oldSize; i++ )
-            elementArray[i] = old[i];    
+            elementArray[i] = old[i];
 
         elementArray[maxSize-1] = new Element(maxSize-1,null);
-        for ( int i=maxSize-2; i>=oldSize; i-- ) 
+        for ( int i=maxSize-2; i>=oldSize; i-- )
             elementArray[i] = new Element(i,elementArray[i+1]);
         freeList = elementArray[oldSize];
     }
@@ -138,9 +154,9 @@ public final class TransientObjectManager {
 
 final class Element {
     java.lang.Object servant=null;     // also stores "next pointer" in free list
-    java.lang.Object servantData=null;    
+    java.lang.Object servantData=null;
     int index=-1;
-    int counter=0; 
+    int counter=0;
     boolean valid=false; // valid=true if this Element contains
     // a valid servant
 
@@ -160,7 +176,7 @@ final class Element {
     }
 
     byte[] toBytes()
-    {    
+    {
         // Convert the index+counter into an 8-byte (big-endian) key.
 
         byte key[] = new byte[8];
@@ -182,9 +198,8 @@ final class Element {
         servant = freeList;
     }
 
-    public String toString() 
+    public String toString()
     {
-	return "Element[" + index + ", " + counter + "]" ;
+        return "Element[" + index + ", " + counter + "]" ;
     }
 }
-

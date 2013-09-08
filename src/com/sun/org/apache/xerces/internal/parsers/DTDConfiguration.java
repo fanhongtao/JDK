@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,6 +34,9 @@ import com.sun.org.apache.xerces.internal.impl.dtd.XMLDTDValidator;
 import com.sun.org.apache.xerces.internal.impl.dv.DTDDVFactory;
 import com.sun.org.apache.xerces.internal.impl.msg.XMLMessageFormatter;
 import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
+import com.sun.org.apache.xerces.internal.util.FeatureState;
+import com.sun.org.apache.xerces.internal.util.PropertyState;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.xni.XMLLocator;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
@@ -79,7 +86,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLPullParserConfiguration;
  * @author Andy Clark, IBM
  * @author Neil Graham, IBM
  *
- * @version $Id: DTDConfiguration.java,v 1.2.6.1 2005/09/06 13:28:49 sunithareddy Exp $
+ * @version $Id: DTDConfiguration.java,v 1.7 2010-11-01 04:40:09 joehw Exp $
  */
 public class DTDConfiguration
     extends BasicParserConfiguration 
@@ -167,12 +174,15 @@ public class DTDConfiguration
     
     /** Property identifier: JAXP schema language / DOM schema-type. */
     protected static final String JAXP_SCHEMA_LANGUAGE =
-    Constants.JAXP_PROPERTY_PREFIX + Constants.SCHEMA_LANGUAGE;
+        Constants.JAXP_PROPERTY_PREFIX + Constants.SCHEMA_LANGUAGE;
 
     /** Property identifier: JAXP schema source/ DOM schema-location. */
     protected static final String JAXP_SCHEMA_SOURCE =
-    Constants.JAXP_PROPERTY_PREFIX + Constants.SCHEMA_SOURCE;
+        Constants.JAXP_PROPERTY_PREFIX + Constants.SCHEMA_SOURCE;
 
+    /** Property identifier: locale. */
+    protected static final String LOCALE =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.LOCALE_PROPERTY;
 
     // debugging
 
@@ -317,7 +327,8 @@ public class DTDConfiguration
             DATATYPE_VALIDATOR_FACTORY,
             VALIDATION_MANAGER,
             JAXP_SCHEMA_SOURCE,
-            JAXP_SCHEMA_LANGUAGE
+            JAXP_SCHEMA_LANGUAGE,
+            LOCALE
         };
         addRecognizedProperties(recognizedProperties);
 
@@ -400,6 +411,22 @@ public class DTDConfiguration
     //
     // Public methods
     //
+
+    public PropertyState getPropertyState(String propertyId)
+        throws XMLConfigurationException {
+        if (LOCALE.equals(propertyId)) {
+            return PropertyState.is(getLocale());
+        }
+        return super.getPropertyState(propertyId);
+    }
+
+    public void setProperty(String propertyId, Object value)
+        throws XMLConfigurationException {
+        if (LOCALE.equals(propertyId)) {
+            setLocale((Locale) value);
+        }
+        super.setProperty(propertyId, value);
+    }
 
     /**
      * Set the locale to use for messages.
@@ -691,7 +718,7 @@ public class DTDConfiguration
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkFeature(String featureId)
+    protected FeatureState checkFeature(String featureId)
         throws XMLConfigurationException {
 
         //
@@ -709,7 +736,7 @@ public class DTDConfiguration
             //
             if (suffixLength == Constants.DYNAMIC_VALIDATION_FEATURE.length() && 
                 featureId.endsWith(Constants.DYNAMIC_VALIDATION_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
 
             //
@@ -718,8 +745,7 @@ public class DTDConfiguration
             if (suffixLength == Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE.length() &&
                 featureId.endsWith(Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE)) {
                 // REVISIT
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
             //
             // http://apache.org/xml/features/validation/default-attribute-values
@@ -727,22 +753,21 @@ public class DTDConfiguration
             if (suffixLength == Constants.VALIDATE_CONTENT_MODELS_FEATURE.length() && 
                 featureId.endsWith(Constants.VALIDATE_CONTENT_MODELS_FEATURE)) {
                 // REVISIT
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
             //
             // http://apache.org/xml/features/validation/nonvalidating/load-dtd-grammar
             //
             if (suffixLength == Constants.LOAD_DTD_GRAMMAR_FEATURE.length() && 
                 featureId.endsWith(Constants.LOAD_DTD_GRAMMAR_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
             //
             // http://apache.org/xml/features/validation/nonvalidating/load-external-dtd
             //
             if (suffixLength == Constants.LOAD_EXTERNAL_DTD_FEATURE.length() && 
                 featureId.endsWith(Constants.LOAD_EXTERNAL_DTD_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
 
             //
@@ -750,8 +775,7 @@ public class DTDConfiguration
             //
             if (suffixLength == Constants.VALIDATE_DATATYPES_FEATURE.length() && 
                 featureId.endsWith(Constants.VALIDATE_DATATYPES_FEATURE)) {
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
         }
 
@@ -759,7 +783,7 @@ public class DTDConfiguration
         // Not recognized
         //
 
-        super.checkFeature(featureId);
+        return super.checkFeature(featureId);
 
     } // checkFeature(String)
 
@@ -776,7 +800,7 @@ public class DTDConfiguration
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkProperty(String propertyId)
+    protected PropertyState checkProperty(String propertyId)
         throws XMLConfigurationException {
 
         //
@@ -788,7 +812,7 @@ public class DTDConfiguration
 
             if (suffixLength == Constants.DTD_SCANNER_PROPERTY.length() && 
                 propertyId.endsWith(Constants.DTD_SCANNER_PROPERTY)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
         }
 
@@ -796,7 +820,7 @@ public class DTDConfiguration
         // Not recognized
         //
 
-        super.checkProperty(propertyId);
+        return super.checkProperty(propertyId);
 
     } // checkProperty(String)
 

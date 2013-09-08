@@ -1,8 +1,26 @@
 /*
- * @(#)LayoutFocusTraversalPolicy.java	1.13 09/04/13
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -12,6 +30,7 @@ import java.awt.ComponentOrientation;
 import java.util.Comparator;
 import java.io.*;
 import sun.awt.SunToolkit;
+
 
 /**
  * A SortingFocusTraversalPolicy which sorts Components based on their size,
@@ -23,7 +42,6 @@ import sun.awt.SunToolkit;
  * <code>ComponentOrientation</code> for more information. All columns in a
  * row are fully traversed before proceeding to the next row.
  *
- * @version 1.13, 04/13/09
  * @author David Mendenhall
  *
  * @see java.awt.ComponentOrientation
@@ -35,21 +53,21 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
     // Delegate most of our fitness test to Default so that we only have to
     // code the algorithm once.
     private static final SwingDefaultFocusTraversalPolicy fitnessTestPolicy =
-	new SwingDefaultFocusTraversalPolicy();
+        new SwingDefaultFocusTraversalPolicy();
 
     /**
      * Constructs a LayoutFocusTraversalPolicy.
      */
     public LayoutFocusTraversalPolicy() {
-	super(new LayoutComparator());
+        super(new LayoutComparator());
     }
 
     /**
      * Constructs a LayoutFocusTraversalPolicy with the passed in
      * <code>Comparator</code>.
      */
-    LayoutFocusTraversalPolicy(Comparator c) {
-	super(c);
+    LayoutFocusTraversalPolicy(Comparator<? super Component> c) {
+        super(c);
     }
 
     /**
@@ -79,12 +97,12 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
         if (aContainer == null || aComponent == null) {
             throw new IllegalArgumentException("aContainer and aComponent cannot be null");
         }
-	Comparator comparator = getComparator();
-	if (comparator instanceof LayoutComparator) {
-	    ((LayoutComparator)comparator).
+        Comparator comparator = getComparator();
+        if (comparator instanceof LayoutComparator) {
+            ((LayoutComparator)comparator).
                 setComponentOrientation(aContainer.
-					getComponentOrientation());
-	}
+                                        getComponentOrientation());
+        }
         return super.getComponentAfter(aContainer, aComponent);
     }
 
@@ -115,12 +133,12 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
         if (aContainer == null || aComponent == null) {
             throw new IllegalArgumentException("aContainer and aComponent cannot be null");
         }
-	Comparator comparator = getComparator();
-	if (comparator instanceof LayoutComparator) {
-	    ((LayoutComparator)comparator).
+        Comparator comparator = getComparator();
+        if (comparator instanceof LayoutComparator) {
+            ((LayoutComparator)comparator).
                 setComponentOrientation(aContainer.
-					getComponentOrientation());
-	}
+                                        getComponentOrientation());
+        }
         return super.getComponentBefore(aContainer, aComponent);
     }
 
@@ -139,12 +157,12 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
         if (aContainer == null) {
             throw new IllegalArgumentException("aContainer cannot be null");
         }
-	Comparator comparator = getComparator();
-	if (comparator instanceof LayoutComparator) {
-	    ((LayoutComparator)comparator).
+        Comparator comparator = getComparator();
+        if (comparator instanceof LayoutComparator) {
+            ((LayoutComparator)comparator).
                 setComponentOrientation(aContainer.
-					getComponentOrientation());
-	}
+                                        getComponentOrientation());
+        }
         return super.getFirstComponent(aContainer);
     }
 
@@ -163,25 +181,25 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
         if (aContainer == null) {
             throw new IllegalArgumentException("aContainer cannot be null");
         }
-	Comparator comparator = getComparator();
-	if (comparator instanceof LayoutComparator) {
-	    ((LayoutComparator)comparator).
+        Comparator comparator = getComparator();
+        if (comparator instanceof LayoutComparator) {
+            ((LayoutComparator)comparator).
                 setComponentOrientation(aContainer.
-					getComponentOrientation());
-	}
+                                        getComponentOrientation());
+        }
         return super.getLastComponent(aContainer);
     }
 
-    /**  
+    /**
      * Determines whether the specified <code>Component</code>
      * is an acceptable choice as the new focus owner.
-     * This method performs the following sequence of operations: 
+     * This method performs the following sequence of operations:
      * <ol>
      * <li>Checks whether <code>aComponent</code> is visible, displayable,
      *     enabled, and focusable.  If any of these properties is
      *     <code>false</code>, this method returns <code>false</code>.
-     * <li>If <code>aComponent</code> is an instance of <code>JTable</code>, 
-     *     returns <code>true</code>.  
+     * <li>If <code>aComponent</code> is an instance of <code>JTable</code>,
+     *     returns <code>true</code>.
      * <li>If <code>aComponent</code> is an instance of <code>JComboBox</code>,
      *     then returns the value of
      *     <code>aComponent.getUI().isFocusTraversable(aComponent)</code>.
@@ -189,40 +207,40 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
      *     with a <code>JComponent.WHEN_FOCUSED</code>
      *     <code>InputMap</code> that is neither <code>null</code>
      *     nor empty, returns <code>true</code>.
-     * <li>Returns the value of 
+     * <li>Returns the value of
      *     <code>DefaultFocusTraversalPolicy.accept(aComponent)</code>.
      * </ol>
-     *   
+     *
      * @param aComponent the <code>Component</code> whose fitness
      *                   as a focus owner is to be tested
      * @see java.awt.Component#isVisible
      * @see java.awt.Component#isDisplayable
-     * @see java.awt.Component#isEnabled 
+     * @see java.awt.Component#isEnabled
      * @see java.awt.Component#isFocusable
-     * @see javax.swing.plaf.ComboBoxUI#isFocusTraversable 
+     * @see javax.swing.plaf.ComboBoxUI#isFocusTraversable
      * @see javax.swing.JComponent#getInputMap
      * @see java.awt.DefaultFocusTraversalPolicy#accept
      * @return <code>true</code> if <code>aComponent</code> is a valid choice
      *         for a focus owner;
      *         otherwise <code>false</code>
-     */  
+     */
      protected boolean accept(Component aComponent) {
-	if (!super.accept(aComponent)) {
-	    return false;
-	} else if (SunToolkit.isInstanceOf(aComponent, "javax.swing.JTable")) {
+        if (!super.accept(aComponent)) {
+            return false;
+        } else if (SunToolkit.isInstanceOf(aComponent, "javax.swing.JTable")) {
             // JTable only has ancestor focus bindings, we thus force it
             // to be focusable by returning true here.
-	    return true;
-	} else if (SunToolkit.isInstanceOf(aComponent, "javax.swing.JComboBox")) {
-	    JComboBox box = (JComboBox)aComponent;
-	    return box.getUI().isFocusTraversable(box);
-	} else if (aComponent instanceof JComponent) {
-	    JComponent jComponent = (JComponent)aComponent;
-	    InputMap inputMap = jComponent.getInputMap(JComponent.WHEN_FOCUSED,
-						       false);
-	    while (inputMap != null && inputMap.size() == 0) {
-		inputMap = inputMap.getParent();
-	    }
+            return true;
+        } else if (SunToolkit.isInstanceOf(aComponent, "javax.swing.JComboBox")) {
+            JComboBox box = (JComboBox)aComponent;
+            return box.getUI().isFocusTraversable(box);
+        } else if (aComponent instanceof JComponent) {
+            JComponent jComponent = (JComponent)aComponent;
+            InputMap inputMap = jComponent.getInputMap(JComponent.WHEN_FOCUSED,
+                                                       false);
+            while (inputMap != null && inputMap.size() == 0) {
+                inputMap = inputMap.getParent();
+            }
             if (inputMap != null) {
                 return true;
             }
@@ -234,14 +252,14 @@ public class LayoutFocusTraversalPolicy extends SortingFocusTraversalPolicy
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-	out.writeObject(getComparator());
-	out.writeBoolean(getImplicitDownCycleTraversal());
+        out.writeObject(getComparator());
+        out.writeBoolean(getImplicitDownCycleTraversal());
     }
     private void readObject(ObjectInputStream in)
-	throws IOException, ClassNotFoundException
+        throws IOException, ClassNotFoundException
     {
-	setComparator((Comparator)in.readObject());
-	setImplicitDownCycleTraversal(in.readBoolean());
+        setComparator((Comparator)in.readObject());
+        setImplicitDownCycleTraversal(in.readBoolean());
     }
 }
 
@@ -251,6 +269,6 @@ class SwingDefaultFocusTraversalPolicy
     extends java.awt.DefaultFocusTraversalPolicy
 {
     public boolean accept(Component aComponent) {
-	return super.accept(aComponent);
+        return super.accept(aComponent);
     }
 }

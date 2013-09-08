@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +54,7 @@ public class TreeWalker
 
   /** DomHelper for this TreeWalker          */
   protected DOMHelper m_dh;
-        
+
         /** Locator object for this TreeWalker          */
         private LocatorImpl m_locator = new LocatorImpl();
 
@@ -73,7 +77,7 @@ public class TreeWalker
   {
     m_contentHandler = ch;
   }
-        
+
         /**
    * Constructor.
    * @param   contentHandler The implemention of the
@@ -91,7 +95,7 @@ public class TreeWalker
           // Bug see Bugzilla  26741
           m_locator.setSystemId(System.getProperty("user.dir") + File.separator + "dummy.xsl");
          }
-         catch (SecurityException se) {// user.dir not accessible from applet             
+         catch (SecurityException se) {// user.dir not accessible from applet
          }
     }
     m_dh = dh;
@@ -109,12 +113,12 @@ public class TreeWalker
     try {
        // Bug see Bugzilla  26741
       m_locator.setSystemId(System.getProperty("user.dir") + File.separator + "dummy.xsl");
-    } 
-    catch (SecurityException se){// user.dir not accessible from applet      
+    }
+    catch (SecurityException se){// user.dir not accessible from applet
     }
     m_dh = dh;
   }
-  
+
   /**
    * Constructor.
    * @param   contentHandler The implemention of the
@@ -128,21 +132,21 @@ public class TreeWalker
                 try {
                    // Bug see Bugzilla  26741
                   m_locator.setSystemId(System.getProperty("user.dir") + File.separator + "dummy.xsl");
-                } 
+                }
                 catch (SecurityException se){// user.dir not accessible from applet
-                  
+
     }
     m_dh = new DOM2Helper();
   }
 
   /**
-   * Perform a pre-order traversal non-recursive style.  
+   * Perform a pre-order traversal non-recursive style.
    *
-   * Note that TreeWalker assumes that the subtree is intended to represent 
-   * a complete (though not necessarily well-formed) document and, during a 
-   * traversal, startDocument and endDocument will always be issued to the 
+   * Note that TreeWalker assumes that the subtree is intended to represent
+   * a complete (though not necessarily well-formed) document and, during a
+   * traversal, startDocument and endDocument will always be issued to the
    * SAX listener.
-   *  
+   *
    * @param pos Node in the tree where to start traversal
    *
    * @throws TransformerException
@@ -150,7 +154,7 @@ public class TreeWalker
   public void traverse(Node pos) throws org.xml.sax.SAXException
   {
 
-   	this.m_contentHandler.startDocument();
+        this.m_contentHandler.startDocument();
 
     Node top = pos;
 
@@ -193,9 +197,9 @@ public class TreeWalker
   /**
    * Perform a pre-order traversal non-recursive style.
 
-   * Note that TreeWalker assumes that the subtree is intended to represent 
-   * a complete (though not necessarily well-formed) document and, during a 
-   * traversal, startDocument and endDocument will always be issued to the 
+   * Note that TreeWalker assumes that the subtree is intended to represent
+   * a complete (though not necessarily well-formed) document and, during a
+   * traversal, startDocument and endDocument will always be issued to the
    * SAX listener.
    *
    * @param pos Node in the tree where to start traversal
@@ -206,8 +210,8 @@ public class TreeWalker
   public void traverse(Node pos, Node top) throws org.xml.sax.SAXException
   {
 
-	this.m_contentHandler.startDocument();
-	
+        this.m_contentHandler.startDocument();
+
     while (null != pos)
     {
       startNode(pos);
@@ -243,7 +247,7 @@ public class TreeWalker
 
   /** Flag indicating whether following text to be processed is raw text          */
   boolean nextIsRaw = false;
-  
+
   /**
    * Optimized dispatch of characters.
    */
@@ -276,7 +280,7 @@ public class TreeWalker
     {
       ((NodeConsumer) m_contentHandler).setOriginatingNode(node);
     }
-                
+
                 if (node instanceof Locator)
                 {
                         Locator loc = (Locator)node;
@@ -310,7 +314,7 @@ public class TreeWalker
       // ??;
       break;
     case Node.DOCUMENT_NODE :
-    
+
       break;
     case Node.ELEMENT_NODE :
       NamedNodeMap atts = ((Element) node).getAttributes();
@@ -327,8 +331,8 @@ public class TreeWalker
         {
           // System.out.println("TreeWalker#startNode: attr["+i+"] = "+attrName+", "+attr.getNodeValue());
           int index;
-          // Use "" instead of null, as Xerces likes "" for the 
-          // name of the default namespace.  Fix attributed 
+          // Use "" instead of null, as Xerces likes "" for the
+          // name of the default namespace.  Fix attributed
           // to "Steven Murray" <smurray@ebt.com>.
           String prefix = (index = attrName.indexOf(":")) < 0
                           ? "" : attrName.substring(index + 1);
@@ -336,7 +340,7 @@ public class TreeWalker
           this.m_contentHandler.startPrefixMapping(prefix,
                                                    attr.getNodeValue());
         }
-        
+
       }
 
       // System.out.println("m_dh.getNamespaceOfNode(node): "+m_dh.getNamespaceOfNode(node));
@@ -376,7 +380,7 @@ public class TreeWalker
       {
         lh.startCDATA();
       }
-      
+
       dispatachChars(node);
 
       {
@@ -426,7 +430,7 @@ public class TreeWalker
   }
 
   /**
-   * End processing of given node 
+   * End processing of given node
    *
    *
    * @param node Node we just finished processing
@@ -440,7 +444,7 @@ public class TreeWalker
     {
     case Node.DOCUMENT_NODE :
       break;
-      
+
     case Node.ELEMENT_NODE :
       String ns = m_dh.getNamespaceOfNode(node);
       if(null == ns)
@@ -460,8 +464,8 @@ public class TreeWalker
         if (attrName.equals("xmlns") || attrName.startsWith("xmlns:"))
         {
           int index;
-          // Use "" instead of null, as Xerces likes "" for the 
-          // name of the default namespace.  Fix attributed 
+          // Use "" instead of null, as Xerces likes "" for the
+          // name of the default namespace.  Fix attributed
           // to "Steven Murray" <smurray@ebt.com>.
           String prefix = (index = attrName.indexOf(":")) < 0
                           ? "" : attrName.substring(index + 1);
@@ -488,4 +492,3 @@ public class TreeWalker
     }
   }
 }  //TreeWalker
-

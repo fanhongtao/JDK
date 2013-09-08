@@ -1,8 +1,26 @@
 /*
- * @(#)SocketFactoryContactInfoImpl.java	1.14 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.legacy.connection;
@@ -22,14 +40,14 @@ import com.sun.corba.se.impl.transport.SocketOrChannelContactInfoImpl;
 /**
  * @author Harold Carr
  */
-public class SocketFactoryContactInfoImpl 
+public class SocketFactoryContactInfoImpl
     extends
-	SocketOrChannelContactInfoImpl
+        SocketOrChannelContactInfoImpl
 {
     protected ORBUtilSystemException wrapper;
     protected SocketInfo socketInfo;
 
-    // XREVISIT 
+    // XREVISIT
     // See SocketOrChannelAcceptorImpl.createMessageMediator
     // See SocketFactoryContactInfoImpl.constructor()
     // See SocketOrChannelContactInfoImpl.constructor()
@@ -39,25 +57,25 @@ public class SocketFactoryContactInfoImpl
 
     public SocketFactoryContactInfoImpl(
         ORB orb,
-	CorbaContactInfoList contactInfoList,
-	IOR effectiveTargetIOR,
-	short addressingDisposition,
-	SocketInfo cookie)
+        CorbaContactInfoList contactInfoList,
+        IOR effectiveTargetIOR,
+        short addressingDisposition,
+        SocketInfo cookie)
     {
-	super(orb, contactInfoList);
-	this.effectiveTargetIOR = effectiveTargetIOR;
+        super(orb, contactInfoList);
+        this.effectiveTargetIOR = effectiveTargetIOR;
         this.addressingDisposition = addressingDisposition;
 
-	wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_TRANSPORT ) ;
+        wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_TRANSPORT ) ;
 
-	socketInfo = 
-	    orb.getORBData().getLegacySocketFactory()
-	        .getEndPointInfo(orb, effectiveTargetIOR, cookie);
+        socketInfo =
+            orb.getORBData().getLegacySocketFactory()
+                .getEndPointInfo(orb, effectiveTargetIOR, cookie);
 
-	socketType = socketInfo.getType();
-	hostname = socketInfo.getHost();
-	port = socketInfo.getPort();
+        socketType = socketInfo.getType();
+        hostname = socketInfo.getHost();
+        port = socketInfo.getPort();
     }
 
     ////////////////////////////////////////////////////
@@ -65,14 +83,14 @@ public class SocketFactoryContactInfoImpl
     // pept.transport.ContactInfo
     //
 
-    public Connection createConnection() 
+    public Connection createConnection()
     {
-	Connection connection =
-	    new SocketFactoryConnectionImpl(
+        Connection connection =
+            new SocketFactoryConnectionImpl(
                 orb, this,
-		orb.getORBData().connectionSocketUseSelectThreadToWait(),
-		orb.getORBData().connectionSocketUseWorkerThreadForEvent());
-	return connection;
+                orb.getORBData().connectionSocketUseSelectThreadToWait(),
+                orb.getORBData().connectionSocketUseWorkerThreadForEvent());
+        return connection;
     }
 
     ////////////////////////////////////////////////////
@@ -82,12 +100,12 @@ public class SocketFactoryContactInfoImpl
 
     public String toString()
     {
-	return
-	    "SocketFactoryContactInfoImpl[" 
-	    + socketType + " "
-	    + hostname + " "
-	    + port
-	    + "]";
+        return
+            "SocketFactoryContactInfoImpl["
+            + socketType + " "
+            + hostname + " "
+            + port
+            + "]";
     }
 }
 

@@ -1,8 +1,26 @@
 /*
- * @(#)LoaderHandler.java	1.19 05/11/17
+ * Copyright (c) 1996, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.server;
@@ -15,7 +33,6 @@ import java.net.URL;
  * runtime in previous implementation versions.  It should never be accessed
  * by application code.
  *
- * @version 1.19, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  *
@@ -44,7 +61,7 @@ public interface LoaderHandler {
      */
     @Deprecated
     Class<?> loadClass(String name)
-	throws MalformedURLException, ClassNotFoundException;
+        throws MalformedURLException, ClassNotFoundException;
 
     /**
      * Loads a class from a URL.
@@ -63,7 +80,7 @@ public interface LoaderHandler {
      */
     @Deprecated
     Class<?> loadClass(URL codebase, String name)
-	throws MalformedURLException, ClassNotFoundException;
+        throws MalformedURLException, ClassNotFoundException;
 
     /**
      * Returns the security context of the given class loader.

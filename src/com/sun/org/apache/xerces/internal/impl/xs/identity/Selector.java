@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +22,7 @@ package com.sun.org.apache.xerces.internal.impl.xs.identity;
 
 import com.sun.org.apache.xerces.internal.impl.xpath.XPathException;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
+import com.sun.org.apache.xerces.internal.util.XMLChar;
 import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
 import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.xni.XMLAttributes;
@@ -30,7 +35,7 @@ import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
  * @xerces.internal 
  *
  * @author Andy Clark, IBM
- * @version $Id: Selector.java,v 1.2.6.1 2005/09/08 07:39:29 sunithareddy Exp $
+ * @version $Id: Selector.java,v 1.7 2010-11-01 04:39:57 joehw Exp $
  */
 public class Selector {
 
@@ -39,10 +44,10 @@ public class Selector {
     //
 
     /** XPath. */
-    protected Selector.XPath fXPath;
+    protected final Selector.XPath fXPath;
 
     /** Identity constraint. */
-    protected IdentityConstraint fIdentityConstraint;
+    protected final IdentityConstraint fIdentityConstraint;
 
     // the Identity constraint we're the matcher for.  Only
     // used for selectors!
@@ -53,7 +58,7 @@ public class Selector {
     //
 
     /** Constructs a selector. */
-    public Selector(Selector.XPath xpath, 
+    public Selector(Selector.XPath xpath,
                     IdentityConstraint identityConstraint) {
         fXPath = xpath;
         fIdentityConstraint = identityConstraint;
@@ -75,7 +80,7 @@ public class Selector {
 
     // factory method
 
-    /** Creates a selector matcher. 
+    /** Creates a selector matcher.
      * @param activator     The activator for this selector's fields.
      * @param initialDepth  The depth in the document at which this matcher began its life;
      *                          used in correctly handling recursive elements.
@@ -101,7 +106,7 @@ public class Selector {
      * Schema identity constraint selector XPath expression.
      *
      * @author Andy Clark, IBM
-     * @version $Id: Selector.java,v 1.2.6.1 2005/09/08 07:39:29 sunithareddy Exp $
+     * @version $Id: Selector.java,v 1.7 2010-11-01 04:39:57 joehw Exp $
      */
     public static class XPath
     extends com.sun.org.apache.xerces.internal.impl.xpath.XPath {
@@ -111,7 +116,7 @@ public class Selector {
         //
 
         /** Constructs a selector XPath expression. */
-        public XPath(String xpath, SymbolTable symbolTable, 
+        public XPath(String xpath, SymbolTable symbolTable,
                      NamespaceContext context) throws XPathException {
             super(normalize(xpath), symbolTable, context);
             // verify that an attribute is not selected
@@ -136,8 +141,8 @@ public class Selector {
             StringBuffer modifiedXPath = new StringBuffer(xpath.length()+5);
             int unionIndex = -1;
             do {
-                if(!(xpath.trim().startsWith("/") ||xpath.trim().startsWith("."))) {
-                    modifiedXPath.append("./"); 
+                if(!(XMLChar.trim(xpath).startsWith("/") || XMLChar.trim(xpath).startsWith("."))) {
+                    modifiedXPath.append("./");
                 }
                 unionIndex = xpath.indexOf('|');
                 if(unionIndex == -1) {
@@ -165,10 +170,10 @@ public class Selector {
         //
 
         /** Field activator. */
-        protected FieldActivator fFieldActivator;
+        protected final FieldActivator fFieldActivator;
 
         /** Initial depth in the document at which this matcher was created. */
-        protected int fInitialDepth;
+        protected final int fInitialDepth;
 
         /** Element depth. */
         protected int fElementDepth;
@@ -202,9 +207,9 @@ public class Selector {
          * The start of an element. If the document specifies the start element
          * by using an empty tag, then the startElement method will immediately
          * be followed by the endElement method, with no intervening methods.
-         * 
+         *
          * @param element    The name of the element.
-         * @param attributes The element attributes. 
+         * @param attributes The element attributes.
          *
          */
         public void startElement(QName element, XMLAttributes attributes) {

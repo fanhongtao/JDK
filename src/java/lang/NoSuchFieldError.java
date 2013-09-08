@@ -1,40 +1,59 @@
 /*
- * @(#)NoSuchFieldError.java	1.13 05/11/17
+ * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 /**
- * Thrown if an application tries to access or modify a specified 
- * field of an object, and that object no longer has that field. 
+ * Thrown if an application tries to access or modify a specified
+ * field of an object, and that object no longer has that field.
  * <p>
- * Normally, this error is caught by the compiler; this error can 
- * only occur at run time if the definition of a class has 
- * incompatibly changed. 
+ * Normally, this error is caught by the compiler; this error can
+ * only occur at run time if the definition of a class has
+ * incompatibly changed.
  *
  * @author  unascribed
- * @version 1.13, 11/17/05
  * @since   JDK1.0
  */
 public
 class NoSuchFieldError extends IncompatibleClassChangeError {
+    private static final long serialVersionUID = -3456430195886129035L;
+
     /**
-     * Constructs a <code>NoSuchFieldException</code> with no detail  message.
+     * Constructs a <code>NoSuchFieldError</code> with no detail message.
      */
     public NoSuchFieldError() {
-	super();
+        super();
     }
 
     /**
-     * Constructs a <code>NoSuchFieldException</code> with the specified 
-     * detail message. 
+     * Constructs a <code>NoSuchFieldError</code> with the specified
+     * detail message.
      *
      * @param   s   the detail message.
      */
     public NoSuchFieldError(String s) {
-	super(s);
+        super(s);
     }
 }

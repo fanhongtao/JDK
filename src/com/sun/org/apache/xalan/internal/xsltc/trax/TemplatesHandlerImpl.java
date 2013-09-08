@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,16 +89,16 @@ public class TemplatesHandlerImpl
      * Default constructor
      */
     protected TemplatesHandlerImpl(int indentNumber,
-	TransformerFactoryImpl tfactory)
+        TransformerFactoryImpl tfactory)
     {
-	_indentNumber = indentNumber;
-	_tfactory = tfactory;
+        _indentNumber = indentNumber;
+        _tfactory = tfactory;
 
         // Instantiate XSLTC and get reference to parser object
         XSLTC xsltc = new XSLTC();
         if (tfactory.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING))
             xsltc.setSecureProcessing(true);
-       
+
         _parser = xsltc.getParser();
     }
 
@@ -105,7 +109,7 @@ public class TemplatesHandlerImpl
      * @return The systemID that was set with setSystemId(String id)
      */
     public String getSystemId() {
-	return _systemId;
+        return _systemId;
     }
 
     /**
@@ -115,14 +119,14 @@ public class TemplatesHandlerImpl
      * @param id Base URI for this stylesheet
      */
     public void setSystemId(String id) {
-	_systemId = id;
+        _systemId = id;
     }
 
     /**
      * Store URIResolver needed for Transformers.
      */
     public void setURIResolver(URIResolver resolver) {
-	_uriResolver = resolver;
+        _uriResolver = resolver;
     }
 
     /**
@@ -148,17 +152,17 @@ public class TemplatesHandlerImpl
      * @return An InputSource with the loaded document
      */
     public InputSource loadSource(String href, String context, XSLTC xsltc) {
-	try {
-	    // A _uriResolver must be set if this method is called
-	    final Source source = _uriResolver.resolve(href, context);
-	    if (source != null) {
-		return Util.getInputSource(xsltc, source);
-	    }
-	}
-	catch (TransformerException e) {
-	    // Falls through
-	}
-	return null;
+        try {
+            // A _uriResolver must be set if this method is called
+            final Source source = _uriResolver.resolve(href, context);
+            if (source != null) {
+                return Util.getInputSource(xsltc, source);
+            }
+        }
+        catch (TransformerException e) {
+            // Falls through
+        }
+        return null;
     }
 
     // -- ContentHandler --------------------------------------------------
@@ -328,5 +332,3 @@ public class TemplatesHandlerImpl
         _parser.setDocumentLocator(locator);
     }
 }
-
-

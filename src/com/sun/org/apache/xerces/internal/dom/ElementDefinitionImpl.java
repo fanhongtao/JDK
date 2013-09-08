@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,9 +32,8 @@ import org.w3c.dom.Node;
  *
  * @xerces.internal
  *
- * @version $Id: ElementDefinitionImpl.java,v 1.2.6.1 2005/08/31 11:15:26 sunithareddy Exp $
  */
-public class ElementDefinitionImpl 
+public class ElementDefinitionImpl
     extends ParentNode {
 
     //
@@ -39,7 +42,7 @@ public class ElementDefinitionImpl
 
     /** Serialization version. */
     static final long serialVersionUID = -8373890672670022714L;
-    
+
     //
     // Data
     //
@@ -56,7 +59,7 @@ public class ElementDefinitionImpl
 
     /** Factory constructor. */
     public ElementDefinitionImpl(CoreDocumentImpl ownerDocument, String name) {
-    	super(ownerDocument);
+        super(ownerDocument);
         this.name = name;
         attributes = new NamedNodeMapImpl(ownerDocument);
     }
@@ -65,7 +68,7 @@ public class ElementDefinitionImpl
     // Node methods
     //
 
-    /** 
+    /**
      * A short integer indicating what type of node this is. The named
      * constants for this value are defined in the org.w3c.dom.Node interface.
      */
@@ -88,11 +91,11 @@ public class ElementDefinitionImpl
      */
     public Node cloneNode(boolean deep) {
 
-    	ElementDefinitionImpl newnode =
+        ElementDefinitionImpl newnode =
             (ElementDefinitionImpl) super.cloneNode(deep);
-    	// NamedNodeMap must be explicitly replicated to avoid sharing
-    	newnode.attributes = attributes.cloneMap(newnode);
-    	return newnode;
+        // NamedNodeMap must be explicitly replicated to avoid sharing
+        newnode.attributes = attributes.cloneMap(newnode);
+        return newnode;
 
     } // cloneNode(boolean):Node
 
@@ -103,7 +106,7 @@ public class ElementDefinitionImpl
      * representing the defaults. In a more serious implementation, it would
      * contain AttributeDefinitionImpl objects for all declared Attributes,
      * indicating which are Default, DefaultFixed, Implicit and/or Required.
-     * 
+     *
      * @return org.w3c.dom.NamedNodeMap containing org.w3c.dom.Attribute
      */
     public NamedNodeMap getAttributes() {
@@ -111,7 +114,7 @@ public class ElementDefinitionImpl
         if (needsSyncChildren()) {
             synchronizeChildren();
         }
-    	return attributes;
+        return attributes;
 
     } // getAttributes():NamedNodeMap
 

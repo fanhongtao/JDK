@@ -1,10 +1,28 @@
 /*
- * @(#)Certificate.java	1.39 06/07/13
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package java.security;
 
 import java.io.*;
@@ -37,8 +55,7 @@ import java.util.Date;
  * the duty of the application implementing this interface to verify
  * the certificate and satisfy itself of its validity.
  *
- * @version 	1.39, 07/13/06
- * @author Benjamin Renaud 
+ * @author Benjamin Renaud
  * @deprecated A new certificate handling package is created in the Java platform.
  *             This Certificate interface is entirely deprecated and
  *             is here to allow for a smooth transition to the new
@@ -48,7 +65,7 @@ import java.util.Date;
 @Deprecated
 public interface Certificate {
 
-    /** 
+    /**
      * Returns the guarantor of the certificate, that is, the principal
      * guaranteeing that the public key associated with this certificate
      * is that of the principal associated with this certificate. For X.509
@@ -59,21 +76,21 @@ public interface Certificate {
      * binding.
      */
     public abstract Principal getGuarantor();
-    
+
     /**
      * Returns the principal of the principal-key pair being guaranteed by
      * the guarantor.
      *
-     * @return the principal to which this certificate is bound.  
+     * @return the principal to which this certificate is bound.
      */
     public abstract Principal getPrincipal();
 
     /**
      * Returns the key of the principal-key pair being guaranteed by
      * the guarantor.
-     * 
+     *
      * @return the public key that this certificate certifies belongs
-     * to a particular principal.  
+     * to a particular principal.
      */
     public abstract PublicKey getPublicKey();
 
@@ -90,30 +107,30 @@ public interface Certificate {
      * @exception IOException if a stream exception occurs while
      * trying to output the encoded certificate to the output stream.
      *
-     * @see #decode 
+     * @see #decode
      * @see #getFormat
      */
-    public abstract void encode(OutputStream stream) 
+    public abstract void encode(OutputStream stream)
         throws KeyException, IOException;
 
     /**
      * Decodes a certificate from an input stream. The format should be
-     * that returned by <code>getFormat</code> and produced by 
+     * that returned by <code>getFormat</code> and produced by
      * <code>encode</code>.
      *
      * @param stream the input stream from which to fetch the data
      * being decoded.
-     * 
+     *
      * @exception KeyException if the certificate is not properly initialized,
      * or data is missing, etc.
      *
      * @exception IOException if an exception occurs while trying to input
      * the encoded certificate from the input stream.
      *
-     * @see #encode 
+     * @see #encode
      * @see #getFormat
      */
-    public abstract void decode(InputStream stream) 
+    public abstract void decode(InputStream stream)
         throws KeyException, IOException;
 
 
@@ -122,7 +139,7 @@ public interface Certificate {
      * an appropriate parser. It could be "X.509", "PGP", etc. This is
      * the format produced and understood by the <code>encode</code>
      * and <code>decode</code> methods.
-     * 
+     *
      * @return the name of the coding format.
      */
     public abstract String getFormat();
@@ -132,7 +149,7 @@ public interface Certificate {
      *
      * @param detailed whether or not to give detailed information
      * about the certificate
-     * 
+     *
      * @return a string representing the contents of the certificate
      */
     public String toString(boolean detailed);

@@ -1,8 +1,26 @@
 /*
- * @(#)HeadlessException.java	1.9 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -27,7 +45,7 @@ public class HeadlessException extends UnsupportedOperationException {
     public String getMessage() {
         String superMessage = super.getMessage();
         String headlessMessage = GraphicsEnvironment.getHeadlessMessage();
-        
+
         if (superMessage == null) {
             return headlessMessage;
         } else if (headlessMessage == null) {

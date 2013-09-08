@@ -1,13 +1,32 @@
 /*
- * @(#)Deprecated.java	1.5 05/11/17
+ * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 import java.lang.annotation.*;
+import static java.lang.annotation.ElementType.*;
 
 /**
  * A program element annotated &#64;Deprecated is one that programmers
@@ -16,10 +35,10 @@ import java.lang.annotation.*;
  * deprecated program element is used or overridden in non-deprecated code.
  *
  * @author  Neal Gafter
- * @version 1.5, 11/17/05
  * @since 1.5
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
+@Target(value={CONSTRUCTOR, FIELD, LOCAL_VARIABLE, METHOD, PACKAGE, PARAMETER, TYPE})
 public @interface Deprecated {
 }

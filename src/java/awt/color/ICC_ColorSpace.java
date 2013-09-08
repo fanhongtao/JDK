@@ -1,8 +1,26 @@
 /*
- * @(#)ICC_ColorSpace.java	1.32 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /**********************************************************************
@@ -17,12 +35,14 @@
 
 package java.awt.color;
 
-import sun.awt.color.ICC_Transform;
+import sun.java2d.cmm.ColorTransform;
+import sun.java2d.cmm.CMSManager;
+import sun.java2d.cmm.PCMM;
 
 
 /**
- *  
- * The ICC_ColorSpace class is an implementation of the abstract 
+ *
+ * The ICC_ColorSpace class is an implementation of the abstract
  * ColorSpace class.  This representation of
  * device independent and device dependent color spaces is based on the
  * International Color Consortium Specification ICC.1:2001-12, File Format for
@@ -36,7 +56,7 @@ import sun.awt.color.ICC_Transform;
  * space of a color, image, or device (see ICC_Profile).
  * Attempting to create an ICC_ColorSpace object from an inappropriate ICC
  * Profile is an error.
- * <p> 
+ * <p>
  * ICC Profiles represent transformations from the color space of
  * the profile (e.g. a monitor) to a Profile Connection Space (PCS).
  * Profiles of interest for tagging images or colors have a
@@ -76,11 +96,11 @@ public class ICC_ColorSpace extends ColorSpace {
     private boolean needScaleInit = true;
 
     // {to,from}{RGB,CIEXYZ} methods create and cache these when needed
-    private transient ICC_Transform this2srgb;
-    private transient ICC_Transform srgb2this;
-    private transient ICC_Transform this2xyz;
-    private transient ICC_Transform xyz2this;
-  
+    private transient ColorTransform this2srgb;
+    private transient ColorTransform srgb2this;
+    private transient ColorTransform this2xyz;
+    private transient ColorTransform xyz2this;
+
 
     /**
     * Constructs a new ICC_ColorSpace from an ICC_Profile object.
@@ -98,7 +118,8 @@ public class ICC_ColorSpace extends ColorSpace {
             (profileClass != ICC_Profile.CLASS_DISPLAY) &&
             (profileClass != ICC_Profile.CLASS_OUTPUT) &&
             (profileClass != ICC_Profile.CLASS_COLORSPACECONVERSION) &&
-            (profileClass != ICC_Profile.CLASS_NAMEDCOLOR) ) {
+            (profileClass != ICC_Profile.CLASS_NAMEDCOLOR) &&
+            (profileClass != ICC_Profile.CLASS_ABSTRACT)) {
             throw new IllegalArgumentException("Invalid profile type");
         }
 
@@ -136,16 +157,17 @@ public class ICC_ColorSpace extends ColorSpace {
      * at least the number of components in this ColorSpace.
      */
     public float[]    toRGB (float[] colorvalue) {
-    
+
         if (this2srgb == null) {
-            ICC_Transform[] transformList = new ICC_Transform [2];
+            ColorTransform[] transformList = new ColorTransform [2];
             ICC_ColorSpace srgbCS =
                 (ICC_ColorSpace) ColorSpace.getInstance (CS_sRGB);
-            transformList[0] = new ICC_Transform (
-                thisProfile, ICC_Transform.Any, ICC_Transform.In);
-            transformList[1] = new ICC_Transform (
-                srgbCS.getProfile(), ICC_Transform.Any, ICC_Transform.Out);
-            this2srgb = new ICC_Transform (transformList);
+            PCMM mdl = CMSManager.getModule();
+            transformList[0] = mdl.createTransform(
+                thisProfile, ColorTransform.Any, ColorTransform.In);
+            transformList[1] = mdl.createTransform(
+                srgbCS.getProfile(), ColorTransform.Any, ColorTransform.Out);
+            this2srgb = mdl.createTransform(transformList);
             if (needScaleInit) {
                 setComponentScaling();
             }
@@ -187,16 +209,17 @@ public class ICC_ColorSpace extends ColorSpace {
      * at least 3.
      */
     public float[]    fromRGB(float[] rgbvalue) {
-    
+
         if (srgb2this == null) {
-            ICC_Transform[] transformList = new ICC_Transform [2];
+            ColorTransform[] transformList = new ColorTransform [2];
             ICC_ColorSpace srgbCS =
                 (ICC_ColorSpace) ColorSpace.getInstance (CS_sRGB);
-            transformList[0] = new ICC_Transform (
-                srgbCS.getProfile(), ICC_Transform.Any, ICC_Transform.In);
-            transformList[1] = new ICC_Transform (
-                thisProfile, ICC_Transform.Any, ICC_Transform.Out);
-            srgb2this = new ICC_Transform (transformList);
+            PCMM mdl = CMSManager.getModule();
+            transformList[0] = mdl.createTransform(
+                srgbCS.getProfile(), ColorTransform.Any, ColorTransform.In);
+            transformList[1] = mdl.createTransform(
+                thisProfile, ColorTransform.Any, ColorTransform.Out);
+            srgb2this = mdl.createTransform(transformList);
             if (needScaleInit) {
                 setComponentScaling();
             }
@@ -281,26 +304,26 @@ public class ICC_ColorSpace extends ColorSpace {
      * value is  converted to a PCS XYZ value by multiplying it by the ratio
      * of the PCS white point (D50) to the device white point.
      * <pre>
-     * 
+     *
      * Xd, Yd, Zd are the device XYZ values
      * Xdw, Ydw, Zdw are the device XYZ white point values
      * Xp, Yp, Zp are the PCS XYZ values
      * Xd50, Yd50, Zd50 are the PCS XYZ white point values
-     * 
+     *
      * Xp = Xd * (Xd50 / Xdw)
      * Yp = Yd * (Yd50 / Ydw)
      * Zp = Zd * (Zd50 / Zdw)
-     * 
+     *
      * </pre>
      * <p>
      * Conversion from the PCS to the device would be done by inverting these
      * equations:
      * <pre>
-     * 
+     *
      * Xd = Xp * (Xdw / Xd50)
      * Yd = Yp * (Ydw / Yd50)
      * Zd = Zp * (Zdw / Zd50)
-     * 
+     *
      * </pre>
      * <p>
      * Note that the media white point tag in an ICC profile is not the same
@@ -321,21 +344,23 @@ public class ICC_ColorSpace extends ColorSpace {
      * at least the number of components in this ColorSpace.
      */
     public float[]    toCIEXYZ(float[] colorvalue) {
-    
+
         if (this2xyz == null) {
-            ICC_Transform[] transformList = new ICC_Transform [2];
+            ColorTransform[] transformList = new ColorTransform [2];
             ICC_ColorSpace xyzCS =
                 (ICC_ColorSpace) ColorSpace.getInstance (CS_CIEXYZ);
+            PCMM mdl = CMSManager.getModule();
             try {
-                transformList[0] = new ICC_Transform (thisProfile,
-                    ICC_Profile.icRelativeColorimetric, ICC_Transform.In);
+                transformList[0] = mdl.createTransform(
+                    thisProfile, ICC_Profile.icRelativeColorimetric,
+                    ColorTransform.In);
             } catch (CMMException e) {
-                transformList[0] = new ICC_Transform (thisProfile,
-                    ICC_Transform.Any, ICC_Transform.In);
+                transformList[0] = mdl.createTransform(
+                    thisProfile, ColorTransform.Any, ColorTransform.In);
             }
-            transformList[1] = new ICC_Transform (xyzCS.getProfile(),
-                ICC_Transform.Any, ICC_Transform.Out);
-            this2xyz = new ICC_Transform (transformList);
+            transformList[1] = mdl.createTransform(
+                xyzCS.getProfile(), ColorTransform.Any, ColorTransform.Out);
+            this2xyz = mdl.createTransform (transformList);
             if (needScaleInit) {
                 setComponentScaling();
             }
@@ -423,26 +448,26 @@ public class ICC_ColorSpace extends ColorSpace {
      * value is  converted to a PCS XYZ value by multiplying it by the ratio
      * of the PCS white point (D50) to the device white point.
      * <pre>
-     * 
+     *
      * Xd, Yd, Zd are the device XYZ values
      * Xdw, Ydw, Zdw are the device XYZ white point values
      * Xp, Yp, Zp are the PCS XYZ values
      * Xd50, Yd50, Zd50 are the PCS XYZ white point values
-     * 
+     *
      * Xp = Xd * (Xd50 / Xdw)
      * Yp = Yd * (Yd50 / Ydw)
      * Zp = Zd * (Zd50 / Zdw)
-     * 
+     *
      * </pre>
      * <p>
      * Conversion from the PCS to the device would be done by inverting these
      * equations:
      * <pre>
-     * 
+     *
      * Xd = Xp * (Xdw / Xd50)
      * Yd = Yp * (Ydw / Yd50)
      * Zd = Zp * (Zdw / Zd50)
-     * 
+     *
      * </pre>
      * <p>
      * Note that the media white point tag in an ICC profile is not the same
@@ -464,21 +489,23 @@ public class ICC_ColorSpace extends ColorSpace {
      * at least 3.
      */
     public float[]    fromCIEXYZ(float[] colorvalue) {
-    
+
         if (xyz2this == null) {
-            ICC_Transform[] transformList = new ICC_Transform [2];
+            ColorTransform[] transformList = new ColorTransform [2];
             ICC_ColorSpace xyzCS =
                 (ICC_ColorSpace) ColorSpace.getInstance (CS_CIEXYZ);
-            transformList[0] = new ICC_Transform (xyzCS.getProfile(),
-                ICC_Transform.Any, ICC_Transform.In);
+            PCMM mdl = CMSManager.getModule();
+            transformList[0] = mdl.createTransform (
+                xyzCS.getProfile(), ColorTransform.Any, ColorTransform.In);
             try {
-                transformList[1] = new ICC_Transform (thisProfile,
-                    ICC_Profile.icRelativeColorimetric, ICC_Transform.Out);
+                transformList[1] = mdl.createTransform(
+                    thisProfile, ICC_Profile.icRelativeColorimetric,
+                    ColorTransform.Out);
             } catch (CMMException e) {
-                transformList[1] = new ICC_Transform (thisProfile,
-                    ICC_Transform.Any, ICC_Transform.Out);
+                transformList[1] = CMSManager.getModule().createTransform(
+                thisProfile, ColorTransform.Any, ColorTransform.Out);
             }
-            xyz2this = new ICC_Transform (transformList);
+            xyz2this = mdl.createTransform(transformList);
             if (needScaleInit) {
                 setComponentScaling();
             }

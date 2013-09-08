@@ -1,6 +1,26 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.bind.annotation;
@@ -19,9 +39,9 @@ import static java.lang.annotation.RetentionPolicy.*;
  * <h3>Usage </h3>
  *
  * <p> <tt> @XmlAccessorOrder </tt> annotation can be used with the following
- * program elements:</p> 
- * 
- * <ul> 
+ * program elements:</p>
+ *
+ * <ul>
  *   <li> package</li>
  *   <li> a top level class </li>
  * </ul>
@@ -44,18 +64,17 @@ import static java.lang.annotation.RetentionPolicy.*;
  * </ul>
  *
  * <p>This annotation can be used with the following annotations:
- *    {@link XmlType}, {@link XmlRootElement}, {@link XmlAccessorType}, 
- *    {@link XmlSchema}, {@link XmlSchemaType}, {@link XmlSchemaTypes}, 
+ *    {@link XmlType}, {@link XmlRootElement}, {@link XmlAccessorType},
+ *    {@link XmlSchema}, {@link XmlSchemaType}, {@link XmlSchemaTypes},
  *    , {@link XmlJavaTypeAdapter}. It can also be used with the
  *    following annotations at the package level: {@link XmlJavaTypeAdapter}.
  *
  * @author Sekhar Vajjhala, Sun Microsystems, Inc.
  * @since JAXB2.0
- * @version  $Revision: 1.11 $
  * @see XmlAccessOrder
  */
 
 @Inherited @Retention(RUNTIME) @Target({PACKAGE, TYPE})
 public @interface XmlAccessorOrder {
-	XmlAccessOrder value() default XmlAccessOrder.UNDEFINED;
+        XmlAccessOrder value() default XmlAccessOrder.UNDEFINED;
 }

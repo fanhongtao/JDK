@@ -1,8 +1,26 @@
 /*
- * @(#)FixedHolder.java	1.14 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -13,7 +31,7 @@ import org.omg.CORBA.portable.OutputStream;
 
 
 /**
- * The Holder for <tt>Fixed</tt>.  For more information on 
+ * The Holder for <tt>Fixed</tt>.  For more information on
  * Holder files, see <a href="doc-files/generatedfiles.html#holder">
  * "Generated Files: Holder Files"</a>.<P>
  * FixedHolder is a container class for values of IDL type "fixed",
@@ -26,7 +44,6 @@ import org.omg.CORBA.portable.OutputStream;
  * Before the method invocation returns, the ORB will fill in the contained
  * value corresponding to the "out" value returned from the server.
  *
- * @version     1.14 09/09/97
  */
 public final class FixedHolder implements Streamable {
     /**
@@ -55,7 +72,7 @@ public final class FixedHolder implements Streamable {
      * @param input the <code>InputStream</code> to read from.
      */
     public void _read(InputStream input) {
-	value = input.read_fixed();
+        value = input.read_fixed();
     }
 
     /**
@@ -65,17 +82,17 @@ public final class FixedHolder implements Streamable {
      * @param output the <code>OutputStream</code> to write into.
      */
     public void _write(OutputStream output) {
-	output.write_fixed(value);
+        output.write_fixed(value);
     }
 
-    
+
     /**
      * Return the <code>TypeCode</code> of this holder object.
      *
-     * @return the <code>TypeCode</code> object. 
+     * @return the <code>TypeCode</code> object.
      */
     public org.omg.CORBA.TypeCode _type() {
-	return ORB.init().get_primitive_tc(TCKind.tk_fixed);
+        return ORB.init().get_primitive_tc(TCKind.tk_fixed);
     }
 
 }

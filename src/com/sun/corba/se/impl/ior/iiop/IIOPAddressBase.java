@@ -1,8 +1,26 @@
 /*
- * @(#)IIOPAddressBase.java	1.6 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior.iiop ;
@@ -15,7 +33,7 @@ import org.omg.CORBA_2_3.portable.OutputStream ;
 import com.sun.corba.se.spi.ior.iiop.IIOPAddress ;
 
 /**
- * @author 
+ * @author
  */
 abstract class IIOPAddressBase implements IIOPAddress
 {
@@ -25,45 +43,45 @@ abstract class IIOPAddressBase implements IIOPAddress
     // ints throught this code, except that marshalling requires a
     // scaling conversion.  intToShort and shortToInt are provided
     // for this purpose.
-    protected short intToShort( int value ) 
+    protected short intToShort( int value )
     {
-	if (value > 32767)
-	    return (short)(value - 65536) ;
-	return (short)value ;
+        if (value > 32767)
+            return (short)(value - 65536) ;
+        return (short)value ;
     }
 
     protected int shortToInt( short value )
     {
-	if (value < 0)
-	    return value + 65536 ;
-	return value ;
+        if (value < 0)
+            return value + 65536 ;
+        return value ;
     }
 
     public void write( OutputStream os )
     {
-	os.write_string( getHost() ) ;
-	int port = getPort() ;
-	os.write_short( intToShort( port ) ) ;
+        os.write_string( getHost() ) ;
+        int port = getPort() ;
+        os.write_short( intToShort( port ) ) ;
     }
 
     public boolean equals( Object obj )
     {
-	if (!(obj instanceof IIOPAddress))
-	    return false ;
+        if (!(obj instanceof IIOPAddress))
+            return false ;
 
-	IIOPAddress other = (IIOPAddress)obj ;
+        IIOPAddress other = (IIOPAddress)obj ;
 
-	return getHost().equals(other.getHost()) && 
-	    (getPort() == other.getPort()) ;
+        return getHost().equals(other.getHost()) &&
+            (getPort() == other.getPort()) ;
     }
 
     public int hashCode()
     {
-	return getHost().hashCode() ^ getPort() ;
+        return getHost().hashCode() ^ getPort() ;
     }
 
     public String toString()
     {
-	return "IIOPAddress[" + getHost() + "," + getPort() + "]" ;
+        return "IIOPAddress[" + getHost() + "," + getPort() + "]" ;
     }
 }

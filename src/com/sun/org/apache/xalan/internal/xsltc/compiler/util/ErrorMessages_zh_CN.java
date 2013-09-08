@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,15 +90,9 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    /** Get the lookup table for error messages.   
-     *
-     * @return The message lookup table.
-     */
-    public Object[][] getContents()
-    {
-      return new Object[][] {
+    private static final Object[][] _contents =  new Object[][] {
         {ErrorMsg.MULTIPLE_STYLESHEET_ERR,
-        "\u540c\u4e00\u6587\u4ef6\u4e2d\u5b9a\u4e49\u4e86\u591a\u4e2a\u6837\u5f0f\u8868\u3002"},
+        "\u540C\u4E00\u6587\u4EF6\u4E2D\u5B9A\u4E49\u4E86\u591A\u4E2A\u6837\u5F0F\u8868\u3002"},
 
         /*
          * Note to translators:  The substitution text is the name of a
@@ -102,7 +100,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * same stylesheet.
          */
         {ErrorMsg.TEMPLATE_REDEF_ERR,
-        "\u6b64\u6837\u5f0f\u8868\u4e2d\u5df2\u7ecf\u5b9a\u4e49\u4e86\u6a21\u677f\u201c{0}\u201d\u3002"},
+        "\u5DF2\u5728\u6B64\u6837\u5F0F\u8868\u4E2D\u5B9A\u4E49\u6A21\u677F ''{0}''\u3002"},
 
 
         /*
@@ -111,14 +109,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * template is undefined.
          */
         {ErrorMsg.TEMPLATE_UNDEF_ERR,
-        "\u6b64\u6837\u5f0f\u8868\u4e2d\u672a\u5b9a\u4e49\u6a21\u677f\u201c{0}\u201d\u3002"},
+        "\u672A\u5728\u6B64\u6837\u5F0F\u8868\u4E2D\u5B9A\u4E49\u6A21\u677F ''{0}''\u3002"},
 
         /*
          * Note to translators:  The substitution text is the name of a variable
          * that was defined more than once.
          */
         {ErrorMsg.VARIABLE_REDEF_ERR,
-        "\u540c\u4e00\u4f5c\u7528\u57df\u4e2d\u591a\u6b21\u5b9a\u4e49\u4e86\u53d8\u91cf\u201c{0}\u201d\u3002"},
+        "\u540C\u4E00\u4F5C\u7528\u57DF\u4E2D\u591A\u6B21\u5B9A\u4E49\u4E86\u53D8\u91CF ''{0}''\u3002"},
 
         /*
          * Note to translators:  The substitution text is the name of a variable
@@ -126,7 +124,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * but it was never defined.
          */
         {ErrorMsg.VARIABLE_UNDEF_ERR,
-        "\u672a\u5b9a\u4e49\u53d8\u91cf\u6216\u53c2\u6570\u201c{0}\u201d\u3002"},
+        "\u672A\u5B9A\u4E49\u53D8\u91CF\u6216\u53C2\u6570 ''{0}''\u3002"},
 
         /*
          * Note to translators:  The word "class" here refers to a Java class.
@@ -134,7 +132,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * not be found.  The substitution text is the name of the class.
          */
         {ErrorMsg.CLASS_NOT_FOUND_ERR,
-        "\u627e\u4e0d\u5230\u7c7b\u201c{0}\u201d\u3002"},
+        "\u627E\u4E0D\u5230\u7C7B ''{0}''\u3002"},
 
         /*
          * Note to translators:  The word "method" here refers to a Java method.
@@ -143,7 +141,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * Java keyword.
          */
         {ErrorMsg.METHOD_NOT_FOUND_ERR,
-        "\u627e\u4e0d\u5230\u5916\u90e8\u65b9\u6cd5\u201c{0}\u201d\uff08\u5fc5\u987b\u662f public\uff09\u3002"},
+        "\u627E\u4E0D\u5230\u5916\u90E8\u65B9\u6CD5 ''{0}'' (\u5FC5\u987B\u4E3A public)\u3002"},
 
         /*
          * Note to translators:  The word "method" here refers to a Java method.
@@ -152,35 +150,35 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * arguments or return type could be found.
          */
         {ErrorMsg.ARGUMENT_CONVERSION_ERR,
-        "\u65e0\u6cd5\u5c06\u8c03\u7528\u4e2d\u7684\u81ea\u53d8\u91cf\uff0f\u8fd4\u56de\u7c7b\u578b\u8f6c\u6362\u4e3a\u65b9\u6cd5\u201c{0}\u201d"},
+        "\u65E0\u6CD5\u5728\u8C03\u7528\u65B9\u6CD5 ''{0}'' \u65F6\u8F6C\u6362\u53C2\u6570/\u8FD4\u56DE\u7C7B\u578B"},
 
         /*
          * Note to translators:  The file or URI named in the substitution text
          * is missing.
          */
         {ErrorMsg.FILE_NOT_FOUND_ERR,
-        "\u627e\u4e0d\u5230\u6587\u4ef6\u6216 URI\u201c{0}\u201d\u3002"},
+        "\u627E\u4E0D\u5230\u6587\u4EF6\u6216 URI ''{0}''\u3002"},
 
         /*
          * Note to translators:  This message is displayed when the URI
          * mentioned in the substitution text is not well-formed syntactically.
          */
         {ErrorMsg.INVALID_URI_ERR,
-        "URI\u201c{0}\u201d\u65e0\u6548\u3002"},
+        "URI ''{0}'' \u65E0\u6548\u3002"},
 
         /*
          * Note to translators:  The file or URI named in the substitution text
          * exists but could not be opened.
          */
         {ErrorMsg.FILE_ACCESS_ERR,
-        "\u65e0\u6cd5\u6253\u5f00\u6587\u4ef6\u6216 URI\u201c{0}\u201d\u3002"},
+        "\u65E0\u6CD5\u6253\u5F00\u6587\u4EF6\u6216 URI ''{0}''\u3002"},
 
         /*
          * Note to translators: <xsl:stylesheet> and <xsl:transform> are
          * keywords that should not be translated.
          */
         {ErrorMsg.MISSING_ROOT_ERR,
-        "\u671f\u671b\u51fa\u73b0 <xsl:stylesheet> \u6216 <xsl:transform> \u5143\u7d20\u3002"},
+        "\u9700\u8981 <xsl:stylesheet> \u6216 <xsl:transform> \u5143\u7D20\u3002"},
 
         /*
          * Note to translators:  The stylesheet contained a reference to a
@@ -188,21 +186,21 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * text is the name of the prefix.
          */
         {ErrorMsg.NAMESPACE_UNDEF_ERR,
-        "\u672a\u8bf4\u660e\u540d\u79f0\u7a7a\u95f4\u524d\u7f00\u201c{0}\u201d\u3002"},
+        "\u672A\u58F0\u660E\u540D\u79F0\u7A7A\u95F4\u524D\u7F00 ''{0}''\u3002"},
 
         /*
          * Note to translators:  The Java function named in the stylesheet could
          * not be found.
          */
         {ErrorMsg.FUNCTION_RESOLVE_ERR,
-        "\u65e0\u6cd5\u89e3\u6790\u5bf9\u51fd\u6570\u201c{0}\u201d\u7684\u8c03\u7528\u3002"},
+        "\u65E0\u6CD5\u89E3\u6790\u5BF9\u51FD\u6570 ''{0}'' \u7684\u8C03\u7528\u3002"},
 
         /*
          * Note to translators:  The substitution text is the name of a
          * function.  A literal string here means a constant string value.
          */
         {ErrorMsg.NEED_LITERAL_ERR,
-        "\u201c{0}\u201d\u7684\u81ea\u53d8\u91cf\u5fc5\u987b\u662f\u6587\u5b57\u5b57\u7b26\u4e32\u3002"},
+        "''{0}'' \u7684\u53C2\u6570\u5FC5\u987B\u662F\u6587\u5B57\u5B57\u7B26\u4E32\u3002"},
 
         /*
          * Note to translators:  This message indicates there was a syntactic
@@ -210,7 +208,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * the expression.
          */
         {ErrorMsg.XPATH_PARSER_ERR,
-        "\u5206\u6790 XPath \u8868\u8fbe\u5f0f\u201c{0}\u201d\u65f6\u51fa\u9519\u3002"},
+        "\u5BF9 XPath \u8868\u8FBE\u5F0F ''{0}'' \u8FDB\u884C\u8BED\u6CD5\u5206\u6790\u65F6\u51FA\u9519\u3002"},
 
         /*
          * Note to translators:  An element in the stylesheet requires a
@@ -218,7 +216,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * attribute was not specified in the stylesheet.
          */
         {ErrorMsg.REQUIRED_ATTR_ERR,
-        "\u7f3a\u5c11\u5fc5\u9700\u7684\u5c5e\u6027\u201c{0}\u201d\u3002"},
+        "\u7F3A\u5C11\u6240\u9700\u5C5E\u6027 ''{0}''\u3002"},
 
         /*
          * Note to translators:  This message indicates that a character not
@@ -226,7 +224,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * text is the offending character.
          */
         {ErrorMsg.ILLEGAL_CHAR_ERR,
-        "XPath \u8868\u8fbe\u5f0f\u4e2d\u7684\u5b57\u7b26\u201c{0}\u201d\u975e\u6cd5\u3002"},
+        "XPath \u8868\u8FBE\u5F0F\u4E2D\u7684\u5B57\u7B26 ''{0}'' \u975E\u6CD5\u3002"},
 
         /*
          * Note to translators:  A processing instruction is a mark-up item in
@@ -235,7 +233,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * text is the name.
          */
         {ErrorMsg.ILLEGAL_PI_ERR,
-        "\u5904\u7406\u6307\u4ee4\u7684\u540d\u79f0\u201c{0}\u201d\u975e\u6cd5\u3002"},
+        "processing instruction \u7684\u540D\u79F0 ''{0}'' \u975E\u6CD5\u3002"},
 
         /*
          * Note to translators:  This message is reported if the stylesheet
@@ -244,7 +242,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * specifies the name of the attribute.
          */
         {ErrorMsg.STRAY_ATTRIBUTE_ERR,
-        "\u5c5e\u6027\u201c{0}\u201d\u5728\u5143\u7d20\u5916\u3002"},
+        "\u5C5E\u6027 ''{0}'' \u5728\u5143\u7D20\u5916\u90E8\u3002"},
 
         /*
          * Note to translators:  An attribute that wasn't recognized was
@@ -253,7 +251,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * text.
          */
         {ErrorMsg.ILLEGAL_ATTRIBUTE_ERR,
-        "\u5c5e\u6027\u201c{0}\u201d\u975e\u6cd5\u3002"},
+        "\u5C5E\u6027 ''{0}'' \u975E\u6CD5\u3002"},
 
         /*
          * Note to translators:  "import" and "include" are keywords that should
@@ -262,7 +260,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * directly or indirectly.
          */
         {ErrorMsg.CIRCULAR_INCLUDE_ERR,
-        "\u5faa\u73af import\uff0finclude\u3002\u5df2\u88c5\u5165\u6837\u5f0f\u8868\u201c{0}\u201d\u3002"},
+        "\u5FAA\u73AF import/include\u3002\u5DF2\u52A0\u8F7D\u6837\u5F0F\u8868 ''{0}''\u3002"},
 
         /*
          * Note to translators:  A result-tree fragment is a portion of a
@@ -270,7 +268,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * keyword and should not be translated.
          */
         {ErrorMsg.RESULT_TREE_SORT_ERR,
-        "\u65e0\u6cd5\u6392\u5e8f\u7ed3\u679c\u6811\u7247\u6bb5\uff08<xsl:sort> \u5143\u7d20\u88ab\u5ffd\u7565\uff09\u3002\u5fc5\u987b\u5728\u521b\u5efa\u7ed3\u679c\u6811\u65f6\u5bf9\u8282\u70b9\u8fdb\u884c\u6392\u5e8f\u3002"},
+        "\u65E0\u6CD5\u5BF9\u7ED3\u679C\u6811\u7247\u6BB5\u6392\u5E8F (\u5FFD\u7565 <xsl:sort> \u5143\u7D20)\u3002\u5FC5\u987B\u5728\u521B\u5EFA\u7ED3\u679C\u6811\u65F6\u5BF9\u8282\u70B9\u8FDB\u884C\u6392\u5E8F\u3002"},
 
         /*
          * Note to translators:  A name can be given to a particular style to be
@@ -278,35 +276,35 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * of such a style for which more than one declaration was encountered.
          */
         {ErrorMsg.SYMBOLS_REDEF_ERR,
-        "\u5df2\u7ecf\u5b9a\u4e49\u4e86\u5341\u8fdb\u5236\u683c\u5f0f\u7684\u201c{0}\u201d\u3002"},
+        "\u5DF2\u5B9A\u4E49\u5341\u8FDB\u5236\u683C\u5F0F ''{0}''\u3002"},
 
         /*
          * Note to translators:  The stylesheet version named in the
          * substitution text is not supported.
          */
         {ErrorMsg.XSL_VERSION_ERR,
-        "XSLTC \u4e0d\u652f\u6301 XSL \u7248\u672c\u201c{0}\u201d\u3002"},
+        "XSLTC \u4E0D\u652F\u6301 XSL \u7248\u672C ''{0}''\u3002"},
 
         /*
          * Note to translators:  The definitions of one or more variables or
          * parameters depend on one another.
          */
         {ErrorMsg.CIRCULAR_VARIABLE_ERR,
-        "\u201c{0}\u201d\u4e2d\u5b58\u5728\u5faa\u73af\u53d8\u91cf\uff0f\u53c2\u6570\u5f15\u7528\u3002"},
+        "''{0}'' \u4E2D\u5B58\u5728\u5FAA\u73AF\u53D8\u91CF/\u53C2\u6570\u5F15\u7528\u3002"},
 
         /*
          * Note to translators:  The operator in an expresion with two operands was
          * not recognized.
          */
         {ErrorMsg.ILLEGAL_BINARY_OP_ERR,
-        "\u4e8c\u8fdb\u5236\u8868\u8fbe\u5f0f\u7684\u8fd0\u7b97\u7b26\u672a\u77e5\u3002"},
+        "\u4E8C\u8FDB\u5236\u8868\u8FBE\u5F0F\u7684\u8FD0\u7B97\u7B26\u672A\u77E5\u3002"},
 
         /*
          * Note to translators:  This message is produced if a reference to a
          * function has too many or too few arguments.
          */
         {ErrorMsg.ILLEGAL_ARG_ERR,
-        "\u51fd\u6570\u8c03\u7528\u7684\u81ea\u53d8\u91cf\u975e\u6cd5\u3002"},
+        "\u51FD\u6570\u8C03\u7528\u7684\u53C2\u6570\u975E\u6CD5\u3002"},
 
         /*
          * Note to translators:  "document()" is the name of function and must
@@ -314,7 +312,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * representation of an XML document.
          */
         {ErrorMsg.DOCUMENT_ARG_ERR,
-        "\u51fd\u6570 document() \u7684\u7b2c\u4e8c\u4e2a\u81ea\u53d8\u91cf\u5fc5\u987b\u662f\u8282\u70b9\u96c6\u3002"},
+        "document() \u51FD\u6570\u7684\u7B2C\u4E8C\u4E2A\u53C2\u6570\u5FC5\u987B\u662F\u8282\u70B9\u96C6\u3002"},
 
         /*
          * Note to translators:  "<xsl:when>" and "<xsl:choose>" are keywords
@@ -322,7 +320,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * in the stylesheet.
          */
         {ErrorMsg.MISSING_WHEN_ERR,
-        "<xsl:choose> \u4e2d\u81f3\u5c11\u8981\u6709\u4e00\u4e2a <xsl:when> \u5143\u7d20\u3002"},
+        "<xsl:choose> \u4E2D\u81F3\u5C11\u9700\u8981\u4E00\u4E2A <xsl:when> \u5143\u7D20\u3002"},
 
         /*
          * Note to translators:  "<xsl:otherwise>" and "<xsl:choose>" are
@@ -330,7 +328,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * syntax error in the stylesheet.
          */
         {ErrorMsg.MULTIPLE_OTHERWISE_ERR,
-        "<xsl:choose> \u4e2d\u53ea\u5141\u8bb8\u6709\u4e00\u4e2a <xsl:otherwise> \u5143\u7d20\u3002"},
+        "<xsl:choose> \u4E2D\u4EC5\u5141\u8BB8\u4F7F\u7528\u4E00\u4E2A <xsl:otherwise> \u5143\u7D20\u3002"},
 
         /*
          * Note to translators:  "<xsl:otherwise>" and "<xsl:choose>" are
@@ -338,7 +336,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * syntax error in the stylesheet.
          */
         {ErrorMsg.STRAY_OTHERWISE_ERR,
-        "<xsl:otherwise> \u53ea\u80fd\u5728 <xsl:choose> \u4e2d\u4f7f\u7528\u3002"},
+        "<xsl:otherwise> \u53EA\u80FD\u5728 <xsl:choose> \u4E2D\u4F7F\u7528\u3002"},
 
         /*
          * Note to translators:  "<xsl:when>" and "<xsl:choose>" are keywords
@@ -346,7 +344,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * in the stylesheet.
          */
         {ErrorMsg.STRAY_WHEN_ERR,
-        "<xsl:when> \u53ea\u80fd\u5728 <xsl:choose> \u4e2d\u4f7f\u7528\u3002"},
+        "<xsl:when> \u53EA\u80FD\u5728 <xsl:choose> \u4E2D\u4F7F\u7528\u3002"},
 
         /*
          * Note to translators:  "<xsl:when>", "<xsl:otherwise>" and
@@ -354,21 +352,21 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * message describes a syntax error in the stylesheet.
          */
         {ErrorMsg.WHEN_ELEMENT_ERR,
-        "<xsl:choose> \u4e2d\u53ea\u5141\u8bb8\u4f7f\u7528 <xsl:when> \u548c <xsl:otherwise>\u3002"},
+        "<xsl:choose> \u4E2D\u4EC5\u5141\u8BB8\u4F7F\u7528 <xsl:when> \u548C <xsl:otherwise> \u5143\u7D20\u3002"},
 
         /*
          * Note to translators:  "<xsl:attribute-set>" and "name" are keywords
          * that should not be translated.
          */
         {ErrorMsg.UNNAMED_ATTRIBSET_ERR,
-        "<xsl:attribute-set> \u7f3a\u5c11\u201cname\u201d\u5c5e\u6027\u3002"},
+        "<xsl:attribute-set> \u7F3A\u5C11 'name' \u5C5E\u6027\u3002"},
 
         /*
          * Note to translators:  An element in the stylesheet contained an
          * element of a type that it was not permitted to contain.
          */
         {ErrorMsg.ILLEGAL_CHILD_ERR,
-        "\u5b50\u5143\u7d20\u975e\u6cd5\u3002"},
+        "\u5B50\u5143\u7D20\u975E\u6CD5\u3002"},
 
         /*
          * Note to translators:  The stylesheet tried to create an element with
@@ -376,7 +374,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * the name.
          */
         {ErrorMsg.ILLEGAL_ELEM_NAME_ERR,
-        "\u4e0d\u80fd\u8c03\u7528\u5143\u7d20\u201c{0}\u201d"},
+        "\u65E0\u6CD5\u8C03\u7528\u5143\u7D20 ''{0}''"},
 
         /*
          * Note to translators:  The stylesheet tried to create an attribute
@@ -384,7 +382,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * contains the name.
          */
         {ErrorMsg.ILLEGAL_ATTR_NAME_ERR,
-        "\u4e0d\u80fd\u8c03\u7528\u5c5e\u6027\u201c{0}\u201d"},
+        "\u65E0\u6CD5\u8C03\u7528\u5C5E\u6027 ''{0}''"},
 
         /*
          * Note to translators:  The children of the outermost element of a
@@ -394,7 +392,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * "<xsl:stylesheet>" is a keyword that should not be translated.
          */
         {ErrorMsg.ILLEGAL_TEXT_NODE_ERR,
-        "\u6587\u672c\u6570\u636e\u5728\u9876\u7ea7 <xsl:stylesheet> \u5143\u7d20\u5916\u3002"},
+        "\u6587\u672C\u6570\u636E\u4F4D\u4E8E\u9876\u7EA7 <xsl:stylesheet> \u5143\u7D20\u5916\u90E8\u3002"},
 
         /*
          * Note to translators:  JAXP is an acronym for the Java API for XML
@@ -402,14 +400,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * XSLTC to process the XML input document had a configuration problem.
          */
         {ErrorMsg.SAX_PARSER_CONFIG_ERR,
-        "JAXP \u89e3\u6790\u5668\u6ca1\u6709\u6b63\u786e\u914d\u7f6e"},
+        "JAXP \u8BED\u6CD5\u5206\u6790\u5668\u672A\u6B63\u786E\u914D\u7F6E"},
 
         /*
          * Note to translators:  The substitution text names the internal error
          * encountered.
          */
         {ErrorMsg.INTERNAL_ERR,
-        "\u4e0d\u53ef\u6062\u590d\u7684 XSLTC \u5185\u90e8\u9519\u8bef\uff1a\u201c{0}\u201d"},
+        "\u4E0D\u53EF\u6062\u590D\u7684 XSLTC \u5185\u90E8\u9519\u8BEF: ''{0}''"},
 
         /*
          * Note to translators:  The stylesheet contained an element that was
@@ -417,7 +415,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * gives the element name.
          */
         {ErrorMsg.UNSUPPORTED_XSL_ERR,
-        "\u4e0d\u53d7\u652f\u6301\u7684 XSL \u5143\u7d20\u201c{0}\u201d\u3002"},
+        "XSL \u5143\u7D20 ''{0}'' \u4E0D\u53D7\u652F\u6301\u3002"},
 
         /*
          * Note to translators:  The stylesheet referred to an extension to the
@@ -426,7 +424,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * gives the extension name.
          */
         {ErrorMsg.UNSUPPORTED_EXT_ERR,
-        "\u672a\u88ab\u8bc6\u522b\u7684 XSLTC \u6269\u5c55\u540d\u201c{0}\u201d\u3002"},
+        "XSLTC \u6269\u5C55 ''{0}'' \u65E0\u6CD5\u8BC6\u522B\u3002"},
 
         /*
          * Note to translators:  The XML document given to XSLTC as a stylesheet
@@ -436,14 +434,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * for that namespace was seen.
          */
         {ErrorMsg.MISSING_XSLT_URI_ERR,
-        "\u8f93\u5165\u6587\u6863\u4e0d\u662f\u6837\u5f0f\u8868\uff08XSL \u540d\u79f0\u7a7a\u95f4\u6ca1\u6709\u5728\u6839\u5143\u7d20\u4e2d\u8bf4\u660e\uff09\u3002"},
+        "\u8F93\u5165\u6587\u6863\u4E0D\u662F\u6837\u5F0F\u8868 (\u672A\u5728\u6839\u5143\u7D20\u4E2D\u58F0\u660E XSL \u540D\u79F0\u7A7A\u95F4)\u3002"},
 
         /*
          * Note to translators:  XSLTC could not find the stylesheet document
          * with the name specified by the substitution text.
          */
         {ErrorMsg.MISSING_XSLT_TARGET_ERR,
-        "\u627e\u4e0d\u5230\u6837\u5f0f\u8868\u76ee\u6807\u201c{0}\u201d\u3002"},
+        "\u627E\u4E0D\u5230\u6837\u5F0F\u8868\u76EE\u6807 ''{0}''\u3002"},
 
         /*
          * Note to translators:  This message represents an internal error in
@@ -451,21 +449,21 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * that is missing some functionality.
          */
         {ErrorMsg.NOT_IMPLEMENTED_ERR,
-        "\u6ca1\u6709\u5b9e\u73b0\uff1a\u201c{0}\u201d\u3002"},
+        "\u672A\u5B9E\u73B0: ''{0}''\u3002"},
 
         /*
          * Note to translators:  The XML document given to XSLTC as a stylesheet
          * was not, in fact, a stylesheet.
          */
         {ErrorMsg.NOT_STYLESHEET_ERR,
-        "\u8f93\u5165\u6587\u6863\u4e0d\u5305\u542b XSL \u6837\u5f0f\u8868\u3002"},
+        "\u8F93\u5165\u6587\u6863\u4E0D\u5305\u542B XSL \u6837\u5F0F\u8868\u3002"},
 
         /*
          * Note to translators:  The element named in the substitution text was
          * encountered in the stylesheet but is not recognized.
          */
         {ErrorMsg.ELEMENT_PARSE_ERR,
-        "\u65e0\u6cd5\u5206\u6790\u5143\u7d20\u201c{0}\u201d"},
+        "\u65E0\u6CD5\u5BF9\u5143\u7D20 ''{0}'' \u8FDB\u884C\u8BED\u6CD5\u5206\u6790"},
 
         /*
          * Note to translators:  "use", "<key>", "node", "node-set", "string"
@@ -474,7 +472,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * attribute was not one of the permitted values.
          */
         {ErrorMsg.KEY_USE_ATTR_ERR,
-        "<key> \u7684 use \u5c5e\u6027\u5fc5\u987b\u662f node\u3001node-set\u3001string \u6216 number\u3002"},
+        "<key> \u7684 use \u5C5E\u6027\u5FC5\u987B\u662F node, node-set, string \u6216 number\u3002"},
 
         /*
          * Note to translators:  An XML document can specify the version of the
@@ -482,14 +480,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * the version specified for the output document was not valid.
          */
         {ErrorMsg.OUTPUT_VERSION_ERR,
-        "\u8f93\u51fa XML \u6587\u6863\u7684\u7248\u672c\u5e94\u5f53\u662f 1.0"},
+        "\u8F93\u51FA XML \u6587\u6863\u7248\u672C\u5E94\u4E3A 1.0"},
 
         /*
          * Note to translators:  The operator in a comparison operation was
          * not recognized.
          */
         {ErrorMsg.ILLEGAL_RELAT_OP_ERR,
-        "\u5173\u7cfb\u8868\u8fbe\u5f0f\u7684\u8fd0\u7b97\u7b26\u672a\u77e5"},
+        "\u5173\u7CFB\u8868\u8FBE\u5F0F\u7684\u8FD0\u7B97\u7B26\u672A\u77E5"},
 
         /*
          * Note to translators:  An attribute set defines as a set of XML
@@ -499,7 +497,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * that is in error.
          */
         {ErrorMsg.ATTRIBSET_UNDEF_ERR,
-        "\u8bd5\u56fe\u4f7f\u7528\u4e0d\u5b58\u5728\u7684\u5c5e\u6027\u96c6\u201c{0}\u201d\u3002"},
+        "\u5C1D\u8BD5\u4F7F\u7528\u4E0D\u5B58\u5728\u7684\u5C5E\u6027\u96C6 ''{0}''\u3002"},
 
         /*
          * Note to translators:  The term "attribute value template" is a term
@@ -509,13 +507,13 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * contains the expression that was in error.
          */
         {ErrorMsg.ATTR_VAL_TEMPLATE_ERR,
-        "\u65e0\u6cd5\u5206\u6790\u5c5e\u6027\u503c\u6a21\u677f\u201c{0}\u201d\u3002"},
+        "\u65E0\u6CD5\u5BF9\u5C5E\u6027\u503C\u6A21\u677F ''{0}'' \u8FDB\u884C\u8BED\u6CD5\u5206\u6790\u3002"},
 
         /*
          * Note to translators:  ???
          */
         {ErrorMsg.UNKNOWN_SIG_TYPE_ERR,
-        "\u7c7b\u201c{0}\u201d\u7684\u7b7e\u540d\u4e2d\u7684\u6570\u636e\u7c7b\u578b\u672a\u77e5\u3002"},
+        "\u7C7B ''{0}'' \u7684\u7B7E\u540D\u4E2D\u7684\u6570\u636E\u7C7B\u578B\u672A\u77E5\u3002"},
 
         /*
          * Note to translators:  The substitution text refers to data types.
@@ -524,30 +522,30 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * type {0}.
          */
         {ErrorMsg.DATA_CONVERSION_ERR,
-        "\u65e0\u6cd5\u5c06\u6570\u636e\u7c7b\u578b\u201c{0}\u201d\u8f6c\u6362\u6210\u201c{1}\u201d\u3002"},
+        "\u65E0\u6CD5\u5C06\u6570\u636E\u7C7B\u578B ''{0}'' \u8F6C\u6362\u4E3A ''{1}''\u3002"},
 
         /*
          * Note to translators:  "Templates" is a Java class name that should
          * not be translated.
          */
         {ErrorMsg.NO_TRANSLET_CLASS_ERR,
-        "\u6b64 Templates \u4e0d\u5305\u542b\u6709\u6548\u7684 translet \u7c7b\u5b9a\u4e49\u3002"},
+        "\u6B64 Templates \u4E0D\u5305\u542B\u6709\u6548\u7684 translet \u7C7B\u5B9A\u4E49\u3002"},
 
         /*
          * Note to translators:  "Templates" is a Java class name that should
          * not be translated.
          */
         {ErrorMsg.NO_MAIN_TRANSLET_ERR,
-        "\u6b64 Templates \u4e0d\u5305\u542b\u540d\u4e3a\u201c{0}\u201d\u7684\u7c7b\u3002"},
+        "\u6B64 Templates \u4E0D\u5305\u542B\u540D\u4E3A ''{0}'' \u7684\u7C7B\u3002"},
 
         /*
          * Note to translators:  The substitution text is the name of a class.
          */
         {ErrorMsg.TRANSLET_CLASS_ERR,
-        "\u65e0\u6cd5\u88c5\u5165 translet \u7c7b\u201c{0}\u201d\u3002"},
+        "\u65E0\u6CD5\u52A0\u8F7D translet \u7C7B ''{0}''\u3002"},
 
         {ErrorMsg.TRANSLET_OBJECT_ERR,
-        "Translet \u7c7b\u5df2\u88c5\u5165\uff0c\u4f46\u65e0\u6cd5\u521b\u5efa translet \u5b9e\u4f8b\u3002"},
+        "\u5DF2\u52A0\u8F7D Translet \u7C7B, \u4F46\u65E0\u6CD5\u521B\u5EFA translet \u5B9E\u4F8B\u3002"},
 
         /*
          * Note to translators:  "ErrorListener" is a Java interface name that
@@ -556,28 +554,28 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * substitution text with "null" Java value.
          */
         {ErrorMsg.ERROR_LISTENER_NULL_ERR,
-        "\u8bd5\u56fe\u5c06\u201c{0}\u201d\u7684 ErrorListener \u8bbe\u7f6e\u4e3a null"},
+        "\u5C1D\u8BD5\u5C06 ''{0}'' \u7684 ErrorListener \u8BBE\u7F6E\u4E3A\u7A7A\u503C"},
 
         /*
          * Note to translators:  StreamSource, SAXSource and DOMSource are Java
          * interface names that should not be translated.
          */
         {ErrorMsg.JAXP_UNKNOWN_SOURCE_ERR,
-        "XSLTC \u53ea\u652f\u6301 StreamSource\u3001SAXSource \u548c DOMSource"},
+        "XSLTC \u4EC5\u652F\u6301 StreamSource, SAXSource \u548C DOMSource"},
 
         /*
          * Note to translators:  "Source" is a Java class name that should not
          * be translated.  The substitution text is the name of Java method.
          */
         {ErrorMsg.JAXP_NO_SOURCE_ERR,
-        "\u4f20\u9012\u7ed9\u201c{0}\u201d\u7684 Source \u5bf9\u8c61\u6ca1\u6709\u5185\u5bb9\u3002"},
+        "\u4F20\u9012\u5230 ''{0}'' \u7684 Source \u5BF9\u8C61\u4E0D\u5305\u542B\u4EFB\u4F55\u5185\u5BB9\u3002"},
 
         /*
          * Note to translators:  The message indicates that XSLTC failed to
          * compile the stylesheet into a translet (class file).
          */
         {ErrorMsg.JAXP_COMPILE_ERR,
-        "\u65e0\u6cd5\u7f16\u8bd1\u6837\u5f0f\u8868"},
+        "\u65E0\u6CD5\u7F16\u8BD1\u6837\u5F0F\u8868"},
 
         /*
          * Note to translators:  "TransformerFactory" is a class name.  In this
@@ -588,14 +586,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * translate the term "attribute".
          */
         {ErrorMsg.JAXP_INVALID_ATTR_ERR,
-        "TransformerFactory \u65e0\u6cd5\u8bc6\u522b\u5c5e\u6027\u201c{0}\u201d\u3002"},
+        "TransformerFactory \u65E0\u6CD5\u8BC6\u522B\u5C5E\u6027 ''{0}''\u3002"},
 
         /*
          * Note to translators:  "setResult()" and "startDocument()" are Java
          * method names that should not be translated.
          */
         {ErrorMsg.JAXP_SET_RESULT_ERR,
-        "setResult() \u5fc5\u987b\u5728 startDocument() \u4e4b\u524d\u8c03\u7528\u3002"},
+        "\u5FC5\u987B\u5148\u8C03\u7528 setResult(), \u518D\u8C03\u7528 startDocument()\u3002"},
 
         /*
          * Note to translators:  "Transformer" is a Java interface name that
@@ -605,7 +603,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * met.
          */
         {ErrorMsg.JAXP_NO_TRANSLET_ERR,
-        "Transformer \u6ca1\u6709\u5c01\u88c5\u7684 translet \u5bf9\u8c61\u3002"},
+        "Transformer \u6CA1\u6709\u5185\u5D4C\u7684 translet \u5BF9\u8C61\u3002"},
 
         /*
          * Note to translators:  The XML document that results from a
@@ -613,14 +611,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * message is produced if that requirement is not met.
          */
         {ErrorMsg.JAXP_NO_HANDLER_ERR,
-        "\u6ca1\u6709\u4e3a\u8f6c\u6362\u7ed3\u679c\u5b9a\u4e49\u8f93\u51fa\u5904\u7406\u7a0b\u5e8f\u3002"},
+        "\u8F6C\u6362\u7ED3\u679C\u6CA1\u6709\u5B9A\u4E49\u7684\u8F93\u51FA\u5904\u7406\u7A0B\u5E8F\u3002"},
 
         /*
          * Note to translators:  "Result" is a Java interface name in this
          * context.  The substitution text is a method name.
          */
         {ErrorMsg.JAXP_NO_RESULT_ERR,
-        "\u4f20\u9012\u7ed9\u201c{0}\u201d\u7684 Result \u5bf9\u8c61\u65e0\u6548\u3002"},
+        "\u4F20\u9012\u5230 ''{0}'' \u7684 Result \u5BF9\u8C61\u65E0\u6548\u3002"},
 
         /*
          * Note to translators:  "Transformer" is a Java interface name.  The
@@ -630,7 +628,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * would be best to translate the term "property".
          */
         {ErrorMsg.JAXP_UNKNOWN_PROP_ERR,
-        "\u8bd5\u56fe\u8bbf\u95ee\u65e0\u6548\u7684 Transformer \u5c5e\u6027\u201c{0}\u201d\u3002"},
+        "\u5C1D\u8BD5\u8BBF\u95EE\u65E0\u6548\u7684 Transformer \u5C5E\u6027 ''{0}''\u3002"},
 
         /*
          * Note to translators:  SAX2DOM is the name of a Java class that should
@@ -638,18 +636,28 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * DOM object and converts it to something that uses the SAX API.
          */
         {ErrorMsg.SAX2DOM_ADAPTER_ERR,
-        "\u65e0\u6cd5\u521b\u5efa SAX2DOM \u9002\u914d\u5668\uff1a\u201c{0}\u201d\u3002"},
+        "\u65E0\u6CD5\u521B\u5EFA SAX2DOM \u9002\u914D\u5668: ''{0}''\u3002"},
 
         /*
          * Note to translators:  "XSLTCSource.build()" is a Java method name.
          * "systemId" is an XML term that is short for "system identification".
          */
         {ErrorMsg.XSLTC_SOURCE_ERR,
-        "\u6ca1\u6709\u8bbe\u7f6e systemId \u5c31\u8c03\u7528 XSLTCSource.build()\u3002"},
+        "\u8C03\u7528 XSLTCSource.build() \u65F6\u672A\u8BBE\u7F6E systemId\u3002"},
+        
+        { ErrorMsg.ER_RESULT_NULL,
+            "Result \u4E0D\u80FD\u4E3A\u7A7A\u503C"},
+
+        /*
+         * Note to translators:  This message indicates that the value argument
+         * of setParameter must be a valid Java Object.
+         */
+        {ErrorMsg.JAXP_INVALID_SET_PARAM_VALUE,
+        "\u53C2\u6570 {0} \u7684\u503C\u5FC5\u987B\u662F\u6709\u6548 Java \u5BF9\u8C61"},            
 
 
         {ErrorMsg.COMPILE_STDIN_ERR,
-        "-i \u9009\u9879\u5fc5\u987b\u4e0e -o \u9009\u9879\u4e00\u8d77\u4f7f\u7528\u3002"},
+        "-i \u9009\u9879\u5FC5\u987B\u4E0E -o \u9009\u9879\u4E00\u8D77\u4F7F\u7528\u3002"},
 
 
         /*
@@ -662,7 +670,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * documentation.
          */
         {ErrorMsg.COMPILE_USAGE_STR,
-        "SYNOPSIS\n java com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile [-o <output>]\n [-d <directory>] [-j <jarfile>] [-p <package>]\n [-n] [-x] [-s] [-u] [-v] [-h] { <stylesheet> | -i }\n\n OPTIONS\n -o <output>    \u5c06\u540d\u79f0 <output> \u6307\u5b9a\u7ed9\u751f\u6210\u7684 translet\u3002\n\u7f3a\u7701\u60c5\u51b5\u4e0b\uff0ctranslet \u540d\u79f0\n \u6765\u81ea <stylesheet> \u7684\u540d\u79f0\u3002\n \u5982\u679c\u7f16\u8bd1\u591a\u4e2a\u6837\u5f0f\u8868\uff0c\u5219\u5ffd\u7565\u6b64\u9009\u9879\u3002\n-d <directory> \u6307\u5b9a translet \u7684\u76ee\u6807\u76ee\u5f55\n -j <jarfile>   \u5c06 translet \u7c7b\u5c01\u88c5\u6210\u547d\u540d\u4e3a <jarfile>\n \u7684 jar \u6587\u4ef6\n -p <package>   \u4e3a\u6240\u6709\u751f\u6210\u7684 translet \u7c7b\n\u6307\u5b9a\u8f6f\u4ef6\u5305\u540d\u79f0\u524d\u7f00\u3002\n-n             \u542f\u7528\u6a21\u677f\u5185\u5d4c\uff08\u5e73\u5747\u7f3a\u7701\n\u884c\u4e3a\u66f4\u4f73\uff09\u3002\n-x             \u6253\u5f00\u989d\u5916\u7684\u8c03\u8bd5\u6d88\u606f\u8f93\u51fa\n -s             \u7981\u6b62\u8c03\u7528 System.exit\n -u             \u5c06 <stylesheet> \u81ea\u53d8\u91cf\u89e3\u91ca\u4e3a URL\n -i             \u5f3a\u5236\u7f16\u8bd1\u5668\u4ece stdin \u8bfb\u5165\u6837\u5f0f\u8868\n -v             \u6253\u5370\u7f16\u8bd1\u5668\u7684\u7248\u672c\n -h             \u6253\u5370\u6b64\u7528\u6cd5\u8bed\u53e5\n"},
+        "\u63D0\u8981\n   java com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile [-o <\u8F93\u51FA>]\n      [-d <\u76EE\u5F55>] [-j <jarfile>] [-p <\u7A0B\u5E8F\u5305>]\n      [-n] [-x] [-u] [-v] [-h] { <\u6837\u5F0F\u8868> | -i }\n\n\u9009\u9879\n   -o <\u8F93\u51FA>    \u4E3A\u751F\u6210\u7684 translet \u5206\u914D\n                  \u540D\u79F0 <\u8F93\u51FA>\u3002\u9ED8\u8BA4\u60C5\u51B5\u4E0B, translet \u540D\u79F0\n                  \u6D3E\u751F\u81EA <\u6837\u5F0F\u8868> \u540D\u79F0\u3002\u5982\u679C\u8981\u7F16\u8BD1\u591A\u4E2A\u6837\u5F0F\u8868, \n                  \u5219\u5FFD\u7565\u6B64\u9009\u9879\u3002\n   -d <\u76EE\u5F55> \u6307\u5B9A translet \u7684\u76EE\u6807\u76EE\u5F55\n   -j <jarfile>   \u5C06 translet \u7C7B\u6253\u5305\u5230\u5177\u6709 <jarfile>\n                  \u6307\u5B9A\u7684\u540D\u79F0\u7684 jar \u6587\u4EF6\u4E2D\n   -p <\u7A0B\u5E8F\u5305>   \u4E3A\u751F\u6210\u7684\u6240\u6709 translet \u7C7B\n                  \u6307\u5B9A\u7A0B\u5E8F\u5305\u540D\u79F0\u524D\u7F00\u3002\n   -n             \u542F\u7528\u6A21\u677F\u5185\u5D4C (\u9ED8\u8BA4\u884C\u4E3A\n                  \u901A\u5E38\u53EF\u63D0\u4F9B\u8F83\u597D\u7684\u6027\u80FD)\u3002\n   -x             \u542F\u7528\u5176\u4ED6\u8C03\u8BD5\u6D88\u606F\u8F93\u51FA\n   -u             \u5C06 <\u6837\u5F0F\u8868> \u53C2\u6570\u89E3\u91CA\u4E3A URL\n   -i             \u5F3A\u5236\u7F16\u8BD1\u5668\u4ECE stdin \u8BFB\u53D6\u6837\u5F0F\u8868\n   -v             \u8F93\u51FA\u7F16\u8BD1\u5668\u7684\u7248\u672C\n   -h             \u8F93\u51FA\u6B64\u7528\u6CD5\u8BED\u53E5\n"},
 
         /*
          * Note to translators:  This message contains usage information for a
@@ -674,7 +682,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * documentation.
          */
         {ErrorMsg.TRANSFORM_USAGE_STR,
-        "SYNOPSIS \n java com.sun.org.apache.xalan.internal.xsltc.cmdline.Transform [-j <jarfile>]\n [-x] [-s] [-n <iterations>] {-u <document_url> | <document>}\n <class> [<param1>=<value1> ...]\n\n \u4f7f\u7528 translet <class> \u6765\u8f6c\u6362\u6307\u5b9a\u4e3a <document> \u7684\nXML \u6587\u6863\u3002translet <class> \u8981\u4e48\u5728\n \u7528\u6237\u7684 CLASSPATH \u4e2d\uff0c\u8981\u4e48\u5728\u4efb\u610f\u6307\u5b9a\u7684 <jarfile> \u4e2d\u3002\n\u9009\u9879\n -j <jarfile>    \u6307\u5b9a\u88c5\u5165 translet \u7684 jarfile\n -x              \u6253\u5f00\u9644\u52a0\u7684\u8c03\u8bd5\u6d88\u606f\u8f93\u51fa\n -s              \u7981\u6b62\u8c03\u7528 System.exit\n -n <iterations> \u8fd0\u884c\u8f6c\u6362\u8fc7\u7a0b <iterations> \u6b21\u5e76\n \u663e\u793a\u6982\u8981\u5206\u6790\u4fe1\u606f\n -u <document_url> \u5c06 XML \u8f93\u5165\u6587\u6863\u6307\u5b9a\u4e3a URL\n"},
+        "\u63D0\u8981\n   java com.sun.org.apache.xalan.internal.xsltc.cmdline.Transform [-j <jarfile>]\n      [-x] [-n <\u8FED\u4EE3\u6570>] {-u <document_url> | <\u6587\u6863>}\n      <\u7C7B> [<param1>=<value1> ...]\n\n   \u4F7F\u7528 translet <\u7C7B> \u8F6C\u6362\n   <\u6587\u6863> \u6307\u5B9A\u7684 XML \u6587\u6863\u3002translet <\u7C7B> \u4F4D\u4E8E\n   \u7528\u6237\u7684 CLASSPATH \u6216\u9009\u62E9\u6027\u6307\u5B9A\u7684 <jarfile> \u4E2D\u3002\n\u9009\u9879\n   -j <jarfile>    \u6307\u5B9A\u8981\u4ECE\u4E2D\u52A0\u8F7D translet \u7684 jarfile\n   -x              \u542F\u7528\u5176\u4ED6\u8C03\u8BD5\u6D88\u606F\u8F93\u51FA\n   -n <\u8FED\u4EE3\u6570> \u8FD0\u884C <\u8FED\u4EE3\u6570> \u6B21\u8F6C\u6362\u5E76\n                   \u663E\u793A\u914D\u7F6E\u6587\u4EF6\u4FE1\u606F\n   -u <document_url> \u4EE5 URL \u5F62\u5F0F\u6307\u5B9A XML \u8F93\u5165\u6587\u6863\n"},
 
 
 
@@ -685,7 +693,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * one of the other kinds of elements mentioned.
          */
         {ErrorMsg.STRAY_SORT_ERR,
-        "<xsl:sort> \u53ea\u80fd\u5728 <xsl:for-each> \u6216 <xsl:apply-templates> \u4e2d\u4f7f\u7528\u3002"},
+        "<xsl:sort> \u53EA\u80FD\u5728 <xsl:for-each> \u6216 <xsl:apply-templates> \u4E2D\u4F7F\u7528\u3002"},
 
         /*
          * Note to translators:  The message indicates that the encoding
@@ -694,14 +702,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * the program.
          */
         {ErrorMsg.UNSUPPORTED_ENCODING,
-        "\u6b64 JVM \u4e0d\u652f\u6301\u8f93\u51fa\u7f16\u7801\u201c{0}\u201d\u3002"},
+        "\u6B64 JVM \u4E2D\u4E0D\u652F\u6301\u8F93\u51FA\u7F16\u7801 ''{0}''\u3002"},
 
         /*
          * Note to translators:  The message indicates that the XPath expression
          * named in the substitution text was not well formed syntactically.
          */
         {ErrorMsg.SYNTAX_ERR,
-        "\u201c{0}\u201d\u4e2d\u7684\u8bed\u6cd5\u9519\u8bef\u3002"},
+        "''{0}'' \u4E2D\u7684\u8BED\u6CD5\u9519\u8BEF\u3002"},
 
         /*
          * Note to translators:  The substitution text is the name of a Java
@@ -710,7 +718,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * class.
          */
         {ErrorMsg.CONSTRUCTOR_NOT_FOUND,
-        "\u627e\u4e0d\u5230\u5916\u90e8\u6784\u9020\u51fd\u6570\u201c{0}\u201d\u3002"},
+        "\u627E\u4E0D\u5230\u5916\u90E8\u6784\u9020\u5668 ''{0}''\u3002"},
 
         /*
          * Note to translators:  "static" is the Java keyword.  The substitution
@@ -718,7 +726,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * is not of the required type.
          */
         {ErrorMsg.NO_JAVA_FUNCT_THIS_REF,
-        "\u975e static Java \u51fd\u6570\u201c{0}\u201d\u7684\u7b2c\u4e00\u4e2a\u81ea\u53d8\u91cf\u4e0d\u662f\u6709\u6548\u7684\u5bf9\u8c61\u53c2\u8003\u3002"},
+        "\u975E static Java \u51FD\u6570 ''{0}'' \u7684\u7B2C\u4E00\u4E2A\u53C2\u6570\u4E0D\u662F\u6709\u6548\u7684\u5BF9\u8C61\u5F15\u7528\u3002"},
 
         /*
          * Note to translators:  An XPath expression was not of the type
@@ -726,7 +734,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * expression that was in error.
          */
         {ErrorMsg.TYPE_CHECK_ERR,
-        "\u68c0\u67e5\u8868\u8fbe\u5f0f\u201c{0}\u201d\u7684\u7c7b\u578b\u65f6\u51fa\u9519\u3002"},
+        "\u68C0\u67E5\u8868\u8FBE\u5F0F ''{0}'' \u7684\u7C7B\u578B\u65F6\u51FA\u9519\u3002"},
 
         /*
          * Note to translators:  An XPath expression was not of the type
@@ -734,21 +742,21 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * problematic expression is unknown.
          */
         {ErrorMsg.TYPE_CHECK_UNK_LOC_ERR,
-        "\u68c0\u67e5\u672a\u77e5\u4f4d\u7f6e\u7684\u8868\u8fbe\u5f0f\u7c7b\u578b\u65f6\u51fa\u9519\u3002"},
+        "\u68C0\u67E5\u672A\u77E5\u4F4D\u7F6E\u7684\u8868\u8FBE\u5F0F\u7C7B\u578B\u65F6\u51FA\u9519\u3002"},
 
         /*
          * Note to translators:  The substitution text is the name of a command-
          * line option that was not recognized.
          */
         {ErrorMsg.ILLEGAL_CMDLINE_OPTION_ERR,
-        "\u547d\u4ee4\u884c\u9009\u9879\u201c{0}\u201d\u65e0\u6548\u3002"},
+        "\u547D\u4EE4\u884C\u9009\u9879 ''{0}'' \u65E0\u6548\u3002"},
 
         /*
          * Note to translators:  The substitution text is the name of a command-
          * line option.
          */
         {ErrorMsg.CMDLINE_OPT_MISSING_ARG_ERR,
-        "\u547d\u4ee4\u884c\u9009\u9879\u201c{0}\u201d\u7f3a\u5c11\u5fc5\u9700\u7684\u81ea\u53d8\u91cf\u3002"},
+        "\u547D\u4EE4\u884C\u9009\u9879 ''{0}'' \u7F3A\u5C11\u6240\u9700\u53C2\u6570\u3002"},
 
         /*
          * Note to translators:  This message is used to indicate the severity
@@ -757,14 +765,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * it the same amount as the first in English.
          */
         {ErrorMsg.WARNING_PLUS_WRAPPED_MSG,
-        "\u8b66\u544a\uff1a\u201c{0}\u201d\n       \uff1a{1}"},
+        "\u8B66\u544A:  ''{0}''\n       :{1}"},
 
         /*
          * Note to translators:  This message is used to indicate the severity
          * of another message.  The substitution text is an error message.
          */
         {ErrorMsg.WARNING_MSG,
-        "\u8b66\u544a\uff1a\u201c{0}\u201d"},
+        "WARNING:  ''{0}''"},
 
         /*
          * Note to translators:  This message is used to indicate the severity
@@ -773,14 +781,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * it the same amount as the first in English.
          */
         {ErrorMsg.FATAL_ERR_PLUS_WRAPPED_MSG,
-        "\u81f4\u547d\u9519\u8bef\uff1a\u201c{0}\u201d\n           \uff1a{1}"},
+        "\u81F4\u547D\u9519\u8BEF:  ''{0}''\n           :{1}"},
 
         /*
          * Note to translators:  This message is used to indicate the severity
          * of another message.  The substitution text is an error message.
          */
         {ErrorMsg.FATAL_ERR_MSG,
-        "\u81f4\u547d\u9519\u8bef\uff1a\u201c{0}\u201d"},
+        "FATAL ERROR:  ''{0}''"},
 
         /*
          * Note to translators:  This message is used to indicate the severity
@@ -789,27 +797,27 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * it the same amount as the first in English.
          */
         {ErrorMsg.ERROR_PLUS_WRAPPED_MSG,
-        "\u9519\u8bef\uff1a\u201c{0}\u201d\n     \uff1a{1}"},
+        "\u9519\u8BEF:  ''{0}''\n     :{1}"},
 
         /*
          * Note to translators:  This message is used to indicate the severity
          * of another message.  The substitution text is an error message.
          */
         {ErrorMsg.ERROR_MSG,
-        "\u9519\u8bef\uff1a\u201c{0}\u201d"},
-
+        "ERROR:  ''{0}''"},
+        
         /*
          * Note to translators:  The substitution text is the name of a class.
          */
         {ErrorMsg.TRANSFORM_WITH_TRANSLET_STR,
-        "\u4f7f\u7528 translet\u201c{0}\u201d\u8f6c\u6362"},
+        "\u4F7F\u7528 translet ''{0}'' \u8FDB\u884C\u8F6C\u6362 "},
 
         /*
          * Note to translators:  The first substitution is the name of a class,
          * while the second substitution is the name of a jar file.
          */
         {ErrorMsg.TRANSFORM_WITH_JAR_STR,
-        "\u4f7f\u7528 translet\u201c{0}\u201d\u4ece jar \u6587\u4ef6\u201c{1}\u201d\u8f6c\u6362"},
+        "\u4F7F\u7528 translet ''{0}'' \u4ECE jar \u6587\u4EF6 ''{1}'' \u8FDB\u884C\u8F6C\u6362"},
 
         /*
          * Note to translators:  "TransformerFactory" is the name of a Java
@@ -817,7 +825,17 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * the name of the class that could not be instantiated.
          */
         {ErrorMsg.COULD_NOT_CREATE_TRANS_FACT,
-        "\u65e0\u6cd5\u521b\u5efa TransformerFactory \u7c7b\u201c{0}\u201d\u7684\u5b9e\u4f8b\u3002"},
+        "\u65E0\u6CD5\u521B\u5EFA TransformerFactory \u7C7B ''{0}'' \u7684\u5B9E\u4F8B\u3002"},
+
+        /*
+         * Note to translators:  This message is produced when the user
+         * specified a name for the translet class that contains characters
+         * that are not permitted in a Java class name.  The substitution
+         * text "{0}" specifies the name the user requested, while "{1}"
+         * specifies the name the processor used instead.
+         */
+        {ErrorMsg.TRANSLET_NAME_JAVA_CONFLICT,
+         "\u540D\u79F0 ''{0}'' \u5305\u542B\u4E0D\u5141\u8BB8\u5728 Java \u7C7B\u540D\u4E2D\u4F7F\u7528\u7684\u5B57\u7B26, \u56E0\u6B64\u65E0\u6CD5\u5C06\u6B64\u540D\u79F0\u7528\u4F5C translet \u7C7B\u7684\u540D\u79F0\u3002\u5DF2\u6539\u7528\u540D\u79F0 ''{1}''\u3002"},
 
         /*
          * Note to translators:  The following message is used as a header.
@@ -825,7 +843,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * this message.
          */
         {ErrorMsg.COMPILER_ERROR_KEY,
-        "\u7f16\u8bd1\u5668\u9519\u8bef\uff1a"},
+        "\u7F16\u8BD1\u5668\u9519\u8BEF:"},
 
         /*
          * Note to translators:  The following message is used as a header.
@@ -833,7 +851,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * beneath this message.
          */
         {ErrorMsg.COMPILER_WARNING_KEY,
-        "\u7f16\u8bd1\u5668\u8b66\u544a\uff1a"},
+        "\u7F16\u8BD1\u5668\u8B66\u544A:"},
 
         /*
          * Note to translators:  The following message is used as a header.
@@ -843,7 +861,58 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * stylesheet (see above).
          */
         {ErrorMsg.RUNTIME_ERROR_KEY,
-        "Translet \u9519\u8bef\uff1a"}
+        "Translet \u9519\u8BEF:"},
+        
+        /*
+         * Note to translators:  An attribute whose value is constrained to
+         * be a "QName" or a list of "QNames" had a value that was incorrect.
+         * 'QName' is an XML syntactic term that must not be translated.  The
+         * substitution text contains the actual value of the attribute.
+         */
+        {ErrorMsg.INVALID_QNAME_ERR,
+        "\u5176\u503C\u5FC5\u987B\u4E3A QName \u6216\u7531\u7A7A\u683C\u5206\u9694\u7684 QName \u5217\u8868\u7684\u5C5E\u6027\u5177\u6709\u503C ''{0}''"}, 
+
+        /*
+         * Note to translators:  An attribute whose value is required to
+         * be an "NCName".
+         * 'NCName' is an XML syntactic term that must not be translated.  The
+         * substitution text contains the actual value of the attribute.
+         */
+        {ErrorMsg.INVALID_NCNAME_ERR,
+        "\u5176\u503C\u5FC5\u987B\u4E3A NCName \u7684\u5C5E\u6027\u5177\u6709\u503C ''{0}''"},
+
+        /*
+         * Note to translators:  An attribute with an incorrect value was
+         * encountered.  The permitted value is one of the literal values
+         * "xml", "html" or "text"; it is also permitted to have the form of
+         * a QName that is not also an NCName.  The terms "method",
+         * "xsl:output", "xml", "html" and "text" are keywords that must not
+         * be translated.  The term "qname-but-not-ncname" is an XML syntactic
+         * term.  The substitution text contains the actual value of the
+         * attribute.
+         */
+        {ErrorMsg.INVALID_METHOD_IN_OUTPUT,
+        "<xsl:output> \u5143\u7D20\u7684 method \u5C5E\u6027\u5177\u6709\u503C ''{0}''\u3002\u8BE5\u503C\u5FC5\u987B\u662F ''xml'', ''html'', ''text'' \u6216 qname-but-not-ncname \u4E4B\u4E00"},
+        
+        {ErrorMsg.JAXP_GET_FEATURE_NULL_NAME,
+        "TransformerFactory.getFeature(String name) \u4E2D\u7684\u529F\u80FD\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A\u503C\u3002"},
+        
+        {ErrorMsg.JAXP_SET_FEATURE_NULL_NAME,
+        "TransformerFactory.setFeature(String name, boolean value) \u4E2D\u7684\u529F\u80FD\u540D\u79F0\u4E0D\u80FD\u4E3A\u7A7A\u503C\u3002"},
+
+        {ErrorMsg.JAXP_UNSUPPORTED_FEATURE,
+        "\u65E0\u6CD5\u5BF9\u6B64 TransformerFactory \u8BBE\u7F6E\u529F\u80FD ''{0}''\u3002"},
+
+        {ErrorMsg.JAXP_SECUREPROCESSING_FEATURE,
+        "FEATURE_SECURE_PROCESSING: \u5B58\u5728 Security Manager \u65F6, \u65E0\u6CD5\u5C06\u6B64\u529F\u80FD\u8BBE\u7F6E\u4E3A\u201C\u5047\u201D\u3002"}
     };
+
+    /** Get the lookup table for error messages.
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+        return _contents;
     }
 }

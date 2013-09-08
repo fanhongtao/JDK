@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +29,7 @@ import java.util.Properties;
  * @author Morten Jorgensen
  */
 public final class OutputSettings {
-    
+
     private String _cdata_section_elements = null;
     private String _doctype_public = null;
     private String _encoding = null;
@@ -37,9 +41,9 @@ public final class OutputSettings {
     private String _version = null;
 
     public Properties getProperties() {
-	Properties properties = new Properties();
-	return(properties);
+        Properties properties = new Properties();
+        return(properties);
     }
 
-    
+
 }

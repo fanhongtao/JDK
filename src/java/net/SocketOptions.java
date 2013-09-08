@@ -1,8 +1,26 @@
 /*
- * @(#)SocketOptions.java	1.33 05/11/17
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -19,7 +37,6 @@ package java.net;
  * type-safe methods to get/set each of these options in Socket, ServerSocket,
  * DatagramSocket and MulticastSocket.
  * <P>
- * @version 1.33, 11/17/05
  * @author David Brown
  */
 
@@ -54,7 +71,7 @@ public interface SocketOptions {
      *    // OK - disables SO_LINGER
      * </PRE>
      * <BR>
-     * For an option that has a notion of on and off, and requires 
+     * For an option that has a notion of on and off, and requires
      * a non-boolean parameter, setting its value to anything other than
      * <I>Boolean(false)</I> implicitly enables it.
      * <BR>
@@ -68,7 +85,7 @@ public interface SocketOptions {
      * @see #getOption(int)
      */
     public void
-	setOption(int optID, Object value) throws SocketException;
+        setOption(int optID, Object value) throws SocketException;
 
     /**
      * Fetch the value of an option.
@@ -85,7 +102,7 @@ public interface SocketOptions {
      * </PRE>
      * <P>
      * For options that take a particular type as a parameter,
-     * getOption(int) will return the paramter's value, else
+     * getOption(int) will return the parameter's value, else
      * it will return java.lang.Boolean(false):
      * <PRE>
      * Object o = s.getOption(SO_LINGER);
@@ -152,7 +169,7 @@ public interface SocketOptions {
     public final static int SO_REUSEADDR = 0x04;
 
     /**
-     * Sets SO_BROADCAST for a socket. This option enables and disables 
+     * Sets SO_BROADCAST for a socket. This option enables and disables
      * the ability of the process to send broadcast messages. It is supported
      * for only datagram sockets and only on networks that support
      * the concept of a broadcast message (e.g. Ethernet, token ring, etc.),
@@ -174,9 +191,9 @@ public interface SocketOptions {
 
     public final static int IP_MULTICAST_IF = 0x10;
 
-    /** Same as above. This option is introduced so that the behaviour 
+    /** Same as above. This option is introduced so that the behaviour
      *  with IP_MULTICAST_IF will be kept the same as before, while
-     *  this new option can support setting outgoing interfaces with either 
+     *  this new option can support setting outgoing interfaces with either
      *  IPv4 and IPv6 addresses.
      *
      *  NOTE: make sure there is no conflict with this
@@ -186,7 +203,7 @@ public interface SocketOptions {
      */
     public final static int IP_MULTICAST_IF2 = 0x1f;
 
-    /** 
+    /**
      * This option enables or disables local loopback of multicast datagrams.
      * This option is enabled by default for Multicast Sockets.
      * @since 1.4
@@ -194,8 +211,8 @@ public interface SocketOptions {
 
     public final static int IP_MULTICAST_LOOP = 0x12;
 
-    /** 
-     * This option sets the type-of-service or traffic class field 
+    /**
+     * This option sets the type-of-service or traffic class field
      * in the IP header for a TCP or UDP socket.
      * @since 1.4
      */
@@ -214,7 +231,7 @@ public interface SocketOptions {
      * timeout value exceeds 65,535 it will be reduced to 65,535.
      * <P>
      * Valid only for TCP: SocketImpl
-     * 
+     *
      * @see Socket#setSoLinger
      * @see Socket#getSoLinger
      */
@@ -278,19 +295,19 @@ public interface SocketOptions {
 
     /**
      * When the keepalive option is set for a TCP socket and no data
-     * has been exchanged across the socket in either direction for 
+     * has been exchanged across the socket in either direction for
      * 2 hours (NOTE: the actual value is implementation dependent),
-     * TCP automatically sends a keepalive probe to the peer. This probe is a 
-     * TCP segment to which the peer must respond. 
+     * TCP automatically sends a keepalive probe to the peer. This probe is a
+     * TCP segment to which the peer must respond.
      * One of three responses is expected:
-     * 1. The peer responds with the expected ACK. The application is not 
-     *    notified (since everything is OK). TCP will send another probe 
+     * 1. The peer responds with the expected ACK. The application is not
+     *    notified (since everything is OK). TCP will send another probe
      *    following another 2 hours of inactivity.
      * 2. The peer responds with an RST, which tells the local TCP that
      *    the peer host has crashed and rebooted. The socket is closed.
-     * 3. There is no response from the peer. The socket is closed. 
+     * 3. There is no response from the peer. The socket is closed.
      *
-     * The purpose of this option is to detect if the peer host crashes. 
+     * The purpose of this option is to detect if the peer host crashes.
      *
      * Valid only for TCP socket: SocketImpl
      *
@@ -310,9 +327,3 @@ public interface SocketOptions {
      */
     public final static int SO_OOBINLINE = 0x1003;
 }
-
-
-
-
-
-

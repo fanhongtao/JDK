@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -59,15 +63,14 @@ import com.sun.org.apache.bcel.internal.Repository;
 import com.sun.org.apache.bcel.internal.Constants;
 import java.io.*;
 
-/** 
+/**
  * This class takes a given JavaClass object and converts it to a
  * Java program that creates that very class using BCEL. This
  * gives new users of BCEL a useful example showing how things
  * are done with BCEL. It does not cover all features of BCEL,
  * but tries to mimic hand-written code as close as possible.
  *
- * @version $Id: BCELifier.java,v 1.1.2.1 2005/07/31 23:47:01 jeffsuttor Exp $
- * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class BCELifier extends com.sun.org.apache.bcel.internal.classfile.EmptyVisitor {
   private JavaClass         _clazz;
@@ -95,7 +98,7 @@ public class BCELifier extends com.sun.org.apache.bcel.internal.classfile.EmptyV
     String super_name   = clazz.getSuperclassName();
     String package_name = clazz.getPackageName();
     String inter        = Utility.printArray(clazz.getInterfaceNames(),
-					     false, true);
+                                             false, true);
     if(!"".equals(package_name)) {
       class_name = class_name.substring(package_name.length() + 1);
       _out.println("package " + package_name + ";\n");
@@ -113,12 +116,12 @@ public class BCELifier extends com.sun.org.apache.bcel.internal.classfile.EmptyV
 
     _out.println("  public " + class_name  + "Creator() {");
     _out.println("    _cg = new ClassGen(\"" +
-		 (("".equals(package_name))? class_name :
-		  package_name + "." + class_name) +
-		 "\", \"" + super_name + "\", " +
-		 "\"" + clazz.getSourceFileName() + "\", " +
-		 printFlags(clazz.getAccessFlags(), true) + ", " +
-		 "new String[] { " + inter + " });\n");
+                 (("".equals(package_name))? class_name :
+                  package_name + "." + class_name) +
+                 "\", \"" + super_name + "\", " +
+                 "\"" + clazz.getSourceFileName() + "\", " +
+                 printFlags(clazz.getAccessFlags(), true) + ", " +
+                 "new String[] { " + inter + " });\n");
 
     _out.println("    _cp = _cg.getConstantPool();");
     _out.println("    _factory = new InstructionFactory(_cg, _cp);");
@@ -129,63 +132,63 @@ public class BCELifier extends com.sun.org.apache.bcel.internal.classfile.EmptyV
     Field[] fields = clazz.getFields();
 
     if(fields.length > 0) {
-      _out.println("  private void createFields() {");   
+      _out.println("  private void createFields() {");
       _out.println("    FieldGen field;");
 
       for(int i=0; i < fields.length; i++) {
-	fields[i].accept(this);
+        fields[i].accept(this);
       }
 
-      _out.println("  }\n");   
+      _out.println("  }\n");
     }
 
     Method[] methods = clazz.getMethods();
 
     for(int i=0; i < methods.length; i++) {
-      _out.println("  private void createMethod_" + i + "() {");   
+      _out.println("  private void createMethod_" + i + "() {");
 
       methods[i].accept(this);
-      _out.println("  }\n");   
+      _out.println("  }\n");
     }
 
     printMain();
     _out.println("}");
   }
-  
+
   private void printCreate() {
     _out.println("  public void create(OutputStream out) throws IOException {");
 
     Field[] fields = _clazz.getFields();
     if(fields.length > 0) {
-      _out.println("    createFields();");   
+      _out.println("    createFields();");
     }
 
     Method[] methods = _clazz.getMethods();
     for(int i=0; i < methods.length; i++) {
-      _out.println("    createMethod_" + i + "();");   
+      _out.println("    createMethod_" + i + "();");
     }
 
-    _out.println("    _cg.getJavaClass().dump(out);");   
-  
-    _out.println("  }\n");     
+    _out.println("    _cg.getJavaClass().dump(out);");
+
+    _out.println("  }\n");
   }
 
   private void printMain() {
     String   class_name   = _clazz.getClassName();
-    
+
     _out.println("  public static void _main(String[] args) throws Exception {");
     _out.println("    " + class_name + "Creator creator = new " +
-		 class_name + "Creator();");
+                 class_name + "Creator();");
     _out.println("    creator.create(new FileOutputStream(\"" + class_name +
-		 ".class\"));");
-    _out.println("  }");     
+                 ".class\"));");
+    _out.println("  }");
   }
 
   public void visitField(Field field) {
     _out.println("\n    field = new FieldGen(" +
-		 printFlags(field.getAccessFlags()) +
-		 ", " + printType(field.getSignature()) + ", \"" +
-		 field.getName() + "\", _cp);");
+                 printFlags(field.getAccessFlags()) +
+                 ", " + printType(field.getSignature()) + ", \"" +
+                 field.getName() + "\", _cp);");
 
     ConstantValue cv = field.getConstantValue();
 
@@ -205,14 +208,14 @@ public class BCELifier extends com.sun.org.apache.bcel.internal.classfile.EmptyV
 
     _out.println("    InstructionList il = new InstructionList();");
     _out.println("    MethodGen method = new MethodGen(" +
-		 printFlags(method.getAccessFlags()) +
-		 ", " + printType(result_type) +
-		 ", " + printArgumentTypes(arg_types) + ", " +
-		 "new String[] { " +
-		 Utility.printArray(mg.getArgumentNames(), false, true) +
-		 " }, \"" + method.getName() + "\", \"" +
-		 _clazz.getClassName() + "\", il, _cp);\n");
-    
+                 printFlags(method.getAccessFlags()) +
+                 ", " + printType(result_type) +
+                 ", " + printArgumentTypes(arg_types) + ", " +
+                 "new String[] { " +
+                 Utility.printArray(mg.getArgumentNames(), false, true) +
+                 " }, \"" + method.getName() + "\", \"" +
+                 _clazz.getClassName() + "\", il, _cp);\n");
+
     BCELFactory factory = new BCELFactory(mg, _out);
     factory.start();
 
@@ -233,10 +236,10 @@ public class BCELifier extends com.sun.org.apache.bcel.internal.classfile.EmptyV
     StringBuffer buf = new StringBuffer();
     for(int i=0, pow=1; i <= Constants.MAX_ACC_FLAG; i++) {
       if((flags & pow) != 0) {
-	if((pow == Constants.ACC_SYNCHRONIZED) && for_class)
-	  buf.append("ACC_SUPER | ");
-	else
-	  buf.append("ACC_" + Constants.ACCESS_NAMES[i].toUpperCase() + " | ");
+        if((pow == Constants.ACC_SYNCHRONIZED) && for_class)
+          buf.append("ACC_SUPER | ");
+        else
+          buf.append("ACC_" + Constants.ACCESS_NAMES[i].toUpperCase() + " | ");
       }
 
       pow <<= 1;
@@ -256,7 +259,7 @@ public class BCELifier extends com.sun.org.apache.bcel.internal.classfile.EmptyV
       args.append(printType(arg_types[i]));
 
       if(i < arg_types.length - 1)
-	args.append(", ");
+        args.append(", ");
     }
 
     return "new Type[] { " + args.toString() + " }";
@@ -282,10 +285,10 @@ public class BCELifier extends com.sun.org.apache.bcel.internal.classfile.EmptyV
       ArrayType at = (ArrayType)type;
 
       return "new ArrayType(" + printType(at.getBasicType()) +
-	", " + at.getDimensions() + ")";
+        ", " + at.getDimensions() + ")";
     } else {
       return "new ObjectType(\"" + Utility.signatureToString(signature, false) +
-	"\")";
+        "\")";
     }
   }
 

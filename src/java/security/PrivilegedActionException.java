@@ -1,8 +1,26 @@
 /*
- * @(#)PrivilegedActionException.java	1.17 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -45,7 +63,7 @@ public class PrivilegedActionException extends Exception {
      * @param exception The exception thrown
      */
     public PrivilegedActionException(Exception exception) {
-	super((Throwable)null);  // Disallow initCause
+        super((Throwable)null);  // Disallow initCause
         this.exception = exception;
     }
 
@@ -65,11 +83,11 @@ public class PrivilegedActionException extends Exception {
      *                                            AccessControlContext)
      */
     public Exception getException() {
-	return exception;
+        return exception;
     }
 
     /**
-     * Returns the the cause of this exception (the exception thrown by
+     * Returns the cause of this exception (the exception thrown by
      * the privileged computation that resulted in this
      * <code>PrivilegedActionException</code>).
      *

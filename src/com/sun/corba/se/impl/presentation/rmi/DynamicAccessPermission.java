@@ -1,8 +1,26 @@
 /*
- * @(#)DynamicAccessPermission.java	1.1 05/08/26
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.presentation.rmi;
@@ -15,7 +33,6 @@ import java.security.*;
  * no actions list; you either have the named permission
  * or you don't.
  *
- * @version 1.1 05/08/26
  */
 
 public final class DynamicAccessPermission extends BasicPermission {
@@ -27,7 +44,7 @@ public final class DynamicAccessPermission extends BasicPermission {
      */
     public DynamicAccessPermission(String name)
     {
-	super(name);
+        super(name);
     }
 
     /**
@@ -40,6 +57,6 @@ public final class DynamicAccessPermission extends BasicPermission {
      */
     public DynamicAccessPermission(String name, String actions)
     {
-	super(name, actions);
+        super(name, actions);
     }
 }

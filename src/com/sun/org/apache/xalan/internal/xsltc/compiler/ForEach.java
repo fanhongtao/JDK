@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,117 +54,117 @@ final class ForEach extends Instruction {
     private Type       _type;
 
     public void display(int indent) {
-	indent(indent);
-	Util.println("ForEach");
-	indent(indent + IndentIncrement);
-	Util.println("select " + _select.toString());
-	displayContents(indent + IndentIncrement);
+        indent(indent);
+        Util.println("ForEach");
+        indent(indent + IndentIncrement);
+        Util.println("select " + _select.toString());
+        displayContents(indent + IndentIncrement);
     }
-		
-    public void parseContents(Parser parser) {
-	_select = parser.parseExpression(this, "select", null);
 
-	parseChildren(parser);
+    public void parseContents(Parser parser) {
+        _select = parser.parseExpression(this, "select", null);
+
+        parseChildren(parser);
 
         // make sure required attribute(s) have been set
         if (_select.isDummy()) {
-	    reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "select");
+            reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "select");
         }
     }
-	
-    public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	_type = _select.typeCheck(stable);
 
-	if (_type instanceof ReferenceType || _type instanceof NodeType) {
-	    _select = new CastExpr(_select, Type.NodeSet);
-	    typeCheckContents(stable);
-	    return Type.Void;
-	}
-	if (_type instanceof NodeSetType||_type instanceof ResultTreeType) {
-	    typeCheckContents(stable);
-	    return Type.Void;
-	}
-	throw new TypeCheckError(this);
+    public Type typeCheck(SymbolTable stable) throws TypeCheckError {
+        _type = _select.typeCheck(stable);
+
+        if (_type instanceof ReferenceType || _type instanceof NodeType) {
+            _select = new CastExpr(_select, Type.NodeSet);
+            typeCheckContents(stable);
+            return Type.Void;
+        }
+        if (_type instanceof NodeSetType||_type instanceof ResultTreeType) {
+            typeCheckContents(stable);
+            return Type.Void;
+        }
+        throw new TypeCheckError(this);
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// Save current node and current iterator on the stack
-	il.append(methodGen.loadCurrentNode());
-	il.append(methodGen.loadIterator());
-		
-	// Collect sort objects associated with this instruction
-	final Vector sortObjects = new Vector();
-	Enumeration children = elements();
-	while (children.hasMoreElements()) {
-	    final Object child = children.nextElement();
-	    if (child instanceof Sort) {
-		sortObjects.addElement(child);
-	    }
-	}
+        // Save current node and current iterator on the stack
+        il.append(methodGen.loadCurrentNode());
+        il.append(methodGen.loadIterator());
 
-	if ((_type != null) && (_type instanceof ResultTreeType)) {
-	    // Store existing DOM on stack - must be restored when loop is done
-	    il.append(methodGen.loadDOM());
+        // Collect sort objects associated with this instruction
+        final Vector sortObjects = new Vector();
+        Enumeration children = elements();
+        while (children.hasMoreElements()) {
+            final Object child = children.nextElement();
+            if (child instanceof Sort) {
+                sortObjects.addElement(child);
+            }
+        }
 
-	    // <xsl:sort> cannot be applied to a result tree - issue warning
-	    if (sortObjects.size() > 0) {
-		ErrorMsg msg = new ErrorMsg(ErrorMsg.RESULT_TREE_SORT_ERR,this);
-		getParser().reportError(WARNING, msg);
-	    }
+        if ((_type != null) && (_type instanceof ResultTreeType)) {
+            // Store existing DOM on stack - must be restored when loop is done
+            il.append(methodGen.loadDOM());
 
-	    // Put the result tree on the stack (DOM)
-	    _select.translate(classGen, methodGen);
-	    // Get an iterator for the whole DOM - excluding the root node
-	    _type.translateTo(classGen, methodGen, Type.NodeSet);
-	    // Store the result tree as the default DOM
-	    il.append(SWAP);
-	    il.append(methodGen.storeDOM());
-	}
-	else {
-	    // Compile node iterator
-	    if (sortObjects.size() > 0) {
-		Sort.translateSortIterator(classGen, methodGen,
-					   _select, sortObjects);
-	    }
-	    else {
-		_select.translate(classGen, methodGen);
-	    }
+            // <xsl:sort> cannot be applied to a result tree - issue warning
+            if (sortObjects.size() > 0) {
+                ErrorMsg msg = new ErrorMsg(ErrorMsg.RESULT_TREE_SORT_ERR,this);
+                getParser().reportError(WARNING, msg);
+            }
 
-	    if (_type instanceof ReferenceType == false) {
+            // Put the result tree on the stack (DOM)
+            _select.translate(classGen, methodGen);
+            // Get an iterator for the whole DOM - excluding the root node
+            _type.translateTo(classGen, methodGen, Type.NodeSet);
+            // Store the result tree as the default DOM
+            il.append(SWAP);
+            il.append(methodGen.storeDOM());
+        }
+        else {
+            // Compile node iterator
+            if (sortObjects.size() > 0) {
+                Sort.translateSortIterator(classGen, methodGen,
+                                           _select, sortObjects);
+            }
+            else {
+                _select.translate(classGen, methodGen);
+            }
+
+            if (_type instanceof ReferenceType == false) {
                 il.append(methodGen.loadContextNode());
                 il.append(methodGen.setStartNode());
-	    }
-	}
+            }
+        }
 
 
-	// Overwrite current iterator
-	il.append(methodGen.storeIterator());
+        // Overwrite current iterator
+        il.append(methodGen.storeIterator());
 
-	// Give local variables (if any) default values before starting loop
-	initializeVariables(classGen, methodGen);
+        // Give local variables (if any) default values before starting loop
+        initializeVariables(classGen, methodGen);
 
-	final BranchHandle nextNode = il.append(new GOTO(null));
-	final InstructionHandle loop = il.append(NOP);
+        final BranchHandle nextNode = il.append(new GOTO(null));
+        final InstructionHandle loop = il.append(NOP);
 
-	translateContents(classGen, methodGen);
-		    
-	nextNode.setTarget(il.append(methodGen.loadIterator()));
-	il.append(methodGen.nextNode());
-	il.append(DUP);
-	il.append(methodGen.storeCurrentNode());
-	il.append(new IFGT(loop));
+        translateContents(classGen, methodGen);
 
-	// Restore current DOM (if result tree was used instead for this loop)
-	if ((_type != null) && (_type instanceof ResultTreeType)) {
-	    il.append(methodGen.storeDOM());	    
-	}
+        nextNode.setTarget(il.append(methodGen.loadIterator()));
+        il.append(methodGen.nextNode());
+        il.append(DUP);
+        il.append(methodGen.storeCurrentNode());
+        il.append(new IFGT(loop));
 
-	// Restore current node and current iterator from the stack
-	il.append(methodGen.storeIterator());
-	il.append(methodGen.storeCurrentNode());
+        // Restore current DOM (if result tree was used instead for this loop)
+        if ((_type != null) && (_type instanceof ResultTreeType)) {
+            il.append(methodGen.storeDOM());
+        }
+
+        // Restore current node and current iterator from the stack
+        il.append(methodGen.storeIterator());
+        il.append(methodGen.storeCurrentNode());
     }
 
     /**
@@ -180,15 +184,15 @@ final class ForEach extends Instruction {
      *           if (node != END) goto Loop
      */
     public void initializeVariables(ClassGenerator classGen,
-				   MethodGenerator methodGen) {
-	final int n = elementCount();
-	for (int i = 0; i < n; i++) {
-	    final Object child = getContents().elementAt(i);
-	    if (child instanceof Variable) {
-		Variable var = (Variable)child;
-		var.initialize(classGen, methodGen);
-	    }
-	}
+                                   MethodGenerator methodGen) {
+        final int n = elementCount();
+        for (int i = 0; i < n; i++) {
+            final Object child = getContents().elementAt(i);
+            if (child instanceof Variable) {
+                Variable var = (Variable)child;
+                var.initialize(classGen, methodGen);
+            }
+        }
     }
 
 }

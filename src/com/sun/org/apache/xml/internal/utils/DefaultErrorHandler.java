@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,8 +47,8 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
 
   /**
    * if this flag is set to true, we will rethrow the exception on
-   * the error() and fatalError() methods. If it is false, the errors 
-   * are reported to System.err. 
+   * the error() and fatalError() methods. If it is false, the errors
+   * are reported to System.err.
    */
   boolean m_throwExceptionOnError = true;
 
@@ -55,7 +59,7 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
   {
     m_pw = pw;
   }
-  
+
   /**
    * Constructor DefaultErrorHandler
    */
@@ -63,7 +67,7 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
   {
     m_pw = new PrintWriter(pw, true);
   }
-  
+
   /**
    * Constructor DefaultErrorHandler
    */
@@ -159,7 +163,7 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
 
     throw exception;
   }
-  
+
   /**
    * Receive notification of a warning.
    *
@@ -251,13 +255,13 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
       m_pw.println(exception.getMessage());
     }
   }
-  
+
   public static void ensureLocationSet(TransformerException exception)
   {
     // SourceLocator locator = exception.getLocator();
     SourceLocator locator = null;
     Throwable cause = exception;
-    
+
     // Try to find the locator closest to the cause.
     do
     {
@@ -271,7 +275,7 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
         if(null != causeLocator)
           locator = causeLocator;
       }
-      
+
       if(cause instanceof TransformerException)
         cause = ((TransformerException)cause).getCause();
       else if(cause instanceof SAXException)
@@ -280,25 +284,25 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
         cause = null;
     }
     while(null != cause);
-    
+
     exception.setLocator(locator);
   }
-  
+
   public static void printLocation(PrintStream pw, TransformerException exception)
   {
     printLocation(new PrintWriter(pw), exception);
   }
-  
+
   public static void printLocation(java.io.PrintStream pw, org.xml.sax.SAXParseException exception)
   {
     printLocation(new PrintWriter(pw), exception);
   }
-  
+
   public static void printLocation(PrintWriter pw, Throwable exception)
   {
     SourceLocator locator = null;
     Throwable cause = exception;
-    
+
     // Try to find the locator closest to the cause.
     do
     {
@@ -322,7 +326,7 @@ public class DefaultErrorHandler implements ErrorHandler, ErrorListener
         cause = null;
     }
     while(null != cause);
-        
+
     if(null != locator)
     {
       // m_pw.println("Parser fatal error: "+exception.getMessage());

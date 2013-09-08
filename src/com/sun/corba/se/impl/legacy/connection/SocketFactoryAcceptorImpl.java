@@ -1,8 +1,26 @@
 /*
- * @(#)SocketFactoryAcceptorImpl.java	1.18 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.legacy.connection;
@@ -25,12 +43,12 @@ import com.sun.corba.se.impl.transport.SocketOrChannelAcceptorImpl;
  */
 public class SocketFactoryAcceptorImpl
     extends
-	SocketOrChannelAcceptorImpl
+        SocketOrChannelAcceptorImpl
 {
-    public SocketFactoryAcceptorImpl(ORB orb, int port, 
-				     String name, String type)
+    public SocketFactoryAcceptorImpl(ORB orb, int port,
+                                     String name, String type)
     {
-	super(orb, port, name, type);
+        super(orb, port, name, type);
     }
 
     ////////////////////////////////////////////////////
@@ -40,21 +58,21 @@ public class SocketFactoryAcceptorImpl
 
     public boolean initialize()
     {
-	if (initialized) {
-	    return false;
-	}
-	if (orb.transportDebugFlag) {
-	    dprint("initialize: " + this);
-	}
-	try {
-	    serverSocket = orb.getORBData()
-		.getLegacySocketFactory().createServerSocket(type, port);
-	    internalInitialize();
-	} catch (Throwable t) {
-	    throw wrapper.createListenerFailed( t, Integer.toString(port) ) ;
-	}
-	initialized = true;
-	return true;
+        if (initialized) {
+            return false;
+        }
+        if (orb.transportDebugFlag) {
+            dprint("initialize: " + this);
+        }
+        try {
+            serverSocket = orb.getORBData()
+                .getLegacySocketFactory().createServerSocket(type, port);
+            internalInitialize();
+        } catch (Throwable t) {
+            throw wrapper.createListenerFailed( t, Integer.toString(port) ) ;
+        }
+        initialized = true;
+        return true;
     }
 
     ////////////////////////////////////////////////////
@@ -64,12 +82,12 @@ public class SocketFactoryAcceptorImpl
 
     protected String toStringName()
     {
-	return "SocketFactoryAcceptorImpl";
+        return "SocketFactoryAcceptorImpl";
     }
 
     protected void dprint(String msg)
     {
-	ORBUtility.dprint(toStringName(), msg);
+        ORBUtility.dprint(toStringName(), msg);
     }
 }
 

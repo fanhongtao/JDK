@@ -1,8 +1,26 @@
 /*
- * @(#)ORBSocketFactory.java	1.15 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.legacy.connection;
@@ -15,7 +33,7 @@ import com.sun.corba.se.spi.ior.IOR;
 import com.sun.corba.se.spi.transport.SocketInfo;
 
 /**
- * 
+ *
  * DEPRECATED.  DEPRECATED. DEPRECATED. DEPRECATED. <p>
  * DEPRECATED.  DEPRECATED. DEPRECATED. DEPRECATED. <p>
  *
@@ -24,12 +42,12 @@ import com.sun.corba.se.spi.transport.SocketInfo;
  *
  * Usage: <p>
  *
- * One specifies a class which implements this interface via the 
+ * One specifies a class which implements this interface via the
  *
  *     <code>ORBConstants.SOCKET_FACTORY_CLASS_PROPERTY</code>
  *
  * property. <p>
- * 
+ *
  * Example: <p>
 
  * <pre>
@@ -40,12 +58,12 @@ import com.sun.corba.se.spi.transport.SocketInfo;
  * server side and the client side (but this is not required). <p>
  *
  * A <code>ORBSocketFactory</code> class should have a public default
- * constructor which is called once per instantiating ORB.init call. 
+ * constructor which is called once per instantiating ORB.init call.
  * That ORB then calls the methods of that <code>ORBSocketFactory</code>
  * to obtain client and server sockets. <p>
  *
  * This interface also supports multiple server end points.  See the
- * documentation on <code>createServerSocket</code> below. 
+ * documentation on <code>createServerSocket</code> below.
  *
  */
 
@@ -58,12 +76,12 @@ public interface ORBSocketFactory
      * That port is put into IOP profiles of object references exported
      * by an ORB. <p>
      *
-     * If 
+     * If
      *
-     *     <code>createServerSocket(String type, int port)</code> 
+     *     <code>createServerSocket(String type, int port)</code>
      *
      * is passed <code>IIOP_CLEAR_TEXT</code> as a <code>type</code>
-     * argument it should then call and return 
+     * argument it should then call and return
      *
      *     <code>new java.net.ServerSocket(int port)</code> <p>
      *
@@ -92,7 +110,7 @@ public interface ORBSocketFactory
      * When an ORB needs to create a listen socket on which connection
      * requests are accepted it calls
      *
-     *     <code>createServerSocket(String type, int port)</code>. 
+     *     <code>createServerSocket(String type, int port)</code>.
      *
      * The type argument says which type of socket should be created. <p>
      *
@@ -100,7 +118,7 @@ public interface ORBSocketFactory
      * an instance of <code>ORBSocketFactory</code>, except in the case
      * of <code>IIOP_CLEAR_TEXT</code>, in which case a standard server
      * socket should be created. <p>
-     * 
+     *
      *
      * Multiple Server Port API: <p>
      *
@@ -130,13 +148,13 @@ public interface ORBSocketFactory
      * Example usage:<p>
      *
      * <pre>
-     *    ... \ 
+     *    ... \
      *    -Dcom.sun.CORBA.connection.ORBSocketFactoryClass=com.my.MySockFact \
      *    -Dcom.sun.CORBA.connection.ORBListenSocket=SSL:0,foo:1 \
-     *    ... 
+     *    ...
      * </pre>
      *
-     * The meaning of the "type" (SSL and foo above) is controlled 
+     * The meaning of the "type" (SSL and foo above) is controlled
      * by the user. <p>
      *
      * ORBListenSocket is only meaningful for servers. <p>
@@ -148,7 +166,7 @@ public interface ORBSocketFactory
      * the associated type. <p>
      *
      * If number is greater then 0 use that port number. <p>
-     * 
+     *
      * An ORB creates a listener socket for each type
      * specified by the user by calling
      *
@@ -161,13 +179,13 @@ public interface ORBSocketFactory
      * all the end points which were specified.  It may be necessary
      * to add this additional end point information to object references
      * exported by this ORB.  <p>
-     * 
+     *
      * Each object reference will contain the ORB's default IIOP_CLEAR_TEXT
      * end point in its IOP profile.  To add additional end point information
      * (i.e., an SSL port) to an IOR (i.e., an object reference) one needs
      * to intercept IOR creation using
      * an <code>PortableInterceptor::IORInterceptor</code>. <p>
-     * 
+     *
      * Using PortableInterceptors (with a non-standard extension): <p>
      *
      * Register an <code>IORInterceptor</code>.  Inside its
@@ -181,15 +199,15 @@ public interface ORBSocketFactory
      * int port = ext.getServerPort("myType");
      *
      * </pre>
-     * 
+     *
      * Once you have the port you may add information to references
      * created by the associated adapter by calling
      *
      *    <code>IORInfo::add_ior_component</code><p> <p>
-     * 
+     *
      *
      * Note: if one is using a POA and the lifespan policy of that
-     * POA is persistent then the port number returned 
+     * POA is persistent then the port number returned
      * by <code>getServerPort</code> <em>may</em>
      * be the corresponding ORBD port, depending on whether the POA/ORBD
      * protocol is the present port exchange or if, in the future,
@@ -202,7 +220,7 @@ public interface ORBSocketFactory
      * If object reference
      * exchange is used then the server's transient port will be returned
      * since the templates are exchanged after adding components.) <p>
-     * 
+     *
      *
      * Persistent object reference support: <p>
      *
@@ -219,7 +237,7 @@ public interface ORBSocketFactory
      *
      * Note: when using the port exchange protocol
      * the ORBD and servers will exchange port
-     * numbers for each given type so they know about each other. 
+     * numbers for each given type so they know about each other.
      * When using object reference template exchange the server's
      * transient ports are contained in the template. <p>
      *
@@ -236,12 +254,12 @@ public interface ORBSocketFactory
      * -Dcom.sun.CORBA.POA.ORBBadServerIdHandlerClass=corba.socketPersistent.MyBadServerIdHandler
      *
      * </pre>
-     * 
+     *
      * The <code>BadServerIdHandler</code> ...<p>
      *
      * See <code>com.sun.corba.se.impl.activation.ServerManagerImpl.handle</code>
      * for example code on writing a bad server id handler.  NOTE:  This
-     * is an unsupported internal API.  It will not exist in future releases. 
+     * is an unsupported internal API.  It will not exist in future releases.
      * <p>
      *
      *
@@ -257,8 +275,8 @@ public interface ORBSocketFactory
      *
      */
     public ServerSocket createServerSocket(String type, int port)
-        throws 
-	    IOException;
+        throws
+            IOException;
 
 
 
@@ -271,7 +289,7 @@ public interface ORBSocketFactory
      * associated ORB will call
      *
      * <pre>
-     *    getEndPointInfo(ORB orb, 
+     *    getEndPointInfo(ORB orb,
      *                    IOR ior,
      *                    SocketInfo socketInfo)
      * </pre>
@@ -310,8 +328,8 @@ public interface ORBSocketFactory
      *
      */
     public SocketInfo getEndPointInfo(org.omg.CORBA.ORB orb,
-					IOR ior,
-					SocketInfo socketInfo);
+                                        IOR ior,
+                                        SocketInfo socketInfo);
 
 
     /**
@@ -325,7 +343,7 @@ public interface ORBSocketFactory
      * Note: the <code>SocketInfo</code> is the same instance as was
      * returned by <code>getSocketInfo</code> so extra cookie info may
      * be attached. <p>
-     * 
+     *
      * If this method throws GetEndPointInfoAgainException then the
      * ORB calls <code>getEndPointInfo</code> again, passing it the
      * <code>SocketInfo</code> object contained in the exception. <p>
@@ -333,10 +351,8 @@ public interface ORBSocketFactory
      */
     public Socket createSocket(SocketInfo socketInfo)
         throws
-	    IOException,
-	    GetEndPointInfoAgainException;
+            IOException,
+            GetEndPointInfoAgainException;
 }
 
 // End of file.
-
-

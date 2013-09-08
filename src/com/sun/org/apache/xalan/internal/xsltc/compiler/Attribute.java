@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,17 +31,17 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
  */
 final class Attribute extends Instruction {
     private QName _name;
-	
+
     public void display(int indent) {
-	indent(indent);
-	Util.println("Attribute " + _name);
-	displayContents(indent + IndentIncrement);
+        indent(indent);
+        Util.println("Attribute " + _name);
+        displayContents(indent + IndentIncrement);
     }
 
     public void parseContents(Parser parser) {
-	_name = parser.getQName(getAttribute("name"));
-	parseChildren(parser);
-	//!!! add text nodes
-	//!!! take care of value templates
+        _name = parser.getQName(getAttribute("name"));
+        parseChildren(parser);
+        //!!! add text nodes
+        //!!! take care of value templates
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)FileSystem.java	1.18 05/12/01
+ * Copyright (c) 1998, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -111,7 +129,7 @@ abstract class FileSystem {
      */
     public abstract boolean checkAccess(File f, int access);
     /**
-     * Set on or off the access permission (to owner only or to all) to the file 
+     * Set on or off the access permission (to owner only or to all) to the file
      * or directory denoted by the given abstract pathname, based on the parameters
      * enable, access and oweronly.
      */
@@ -141,7 +159,7 @@ abstract class FileSystem {
      * IOException if an I/O error occurs.
      */
     public abstract boolean createFileExclusively(String pathname)
-	throws IOException;
+        throws IOException;
 
     /**
      * Delete the file or directory denoted by the given abstract pathname,
@@ -197,7 +215,7 @@ abstract class FileSystem {
     public static final int SPACE_USABLE = 2;
 
     public abstract long getSpace(File f, int t);
-    
+
     /* -- Basic infrastructure -- */
 
     /**

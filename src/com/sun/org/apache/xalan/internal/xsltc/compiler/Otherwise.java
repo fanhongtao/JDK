@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,20 +36,20 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
  */
 final class Otherwise extends Instruction {
     public void display(int indent) {
-	indent(indent);
-	Util.println("Otherwise");
-	indent(indent + IndentIncrement);
-	displayContents(indent + IndentIncrement);
+        indent(indent);
+        Util.println("Otherwise");
+        indent(indent + IndentIncrement);
+        displayContents(indent + IndentIncrement);
     }
-	
+
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	typeCheckContents(stable);
-	return Type.Void;
+        typeCheckContents(stable);
+        return Type.Void;
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final Parser parser = getParser();
-	final ErrorMsg err = new ErrorMsg(ErrorMsg.STRAY_OTHERWISE_ERR, this);
-	parser.reportError(Constants.ERROR, err);
+        final Parser parser = getParser();
+        final ErrorMsg err = new ErrorMsg(ErrorMsg.STRAY_OTHERWISE_ERR, this);
+        parser.reportError(Constants.ERROR, err);
     }
 }

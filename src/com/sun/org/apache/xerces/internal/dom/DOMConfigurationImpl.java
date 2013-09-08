@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +26,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Vector;
 
+import com.sun.org.apache.xerces.internal.util.PropertyState;
+import com.sun.org.apache.xerces.internal.util.Status;
 import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMErrorHandler;
 import org.w3c.dom.DOMStringList;
@@ -61,7 +67,7 @@ import org.w3c.dom.ls.LSResourceResolver;
  *
  * @author Elena Litani, IBM
  * @author Neeraj Bajaj, Sun Microsystems.
- * @version $Id: DOMConfigurationImpl.java,v 1.2.6.1 2005/08/30 13:08:25 sunithareddy Exp $
+ * @version $Id: DOMConfigurationImpl.java,v 1.9 2010-11-01 04:39:37 joehw Exp $
  */
 public class DOMConfigurationImpl extends ParserConfigurationSettings
     implements XMLParserConfiguration, DOMConfiguration {
@@ -98,7 +104,14 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
 
     protected final static String DTD_VALIDATOR_FACTORY_PROPERTY = 
     	Constants.XERCES_PROPERTY_PREFIX + Constants.DATATYPE_VALIDATOR_FACTORY_PROPERTY;
-    
+
+    /** Feature identifier: namespace growth */
+    protected static final String NAMESPACE_GROWTH =
+        Constants.XERCES_FEATURE_PREFIX + Constants.NAMESPACE_GROWTH_FEATURE;
+
+    protected static final String TOLERATE_DUPLICATES =
+        Constants.XERCES_FEATURE_PREFIX + Constants.TOLERATE_DUPLICATES_FEATURE;
+
     // property identifiers
 
     /** Property identifier: entity manager. */
@@ -139,6 +152,11 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
 
     protected static final String VALIDATION_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.VALIDATION_MANAGER_PROPERTY;
+
+    /** Property identifier: Schema DV Factory */
+    protected static final String SCHEMA_DV_FACTORY =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.SCHEMA_DV_FACTORY_PROPERTY;
+
     //
     // Data
     //
@@ -215,9 +233,6 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
                                     XMLComponentManager parentSettings) {
         super(parentSettings);
 
-        // create storage for recognized features and properties
-        fRecognizedFeatures = new ArrayList();
-        fRecognizedProperties = new ArrayList();
 
         // create table for features and properties
         fFeatures = new HashMap();
@@ -232,6 +247,8 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
             DYNAMIC_VALIDATION,
             NORMALIZE_DATA,
             SEND_PSVI,
+            NAMESPACE_GROWTH,
+            TOLERATE_DUPLICATES
         };
         addRecognizedFeatures(recognizedFeatures);
 
@@ -243,6 +260,7 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
         setFeature(NORMALIZE_DATA, false);
         setFeature(XERCES_NAMESPACES, true);
         setFeature(SEND_PSVI, true);
+        setFeature(NAMESPACE_GROWTH, false);
 
         // add default recognized properties
         final String[] recognizedProperties = {
@@ -256,7 +274,8 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
             GRAMMAR_POOL,
             JAXP_SCHEMA_SOURCE,
             JAXP_SCHEMA_LANGUAGE,
-			DTD_VALIDATOR_FACTORY_PROPERTY
+	    DTD_VALIDATOR_FACTORY_PROPERTY,
+            SCHEMA_DV_FACTORY
         };
         addRecognizedProperties(recognizedProperties);
 
@@ -1014,7 +1033,7 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
      * @exception com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException If the
      *            requested feature is not known or supported.
      */
-    protected void checkProperty(String propertyId)
+    protected PropertyState checkProperty(String propertyId)
         throws XMLConfigurationException {
 
         // special cases
@@ -1036,13 +1055,12 @@ public class DOMConfigurationImpl extends ParserConfigurationSettings
                 // REVISIT - we should probably ask xml-dev for a precise
                 // definition of what this is actually supposed to return, and
                 // in exactly which circumstances.
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, propertyId);
+                return PropertyState.NOT_SUPPORTED;
             }
         }
 
         // check property
-        super.checkProperty(propertyId);
+        return super.checkProperty(propertyId);
 
     } // checkProperty(String)
 

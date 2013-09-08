@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -55,11 +59,10 @@ package com.sun.org.apache.bcel.internal.generic;
  */
 import com.sun.org.apache.bcel.internal.ExceptionConstants;
 
-/** 
+/**
  * ANEWARRAY -  Create new array of references
  * <PRE>Stack: ..., count -&gt; ..., arrayref</PRE>
  *
- * @version $Id: ANEWARRAY.java,v 1.1.2.1 2005/07/31 23:45:32 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ANEWARRAY extends CPInstruction
@@ -78,7 +81,7 @@ public class ANEWARRAY extends CPInstruction
     Class[] cs = new Class[1 + ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION.length];
 
     System.arraycopy(ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION, 0,
-		     cs, 0, ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION.length);
+                     cs, 0, ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION.length);
     cs[ExceptionConstants.EXCS_CLASS_AND_INTERFACE_RESOLUTION.length] =
       ExceptionConstants.NEGATIVE_ARRAY_SIZE_EXCEPTION;
     return cs;
@@ -104,11 +107,11 @@ public class ANEWARRAY extends CPInstruction
 
   public ObjectType getLoadClassType(ConstantPoolGen cpg) {
     Type t = getType(cpg);
-    
+
     if (t instanceof ArrayType){
       t = ((ArrayType) t).getBasicType();
     }
-    
+
     return (t instanceof ObjectType)? (ObjectType) t : null;
   }
 }

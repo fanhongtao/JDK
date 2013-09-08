@@ -1,11 +1,26 @@
 /*
- * @(#)Tree.java	1.8 06/08/03
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Use and Distribution is subject to the Java Research License available
- * at <http://wwws.sun.com/software/communitysource/jrl.html>.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.source.tree;
@@ -13,10 +28,10 @@ package com.sun.source.tree;
 /**
  * Common interface for all nodes in an abstract syntax tree.
  *
- * <p><b>WARNING:</b> This interface and its sub-interfaces are 
+ * <p><b>WARNING:</b> This interface and its sub-interfaces are
  * subject to change as the Java&trade; programming language evolves.
- * These interfaces are implemented by Sun's Java compiler (javac) 
- * and should not be implemented either directly or indirectly by 
+ * These interfaces are implemented by the JDK Java compiler (javac)
+ * and should not be implemented either directly or indirectly by
  * other applications.
  *
  * @author Peter von der Ah&eacute;
@@ -25,11 +40,12 @@ package com.sun.source.tree;
  * @since 1.6
  */
 public interface Tree {
-    
+
     /**
      * Enumerates all kinds of trees.
      */
     public enum Kind {
+
         /**
          * Used for instances of {@link AnnotationTree}.
          */
@@ -76,7 +92,7 @@ public interface Tree {
         CATCH(CatchTree.class),
 
         /**
-         * Used for instances of {@link ClassTree}.
+         * Used for instances of {@link ClassTree} representing classes.
          */
         CLASS(ClassTree.class),
 
@@ -214,6 +230,11 @@ public interface Tree {
          * Used for instances of {@link ParameterizedTypeTree}.
          */
         PARAMETERIZED_TYPE(ParameterizedTypeTree.class),
+
+        /**
+         * Used for instances of {@link UnionTypeTree}.
+         */
+        UNION_TYPE(UnionTypeTree.class),
 
         /**
          * Used for instances of {@link TypeCastTree}.
@@ -504,12 +525,12 @@ public interface Tree {
          * a string literal expression of type {@link String}.
          */
         STRING_LITERAL(LiteralTree.class),
-	
-	/**
-	 * Used for instances of {@link LiteralTree} representing
-	 * the use of {@code null}.
-	 */
-	NULL_LITERAL(LiteralTree.class),
+
+        /**
+         * Used for instances of {@link LiteralTree} representing
+         * the use of {@code null}.
+         */
+        NULL_LITERAL(LiteralTree.class),
 
         /**
          * Used for instances of {@link WildcardTree} representing
@@ -535,30 +556,45 @@ public interface Tree {
         ERRONEOUS(ErroneousTree.class),
 
         /**
+         * Used for instances of {@link ClassTree} representing interfaces.
+         */
+        INTERFACE(ClassTree.class),
+
+        /**
+         * Used for instances of {@link ClassTree} representing enums.
+         */
+        ENUM(ClassTree.class),
+
+        /**
+         * Used for instances of {@link ClassTree} representing annotation types.
+         */
+        ANNOTATION_TYPE(ClassTree.class),
+
+        /**
          * An implementation-reserved node. This is the not the node
          * you are looking for.
          */
         OTHER(null);
-                
-        
+
+
         Kind(Class<? extends Tree> intf) {
             associatedInterface = intf;
         }
-                
+
         public Class<? extends Tree> asInterface() {
             return associatedInterface;
         }
-        
+
         private final Class<? extends Tree> associatedInterface;
     }
-    
+
     /**
      * Gets the kind of this tree.
      *
      * @return the kind of this tree.
      */
     Kind getKind();
-    
+
     /**
      * Accept method used to implement the visitor pattern.  The
      * visitor pattern is used to implement operations on trees.

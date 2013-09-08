@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -62,28 +66,28 @@ import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
 import org.w3c.dom.TypeInfo;
 
 /**
- * Straight-forward implementation of {@link TypeInfo}. 
- * 
+ * Straight-forward implementation of {@link TypeInfo}.
+ *
  * <p>
  * This class is immutable.
- * 
+ *
  * @author
  *     Kohsuke Kawaguchi (kohsuke.kawaguchi@sun.com)
  */
 public class TypeInfoImpl implements TypeInfo {
-    
+
     private final String typeNamespace;
     private final String typeName;
-	private final static String dtdNamespaceURI = "http://www.w3.org/TR/REC-xml";	
-	public TypeInfoImpl(){
-		typeNamespace = null;
-		typeName = null;
-	}
+        private final static String dtdNamespaceURI = "http://www.w3.org/TR/REC-xml";
+        public TypeInfoImpl(){
+                typeNamespace = null;
+                typeName = null;
+        }
     public TypeInfoImpl(String typeNamespace, String typeName) {
         this.typeNamespace = typeNamespace;
         this.typeName = typeName;
     }
-    
+
     public TypeInfoImpl(XSTypeDefinition t) {
         this( t.getNamespace(), t.getName() );
     }
@@ -95,19 +99,19 @@ public class TypeInfoImpl implements TypeInfo {
     public String getTypeNamespace() {
         return typeNamespace;
     }
-    
+
     /**
      * Always returns false.
      */
     public boolean isDerivedFrom(String typeNamespaceArg,  String typeNameArg, int derivationMethod) {
         return false;
     }
-    
+
     /**
      * Map from DTD type name ({@link String}) to {@link TypeInfo}.
      */
     private static final Hashtable dtdCache = new Hashtable();
-    
+
     /**
      * Obtains a {@link TypeInfo} object from the DTD type name.
      * <p>
@@ -119,7 +123,7 @@ public class TypeInfoImpl implements TypeInfo {
         if(t==null) throw new IllegalArgumentException("Unknown DTD datatype "+name);
         return t;
     }
-    
+
     static {
         String[] typeNames = new String[]{
             "CDATA", "ID", "IDREF", "IDREFS", "NMTOKEN", "NMTOKENS",

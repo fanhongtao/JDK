@@ -1,8 +1,36 @@
 /*
- * @(#)ConcurrentSkipListSet.java	1.4 06/05/10
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -30,12 +58,14 @@ import sun.misc.Unsafe;
  * <p>Beware that, unlike in most collections, the <tt>size</tt>
  * method is <em>not</em> a constant-time operation. Because of the
  * asynchronous nature of these sets, determining the current number
- * of elements requires a traversal of the elements. Additionally, the
- * bulk operations <tt>addAll</tt>, <tt>removeAll</tt>,
- * <tt>retainAll</tt>, and <tt>containsAll</tt> are <em>not</em>
- * guaranteed to be performed atomically. For example, an iterator
- * operating concurrently with an <tt>addAll</tt> operation might view
- * only some of the added elements.
+ * of elements requires a traversal of the elements, and so may report
+ * inaccurate results if this collection is modified during traversal.
+ * Additionally, the bulk operations <tt>addAll</tt>,
+ * <tt>removeAll</tt>, <tt>retainAll</tt>, <tt>containsAll</tt>,
+ * <tt>equals</tt>, and <tt>toArray</tt> are <em>not</em> guaranteed
+ * to be performed atomically. For example, an iterator operating
+ * concurrently with an <tt>addAll</tt> operation might view only some
+ * of the added elements.
  *
  * <p>This class and its iterators implement all of the
  * <em>optional</em> methods of the {@link Set} and {@link Iterator}
@@ -129,12 +159,12 @@ public class ConcurrentSkipListSet<E>
      */
     public ConcurrentSkipListSet<E> clone() {
         ConcurrentSkipListSet<E> clone = null;
-	try {
-	    clone = (ConcurrentSkipListSet<E>) super.clone();
+        try {
+            clone = (ConcurrentSkipListSet<E>) super.clone();
             clone.setMap(new ConcurrentSkipListMap(m));
-	} catch (CloneNotSupportedException e) {
-	    throw new InternalError();
-	}
+        } catch (CloneNotSupportedException e) {
+            throw new InternalError();
+        }
 
         return clone;
     }
@@ -158,7 +188,7 @@ public class ConcurrentSkipListSet<E>
      * @return the number of elements in this set
      */
     public int size() {
-	return m.size();
+        return m.size();
     }
 
     /**
@@ -166,7 +196,7 @@ public class ConcurrentSkipListSet<E>
      * @return <tt>true</tt> if this set contains no elements
      */
     public boolean isEmpty() {
-	return m.isEmpty();
+        return m.isEmpty();
     }
 
     /**
@@ -181,7 +211,7 @@ public class ConcurrentSkipListSet<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean contains(Object o) {
-	return m.containsKey(o);
+        return m.containsKey(o);
     }
 
     /**
@@ -199,7 +229,7 @@ public class ConcurrentSkipListSet<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean add(E e) {
-	return m.putIfAbsent(e, Boolean.TRUE) == null;
+        return m.putIfAbsent(e, Boolean.TRUE) == null;
     }
 
     /**
@@ -217,14 +247,14 @@ public class ConcurrentSkipListSet<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean remove(Object o) {
-	return m.remove(o, Boolean.TRUE);
+        return m.remove(o, Boolean.TRUE);
     }
 
     /**
      * Removes all of the elements from this set.
      */
     public void clear() {
-	m.clear();
+        m.clear();
     }
 
     /**
@@ -242,7 +272,7 @@ public class ConcurrentSkipListSet<E>
      * @return an iterator over the elements in this set in descending order
      */
     public Iterator<E> descendingIterator() {
-	return m.descendingKeySet().iterator();
+        return m.descendingKeySet().iterator();
     }
 
 
@@ -262,11 +292,11 @@ public class ConcurrentSkipListSet<E>
      */
     public boolean equals(Object o) {
         // Override AbstractSet version to avoid calling size()
-	if (o == this)
-	    return true;
-	if (!(o instanceof Set))
-	    return false;
-	Collection<?> c = (Collection<?>) o;
+        if (o == this)
+            return true;
+        if (!(o instanceof Set))
+            return false;
+        Collection<?> c = (Collection<?>) o;
         try {
             return containsAll(c) && c.containsAll(this);
         } catch (ClassCastException unused)   {
@@ -334,12 +364,12 @@ public class ConcurrentSkipListSet<E>
 
     public E pollFirst() {
         Map.Entry<E,Object> e = m.pollFirstEntry();
-        return e == null? null : e.getKey();
+        return (e == null) ? null : e.getKey();
     }
 
     public E pollLast() {
         Map.Entry<E,Object> e = m.pollLastEntry();
-        return e == null? null : e.getKey();
+        return (e == null) ? null : e.getKey();
     }
 
 
@@ -374,7 +404,7 @@ public class ConcurrentSkipListSet<E>
                                   boolean fromInclusive,
                                   E toElement,
                                   boolean toInclusive) {
-	return new ConcurrentSkipListSet<E>
+        return new ConcurrentSkipListSet<E>
             (m.subMap(fromElement, fromInclusive,
                       toElement,   toInclusive));
     }
@@ -385,7 +415,7 @@ public class ConcurrentSkipListSet<E>
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> headSet(E toElement, boolean inclusive) {
-	return new ConcurrentSkipListSet<E>(m.headMap(toElement, inclusive));
+        return new ConcurrentSkipListSet<E>(m.headMap(toElement, inclusive));
     }
 
     /**
@@ -394,7 +424,7 @@ public class ConcurrentSkipListSet<E>
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
-	return new ConcurrentSkipListSet<E>(m.tailMap(fromElement, inclusive));
+        return new ConcurrentSkipListSet<E>(m.tailMap(fromElement, inclusive));
     }
 
     /**
@@ -404,7 +434,7 @@ public class ConcurrentSkipListSet<E>
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> subSet(E fromElement, E toElement) {
-	return subSet(fromElement, true, toElement, false);
+        return subSet(fromElement, true, toElement, false);
     }
 
     /**
@@ -413,7 +443,7 @@ public class ConcurrentSkipListSet<E>
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> headSet(E toElement) {
-	return headSet(toElement, false);
+        return headSet(toElement, false);
     }
 
     /**
@@ -422,7 +452,7 @@ public class ConcurrentSkipListSet<E>
      * @throws IllegalArgumentException {@inheritDoc}
      */
     public NavigableSet<E> tailSet(E fromElement) {
-	return tailSet(fromElement, true);
+        return tailSet(fromElement, true);
     }
 
     /**
@@ -438,20 +468,24 @@ public class ConcurrentSkipListSet<E>
      * @return a reverse order view of this set
      */
     public NavigableSet<E> descendingSet() {
-	return new ConcurrentSkipListSet(m.descendingMap());
+        return new ConcurrentSkipListSet(m.descendingMap());
     }
 
     // Support for resetting map in clone
-    private static final Unsafe unsafe = Unsafe.getUnsafe();
+    private void setMap(ConcurrentNavigableMap<E,Object> map) {
+        UNSAFE.putObjectVolatile(this, mapOffset, map);
+    }
+
+    private static final sun.misc.Unsafe UNSAFE;
     private static final long mapOffset;
     static {
         try {
-            mapOffset = unsafe.objectFieldOffset
-                (ConcurrentSkipListSet.class.getDeclaredField("m"));
-        } catch (Exception ex) { throw new Error(ex); }
+            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            Class k = ConcurrentSkipListSet.class;
+            mapOffset = UNSAFE.objectFieldOffset
+                (k.getDeclaredField("m"));
+        } catch (Exception e) {
+            throw new Error(e);
+        }
     }
-    private void setMap(ConcurrentNavigableMap<E,Object> map) {
-        unsafe.putObjectVolatile(this, mapOffset, map);
-    }
-
 }

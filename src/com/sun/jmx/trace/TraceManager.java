@@ -1,8 +1,7 @@
 /*
- * @(#)TraceManager.java	1.18 05/12/29
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.jmx.trace;
 
@@ -13,101 +12,101 @@ import java.util.logging.Logger;
 
 /**
  * Provides an implementation of the {@link com.sun.jmx.trace.TraceDestination}
- * interface which uses the J2SE logging API. 
+ * interface which uses the J2SE logging API.
  * <br><br>
  * Note that this implementation can be used only with J2SE version 1.4 or
- * higher.  
+ * higher.
  * <br><br>
  * All {@link Logger}s are contained in the <code>javax.management</code> namespace, which corresponds
  * to the name of the root package hosting all public JMX interfaces. For each log type
  * defined in {@link TraceTags}, we use a dedicated {@link Logger} with the same name
- * under <code>javax.management</code>. 
+ * under <code>javax.management</code>.
  * <br><br>
  * The table below shows the list of {@link Logger} objects used in this implementation and
- * their corresponding category of activity. 
+ * their corresponding category of activity.
  * <br><br>
  *  <table cols="3" width="100%" border="1" align="center">
  *    <tr>
- *      <th>Logger Name</th>                                  
- *      <th>JMX log type</th>                                
+ *      <th>Logger Name</th>
+ *      <th>JMX log type</th>
  *      <th>Information logged</th>
  *    </tr>
  *    <tr>
- *      <td><code>javax.management.mbeanserver</code></td>    
- *      <td>{@link TraceTags#INFO_MBEANSERVER}</td>                                  
+ *      <td><code>javax.management.mbeanserver</code></td>
+ *      <td>{@link TraceTags#INFO_MBEANSERVER}</td>
  *      <td>Information about the MBean Server</td>
  *    </tr>
  *    <tr>
- *      <td><code>com.sun.jmx.snmp.daemon</code></td>    
- *      <td>{@link TraceTags#INFO_ADAPTOR_SNMP}</td>                                  
+ *      <td><code>com.sun.jmx.snmp.daemon</code></td>
+ *      <td>{@link TraceTags#INFO_ADAPTOR_SNMP}</td>
  *      <td>Information about the SNMP Adaptor</td>
  *    </tr>
  *    <tr>
- *      <td><code>com.sun.jmx.snmp</code></td>    
- *      <td>{@link TraceTags#INFO_SNMP}</td>                                  
+ *      <td><code>com.sun.jmx.snmp</code></td>
+ *      <td>{@link TraceTags#INFO_SNMP}</td>
  *      <td>Information about SNMP</td>
  *    </tr>
  *    <tr>
- *      <td><code>javax.management.mlet</code></td> 
- *      <td>{@link TraceTags#INFO_MLET}</td>                                
+ *      <td><code>javax.management.mlet</code></td>
+ *      <td>{@link TraceTags#INFO_MLET}</td>
  *      <td>Information from an MLet service</td>
  *    </tr>
  *    <tr>
- *      <td><code>javax.management.monitor</code></td>  
- *      <td>{@link TraceTags#INFO_MONITOR}</td>                     
+ *      <td><code>javax.management.monitor</code></td>
+ *      <td>{@link TraceTags#INFO_MONITOR}</td>
  *      <td>Information from a monitor</td>
  *    </tr>
  *    <tr>
- *      <td><code>javax.management.timer</code></td>   
- *      <td>{@link TraceTags#INFO_TIMER}</td>                       
+ *      <td><code>javax.management.timer</code></td>
+ *      <td>{@link TraceTags#INFO_TIMER}</td>
  *      <td>Information from a timer</td>
  *    </tr>
  *    <tr>
- *      <td><code>javax.management.notification</code></td> 
- *      <td>{@link TraceTags#INFO_NOTIFICATION}</td>                                 
+ *      <td><code>javax.management.notification</code></td>
+ *      <td>{@link TraceTags#INFO_NOTIFICATION}</td>
  *      <td>Information from the notification mechanism</td>
  *    </tr>
  *    <tr>
- *      <td><code>javax.management.relation</code></td>  
- *      <td>{@link TraceTags#INFO_RELATION}</td>                                 
+ *      <td><code>javax.management.relation</code></td>
+ *      <td>{@link TraceTags#INFO_RELATION}</td>
  *      <td>Information from the Relation Service</td>
  *    </tr>
  *    <tr>
- *      <td><code>javax.management.modelmbean</code></td>  
- *      <td>{@link TraceTags#INFO_MODELMBEAN}</td>                                
+ *      <td><code>javax.management.modelmbean</code></td>
+ *      <td>{@link TraceTags#INFO_MODELMBEAN}</td>
  *      <td>Information from the Model MBean components</td>
  *    </tr>
  *    <tr>
- *      <td><code>javax.management.misc</code></td>   
- *      <td>{@link TraceTags#INFO_MISC}</td>                                
+ *      <td><code>javax.management.misc</code></td>
+ *      <td>{@link TraceTags#INFO_MISC}</td>
  *      <td>Information sent from any other class</td>
- *    </tr>                  
+ *    </tr>
  *  </table>
  * <br><br>
  * The mapping for the JMX log levels is the following:
  * <br><br>
  * <table cols="2" width="50%" border="1" align="center">
  *   <tr>
- *     <th>JMX log level</th>                                  
+ *     <th>JMX log level</th>
  *     <th>J2SE logging API log level</th>
  *   </tr>
  *   <tr>
- *     <td><center>{@link TraceTags#LEVEL_DEBUG}</center></td>                                  
+ *     <td><center>{@link TraceTags#LEVEL_DEBUG}</center></td>
  *     <td><center>{@link Level#FINEST}</center></td>
- *   </tr>  
+ *   </tr>
  *   <tr>
- *     <td><center>{@link TraceTags#LEVEL_TRACE}</center></td>                                  
+ *     <td><center>{@link TraceTags#LEVEL_TRACE}</center></td>
  *     <td><center>{@link Level#FINER}</center></td>
- *   </tr>  
+ *   </tr>
  *   <tr>
- *     <td><center>{@link TraceTags#LEVEL_ERROR}</center></td>                                  
+ *     <td><center>{@link TraceTags#LEVEL_ERROR}</center></td>
  *     <td><center>{@link Level#SEVERE}</center></td>
- *   </tr>               
+ *   </tr>
  * </table>
  *
  * @since 1.5
- * @since.unbundled JMX RI 1.2
  */
+@Deprecated
 public class TraceManager implements TraceDestination {
 
   /**
@@ -115,7 +114,7 @@ public class TraceManager implements TraceDestination {
    * argument. This value is assumed to be part of the log levels defined by
    * class {@link TraceTags}.
    *
-   * @return 
+   * @return
    *   <ul>
    *     <li>{@link Level#FINEST} if value is {@link TraceTags#LEVEL_DEBUG}</li>
    *     <li>{@link Level#FINER} if value is {@link TraceTags#LEVEL_TRACE}</li>
@@ -143,7 +142,7 @@ public class TraceManager implements TraceDestination {
    * argument. This value is assumed to be part of the log types defined by
    * class {@link TraceTags}.
    *
-   * @return 
+   * @return
    *   <ul>
    *     <li><code>Logger.getLogger(<b>"javax.management.mbeanserver"</b>)</code>if value is {@link TraceTags#INFO_MBEANSERVER}</li>
    *     <li><code>Logger.getLogger(<b>"javax.management.mlet"</b>)</code>if value is {@link TraceTags#INFO_MLET}</li>
@@ -190,7 +189,7 @@ public class TraceManager implements TraceDestination {
   /**
    * @see TraceDestination#isSelected
    */
-  public boolean isSelected(int level, int type) 
+  public boolean isSelected(int level, int type)
   {
     Logger logger;
     Level  lvl;
@@ -205,7 +204,7 @@ public class TraceManager implements TraceDestination {
   /**
    * Note that the provided log type and log level have to be part of the
    * enumerated values defined in class {@link TraceTags}. Otherwise, nothing is
-   * logged. 
+   * logged.
    * @see TraceDestination#send(int, int, String, String, String)
    */
   public boolean send(int level,
@@ -221,11 +220,11 @@ public class TraceManager implements TraceDestination {
     }
     return false;
   }
-  
+
   /**
    * Note that the provided log type and log level have to be part of the
    * enumerated values defined in class {@link TraceTags}. Otherwise, nothing is
-   * logged. 
+   * logged.
    * @see TraceDestination#send(int, int, String, String, Throwable)
    */
   public boolean send(int level,
@@ -235,10 +234,10 @@ public class TraceManager implements TraceDestination {
                       Throwable exception)
   {
       if (isSelected(level, type)) {
-	  getLogger(type).log(getLevel(level), 
-		  className + ": Exception occurred in " + methodName , 
-		  exception);
-	  return true;
+          getLogger(type).log(getLevel(level),
+                  className + ": Exception occurred in " + methodName ,
+                  exception);
+          return true;
   }
       return false;
   }
@@ -250,30 +249,27 @@ public class TraceManager implements TraceDestination {
    **/
   public void reset() throws IOException
   {
-    
+
   }
 
     /**
      * Logs a warning message.
-     * This is equivalent to 
+     * This is equivalent to
      * <code>Logger.getLogger(loggerName).warning(msg);</code>
      *
-     * @since.unbundled JMX RI 1.2.1
      **/
     void warning(String loggerName, String msg) {
-	Logger.getLogger(loggerName).warning(msg);
+        Logger.getLogger(loggerName).warning(msg);
     }
-    
+
     /**
      * Logs a fine message.
-     * This is equivalent to 
+     * This is equivalent to
      * <code>Logger.getLogger(loggerName).fine(msg);</code>
      *
-     * @since.unbundled JMX RI 1.2.1
      **/
     void fine(String loggerName, String msg) {
-	Logger.getLogger(loggerName).fine(msg);	
+        Logger.getLogger(loggerName).fine(msg);
     }
 
 }
- 

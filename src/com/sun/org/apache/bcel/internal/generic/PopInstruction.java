@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -58,11 +62,9 @@ package com.sun.org.apache.bcel.internal.generic;
  * Denotes an unparameterized instruction to pop a value on top from the stack,
  * such as ISTORE, POP, PUTSTATIC.
  *
- * @version $Id: PopInstruction.java,v 1.1.2.1 2005/07/31 23:44:47 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see ISTORE
  * @see POP
  */
 public interface PopInstruction extends StackConsumer {
 }
-

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +58,7 @@ public class StringVector implements java.io.Serializable
   /**
    * Construct a StringVector, using the given block size.
    *
-   * @param blocksize Size of the blocks to allocate 
+   * @param blocksize Size of the blocks to allocate
    */
   public StringVector(int blocksize)
   {
@@ -67,7 +71,7 @@ public class StringVector implements java.io.Serializable
   /**
    * Get the length of the list.
    *
-   * @return Number of strings in the list 
+   * @return Number of strings in the list
    */
   public int getLength()
   {
@@ -125,7 +129,7 @@ public class StringVector implements java.io.Serializable
    *
    * @param s String to look for
    *
-   * @return True if the string is in this table  
+   * @return True if the string is in this table
    */
   public final boolean contains(String s)
   {

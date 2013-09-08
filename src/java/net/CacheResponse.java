@@ -1,8 +1,26 @@
 /*
- * @(#)CacheResponse.java	1.1 03/09/22
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -18,7 +36,6 @@ import java.io.IOException;
  * InputStream that returns the entity body, and also a
  * getHeaders() method which returns the associated response headers.
  *
- * @version 1.1, 03/09/22
  * @author Yingxian Wang
  * @since 1.5
  */

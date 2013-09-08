@@ -1,6 +1,26 @@
 /*
- * Copyright 2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.ws.spi;
@@ -17,7 +37,7 @@ import javax.xml.ws.WebServiceException;
 class FactoryFinder {
 
     /**
-     * Creates an instance of the specified class using the specified 
+     * Creates an instance of the specified class using the specified
      * <code>ClassLoader</code> object.
      *
      * @exception WebServiceException if the given class could not be found
@@ -27,7 +47,7 @@ class FactoryFinder {
                                       ClassLoader classLoader)
     {
         try {
-            Class spiClass = safeLoadClass(className, classLoader);            
+            Class spiClass = safeLoadClass(className, classLoader);
             return spiClass.newInstance();
         } catch (ClassNotFoundException x) {
             throw new WebServiceException(
@@ -77,11 +97,11 @@ class FactoryFinder {
             } else {
                 is=classLoader.getResourceAsStream(serviceId);
             }
-        
+
             if( is!=null ) {
                 BufferedReader rd =
                     new BufferedReader(new InputStreamReader(is, "UTF-8"));
-        
+
                 String factoryClassName = rd.readLine();
                 rd.close();
 
@@ -92,7 +112,7 @@ class FactoryFinder {
             }
         } catch( Exception ex ) {
         }
-        
+
 
         // try to read from $java.home/lib/jaxws.properties
         try {
@@ -128,7 +148,6 @@ class FactoryFinder {
         return newInstance(fallbackClassName, classLoader);
     }
 
-    private static final String PLATFORM_DEFAULT_FACTORY_CLASS = "com.sun.xml.internal.ws.spi.ProviderImpl";
 
     /**
      * Loads the class, provided that the calling thread has an access to the class being loaded.
@@ -150,7 +169,7 @@ class FactoryFinder {
                 return classLoader.loadClass(className);
         } catch (SecurityException se) {
             // anyone can access the platform default factory class without permission
-            if (PLATFORM_DEFAULT_FACTORY_CLASS.equals(className))
+            if (Provider.DEFAULT_JAXWSPROVIDER.equals(className))
                 return Class.forName(className);
             throw se;
         }

@@ -1,8 +1,26 @@
 /*
- * @(#)InputMethodRequests.java	1.19 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.im;
@@ -39,7 +57,6 @@ import java.text.AttributedCharacterIterator.Attribute;
  * @see java.awt.Component#getInputMethodRequests
  * @see java.awt.event.InputMethodListener
  *
- * @version 	1.19, 11/17/05
  * @author JavaSoft Asia/Pacific
  * @since 1.2
  */
@@ -105,7 +122,7 @@ public interface InputMethodRequests {
      * entered through an input method are inserted. This information is used
      * by an input method, for example, to examine the text surrounding the
      * insert position.
-     * 
+     *
      * @return the offset of the insert position
      */
     int getInsertPositionOffset();

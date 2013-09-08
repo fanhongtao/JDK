@@ -1,8 +1,26 @@
 /*
- * @(#)IIOPOutputStream_1_3.java	1.7 05/11/17
+ * Copyright (c) 2000, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.orbutil;
 
@@ -22,15 +40,15 @@ public class IIOPOutputStream_1_3 extends com.sun.corba.se.impl.io.IIOPOutputStr
 
     // The newer version in the io package correctly writes a wstring instead.
     // This concerns bug 4379597.
-    protected void internalWriteUTF(org.omg.CORBA.portable.OutputStream stream, 
+    protected void internalWriteUTF(org.omg.CORBA.portable.OutputStream stream,
                                     String data)
     {
         stream.write_string(data);
     }
 
     public IIOPOutputStream_1_3()
-	throws java.io.IOException {
-	super();
+        throws java.io.IOException {
+        super();
     }
 
     /**
@@ -38,13 +56,13 @@ public class IIOPOutputStream_1_3 extends com.sun.corba.se.impl.io.IIOPOutputStr
      * actually sent a Hashtable.
      */
     public ObjectOutputStream.PutField putFields()
-	throws IOException {
-	putFields_1_3 = new LegacyHookPutFields();
-	return putFields_1_3;
+        throws IOException {
+        putFields_1_3 = new LegacyHookPutFields();
+        return putFields_1_3;
     }
 
     public void writeFields()
-	throws IOException {
-	putFields_1_3.write(this);
+        throws IOException {
+        putFields_1_3.write(this);
     }
 }

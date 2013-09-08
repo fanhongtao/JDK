@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,9 +26,9 @@ import org.w3c.dom.DOMImplementation;
 
 /**
  * <p>This class implements the DOM Level 3 Core interface DOMImplementationList.</p>
- * 
+ *
  * @xerces.internal
- * 
+ *
  * @author Neil Delima, IBM
  * @since DOM Level 3 Core
  */
@@ -49,7 +53,7 @@ public class DOMImplementationListImpl implements DOMImplementationList {
 
     /**
      * Returns the indexth item in the collection.
-     * 
+     *
      * @param index The index of the DOMImplemetation from the list to return.
      */
     public DOMImplementation item(int index) {
@@ -59,10 +63,10 @@ public class DOMImplementationListImpl implements DOMImplementationList {
             return null;
         }
     }
-    
+
     /**
      * Returns the number of DOMImplementations in the list.
-     * 
+     *
      * @return An integer indicating the number of DOMImplementations.
      */
     public int getLength() {

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,21 +37,21 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
  */
 final class GenerateIdCall extends FunctionCall {
     public GenerateIdCall(QName fname, Vector arguments) {
-	super(fname, arguments);
+        super(fname, arguments);
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final InstructionList il = methodGen.getInstructionList();
-	if (argumentCount() == 0) {
-	   il.append(methodGen.loadContextNode());
-	}
-	else {			// one argument
-	    argument().translate(classGen, methodGen);
-	}
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	il.append(new INVOKESTATIC(cpg.addMethodref(BASIS_LIBRARY_CLASS,
-						    "generate_idF",
-						    // reuse signature
-						    GET_NODE_NAME_SIG)));
+        final InstructionList il = methodGen.getInstructionList();
+        if (argumentCount() == 0) {
+           il.append(methodGen.loadContextNode());
+        }
+        else {                  // one argument
+            argument().translate(classGen, methodGen);
+        }
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        il.append(new INVOKESTATIC(cpg.addMethodref(BASIS_LIBRARY_CLASS,
+                                                    "generate_idF",
+                                                    // reuse signature
+                                                    GET_NODE_NAME_SIG)));
     }
 }

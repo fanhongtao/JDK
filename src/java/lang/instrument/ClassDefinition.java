@@ -1,7 +1,26 @@
 /*
- * @(#)ClassDefinition.java	1.5 06/04/07
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.instrument;
@@ -22,7 +41,7 @@ public final class ClassDefinition {
      *  The class to redefine
      */
     private final   Class   mClass;
-    
+
     /**
      *  The replacement class file bytes
      */

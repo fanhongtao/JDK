@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,33 +39,33 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TestGenerator;
 final class LastCall extends FunctionCall {
 
     public LastCall(QName fname) {
-	super(fname);
+        super(fname);
     }
 
     public boolean hasPositionCall() {
-	return true;
+        return true;
     }
 
     public boolean hasLastCall() {
-	return true;
+        return true;
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final InstructionList il = methodGen.getInstructionList();
+        final InstructionList il = methodGen.getInstructionList();
 
-	if (methodGen instanceof CompareGenerator) {
-	    il.append(((CompareGenerator)methodGen).loadLastNode());
-	}
-	else if (methodGen instanceof TestGenerator) {
-	    il.append(new ILOAD(LAST_INDEX));
-	}
-	else {
-	    final ConstantPoolGen cpg = classGen.getConstantPool();
-	    final int getLast = cpg.addInterfaceMethodref(NODE_ITERATOR,
-							  "getLast", 
-							  "()I");
-	    il.append(methodGen.loadIterator());
-	    il.append(new INVOKEINTERFACE(getLast, 1));
-	}
+        if (methodGen instanceof CompareGenerator) {
+            il.append(((CompareGenerator)methodGen).loadLastNode());
+        }
+        else if (methodGen instanceof TestGenerator) {
+            il.append(new ILOAD(LAST_INDEX));
+        }
+        else {
+            final ConstantPoolGen cpg = classGen.getConstantPool();
+            final int getLast = cpg.addInterfaceMethodref(NODE_ITERATOR,
+                                                          "getLast",
+                                                          "()I");
+            il.append(methodGen.loadIterator());
+            il.append(new INVOKEINTERFACE(getLast, 1));
+        }
     }
 }

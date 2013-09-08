@@ -1,8 +1,26 @@
 /*
- * @(#)InterfaceAddress.java	1.3 06/01/12
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -19,7 +37,7 @@ package java.net;
 public class InterfaceAddress {
     private InetAddress address = null;
     private Inet4Address broadcast = null;
-    private short	 maskLength = 0;
+    private short        maskLength = 0;
 
     /*
      * Package private constructor. Can't be built directly, instances are
@@ -34,7 +52,7 @@ public class InterfaceAddress {
      * @return the <code>InetAddress</code> for this address.
      */
     public InetAddress getAddress() {
-	return address;
+        return address;
     }
 
     /**
@@ -48,7 +66,7 @@ public class InterfaceAddress {
      *         address or <code>null</code> if there is no broadcast address.
      */
     public InetAddress getBroadcast() {
-	return broadcast;
+        return broadcast;
     }
 
     /**
@@ -59,10 +77,10 @@ public class InterfaceAddress {
      * Typical IPv6 values would be 128 (::1/128) or 10 (fe80::203:baff:fe27:1243/10)
      *
      * @return a <code>short</code> representing the prefix length for the
-     *	       subnet of that address.
+     *         subnet of that address.
      */
      public short getNetworkPrefixLength() {
-	return maskLength;
+        return maskLength;
     }
 
     /**
@@ -81,19 +99,17 @@ public class InterfaceAddress {
      * @see     java.net.InterfaceAddress#hashCode()
      */
     public boolean equals(Object obj) {
-	if (!(obj instanceof InterfaceAddress)) {
-	    return false;
-	}
-	InterfaceAddress cmp = (InterfaceAddress) obj;
-	if ((address != null & cmp.address == null) ||
-	    (!address.equals(cmp.address)))
-	    return false;
-	if ((broadcast != null & cmp.broadcast == null) ||
-	    (!broadcast.equals(cmp.broadcast)))
-	    return false;
-	if (maskLength != cmp.maskLength)
-	    return false;
-	return true;
+        if (!(obj instanceof InterfaceAddress)) {
+            return false;
+        }
+        InterfaceAddress cmp = (InterfaceAddress) obj;
+        if ( !(address == null ? cmp.address == null : address.equals(cmp.address)) )
+            return false;
+        if ( !(broadcast  == null ? cmp.broadcast == null : broadcast.equals(cmp.broadcast)) )
+            return false;
+        if (maskLength != cmp.maskLength)
+            return false;
+        return true;
     }
 
     /**
@@ -102,17 +118,17 @@ public class InterfaceAddress {
      * @return  a hash code value for this Interface address.
      */
     public int hashCode() {
-	return address.hashCode() + ((broadcast != null) ? broadcast.hashCode() : 0) + maskLength;
+        return address.hashCode() + ((broadcast != null) ? broadcast.hashCode() : 0) + maskLength;
     }
 
     /**
-     * Converts this Interface address to a <code>String</code>. The 
+     * Converts this Interface address to a <code>String</code>. The
      * string returned is of the form: InetAddress / prefix length [ broadcast address ].
      *
      * @return  a string representation of this Interface address.
      */
     public String toString() {
-	return address + "/" + maskLength + " [" + broadcast + "]";
+        return address + "/" + maskLength + " [" + broadcast + "]";
     }
 
 }

@@ -1,15 +1,33 @@
 /*
- * @(#)MemoryManagerMXBean.java	1.11 05/11/17
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.management;
 
 /**
  * The management interface for a memory manager.
- * A memory manager manages one or more memory pools of the 
+ * A memory manager manages one or more memory pools of the
  * Java virtual machine.
  *
  * <p> A Java virtual machine has one or more memory managers.
@@ -27,6 +45,10 @@ package java.lang.management;
  *    <tt>java.lang:type=MemoryManager</tt>}<tt>,name=</tt><i>manager's name</i>
  * </blockquote>
  *
+ * It can be obtained by calling the
+ * {@link PlatformManagedObject#getObjectName} method.
+ *
+ * @see ManagementFactory#getPlatformMXBeans(Class)
  * @see MemoryMXBean
  *
  * @see <a href="../../../javax/management/package-summary.html">
@@ -35,10 +57,9 @@ package java.lang.management;
  *      Ways to Access MXBeans</a>
  *
  * @author  Mandy Chung
- * @version 1.11, 11/17/05 
  * @since   1.5
  */
-public interface MemoryManagerMXBean {
+public interface MemoryManagerMXBean extends PlatformManagedObject {
     /**
      * Returns the name representing this memory manager.
      *
@@ -51,7 +72,7 @@ public interface MemoryManagerMXBean {
      * machine.  A memory manager becomes invalid once the Java virtual
      * machine removes it from the memory system.
      *
-     * @return <tt>true</tt> if the memory manager is valid in the 
+     * @return <tt>true</tt> if the memory manager is valid in the
      *               Java virtual machine;
      *         <tt>false</tt> otherwise.
      */
@@ -60,9 +81,8 @@ public interface MemoryManagerMXBean {
     /**
      * Returns the name of memory pools that this memory manager manages.
      *
-     * @return an array of <tt>String</tt> objects, each is 
+     * @return an array of <tt>String</tt> objects, each is
      * the name of a memory pool that this memory manager manages.
      */
     public String[] getMemoryPoolNames();
 }
-

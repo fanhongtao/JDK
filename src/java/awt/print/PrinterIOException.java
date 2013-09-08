@@ -1,8 +1,26 @@
 /*
- * @(#)PrinterIOException.java	1.18 05/11/17
+ * Copyright (c) 1998, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.print;
@@ -10,7 +28,7 @@ import java.io.IOException;
 
 /**
  * The <code>PrinterIOException</code> class is a subclass of
- * {@link PrinterException} and is used to indicate that an IO error 
+ * {@link PrinterException} and is used to indicate that an IO error
  * of some sort has occurred while printing.
  *
  * <p>As of release 1.4, this exception has been retrofitted to conform to
@@ -42,7 +60,7 @@ public class PrinterIOException extends PrinterException {
     }
 
     /**
-     * Returns the <code>IOException</code> that terminated 
+     * Returns the <code>IOException</code> that terminated
      * the print job.
      *
      * <p>This method predates the general-purpose exception chaining facility.

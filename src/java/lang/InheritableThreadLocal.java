@@ -1,8 +1,26 @@
 /*
- * @(#)InheritableThreadLocal.java	1.22 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
@@ -16,14 +34,13 @@ import java.lang.ref.*;
  * identical to the parent's; however, the child's value can be made an
  * arbitrary function of the parent's by overriding the <tt>childValue</tt>
  * method in this class.
- * 
+ *
  * <p>Inheritable thread-local variables are used in preference to
  * ordinary thread-local variables when the per-thread-attribute being
  * maintained in the variable (e.g., User ID, Transaction ID) must be
  * automatically transmitted to any child threads that are created.
  *
  * @author  Josh Bloch and Doug Lea
- * @version 1.22, 11/17/05
  * @see     ThreadLocal
  * @since   1.2
  */
@@ -46,7 +63,7 @@ public class InheritableThreadLocal<T> extends ThreadLocal<T> {
     }
 
     /**
-     * Get the map associated with a ThreadLocal. 
+     * Get the map associated with a ThreadLocal.
      *
      * @param t the current thread
      */
@@ -55,7 +72,7 @@ public class InheritableThreadLocal<T> extends ThreadLocal<T> {
     }
 
     /**
-     * Create the map associated with a ThreadLocal. 
+     * Create the map associated with a ThreadLocal.
      *
      * @param t the current thread
      * @param firstValue value for the initial entry of the table.

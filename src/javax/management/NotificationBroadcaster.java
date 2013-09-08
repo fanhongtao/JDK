@@ -1,8 +1,26 @@
 /*
- * @(#)NotificationBroadcaster.java	1.38 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -52,8 +70,8 @@ import java.util.concurrent.CopyOnWriteArrayList;  // for Javadoc
  *
  * @since 1.5
  */
-public interface NotificationBroadcaster { 
-    
+public interface NotificationBroadcaster {
+
     /**
      * Adds a listener to this MBean.
      *
@@ -71,10 +89,10 @@ public interface NotificationBroadcaster {
      * @see #removeNotificationListener
      */
     public void addNotificationListener(NotificationListener listener,
-					NotificationFilter filter,
-					Object handback)
-	    throws java.lang.IllegalArgumentException;
-    
+                                        NotificationFilter filter,
+                                        Object handback)
+            throws java.lang.IllegalArgumentException;
+
     /**
      * Removes a listener from this MBean.  If the listener
      * has been registered with different handback objects or
@@ -90,9 +108,9 @@ public interface NotificationBroadcaster {
      * @see #addNotificationListener
      * @see NotificationEmitter#removeNotificationListener
      */
-    public void removeNotificationListener(NotificationListener listener) 
-	    throws ListenerNotFoundException;
-    
+    public void removeNotificationListener(NotificationListener listener)
+            throws ListenerNotFoundException;
+
     /**
      * <p>Returns an array indicating, for each notification this
      * MBean may send, the name of the Java class of the notification
@@ -105,5 +123,5 @@ public interface NotificationBroadcaster {
      *
      * @return the array of possible notifications.
      */
-    public MBeanNotificationInfo[] getNotificationInfo();  
+    public MBeanNotificationInfo[] getNotificationInfo();
 }

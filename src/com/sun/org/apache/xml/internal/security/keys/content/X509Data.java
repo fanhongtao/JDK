@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,12 +41,12 @@ import org.w3c.dom.Node;
 
 /**
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class X509Data extends SignatureElementProxy implements KeyInfoContent {
 
    /** {@link java.util.logging} logging facility */
-    static java.util.logging.Logger log = 
+    static java.util.logging.Logger log =
         java.util.logging.Logger.getLogger(X509Data.class.getName());
 
    /**
@@ -68,60 +72,17 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
            throws XMLSecurityException {
 
       super(element, BaseURI);
-      
-      boolean noElements=true;
       Node sibling=this._constructionElement.getFirstChild();
       while (sibling!=null) {
-      	 if (sibling.getNodeType()!=Node.ELEMENT_NODE) {
-      	 	sibling=sibling.getNextSibling();
+         if (sibling.getNodeType()!=Node.ELEMENT_NODE) {
+                sibling=sibling.getNextSibling();
             continue;
          }
-        noElements=false;
-         Element currentElem = (Element) sibling;
-         sibling=sibling.getNextSibling();
-         String localname = currentElem.getLocalName();
-
-         if (currentElem.getNamespaceURI().equals(Constants.SignatureSpecNS)) {
-            if (localname.equals(Constants._TAG_X509ISSUERSERIAL)) {
-               XMLX509IssuerSerial is = new XMLX509IssuerSerial(currentElem,
-                                           BaseURI);
-
-               this.add(is);
-            } else if (localname.equals(Constants._TAG_X509SKI)) {
-               XMLX509SKI ski = new XMLX509SKI(currentElem, BaseURI);
-
-               this.add(ski);
-            } else if (localname.equals(Constants._TAG_X509SUBJECTNAME)) {
-               XMLX509SubjectName sn = new XMLX509SubjectName(currentElem,
-                                          BaseURI);
-
-               this.add(sn);
-            } else if (localname.equals(Constants._TAG_X509CERTIFICATE)) {
-               XMLX509Certificate cert = new XMLX509Certificate(currentElem,
-                                            BaseURI);
-
-               this.add(cert);
-            } else if (localname.equals(Constants._TAG_X509CRL)) {
-               XMLX509CRL crl = new XMLX509CRL(currentElem, BaseURI);
-
-               this.add(crl);
-            } else {
-               log.log(java.util.logging.Level.WARNING, "Found a " + currentElem.getTagName() + " element in "
-                        + Constants._TAG_X509DATA);
-               this.addUnknownElement(currentElem);
-            }
-         } else {
-            log.log(java.util.logging.Level.WARNING, "Found a " + currentElem.getTagName() + " element in "
-                     + Constants._TAG_X509DATA);
-            this.addUnknownElement(currentElem);
-         }
+         return;
       }
-      if (noElements) {
-        Object exArgs[] = { "Elements", Constants._TAG_X509DATA };
-
-        throw new XMLSecurityException("xml.WrongContent", exArgs);
-     }
-
+      /* No Elements found */
+      Object exArgs[] = { "Elements", Constants._TAG_X509DATA };
+      throw new XMLSecurityException("xml.WrongContent", exArgs);
    }
 
    /**
@@ -165,11 +126,9 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
     */
    public void add(XMLX509IssuerSerial xmlX509IssuerSerial) {
 
-      if (this._state == MODE_SIGN) {
          this._constructionElement
             .appendChild(xmlX509IssuerSerial.getElement());
          XMLUtils.addReturnToElement(this._constructionElement);
-      }
    }
 
    /**
@@ -198,11 +157,8 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
     * @param xmlX509SKI
     */
    public void add(XMLX509SKI xmlX509SKI) {
-
-      if (this._state == MODE_SIGN) {
          this._constructionElement.appendChild(xmlX509SKI.getElement());
          XMLUtils.addReturnToElement(this._constructionElement);
-      }
    }
 
    /**
@@ -229,11 +185,8 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
     * @param xmlX509SubjectName
     */
    public void add(XMLX509SubjectName xmlX509SubjectName) {
-
-      if (this._state == MODE_SIGN) {
          this._constructionElement.appendChild(xmlX509SubjectName.getElement());
          XMLUtils.addReturnToElement(this._constructionElement);
-      }
    }
 
    /**
@@ -262,11 +215,8 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
     * @param xmlX509Certificate
     */
    public void add(XMLX509Certificate xmlX509Certificate) {
-
-      if (this._state == MODE_SIGN) {
          this._constructionElement.appendChild(xmlX509Certificate.getElement());
          XMLUtils.addReturnToElement(this._constructionElement);
-      }
    }
 
    /**
@@ -284,11 +234,8 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
     * @param xmlX509CRL
     */
    public void add(XMLX509CRL xmlX509CRL) {
-
-      if (this._state == MODE_SIGN) {
          this._constructionElement.appendChild(xmlX509CRL.getElement());
          XMLUtils.addReturnToElement(this._constructionElement);
-      }
    }
 
    /**
@@ -297,11 +244,8 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
     * @param element
     */
    public void addUnknownElement(Element element) {
-
-      if (this._state == MODE_SIGN) {
          this._constructionElement.appendChild(element);
          XMLUtils.addReturnToElement(this._constructionElement);
-      }
    }
 
    /**
@@ -358,10 +302,10 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
     * @return the number of UnknownElement elements in this X509Data
     */
    public int lengthUnknownElement() {
-      
+
       int result = 0;
       Node n=this._constructionElement.getFirstChild();
-      while (n!=null){         
+      while (n!=null){
 
          if ((n.getNodeType() == Node.ELEMENT_NODE)
                  &&!n.getNamespaceURI().equals(Constants.SignatureSpecNS)) {
@@ -369,7 +313,7 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
          }
          n=n.getNextSibling();
       }
-      
+
       return result;
    }
 
@@ -389,7 +333,7 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
 
       if (e != null) {
          return new XMLX509IssuerSerial(e, this._baseURI);
-      } 
+      }
       return null;
    }
 
@@ -426,7 +370,7 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
 
       if (e != null) {
          return new XMLX509SubjectName(e, this._baseURI);
-      } 
+      }
        return null;
    }
 
@@ -445,7 +389,7 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
 
       if (e != null) {
          return new XMLX509Certificate(e, this._baseURI);
-      } 
+      }
        return null;
    }
 
@@ -463,7 +407,7 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
 
       if (e != null) {
          return new XMLX509CRL(e, this._baseURI);
-      } 
+      }
        return null;
    }
 
@@ -475,7 +419,7 @@ public class X509Data extends SignatureElementProxy implements KeyInfoContent {
     * TODO implement
     **/
    public Element itemUnknownElement(int i) {
-	  if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "itemUnknownElement not implemented:"+i);
+          log.log(java.util.logging.Level.FINE, "itemUnknownElement not implemented:"+i);
       return null;
    }
 

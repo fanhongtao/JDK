@@ -1,8 +1,26 @@
 /*
- * @(#)CDRInputStream_1_2.java	1.15 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -16,7 +34,7 @@ public class CDRInputStream_1_2 extends CDRInputStream_1_1
     // padded appropriately. However, if there is no body to a request or reply
     // message, there is no header padding, in the unfragmented case.
     protected boolean headerPadding;
-    
+
     // used to remember headerPadding flag when mark() and restore() are used.
     protected boolean restoreHeaderPadding;
 
@@ -27,7 +45,7 @@ public class CDRInputStream_1_2 extends CDRInputStream_1_1
 
     // the mark and reset methods have been overridden to remember the
     // headerPadding flag.
-    
+
     public void mark(int readlimit) {
         super.mark(readlimit);
         restoreHeaderPadding = headerPadding;
@@ -47,21 +65,21 @@ public class CDRInputStream_1_2 extends CDRInputStream_1_1
         ((CDRInputStream_1_2)result).headerPadding = this.headerPadding;
         return result;
     }
-    
+
     protected void alignAndCheck(int align, int n) {
 
         // headerPadding bit is set by read method of the RequestMessage_1_2
         // or ReplyMessage_1_2 classes. When set, the very first body read
-        // operation (from the stub code) would trigger an alignAndCheck 
+        // operation (from the stub code) would trigger an alignAndCheck
         // method call, that would in turn skip the header padding that was
         // inserted during the earlier write operation by the sender. The
         // padding ensures that the body is aligned on an 8-octet boundary,
         // for GIOP versions 1.2 and beyond.
         if (headerPadding == true) {
             headerPadding = false;
-            alignOnBoundary(ORBConstants.GIOP_12_MSG_BODY_ALIGNMENT);           
+            alignOnBoundary(ORBConstants.GIOP_12_MSG_BODY_ALIGNMENT);
         }
-      
+
         checkBlockLength(align, n);
 
         // WARNING: Must compute real alignment after calling
@@ -76,7 +94,7 @@ public class CDRInputStream_1_2 extends CDRInputStream_1_1
         int alignIncr = computeAlignment(bbwi.position(),align);
         bbwi.position(bbwi.position() + alignIncr);
 
-    	if (bbwi.position() + n > bbwi.buflen) {
+        if (bbwi.position() + n > bbwi.buflen) {
             grow(1, n);
         }
     }
@@ -84,7 +102,7 @@ public class CDRInputStream_1_2 extends CDRInputStream_1_1
     public GIOPVersion getGIOPVersion() {
         return GIOPVersion.V1_2;
     }
-        
+
     public char read_wchar() {
         // In GIOP 1.2, a wchar is encoded as an unsigned octet length
         // followed by the octets of the converted wchar.
@@ -97,7 +115,7 @@ public class CDRInputStream_1_2 extends CDRInputStream_1_1
         // assigned, and a single 16 bit Java char isn't enough.
         // Better to use strings for i18n purposes.
         if (getWCharConverter().getNumChars() > 1)
-	    throw wrapper.btcResultMoreThanOneChar() ;
+            throw wrapper.btcResultMoreThanOneChar() ;
 
         return result[0];
     }

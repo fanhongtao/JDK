@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidSearchFilterException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -21,7 +39,6 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
 public class InvalidSearchFilterException extends NamingException {
@@ -30,7 +47,7 @@ public class InvalidSearchFilterException extends NamingException {
      * All fields are set to null.
      */
     public InvalidSearchFilterException() {
-	super();
+        super();
     }
 
     /**
@@ -40,7 +57,7 @@ public class InvalidSearchFilterException extends NamingException {
      * @see java.lang.Throwable#getMessage
      */
     public InvalidSearchFilterException(String msg) {
-	super(msg);
+        super(msg);
     }
 
     /**

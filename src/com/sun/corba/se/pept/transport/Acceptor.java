@@ -1,8 +1,26 @@
 /*
- * @(#)Acceptor.java	1.22 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.pept.transport;
@@ -23,7 +41,7 @@ import com.sun.corba.se.pept.transport.EventHandler;
  *
  * @author Harold Carr
  */
-public interface Acceptor 
+public interface Acceptor
 {
     /**
      * Used to initialize an <code>Acceptor</code>.
@@ -78,7 +96,7 @@ public interface Acceptor
      * {@link #setConnectionCache} and {@link #getConnectionCache} support
      * an optimzation to avoid hashing to find that cache.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.transport.ConnectionCache ConnectionCache}
      */
     public InboundConnectionCache getConnectionCache();
@@ -102,10 +120,10 @@ public interface Acceptor
      * Accept a connection request.
      *
      * This is called either when the selector gets an accept event
-     * for this <code>Acceptor</code> or by a 
+     * for this <code>Acceptor</code> or by a
      * {@link com.sun.corba.se.pept.transport.ListenerThread ListenerThread}.
-     * 
-     * It results in a 
+     *
+     * It results in a
      * {@link com.sun.corba.se.pept.transport.Connection Connection}
      * being created.
      */
@@ -117,11 +135,11 @@ public interface Acceptor
     public void close();
 
     /**
-     * Get the 
+     * Get the
      * {@link com.sun.corba.se.pept.transport.EventHandler EventHandler}
      * associated with this <code>Acceptor</code>.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.transport.EventHandler EventHandler}
      */
     public EventHandler getEventHandler();
@@ -139,11 +157,11 @@ public interface Acceptor
      * encoding, protocol, transport combination represented by this
      * <code>Acceptor</code>.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.protocol.MessageMeidator MessageMediator}
      */
     public MessageMediator createMessageMediator(Broker xbroker,
-						 Connection xconnection);
+                                                 Connection xconnection);
 
     // REVISIT: Identical to ContactInfo method.  Refactor into base interface.
 
@@ -154,13 +172,13 @@ public interface Acceptor
      * encoding, protocol, transport combination represented by this
      * <code>Acceptor</code>.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.protocol.MessageMediator MessageMediator}
      */
 
     public MessageMediator finishCreatingMessageMediator(Broker broker,
                                                          Connection xconnection,
-					        	 MessageMediator messageMediator);
+                                                         MessageMediator messageMediator);
 
     /**
      * Used to get a
@@ -168,11 +186,11 @@ public interface Acceptor
      * for the specific <em>encoding</em> represented by this
      * <code>Acceptor</code>.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.encoding.InputObject InputObject}
      */
     public InputObject createInputObject(Broker broker,
-					 MessageMediator messageMediator);
+                                         MessageMediator messageMediator);
 
     /**
      * Used to get a
@@ -180,11 +198,11 @@ public interface Acceptor
      * for the specific <em>encoding</em> represented by this
      * <code>Acceptor</code>.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.encoding.OutputObject OutputObject}
      */
     public OutputObject createOutputObject(Broker broker,
-					   MessageMediator messageMediator);
+                                           MessageMediator messageMediator);
 
     //
     // Usage dictates implementation equals and hashCode.

@@ -1,22 +1,38 @@
 /*
- * @(#)file      SnmpSecurityException.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.17
- * @(#)date      06/11/29
+ * Copyright (c) 2001, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 package com.sun.jmx.snmp;
 
 /**
  * This exception is thrown when an error occurs in an <CODE> SnmpSecurityModel </CODE>.
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  * @since 1.5
  */
 public class SnmpSecurityException extends Exception {
+    private static final long serialVersionUID = 5574448147432833480L;
+
     /**
      * The current request varbind list.
      */
@@ -46,6 +62,6 @@ public class SnmpSecurityException extends Exception {
      * @param msg The exception msg to display.
      */
     public SnmpSecurityException(String msg) {
-	super(msg);
+        super(msg);
     }
 }

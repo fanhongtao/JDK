@@ -1,8 +1,26 @@
 /*
- * @(#)CORBALogDomains.java	1.3 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.logging ;
@@ -28,7 +46,7 @@ package com.sun.corba.se.spi.logging ;
  * <li>naming: naming
  * <li>oa: oa
  * <li>orb: orb.lifecycle
- * <li>orbutil: util 
+ * <li>orbutil: util
  * <li>protocol: rpc.protocol
  * <li>resolver: orb.resolver
  * <li>transport: rpc.transport
@@ -42,7 +60,7 @@ public abstract class CORBALogDomains {
     // Top level log domain for CORBA
     public static String TOP_LEVEL_DOMAIN  = "javax.enterprise.resource.corba";
 
-    public static final String RPC		= "rpc" ;
+    public static final String RPC              = "rpc" ;
 
     /** Log domain for code directly implementing the CORBA API and
      * the typecode/any machinery.
@@ -67,7 +85,7 @@ public abstract class CORBALogDomains {
      */
     public static final String RPC_TRANSPORT = "rpc.transport" ;
 
-    public static final String NAMING	       = "naming" ;
+    public static final String NAMING          = "naming" ;
 
     /** Log domain for naming context creation and destruction.
      */
@@ -82,7 +100,7 @@ public abstract class CORBALogDomains {
      */
     public static final String NAMING_UPDATE = "naming.update" ;
 
-    public static final String ORBD	    = "orbd" ;
+    public static final String ORBD         = "orbd" ;
 
     /** Log domain for the ORBD locator function, which forwards
      * client requests to their current server incarnation.
@@ -103,9 +121,9 @@ public abstract class CORBALogDomains {
      */
     public static final String ORBD_SERVERTOOL = "orbd.servertool" ;
 
-    public static final String ORB	    = "orb" ;
+    public static final String ORB          = "orb" ;
 
-    /** Log domain for ORB initialization, configuration, startup, 
+    /** Log domain for ORB initialization, configuration, startup,
      * and shutdown.
      */
     public static final String ORB_LIFECYCLE = "orb.lifecycle" ;
@@ -115,9 +133,9 @@ public abstract class CORBALogDomains {
      */
     public static final String ORB_RESOLVER = "orb.resolver" ;
 
-    public static final String OA	    = "oa" ;
+    public static final String OA           = "oa" ;
 
-    /** Log domain for creation, destruction, and state change of 
+    /** Log domain for creation, destruction, and state change of
      * Object Adapters and related classes (e.g. POAManager).
      */
     public static final String OA_LIFECYCLE = "oa.lifecycle" ;
@@ -130,9 +148,9 @@ public abstract class CORBALogDomains {
      */
     public static final String OA_INVOCATION = "oa.invocation" ;
 
-    public static final String RMIIIOP		= "rmiiiop" ;
+    public static final String RMIIIOP          = "rmiiiop" ;
 
-    /** Log domain for the RMI-IIOP implementation in the Stub, Util, and 
+    /** Log domain for the RMI-IIOP implementation in the Stub, Util, and
      * PortableRemoteObject delegates.
      */
     public static final String RMIIIOP_DELEGATE = "rmiiiop.delegate" ;

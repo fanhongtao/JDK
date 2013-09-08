@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -59,12 +63,11 @@ import com.sun.org.apache.bcel.internal.classfile.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-/** 
+/**
  * Template class for building up a field.  The only extraordinary thing
  * one can do is to add a constant value attribute to a field (which must of
  * course be compatible with to the declared type).
  *
- * @version $Id: FieldGen.java,v 1.1.2.1 2005/07/31 23:45:35 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Field
  */
@@ -101,9 +104,9 @@ public class FieldGen extends FieldGenOrMethodGen {
 
     for(int i=0; i < attrs.length; i++) {
       if(attrs[i] instanceof ConstantValue)
-	setValue(((ConstantValue)attrs[i]).getConstantValueIndex());
+        setValue(((ConstantValue)attrs[i]).getConstantValueIndex());
       else
-	addAttribute(attrs[i]);
+        addAttribute(attrs[i]);
     }
   }
 
@@ -189,7 +192,7 @@ public class FieldGen extends FieldGenOrMethodGen {
   private void checkType(Type atype) {
     if(type == null)
       throw new ClassGenException("You haven't defined the type of the field yet");
-    
+
     if(!isFinal())
       throw new ClassGenException("Only final fields may have an initial value!");
 
@@ -209,11 +212,11 @@ public class FieldGen extends FieldGenOrMethodGen {
       checkType(type);
       int index = addConstant();
       addAttribute(new ConstantValue(cp.addUtf8("ConstantValue"),
-				     2, index, cp.getConstantPool()));
+                                     2, index, cp.getConstantPool()));
     }
 
     return new Field(access_flags, name_index, signature_index, getAttributes(),
-		     cp.getConstantPool());
+                     cp.getConstantPool());
   }
 
   private int addConstant() {
@@ -221,7 +224,7 @@ public class FieldGen extends FieldGenOrMethodGen {
     case Constants.T_INT: case Constants.T_CHAR: case Constants.T_BYTE:
     case Constants.T_BOOLEAN: case Constants.T_SHORT:
       return cp.addInteger(((Integer)value).intValue());
-      
+
     case Constants.T_FLOAT:
       return cp.addFloat(((Float)value).floatValue());
 
@@ -266,7 +269,7 @@ public class FieldGen extends FieldGenOrMethodGen {
   public void update() {
     if(observers != null)
       for(Iterator e = observers.iterator(); e.hasNext(); )
-	((FieldObserver)e.next()).notify(this);
+        ((FieldObserver)e.next()).notify(this);
   }
 
   public String getInitValue() {

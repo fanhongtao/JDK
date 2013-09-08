@@ -1,15 +1,33 @@
 /*
- * @(#)CredentialExpiredException.java	1.18 05/11/17
+ * Copyright (c) 1998, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.security.auth.login;
 
 /**
  * Signals that a <code>Credential</code> has expired.
- * 
+ *
  * <p> This exception is thrown by LoginModules when they determine
  * that a <code>Credential</code> has expired.
  * For example, a <code>LoginModule</code> authenticating a user
@@ -19,7 +37,6 @@ package javax.security.auth.login;
  * the application.  The application can then take the appropriate
  * steps to assist the user in updating the password.
  *
- * @version 1.18, 11/17/05
  */
 public class CredentialExpiredException extends CredentialException {
 
@@ -30,7 +47,7 @@ public class CredentialExpiredException extends CredentialException {
      * message is a String that describes this particular exception.
      */
     public CredentialExpiredException() {
-	super();
+        super();
     }
 
     /**
@@ -40,9 +57,9 @@ public class CredentialExpiredException extends CredentialException {
      *
      * <p>
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public CredentialExpiredException(String msg) {
-	super(msg);
+        super(msg);
     }
 }

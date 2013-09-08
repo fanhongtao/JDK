@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,6 +41,13 @@ public abstract class MultipleNodeCounter extends NodeCounter {
 	super(translet, document, iterator);
     }
 	
+    public MultipleNodeCounter(Translet translet,
+			       DOM document, 
+                               DTMAxisIterator iterator,
+                               boolean hasFrom) {
+	super(translet, document, iterator, hasFrom);
+    }
+    
     public NodeCounter setStartNode(int node) {
 	_node = node;
 	_nodeType = _document.getExpandedTypeID(node);

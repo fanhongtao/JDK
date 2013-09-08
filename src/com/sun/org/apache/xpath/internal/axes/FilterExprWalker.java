@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,7 +72,7 @@ public class FilterExprWalker extends AxesWalker
     {
     case OpCodes.OP_FUNCTION :
     case OpCodes.OP_EXTFUNCTION :
-    	m_mustHardReset = true;
+        m_mustHardReset = true;
     case OpCodes.OP_GROUP :
     case OpCodes.OP_VARIABLE :
       m_expr = compiler.compile(opPos);
@@ -76,8 +80,8 @@ public class FilterExprWalker extends AxesWalker
       //if((OpCodes.OP_FUNCTION == stepType) && (m_expr instanceof com.sun.org.apache.xalan.internal.templates.FuncKey))
       if(m_expr instanceof com.sun.org.apache.xpath.internal.operations.Variable)
       {
-      	// hack/temp workaround
-      	m_canDetachNodeset = false;
+        // hack/temp workaround
+        m_canDetachNodeset = false;
       }
       break;
     default :
@@ -89,36 +93,36 @@ public class FilterExprWalker extends AxesWalker
 //      WalkingIterator wi = (WalkingIterator)m_expr;
 //      if(wi.getFirstWalker() instanceof FilterExprWalker)
 //      {
-//      	FilterExprWalker fw = (FilterExprWalker)wi.getFirstWalker();
-//      	if(null == fw.getNextWalker())
-//      	{
-//      		m_expr = fw.m_expr;
-//      		m_expr.exprSetParent(this);
-//      	}
+//              FilterExprWalker fw = (FilterExprWalker)wi.getFirstWalker();
+//              if(null == fw.getNextWalker())
+//              {
+//                      m_expr = fw.m_expr;
+//                      m_expr.exprSetParent(this);
+//              }
 //      }
-//      		
+//
 //    }
   }
-  
+
   /**
    * Detaches the walker from the set which it iterated over, releasing
    * any computational resources and placing the iterator in the INVALID
    * state.
    */
   public void detach()
-  {  
-  	super.detach();
-  	if (m_canDetachNodeset)
-  	{
-  	  m_exprObj.detach();
-  	}
-  	m_exprObj = null;
+  {
+        super.detach();
+        if (m_canDetachNodeset)
+        {
+          m_exprObj.detach();
+        }
+        m_exprObj = null;
   }
 
   /**
    *  Set the root node of the TreeWalker.
    *
-   * @param root non-null reference to the root, or starting point of 
+   * @param root non-null reference to the root, or starting point of
    *        the query.
    */
   public void setRoot(int root)
@@ -126,9 +130,9 @@ public class FilterExprWalker extends AxesWalker
 
     super.setRoot(root);
 
-  	m_exprObj = FilterExprIteratorSimple.executeFilterExpr(root, 
-  	                  m_lpi.getXPathContext(), m_lpi.getPrefixResolver(), 
-  	                  m_lpi.getIsTopLevel(), m_lpi.m_stackFrame, m_expr);
+        m_exprObj = FilterExprIteratorSimple.executeFilterExpr(root,
+                          m_lpi.getXPathContext(), m_lpi.getPrefixResolver(),
+                          m_lpi.getIsTopLevel(), m_lpi.m_stackFrame, m_expr);
 
   }
 
@@ -150,7 +154,7 @@ public class FilterExprWalker extends AxesWalker
 
     return clone;
   }
-  
+
   /**
    * This method needs to override AxesWalker.acceptNode because FilterExprWalkers
    * don't need to, and shouldn't, do a node test.
@@ -199,7 +203,7 @@ public class FilterExprWalker extends AxesWalker
     else
       return DTM.NULL;
   }
-  
+
   /**
    * Get the index of the last node that can be itterated to.
    *
@@ -212,25 +216,25 @@ public class FilterExprWalker extends AxesWalker
   {
     return m_exprObj.getLength();
   }
-  
+
   /** The contained expression. Should be non-null.
    *  @serial   */
   private Expression m_expr;
 
   /** The result of executing m_expr.  Needs to be deep cloned on clone op.  */
   transient private XNodeSet m_exprObj;
-  
+
   private boolean m_mustHardReset = false;
   private boolean m_canDetachNodeset = true;
 
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -238,26 +242,26 @@ public class FilterExprWalker extends AxesWalker
     super.fixupVariables(vars, globalsSize);
     m_expr.fixupVariables(vars, globalsSize);
   }
-  
+
   /**
    * Get the inner contained expression of this filter.
    */
   public Expression getInnerExpression()
   {
-  	return m_expr;
+        return m_expr;
   }
-  
+
   /**
    * Set the inner contained expression of this filter.
    */
   public void setInnerExpression(Expression expr)
   {
-  	expr.exprSetParent(this);
-  	m_expr = expr;
+        expr.exprSetParent(this);
+        m_expr = expr;
   }
 
-  
-  /** 
+
+  /**
    * Get the analysis bits for this walker, as defined in the WalkerFactory.
    * @return One of WalkerFactory#BIT_DESCENDANT, etc.
    */
@@ -269,30 +273,30 @@ public class FilterExprWalker extends AxesWalker
       }
       return WalkerFactory.BIT_FILTER;
   }
-  
+
   /**
-   * Returns true if all the nodes in the iteration well be returned in document 
+   * Returns true if all the nodes in the iteration well be returned in document
    * order.
    * Warning: This can only be called after setRoot has been called!
-   * 
+   *
    * @return true as a default.
    */
   public boolean isDocOrdered()
   {
     return m_exprObj.isDocOrdered();
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
   {
     return m_exprObj.getAxis();
   }
-  
+
   class filterExprOwner implements ExpressionOwner
   {
       /**
@@ -308,24 +312,24 @@ public class FilterExprWalker extends AxesWalker
      */
     public void setExpression(Expression exp)
     {
-    	exp.exprSetParent(FilterExprWalker.this);
-    	m_expr = exp;
+        exp.exprSetParent(FilterExprWalker.this);
+        m_expr = exp;
     }
   }
-  
-	/**
-	 * This will traverse the heararchy, calling the visitor for 
-	 * each member.  If the called visitor method returns 
-	 * false, the subtree should not be called.
-	 * 
-	 * @param visitor The visitor whose appropriate method will be called.
-	 */
-	public void callPredicateVisitors(XPathVisitor visitor)
-	{
-	  m_expr.callVisitors(new filterExprOwner(), visitor);
-	  
-	  super.callPredicateVisitors(visitor);
-	} 
+
+        /**
+         * This will traverse the heararchy, calling the visitor for
+         * each member.  If the called visitor method returns
+         * false, the subtree should not be called.
+         *
+         * @param visitor The visitor whose appropriate method will be called.
+         */
+        public void callPredicateVisitors(XPathVisitor visitor)
+        {
+          m_expr.callVisitors(new filterExprOwner(), visitor);
+
+          super.callPredicateVisitors(visitor);
+        }
 
 
     /**
@@ -338,11 +342,11 @@ public class FilterExprWalker extends AxesWalker
 
       FilterExprWalker walker = (FilterExprWalker)expr;
       if(!m_expr.deepEquals(walker.m_expr))
-      	return false;
+        return false;
 
       return true;
     }
 
-	
+
 
 }

@@ -1,23 +1,36 @@
 /*
- * @(#)ObjectInputStreamWithLoader.java	4.21 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.mbeanserver;
 
 // Java import
-import java.io.ObjectInputStream;
-import java.io.InputStream;
 import java.io.IOException;
-import java.io.StreamCorruptedException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
-
-import javax.management.* ; 
- 
-
-
+import java.io.StreamCorruptedException;
 
 /**
  * This class deserializes an object in the context of a specific class loader.
@@ -26,7 +39,7 @@ import javax.management.* ;
  */
 class ObjectInputStreamWithLoader extends ObjectInputStream {
 
-    
+
     private ClassLoader loader;
 
 
@@ -35,20 +48,21 @@ class ObjectInputStreamWithLoader extends ObjectInputStream {
      * sort has occurred.
      * @exception StreamCorruptedException The object stream is corrupt.
      */
-    public ObjectInputStreamWithLoader(InputStream in, ClassLoader theLoader) 
-	    throws IOException {
-	super(in);
-	this.loader = theLoader;
+    public ObjectInputStreamWithLoader(InputStream in, ClassLoader theLoader)
+            throws IOException {
+        super(in);
+        this.loader = theLoader;
     }
-    
-    protected Class resolveClass(ObjectStreamClass aClass) 
-	    throws IOException, ClassNotFoundException {      
-	if (loader == null) {
-	    return super.resolveClass(aClass);
-	} else {
-	    String name = aClass.getName();
-	    // Query the class loader ...    	
-	    return Class.forName(name, false, loader);
-	}
+
+    @Override
+    protected Class<?> resolveClass(ObjectStreamClass aClass)
+            throws IOException, ClassNotFoundException {
+        if (loader == null) {
+            return super.resolveClass(aClass);
+        } else {
+            String name = aClass.getName();
+            // Query the class loader ...
+            return Class.forName(name, false, loader);
+        }
     }
 }

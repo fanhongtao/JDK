@@ -1,8 +1,26 @@
 /*
- * @(#)SyncFactoryException.java	1.5 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sql.rowset.spi;
@@ -14,7 +32,6 @@ import java.sql.SQLException;
  * RowSet implementation cannot be used  without a <code>SyncProvider</code>
  * being successfully instantiated
  *
- * @version 0.2
  * @author Jonathan Bruce
  * @see javax.sql.rowset.spi.SyncFactory
  * @see javax.sql.rowset.spi.SyncFactoryException
@@ -28,7 +45,7 @@ public class SyncFactoryException extends java.sql.SQLException {
     }
 
     /**
-     * Constructs an <code>SyncFactoryException</code> with the specified 
+     * Constructs an <code>SyncFactoryException</code> with the specified
      * detail message.
      *
      * @param msg the detail message.
@@ -36,8 +53,6 @@ public class SyncFactoryException extends java.sql.SQLException {
     public SyncFactoryException(String msg) {
         super(msg);
     }
-        
+
     static final long serialVersionUID = -4354595476433200352L;
 }
-
-

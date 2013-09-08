@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,14 +47,13 @@ import com.sun.org.apache.xerces.internal.util.URI;
  * ElementImpl does not support Namespaces. ElementNSImpl, which inherits from
  * it, does.
  * @see ElementNSImpl
- * 
+ *
  * @xerces.internal
  *
  * @author Arnaud  Le Hors, IBM
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM
  * @author Ralf Pfeiffer, IBM
- * @version $Id: ElementImpl.java,v 1.5 2007/02/05 16:15:44 ndw Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public class ElementImpl
@@ -79,7 +82,7 @@ public class ElementImpl
 
     /** Factory constructor. */
     public ElementImpl(CoreDocumentImpl ownerDoc, String name) {
-    	super(ownerDoc);
+        super(ownerDoc);
         this.name = name;
         needsSyncData(true);    // synchronizeData will initialize attributes
     }
@@ -94,7 +97,7 @@ public class ElementImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-	    this.name = name;
+            this.name = name;
         reconcileDefaultAttributes();
     }
 
@@ -148,12 +151,12 @@ public class ElementImpl
      */
     public Node cloneNode(boolean deep) {
 
-    	ElementImpl newnode = (ElementImpl) super.cloneNode(deep);
-    	// Replicate NamedNodeMap rather than sharing it.
+        ElementImpl newnode = (ElementImpl) super.cloneNode(deep);
+        // Replicate NamedNodeMap rather than sharing it.
         if (attributes != null) {
             newnode.attributes = (AttributeMap) attributes.cloneMap(newnode);
         }
-    	return newnode;
+        return newnode;
 
     } // cloneNode(boolean):Node
 
@@ -166,9 +169,9 @@ public class ElementImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-        // Absolute base URI is computed according to 
+        // Absolute base URI is computed according to
         // XML Base (http://www.w3.org/TR/xmlbase/#granularity)
-        // 1. The base URI specified by an xml:base attribute on the element, 
+        // 1. The base URI specified by an xml:base attribute on the element,
         // if one exists
         if (attributes != null) {
             Attr attrNode = (Attr)attributes.getNamedItem("xml:base");
@@ -180,7 +183,7 @@ public class ElementImpl
                     }
                     catch (com.sun.org.apache.xerces.internal.util.URI.MalformedURIException e) {
                         // This may be a relative URI.
-                        
+
                         // Make any parentURI into a URI object to use with the URI(URI, String) constructor
                         String parentBaseURI = (this.ownerNode != null) ? this.ownerNode.getBaseURI() : null;
                         if (parentBaseURI != null){
@@ -200,13 +203,13 @@ public class ElementImpl
             }
         }
 
-        // 2.the base URI of the element's parent element within the 
-        // document or external entity, if one exists 
-		// 3. the base URI of the document entity or external entity 
-		// containing the element
-		
-		// ownerNode serves as a parent or as document
-		String baseURI = (this.ownerNode != null) ? this.ownerNode.getBaseURI() : null ;
+        // 2.the base URI of the element's parent element within the
+        // document or external entity, if one exists
+                // 3. the base URI of the document entity or external entity
+                // containing the element
+
+                // ownerNode serves as a parent or as document
+                String baseURI = (this.ownerNode != null) ? this.ownerNode.getBaseURI() : null ;
         //base URI of parent element is not null
         if(baseURI != null){
             try {
@@ -227,7 +230,7 @@ public class ElementImpl
      * set the ownerDocument of this node, its children, and its attributes
      */
     void setOwnerDocument(CoreDocumentImpl doc) {
-	super.setOwnerDocument(doc);
+        super.setOwnerDocument(doc);
         if (attributes != null) {
             attributes.setOwnerDocument(doc);
         }
@@ -296,7 +299,7 @@ public class ElementImpl
      * @see DeepNodeListImpl
      */
     public NodeList getElementsByTagName(String tagname) {
-    	return new DeepNodeListImpl(this,tagname);
+        return new DeepNodeListImpl(this,tagname);
     }
 
     /**
@@ -310,7 +313,7 @@ public class ElementImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-    	return name;
+        return name;
     }
 
     /**
@@ -378,8 +381,8 @@ public class ElementImpl
             }
         }
 
-    	// changed() will have occurred when the removeChild() was done,
-    	// so does not have to be reissued.
+        // changed() will have occurred when the removeChild() was done,
+        // so does not have to be reissued.
 
         isNormalized(true);
     } // normalize()
@@ -401,7 +404,7 @@ public class ElementImpl
      */
     public void removeAttribute(String name) {
 
-    	if (ownerDocument.errorChecking && isReadOnly()) {
+        if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
@@ -438,7 +441,7 @@ public class ElementImpl
     public Attr removeAttributeNode(Attr oldAttr)
         throws DOMException {
 
-    	if (ownerDocument.errorChecking && isReadOnly()) {
+        if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
@@ -475,37 +478,37 @@ public class ElementImpl
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if the node is
      * readonly.
      */
-	public void setAttribute(String name, String value) {
+        public void setAttribute(String name, String value) {
 
-		if (ownerDocument.errorChecking && isReadOnly()) {
-			String msg =
-				DOMMessageFormatter.formatMessage(
-					DOMMessageFormatter.DOM_DOMAIN,
-					"NO_MODIFICATION_ALLOWED_ERR",
-					null);
-			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
-		}
+                if (ownerDocument.errorChecking && isReadOnly()) {
+                        String msg =
+                                DOMMessageFormatter.formatMessage(
+                                        DOMMessageFormatter.DOM_DOMAIN,
+                                        "NO_MODIFICATION_ALLOWED_ERR",
+                                        null);
+                        throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
+                }
 
-		if (needsSyncData()) {
-			synchronizeData();
-		}
+                if (needsSyncData()) {
+                        synchronizeData();
+                }
 
-		Attr newAttr = getAttributeNode(name);
-		if (newAttr == null) {
-			newAttr = getOwnerDocument().createAttribute(name);
+                Attr newAttr = getAttributeNode(name);
+                if (newAttr == null) {
+                        newAttr = getOwnerDocument().createAttribute(name);
 
-			if (attributes == null) {
-				attributes = new AttributeMap(this, null);
-			}
+                        if (attributes == null) {
+                                attributes = new AttributeMap(this, null);
+                        }
 
-			newAttr.setNodeValue(value);
-			attributes.setNamedItem(newAttr);
-		}
-		else {
-			newAttr.setNodeValue(value);
-		}
+                        newAttr.setNodeValue(value);
+                        attributes.setNamedItem(newAttr);
+                }
+                else {
+                        newAttr.setNodeValue(value);
+                }
 
-	} // setAttribute(String,String)
+        } // setAttribute(String,String)
 
     /**
      * Add a new attribute/value pair, or replace the value of the
@@ -528,7 +531,7 @@ public class ElementImpl
             synchronizeData();
         }
 
-    	if (ownerDocument.errorChecking) {
+        if (ownerDocument.errorChecking) {
             if (isReadOnly()) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
                 throw new DOMException(
@@ -538,15 +541,15 @@ public class ElementImpl
 
             if (newAttr.getOwnerDocument() != ownerDocument) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null);
-    		    throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, msg);
+                    throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, msg);
             }
         }
 
         if (attributes == null) {
             attributes = new AttributeMap(this, null);
         }
-    	// This will throw INUSE if necessary
-    	return (Attr) attributes.setNamedItem(newAttr);
+        // This will throw INUSE if necessary
+        return (Attr) attributes.setNamedItem(newAttr);
 
     } // setAttributeNode(Attr):Attr
 
@@ -625,44 +628,44 @@ public class ElementImpl
      * @since WD-DOM-Level-2-19990923
      */
      public void setAttributeNS(String namespaceURI,String qualifiedName,
-		                          String value) {
-		if (ownerDocument.errorChecking && isReadOnly()) {
-			String msg =
-				DOMMessageFormatter.formatMessage(
-					DOMMessageFormatter.DOM_DOMAIN,
-					"NO_MODIFICATION_ALLOWED_ERR",
-					null);
-			throw new DOMException(
-				DOMException.NO_MODIFICATION_ALLOWED_ERR,
-				msg);
-		}
-		if (needsSyncData()) {
-			synchronizeData();
-		}
-		int index = qualifiedName.indexOf(':');
-		String prefix, localName;
-		if (index < 0) {
-			prefix = null;
-			localName = qualifiedName;
-		}
-		else {
-			prefix = qualifiedName.substring(0, index);
-			localName = qualifiedName.substring(index + 1);
-		}
-		Attr newAttr = getAttributeNodeNS(namespaceURI, localName);
+                                          String value) {
+                if (ownerDocument.errorChecking && isReadOnly()) {
+                        String msg =
+                                DOMMessageFormatter.formatMessage(
+                                        DOMMessageFormatter.DOM_DOMAIN,
+                                        "NO_MODIFICATION_ALLOWED_ERR",
+                                        null);
+                        throw new DOMException(
+                                DOMException.NO_MODIFICATION_ALLOWED_ERR,
+                                msg);
+                }
+                if (needsSyncData()) {
+                        synchronizeData();
+                }
+                int index = qualifiedName.indexOf(':');
+                String prefix, localName;
+                if (index < 0) {
+                        prefix = null;
+                        localName = qualifiedName;
+                }
+                else {
+                        prefix = qualifiedName.substring(0, index);
+                        localName = qualifiedName.substring(index + 1);
+                }
+                Attr newAttr = getAttributeNodeNS(namespaceURI, localName);
                 if (newAttr == null) {
             // REVISIT: this is not efficient, we are creating twice the same
             //          strings for prefix and localName.
-			newAttr = getOwnerDocument().createAttributeNS(
-					namespaceURI,
-					qualifiedName);
-			if (attributes == null) {
-				attributes = new AttributeMap(this, null);
-			}
-			newAttr.setNodeValue(value);
-			attributes.setNamedItemNS(newAttr);
-		}
-		else {
+                        newAttr = getOwnerDocument().createAttributeNS(
+                                        namespaceURI,
+                                        qualifiedName);
+                        if (attributes == null) {
+                                attributes = new AttributeMap(this, null);
+                        }
+                        newAttr.setNodeValue(value);
+                        attributes.setNamedItemNS(newAttr);
+                }
+                else {
             if (newAttr instanceof AttrNSImpl){
                 String origNodeName = ((AttrNSImpl) newAttr).name;
                 String newName = (prefix!=null) ? (prefix+":"+localName) : localName;
@@ -686,13 +689,13 @@ public class ElementImpl
                 //      elem.setAttributeNS(null, "name", "value");
                 // This case is not defined by the DOM spec, we choose
                 // to create a new attribute in this case and remove an old one from the tree
-                // note this might cause events to be propagated or user data to be lost 
+                // note this might cause events to be propagated or user data to be lost
                 newAttr = new AttrNSImpl((CoreDocumentImpl)getOwnerDocument(), namespaceURI, qualifiedName, localName);
                 attributes.setNamedItemNS(newAttr);
             }
 
-			newAttr.setNodeValue(value);
-		}
+                        newAttr.setNodeValue(value);
+                }
 
     } // setAttributeNS(String,String,String)
 
@@ -714,7 +717,7 @@ public class ElementImpl
      */
     public void removeAttributeNS(String namespaceURI, String localName) {
 
-    	if (ownerDocument.errorChecking && isReadOnly()) {
+        if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
@@ -791,7 +794,7 @@ public class ElementImpl
         if (ownerDocument.errorChecking) {
             if (isReadOnly()) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
-    		    throw new DOMException(
+                    throw new DOMException(
                                      DOMException.NO_MODIFICATION_ALLOWED_ERR,
                                      msg);
             }
@@ -804,8 +807,8 @@ public class ElementImpl
         if (attributes == null) {
             attributes = new AttributeMap(this, null);
         }
-    	// This will throw INUSE if necessary
-    	return (Attr) attributes.setNamedItemNS(newAttr);
+        // This will throw INUSE if necessary
+        return (Attr) attributes.setNamedItemNS(newAttr);
 
     } // setAttributeNodeNS(Attr):Attr
 
@@ -884,7 +887,7 @@ public class ElementImpl
      */
     public NodeList getElementsByTagNameNS(String namespaceURI,
                                            String localName) {
-    	return new DeepNodeListImpl(this, namespaceURI, localName);
+        return new DeepNodeListImpl(this, namespaceURI, localName);
     }
 
     /**
@@ -964,15 +967,15 @@ public class ElementImpl
             synchronizeData();
         }
         Attr at = getAttributeNode(name);
-		
-		if( at == null){
-       		String msg = DOMMessageFormatter.formatMessage(
-									DOMMessageFormatter.DOM_DOMAIN, 
-									"NOT_FOUND_ERR", null);
+
+                if( at == null){
+                String msg = DOMMessageFormatter.formatMessage(
+                                                                        DOMMessageFormatter.DOM_DOMAIN,
+                                                                        "NOT_FOUND_ERR", null);
             throw new DOMException(DOMException.NOT_FOUND_ERR, msg);
-		}
-        
-		if (ownerDocument.errorChecking) {
+                }
+
+                if (ownerDocument.errorChecking) {
             if (isReadOnly()) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
                 throw new DOMException(
@@ -1005,18 +1008,18 @@ public class ElementImpl
         }
         //if namespace uri is empty string, set it to 'null'
         if (namespaceURI != null) {
-            namespaceURI = (namespaceURI.length() == 0)? null : namespaceURI;            
+            namespaceURI = (namespaceURI.length() == 0)? null : namespaceURI;
         }
         Attr at = getAttributeNodeNS(namespaceURI, localName);
-		
-		if( at == null){
-       		String msg = DOMMessageFormatter.formatMessage(
-									DOMMessageFormatter.DOM_DOMAIN, 
-									"NOT_FOUND_ERR", null);
+
+                if( at == null){
+                String msg = DOMMessageFormatter.formatMessage(
+                                                                        DOMMessageFormatter.DOM_DOMAIN,
+                                                                        "NOT_FOUND_ERR", null);
             throw new DOMException(DOMException.NOT_FOUND_ERR, msg);
-		}
-       
-		if (ownerDocument.errorChecking) {
+                }
+
+                if (ownerDocument.errorChecking) {
             if (isReadOnly()) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
                 throw new DOMException(
@@ -1056,28 +1059,28 @@ public class ElementImpl
      * Introduced in DOM Level 3. <p>
      * Checks if a type is derived from another by restriction. See:
      * http://www.w3.org/TR/DOM-Level-3-Core/core.html#TypeInfo-isDerivedFrom
-     * 
-     * @param ancestorNS 
+     *
+     * @param ancestorNS
      *        The namspace of the ancestor type declaration
      * @param ancestorName
      *        The name of the ancestor type declaration
      * @param type
      *        The reference type definition
-     * 
+     *
      * @return boolean True if the type is derived by restriciton for the
      *         reference type
      */
-    public boolean isDerivedFrom(String typeNamespaceArg, 
-                                 String typeNameArg, 
+    public boolean isDerivedFrom(String typeNamespaceArg,
+                                 String typeNameArg,
                                  int derivationMethod) {
-                                 	
+
         return false;
     }
 
-	/**
-	 * Method getSchemaTypeInfo.
-	 * @return TypeInfo
-	 */
+        /**
+         * Method getSchemaTypeInfo.
+         * @return TypeInfo
+         */
     public TypeInfo getSchemaTypeInfo(){
         if(needsSyncData()) {
             synchronizeData();
@@ -1094,7 +1097,7 @@ public class ElementImpl
      * @see NodeImpl#setReadOnly
      */
     public void setReadOnly(boolean readOnly, boolean deep) {
-    	super.setReadOnly(readOnly,deep);
+        super.setReadOnly(readOnly,deep);
         if (attributes != null) {
             attributes.setReadOnly(readOnly,true);
         }
@@ -1157,9 +1160,9 @@ public class ElementImpl
     /** Get the default attributes. */
     protected NamedNodeMapImpl getDefaultAttributes() {
 
-    	DocumentTypeImpl doctype =
+        DocumentTypeImpl doctype =
             (DocumentTypeImpl) ownerDocument.getDoctype();
-    	if (doctype == null) {
+        if (doctype == null) {
             return null;
         }
         ElementDefinitionImpl eldef =

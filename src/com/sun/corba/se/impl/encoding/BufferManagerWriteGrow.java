@@ -1,8 +1,26 @@
 /*
- * @(#)BufferManagerWriteGrow.java	1.13 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.encoding;
@@ -18,7 +36,7 @@ public class BufferManagerWriteGrow extends BufferManagerWrite
 {
     BufferManagerWriteGrow( ORB orb )
     {
-	super(orb) ;
+        super(orb) ;
     }
 
     public boolean sentFragment() {
@@ -35,11 +53,11 @@ public class BufferManagerWriteGrow extends BufferManagerWrite
 
     public void overflow (ByteBufferWithInfo bbwi)
     {
-	// The code that once lived directly in CDROutputStream.grow()
+        // The code that once lived directly in CDROutputStream.grow()
         // has been moved ByteBufferWithInfo.growBuffer().
 
         // Grow ByteBufferWithInfo to a larger size.
-        bbwi.growBuffer(orb);        
+        bbwi.growBuffer(orb);
 
         // Must be false for the grow case
         bbwi.fragmented = false;

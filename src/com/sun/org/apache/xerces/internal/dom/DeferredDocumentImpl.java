@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,11 +20,11 @@
 
 package com.sun.org.apache.xerces.internal.dom;
 
+import java.util.ArrayList;
+
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import java.util.Vector;
 
 /**
  * The Document interface represents the entire HTML or XML document.
@@ -33,10 +37,10 @@ import java.util.Vector;
  * objects. The Node objects created have a ownerDocument attribute
  * which associates them with the Document within whose context they
  * were created.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: DeferredDocumentImpl.java,v 1.2.6.1 2005/08/31 10:30:07 sunithareddy Exp $
+ * @version $Id: DeferredDocumentImpl.java,v 1.11 2010-11-01 04:39:38 joehw Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public class DeferredDocumentImpl
@@ -124,12 +128,12 @@ public class DeferredDocumentImpl
     // Implementation Note: The deferred element and attribute must know how to
     // interpret the int representing the qname.
     protected boolean fNamespacesEnabled = false;
-    
+
     //
     // private data
     //
-    private transient final StringBuffer fBufferStr = new StringBuffer();
-    private transient final Vector fStrChunks = new Vector();
+    private transient final StringBuilder fBufferStr = new StringBuilder();
+    private transient final ArrayList fStrChunks = new ArrayList();
 
     //
     // Constructors
@@ -177,7 +181,7 @@ public class DeferredDocumentImpl
         // information anyway.
         return DeferredDOMImplementationImpl.getDOMImplementation();
     }
-    
+
     /** Returns the cached parser.getNamespaces() value.*/
     boolean getNamespacesEnabled() {
         return fNamespacesEnabled;
@@ -219,10 +223,10 @@ public class DeferredDocumentImpl
         int index     = doctypeIndex & CHUNK_MASK;
 
         // create extra data node to store internal subset
-        int extraDataIndex = createNode(Node.DOCUMENT_TYPE_NODE); 
+        int extraDataIndex = createNode(Node.DOCUMENT_TYPE_NODE);
         int echunk = extraDataIndex >> CHUNK_SHIFT;
         int eindex = extraDataIndex & CHUNK_MASK;
-        setChunkIndex(fNodeExtra, extraDataIndex, chunk, index);        
+        setChunkIndex(fNodeExtra, extraDataIndex, chunk, index);
         setChunkValue(fNodeValue, subset, echunk, eindex);
     }
 
@@ -237,7 +241,7 @@ public class DeferredDocumentImpl
 
 
         // create extra data node
-        int extraDataIndex = createNode(Node.NOTATION_NODE); 
+        int extraDataIndex = createNode(Node.NOTATION_NODE);
         int echunk = extraDataIndex >> CHUNK_SHIFT;
         int eindex = extraDataIndex & CHUNK_MASK;
 
@@ -257,7 +261,7 @@ public class DeferredDocumentImpl
 
     /** Creates an entity in the table. */
     public int createDeferredEntity(String entityName, String publicId,
-                                    String systemId, String notationName, 
+                                    String systemId, String notationName,
                                     String baseURI) {
         // create node
         int nodeIndex = createNode(Node.ENTITY_NODE);
@@ -265,7 +269,7 @@ public class DeferredDocumentImpl
         int index     = nodeIndex & CHUNK_MASK;
 
         // create extra data node
-        int extraDataIndex = createNode(Node.ENTITY_NODE); 
+        int extraDataIndex = createNode(Node.ENTITY_NODE);
         int echunk = extraDataIndex >> CHUNK_SHIFT;
         int eindex = extraDataIndex & CHUNK_MASK;
 
@@ -318,9 +322,15 @@ public class DeferredDocumentImpl
         }
     }
 
+    // DOM Level 3: sets element TypeInfo
+    public void setTypeInfo(int elementNodeIndex, Object type) {
+        int elementChunk     = elementNodeIndex >> CHUNK_SHIFT;
+        int elementIndex     = elementNodeIndex & CHUNK_MASK;
+        setChunkValue(fNodeValue, type, elementChunk, elementIndex);
+    }
 
     /**
-     * DOM Internal 
+     * DOM Internal
      *
      * An attribute specifying the actual encoding of this document. This is
      * <code>null</code> otherwise.
@@ -335,9 +345,9 @@ public class DeferredDocumentImpl
 
         int echunk = extraDataIndex >> CHUNK_SHIFT;
         int eindex = extraDataIndex & CHUNK_MASK;
-        
+
         setChunkValue(fNodeValue, value, echunk, eindex);
-        
+
     }
 
     /** Creates an entity reference node in the table. */
@@ -356,8 +366,11 @@ public class DeferredDocumentImpl
     } // createDeferredEntityReference(String):int
 
 
-    /** Creates an element node with a URI in the table and type information. */
-    public int createDeferredElement(String elementURI, String elementName, 
+    /**
+     * Creates an element node with a URI in the table and type information.
+     * @deprecated
+     */
+    public int createDeferredElement(String elementURI, String elementName,
                                       Object type) {
 
         // create node
@@ -367,18 +380,23 @@ public class DeferredDocumentImpl
         setChunkValue(fNodeName, elementName, elementChunk, elementIndex);
         setChunkValue(fNodeURI, elementURI, elementChunk, elementIndex);
         setChunkValue(fNodeValue, type, elementChunk, elementIndex);
- 
+
         // return node index
         return elementNodeIndex;
 
-    } // createDeferredElement(String,String):int
+    } // createDeferredElement(String,String,Object):int
 
-    /** @deprecated. Creates an element node in the table. */
+    /**
+     * Creates an element node in the table.
+     * @deprecated
+     */
     public int createDeferredElement(String elementName) {
         return createDeferredElement(null, elementName);
     }
 
-    /** @deprecated. Creates an element node with a URI in the table. */
+    /**
+     * Creates an element node with a URI in the table.
+     */
     public int createDeferredElement(String elementURI, String elementName) {
 
         // create node
@@ -387,13 +405,13 @@ public class DeferredDocumentImpl
         int elementIndex     = elementNodeIndex & CHUNK_MASK;
         setChunkValue(fNodeName, elementName, elementChunk, elementIndex);
         setChunkValue(fNodeURI, elementURI, elementChunk, elementIndex);
- 
+
         // return node index
         return elementNodeIndex;
 
     } // createDeferredElement(String,String):int
-    
-    
+
+
 	/**
 	 * This method is used by the DOMParser to create attributes.
 	 * @param elementNodeIndex
@@ -412,7 +430,7 @@ public class DeferredDocumentImpl
                         		boolean specified,
                         		boolean id,
                         		Object type) {
-                                    
+
 		// create attribute
 		int attrNodeIndex = createDeferredAttribute(attrName, attrURI, attrValue, specified);
 		int attrChunk = attrNodeIndex >> CHUNK_SHIFT;
@@ -426,8 +444,6 @@ public class DeferredDocumentImpl
 		// get element's last attribute
 		int lastAttrNodeIndex = getChunkIndex(fNodeExtra, elementChunk, elementIndex);
 		if (lastAttrNodeIndex != 0) {
-			int lastAttrChunk = lastAttrNodeIndex >> CHUNK_SHIFT;
-			int lastAttrIndex = lastAttrNodeIndex & CHUNK_MASK;
 			// add link from new attribute to last attribute
 			setChunkIndex(fNodePrevSib, lastAttrNodeIndex, attrChunk, attrIndex);
 		}
@@ -454,8 +470,11 @@ public class DeferredDocumentImpl
 		// return node index
 		return attrNodeIndex;
 	}
-    
-    /** @deprecated. Sets an attribute on an element node.*/
+
+    /**
+     * Sets an attribute on an element node.
+     * @deprecated
+     */
     public int setDeferredAttribute(int elementNodeIndex,
                                     String attrName, String attrURI,
                                     String attrValue, boolean specified) {
@@ -481,7 +500,7 @@ public class DeferredDocumentImpl
         // add link from element to new last attribute
         setChunkIndex(fNodeExtra, attrNodeIndex,
                       elementChunk, elementIndex);
- 
+
         // return node index
         return attrNodeIndex;
 
@@ -589,7 +608,7 @@ public class DeferredDocumentImpl
     public int cloneNode(int nodeIndex, boolean deep) {
 
         // clone immediate node
-        
+
         int nchunk = nodeIndex >> CHUNK_SHIFT;
         int nindex = nodeIndex & CHUNK_MASK;
         int nodeType = fNodeType[nchunk][nindex];
@@ -617,10 +636,10 @@ public class DeferredDocumentImpl
                 prevIndex = clonedChildIndex;
                 childIndex = getRealPrevSibling(childIndex, false);
             }
-            
+
 
         }
-        
+
         // return cloned node index
         return cloneIndex;
 
@@ -1000,11 +1019,6 @@ public class DeferredDocumentImpl
                     node = new DeferredElementImpl(this, nodeIndex);
                 }
 
-                // save the document element node
-                if (docElement == null) {
-                    docElement = (ElementImpl)node;
-                }
-
                 // check to see if this element needs to be
                 // registered for its ID attributes
                 if (fIdElement != null) {
@@ -1129,7 +1143,7 @@ public class DeferredDocumentImpl
         if (nodeIndex == -1) {
             return null;
         }
-        
+
         int chunk = nodeIndex >> CHUNK_SHIFT;
         int index = nodeIndex & CHUNK_MASK;
         String value = free ? clearChunkValue(fNodeValue, chunk, index)
@@ -1137,7 +1151,7 @@ public class DeferredDocumentImpl
         if (value == null) {
             return null;
         }
-        
+
         int type  = getChunkIndex(fNodeType, chunk, index);
         if (type == Node.TEXT_NODE) {
             int prevSib = getRealPrevSibling(nodeIndex);
@@ -1146,29 +1160,29 @@ public class DeferredDocumentImpl
                 // append data that is stored in fNodeValue
                 // REVISIT: for text nodes it works differently than for CDATA
                 //          nodes.
-                fStrChunks.addElement(value);
+                fStrChunks.add(value);
                 do {
                     // go in reverse order: find last child, then
                     // its previous sibling, etc
                     chunk = prevSib >> CHUNK_SHIFT;
                     index = prevSib & CHUNK_MASK;
                     value = getChunkValue(fNodeValue, chunk, index);
-                    fStrChunks.addElement(value);
+                    fStrChunks.add(value);
                     prevSib = getChunkIndex(fNodePrevSib, chunk, index);
                     if (prevSib == -1) {
                         break;
                     }
                 } while (getNodeType(prevSib, false) == Node.TEXT_NODE);
-                
+
                 int chunkCount = fStrChunks.size();
 
                 // add to the buffer in the correct order.
-                for (int i = chunkCount - 1; i >= 0; i--) {                                                               
-                    fBufferStr.append((String)fStrChunks.elementAt(i));
+                for (int i = chunkCount - 1; i >= 0; i--) {
+                    fBufferStr.append((String)fStrChunks.get(i));
                 }
-                
+
                 value = fBufferStr.toString();
-                fStrChunks.removeAllElements();
+                fStrChunks.clear();
                 fBufferStr.setLength(0);
                 return value;
             }
@@ -1185,16 +1199,16 @@ public class DeferredDocumentImpl
                    chunk = child >> CHUNK_SHIFT;
                     index = child & CHUNK_MASK;
                     value = getChunkValue(fNodeValue, chunk, index);
-                    fStrChunks.addElement(value);
+                    fStrChunks.add(value);
                     child = getChunkIndex(fNodePrevSib, chunk, index);
                 }
                 // add to the buffer in the correct order.
-                for (int i=fStrChunks.size()-1; i>=0; i--) {                                                               
-                     fBufferStr.append((String)fStrChunks.elementAt(i));
+                for (int i=fStrChunks.size()-1; i>=0; i--) {
+                     fBufferStr.append((String)fStrChunks.get(i));
                 }
-                                                         
+
                 value = fBufferStr.toString();
-                fStrChunks.setSize(0);
+                fStrChunks.clear();
                 fBufferStr.setLength(0);
                 return value;
             }
@@ -1210,7 +1224,7 @@ public class DeferredDocumentImpl
     public String getNodeValue(int nodeIndex) {
         return getNodeValue(nodeIndex, true);
     }
-    
+
 	/**
 	 * Clears the type info that is stored in the fNodeValue array
 	 * @param nodeIndex
@@ -1223,8 +1237,8 @@ public class DeferredDocumentImpl
 
         int chunk = nodeIndex >> CHUNK_SHIFT;
         int index = nodeIndex & CHUNK_MASK;
-        
-        
+
+
         Object value = fNodeValue[chunk] != null ? fNodeValue[chunk][index] : null;
         if (value != null) {
             fNodeValue[chunk][index] = null;
@@ -1873,7 +1887,7 @@ public class DeferredDocumentImpl
         while (start <= end) {
 
             // is this the one we're looking for?
-            int middle = (start + end) / 2;
+            int middle = (start + end) >>> 1;
             int value  = values[middle];
             if (DEBUG_IDS) {
                 System.out.print("  value: "+value+", target: "+target+" // ");
@@ -1922,7 +1936,7 @@ public class DeferredDocumentImpl
         System.arraycopy(INIT_ARRAY, 0, data[chunk], 0, CHUNK_SIZE);
     }
 
-    class RefCount {
+    static final class RefCount {
         int fCount;
     }
 
@@ -1941,13 +1955,13 @@ public class DeferredDocumentImpl
         if (value == -1) {
             return clearChunkIndex(data, chunk, index);
         }
-        int [] dataChunk = data[chunk]; 
-        // Re-create chunk if it was deleted. 
-        if (dataChunk == null) { 
-            createChunk(data, chunk); 
-            dataChunk = data[chunk]; 
-        } 
-        int ovalue = dataChunk[index]; 
+        int [] dataChunk = data[chunk];
+        // Re-create chunk if it was deleted.
+        if (dataChunk == null) {
+            createChunk(data, chunk);
+            dataChunk = data[chunk];
+        }
+        int ovalue = dataChunk[index];
         if (ovalue == -1) {
             dataChunk[CHUNK_SIZE]++;
         }
@@ -1959,13 +1973,13 @@ public class DeferredDocumentImpl
         if (value == null) {
             return clearChunkValue(data, chunk, index);
         }
-        Object [] dataChunk = data[chunk]; 
-        // Re-create chunk if it was deleted. 
-        if (dataChunk == null) { 
-            createChunk(data, chunk); 
-            dataChunk = data[chunk]; 
-        } 
-        String ovalue = (String) dataChunk[index]; 
+        Object [] dataChunk = data[chunk];
+        // Re-create chunk if it was deleted.
+        if (dataChunk == null) {
+            createChunk(data, chunk);
+            dataChunk = data[chunk];
+        }
+        String ovalue = (String) dataChunk[index];
         if (ovalue == null) {
             RefCount c = (RefCount) dataChunk[CHUNK_SIZE];
             c.fCount++;
@@ -1996,7 +2010,7 @@ public class DeferredDocumentImpl
             return data.toString();
         }
     }
-    
+
 
     /**
      * Clears the specified value in the given data at the chunk and index.
@@ -2084,7 +2098,7 @@ public class DeferredDocumentImpl
     /**
      * A simple integer vector.
      */
-    static class IntVector {
+    static final class IntVector {
 
         //
         // Data

@@ -1,8 +1,26 @@
 /*
- * @(#)ByteOrder.java	1.14 05/11/17
+ * Copyright (c) 2000, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio;
@@ -13,7 +31,6 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.14, 05/11/17
  * @since 1.4
  */
 
@@ -22,7 +39,7 @@ public final class ByteOrder {
     private String name;
 
     private ByteOrder(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     /**
@@ -31,7 +48,7 @@ public final class ByteOrder {
      * </p>
      */
     public static final ByteOrder BIG_ENDIAN
-	= new ByteOrder("BIG_ENDIAN");
+        = new ByteOrder("BIG_ENDIAN");
 
     /**
      * Constant denoting little-endian byte order.  In this order, the bytes of
@@ -39,7 +56,7 @@ public final class ByteOrder {
      * significant.  </p>
      */
     public static final ByteOrder LITTLE_ENDIAN
-	= new ByteOrder("LITTLE_ENDIAN");
+        = new ByteOrder("LITTLE_ENDIAN");
 
     /**
      * Retrieves the native byte order of the underlying platform.
@@ -53,7 +70,7 @@ public final class ByteOrder {
      *          virtual machine is running
      */
     public static ByteOrder nativeOrder() {
-	return Bits.byteOrder();
+        return Bits.byteOrder();
     }
 
     /**
@@ -66,7 +83,7 @@ public final class ByteOrder {
      * @return  The specified string
      */
     public String toString() {
-	return name;
+        return name;
     }
 
 }

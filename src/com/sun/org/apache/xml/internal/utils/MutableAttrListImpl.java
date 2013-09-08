@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,11 +82,11 @@ public MutableAttrListImpl()
     if (null == uri)
       uri = "";
 
-    // getIndex(qName) seems to be more reliable than getIndex(uri, localName), 
+    // getIndex(qName) seems to be more reliable than getIndex(uri, localName),
     // in the case of the xmlns attribute anyway.
     int index = this.getIndex(qName);
     // int index = this.getIndex(uri, localName);
-   
+
     // System.out.println("MutableAttrListImpl#addAttribute: "+uri+":"+localName+", "+index+", "+qName+", "+this);
 
     if (index >= 0)
@@ -124,7 +128,7 @@ public MutableAttrListImpl()
   /**
    * Return true if list contains the given (raw) attribute name.
    *
-   * @param name Raw name of attribute to look for 
+   * @param name Raw name of attribute to look for
    *
    * @return true if an attribute is found with this name
    */

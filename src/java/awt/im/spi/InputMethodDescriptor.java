@@ -1,8 +1,26 @@
 /*
- * @(#)InputMethodDescriptor.java	1.12 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -16,7 +34,7 @@ import java.util.Locale;
  * Defines methods that provide sufficient information about an input method
  * to enable selection and loading of that input method.
  * The input method itself is only loaded when it is actually used.
- * 
+ *
  * @since 1.3
  */
 
@@ -49,14 +67,14 @@ public interface InputMethodDescriptor {
      * is inoperable, for example, because of incomplete installation.
      */
     Locale[] getAvailableLocales() throws AWTException;
-    
+
     /**
      * Returns whether the list of available locales can change
      * at runtime. This may be the case, for example, for adapters
      * that access real input methods over the network.
      */
     boolean hasDynamicLocaleList();
-    
+
     /**
      * Returns the user-visible name of the corresponding
      * input method for the given input locale in the language in which
@@ -76,7 +94,7 @@ public interface InputMethodDescriptor {
      * @param displayLanguage the language in which the name will be displayed
      */
     String getInputMethodDisplayName(Locale inputLocale, Locale displayLanguage);
-    
+
     /**
      * Returns an icon for the corresponding input method.
      * The icon may be used by a user interface for selecting input methods.
@@ -94,10 +112,10 @@ public interface InputMethodDescriptor {
      * @return an icon for the corresponding input method, or null
      */
     Image getInputMethodIcon(Locale inputLocale);
-    
+
     /**
      * Creates a new instance of the corresponding input method.
-     * 
+     *
      * @return a new instance of the corresponding input method
      * @exception Exception any exception that may occur while creating the
      * input method instance

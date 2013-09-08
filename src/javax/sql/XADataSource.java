@@ -1,8 +1,26 @@
 /*
- * @(#)XADataSource.java	1.12 06/04/16
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sql;
@@ -10,11 +28,11 @@ package javax.sql;
 import java.sql.*;
 
 /**
- * A factory for <code>XAConnection</code> objects that is used internally.  
+ * A factory for <code>XAConnection</code> objects that is used internally.
  * An object that implements the <code>XADataSource</code> interface is
  * typically registered with a naming service that uses the
  * Java Naming and Directory Interface<sup><font size=-3>TM</font></sup>
- * (JNDI). 
+ * (JNDI).
  *
  * @since 1.4
  */
@@ -34,7 +52,7 @@ public interface XADataSource extends CommonDataSource {
    * @since 1.4
    */
   XAConnection getXAConnection() throws SQLException;
-      
+
   /**
    * Attempts to establish a physical database connection, using the given
    * user name and password. The connection that is returned is one that
@@ -50,11 +68,6 @@ public interface XADataSource extends CommonDataSource {
    * this method
    * @since 1.4
    */
-  XAConnection getXAConnection(String user, String password) 
-    throws SQLException;        
- } 
-
-
-
-
-
+  XAConnection getXAConnection(String user, String password)
+    throws SQLException;
+ }

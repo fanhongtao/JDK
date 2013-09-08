@@ -1,8 +1,26 @@
 /*
- * @(#)FragmentMessage_1_2.java	1.13 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -13,7 +31,6 @@ import com.sun.corba.se.spi.ior.iiop.GIOPVersion;
  * This implements the GIOP 1.2 Fragment header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public final class FragmentMessage_1_2 extends Message_1_2
@@ -66,7 +83,7 @@ public final class FragmentMessage_1_2 extends Message_1_2
     public int getHeaderLength() {
         return GIOPMessageHeaderLength + 4;
     }
-    
+
     // IO methods
 
     /* This will never be called, since we do not currently read the

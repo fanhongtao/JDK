@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,26 +31,25 @@ class StringOutputBuffer implements OutputBuffer {
     private StringBuffer _buffer;
 
     public StringOutputBuffer() {
-	_buffer = new StringBuffer();
+        _buffer = new StringBuffer();
     }
 
     public String close() {
-	return _buffer.toString();
+        return _buffer.toString();
     }
 
     public OutputBuffer append(String s) {
-	_buffer.append(s);
-	return this;
+        _buffer.append(s);
+        return this;
     }
 
     public OutputBuffer append(char[] s, int from, int to) {
-	_buffer.append(s, from, to);
-	return this;
+        _buffer.append(s, from, to);
+        return this;
     }
 
     public OutputBuffer append(char ch) {
-	_buffer.append(ch);
-	return this;
+        _buffer.append(ch);
+        return this;
     }
 }
-

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +53,7 @@ public abstract class DTMManager
   /** The default property name to load the manager. */
   private static final String defaultPropName =
     "com.sun.org.apache.xml.internal.dtm.DTMManager";
-  
+
   /** The default class name to use as the manager. */
   private static String defaultClassName =
     "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault";
@@ -126,7 +130,7 @@ public abstract class DTMManager
    * @throws DTMConfigurationException
    * if the implementation is not available or cannot be instantiated.
    */
-  public static DTMManager newInstance(XMLStringFactory xsf) 
+  public static DTMManager newInstance(XMLStringFactory xsf)
            throws DTMConfigurationException
   {
     DTMManager factoryImpl = null;
@@ -160,7 +164,7 @@ public abstract class DTMManager
    * always be returned.  Otherwise it is up to the DTMManager to return a
    * new instance or an instance that it already created and may be being used
    * by someone else.
-   * 
+   *
    * (More parameters may eventually need to be added for error handling
    * and entity resolution, and to better control selection of implementations.)
    *
@@ -173,7 +177,7 @@ public abstract class DTMManager
    *                         be null.
    * @param incremental true if the DTM should be built incrementally, if
    *                    possible.
-   * @param doIndexing true if the caller considers it worth it to use 
+   * @param doIndexing true if the caller considers it worth it to use
    *                   indexing schemes.
    *
    * @return a non-null DTM reference.
@@ -282,28 +286,28 @@ public abstract class DTMManager
    * @return The newly created <code>DTMIterator</code>.
    */
   public abstract DTMIterator createDTMIterator(int node);
-  
+
   /* Flag indicating whether an incremental transform is desired */
   public boolean m_incremental = false;
-  
+
   /*
    * Flag set by FEATURE_SOURCE_LOCATION.
    * This feature specifies whether the transformation phase should
    * keep track of line and column numbers for the input source
-   * document. 
+   * document.
    */
-  public boolean m_source_location = false; 
-  
+  public boolean m_source_location = false;
+
   /**
-   * Get a flag indicating whether an incremental transform is desired 
+   * Get a flag indicating whether an incremental transform is desired
    * @return incremental boolean.
    *
    */
   public boolean getIncremental()
   {
-    return m_incremental;  
+    return m_incremental;
   }
-  
+
   /**
    * Set a flag indicating whether an incremental transform is desired
    * This flag should have the same value as the FEATURE_INCREMENTAL feature
@@ -314,9 +318,9 @@ public abstract class DTMManager
    */
   public void setIncremental(boolean incremental)
   {
-    m_incremental = incremental;  
+    m_incremental = incremental;
   }
-  
+
   /**
    * Get a flag indicating whether the transformation phase should
    * keep track of line and column numbers for the input source
@@ -326,9 +330,9 @@ public abstract class DTMManager
    */
   public boolean getSource_location()
   {
-    return m_source_location;  
-  }  
-  
+    return m_source_location;
+  }
+
   /**
    * Set a flag indicating whether the transformation phase should
    * keep track of line and column numbers for the input source
@@ -341,7 +345,7 @@ public abstract class DTMManager
   public void setSource_location(boolean sourceLocation){
     m_source_location = sourceLocation;
   }
-  
+
 
   // -------------------- private methods --------------------
 
@@ -375,11 +379,11 @@ public abstract class DTMManager
    * complain.)
    * */
   public static final int IDENT_DTM_NODE_BITS = 16;
-    
+
 
   /** When this bitmask is ANDed with a DTM node handle number, the result
    * is the low bits of the node's index number within that DTM. To obtain
-   * the high bits, add the DTM ID portion's offset as assigned in the DTM 
+   * the high bits, add the DTM ID portion's offset as assigned in the DTM
    * Manager.
    */
   public static final int IDENT_NODE_DEFAULT = (1<<IDENT_DTM_NODE_BITS)-1;

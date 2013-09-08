@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 2000-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -79,7 +83,7 @@ import com.sun.org.apache.xerces.internal.xni.XMLString;
  * @author Elena Litani, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XMLAttributesImpl.java,v 1.3 2005/09/26 13:03:01 sunithareddy Exp $
+ * @version $Id: XMLAttributesImpl.java,v 1.7 2010/05/07 20:13:09 joehw Exp $
  */
 public class XMLAttributesImpl
 implements XMLAttributes, XMLBufferListener {
@@ -630,6 +634,25 @@ implements XMLAttributes, XMLBufferListener {
     } // getIndex(String,String):int
 
     /**
+     * Look up the index of an attribute by local name only,
+     * ignoring its namespace.
+     *
+     * @param localName The attribute's local name.
+     * @return The index of the attribute, or -1 if it does not
+     *         appear in the list.
+     */
+    public int getIndexByLocalName(String localPart) {
+        for (int i = 0; i < fLength; i++) {
+            Attribute attribute = fAttributes[i];
+            if (attribute.name.localpart != null &&
+                attribute.name.localpart.equals(localPart)) {
+                return i;
+            }
+        }
+        return -1;
+    } // getIndex(String):int
+
+    /**
      * Look up an attribute's local name by index.
      *
      * @param index The attribute index (zero-based).
@@ -995,12 +1018,15 @@ implements XMLAttributes, XMLBufferListener {
     } // getURI(int):String
 
     /**
-     * Look up an attribute's value by Namespace name.
+     * Look up an attribute's value by Namespace name and
+     * Local name. If Namespace is null, ignore namespace
+     * comparison. If Namespace is "", treat the name as
+     * having no Namespace URI.
      *
      * <p>See {@link #getValue(int) getValue(int)} for a description
      * of the possible values.</p>
      *
-     * @param uri The Namespace URI, or null if the
+     * @param uri The Namespace URI, or null namespaces are ignored.
      * @param localName The local name of the attribute.
      * @return The attribute value as a string, or null if the
      *         attribute is not in the list.
@@ -1009,7 +1035,6 @@ implements XMLAttributes, XMLBufferListener {
         int index = getIndex(uri, localName);
         return index != -1 ? getValue(index) : null;
     } // getValue(String,String):String
-
 
     /**
      * Look up an augmentations by Namespace name.

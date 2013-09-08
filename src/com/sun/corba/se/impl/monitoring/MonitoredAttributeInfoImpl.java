@@ -1,8 +1,26 @@
 /*
- * @(#)MonitoredAttributeInfoImpl.java	1.3 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.monitoring;
@@ -14,20 +32,20 @@ public class MonitoredAttributeInfoImpl implements MonitoredAttributeInfo {
     private final Class type;
     private final boolean writableFlag, statisticFlag;
 
-    MonitoredAttributeInfoImpl( String description, Class type, 
-        boolean isWritable, boolean isStatistic ) 
+    MonitoredAttributeInfoImpl( String description, Class type,
+        boolean isWritable, boolean isStatistic )
     {
-        this.description = description; 
+        this.description = description;
         this.type = type;
         this.writableFlag = isWritable;
         this.statisticFlag = isStatistic;
     }
 
-    public String getDescription( ) { 
+    public String getDescription( ) {
         return this.description;
     }
 
-    public Class type( ) { 
+    public Class type( ) {
         return this.type;
     }
 
@@ -39,5 +57,3 @@ public class MonitoredAttributeInfoImpl implements MonitoredAttributeInfo {
          return this.statisticFlag;
     }
 }
-
-    

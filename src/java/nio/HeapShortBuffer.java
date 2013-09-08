@@ -1,8 +1,26 @@
 /*
- * @(#)Heap-X-Buffer.java	1.29 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -34,13 +52,13 @@ class HeapShortBuffer
 
     */
 
-    HeapShortBuffer(int cap, int lim) {		// package-private
+    HeapShortBuffer(int cap, int lim) {            // package-private
 
-	super(-1, 0, lim, cap, new short[cap], 0);
-	/*
-	hb = new short[cap];
-	offset = 0;
-	*/
+        super(-1, 0, lim, cap, new short[cap], 0);
+        /*
+        hb = new short[cap];
+        offset = 0;
+        */
 
 
 
@@ -49,11 +67,11 @@ class HeapShortBuffer
 
     HeapShortBuffer(short[] buf, int off, int len) { // package-private
 
-	super(-1, off, off + len, buf.length, buf, 0);
-	/*
-	hb = buf;
-	offset = 0;
-	*/
+        super(-1, off, off + len, buf.length, buf, 0);
+        /*
+        hb = buf;
+        offset = 0;
+        */
 
 
 
@@ -61,15 +79,15 @@ class HeapShortBuffer
     }
 
     protected HeapShortBuffer(short[] buf,
-				   int mark, int pos, int lim, int cap,
-				   int off)
+                                   int mark, int pos, int lim, int cap,
+                                   int off)
     {
 
-	super(mark, pos, lim, cap, buf, off);
-	/*
-	hb = buf;
-	offset = off;
-	*/
+        super(mark, pos, lim, cap, buf, off);
+        /*
+        hb = buf;
+        offset = off;
+        */
 
 
 
@@ -77,31 +95,31 @@ class HeapShortBuffer
     }
 
     public ShortBuffer slice() {
-	return new HeapShortBuffer(hb,
-					-1,
-					0,
-					this.remaining(),
-					this.remaining(),
-					this.position() + offset);
+        return new HeapShortBuffer(hb,
+                                        -1,
+                                        0,
+                                        this.remaining(),
+                                        this.remaining(),
+                                        this.position() + offset);
     }
 
     public ShortBuffer duplicate() {
-	return new HeapShortBuffer(hb,
-					this.markValue(),
-					this.position(),
-					this.limit(),
-					this.capacity(),
-					offset);
+        return new HeapShortBuffer(hb,
+                                        this.markValue(),
+                                        this.position(),
+                                        this.limit(),
+                                        this.capacity(),
+                                        offset);
     }
 
     public ShortBuffer asReadOnlyBuffer() {
 
-	return new HeapShortBufferR(hb,
-				     this.markValue(),
-				     this.position(),
-				     this.limit(),
-				     this.capacity(),
-				     offset);
+        return new HeapShortBufferR(hb,
+                                     this.markValue(),
+                                     this.position(),
+                                     this.limit(),
+                                     this.capacity(),
+                                     offset);
 
 
 
@@ -110,40 +128,40 @@ class HeapShortBuffer
 
 
     protected int ix(int i) {
-	return i + offset;
+        return i + offset;
     }
 
     public short get() {
-	return hb[ix(nextGetIndex())];
+        return hb[ix(nextGetIndex())];
     }
 
     public short get(int i) {
-	return hb[ix(checkIndex(i))];
+        return hb[ix(checkIndex(i))];
     }
 
     public ShortBuffer get(short[] dst, int offset, int length) {
-	checkBounds(offset, length, dst.length);
-	if (length > remaining())
-	    throw new BufferUnderflowException();
-	System.arraycopy(hb, ix(position()), dst, offset, length);
-	position(position() + length);
-	return this;
+        checkBounds(offset, length, dst.length);
+        if (length > remaining())
+            throw new BufferUnderflowException();
+        System.arraycopy(hb, ix(position()), dst, offset, length);
+        position(position() + length);
+        return this;
     }
 
     public boolean isDirect() {
-	return false;
+        return false;
     }
 
 
 
     public boolean isReadOnly() {
-	return false;
+        return false;
     }
 
     public ShortBuffer put(short x) {
 
-	hb[ix(nextPutIndex())] = x;
-	return this;
+        hb[ix(nextPutIndex())] = x;
+        return this;
 
 
 
@@ -151,8 +169,8 @@ class HeapShortBuffer
 
     public ShortBuffer put(int i, short x) {
 
-	hb[ix(checkIndex(i))] = x;
-	return this;
+        hb[ix(checkIndex(i))] = x;
+        return this;
 
 
 
@@ -160,12 +178,12 @@ class HeapShortBuffer
 
     public ShortBuffer put(short[] src, int offset, int length) {
 
-	checkBounds(offset, length, src.length);
-	if (length > remaining())
-	    throw new BufferOverflowException();
-	System.arraycopy(src, offset, hb, ix(position()), length);
-	position(position() + length);
-	return this;
+        checkBounds(offset, length, src.length);
+        if (length > remaining())
+            throw new BufferOverflowException();
+        System.arraycopy(src, offset, hb, ix(position()), length);
+        position(position() + length);
+        return this;
 
 
 
@@ -173,27 +191,27 @@ class HeapShortBuffer
 
     public ShortBuffer put(ShortBuffer src) {
 
-	if (src instanceof HeapShortBuffer) {
-	    if (src == this)
-		throw new IllegalArgumentException();
-	    HeapShortBuffer sb = (HeapShortBuffer)src;
-	    int n = sb.remaining();
-	    if (n > remaining())
-		throw new BufferOverflowException();
-	    System.arraycopy(sb.hb, sb.ix(sb.position()),
-			     hb, ix(position()), n);
-	    sb.position(sb.position() + n);
-	    position(position() + n);
-	} else if (src.isDirect()) {
-	    int n = src.remaining();
-	    if (n > remaining())
-		throw new BufferOverflowException();
-	    src.get(hb, ix(position()), n);
-	    position(position() + n);
-	} else {
-	    super.put(src);
-	}
-	return this;
+        if (src instanceof HeapShortBuffer) {
+            if (src == this)
+                throw new IllegalArgumentException();
+            HeapShortBuffer sb = (HeapShortBuffer)src;
+            int n = sb.remaining();
+            if (n > remaining())
+                throw new BufferOverflowException();
+            System.arraycopy(sb.hb, sb.ix(sb.position()),
+                             hb, ix(position()), n);
+            sb.position(sb.position() + n);
+            position(position() + n);
+        } else if (src.isDirect()) {
+            int n = src.remaining();
+            if (n > remaining())
+                throw new BufferOverflowException();
+            src.get(hb, ix(position()), n);
+            position(position() + n);
+        } else {
+            super.put(src);
+        }
+        return this;
 
 
 
@@ -201,16 +219,16 @@ class HeapShortBuffer
 
     public ShortBuffer compact() {
 
-	System.arraycopy(hb, ix(position()), hb, ix(0), remaining());
-	position(remaining());
-	limit(capacity());
-	return this;
+        System.arraycopy(hb, ix(position()), hb, ix(0), remaining());
+        position(remaining());
+        limit(capacity());
+        discardMark();
+        return this;
 
 
 
     }
 
-
 
 
 
@@ -534,7 +552,11 @@ class HeapShortBuffer
 
 
 
-
+
+
+
+
+
 
 
 
@@ -565,7 +587,7 @@ class HeapShortBuffer
 
 
     public ByteOrder order() {
-	return ByteOrder.nativeOrder();
+        return ByteOrder.nativeOrder();
     }
 
 

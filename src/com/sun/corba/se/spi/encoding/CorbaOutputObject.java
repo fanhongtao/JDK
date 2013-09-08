@@ -1,8 +1,26 @@
 /*
- * @(#)CorbaOutputObject.java	1.14 05/11/17
+ * Copyright (c) 2002, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.encoding ;
@@ -17,19 +35,19 @@ import com.sun.corba.se.impl.encoding.CDROutputStream ;
 import com.sun.corba.se.impl.encoding.BufferManagerWrite ;
 
 
-public abstract class CorbaOutputObject 
+public abstract class CorbaOutputObject
     extends CDROutputStream
     implements OutputObject
 {
     public CorbaOutputObject(
         ORB orb, GIOPVersion version, byte encodingVersion,
-	boolean littleEndian, BufferManagerWrite bufferManager,
-	byte streamFormatVersion, boolean usePooledByteBuffers)
+        boolean littleEndian, BufferManagerWrite bufferManager,
+        byte streamFormatVersion, boolean usePooledByteBuffers)
     {
-	super(orb, version, encodingVersion, littleEndian, bufferManager,
-	      streamFormatVersion, usePooledByteBuffers);
+        super(orb, version, encodingVersion, littleEndian, bufferManager,
+              streamFormatVersion, usePooledByteBuffers);
     }
 
     public abstract void writeTo(CorbaConnection connection)
-	throws java.io.IOException;
+        throws java.io.IOException;
 }

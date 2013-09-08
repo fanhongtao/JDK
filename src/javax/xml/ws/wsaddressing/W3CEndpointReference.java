@@ -1,6 +1,26 @@
 /*
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.ws.wsaddressing;
@@ -38,7 +58,7 @@ import java.util.Map;
  * JAXB will use the JAXB annotations and bind this class to XML infoset
  * that is consistent with that defined by WS-Addressing.  See
  * <a href="http://www.w3.org/TR/2006/REC-ws-addr-core-20060509/">
- * WS-Addressing</a> 
+ * WS-Addressing</a>
  * for more information on WS-Addressing EndpointReferences.
  *
  * @since JAX-WS 2.1
@@ -48,12 +68,12 @@ import java.util.Map;
 @XmlRootElement(name="EndpointReference",namespace=W3CEndpointReference.NS)
 @XmlType(name="EndpointReferenceType",namespace=W3CEndpointReference.NS)
 public final class W3CEndpointReference extends EndpointReference {
-    
+
     private final static JAXBContext w3cjc = getW3CJaxbContext();
 
     protected W3CEndpointReference() {
     }
-    
+
     /**
      * Creates an EPR from infoset representation
      *
@@ -61,10 +81,10 @@ public final class W3CEndpointReference extends EndpointReference {
      * instance consistent with the W3C WS-Addressing Core
      * recommendation.
      *
-     * @throws WebServiceException 
+     * @throws WebServiceException
      *   If the source does NOT contain a valid W3C WS-Addressing
      *   EndpointReference.
-     * @throws NullPointerException 
+     * @throws NullPointerException
      *   If the <code>null</code> <code>source</code> value is given
      */
     public W3CEndpointReference(Source source) {
@@ -73,15 +93,15 @@ public final class W3CEndpointReference extends EndpointReference {
             this.address = epr.address;
             this.metadata = epr.metadata;
             this.referenceParameters = epr.referenceParameters;
-            this.attributes = epr.attributes;
             this.elements = epr.elements;
+            this.attributes = epr.attributes;
         } catch (JAXBException e) {
             throw new WebServiceException("Error unmarshalling W3CEndpointReference " ,e);
         } catch (ClassCastException e) {
             throw new WebServiceException("Source did not contain W3CEndpointReference", e);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -93,7 +113,7 @@ public final class W3CEndpointReference extends EndpointReference {
             throw new WebServiceException("Error marshalling W3CEndpointReference. ", e);
         }
     }
-    
+
     private static JAXBContext getW3CJaxbContext() {
         try {
             return JAXBContext.newInstance(W3CEndpointReference.class);
@@ -101,7 +121,7 @@ public final class W3CEndpointReference extends EndpointReference {
             throw new WebServiceException("Error creating JAXBContext for W3CEndpointReference. ", e);
         }
     }
-    
+
     // private but necessary properties for databinding
     @XmlElement(name="Address",namespace=NS)
     private Address address;
@@ -109,12 +129,14 @@ public final class W3CEndpointReference extends EndpointReference {
     private Elements referenceParameters;
     @XmlElement(name="Metadata",namespace=NS)
     private Elements metadata;
+    // attributes and elements are not private for performance reasons
+    // (JAXB can bypass reflection)
     @XmlAnyAttribute
     Map<QName,String> attributes;
     @XmlAnyElement
     List<Element> elements;
-    
-    
+
+
     private static class Address {
         protected Address() {}
         @XmlValue
@@ -122,8 +144,8 @@ public final class W3CEndpointReference extends EndpointReference {
         @XmlAnyAttribute
         Map<QName,String> attributes;
     }
-    
-    
+
+
     private static class Elements {
         protected Elements() {}
         @XmlAnyElement
@@ -131,6 +153,6 @@ public final class W3CEndpointReference extends EndpointReference {
         @XmlAnyAttribute
         Map<QName,String> attributes;
     }
-    
+
     protected static final String NS = "http://www.w3.org/2005/08/addressing";
 }

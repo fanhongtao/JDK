@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -57,13 +61,12 @@ package com.sun.org.apache.bcel.internal.classfile;
 import  com.sun.org.apache.bcel.internal.Constants;
 import  java.io.*;
 
-/** 
- * This class is derived from the abstract 
- * <A HREF="com.sun.org.apache.bcel.internal.classfile.Constant.html">Constant</A> class 
+/**
+ * This class is derived from the abstract
+ * <A HREF="com.sun.org.apache.bcel.internal.classfile.Constant.html">Constant</A> class
  * and represents a reference to the name and signature
  * of a field or method.
  *
- * @version $Id: ConstantNameAndType.java,v 1.1.2.1 2005/07/31 23:46:26 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Constant
  */
@@ -77,7 +80,7 @@ public final class ConstantNameAndType extends Constant {
   public ConstantNameAndType(ConstantNameAndType c) {
     this(c.getNameIndex(), c.getSignatureIndex());
   }
- 
+
   /**
    * Initialize instance from file data.
    *
@@ -85,7 +88,7 @@ public final class ConstantNameAndType extends Constant {
    * @throws IOException
    */
   ConstantNameAndType(DataInputStream file) throws IOException
-  {    
+  {
     this((int)file.readUnsignedShort(), (int)file.readUnsignedShort());
   }
 
@@ -94,7 +97,7 @@ public final class ConstantNameAndType extends Constant {
    * @param signature_index and its signature
    */
   public ConstantNameAndType(int name_index,
-			     int signature_index)
+                             int signature_index)
   {
     super(Constants.CONSTANT_NameAndType);
     this.name_index      = name_index;
@@ -117,7 +120,7 @@ public final class ConstantNameAndType extends Constant {
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     file.writeByte(tag);
@@ -127,7 +130,7 @@ public final class ConstantNameAndType extends Constant {
 
   /**
    * @return Name index in constant pool of field/method name.
-   */  
+   */
   public final int getNameIndex()      { return name_index; }
 
   /** @return name
@@ -138,7 +141,7 @@ public final class ConstantNameAndType extends Constant {
 
   /**
    * @return Index in constant pool of field/method signature.
-   */  
+   */
   public final int getSignatureIndex() { return signature_index; }
 
   /** @return signature
@@ -165,7 +168,7 @@ public final class ConstantNameAndType extends Constant {
    * @return String representation
    */
   public final String toString() {
-    return super.toString() + "(name_index = " + name_index + 
+    return super.toString() + "(name_index = " + name_index +
       ", signature_index = " + signature_index + ")";
-  }    
+  }
 }

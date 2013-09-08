@@ -1,16 +1,34 @@
 /*
- * @(#)UIResource.java	1.11 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf;
 
 
-/** 
+/**
  * This interface is used to mark objects created by ComponentUI delegates.
- * The <code>ComponentUI.installUI()</code> and 
+ * The <code>ComponentUI.installUI()</code> and
  * <code>ComponentUI.uninstallUI()</code> methods can use this interface
  * to decide if a properties value has been overridden.  For example, the
  * JList cellRenderer property is initialized by BasicListUI.installUI(),
@@ -29,10 +47,10 @@ package javax.swing.plaf;
  *</pre>
  * This pattern applies to all properties except the java.awt.Component
  * properties font, foreground, and background.  If one of these
- * properties isn't initialized, or is explicitly set to null, 
- * its container provides the value.  For this reason the 
+ * properties isn't initialized, or is explicitly set to null,
+ * its container provides the value.  For this reason the
  * <code>"== null"</code> is unreliable when installUI() is called
- * to dynamically change a components look and feel.  So at installUI() 
+ * to dynamically change a components look and feel.  So at installUI()
  * time we check to see if the current value is a UIResource:
  *<pre>
  * if (!(list.getFont() instanceof UIResource)) {
@@ -41,9 +59,8 @@ package javax.swing.plaf;
  * </pre>
  *
  * @see ComponentUI
- * @version 1.11 11/17/05
  * @author Hans Muller
- * 
+ *
  */
 
 public interface UIResource {

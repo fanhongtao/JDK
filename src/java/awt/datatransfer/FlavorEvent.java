@@ -1,8 +1,26 @@
 /*
- * @(#)FlavorEvent.java	1.3 05/11/17
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt.datatransfer;
 
@@ -16,7 +34,6 @@ import java.util.EventObject;
  *
  * @see FlavorListener
  *
- * @version 1.3 11/17/05
  * @author Alexander Gerasimov
  * @since 1.5
  */
@@ -25,6 +42,8 @@ public class FlavorEvent extends EventObject {
      * Constructs a <code>FlavorEvent</code> object.
      *
      * @param source  the <code>Clipboard</code> that is the source of the event
+     *
+     * @throws IllegalArgumentException if the {@code source} is {@code null}
      */
     public FlavorEvent(Clipboard source) {
         super(source);

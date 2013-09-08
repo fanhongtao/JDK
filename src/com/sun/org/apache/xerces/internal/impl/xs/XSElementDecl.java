@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +22,9 @@ package com.sun.org.apache.xerces.internal.impl.xs;
 
 import com.sun.org.apache.xerces.internal.impl.dv.ValidatedInfo;
 import com.sun.org.apache.xerces.internal.impl.xs.identity.IdentityConstraint;
+import com.sun.org.apache.xerces.internal.impl.xs.util.XSNamedMapImpl;
+import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
+import com.sun.org.apache.xerces.internal.xni.QName;
 import com.sun.org.apache.xerces.internal.xs.ShortList;
 import com.sun.org.apache.xerces.internal.xs.XSAnnotation;
 import com.sun.org.apache.xerces.internal.xs.XSComplexTypeDefinition;
@@ -25,8 +32,8 @@ import com.sun.org.apache.xerces.internal.xs.XSConstants;
 import com.sun.org.apache.xerces.internal.xs.XSElementDeclaration;
 import com.sun.org.apache.xerces.internal.xs.XSNamedMap;
 import com.sun.org.apache.xerces.internal.xs.XSNamespaceItem;
+import com.sun.org.apache.xerces.internal.xs.XSObjectList;
 import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
-import com.sun.org.apache.xerces.internal.impl.xs.util.XSNamedMapImpl;
 
 /**
  * The XML representation for an element declaration
@@ -36,7 +43,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.util.XSNamedMapImpl;
  *
  * @author Elena Litani, IBM
  * @author Sandy Gao, IBM
- * @version $Id: XSElementDecl.java,v 1.2.6.1 2005/09/09 07:30:55 sunithareddy Exp $
+ * @version $Id: XSElementDecl.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */
 public class XSElementDecl implements XSElementDeclaration {
 
@@ -51,6 +58,7 @@ public class XSElementDecl implements XSElementDeclaration {
     public String fTargetNamespace = null;
     // type of the element
     public XSTypeDefinition fType = null;
+    public QName fUnresolvedTypeName = null;
     // misc flag of the element: nillable/abstract/fixed
     short fMiscFlags = 0;
     public short fScope = XSConstants.SCOPE_ABSENT;
@@ -61,7 +69,7 @@ public class XSElementDecl implements XSElementDeclaration {
     // final set (substitution group exclusions) of the element
     public short fFinal = XSConstants.DERIVATION_NONE;
     // optional annotation
-    public XSAnnotationImpl fAnnotation = null;
+    public XSObjectList fAnnotations = null;
     // value constraint value
     public ValidatedInfo fDefault = null;
     // the substitution group affiliation of the element
@@ -70,6 +78,9 @@ public class XSElementDecl implements XSElementDeclaration {
     static final int INITIAL_SIZE = 2;
     int fIDCPos = 0;
     IdentityConstraint[] fIDConstraints = new IdentityConstraint[INITIAL_SIZE];
+    // The namespace schema information item corresponding to the target namespace
+    // of the element declaration, if it is globally declared; or null otherwise.
+    private XSNamespaceItem fNamespaceItem = null;
 
     private static final short CONSTRAINT_MASK = 3;
     private static final short NILLABLE        = 4;
@@ -127,7 +138,7 @@ public class XSElementDecl implements XSElementDeclaration {
         if (fDescription == null) {
             if (fTargetNamespace != null) {
                 StringBuffer buffer = new StringBuffer(
-                    fTargetNamespace.length() + 
+                    fTargetNamespace.length() +
                     ((fName != null) ? fName.length() : 4) + 3);
                 buffer.append('"');
                 buffer.append(fTargetNamespace);
@@ -164,15 +175,16 @@ public class XSElementDecl implements XSElementDeclaration {
       * Reset current element declaration
       */
     public void reset(){
-
+        fScope = XSConstants.SCOPE_ABSENT;
         fName = null;
         fTargetNamespace = null;
         fType = null;
+        fUnresolvedTypeName = null;
         fMiscFlags = 0;
         fBlock = XSConstants.DERIVATION_NONE;
         fFinal = XSConstants.DERIVATION_NONE;
         fDefault = null;
-        fAnnotation = null;
+        fAnnotations = null;
         fSubGroup = null;
         // reset identity constraints
         for (int i=0;i<fIDCPos;i++) {
@@ -333,16 +345,26 @@ public class XSElementDecl implements XSElementDeclaration {
      * Optional. Annotation.
      */
     public XSAnnotation getAnnotation() {
-        return fAnnotation;
+        return (fAnnotations != null) ? (XSAnnotation) fAnnotations.item(0) : null;
     }
-    
 
     /**
-     * @see com.sun.org.apache.xerces.internal.xs.XSObject#getNamespaceItem()
+     * Optional. Annotations.
+     */
+    public XSObjectList getAnnotations() {
+        return (fAnnotations != null) ? fAnnotations : XSObjectListImpl.EMPTY_LIST;
+    }
+
+
+    /**
+     * @see org.apache.xerces.xs.XSObject#getNamespaceItem()
      */
     public XSNamespaceItem getNamespaceItem() {
-        // REVISIT: implement
-        return null;
+        return fNamespaceItem;
+    }
+
+    void setNamespaceItem(XSNamespaceItem namespaceItem) {
+        fNamespaceItem = namespaceItem;
     }
 
     public Object getActualVC() {

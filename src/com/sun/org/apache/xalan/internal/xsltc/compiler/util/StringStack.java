@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,14 +32,14 @@ import java.util.Stack;
 public final class StringStack extends Stack {
     static final long serialVersionUID = -1506910875640317898L;
     public String peekString() {
-	return (String) super.peek();
+        return (String) super.peek();
     }
-	
+
     public String popString() {
-	return (String) super.pop();
+        return (String) super.pop();
     }
-	
+
     public String pushString(String val) {
-	return (String) super.push(val);
-    }		
+        return (String) super.push(val);
+    }
 }

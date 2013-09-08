@@ -1,10 +1,28 @@
 /*
- * @(#)MetalToggleButtonUI.java	1.31 09/08/10
+ * Copyright (c) 1998, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package javax.swing.plaf.metal;
 
 import sun.swing.SwingUtilities2;
@@ -35,7 +53,6 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.31 08/10/09
  * @author Tom Santos
  */
 public class MetalToggleButtonUI extends BasicToggleButtonUI {
@@ -53,7 +70,7 @@ public class MetalToggleButtonUI extends BasicToggleButtonUI {
     // ********************************
     public static ComponentUI createUI(JComponent b) {
         AppContext appContext = AppContext.getAppContext();
-        MetalToggleButtonUI metalToggleButtonUI = 
+        MetalToggleButtonUI metalToggleButtonUI =
                 (MetalToggleButtonUI) appContext.get(METAL_TOGGLE_BUTTON_UI_KEY);
         if (metalToggleButtonUI == null) {
             metalToggleButtonUI = new MetalToggleButtonUI();
@@ -63,36 +80,36 @@ public class MetalToggleButtonUI extends BasicToggleButtonUI {
     }
 
     // ********************************
-    //        Install Defaults 
+    //        Install Defaults
     // ********************************
     public void installDefaults(AbstractButton b) {
         super.installDefaults(b);
-	if(!defaults_initialized) {
-	    focusColor = UIManager.getColor(getPropertyPrefix() + "focus");
-	    selectColor = UIManager.getColor(getPropertyPrefix() + "select");
-	    disabledTextColor = UIManager.getColor(getPropertyPrefix() + "disabledText");
-	    defaults_initialized = true;
-	}
+        if(!defaults_initialized) {
+            focusColor = UIManager.getColor(getPropertyPrefix() + "focus");
+            selectColor = UIManager.getColor(getPropertyPrefix() + "select");
+            disabledTextColor = UIManager.getColor(getPropertyPrefix() + "disabledText");
+            defaults_initialized = true;
+        }
     }
 
     protected void uninstallDefaults(AbstractButton b) {
-	super.uninstallDefaults(b);
-	defaults_initialized = false;
+        super.uninstallDefaults(b);
+        defaults_initialized = false;
     }
 
     // ********************************
-    //         Default Accessors 
+    //         Default Accessors
     // ********************************
     protected Color getSelectColor() {
-	return selectColor;
+        return selectColor;
     }
 
     protected Color getDisabledTextColor() {
-	return disabledTextColor;
+        return disabledTextColor;
     }
 
     protected Color getFocusColor() {
-	return focusColor;
+        return focusColor;
     }
 
 
@@ -137,59 +154,59 @@ public class MetalToggleButtonUI extends BasicToggleButtonUI {
 
     protected void paintButtonPressed(Graphics g, AbstractButton b) {
         if ( b.isContentAreaFilled() ) {
-	    g.setColor(getSelectColor());
-	    g.fillRect(0, 0, b.getWidth(), b.getHeight());
-	}
+            g.setColor(getSelectColor());
+            g.fillRect(0, 0, b.getWidth(), b.getHeight());
+        }
     }
 
     protected void paintText(Graphics g, JComponent c, Rectangle textRect, String text) {
-	AbstractButton b = (AbstractButton) c;			     
-	ButtonModel model = b.getModel();
-	FontMetrics fm = SwingUtilities2.getFontMetrics(b, g);
+        AbstractButton b = (AbstractButton) c;
+        ButtonModel model = b.getModel();
+        FontMetrics fm = SwingUtilities2.getFontMetrics(b, g);
         int mnemIndex = b.getDisplayedMnemonicIndex();
 
-	/* Draw the Text */
-	if(model.isEnabled()) {
-	    /*** paint the text normally */
-	    g.setColor(b.getForeground());
-	}
-	else {
-	    /*** paint the text disabled ***/
-	    if (model.isSelected()) {
-		g.setColor(c.getBackground());
-	    } else {
-	        g.setColor(getDisabledTextColor());
-	    }
+        /* Draw the Text */
+        if(model.isEnabled()) {
+            /*** paint the text normally */
+            g.setColor(b.getForeground());
+        }
+        else {
+            /*** paint the text disabled ***/
+            if (model.isSelected()) {
+                g.setColor(c.getBackground());
+            } else {
+                g.setColor(getDisabledTextColor());
+            }
         }
         SwingUtilities2.drawStringUnderlineCharAt(c, g, text, mnemIndex,
                 textRect.x, textRect.y + fm.getAscent());
     }
 
     protected void paintFocus(Graphics g, AbstractButton b,
-			      Rectangle viewRect, Rectangle textRect, Rectangle iconRect){
+                              Rectangle viewRect, Rectangle textRect, Rectangle iconRect){
 
         Rectangle focusRect = new Rectangle();
-	String text = b.getText();
-	boolean isIcon = b.getIcon() != null;
+        String text = b.getText();
+        boolean isIcon = b.getIcon() != null;
 
         // If there is text
         if ( text != null && !text.equals( "" ) ) {
-  	    if ( !isIcon ) {
-	        focusRect.setBounds( textRect );
-	    }
-	    else {
-	        focusRect.setBounds( iconRect.union( textRect ) );
-	    }
+            if ( !isIcon ) {
+                focusRect.setBounds( textRect );
+            }
+            else {
+                focusRect.setBounds( iconRect.union( textRect ) );
+            }
         }
         // If there is an icon and no text
         else if ( isIcon ) {
-  	    focusRect.setBounds( iconRect );
+            focusRect.setBounds( iconRect );
         }
 
         g.setColor(getFocusColor());
-	g.drawRect((focusRect.x-1), (focusRect.y-1),
-		  focusRect.width+1, focusRect.height+1);
-	
+        g.drawRect((focusRect.x-1), (focusRect.y-1),
+                  focusRect.width+1, focusRect.height+1);
+
     }
 
     /**

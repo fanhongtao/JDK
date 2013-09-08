@@ -1,8 +1,26 @@
 /*
- * @(#)DocumentFilter.java	1.8 06/04/07
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -25,10 +43,20 @@ package javax.swing.text;
  * <code>FilterBypass</code> multiple times, or for different regions, but
  * it should not callback into the <code>FilterBypass</code> after returning
  * from the <code>remove</code> or <code>insertString</code> method.
+ * <p>
+ * By default, text related document mutation methods such as
+ * <code>insertString</code>, <code>replace</code> and <code>remove</code>
+ * in <code>AbstractDocument</code> use <code>DocumentFilter</code> when
+ * available, and <code>Element</code> related mutation methods such as
+ * <code>create</code>, <code>insert</code> and <code>removeElement</code> in
+ * <code>DefaultStyledDocument</code> do not use <code>DocumentFilter</code>.
+ * If a method doesn't follow these defaults, this must be explicitly stated
+ * in the method documentation.
  *
  * @see javax.swing.text.Document
+ * @see javax.swing.text.AbstractDocument
+ * @see javax.swing.text.DefaultStyledDocument
  *
- * @version 1.8 04/07/06
  * @since 1.4
  */
 public class DocumentFilter {
@@ -59,8 +87,8 @@ public class DocumentFilter {
      *
      * @param fb FilterBypass that can be used to mutate Document
      * @param offset  the offset into the document to insert the content >= 0.
-     *    All positions that track change at or after the given location 
-     *    will move.  
+     *    All positions that track change at or after the given location
+     *    will move.
      * @param string the string to insert
      * @param attr      the attributes to associate with the inserted
      *   content.  This may be null if there are no attributes.
@@ -127,7 +155,7 @@ public class DocumentFilter {
          * DocumentFilter.
          * @param offset  the offset into the document to insert the
          *   content >= 0. All positions that track change at or after the
-         *   given location will move.  
+         *   given location will move.
          * @param string the string to insert
          * @param attr the attributes to associate with the inserted
          *   content.  This may be null if there are no attributes.

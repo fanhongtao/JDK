@@ -1,8 +1,26 @@
 /*
- * @(#)DynAnyComplexImpl.java	1.11 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.dynamicany;
@@ -89,7 +107,7 @@ abstract class DynAnyComplexImpl extends DynAnyConstructedImpl
                org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if( ! checkInitComponents() || index < 0 || index >= names.length) {
             throw new InvalidValue();
@@ -102,7 +120,7 @@ abstract class DynAnyComplexImpl extends DynAnyConstructedImpl
                org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if( ! checkInitComponents() || index < 0 || index >= components.length) {
             throw new InvalidValue();
@@ -116,7 +134,7 @@ abstract class DynAnyComplexImpl extends DynAnyConstructedImpl
                org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if (value == null || value.length == 0) {
             clearData();
@@ -190,7 +208,7 @@ abstract class DynAnyComplexImpl extends DynAnyConstructedImpl
                org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if (value == null || value.length == 0) {
             clearData();

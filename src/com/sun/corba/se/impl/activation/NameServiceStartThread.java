@@ -1,8 +1,26 @@
 /*
- * @(#)NameServiceStartThread.java	1.14 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.activation;
@@ -20,26 +38,26 @@ import com.sun.corba.se.impl.orbutil.ORBConstants;
 public class NameServiceStartThread extends java.lang.Thread
 {
     private ORB orb;
-    private File dbDir; 	
+    private File dbDir;
 
-    public NameServiceStartThread( ORB theOrb, File theDir ) 
+    public NameServiceStartThread( ORB theOrb, File theDir )
     {
-	orb = theOrb;
-	dbDir = theDir;
+        orb = theOrb;
+        dbDir = theDir;
     }
 
     public void run( )
     {
-	try {
-	    // start Name Service
-       	    NameService nameService = new NameService(orb, dbDir );
-       	    NamingContext rootContext = nameService.initialNamingContext();
-            orb.register_initial_reference( 
+        try {
+            // start Name Service
+            NameService nameService = new NameService(orb, dbDir );
+            NamingContext rootContext = nameService.initialNamingContext();
+            orb.register_initial_reference(
                 ORBConstants.PERSISTENT_NAME_SERVICE_NAME, rootContext );
         } catch( Exception e ) {
-	    System.err.println( 
+            System.err.println(
                 "NameService did not start successfully" );
-	    e.printStackTrace( );
-	}
+            e.printStackTrace( );
+        }
     }
 }

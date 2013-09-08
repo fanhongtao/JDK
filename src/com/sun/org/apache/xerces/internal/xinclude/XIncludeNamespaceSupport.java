@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,10 +26,9 @@ import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
  * XInclude processing.  It enables each context to be marked as invalid, if necessary,
  * to indicate that the namespaces recorded on those contexts won't be apparent in the
  * resulting infoset.
- * 
+ *
  * @author Peter McCracken, IBM
- * 
- * @version $Id: XIncludeNamespaceSupport.java,v 1.3 2005/09/26 13:03:04 sunithareddy Exp $
+ *
  */
 public class XIncludeNamespaceSupport extends MultipleScopeNamespaceSupport {
 
@@ -35,7 +38,7 @@ public class XIncludeNamespaceSupport extends MultipleScopeNamespaceSupport {
     private boolean[] fValidContext = new boolean[8];
 
     /**
-     * 
+     *
      */
     public XIncludeNamespaceSupport() {
         super();
@@ -68,17 +71,17 @@ public class XIncludeNamespaceSupport extends MultipleScopeNamespaceSupport {
      * valid for processing the include parent's [in-scope namespaces]. Thus, contexts
      * defined by these elements are set to invalid by the XInclude processor using
      * this method.
-     */    
+     */
     public void setContextInvalid() {
         fValidContext[fCurrentContext] = false;
     }
-    
+
     /**
      * This returns the namespace URI which was associated with the given pretext, in
      * the context that existed at the include parent of the current element.  The
      * include parent is the last element, before the current one, which was not set
      * to an invalid context using setContextInvalid()
-     * 
+     *
      * @param prefix the prefix of the desired URI
      * @return the URI corresponding to the prefix in the context of the include parent
      */

@@ -1,5 +1,26 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * $Id: KeySelectorResult.java,v 1.3 2005/05/10 15:47:42 mullan Exp $
@@ -9,7 +30,7 @@ package javax.xml.crypto;
 import java.security.Key;
 
 /**
- * The result returned by the {@link KeySelector#select KeySelector.select} 
+ * The result returned by the {@link KeySelector#select KeySelector.select}
  * method.
  * <p>
  * At a minimum, a <code>KeySelectorResult</code> contains the <code>Key</code>

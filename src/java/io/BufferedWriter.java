@@ -1,8 +1,26 @@
 /*
- * @(#)BufferedWriter.java	1.29 05/11/30
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -39,10 +57,10 @@ package java.io;
  * @see PrintWriter
  * @see FileWriter
  * @see OutputStreamWriter
+ * @see java.nio.file.Files#newBufferedWriter
  *
- * @version 	1.29, 05/11/30
- * @author	Mark Reinhold
- * @since	JDK1.1
+ * @author      Mark Reinhold
+ * @since       JDK1.1
  */
 
 public class BufferedWriter extends Writer {
@@ -67,7 +85,7 @@ public class BufferedWriter extends Writer {
      * @param  out  A Writer
      */
     public BufferedWriter(Writer out) {
-	this(out, defaultCharBufferSize);
+        this(out, defaultCharBufferSize);
     }
 
     /**
@@ -80,22 +98,22 @@ public class BufferedWriter extends Writer {
      * @exception  IllegalArgumentException  If sz is <= 0
      */
     public BufferedWriter(Writer out, int sz) {
-	super(out);
-	if (sz <= 0)
-	    throw new IllegalArgumentException("Buffer size <= 0");
-	this.out = out;
-	cb = new char[sz];
-	nChars = sz;
-	nextChar = 0;
+        super(out);
+        if (sz <= 0)
+            throw new IllegalArgumentException("Buffer size <= 0");
+        this.out = out;
+        cb = new char[sz];
+        nChars = sz;
+        nextChar = 0;
 
-	lineSeparator =	(String) java.security.AccessController.doPrivileged(
-               new sun.security.action.GetPropertyAction("line.separator"));
+        lineSeparator = java.security.AccessController.doPrivileged(
+            new sun.security.action.GetPropertyAction("line.separator"));
     }
 
     /** Checks to make sure that the stream has not been closed */
     private void ensureOpen() throws IOException {
-	if (out == null)
-	    throw new IOException("Stream closed");
+        if (out == null)
+            throw new IOException("Stream closed");
     }
 
     /**
@@ -104,13 +122,13 @@ public class BufferedWriter extends Writer {
      * may be invoked by PrintStream.
      */
     void flushBuffer() throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-	    if (nextChar == 0)
-		return;
-	    out.write(cb, 0, nextChar);
-	    nextChar = 0;
-	}
+        synchronized (lock) {
+            ensureOpen();
+            if (nextChar == 0)
+                return;
+            out.write(cb, 0, nextChar);
+            nextChar = 0;
+        }
     }
 
     /**
@@ -119,12 +137,12 @@ public class BufferedWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void write(int c) throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-	    if (nextChar >= nChars)
-		flushBuffer();
-	    cb[nextChar++] = (char) c;
-	}
+        synchronized (lock) {
+            ensureOpen();
+            if (nextChar >= nChars)
+                flushBuffer();
+            cb[nextChar++] = (char) c;
+        }
     }
 
     /**
@@ -132,8 +150,8 @@ public class BufferedWriter extends Writer {
      * out of file descriptors and we're trying to print a stack trace.
      */
     private int min(int a, int b) {
-	if (a < b) return a;
-	return b;
+        if (a < b) return a;
+        return b;
     }
 
     /**
@@ -153,34 +171,34 @@ public class BufferedWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void write(char cbuf[], int off, int len) throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
+        synchronized (lock) {
+            ensureOpen();
             if ((off < 0) || (off > cbuf.length) || (len < 0) ||
                 ((off + len) > cbuf.length) || ((off + len) < 0)) {
                 throw new IndexOutOfBoundsException();
             } else if (len == 0) {
                 return;
-            } 
+            }
 
-	    if (len >= nChars) {
-		/* If the request length exceeds the size of the output buffer,
-		   flush the buffer and then write the data directly.  In this
-		   way buffered streams will cascade harmlessly. */
-		flushBuffer();
-		out.write(cbuf, off, len);
-		return;
-	    }
+            if (len >= nChars) {
+                /* If the request length exceeds the size of the output buffer,
+                   flush the buffer and then write the data directly.  In this
+                   way buffered streams will cascade harmlessly. */
+                flushBuffer();
+                out.write(cbuf, off, len);
+                return;
+            }
 
-	    int b = off, t = off + len;
-	    while (b < t) {
-		int d = min(nChars - nextChar, t - b);
-		System.arraycopy(cbuf, b, cb, nextChar, d);
-		b += d;
-		nextChar += d;
-		if (nextChar >= nChars)
-		    flushBuffer();
-	    }
-	}
+            int b = off, t = off + len;
+            while (b < t) {
+                int d = min(nChars - nextChar, t - b);
+                System.arraycopy(cbuf, b, cb, nextChar, d);
+                b += d;
+                nextChar += d;
+                if (nextChar >= nChars)
+                    flushBuffer();
+            }
+        }
     }
 
     /**
@@ -199,19 +217,19 @@ public class BufferedWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void write(String s, int off, int len) throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
+        synchronized (lock) {
+            ensureOpen();
 
-	    int b = off, t = off + len;
-	    while (b < t) {
-		int d = min(nChars - nextChar, t - b);
-		s.getChars(b, b + d, cb, nextChar);
-		b += d;
-		nextChar += d;
-		if (nextChar >= nChars)
-		    flushBuffer();
-	    }
-	}
+            int b = off, t = off + len;
+            while (b < t) {
+                int d = min(nChars - nextChar, t - b);
+                s.getChars(b, b + d, cb, nextChar);
+                b += d;
+                nextChar += d;
+                if (nextChar >= nChars)
+                    flushBuffer();
+            }
+        }
     }
 
     /**
@@ -222,7 +240,7 @@ public class BufferedWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void newLine() throws IOException {
-	write(lineSeparator);
+        write(lineSeparator);
     }
 
     /**
@@ -231,24 +249,24 @@ public class BufferedWriter extends Writer {
      * @exception  IOException  If an I/O error occurs
      */
     public void flush() throws IOException {
-	synchronized (lock) {
-	    flushBuffer();
-	    out.flush();
-	}
+        synchronized (lock) {
+            flushBuffer();
+            out.flush();
+        }
     }
 
     public void close() throws IOException {
-	synchronized (lock) {
-	    if (out == null) {
-		return;
-	    }
-	    try {
-	        flushBuffer();
-	    } finally {
-	        out.close();
-	        out = null;
-	        cb = null;
-	    }
-	}
+        synchronized (lock) {
+            if (out == null) {
+                return;
+            }
+            try {
+                flushBuffer();
+            } finally {
+                out.close();
+                out = null;
+                cb = null;
+            }
+        }
     }
 }

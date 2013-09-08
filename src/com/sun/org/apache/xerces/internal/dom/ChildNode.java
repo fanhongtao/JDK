@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,10 +25,9 @@ import org.w3c.dom.Node;
 /**
  * ChildNode inherits from NodeImpl and adds the capability of being a child by
  * having references to its previous and next siblings.
- * 
- * @xerces.internal 
  *
- * @version $Id: ChildNode.java,v 1.2.6.1 2005/08/30 11:35:47 sunithareddy Exp $
+ * @xerces.internal
+ *
  */
 public abstract class ChildNode
     extends NodeImpl {
@@ -37,11 +40,11 @@ public abstract class ChildNode
     static final long serialVersionUID = -6112455738802414002L;
 
     transient StringBuffer fBufferStr = null;
-    
+
     //
     // Data
     //
-    
+
     /** Previous sibling. */
     protected ChildNode previousSibling;
 
@@ -94,14 +97,14 @@ public abstract class ChildNode
      */
     public Node cloneNode(boolean deep) {
 
-    	ChildNode newnode = (ChildNode) super.cloneNode(deep);
-    	
+        ChildNode newnode = (ChildNode) super.cloneNode(deep);
+
         // Need to break the association w/ original kids
-    	newnode.previousSibling = null;
+        newnode.previousSibling = null;
         newnode.nextSibling     = null;
         newnode.isFirstChild(false);
 
-    	return newnode;
+        return newnode;
 
     } // cloneNode(boolean):Node
 

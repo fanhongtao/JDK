@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,22 +38,22 @@ public abstract class UnaryOperation extends Expression implements ExpressionOwn
   /** The operand for the operation.
    *  @serial */
   protected Expression m_right;
-  
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
   {
     m_right.fixupVariables(vars, globalsSize);
   }
-  
+
   /**
    * Tell if this expression or it's subexpressions can traverse outside
    * the current subtree.
@@ -69,7 +73,7 @@ public abstract class UnaryOperation extends Expression implements ExpressionOwn
    * Set the expression operand for the operation.
    *
    *
-   * @param r The expression operand to which the unary operation will be 
+   * @param r The expression operand to which the unary operation will be
    *          applied.
    */
   public void setRight(Expression r)
@@ -84,7 +88,7 @@ public abstract class UnaryOperation extends Expression implements ExpressionOwn
    *
    * @param xctxt The runtime execution context.
    *
-   * @return An XObject that represents the result of applying the unary 
+   * @return An XObject that represents the result of applying the unary
    *         operation to the evaluated operand.
    *
    * @throws javax.xml.transform.TransformerException
@@ -113,16 +117,16 @@ public abstract class UnaryOperation extends Expression implements ExpressionOwn
   public Expression getOperand(){
     return m_right;
   }
-  
+
   /**
    * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	if(visitor.visitUnaryOperation(owner, this))
-  	{
-  		m_right.callVisitors(this, visitor);
-  	}
+        if(visitor.visitUnaryOperation(owner, this))
+        {
+                m_right.callVisitors(this, visitor);
+        }
   }
 
 
@@ -139,22 +143,22 @@ public abstract class UnaryOperation extends Expression implements ExpressionOwn
    */
   public void setExpression(Expression exp)
   {
-  	exp.exprSetParent(this);
-  	m_right = exp;
+        exp.exprSetParent(this);
+        m_right = exp;
   }
-  
+
   /**
    * @see Expression#deepEquals(Expression)
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!isSameClass(expr))
-  		return false;
-  		
-  	if(!m_right.deepEquals(((UnaryOperation)expr).m_right))
-  		return false;
-  		
-  	return true;
+        if(!isSameClass(expr))
+                return false;
+
+        if(!m_right.deepEquals(((UnaryOperation)expr).m_right))
+                return false;
+
+        return true;
   }
 
 

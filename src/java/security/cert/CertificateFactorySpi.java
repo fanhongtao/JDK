@@ -1,8 +1,26 @@
 /*
- * @(#)CertificateFactorySpi.java	1.21 06/04/21
+ * Copyright (c) 1998, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -23,7 +41,7 @@ import java.security.NoSuchProviderException;
  * of a certificate factory for a particular certificate type, e.g., X.509.
  *
  * <p>Certificate factories are used to generate certificate, certification path
- * (<code>CertPath</code>) and certificate revocation list (CRL) objects from 
+ * (<code>CertPath</code>) and certificate revocation list (CRL) objects from
  * their encodings.
  *
  * <p>A certificate factory for X.509 must return certificates that are an
@@ -34,7 +52,6 @@ import java.security.NoSuchProviderException;
  * @author Jan Luehe
  * @author Sean Mullan
  *
- * @version 1.21, 04/21/06
  *
  * @see CertificateFactory
  * @see Certificate
@@ -71,7 +88,7 @@ public abstract class CertificateFactorySpi {
      * {@link java.io.InputStream#reset() reset}, this method will
      * consume the entire input stream. Otherwise, each call to this
      * method consumes one certificate and the read position of the input stream
-     * is positioned to the next available byte after the the inherent
+     * is positioned to the next available byte after the inherent
      * end-of-certificate marker. If the data in the
      * input stream does not contain an inherent end-of-certificate marker (other
      * than EOF) and there is trailing data after the certificate is parsed, a
@@ -156,18 +173,18 @@ public abstract class CertificateFactorySpi {
      * @since 1.4
      */
     public CertPath
-	engineGenerateCertPath(List<? extends Certificate> certificates)
+        engineGenerateCertPath(List<? extends Certificate> certificates)
         throws CertificateException
     {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Returns an iteration of the <code>CertPath</code> encodings supported 
-     * by this certificate factory, with the default encoding first. See 
-     * Appendix A in the 
-     * <a href="../../../../technotes/guides/security/certpath/CertPathProgGuide.html#AppA">
-     * Java Certification Path API Programmer's Guide</a>
+     * Returns an iteration of the <code>CertPath</code> encodings supported
+     * by this certificate factory, with the default encoding first. See
+     * the CertPath Encodings section in the <a href=
+     * "{@docRoot}/../technotes/guides/security/StandardNames.html#CertPathEncodings">
+     * Java Cryptography Architecture Standard Algorithm Name Documentation</a>
      * for information about standard encoding names.
      * <p>
      * Attempts to modify the returned <code>Iterator</code> via its
@@ -201,8 +218,8 @@ public abstract class CertificateFactorySpi {
      *
      * <p>In the case of a certificate factory for X.509 certificates,
      * <code>inStream</code> may contain a single DER-encoded certificate
-     * in the formats described for 
-     * {@link CertificateFactory#generateCertificate(java.io.InputStream) 
+     * in the formats described for
+     * {@link CertificateFactory#generateCertificate(java.io.InputStream)
      * generateCertificate}.
      * In addition, <code>inStream</code> may contain a PKCS#7 certificate
      * chain. This is a PKCS#7 <i>SignedData</i> object, with the only
@@ -224,9 +241,9 @@ public abstract class CertificateFactorySpi {
      *
      * @exception CertificateException on parsing errors.
      */
-    public abstract Collection<? extends Certificate> 
-	    engineGenerateCertificates(InputStream inStream)
-	    throws CertificateException;
+    public abstract Collection<? extends Certificate>
+            engineGenerateCertificates(InputStream inStream)
+            throws CertificateException;
 
     /**
      * Generates a certificate revocation list (CRL) object and initializes it
@@ -244,7 +261,7 @@ public abstract class CertificateFactorySpi {
      * {@link java.io.InputStream#reset() reset}, this method will
      * consume the entire input stream. Otherwise, each call to this
      * method consumes one CRL and the read position of the input stream
-     * is positioned to the next available byte after the the inherent
+     * is positioned to the next available byte after the inherent
      * end-of-CRL marker. If the data in the
      * input stream does not contain an inherent end-of-CRL marker (other
      * than EOF) and there is trailing data after the CRL is parsed, a
@@ -294,5 +311,5 @@ public abstract class CertificateFactorySpi {
      * @exception CRLException on parsing errors.
      */
     public abstract Collection<? extends CRL> engineGenerateCRLs
-	    (InputStream inStream) throws CRLException;
+            (InputStream inStream) throws CRLException;
 }

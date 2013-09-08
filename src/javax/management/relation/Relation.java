@@ -1,8 +1,26 @@
 /*
- * @(#)Relation.java	1.26 05/12/29
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.relation;
@@ -11,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.ObjectName;
-import javax.management.InstanceNotFoundException;
-import javax.management.ReflectionException;
 
 /**
  * This interface has to be implemented by any MBean class expected to
@@ -52,9 +68,9 @@ public interface Relation {
      * @see #setRole
      */
     public List<ObjectName> getRole(String roleName)
-	throws IllegalArgumentException,
-	       RoleNotFoundException,
-	       RelationServiceNotRegisteredException;
+        throws IllegalArgumentException,
+               RoleNotFoundException,
+               RelationServiceNotRegisteredException;
 
     /**
      * Retrieves values of roles with given names.
@@ -74,8 +90,8 @@ public interface Relation {
      * @see #setRoles
      */
     public RoleResult getRoles(String[] roleNameArray)
-	throws IllegalArgumentException,
-	       RelationServiceNotRegisteredException;
+        throws IllegalArgumentException,
+               RelationServiceNotRegisteredException;
 
     /**
      * Returns the number of MBeans currently referenced in the given role.
@@ -88,8 +104,8 @@ public interface Relation {
      * @exception RoleNotFoundException  if there is no role with given name
      */
     public Integer getRoleCardinality(String roleName)
-	throws IllegalArgumentException,
-	       RoleNotFoundException;
+        throws IllegalArgumentException,
+               RoleNotFoundException;
 
     /**
      * Returns all roles present in the relation.
@@ -102,7 +118,7 @@ public interface Relation {
      * Service is not registered in the MBean Server
      */
     public RoleResult getAllRoles()
-	throws RelationServiceNotRegisteredException;
+        throws RelationServiceNotRegisteredException;
 
     /**
      * Returns all roles in the relation without checking read mode.
@@ -144,11 +160,11 @@ public interface Relation {
      * @see #getRole
      */
     public void setRole(Role role)
-	throws IllegalArgumentException,
-	       RoleNotFoundException,
-	       RelationTypeNotFoundException,
-	       InvalidRoleValueException,
-	       RelationServiceNotRegisteredException,
+        throws IllegalArgumentException,
+               RoleNotFoundException,
+               RelationTypeNotFoundException,
+               InvalidRoleValueException,
+               RelationServiceNotRegisteredException,
                RelationNotFoundException;
 
     /**
@@ -176,8 +192,8 @@ public interface Relation {
      * @see #getRoles
      */
     public RoleResult setRoles(RoleList roleList)
-	throws IllegalArgumentException,
-	       RelationServiceNotRegisteredException,
+        throws IllegalArgumentException,
+               RelationServiceNotRegisteredException,
                RelationTypeNotFoundException,
                RelationNotFoundException;
 
@@ -208,8 +224,8 @@ public interface Relation {
      * relation MBean not added in the Relation Service.
      */
     public void handleMBeanUnregistration(ObjectName objectName,
-					  String roleName)
-	throws IllegalArgumentException,
+                                          String roleName)
+        throws IllegalArgumentException,
                RoleNotFoundException,
                InvalidRoleValueException,
                RelationServiceNotRegisteredException,

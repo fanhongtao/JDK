@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -114,12 +118,12 @@ public class Extensions
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document myDoc = db.newDocument();
-        
+
         Text textNode = myDoc.createTextNode(textNodeValue);
         DocumentFragment docFrag = myDoc.createDocumentFragment();
-  
+
         docFrag.appendChild(textNode);
-  
+
         return new NodeSet(docFrag);
       }
       catch(ParserConfigurationException pce)
@@ -131,12 +135,12 @@ public class Extensions
 
   /**
    * Returns the intersection of two node-sets.
-   * 
+   *
    * @param nl1 NodeList for first node-set
    * @param nl2 NodeList for second node-set
    * @return a NodeList containing the nodes in nl1 that are also in nl2
    *
-   * Note: The usage of this extension function in the xalan namespace 
+   * Note: The usage of this extension function in the xalan namespace
    * is deprecated. Please use the same function in the EXSLT sets extension
    * (http://exslt.org/sets).
    */
@@ -147,12 +151,12 @@ public class Extensions
 
   /**
    * Returns the difference between two node-sets.
-   * 
+   *
    * @param nl1 NodeList for first node-set
    * @param nl2 NodeList for second node-set
    * @return a NodeList containing the nodes in nl1 that are not in nl2
-   * 
-   * Note: The usage of this extension function in the xalan namespace 
+   *
+   * Note: The usage of this extension function in the xalan namespace
    * is deprecated. Please use the same function in the EXSLT sets extension
    * (http://exslt.org/sets).
    */
@@ -169,7 +173,7 @@ public class Extensions
    * In other words, if more than one node in nl contains the same string value,
    * only include the first such node found.
    *
-   * Note: The usage of this extension function in the xalan namespace 
+   * Note: The usage of this extension function in the xalan namespace
    * is deprecated. Please use the same function in the EXSLT sets extension
    * (http://exslt.org/sets).
    */
@@ -218,7 +222,7 @@ public class Extensions
    *
    * @throws SAXNotSupportedException
    *
-   * Note: The usage of this extension function in the xalan namespace 
+   * Note: The usage of this extension function in the xalan namespace
    * is deprecated. Please use the same function in the EXSLT dynamic extension
    * (http://exslt.org/dynamic).
    */
@@ -236,7 +240,7 @@ public class Extensions
    * will be an empty NodeSet.
    *
    * Contributed to XalanJ1 by <a href="mailto:benoit.cerrina@writeme.com">Benoit Cerrina</a>.
-   * 
+   *
    * @param toTokenize The string to be split into text tokens.
    * @param delims The delimiters to use.
    * @return a NodeSet as described above.
@@ -270,7 +274,7 @@ public class Extensions
    * will be an empty NodeSet.
    *
    * Contributed to XalanJ1 by <a href="mailto:benoit.cerrina@writeme.com">Benoit Cerrina</a>.
-   * 
+   *
    * @param toTokenize The string to be split into text tokens.
    * @return a NodeSet as described above.
    */
@@ -280,20 +284,20 @@ public class Extensions
   }
 
   /**
-   * Return a Node of basic debugging information from the 
+   * Return a Node of basic debugging information from the
    * EnvironmentCheck utility about the Java environment.
    *
    * <p>Simply calls the {@link com.sun.org.apache.xalan.internal.xslt.EnvironmentCheck}
-   * utility to grab info about the Java environment and CLASSPATH, 
-   * etc., and then returns the resulting Node.  Stylesheets can 
-   * then maniuplate this data or simply xsl:copy-of the Node.  Note 
-   * that we first attempt to load the more advanced 
-   * org.apache.env.Which utility by reflection; only if that fails 
-   * to we still use the internal version.  Which is available from 
+   * utility to grab info about the Java environment and CLASSPATH,
+   * etc., and then returns the resulting Node.  Stylesheets can
+   * then maniuplate this data or simply xsl:copy-of the Node.  Note
+   * that we first attempt to load the more advanced
+   * org.apache.env.Which utility by reflection; only if that fails
+   * to we still use the internal version.  Which is available from
    * <a href="http://xml.apache.org/commons/">http://xml.apache.org/commons/</a>.</p>
    *
-   * <p>We throw a WrappedRuntimeException in the unlikely case 
-   * that reading information from the environment throws us an 
+   * <p>We throw a WrappedRuntimeException in the unlikely case
+   * that reading information from the environment throws us an
    * exception. (Is this really the best thing to do?)</p>
    *
    * @param myContext an <code>ExpressionContext</code> passed in by the
@@ -318,7 +322,7 @@ public class Extensions
     Node resultNode = null;
     try
     {
-      // First use reflection to try to load Which, which is a 
+      // First use reflection to try to load Which, which is a
       //  better version of EnvironmentCheck
       resultNode = checkEnvironmentUsingWhich(myContext, factoryDocument);
 
@@ -348,7 +352,7 @@ public class Extensions
    * @param factoryDocument providing createElement services, etc.
    * @return a Node with environment info; null if any error
    */
-  private static Node checkEnvironmentUsingWhich(ExpressionContext myContext, 
+  private static Node checkEnvironmentUsingWhich(ExpressionContext myContext,
         Document factoryDocument)
   {
     final String WHICH_CLASSNAME = "org.apache.env.Which";
@@ -363,7 +367,7 @@ public class Extensions
         WHICH_CLASSNAME, ObjectFactory.findClassLoader(), true);
       if (null == clazz)
         return null;
-        
+
       // Fully qualify names since this is the only method they're used in
       java.lang.reflect.Method method = clazz.getMethod(WHICH_METHODNAME, WHICH_METHOD_ARGS);
       Hashtable report = new Hashtable();
@@ -374,7 +378,7 @@ public class Extensions
 
       // Create a parent to hold the report and append hash to it
       Node resultNode = factoryDocument.createElement("checkEnvironmentExtension");
-      com.sun.org.apache.xml.internal.utils.Hashtree2Node.appendHashToNode(report, "whichReport", 
+      com.sun.org.apache.xml.internal.utils.Hashtree2Node.appendHashToNode(report, "whichReport",
             resultNode, factoryDocument);
 
       return resultNode;
@@ -385,7 +389,7 @@ public class Extensions
       return null;
     }
   }
-  
+
     /**
      * This class is not loaded until first referenced (see Java Language
      * Specification by Gosling/Joy/Steele, section 12.4.1)
@@ -399,7 +403,7 @@ public class Extensions
     {
         // Reuse the Document object to reduce memory usage.
         private static final Document m_doc;
-        static 
+        static
         {
             try
             {
@@ -412,5 +416,5 @@ public class Extensions
             }
 
         }
-    }  
+    }
 }

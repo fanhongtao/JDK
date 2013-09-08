@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +21,6 @@
 package com.sun.org.apache.xerces.internal.jaxp.validation;
 
 import java.lang.ref.SoftReference;
-import java.util.Locale;
 import java.io.IOException;
 
 import javax.xml.transform.Result;
@@ -45,7 +48,7 @@ import org.xml.sax.SAXException;
  * 
  * @author Michael Glavassevich, IBM
  * @author <a href="mailto:Sunitha.Reddy@Sun.com">Sunitha Reddy</a>
- * @version $Id: StreamValidatorHelper.java,v 1.2 2005/09/26 13:02:51 sunithareddy Exp $
+ * @version $Id: StreamValidatorHelper.java,v 1.6 2010/07/23 02:09:26 joehw Exp $
  */
 final class StreamValidatorHelper implements ValidatorHelper {
     
@@ -151,7 +154,7 @@ final class StreamValidatorHelper implements ValidatorHelper {
             }
             return;
         }
-        throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(Locale.getDefault(), 
+        throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(fComponentManager.getLocale(),
                 "SourceResultMismatch", 
                 new Object [] {source.getClass().getName(), result.getClass().getName()}));
     }

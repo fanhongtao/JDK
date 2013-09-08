@@ -1,23 +1,26 @@
 /*
- * @(#)PersistentBindingIterator.java	1.11 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */
-/*
- * @(#)TransientBindingIterator.java	1.36 99/07/16
- * 
- * Copyright 1993-1997 Sun Microsystems, Inc. 901 San Antonio Road, 
- * Palo Alto, California, 94303, U.S.A.  All Rights Reserved.
- * 
- * This software is the confidential and proprietary information of Sun
- * Microsystems, Inc. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Sun.
- * 
- * CopyrightVersion 1.2
- * 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.naming.pcosnaming;
@@ -68,11 +71,11 @@ public class PersistentBindingIterator extends BindingIteratorImpl
     public PersistentBindingIterator(org.omg.CORBA.ORB orb, Hashtable aTable,
         POA thePOA ) throws java.lang.Exception
     {
-	super(orb);
-	this.orb = orb;
-	theHashtable = aTable;
-	theEnumeration = this.theHashtable.keys();
-	currentSize = this.theHashtable.size();
+        super(orb);
+        this.orb = orb;
+        theHashtable = aTable;
+        theEnumeration = this.theHashtable.keys();
+        currentSize = this.theHashtable.size();
         biPOA = thePOA;
     }
 
@@ -85,25 +88,25 @@ public class PersistentBindingIterator extends BindingIteratorImpl
    */
     final public boolean NextOne(org.omg.CosNaming.BindingHolder b)
     {
-	// If there are more elements get the next element
-	boolean hasMore = theEnumeration.hasMoreElements();
-	if (hasMore) {
+        // If there are more elements get the next element
+        boolean hasMore = theEnumeration.hasMoreElements();
+        if (hasMore) {
             InternalBindingKey theBindingKey =
-		 ((InternalBindingKey)theEnumeration.nextElement());
+                 ((InternalBindingKey)theEnumeration.nextElement());
             InternalBindingValue theElement =
-		(InternalBindingValue)theHashtable.get( theBindingKey );
-	    NameComponent n = new NameComponent( theBindingKey.id, theBindingKey.kind ); 
-	    NameComponent[] nlist = new NameComponent[1];
-	    nlist[0] = n;
+                (InternalBindingValue)theHashtable.get( theBindingKey );
+            NameComponent n = new NameComponent( theBindingKey.id, theBindingKey.kind );
+            NameComponent[] nlist = new NameComponent[1];
+            nlist[0] = n;
             BindingType theType = theElement.theBindingType;
-	    
-	    b.value =
-	        new Binding( nlist, theType );	
-	} else {
-	    // Return empty but marshalable binding
-	    b.value = new Binding(new NameComponent[0],BindingType.nobject);
-	}
-	return hasMore;
+
+            b.value =
+                new Binding( nlist, theType );
+        } else {
+            // Return empty but marshalable binding
+            b.value = new Binding(new NameComponent[0],BindingType.nobject);
+        }
+        return hasMore;
     }
 
     /**
@@ -126,10 +129,10 @@ public class PersistentBindingIterator extends BindingIteratorImpl
 
     /**
    * Returns the remaining number of elements in the iterator.
-   * @return the remaining number of elements in the iterator.   
+   * @return the remaining number of elements in the iterator.
    */
     public final int RemainingElements() {
-	return currentSize;
+        return currentSize;
     }
 
     private int currentSize;

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +29,8 @@ import com.sun.org.apache.xpath.internal.compiler.Compiler;
 
 /**
  * This class implements a general iterator for
- * those LocationSteps with only one step, and perhaps a predicate, 
- * that only go forward (i.e. it can not be used with ancestors, 
+ * those LocationSteps with only one step, and perhaps a predicate,
+ * that only go forward (i.e. it can not be used with ancestors,
  * preceding, etc.)
  * @see com.sun.org.apache.xpath.internal.axes#ChildTestIterator
  * @xsl.usage advanced
@@ -51,14 +55,14 @@ public class OneStepIteratorForward extends ChildTestIterator
   {
     super(compiler, opPos, analysis);
     int firstStepPos = compiler.getFirstChildPos(opPos);
-    
+
     m_axis = WalkerFactory.getAxisFromStep(compiler, firstStepPos);
-    
+
   }
-    
+
   /**
    * Create a OneStepIterator object that will just traverse the self axes.
-   * 
+   *
    * @param axis One of the com.sun.org.apache.xml.internal.dtm.Axis integers.
    *
    * @throws javax.xml.transform.TransformerException
@@ -66,15 +70,15 @@ public class OneStepIteratorForward extends ChildTestIterator
   public OneStepIteratorForward(int axis)
   {
     super(null);
-    
+
     m_axis = axis;
     int whatToShow = DTMFilter.SHOW_ALL;
     initNodeTest(whatToShow);
   }
 
-  
 
-  
+
+
   /**
    * Initialize the context values for this expression
    * after it is cloned.
@@ -86,12 +90,12 @@ public class OneStepIteratorForward extends ChildTestIterator
   {
     super.setRoot(context, environment);
     m_traverser = m_cdtm.getAxisTraverser(m_axis);
-    
+
   }
-  
+
 //  /**
-//   * Return the first node out of the nodeset, if this expression is 
-//   * a nodeset expression.  This is the default implementation for 
+//   * Return the first node out of the nodeset, if this expression is
+//   * a nodeset expression.  This is the default implementation for
 //   * nodesets.
 //   * <p>WARNING: Do not mutate this class from this function!</p>
 //   * @param xctxt The XPath runtime context.
@@ -102,16 +106,16 @@ public class OneStepIteratorForward extends ChildTestIterator
 //  {
 //    if(getPredicateCount() > 0)
 //      return super.asNode(xctxt);
-//      
+//
 //    int current = xctxt.getCurrentNode();
-//    
+//
 //    DTM dtm = xctxt.getDTM(current);
 //    DTMAxisTraverser traverser = dtm.getAxisTraverser(m_axis);
-//    
+//
 //    String localName = getLocalName();
 //    String namespace = getNamespace();
 //    int what = m_whatToShow;
-//    
+//
 //    // System.out.println("what: ");
 //    // NodeTest.debugWhatToShow(what);
 //    if(DTMFilter.SHOW_ALL == what
@@ -128,7 +132,7 @@ public class OneStepIteratorForward extends ChildTestIterator
 //      return traverser.first(current, extendedType);
 //    }
 //  }
-  
+
   /**
    * Get the next node via getFirstAttribute && getNextAttribute.
    */
@@ -139,11 +143,11 @@ public class OneStepIteratorForward extends ChildTestIterator
                      : m_traverser.next(m_context, m_lastFetched);
     return m_lastFetched;
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
@@ -156,14 +160,14 @@ public class OneStepIteratorForward extends ChildTestIterator
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!super.deepEquals(expr))
-  		return false;
-  		
-  	if(m_axis != ((OneStepIteratorForward)expr).m_axis)
-  		return false;
-  		
-  	return true;
+        if(!super.deepEquals(expr))
+                return false;
+
+        if(m_axis != ((OneStepIteratorForward)expr).m_axis)
+                return false;
+
+        return true;
   }
 
-  
+
 }

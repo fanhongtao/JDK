@@ -1,8 +1,26 @@
 /*
- * @(#)CDRInputStream_1_1.java	1.14 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -27,7 +45,7 @@ public class CDRInputStream_1_1 extends CDRInputStream_1_0
     }
 
     protected int get_offset() {
-	return bbwi.position() + fragmentOffset;
+        return bbwi.position() + fragmentOffset;
     }
 
     protected void alignAndCheck(int align, int n) {
@@ -39,7 +57,7 @@ public class CDRInputStream_1_1 extends CDRInputStream_1_0
         // checkBlockLength since it may move the position
         int alignment = computeAlignment(bbwi.position(), align);
 
-    	if (bbwi.position() + n + alignment  > bbwi.buflen) {
+        if (bbwi.position() + n + alignment  > bbwi.buflen) {
 
             // Some other ORBs may have found a way to send 1.1
             // fragments which put alignment bytes at the end
@@ -56,7 +74,7 @@ public class CDRInputStream_1_1 extends CDRInputStream_1_0
             // may require a different alignment.
 
             alignment = computeAlignment(bbwi.position(), align);
-    	}
+        }
 
         bbwi.position(bbwi.position() + alignment);
     }
@@ -65,7 +83,7 @@ public class CDRInputStream_1_1 extends CDRInputStream_1_0
     // This can be overridden....
     //
     protected void grow(int align, int n) {
-                
+
         bbwi.needed = n;
 
         // Save the size of the current buffer for
@@ -75,7 +93,7 @@ public class CDRInputStream_1_1 extends CDRInputStream_1_0
         bbwi = bufferManagerRead.underflow(bbwi);
 
         if (bbwi.fragmented) {
-            
+
             // By this point we should be guaranteed to have
             // a new fragment whose header has already been
             // unmarshalled.  bbwi.position() should point to the
@@ -107,11 +125,11 @@ public class CDRInputStream_1_1 extends CDRInputStream_1_0
         return new FragmentableStreamMemento();
     }
 
-    public void restoreInternalState(java.lang.Object streamMemento) 
+    public void restoreInternalState(java.lang.Object streamMemento)
     {
         super.restoreInternalState(streamMemento);
 
-        fragmentOffset 
+        fragmentOffset
             = ((FragmentableStreamMemento)streamMemento).fragmentOffset_;
     }
 
@@ -133,7 +151,7 @@ public class CDRInputStream_1_1 extends CDRInputStream_1_0
         // assigned, and a single 16 bit Java char isn't enough.
         // Better to use strings for i18n purposes.
         if (getWCharConverter().getNumChars() > 1)
-	    throw wrapper.btcResultMoreThanOneChar() ;
+            throw wrapper.btcResultMoreThanOneChar() ;
 
         return result[0];
     }
@@ -143,14 +161,14 @@ public class CDRInputStream_1_1 extends CDRInputStream_1_0
         // to 2 byte fixed width encodings.  CORBA formal 99-10-07 15.3.1.6.
         int len = read_long();
 
-    	// Workaround for ORBs which send string lengths of
-    	// zero to mean empty string.
+        // Workaround for ORBs which send string lengths of
+        // zero to mean empty string.
         //
         // IMPORTANT: Do not replace 'new String("")' with "", it may result
         // in a Serialization bug (See serialization.zerolengthstring) and
         // bug id: 4728756 for details
-    	if (len == 0)
-    	    return new String("");
+        if (len == 0)
+            return new String("");
 
         checkForNegativeLength(len);
 

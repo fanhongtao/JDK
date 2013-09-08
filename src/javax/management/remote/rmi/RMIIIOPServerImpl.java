@@ -1,8 +1,26 @@
 /*
- * @(#)RMIIIOPServerImpl.java	1.27 07/06/01
+ * Copyright (c) 2003, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.remote.rmi;
@@ -15,8 +33,9 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Map;
 import java.util.Collections;
-import javax.rmi.PortableRemoteObject;
 import javax.security.auth.Subject;
+
+import com.sun.jmx.remote.internal.IIOPHelper;
 
 /**
  * <p>An {@link RMIServerImpl} that is exported through IIOP and that
@@ -26,7 +45,6 @@ import javax.security.auth.Subject;
  * @see RMIServerImpl
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public class RMIIIOPServerImpl extends RMIServerImpl {
     /**
@@ -39,20 +57,20 @@ public class RMIIIOPServerImpl extends RMIServerImpl {
      * @exception IOException if the RMI object cannot be created.
      */
     public RMIIIOPServerImpl(Map<String,?> env)
-	    throws IOException {
-	super(env);
+            throws IOException {
+        super(env);
 
-	this.env = (env == null) ? Collections.EMPTY_MAP : env;
+        this.env = (env == null) ? Collections.<String, Object>emptyMap() : env;
 
         callerACC = AccessController.getContext();
     }
 
     protected void export() throws IOException {
-	PortableRemoteObject.exportObject(this);
+        IIOPHelper.exportObject(this);
     }
 
     protected String getProtocol() {
-	return "iiop";
+        return "iiop";
     }
 
     /**
@@ -64,15 +82,15 @@ public class RMIIIOPServerImpl extends RMIServerImpl {
      *            RMIIIOPServerImpl has not been exported yet.
      **/
     public Remote toStub() throws IOException {
-	// javax.rmi.CORBA.Stub stub = 
-	//    (javax.rmi.CORBA.Stub) PortableRemoteObject.toStub(this);
-	final Remote stub = PortableRemoteObject.toStub(this);
-	// java.lang.System.out.println("NON CONNECTED STUB " + stub);
-	// org.omg.CORBA.ORB orb =
-	//    org.omg.CORBA.ORB.init((String[])null, (Properties)null);
-	// stub.connect(orb);
-	// java.lang.System.out.println("CONNECTED STUB " + stub);
-	return (Remote) stub;
+        // javax.rmi.CORBA.Stub stub =
+        //    (javax.rmi.CORBA.Stub) PortableRemoteObject.toStub(this);
+        final Remote stub = IIOPHelper.toStub(this);
+        // java.lang.System.out.println("NON CONNECTED STUB " + stub);
+        // org.omg.CORBA.ORB orb =
+        //    org.omg.CORBA.ORB.init((String[])null, (Properties)null);
+        // stub.connect(orb);
+        // java.lang.System.out.println("CONNECTED STUB " + stub);
+        return stub;
     }
 
     /**
@@ -92,22 +110,22 @@ public class RMIIIOPServerImpl extends RMIServerImpl {
      * created or exported.
      */
     protected RMIConnection makeClient(String connectionId, Subject subject)
-	    throws IOException {
+            throws IOException {
 
-	if (connectionId == null)
-	    throw new NullPointerException("Null connectionId");
+        if (connectionId == null)
+            throw new NullPointerException("Null connectionId");
 
-	RMIConnection client =
-	    new RMIConnectionImpl(this, connectionId, getDefaultClassLoader(),
-				  subject, env);
-	PortableRemoteObject.exportObject(client);
-	return client;
+        RMIConnection client =
+            new RMIConnectionImpl(this, connectionId, getDefaultClassLoader(),
+                                  subject, env);
+        IIOPHelper.exportObject(client);
+        return client;
     }
 
     protected void closeClient(RMIConnection client) throws IOException {
-	PortableRemoteObject.unexportObject(client);
+        IIOPHelper.unexportObject(client);
     }
-    
+
     /**
      * <p>Called by {@link #close()} to close the connector server by
      * unexporting this object.  After returning from this method, the
@@ -117,7 +135,7 @@ public class RMIIIOPServerImpl extends RMIServerImpl {
      * server failed.
      */
     protected void closeServer() throws IOException {
-	PortableRemoteObject.unexportObject(this);
+        IIOPHelper.unexportObject(this);
     }
 
     @Override
@@ -141,6 +159,6 @@ public class RMIIIOPServerImpl extends RMIServerImpl {
         return super.doNewClient(credentials);
     }
 
-    private final Map env;
+    private final Map<String, ?> env;
     private final AccessControlContext callerACC;
 }

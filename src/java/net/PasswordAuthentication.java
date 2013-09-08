@@ -1,8 +1,26 @@
 /*
- * @(#)PasswordAuthentication.java	1.16 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -16,7 +34,6 @@ package java.net;
  * @see java.net.Authenticator#getPasswordAuthentication()
  *
  * @author  Bill Foote
- * @version 1.16, 11/17/05
  * @since   1.2
  */
 
@@ -36,8 +53,8 @@ public final class PasswordAuthentication {
      * @param password the user's password
      */
     public PasswordAuthentication(String userName, char[] password) {
-	this.userName = userName;
-	this.password = (char[])password.clone();
+        this.userName = userName;
+        this.password = password.clone();
     }
 
     /**
@@ -46,7 +63,7 @@ public final class PasswordAuthentication {
      * @return the user name
      */
     public String getUserName() {
-	return userName;
+        return userName;
     }
 
     /**
@@ -59,7 +76,6 @@ public final class PasswordAuthentication {
      * @return the password
      */
     public char[] getPassword() {
-	return password;
+        return password;
     }
 }
-

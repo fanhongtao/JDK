@@ -1,8 +1,26 @@
 /*
- * @(#)FontUIResource.java	1.16 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf;
@@ -12,7 +30,7 @@ import javax.swing.plaf.UIResource;
 
 
 /**
- * A subclass of java.awt.Font that implements UIResource. 
+ * A subclass of java.awt.Font that implements UIResource.
  * UI classes which set default font properties should use
  * this class.
  * <p>
@@ -24,19 +42,18 @@ import javax.swing.plaf.UIResource;
  * of all JavaBeans<sup><font size="-2">TM</font></sup>
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
- * 
+ *
  * @see javax.swing.plaf.UIResource
- * @version 1.16 11/17/05
  * @author Hans Muller
- * 
+ *
  */
 public class FontUIResource extends Font implements UIResource
 {
     public FontUIResource(String name, int style, int size) {
-	super(name, style, size);
+        super(name, style, size);
     }
-    
+
     public FontUIResource(Font font) {
-	super(font);
+        super(font);
     }
 }

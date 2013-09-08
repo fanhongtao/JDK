@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,30 +76,26 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
  *      grammar for an XML file, the names and types of elements, attributes,
  *      etc.
  *
+ *   9) Translet is an invented term that refers to the class file that contains
+ *      the compiled form of a stylesheet.
  */
 
     // These message should be read from a locale-specific resource bundle
-    /** Get the lookup table for error messages.   
-     *
-     * @return The message lookup table.
-     */
-    public Object[][] getContents()
-    {
-      return new Object[][] {
+    private static final Object[][] _contents =  new Object[][] {
 
         /*
          * Note to translators:  the substitution text in the following message
          * is a class name.  Used for internal errors in the processor.
          */
         {BasisLibrary.RUN_TIME_INTERNAL_ERR,
-        "\u201c{0}\u201d\u4e2d\u5b58\u5728\u8fd0\u884c\u65f6\u5185\u90e8\u9519\u8bef"},
+        "''{0}'' \u4E2D\u7684\u8FD0\u884C\u65F6\u5185\u90E8\u9519\u8BEF"},
 
         /*
          * Note to translators:  <xsl:copy> is a keyword that should not be
          * translated.
          */
         {BasisLibrary.RUN_TIME_COPY_ERR,
-        "\u5728\u6267\u884c <xsl:copy> \u65f6\u53d1\u751f\u8fd0\u884c\u65f6\u9519\u8bef\u3002"},
+        "\u6267\u884C <xsl:copy> \u65F6\u51FA\u73B0\u8FD0\u884C\u65F6\u9519\u8BEF\u3002"},
 
         /*
          * Note to translators:  The substitution text refers to data types.
@@ -104,7 +104,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * {0}.
          */
         {BasisLibrary.DATA_CONVERSION_ERR,
-        "\u4ece\u201c{0}\u201d\u5230\u201c{1}\u201d\u7684\u8f6c\u6362\u65e0\u6548\u3002"},
+        "\u4ECE ''{0}'' \u5230 ''{1}'' \u7684\u8F6C\u6362\u65E0\u6548\u3002"},
 
         /*
          * Note to translators:  This message is displayed if the function named
@@ -112,7 +112,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * is the acronym naming the product.
          */
         {BasisLibrary.EXTERNAL_FUNC_ERR,
-        "XSLTC \u4e0d\u652f\u6301\u5916\u90e8\u51fd\u6570\u201c{0}\u201d\u3002"},
+        "XSLTC \u4E0D\u652F\u6301\u5916\u90E8\u51FD\u6570 ''{0}''\u3002"},
 
         /*
          * Note to translators:  This message is displayed if two values are
@@ -120,7 +120,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * unknown.
          */
         {BasisLibrary.EQUALITY_EXPR_ERR,
-        "\u7b49\u5f0f\u8868\u8fbe\u5f0f\u4e2d\u7684\u81ea\u53d8\u91cf\u7c7b\u578b\u672a\u77e5\u3002"},
+        "\u7B49\u5F0F\u8868\u8FBE\u5F0F\u4E2D\u7684\u53C2\u6570\u7C7B\u578B\u672A\u77E5\u3002"},
 
         /*
          * Note to translators:  The substitution text for {0} will be a data
@@ -129,7 +129,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * permitted for a call to this function.
          */
         {BasisLibrary.INVALID_ARGUMENT_ERR,
-        "\u5728\u5bf9\u201c{1}\u201d\u7684\u8c03\u7528\u4e2d\u7684\u81ea\u53d8\u91cf\u7c7b\u578b\u201c{0}\u201d\u65e0\u6548"},
+        "\u8C03\u7528 ''{1}'' \u65F6\u7684\u53C2\u6570\u7C7B\u578B ''{0}'' \u65E0\u6548"},
 
         /*
          * Note to translators:  There is way of specifying a format for a
@@ -137,7 +137,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * particular value using the specified pattern.
          */
         {BasisLibrary.FORMAT_NUMBER_ERR,
-        "\u8bd5\u56fe\u4f7f\u7528\u6a21\u5f0f\u201c{1}\u201d\u683c\u5f0f\u5316\u6570\u503c\u201c{0}\u201d\u3002"},
+        "\u5C1D\u8BD5\u4F7F\u7528\u6A21\u5F0F ''{1}'' \u8BBE\u7F6E\u6570\u5B57 ''{0}'' \u7684\u683C\u5F0F\u3002"},
 
         /*
          * Note to translators:  The following represents an internal error
@@ -145,7 +145,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * iterator.  (See definition of iterator above.)
          */
         {BasisLibrary.ITERATOR_CLONE_ERR,
-        "\u65e0\u6cd5\u514b\u9686\u8fed\u4ee3\u5668\u201c{0}\u201d\u3002"},
+        "\u65E0\u6CD5\u514B\u9686\u8FED\u4EE3\u5668 ''{0}''\u3002"},
 
         /*
          * Note to translators:  The following represents an internal error
@@ -154,7 +154,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * support.
          */
         {BasisLibrary.AXIS_SUPPORT_ERR,
-        "\u4e0d\u652f\u6301\u8f74\u201c{0}\u201d\u7684\u8fed\u4ee3\u5668\u3002"},
+        "\u4E0D\u652F\u6301\u8F74 ''{0}'' \u7684\u8FED\u4EE3\u5668\u3002"},
 
         /*
          * Note to translators:  The following represents an internal error
@@ -163,7 +163,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * support.
          */
         {BasisLibrary.TYPED_AXIS_SUPPORT_ERR,
-        "\u4e0d\u652f\u6301\u8f93\u5165\u7684\u8f74\u201c{0}\u201d\u7684\u8fed\u4ee3\u5668\u3002"},
+        "\u4E0D\u652F\u6301\u7C7B\u578B\u5316\u8F74 ''{0}'' \u7684\u8FED\u4EE3\u5668\u3002"},
 
         /*
          * Note to translators:  This message is reported if the stylesheet
@@ -172,7 +172,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * specifies the name of the attribute.
          */
         {BasisLibrary.STRAY_ATTRIBUTE_ERR,
-        "\u5c5e\u6027\u201c{0}\u201d\u5728\u5143\u7d20\u5916\u3002"},
+        "\u5C5E\u6027 ''{0}'' \u5728\u5143\u7D20\u5916\u90E8\u3002"},
 
         /*
          * Note to translators:  As with the preceding message, a namespace
@@ -182,7 +182,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * namespace declaration.
          */
         {BasisLibrary.STRAY_NAMESPACE_ERR,
-        "\u540d\u79f0\u7a7a\u95f4\u8bf4\u660e\u201c{0}\u201d=\u201c{1}\u201d\u5728\u5143\u7d20\u5916\u3002"},
+        "\u540D\u79F0\u7A7A\u95F4\u58F0\u660E ''{0}''=''{1}'' \u5728\u5143\u7D20\u5916\u90E8\u3002"},
 
         /*
          * Note to translators:  The stylesheet contained a reference to a
@@ -190,14 +190,14 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * text is the name of the prefix.
          */
         {BasisLibrary.NAMESPACE_PREFIX_ERR,
-        "\u6ca1\u6709\u8bf4\u660e\u540d\u79f0\u7a7a\u95f4\u524d\u7f00\u201c{0}\u201d\u3002"},
+        "\u6CA1\u6709\u8BF4\u660E\u540D\u79F0\u7A7A\u95F4\u524D\u7F00 ''{0}''\u3002"},
 
         /*
          * Note to translators:  The following represents an internal error.
          * DOMAdapter is a Java class in XSLTC.
          */
         {BasisLibrary.DOM_ADAPTER_INIT_ERR,
-        "\u4f7f\u7528\u9519\u8bef\u7c7b\u578b\u7684\u6e90 DOM \u521b\u5efa\u4e86 DOMAdapter\u3002"},
+        "\u4F7F\u7528\u9519\u8BEF\u7C7B\u578B\u7684\u6E90 DOM \u521B\u5EFA\u4E86 DOMAdapter\u3002"},
 
         /*
          * Note to translators:  The following message indicates that the XML
@@ -206,7 +206,7 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * DTD.
          */
         {BasisLibrary.PARSER_DTD_SUPPORT_ERR,
-        "\u6b63\u5728\u4f7f\u7528\u7684 SAX \u89e3\u6790\u5668\u4e0d\u5904\u7406 DTD \u8bf4\u660e\u4e8b\u4ef6\u3002"},
+        "\u4F7F\u7528\u7684 SAX \u8BED\u6CD5\u5206\u6790\u5668\u4E0D\u4F1A\u5904\u7406 DTD \u58F0\u660E\u4E8B\u4EF6\u3002"},
 
         /*
          * Note to translators:  The following message indicates that the XML
@@ -215,15 +215,74 @@ public class ErrorMessages_zh_CN extends ListResourceBundle {
          * declarations.
          */
         {BasisLibrary.NAMESPACES_SUPPORT_ERR,
-        "\u6b63\u5728\u4f7f\u7528\u7684 SAX \u89e3\u6790\u5668\u4e0d\u652f\u6301 XML \u540d\u79f0\u7a7a\u95f4\u3002"},
+        "\u4F7F\u7528\u7684 SAX \u8BED\u6CD5\u5206\u6790\u5668\u4E0D\u652F\u6301 XML \u540D\u79F0\u7A7A\u95F4\u3002"},
 
         /*
          * Note to translators:  The substitution text is the URI that was in
          * error.
          */
         {BasisLibrary.CANT_RESOLVE_RELATIVE_URI_ERR,
-        "\u65e0\u6cd5\u89e3\u6790 URI \u5f15\u7528\u201c{0}\u201d\u3002"}
+        "\u65E0\u6CD5\u89E3\u6790 URI \u5F15\u7528 ''{0}''\u3002"},
+
+         /*
+         * Note to translators:  The stylesheet contained an element that was
+         * not recognized as part of the XSL syntax.  The substitution text
+         * gives the element name.
+         */
+        {BasisLibrary.UNSUPPORTED_XSL_ERR,
+        "XSL \u5143\u7D20 ''{0}'' \u4E0D\u53D7\u652F\u6301"},
+
+        /*
+         * Note to translators:  The stylesheet referred to an extension to the
+         * XSL syntax and indicated that it was defined by XSLTC, but XSLTC does
+         * not recognize the particular extension named.  The substitution text
+         * gives the extension name.
+         */
+        {BasisLibrary.UNSUPPORTED_EXT_ERR,
+        "XSLTC \u6269\u5C55 ''{0}'' \u65E0\u6CD5\u8BC6\u522B"},
+
+
+        /*
+         * Note to translators:  This error message is produced if the translet
+         * class was compiled using a newer version of XSLTC and deployed for
+         * execution with an older version of XSLTC.  The substitution text is
+         * the name of the translet class.
+         */
+        {BasisLibrary.UNKNOWN_TRANSLET_VERSION_ERR,
+        "\u521B\u5EFA\u6307\u5B9A translet ''{0}'' \u65F6\u4F7F\u7528\u7684 XSLTC \u7684\u7248\u672C\u9AD8\u4E8E\u6B63\u5728\u4F7F\u7528\u7684 XSLTC \u8FD0\u884C\u65F6\u7684\u7248\u672C\u3002\u5FC5\u987B\u91CD\u65B0\u7F16\u8BD1\u6837\u5F0F\u8868\u6216\u4F7F\u7528\u8F83\u65B0\u7684 XSLTC \u7248\u672C\u8FD0\u884C\u6B64 translet\u3002"},
+
+        /*
+         * Note to translators:  An attribute whose effective value is required
+         * to be a "QName" had a value that was incorrect.
+         * 'QName' is an XML syntactic term that must not be translated.  The
+         * substitution text contains the actual value of the attribute.
+         */
+        {BasisLibrary.INVALID_QNAME_ERR,
+        "\u5176\u503C\u5FC5\u987B\u4E3A QName \u7684\u5C5E\u6027\u5177\u6709\u503C ''{0}''"},
+
+
+        /*
+         * Note to translators:  An attribute whose effective value is required
+         * to be a "NCName" had a value that was incorrect.
+         * 'NCName' is an XML syntactic term that must not be translated.  The
+         * substitution text contains the actual value of the attribute.
+         */
+        {BasisLibrary.INVALID_NCNAME_ERR,
+        "\u5176\u503C\u5FC5\u987B\u4E3A NCName \u7684\u5C5E\u6027\u5177\u6709\u503C ''{0}''"},
+        
+        {BasisLibrary.UNALLOWED_EXTENSION_FUNCTION_ERR,
+        "\u5F53\u5B89\u5168\u5904\u7406\u529F\u80FD\u8BBE\u7F6E\u4E3A\u201C\u771F\u201D\u65F6, \u4E0D\u5141\u8BB8\u4F7F\u7528\u6269\u5C55\u51FD\u6570 ''{0}''\u3002"},
+
+        {BasisLibrary.UNALLOWED_EXTENSION_ELEMENT_ERR,
+        "\u5F53\u5B89\u5168\u5904\u7406\u529F\u80FD\u8BBE\u7F6E\u4E3A\u201C\u771F\u201D\u65F6, \u4E0D\u5141\u8BB8\u4F7F\u7528\u6269\u5C55\u5143\u7D20 ''{0}''\u3002"},
     };
+    /** Get the lookup table for error messages.
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+        return _contents;
     }
 
 }

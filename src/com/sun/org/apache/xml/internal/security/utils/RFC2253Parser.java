@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,16 +28,16 @@ import java.io.StringReader;
 
 /**
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public class RFC2253Parser {
 
-    
+
    /** {@link java.util.logging} logging facility */
-   /* static java.util.logging.Logger log = 
+   /* static java.util.logging.Logger log =
         java.util.logging.Logger.getLogger(RFC2253Parser.class.getName());
    */
-    
+
    static boolean _TOXML = true;
 
    /**
@@ -152,12 +156,18 @@ public class RFC2253Parser {
 
       if ((i == -1) || ((i > 0) && (str.charAt(i - 1) == '\\'))) {
          return str;
-      } 
+      }
       String attrType = normalizeAT(str.substring(0, i));
-      String attrValue = normalizeV(str.substring(i + 1));
+      // only normalize if value is a String
+      String attrValue = null;
+      if (attrType.charAt(0) >= '0' && attrType.charAt(0) <= '9') {
+          attrValue = str.substring(i + 1);
+      } else {
+          attrValue = normalizeV(str.substring(i + 1));
+      }
 
       return attrType + "=" + attrValue;
-      
+
    }
 
    /**
@@ -470,7 +480,7 @@ public class RFC2253Parser {
    static String trim(String str) {
 
       String trimed = str.trim();
-      int i = str.indexOf(trimed.substring(0)) + trimed.length();
+      int i = str.indexOf(trimed) + trimed.length();
 
       if ((str.length() > i) && trimed.endsWith("\\")
               &&!trimed.endsWith("\\\\")) {

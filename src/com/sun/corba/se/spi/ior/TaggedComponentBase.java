@@ -1,8 +1,26 @@
 /*
- * @(#)TaggedComponentBase.java	1.10 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior;
@@ -18,15 +36,15 @@ import com.sun.corba.se.spi.orb.ORB ;
  * the getIOPComponent method using the TaggedComponent.write() method.
  * @author Ken Cavanaugh
  */
-public abstract class TaggedComponentBase extends IdentifiableBase 
-    implements TaggedComponent 
+public abstract class TaggedComponentBase extends IdentifiableBase
+    implements TaggedComponent
 {
-    public org.omg.IOP.TaggedComponent getIOPComponent( 
-	org.omg.CORBA.ORB orb )
+    public org.omg.IOP.TaggedComponent getIOPComponent(
+        org.omg.CORBA.ORB orb )
     {
-	EncapsOutputStream os = new EncapsOutputStream( (ORB)orb ) ;
-	write( os ) ;
-	InputStream is = (InputStream)(os.create_input_stream() ) ;
-	return org.omg.IOP.TaggedComponentHelper.read( is ) ;
+        EncapsOutputStream os = new EncapsOutputStream( (ORB)orb ) ;
+        write( os ) ;
+        InputStream is = (InputStream)(os.create_input_stream() ) ;
+        return org.omg.IOP.TaggedComponentHelper.read( is ) ;
     }
 }

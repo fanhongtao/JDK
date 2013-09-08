@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,12 +33,11 @@ import com.sun.xml.internal.stream.util.ThreadLocalBufferAllocator;
 
 /**
  * <p>A UTF-8 reader.</p>
- * 
+ *
  * @xerces.internal
- * 
+ *
  * @author Andy Clark, IBM
  *
- * @version $Id: UTF8Reader.java,v 1.3 2005/09/26 13:02:28 sunithareddy Exp $
  */
 public class UTF8Reader
     extends Reader {
@@ -183,7 +186,7 @@ public class UTF8Reader
                 if (b1 == -1) {
                     expectedByte(2, 3);
                 }
-                if ((b1 & 0xC0) != 0x80 
+                if ((b1 & 0xC0) != 0x80
                     || (b0 == 0xED && b1 >= 0xA0)
                     || ((b0 & 0x0F) == 0 && (b1 & 0x20) == 0)) {
                     invalidByte(2, 3, b1);
@@ -393,7 +396,7 @@ public class UTF8Reader
                     }
                     count++;
                 }
-                if ((b1 & 0xC0) != 0x80 
+                if ((b1 & 0xC0) != 0x80
                     || (b0 == 0xED && b1 >= 0xA0)
                     || ((b0 & 0x0F) == 0 && (b1 & 0x20) == 0)) {
                     if (out > offset) {
@@ -684,7 +687,7 @@ public class UTF8Reader
         throw new MalformedByteSequenceException(fFormatter,
             fLocale,
             XMLMessageFormatter.XML_DOMAIN,
-            "InvalidByte", 
+            "InvalidByte",
             new Object [] {Integer.toString(position), Integer.toString(count)});
 
     } // invalidByte(int,int,int)
@@ -695,7 +698,7 @@ public class UTF8Reader
         throw new MalformedByteSequenceException(fFormatter,
             fLocale,
             XMLMessageFormatter.XML_DOMAIN,
-            "InvalidHighSurrogate", 
+            "InvalidHighSurrogate",
             new Object[] {Integer.toHexString(uuuuu)});
 
     } // invalidSurrogate(int)

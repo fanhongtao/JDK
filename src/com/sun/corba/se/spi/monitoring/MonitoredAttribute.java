@@ -1,8 +1,26 @@
 /*
- * @(#)MonitoredAttribute.java	1.4 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.monitoring;
 
@@ -11,7 +29,7 @@ import java.util.*;
 
 /**
  * <p>
- * 
+ *
  * @author Hemanth Puttaswamy
  * </p>
  * <p>
@@ -30,7 +48,7 @@ public interface MonitoredAttribute {
  * Gets the Monitored Attribute Info for the attribute.
  * </p>
  * <p>
- * 
+ *
  * @param monitoredAttributeInfo for this Monitored Attribute.
  * </p>
  */
@@ -39,12 +57,12 @@ public interface MonitoredAttribute {
  * <p>
  * Sets the value for the Monitored Attribute if isWritable() is false, the
  * method will throw ILLEGAL Operation exception.
- * 
- * Also, the type of 'value' should be same as specified in the 
+ *
+ * Also, the type of 'value' should be same as specified in the
  * MonitoredAttributeInfo for a particular instance.
  * </p>
  * <p>
- * 
+ *
  * @param value should be any one of the Basic Java Type Objects which are
  * Long, Double, Float, String, Integer, Short, Character, Byte.
  * </p>
@@ -63,11 +81,11 @@ public interface MonitoredAttribute {
  * attribute.
  * </p>
  * <p>
- * 
+ *
  * </p>
  * <p>
- * 
- * @param value is the current value for this MonitoredAttribute 
+ *
+ * @param value is the current value for this MonitoredAttribute
  * </p>
  */
     public Object getValue();
@@ -76,8 +94,8 @@ public interface MonitoredAttribute {
  * Gets the name of the Monitored Attribute.
  * </p>
  * <p>
- * 
- * @param name of this Attribute 
+ *
+ * @param name of this Attribute
  * </p>
  */
     public String getName();
@@ -88,7 +106,7 @@ public interface MonitoredAttribute {
  * doesn't change like for example (ConnectionManager High Water Mark),
  * then clearState() is a No Op.
  * </p>
- * 
+ *
  */
     public void clearState();
 

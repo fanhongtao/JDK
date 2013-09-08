@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,15 +31,14 @@ import org.w3c.dom.*;
 /**
  * Our own document implementation, which knows how to create an element
  * with PSVI information.
- * 
+ *
  * @xerces.internal
- * 
+ *
  * @author Sandy Gao, IBM
- * 
- * @version $Id: PSVIDocumentImpl.java,v 1.2.6.1 2005/08/31 12:36:26 sunithareddy Exp $
+ *
  */
 public class PSVIDocumentImpl extends DocumentImpl {
-   
+
     /** Serialization version. */
     static final long serialVersionUID = -8822220250676434522L;
 
@@ -53,7 +56,7 @@ public class PSVIDocumentImpl extends DocumentImpl {
     public PSVIDocumentImpl(DocumentType doctype) {
         super(doctype);
     }
-    
+
     /**
      * Deep-clone a document, including fixing ownerDoc for the cloned
      * children. Note that this requires bypassing the WRONG_DOCUMENT_ERR
@@ -75,7 +78,7 @@ public class PSVIDocumentImpl extends DocumentImpl {
         return newdoc;
 
     } // cloneNode(boolean):Node
-	    
+
     /**
      * Retrieve information describing the abilities of this particular
      * DOM implementation. Intended to support applications that may be
@@ -110,38 +113,38 @@ public class PSVIDocumentImpl extends DocumentImpl {
     public Attr createAttributeNS(String namespaceURI, String qualifiedName)
         throws DOMException {
         return new PSVIAttrNSImpl(this, namespaceURI, qualifiedName);
-    } 
-    
+    }
+
     /**
      * Create an attribute with PSVI information
      */
     public Attr createAttributeNS(String namespaceURI, String qualifiedName,
                                   String localName) throws DOMException {
         return new PSVIAttrNSImpl(this, namespaceURI, qualifiedName, localName);
-    } 
-    
+    }
+
     /**
-     * 
-     * The configuration used when <code>Document.normalizeDocument</code> is 
-     * invoked. 
+     *
+     * The configuration used when <code>Document.normalizeDocument</code> is
+     * invoked.
      * @since DOM Level 3
      */
     public DOMConfiguration getDomConfig(){
         super.getDomConfig();
         return fConfiguration;
     }
-    
+
     // REVISIT: Forbid serialization of PSVI DOM until
     // we support object serialization of grammars -- mrglavas
-    
+
     private void writeObject(ObjectOutputStream out)
         throws IOException {
         throw new NotSerializableException(getClass().getName());
-	}
+        }
 
-    private void readObject(ObjectInputStream in) 
+    private void readObject(ObjectInputStream in)
         throws IOException, ClassNotFoundException {
         throw new NotSerializableException(getClass().getName());
     }
-    
+
 } // class PSVIDocumentImpl

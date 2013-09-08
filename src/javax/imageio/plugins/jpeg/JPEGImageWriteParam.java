@@ -1,8 +1,26 @@
 /*
- * @(#)JPEGImageWriteParam.java	1.20 05/11/17
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.plugins.jpeg;
@@ -41,9 +59,9 @@ import com.sun.imageio.plugins.jpeg.JPEG;
  * <code>IIOMetadata</code> objects passed in to the writer, and any
  * tables included in these objects are written to the stream.
  * If no tables are specified in the metadata, then an abbreviated
- * stream is written.  If no tables are included in the metadata and 
- * no tables are specified in a <code>JPEGImageWriteParam</code>, then 
- * an abbreviated stream is encoded using the "standard" visually 
+ * stream is written.  If no tables are included in the metadata and
+ * no tables are specified in a <code>JPEGImageWriteParam</code>, then
+ * an abbreviated stream is encoded using the "standard" visually
  * lossless tables.  This class is necessary for specifying tables
  * when an abbreviated stream must be written without writing any tables
  * to a stream first.  In order to use this class, the metadata object
@@ -70,7 +88,6 @@ import com.sun.imageio.plugins.jpeg.JPEG;
  * see the <A HREF="../../metadata/doc-files/jpeg_metadata.html">JPEG
  * metadata format specification and usage notes</A>.
  *
- * @version 0.5
  */
 public class JPEGImageWriteParam extends ImageWriteParam {
 
@@ -193,7 +210,7 @@ public class JPEGImageWriteParam extends ImageWriteParam {
      *
      * @see #unsetEncodeTables
      */
-    public void setEncodeTables(JPEGQTable[] qTables, 
+    public void setEncodeTables(JPEGQTable[] qTables,
                                 JPEGHuffmanTable[] DCHuffmanTables,
                                 JPEGHuffmanTable[] ACHuffmanTables) {
         if ((qTables == null) ||
@@ -235,7 +252,7 @@ public class JPEGImageWriteParam extends ImageWriteParam {
     public JPEGQTable[] getQTables() {
         return (qTables != null) ? (JPEGQTable[])qTables.clone() : null;
     }
-    
+
     /**
      * Returns a copy of the array of DC Huffman tables set on the
      * most recent call to <code>setEncodeTables</code>, or
@@ -247,8 +264,8 @@ public class JPEGImageWriteParam extends ImageWriteParam {
      * @see #setEncodeTables
      */
     public JPEGHuffmanTable[] getDCHuffmanTables() {
-        return (DCHuffmanTables != null) 
-            ? (JPEGHuffmanTable[])DCHuffmanTables.clone() 
+        return (DCHuffmanTables != null)
+            ? (JPEGHuffmanTable[])DCHuffmanTables.clone()
             : null;
     }
 
@@ -263,8 +280,8 @@ public class JPEGImageWriteParam extends ImageWriteParam {
      * @see #setEncodeTables
      */
     public JPEGHuffmanTable[] getACHuffmanTables() {
-        return (ACHuffmanTables != null) 
-            ? (JPEGHuffmanTable[])ACHuffmanTables.clone() 
+        return (ACHuffmanTables != null)
+            ? (JPEGHuffmanTable[])ACHuffmanTables.clone()
             : null;
     }
 

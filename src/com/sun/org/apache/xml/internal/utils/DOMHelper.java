@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,14 +57,14 @@ public class DOMHelper
   /**
    * DOM Level 1 did not have a standard mechanism for creating a new
    * Document object. This function provides a DOM-implementation-independent
-   * abstraction for that for that concept. It's typically used when 
+   * abstraction for that for that concept. It's typically used when
    * outputting a new DOM as the result of an operation.
    * <p>
-   * TODO: This isn't directly compatable with DOM Level 2. 
-   * The Level 2 createDocument call also creates the root 
+   * TODO: This isn't directly compatable with DOM Level 2.
+   * The Level 2 createDocument call also creates the root
    * element, and thus requires that you know what that element will be
    * before creating the Document. We should think about whether we want
-   * to change this code, and the callers, so we can use the DOM's own 
+   * to change this code, and the callers, so we can use the DOM's own
    * method. (It's also possible that DOM Level 3 may relax this
    * sequence, but you may give up some intelligence in the DOM by
    * doing so; the intent was that knowing the document type and root
@@ -84,7 +88,7 @@ public class DOMHelper
 
       dfactory.setNamespaceAware(true);
       dfactory.setValidating(true);
-      
+
       if (isSecureProcessing)
       {
         try
@@ -93,7 +97,7 @@ public class DOMHelper
         }
         catch (ParserConfigurationException pce) {}
       }
-      
+
       DocumentBuilder docBuilder = dfactory.newDocumentBuilder();
       Document outNode = docBuilder.newDocument();
 
@@ -112,7 +116,7 @@ public class DOMHelper
   /**
    * DOM Level 1 did not have a standard mechanism for creating a new
    * Document object. This function provides a DOM-implementation-independent
-   * abstraction for that for that concept. It's typically used when 
+   * abstraction for that for that concept. It's typically used when
    * outputting a new DOM as the result of an operation.
    *
    * @return The newly created DOM Document object, with no children, or
@@ -123,7 +127,7 @@ public class DOMHelper
   {
     return createDocument(false);
   }
-  
+
   /**
    * Tells, through the combination of the default-space attribute
    * on xsl:stylesheet, xsl:strip-space, xsl:preserve-space, and the
@@ -182,14 +186,14 @@ public class DOMHelper
    * <p>
    * There are some cases where ordering isn't defined, and neither are
    * the results of this function -- though we'll generally return true.
-   * 
+   *
    * TODO: Make sure this does the right thing with attribute nodes!!!
    *
    * @param node1 DOM Node to perform position comparison on.
    * @param node2 DOM Node to perform position comparison on .
-   * 
+   *
    * @return false if node2 comes before node1, otherwise return true.
-   * You can think of this as 
+   * You can think of this as
    * <code>(node1.documentOrderPosition &lt;= node2.documentOrderPosition)</code>.
    */
   public static boolean isNodeAfter(Node node1, Node node2)
@@ -199,9 +203,9 @@ public class DOMHelper
 
         // Default return value, if there is no defined ordering
     boolean isNodeAfter = true;
-        
+
     Node parent1 = getParentOfNode(node1);
-    Node parent2 = getParentOfNode(node2);          
+    Node parent2 = getParentOfNode(node2);
 
     // Optimize for most common case
     if (parent1 == parent2 || isNodeTheSame(parent1, parent2))  // then we know they are siblings
@@ -214,7 +218,7 @@ public class DOMHelper
                   // We're returning a value in lieu of throwing an exception.
                   // Not a case we expect to arise in XPath, but beware if you
                   // try to reuse this method.
-                  
+
                   // We can just fall through in this case, which allows us
                   // to hit the debugging code at the end of the function.
           //return isNodeAfter;
@@ -223,15 +227,15 @@ public class DOMHelper
     else
     {
 
-      // General strategy: Figure out the lengths of the two 
+      // General strategy: Figure out the lengths of the two
       // ancestor chains, reconcile the lengths, and look for
           // the lowest common ancestor. If that ancestor is one of
           // the nodes being compared, it comes before the other.
-      // Otherwise perform a sibling compare. 
+      // Otherwise perform a sibling compare.
                 //
                 // NOTE: If no common ancestor is found, ordering is undefined
                 // and we return the default value of isNodeAfter.
-                
+
       // Count parents in each ancestor chain
       int nParents1 = 2, nParents2 = 2;  // include node & parent obtained above
 
@@ -291,7 +295,7 @@ public class DOMHelper
 
             break;  // from while loop
           }
-          else 
+          else
           {
                         // Compare ancestors below lowest-common as siblings
             isNodeAfter = isNodeAfterSibling(startNode1, prevChild1,
@@ -308,10 +312,10 @@ public class DOMHelper
         startNode2 = getParentOfNode(startNode2);
       }  // end while(parents exist to examine)
     }  // end big else (not immediate siblings)
-        
+
         // WARNING: The following diagnostic won't report the early
         // "same node" case. Fix if/when needed.
-        
+
     /* -- please do not remove... very useful for diagnostics --
     System.out.println("node1 = "+node1.getNodeName()+"("+node1.getNodeType()+")"+
     ", node2 = "+node2.getNodeName()
@@ -322,7 +326,7 @@ public class DOMHelper
 
   /**
    * Use DTMNodeProxy to determine whether two nodes are the same.
-   * 
+   *
    * @param node1 The first DOM node to compare.
    * @param node2 The second DOM node to compare.
    * @return true if the two nodes are the same.
@@ -341,9 +345,9 @@ public class DOMHelper
    * Warning: Some aspects of "document order" are not well defined.
    * For example, the order of attributes is considered
    * meaningless in XML, and the order reported by our model will
-   * be consistant for a given invocation but may not 
+   * be consistant for a given invocation but may not
    * match that of either the source file or the serialized output.
-   * 
+   *
    * @param parent Must be the parent of both child1 and child2.
    * @param child1 Must be the child of parent and not equal to child2.
    * @param child2 Must be the child of parent and not equal to child1.
@@ -414,10 +418,10 @@ public class DOMHelper
                 // from one until we find or fail to find the other.
                 // Either can wind up scanning all the siblings in the worst
                 // case, which on a wide document can be a lot of work but
-                // is more typically is a short list. 
+                // is more typically is a short list.
                 // Scanning from the start involves two tests per iteration,
                 // but it isn't clear that scanning from the middle doesn't
-                // yield more iterations on average. 
+                // yield more iterations on average.
                 // We should run some testcases.
       Node child = parent.getFirstChild();
       boolean found1 = false, found2 = false;
@@ -483,14 +487,14 @@ public class DOMHelper
 
   /**
    * Given an XML Namespace prefix and a context in which the prefix
-   * is to be evaluated, return the Namespace Name this prefix was 
+   * is to be evaluated, return the Namespace Name this prefix was
    * bound to. Note that DOM Level 3 is expected to provide a version of
    * this which deals with the DOM's "early binding" behavior.
-   * 
+   *
    * Default handling:
    *
-   * @param prefix String containing namespace prefix to be resolved, 
-   * without the ':' which separates it from the localname when used 
+   * @param prefix String containing namespace prefix to be resolved,
+   * without the ':' which separates it from the localname when used
    * in a Node Name. The empty sting signifies the default namespace
    * at this point in the document.
    * @param namespaceContext Element which provides context for resolution.
@@ -518,7 +522,7 @@ public class DOMHelper
           // the xmlns: prefix; other prefixes declared as belonging
           // to this namespace will not be recognized and should
           // probably be rejected by parsers as erroneous declarations.
-      namespace = "http://www.w3.org/2000/xmlns/"; 
+      namespace = "http://www.w3.org/2000/xmlns/";
     }
     else
     {
@@ -526,7 +530,7 @@ public class DOMHelper
           String declname=(prefix=="")
                         ? "xmlns"
                         : "xmlns:"+prefix;
-                                           
+
           // Scan until we run out of Elements or have resolved the namespace
       while ((null != parent) && (null == namespace)
              && (((type = parent.getNodeType()) == Node.ELEMENT_NODE)
@@ -534,14 +538,14 @@ public class DOMHelper
       {
         if (type == Node.ELEMENT_NODE)
         {
-                        
+
                         // Look for the appropriate Namespace Declaration attribute,
                         // either "xmlns:prefix" or (if prefix is "") "xmlns".
                         // TODO: This does not handle "implicit declarations"
                         // which may be created when the DOM is edited. DOM Level
                         // 3 will define how those should be interpreted. But
                         // this issue won't arise in freshly-parsed DOMs.
-                        
+
                 // NOTE: declname is set earlier, outside the loop.
                         Attr attr=((Element)parent).getAttributeNode(declname);
                         if(attr!=null)
@@ -563,37 +567,37 @@ public class DOMHelper
    */
   Hashtable m_NSInfos = new Hashtable();
 
-  /** Object to put into the m_NSInfos table that tells that a node has not been 
+  /** Object to put into the m_NSInfos table that tells that a node has not been
    *  processed, but has xmlns namespace decls.  */
   protected static final NSInfo m_NSInfoUnProcWithXMLNS = new NSInfo(false,
                                                             true);
 
-  /** Object to put into the m_NSInfos table that tells that a node has not been 
+  /** Object to put into the m_NSInfos table that tells that a node has not been
    *  processed, but has no xmlns namespace decls.  */
   protected static final NSInfo m_NSInfoUnProcWithoutXMLNS = new NSInfo(false,
                                                                false);
 
-  /** Object to put into the m_NSInfos table that tells that a node has not been 
+  /** Object to put into the m_NSInfos table that tells that a node has not been
    *  processed, and has no xmlns namespace decls, and has no ancestor decls.  */
   protected static final NSInfo m_NSInfoUnProcNoAncestorXMLNS =
     new NSInfo(false, false, NSInfo.ANCESTORNOXMLNS);
 
-  /** Object to put into the m_NSInfos table that tells that a node has been 
+  /** Object to put into the m_NSInfos table that tells that a node has been
    *  processed, and has xmlns namespace decls.  */
   protected static final NSInfo m_NSInfoNullWithXMLNS = new NSInfo(true,
                                                           true);
 
-  /** Object to put into the m_NSInfos table that tells that a node has been 
+  /** Object to put into the m_NSInfos table that tells that a node has been
    *  processed, and has no xmlns namespace decls.  */
   protected static final NSInfo m_NSInfoNullWithoutXMLNS = new NSInfo(true,
                                                              false);
 
-  /** Object to put into the m_NSInfos table that tells that a node has been 
+  /** Object to put into the m_NSInfos table that tells that a node has been
    *  processed, and has no xmlns namespace decls. and has no ancestor decls.  */
   protected static final NSInfo m_NSInfoNullNoAncestorXMLNS =
     new NSInfo(true, false, NSInfo.ANCESTORNOXMLNS);
 
-  /** Vector of node (odd indexes) and NSInfos (even indexes) that tell if 
+  /** Vector of node (odd indexes) and NSInfos (even indexes) that tell if
    *  the given node is a candidate for ancestor namespace processing.  */
   protected Vector m_candidateNoAncestorXMLNS = new Vector();
 
@@ -651,7 +655,7 @@ public class DOMHelper
         else
         {
 
-          // Attributes don't use the default namespace, so if 
+          // Attributes don't use the default namespace, so if
           // there isn't a prefix, we're done.
           return namespaceOfPrefix;
         }
@@ -827,8 +831,8 @@ public class DOMHelper
 
   /**
    * Returns the element name with the namespace prefix (if any) replaced
-   * by the Namespace URI it was bound to. This is not a standard 
-   * representation of a node name, but it allows convenient 
+   * by the Namespace URI it was bound to. This is not a standard
+   * representation of a node name, but it allows convenient
    * single-string comparison of the "universal" names of two nodes.
    *
    * @param elem Element to be examined.
@@ -849,8 +853,8 @@ public class DOMHelper
 
   /**
    * Returns the attribute name with the namespace prefix (if any) replaced
-   * by the Namespace URI it was bound to. This is not a standard 
-   * representation of a node name, but it allows convenient 
+   * by the Namespace URI it was bound to. This is not a standard
+   * representation of a node name, but it allows convenient
    * single-string comparison of the "universal" names of two nodes.
    *
    * @param attr Attr to be examined
@@ -885,7 +889,7 @@ public class DOMHelper
    * @return CURRENTLY HARDCODED TO FALSE, but should return true if
    * and only if the node is of type Text, contains only whitespace,
    * and does not appear as part of the #PCDATA content of an element.
-   * (Note that determining this last may require allowing for 
+   * (Note that determining this last may require allowing for
    * Entity References.)
    */
   public boolean isIgnorableWhitespace(Text node)
@@ -893,7 +897,7 @@ public class DOMHelper
 
     boolean isIgnorable = false;  // return value
 
-    // TODO: I can probably do something to figure out if this 
+    // TODO: I can probably do something to figure out if this
     // space is ignorable from just the information in
     // the DOM tree.
         // -- You need to be able to distinguish whitespace
@@ -945,7 +949,7 @@ public class DOMHelper
   public Node getRootNode(Node n)
   {
     int nt = n.getNodeType();
-    return ( (Node.DOCUMENT_NODE == nt) || (Node.DOCUMENT_FRAGMENT_NODE == nt) ) 
+    return ( (Node.DOCUMENT_NODE == nt) || (Node.DOCUMENT_FRAGMENT_NODE == nt) )
            ? n : n.getOwnerDocument();
   }
 
@@ -956,7 +960,7 @@ public class DOMHelper
    *
    * @param n Node to be examined.
    *
-   * @return boolean -- true iff the node is an Attr whose name is 
+   * @return boolean -- true iff the node is an Attr whose name is
    * "xmlns" or has the "xmlns:" prefix.
    */
   public boolean isNamespaceNode(Node n)
@@ -974,7 +978,7 @@ public class DOMHelper
 
   /**
    * Obtain the XPath-model parent of a DOM node -- ownerElement for Attrs,
-   * parent for other nodes. 
+   * parent for other nodes.
    * <p>
    * Background: The DOM believes that you must be your Parent's
    * Child, and thus Attrs don't have parents. XPath said that Attrs
@@ -983,7 +987,7 @@ public class DOMHelper
    * function or by using a "silly and expensive function" in Level 1
    * DOMs.
    * <p>
-   * (There's some discussion of future DOMs generalizing ownerElement 
+   * (There's some discussion of future DOMs generalizing ownerElement
    * into ownerNode and making it work on all types of nodes. This
    * still wouldn't help the users of Level 1 or Level 2 DOMs)
    * <p>
@@ -1014,7 +1018,7 @@ public class DOMHelper
       }
       */
 
-          // Given how expensive the tree walk may be, we should first ask 
+          // Given how expensive the tree walk may be, we should first ask
           // whether this DOM can answer the question for us. The additional
           // test does slow down Level 1 DOMs slightly. DOMHelper2, which
           // is currently specialized for Xerces, assumes it can use the
@@ -1030,7 +1034,7 @@ public class DOMHelper
                   return parent;
           }
 
-          // DOM Level 1 solution, as fallback. Hugely expensive. 
+          // DOM Level 1 solution, as fallback. Hugely expensive.
 
       Element rootElem = doc.getDocumentElement();
 
@@ -1096,11 +1100,11 @@ public class DOMHelper
    * map it to one.
    * TODO: Resolve Public Identifiers... or consider changing function name.
    * <p>
-   * If we find a relative URI 
-   * reference, XML expects it to be resolved in terms of the base URI 
-   * of the document. The DOM doesn't do that for us, and it isn't 
+   * If we find a relative URI
+   * reference, XML expects it to be resolved in terms of the base URI
+   * of the document. The DOM doesn't do that for us, and it isn't
    * entirely clear whether that should be done here; currently that's
-   * pushed up to a higher levelof our application. (Note that DOM Level 
+   * pushed up to a higher levelof our application. (Note that DOM Level
    * 1 didn't store the document's base URI.)
    * TODO: Consider resolving Relative URIs.
    * <p>
@@ -1130,18 +1134,18 @@ public class DOMHelper
       Entity entity = (Entity) entities.getNamedItem(name);
       if(null == entity)
         return url;
-      
+
       String notationName = entity.getNotationName();
 
       if (null != notationName)  // then it's unparsed
       {
-        // The draft says: "The XSLT processor may use the public 
-        // identifier to generate a URI for the entity instead of the URI 
-        // specified in the system identifier. If the XSLT processor does 
-        // not use the public identifier to generate the URI, it must use 
-        // the system identifier; if the system identifier is a relative 
-        // URI, it must be resolved into an absolute URI using the URI of 
-        // the resource containing the entity declaration as the base 
+        // The draft says: "The XSLT processor may use the public
+        // identifier to generate a URI for the entity instead of the URI
+        // specified in the system identifier. If the XSLT processor does
+        // not use the public identifier to generate the URI, it must use
+        // the system identifier; if the system identifier is a relative
+        // URI, it must be resolved into an absolute URI using the URI of
+        // the resource containing the entity declaration as the base
         // URI [RFC2396]."
         // So I'm falling a bit short here.
         url = entity.getSystemId();
@@ -1152,9 +1156,9 @@ public class DOMHelper
         }
         else
         {
-          // This should be resolved to an absolute URL, but that's hard 
+          // This should be resolved to an absolute URL, but that's hard
           // to do from here.
-        }        
+        }
       }
     }
 
@@ -1256,10 +1260,10 @@ public class DOMHelper
    * whitespace nodes are handled.
    *
    * @param node DOM Node to be examined
-   * @return String containing a concatenation of all the 
-   * textual content within that node. 
+   * @return String containing a concatenation of all the
+   * textual content within that node.
    * @see #getNodeData(Node,FastStringBuffer)
-   * 
+   *
    */
   public static String getNodeData(Node node)
   {
@@ -1286,7 +1290,7 @@ public class DOMHelper
    * user-supplied FastStringBuffer object. Note that attributes are
    * not considered part of the content of an element.
    * <p>
-   * There are open questions regarding whitespace stripping. 
+   * There are open questions regarding whitespace stripping.
    * Currently we make no special effort in that regard, since the standard
    * DOM doesn't yet provide DTD-based information to distinguish
    * whitespace-in-element-context from genuine #PCDATA. Note that we
@@ -1322,7 +1326,7 @@ public class DOMHelper
       buf.append(node.getNodeValue());
       break;
     case Node.PROCESSING_INSTRUCTION_NODE :
-      // warning(XPATHErrorResources.WG_PARSING_AND_PREPARING);        
+      // warning(XPATHErrorResources.WG_PARSING_AND_PREPARING);
       break;
     default :
       // ignore

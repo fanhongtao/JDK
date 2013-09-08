@@ -1,8 +1,26 @@
 /*
- * @(#)DeclarationVisitor.java	1.4 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.util;
@@ -19,12 +37,17 @@ import com.sun.mirror.declaration.*;
  * <tt>visit<i>Xxx</i></tt> method applicable to that declaration is
  * invoked.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  The replacement for the
+ * functionality of this interface is {@link
+ * javax.lang.model.element.ElementVisitor}.
+ *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.4 05/11/17
  * @since 1.5
  */
-
+@Deprecated
+@SuppressWarnings("deprecation")
 public interface DeclarationVisitor {
 
     /**
@@ -110,7 +133,7 @@ public interface DeclarationVisitor {
      * @param d the declaration to visit
      */
     public void visitAnnotationTypeElementDeclaration(
-				     AnnotationTypeElementDeclaration d);
+                                     AnnotationTypeElementDeclaration d);
 
     /**
      * Visits a parameter declaration.

@@ -1,8 +1,26 @@
 /*
- * @(#)SetOverrideType.java	1.16 05/11/17
+ * Copyright (c) 1998, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -10,11 +28,11 @@ package org.omg.CORBA;
 /**
  * The mapping of a CORBA <code>enum</code> tagging
  * <code>SET_OVERRIDE</code> and <code>ADD_OVERRIDE</code>, which
- * indicate whether policies should replace the 
+ * indicate whether policies should replace the
  * existing policies of an <code>Object</code> or be added to them.
  * <P>
- * The method {@link omg.org.CORBA.Object._set_policy_override} takes
- * either <code>SetOverrideType.SET_OVERRIDE</code> or 
+ * The method {@link org.omg.CORBA.Object#_set_policy_override} takes
+ * either <code>SetOverrideType.SET_OVERRIDE</code> or
  * <code>SetOverrideType.ADD_OVERRIDE</code> as its second argument.
  * The method <code>_set_policy_override</code>
  * creates a new <code>Object</code> initialized with the
@@ -26,12 +44,11 @@ package org.omg.CORBA;
  * are replaced with the given ones.
  *
  * @author OMG
- * @version 1.16 11/17/05
  * @since   JDK1.2
  */
 
 public class SetOverrideType implements org.omg.CORBA.portable.IDLEntity {
-    
+
     /**
      * The <code>int</code> constant for the enum value SET_OVERRIDE.
      */
@@ -67,7 +84,7 @@ public class SetOverrideType implements org.omg.CORBA.portable.IDLEntity {
      *
      * @param  i the <code>int</code> to convert; must be either
      *         <code>SetOverrideType._SET_OVERRIDE</code> or
-     *         <code>SetOverrideType._ADD_OVERRIDE</code> 
+     *         <code>SetOverrideType._ADD_OVERRIDE</code>
      * @return  the <code>SetOverrideType</code> instance whose value
      *       matches the given <code>int</code>
      * @exception  BAD_PARAM  if the given <code>int</code> does not
@@ -77,19 +94,19 @@ public class SetOverrideType implements org.omg.CORBA.portable.IDLEntity {
     public static SetOverrideType from_int(int i)
     {
         switch (i) {
-	case _SET_OVERRIDE:
-	    return SET_OVERRIDE;
-	case _ADD_OVERRIDE:
-	    return ADD_OVERRIDE;
-	default:
-	    throw new org.omg.CORBA.BAD_PARAM();
+        case _SET_OVERRIDE:
+            return SET_OVERRIDE;
+        case _ADD_OVERRIDE:
+            return ADD_OVERRIDE;
+        default:
+            throw new org.omg.CORBA.BAD_PARAM();
         }
     }
 
     /**
      * Constructs a <code>SetOverrideType</code> instance from an
      * <code>int</code>.
-     * @param _value must be either <code>SET_OVERRIDE</code> or 
+     * @param _value must be either <code>SET_OVERRIDE</code> or
      *        <code>ADD_OVERRIDE</code>
      */
     protected SetOverrideType(int _value){

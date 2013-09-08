@@ -1,28 +1,5 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
- *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLEntityScanner.java,v 1.9 2006/01/20 14:13:07 sunithareddy Exp $
- * @(#)XMLEntityScanner.java	1.16 06/07/13
- *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -43,15 +20,18 @@
 
 package com.sun.org.apache.xerces.internal.impl;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.util.Locale;
+import java.util.Vector;
+
 import com.sun.xml.internal.stream.Entity;
 import com.sun.xml.internal.stream.XMLBufferListener;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-import java.util.Locale;
-import java.util.Vector;
+
 import com.sun.org.apache.xerces.internal.impl.io.ASCIIReader;
 import com.sun.org.apache.xerces.internal.impl.io.UCSReader;
 import com.sun.org.apache.xerces.internal.impl.io.UTF8Reader;
@@ -100,6 +80,15 @@ public class XMLEntityScanner implements XMLLocator  {
      */
     private static final boolean DEBUG_BUFFER = false;
     private static final boolean DEBUG_SKIP_STRING = false;
+    /**
+     * To signal the end of the document entity, this exception will be thrown.
+     */
+    private static final EOFException END_OF_DOCUMENT_ENTITY = new EOFException() {
+        private static final long serialVersionUID = 980337771224675268L;
+        public Throwable fillInStackTrace() {
+            return this;
+        }
+    };
     
     protected SymbolTable fSymbolTable = null;
     protected XMLErrorReporter fErrorReporter = null;
@@ -169,7 +158,7 @@ public class XMLEntityScanner implements XMLLocator  {
     
     
     // set buffer size:
-    public void setBufferSize(int size) {
+    public final void setBufferSize(int size) {
         // REVISIT: Buffer size passed to entity scanner
         // was not being kept in synch with the actual size
         // of the buffers in each scanned entity. If any
@@ -214,12 +203,8 @@ public class XMLEntityScanner implements XMLLocator  {
         
         //System.out.println(" this is being called");
         // xerces features
-        try {
-            fAllowJavaEncodings = componentManager.getFeature(ALLOW_JAVA_ENCODINGS);
-        } catch (XMLConfigurationException e) {
-            fAllowJavaEncodings = false;
-        }
-        
+        fAllowJavaEncodings = componentManager.getFeature(ALLOW_JAVA_ENCODINGS, false);
+
         //xerces properties
         fSymbolTable = (SymbolTable)componentManager.getProperty(SYMBOL_TABLE);
         fErrorReporter = (XMLErrorReporter)componentManager.getProperty(ERROR_REPORTER);
@@ -230,7 +215,7 @@ public class XMLEntityScanner implements XMLLocator  {
     } // reset(XMLComponentManager)
     
     
-    public void reset(SymbolTable symbolTable, XMLEntityManager entityManager,
+    public final void reset(SymbolTable symbolTable, XMLEntityManager entityManager,
             XMLErrorReporter reporter) {
         fCurrentEntity = null;
         fSymbolTable = symbolTable;
@@ -248,22 +233,30 @@ public class XMLEntityScanner implements XMLLocator  {
      * final once the XML or text declaration has been read or once it has been
      * determined that there is no such declaration.
      */
-    public String getXMLVersion() {
+    public final String getXMLVersion() {
         if (fCurrentEntity != null) {
             return fCurrentEntity.xmlVersion;
         }
         return null;
     } // getXMLVersion():String
     
-    void setXMLVersion(String version) {
-        fCurrentEntity.xmlVersion = version;
-    }
+    /**
+     * Sets the XML version. This method is used by the
+     * scanners to report the value of the version pseudo-attribute
+     * in an XML or text declaration.
+     *
+     * @param xmlVersion the XML version of the current entity
+     */
+    public final void setXMLVersion(String xmlVersion) {
+        fCurrentEntity.xmlVersion = xmlVersion;
+    } // setXMLVersion(String)
+
         
     /** set the instance of current scanned entity.
      *   @param ScannedEntity
      */
     
-    public  void setCurrentEntity(Entity.ScannedEntity scannedEntity){
+    public final void setCurrentEntity(Entity.ScannedEntity scannedEntity){
         fCurrentEntity = scannedEntity ;
         if(fCurrentEntity != null){
             isExternal = fCurrentEntity.isExternal();
@@ -283,7 +276,7 @@ public class XMLEntityScanner implements XMLLocator  {
      * Returns the base system identifier of the currently scanned
      * entity, or null if none is available.
      */
-    public String getBaseSystemId() {
+    public final String getBaseSystemId() {
         return (fCurrentEntity != null && fCurrentEntity.entityLocation != null) ? fCurrentEntity.entityLocation.getExpandedSystemId() : null;
     } // getBaseSystemId():String
     
@@ -295,7 +288,7 @@ public class XMLEntityScanner implements XMLLocator  {
     }
     
     ///////////// Locator methods start.
-    public int getLineNumber(){
+    public final int getLineNumber(){
         //if the entity is closed, we should return -1
         //xxx at first place why such call should be there...
         return fCurrentEntity != null ? fCurrentEntity.lineNumber : -1 ;
@@ -309,7 +302,7 @@ public class XMLEntityScanner implements XMLLocator  {
     }
     
     
-    public int getColumnNumber(){
+    public final int getColumnNumber(){
         //if the entity is closed, we should return -1
         //xxx at first place why such call should be there...
         return fCurrentEntity != null ? fCurrentEntity.columnNumber : -1 ;
@@ -323,12 +316,12 @@ public class XMLEntityScanner implements XMLLocator  {
     }
     
     
-    public int getCharacterOffset(){
+    public final int getCharacterOffset(){
         return fCurrentEntity != null ? fCurrentEntity.fTotalCountTillLastLoad + fCurrentEntity.position : -1 ;
     }
     
     /** Returns the expanded system identifier.  */
-    public String getExpandedSystemId() {
+    public final String getExpandedSystemId() {
         return (fCurrentEntity != null && fCurrentEntity.entityLocation != null) ? fCurrentEntity.entityLocation.getExpandedSystemId() : null;
     }
     
@@ -340,7 +333,7 @@ public class XMLEntityScanner implements XMLLocator  {
     }
     
     /** Returns the literal system identifier.  */
-    public String getLiteralSystemId() {
+    public final String getLiteralSystemId() {
         return (fCurrentEntity != null && fCurrentEntity.entityLocation != null) ? fCurrentEntity.entityLocation.getLiteralSystemId() : null;
     }
     
@@ -352,7 +345,7 @@ public class XMLEntityScanner implements XMLLocator  {
     }
     
     /** Returns the public identifier.  */
-    public String getPublicId() {
+    public final String getPublicId() {
         return (fCurrentEntity != null && fCurrentEntity.entityLocation != null) ? fCurrentEntity.entityLocation.getPublicId() : null;
     }
     
@@ -371,12 +364,26 @@ public class XMLEntityScanner implements XMLLocator  {
     }
     
     public String getVersion(){
-        return fCurrentEntity.version ;
+        if (fCurrentEntity != null)
+            return fCurrentEntity.version ;
+        return null;
     }
     
-    public String getEncoding(){
-        return fCurrentEntity.encoding ;
-    }
+    /**
+     * Returns the encoding of the current entity.
+     * Note that, for a given entity, this value can only be
+     * considered final once the encoding declaration has been read (or once it
+     * has been determined that there is no such declaration) since, no encoding
+     * having been specified on the XMLInputSource, the parser
+     * will make an initial "guess" which could be in error.
+     */
+    public final String getEncoding() {
+        if (fCurrentEntity != null) {
+            return fCurrentEntity.encoding;
+        }
+        return null;
+    } // getEncoding():String
+
     /**
      * Sets the encoding of the scanner. This method is used by the
      * scanners if the XMLDecl or TextDecl line contains an encoding
@@ -395,7 +402,7 @@ public class XMLEntityScanner implements XMLLocator  {
      *
      * @see com.sun.org.apache.xerces.internal.util.EncodingMap
      */
-    public void setEncoding(String encoding) throws IOException {
+    public final void setEncoding(String encoding) throws IOException {
         
         if (DEBUG_ENCODINGS) {
             System.out.println("$$$ setEncoding: "+encoding);
@@ -454,7 +461,7 @@ public class XMLEntityScanner implements XMLLocator  {
     } // setEncoding(String)
     
     /** Returns true if the current entity being scanned is external. */
-    public boolean isExternal() {
+    public final boolean isExternal() {
         return fCurrentEntity.isExternal();
     } // isExternal():boolean
     
@@ -1216,7 +1223,7 @@ public class XMLEntityScanner implements XMLLocator  {
      * <p>
      * @param delimiter The string that signifies the end of the character
      *                  data to be scanned.
-     * @param data      The data structure to fill. Data will be appendd to the current buffer.
+     * @param buffer    The XMLStringBuffer to fill.
      *
      * @return Returns true if there is more data to scan, false otherwise.
      *
@@ -1735,9 +1742,10 @@ public class XMLEntityScanner implements XMLLocator  {
         //maintaing the count till last load
         fCurrentEntity.fTotalCountTillLastLoad = fCurrentEntity.fTotalCountTillLastLoad + fCurrentEntity.fLastCount ;
         // read characters
-        int length = fCurrentEntity.mayReadChunks ?
-            (fCurrentEntity.ch.length - offset): (fCurrentEntity.DEFAULT_XMLDECL_BUFFER_SIZE);
-        
+        int length = fCurrentEntity.ch.length - offset;
+        if (!fCurrentEntity.mayReadChunks && length > XMLEntityManager.DEFAULT_XMLDECL_BUFFER_SIZE) {
+            length = XMLEntityManager.DEFAULT_XMLDECL_BUFFER_SIZE;
+        }
         if (DEBUG_BUFFER) System.out.println("  length to try to read: "+length);
         int count = fCurrentEntity.reader.read(fCurrentEntity.ch, offset, length);
         if (DEBUG_BUFFER) System.out.println("  length actually read:  "+count);
@@ -1763,7 +1771,7 @@ public class XMLEntityScanner implements XMLLocator  {
                 fEntityManager.endEntity();
                 //return if the current entity becomes null
                 if(fCurrentEntity == null){
-                    return true ;
+                    throw END_OF_DOCUMENT_ENTITY;
                 }
                 // handle the trailing edges
                 if (fCurrentEntity.position == fCurrentEntity.count) {
@@ -2088,7 +2096,7 @@ public class XMLEntityScanner implements XMLLocator  {
      *
      * @see com.sun.org.apache.xerces.internal.util.XMLChar#isSpace
      */
-    public boolean skipDeclSpaces() throws IOException {
+    public final boolean skipDeclSpaces() throws IOException {
         if (DEBUG_BUFFER) {
             System.out.print("(skipDeclSpaces: ");
             //XMLEntityManager.print(fCurrentEntity);

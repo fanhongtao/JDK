@@ -1,8 +1,26 @@
 /*
- * @(#)LocalClientRequestDispatcher.java	1.7 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.protocol;
@@ -26,7 +44,7 @@ public interface LocalClientRequestDispatcher
      * has been set to an object of the expected type (Note: the object may
      * or may not be the actual servant instance). The local stub may cast
      * the servant field to the expected type, and then invoke the operation
-     * directly. 
+     * directly.
      *
      * @param self The object reference which delegated to this delegate.
      *
@@ -45,11 +63,11 @@ public interface LocalClientRequestDispatcher
      * The method must return null if the servant is not of the expected type.
      */
     public ServantObject servant_preinvoke(org.omg.CORBA.Object self,
-					   String operation,
-					   Class expectedType);
+                                           String operation,
+                                           Class expectedType);
 
     public void servant_postinvoke(org.omg.CORBA.Object self,
-				   ServantObject servant); 
+                                   ServantObject servant);
 }
 
 // End of file.

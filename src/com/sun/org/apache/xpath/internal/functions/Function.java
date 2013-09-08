@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,26 +45,26 @@ public abstract class Function extends Expression
     static final long serialVersionUID = 6927661240854599768L;
 
   /**
-   * Set an argument expression for a function.  This method is called by the 
+   * Set an argument expression for a function.  This method is called by the
    * XPath compiler.
    *
    * @param arg non-null expression that represents the argument.
    * @param argNum The argument number index.
    *
-   * @throws WrongNumberArgsException If the argNum parameter is beyond what 
+   * @throws WrongNumberArgsException If the argNum parameter is beyond what
    * is specified for this function.
    */
   public void setArg(Expression arg, int argNum)
           throws WrongNumberArgsException
   {
-			// throw new WrongNumberArgsException(XSLMessages.createXPATHMessage("zero", null));
+                        // throw new WrongNumberArgsException(XSLMessages.createXPATHMessage("zero", null));
       reportWrongNumberArgs();
   }
 
   /**
    * Check that the number of arguments passed to this function is correct.
-   * This method is meant to be overloaded by derived classes, to check for 
-   * the number of arguments for a specific function type.  This method is 
+   * This method is meant to be overloaded by derived classes, to check for
+   * the number of arguments for a specific function type.  This method is
    * called by the compiler for static number of arguments checking.
    *
    * @param argNum The number of arguments that is being passed to the function.
@@ -100,7 +104,7 @@ public abstract class Function extends Expression
 
     return null;
   }
-  
+
   /**
    * Call the visitors for the function arguments.
    */
@@ -108,27 +112,27 @@ public abstract class Function extends Expression
   {
   }
 
-  
+
   /**
    * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	if(visitor.visitFunction(owner, this))
-  	{
-  		callArgVisitors(visitor);
-  	}
+        if(visitor.visitFunction(owner, this))
+        {
+                callArgVisitors(visitor);
+        }
   }
-  
+
   /**
    * @see Expression#deepEquals(Expression)
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!isSameClass(expr))
-  		return false;
-  		
-  	return true;
+        if(!isSameClass(expr))
+                return false;
+
+        return true;
   }
 
   /**

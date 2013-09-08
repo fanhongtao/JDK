@@ -1,13 +1,31 @@
 /*
- * @(#)PropertyVetoException.java	1.17 05/11/17
+ * Copyright (c) 1996, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
 
- 
+
 /**
  * A PropertyVetoException is thrown when a proposed change to a
  * property represents an unacceptable value.
@@ -15,10 +33,10 @@ package java.beans;
 
 public
 class PropertyVetoException extends Exception {
+    private static final long serialVersionUID = 129596057694162164L;
 
- 
     /**
-     * Constructs a <code>PropertyVetoException</code> with a 
+     * Constructs a <code>PropertyVetoException</code> with a
      * detailed message.
      *
      * @param mess Descriptive message
@@ -26,7 +44,7 @@ class PropertyVetoException extends Exception {
      */
     public PropertyVetoException(String mess, PropertyChangeEvent evt) {
         super(mess);
-	this.evt = evt;	
+        this.evt = evt;
     }
 
      /**
@@ -35,7 +53,7 @@ class PropertyVetoException extends Exception {
      * @return A PropertyChangeEvent describing the vetoed change.
      */
     public PropertyChangeEvent getPropertyChangeEvent() {
-	return evt;
+        return evt;
     }
 
     /**

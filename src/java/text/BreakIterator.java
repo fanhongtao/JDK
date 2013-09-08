@@ -1,8 +1,26 @@
 /*
- * @(#)BreakIterator.java	1.43 06/06/08
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -52,8 +70,8 @@ import sun.util.resources.LocaleData;
  * <p>
  * You use the factory methods provided by this class to create
  * instances of various types of break iterators. In particular,
- * use <code>getWordIterator</code>, <code>getLineIterator</code>,
- * <code>getSentenceIterator</code>, and <code>getCharacterIterator</code>
+ * use <code>getWordInstance</code>, <code>getLineInstance</code>,
+ * <code>getSentenceInstance</code>, and <code>getCharacterInstance</code>
  * to create <code>BreakIterator</code>s that perform
  * word, line, sentence, and character boundary analysis respectively.
  * A single <code>BreakIterator</code> can work only on one unit
@@ -241,8 +259,8 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * DONE is returned by previous(), next(), next(int), preceding(int) 
-     * and following(int) when either the first or last text boundary has been 
+     * DONE is returned by previous(), next(), next(int), preceding(int)
+     * and following(int) when either the first or last text boundary has been
      * reached.
      */
     public static final int DONE = -1;
@@ -264,32 +282,32 @@ public abstract class BreakIterator implements Cloneable
     /**
      * Returns the nth boundary from the current boundary. If either
      * the first or last text boundary has been reached, it returns
-     * <code>BreakIterator.DONE</code> and the current position is set to either 
-     * the first or last text boundary depending on which one is reached. Otherwise, 
+     * <code>BreakIterator.DONE</code> and the current position is set to either
+     * the first or last text boundary depending on which one is reached. Otherwise,
      * the iterator's current position is set to the new boundary.
-     * For example, if the iterator's current position is the mth text boundary  
-     * and three more boundaries exist from the current boundary to the last text 
-     * boundary, the next(2) call will return m + 2. The new text position is set 
-     * to the (m + 2)th text boundary. A next(4) call would return 
-     * <code>BreakIterator.DONE</code> and the last text boundary would become the 
+     * For example, if the iterator's current position is the mth text boundary
+     * and three more boundaries exist from the current boundary to the last text
+     * boundary, the next(2) call will return m + 2. The new text position is set
+     * to the (m + 2)th text boundary. A next(4) call would return
+     * <code>BreakIterator.DONE</code> and the last text boundary would become the
      * new text position.
      * @param n which boundary to return.  A value of 0
      * does nothing.  Negative values move to previous boundaries
      * and positive values move to later boundaries.
      * @return The character index of the nth boundary from the current position
-     * or <code>BreakIterator.DONE</code> if either first or last text boundary 
+     * or <code>BreakIterator.DONE</code> if either first or last text boundary
      * has been reached.
      */
     public abstract int next(int n);
 
     /**
      * Returns the boundary following the current boundary. If the current boundary
-     * is the last text boundary, it returns <code>BreakIterator.DONE</code> and 
-     * the iterator's current position is unchanged. Otherwise, the iterator's 
-     * current position is set to the boundary following the current boundary. 
-     * @return The character index of the next text boundary or 
-     * <code>BreakIterator.DONE</code> if the current boundary is the last text 
-     * boundary.  
+     * is the last text boundary, it returns <code>BreakIterator.DONE</code> and
+     * the iterator's current position is unchanged. Otherwise, the iterator's
+     * current position is set to the boundary following the current boundary.
+     * @return The character index of the next text boundary or
+     * <code>BreakIterator.DONE</code> if the current boundary is the last text
+     * boundary.
      * Equivalent to next(1).
      * @see #next(int)
      */
@@ -297,25 +315,25 @@ public abstract class BreakIterator implements Cloneable
 
     /**
      * Returns the boundary preceding the current boundary. If the current boundary
-     * is the first text boundary, it returns <code>BreakIterator.DONE</code> and 
-     * the iterator's current position is unchanged. Otherwise, the iterator's 
+     * is the first text boundary, it returns <code>BreakIterator.DONE</code> and
+     * the iterator's current position is unchanged. Otherwise, the iterator's
      * current position is set to the boundary preceding the current boundary.
-     * @return The character index of the previous text boundary or 
-     * <code>BreakIterator.DONE</code> if the current boundary is the first text 
+     * @return The character index of the previous text boundary or
+     * <code>BreakIterator.DONE</code> if the current boundary is the first text
      * boundary.
      */
     public abstract int previous();
 
     /**
-     * Returns the first boundary following the specified character offset. If the 
-     * specified offset equals to the last text boundary, it returns 
-     * <code>BreakIterator.DONE</code> and the iterator's current position is unchanged. 
-     * Otherwise, the iterator's current position is set to the returned boundary. 
-     * The value returned is always greater than the offset or the value 
+     * Returns the first boundary following the specified character offset. If the
+     * specified offset equals to the last text boundary, it returns
+     * <code>BreakIterator.DONE</code> and the iterator's current position is unchanged.
+     * Otherwise, the iterator's current position is set to the returned boundary.
+     * The value returned is always greater than the offset or the value
      * <code>BreakIterator.DONE</code>.
      * @param offset the character offset to begin scanning.
-     * @return The first boundary after the specified offset or 
-     * <code>BreakIterator.DONE</code> if the last text boundary is passed in 
+     * @return The first boundary after the specified offset or
+     * <code>BreakIterator.DONE</code> if the last text boundary is passed in
      * as the offset.
      * @exception  IllegalArgumentException if the specified offset is less than
      * the first text boundary or greater than the last text boundary.
@@ -323,15 +341,15 @@ public abstract class BreakIterator implements Cloneable
     public abstract int following(int offset);
 
     /**
-     * Returns the last boundary preceding the specified character offset. If the 
-     * specified offset equals to the first text boundary, it returns 
-     * <code>BreakIterator.DONE</code> and the iterator's current position is unchanged. 
-     * Otherwise, the iterator's current position is set to the returned boundary. 
-     * The value returned is always less than the offset or the value 
+     * Returns the last boundary preceding the specified character offset. If the
+     * specified offset equals to the first text boundary, it returns
+     * <code>BreakIterator.DONE</code> and the iterator's current position is unchanged.
+     * Otherwise, the iterator's current position is set to the returned boundary.
+     * The value returned is always less than the offset or the value
      * <code>BreakIterator.DONE</code>.
-     * @param offset the characater offset to begin scanning.  
-     * @return The last boundary before the specified offset or 
-     * <code>BreakIterator.DONE</code> if the first text boundary is passed in 
+     * @param offset the characater offset to begin scanning.
+     * @return The last boundary before the specified offset or
+     * <code>BreakIterator.DONE</code> if the first text boundary is passed in
      * as the offset.
      * @exception   IllegalArgumentException if the specified offset is less than
      * the first text boundary or greater than the last text boundary.
@@ -350,8 +368,10 @@ public abstract class BreakIterator implements Cloneable
     /**
      * Returns true if the specified character offset is a text boundary.
      * @param offset the character offset to check.
-     * @return <code>true</code> if "offset" is a boundary position, 
+     * @return <code>true</code> if "offset" is a boundary position,
      * <code>false</code> otherwise.
+     * @exception   IllegalArgumentException if the specified offset is less than
+     * the first text boundary or greater than the last text boundary.
      * @since 1.2
      */
     public boolean isBoundary(int offset) {
@@ -363,25 +383,29 @@ public abstract class BreakIterator implements Cloneable
         // BreakIterator, copy the SimpleTextBoundary implementation of this
         // function into your subclass.  [This should have been abstract at
         // this level, but it's too late to fix that now.]
-        if (offset == 0)
+        if (offset == 0) {
             return true;
-        else
-            return following(offset - 1) == offset;
+        }
+        int boundary = following(offset - 1);
+        if (boundary == DONE) {
+            throw new IllegalArgumentException();
+        }
+        return boundary == offset;
     }
 
     /**
-     * Returns character index of the text boundary that was most 
-     * recently returned by next(), next(int), previous(), first(), last(), 
-     * following(int) or preceding(int). If any of these methods returns 
-     * <code>BreakIterator.DONE</code> because either first or last text boundary 
-     * has been reached, it returns the first or last text boundary depending on 
-     * which one is reached. 
+     * Returns character index of the text boundary that was most
+     * recently returned by next(), next(int), previous(), first(), last(),
+     * following(int) or preceding(int). If any of these methods returns
+     * <code>BreakIterator.DONE</code> because either first or last text boundary
+     * has been reached, it returns the first or last text boundary depending on
+     * which one is reached.
      * @return The text boundary returned from the above methods, first or last
      * text boundary.
      * @see #next()
      * @see #next(int)
      * @see #previous()
-     * @see #first() 
+     * @see #first()
      * @see #last()
      * @see #following(int)
      * @see #preceding(int)
@@ -560,13 +584,13 @@ public abstract class BreakIterator implements Cloneable
                                                      String dataName,
                                                      String dictionaryName) {
 
-        // Check whether a provider can provide an implementation that's closer 
+        // Check whether a provider can provide an implementation that's closer
         // to the requested locale than what the Java runtime itself can provide.
         LocaleServiceProviderPool pool =
             LocaleServiceProviderPool.getPool(BreakIteratorProvider.class);
         if (pool.hasProviders()) {
             BreakIterator providersInstance = pool.getLocalizedObject(
-                                                    BreakIteratorGetter.INSTANCE, 
+                                                    BreakIteratorGetter.INSTANCE,
                                                     locale, type);
             if (providersInstance != null) {
                 return providersInstance;
@@ -576,7 +600,7 @@ public abstract class BreakIterator implements Cloneable
         ResourceBundle bundle = getBundle(
                         "sun.text.resources.BreakIteratorInfo", locale);
         String[] classNames = bundle.getStringArray("BreakIteratorClasses");
-        
+
         String dataFile = bundle.getString(dataName);
 
         try {
@@ -593,7 +617,7 @@ public abstract class BreakIterator implements Cloneable
             }
         }
         catch (Exception e) {
-            throw new InternalError(e.toString()); 
+            throw new InternalError(e.toString());
         }
     }
 
@@ -601,9 +625,9 @@ public abstract class BreakIterator implements Cloneable
      * Returns an array of all locales for which the
      * <code>get*Instance</code> methods of this class can return
      * localized instances.
-     * The returned array represents the union of locales supported by the Java 
-     * runtime and by installed 
-     * {@link java.text.spi.BreakIteratorProvider BreakIteratorProvider} implementations.  
+     * The returned array represents the union of locales supported by the Java
+     * runtime and by installed
+     * {@link java.text.spi.BreakIteratorProvider BreakIteratorProvider} implementations.
      * It must contain at least a <code>Locale</code>
      * instance equal to {@link java.util.Locale#US Locale.US}.
      *
@@ -659,32 +683,32 @@ public abstract class BreakIterator implements Cloneable
     }
 
     /**
-     * Obtains a BreakIterator instance from a BreakIteratorProvider 
+     * Obtains a BreakIterator instance from a BreakIteratorProvider
      * implementation.
      */
-    private static class BreakIteratorGetter 
+    private static class BreakIteratorGetter
         implements LocaleServiceProviderPool.LocalizedObjectGetter<BreakIteratorProvider, BreakIterator> {
-        private static final BreakIteratorGetter INSTANCE = 
+        private static final BreakIteratorGetter INSTANCE =
             new BreakIteratorGetter();
 
-        public BreakIterator getObject(BreakIteratorProvider breakIteratorProvider, 
-                                Locale locale, 
+        public BreakIterator getObject(BreakIteratorProvider breakIteratorProvider,
+                                Locale locale,
                                 String key,
                                 Object... params) {
             assert params.length == 1;
 
-	    switch ((Integer)params[0]) {
-	    case CHARACTER_INDEX:
-		return breakIteratorProvider.getCharacterInstance(locale);
-	    case WORD_INDEX:
-		return breakIteratorProvider.getWordInstance(locale);
-	    case LINE_INDEX:
-		return breakIteratorProvider.getLineInstance(locale);
+            switch ((Integer)params[0]) {
+            case CHARACTER_INDEX:
+                return breakIteratorProvider.getCharacterInstance(locale);
+            case WORD_INDEX:
+                return breakIteratorProvider.getWordInstance(locale);
+            case LINE_INDEX:
+                return breakIteratorProvider.getLineInstance(locale);
             case SENTENCE_INDEX:
                 return breakIteratorProvider.getSentenceInstance(locale);
             default:
-		assert false : "should not happen";
-	    }
+                assert false : "should not happen";
+            }
             return null;
         }
     }

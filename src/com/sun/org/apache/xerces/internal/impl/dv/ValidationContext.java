@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +20,8 @@
 
 package com.sun.org.apache.xerces.internal.impl.dv;
 
+import java.util.Locale;
+
 /**
  * ValidationContext has all the information required for the
  * validation of: id, idref, entity, notation, qname
@@ -23,7 +29,7 @@ package com.sun.org.apache.xerces.internal.impl.dv;
  * @xerces.internal 
  *
  * @author Sandy Gao, IBM
- * @version $Id: ValidationContext.java,v 1.2.6.1 2005/09/12 10:59:48 neerajbj Exp $
+ * @version $Id: ValidationContext.java,v 1.6 2010/07/23 02:09:29 joehw Exp $
  */
 public interface ValidationContext {
     // whether to validate against facets
@@ -54,4 +60,8 @@ public interface ValidationContext {
 
     // qname
     public String getURI(String prefix);
+
+    // Locale
+    public Locale getLocale();
+
 }

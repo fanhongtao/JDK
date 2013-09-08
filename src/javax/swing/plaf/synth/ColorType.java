@@ -1,8 +1,26 @@
 /*
- * @(#)ColorType.java	1.13 05/11/17
+ * Copyright (c) 2002, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
@@ -11,7 +29,7 @@ package javax.swing.plaf.synth;
  * <p>
  * Each <code>SynthStyle</code> has a set of <code>ColorType</code>s that
  * are accessed by way of the
- * {@link SynthStyle#getColor(SynthContext, ColorType)} method. 
+ * {@link SynthStyle#getColor(SynthContext, ColorType)} method.
  * <code>SynthStyle</code>'s <code>installDefaults</code> will install
  * the <code>FOREGROUND</code> color
  * as the foreground of
@@ -20,7 +38,7 @@ package javax.swing.plaf.synth;
  * foreground and background color). Some components
  * support more color based properties, for
  * example <code>JList</code> has the property
- * <code>selectionForeground</code> which will be mapped to 
+ * <code>selectionForeground</code> which will be mapped to
  * <code>FOREGROUND</code> with a component state of
  * <code>SynthConstants.SELECTED</code>.
  * <p>
@@ -39,7 +57,6 @@ package javax.swing.plaf.synth;
  * }
  * </pre>
  *
- * @version 1.13, 11/17/05
  * @since 1.5
  * @author Scott Violet
  */

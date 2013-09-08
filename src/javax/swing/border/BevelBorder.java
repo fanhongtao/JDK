@@ -1,17 +1,34 @@
 /*
- * @(#)BevelBorder.java	1.22 06/04/07
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.border;
 
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.Color;
 import java.awt.Component;
-
+import java.beans.ConstructorProperties;
 
 /**
  * A class which implements a simple two-line bevel border.
@@ -25,7 +42,6 @@ import java.awt.Component;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.22 04/07/06
  * @author David Kloba
  */
 public class BevelBorder extends AbstractBorder
@@ -65,9 +81,6 @@ public class BevelBorder extends AbstractBorder
     /**
      * Creates a bevel border with the specified type, highlight and
      * shadow colors.
-     * <p>
-     * Note: The shadow inner and outer colors are
-     * switched for a lowered bevel border.
      *
      * @param bevelType the type of bevel for the border
      * @param highlightOuterColor the color to use for the bevel outer highlight
@@ -75,8 +88,9 @@ public class BevelBorder extends AbstractBorder
      * @param shadowOuterColor the color to use for the bevel outer shadow
      * @param shadowInnerColor the color to use for the bevel inner shadow
      */
-    public BevelBorder(int bevelType, Color highlightOuterColor, 
-                       Color highlightInnerColor, Color shadowOuterColor, 
+    @ConstructorProperties({"bevelType", "highlightOuterColor", "highlightInnerColor", "shadowOuterColor", "shadowInnerColor"})
+    public BevelBorder(int bevelType, Color highlightOuterColor,
+                       Color highlightInnerColor, Color shadowOuterColor,
                        Color shadowInnerColor) {
         this(bevelType);
         this.highlightOuter = highlightOuterColor;
@@ -105,20 +119,12 @@ public class BevelBorder extends AbstractBorder
     }
 
     /**
-     * Returns the insets of the border.
-     * @param c the component for which this border insets value applies
-     */
-    public Insets getBorderInsets(Component c)       {
-	return new Insets(2, 2, 2, 2);
-    }
-
-    /** 
-     * Reinitialize the insets parameter with this Border's current Insets. 
+     * Reinitialize the insets parameter with this Border's current Insets.
      * @param c the component for which this border insets value applies
      * @param insets the object to be reinitialized
      */
     public Insets getBorderInsets(Component c, Insets insets) {
-        insets.left = insets.top = insets.right = insets.bottom = 2;
+        insets.set(2, 2, 2, 2);
         return insets;
     }
 
@@ -132,7 +138,7 @@ public class BevelBorder extends AbstractBorder
      */
     public Color getHighlightOuterColor(Component c)   {
         Color highlight = getHighlightOuterColor();
-        return highlight != null? highlight : 
+        return highlight != null? highlight :
                                        c.getBackground().brighter().brighter();
     }
 

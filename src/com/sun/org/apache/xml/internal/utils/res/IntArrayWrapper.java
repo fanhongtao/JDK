@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,15 +29,15 @@ package com.sun.org.apache.xml.internal.utils.res;
  */
 public class IntArrayWrapper {
     private int[] m_int;
-    
+
     public IntArrayWrapper(int[] arg){
         m_int = arg;
     }
-    
+
     public int getInt(int index){
         return m_int[index];
     }
-    
+
     public int getLength(){
         return m_int.length;
     }

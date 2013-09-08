@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +22,6 @@ package com.sun.org.apache.xerces.internal.jaxp.validation;
 
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Locale;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -59,7 +62,7 @@ import org.xml.sax.SAXException;
  * <p>A validator helper for <code>DOMSource</code>s.</p>
  * 
  * @author Michael Glavassevich, IBM
- * @version $Id: DOMValidatorHelper.java,v 1.2.2.1 2007/03/15 16:01:20 spericas Exp $
+ * @version $Id: DOMValidatorHelper.java,v 1.8 2010/07/23 02:09:26 joehw Exp $
  */
 final class DOMValidatorHelper implements ValidatorHelper, EntityState {
     
@@ -195,7 +198,7 @@ final class DOMValidatorHelper implements ValidatorHelper, EntityState {
                 finally {
                     // Release references to application objects
                     fRoot = null;
-                    fCurrentElement = null;
+                    //fCurrentElement = null; -- keep the reference to support current-element-node property
                     fEntities = null;
                     if (fDOMValidatorHandler != null) {
                         fDOMValidatorHandler.setDOMResult(null);
@@ -204,7 +207,7 @@ final class DOMValidatorHelper implements ValidatorHelper, EntityState {
             }
             return;
         }
-        throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(Locale.getDefault(), 
+        throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(fComponentManager.getLocale(),
                 "SourceResultMismatch", 
                 new Object [] {source.getClass().getName(), result.getClass().getName()}));
     }

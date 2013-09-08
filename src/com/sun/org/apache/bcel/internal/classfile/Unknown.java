@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -69,7 +73,6 @@ import java.util.*;
  * com.sun.org.apache.bcel.internal.classfile.AttributeReader)">Attribute.addAttributeReader</a>.
 
  *
- * @version $Id: Unknown.java,v 1.1.2.1 2005/07/31 23:46:30 jeffsuttor Exp $
  * @see com.sun.org.apache.bcel.internal.classfile.Attribute
  * @see com.sun.org.apache.bcel.internal.classfile.AttributeReader
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
@@ -110,13 +113,13 @@ public final class Unknown extends Attribute {
    * @param constant_pool Array of constants
    */
   public Unknown(int name_index, int length, byte[] bytes,
-		 ConstantPool constant_pool)
+                 ConstantPool constant_pool)
   {
     super(Constants.ATTR_UNKNOWN, name_index, length, constant_pool);
     this.bytes = bytes;
 
     name = ((ConstantUtf8)constant_pool.getConstant(name_index,
-						    Constants.CONSTANT_Utf8)).getBytes();
+                                                    Constants.CONSTANT_Utf8)).getBytes();
     unknown_attributes.put(name, this);
   }
 
@@ -129,7 +132,7 @@ public final class Unknown extends Attribute {
    * @throws IOException
    */
   Unknown(int name_index, int length, DataInputStream file,
-	  ConstantPool constant_pool)
+          ConstantPool constant_pool)
        throws IOException
   {
     this(name_index, length, (byte [])null, constant_pool);
@@ -138,7 +141,7 @@ public final class Unknown extends Attribute {
       bytes = new byte[length];
       file.readFully(bytes);
     }
-  }    
+  }
 
   /**
    * Called by objects that are traversing the nodes of the tree implicitely
@@ -149,28 +152,28 @@ public final class Unknown extends Attribute {
    */
   public void accept(Visitor v) {
     v.visitUnknown(this);
-  }    
+  }
   /**
    * Dump unknown bytes to file stream.
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     super.dump(file);
     if(length > 0)
       file.write(bytes, 0, length);
-  }    
+  }
   /**
    * @return data bytes.
-   */  
-  public final byte[] getBytes() { return bytes; }    
+   */
+  public final byte[] getBytes() { return bytes; }
 
   /**
    * @return name of attribute.
-   */  
-  public final String getName() { return name; }    
+   */
+  public final String getName() { return name; }
 
   /**
    * @param bytes.
@@ -181,7 +184,7 @@ public final class Unknown extends Attribute {
 
   /**
    * @return String representation.
-   */ 
+   */
   public final String toString() {
     if(length == 0 || bytes == null)
       return "(Unknown attribute " + name + ")";

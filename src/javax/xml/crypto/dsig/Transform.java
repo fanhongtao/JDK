@@ -1,5 +1,26 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * $Id: Transform.java,v 1.5 2005/05/10 16:03:48 mullan Exp $
@@ -16,9 +37,9 @@ import javax.xml.crypto.XMLStructure;
 import javax.xml.crypto.dsig.spec.TransformParameterSpec;
 
 /**
- * A representation of the XML <code>Transform</code> element as 
+ * A representation of the XML <code>Transform</code> element as
  * defined in the <a href="http://www.w3.org/TR/xmldsig-core/">
- * W3C Recommendation for XML-Signature Syntax and Processing</a>. 
+ * W3C Recommendation for XML-Signature Syntax and Processing</a>.
  * The XML Schema Definition is defined as:
  *
  * <pre>
@@ -34,7 +55,7 @@ import javax.xml.crypto.dsig.spec.TransformParameterSpec;
  * </pre>
  *
  * A <code>Transform</code> instance may be created by invoking the
- * {@link XMLSignatureFactory#newTransform newTransform} method 
+ * {@link XMLSignatureFactory#newTransform newTransform} method
  * of the {@link XMLSignatureFactory} class.
  *
  * @author Sean Mullan
@@ -45,7 +66,7 @@ import javax.xml.crypto.dsig.spec.TransformParameterSpec;
 public interface Transform extends XMLStructure, AlgorithmMethod {
 
     /**
-     * The <a href="http://www.w3.org/2000/09/xmldsig#base64">Base64</a> 
+     * The <a href="http://www.w3.org/2000/09/xmldsig#base64">Base64</a>
      * transform algorithm URI.
      */
     final static String BASE64 = "http://www.w3.org/2000/09/xmldsig#base64";
@@ -54,11 +75,11 @@ public interface Transform extends XMLStructure, AlgorithmMethod {
      * The <a href="http://www.w3.org/2000/09/xmldsig#enveloped-signature">
      * Enveloped Signature</a> transform algorithm URI.
      */
-    final static String ENVELOPED = 
+    final static String ENVELOPED =
         "http://www.w3.org/2000/09/xmldsig#enveloped-signature";
 
     /**
-     * The <a href="http://www.w3.org/TR/1999/REC-xpath-19991116">XPath</a> 
+     * The <a href="http://www.w3.org/TR/1999/REC-xpath-19991116">XPath</a>
      * transform algorithm URI.
      */
     final static String XPATH = "http://www.w3.org/TR/1999/REC-xpath-19991116";
@@ -70,7 +91,7 @@ public interface Transform extends XMLStructure, AlgorithmMethod {
     final static String XPATH2 = "http://www.w3.org/2002/06/xmldsig-filter2";
 
     /**
-     * The <a href="http://www.w3.org/TR/1999/REC-xslt-19991116">XSLT</a> 
+     * The <a href="http://www.w3.org/TR/1999/REC-xslt-19991116">XSLT</a>
      * transform algorithm URI.
      */
     final static String XSLT = "http://www.w3.org/TR/1999/REC-xslt-19991116";
@@ -79,7 +100,7 @@ public interface Transform extends XMLStructure, AlgorithmMethod {
      * Returns the algorithm-specific input parameters associated with this
      * <code>Transform</code>.
      * <p>
-     * The returned parameters can be typecast to a 
+     * The returned parameters can be typecast to a
      * {@link TransformParameterSpec} object.
      *
      * @return the algorithm-specific input parameters (may be <code>null</code>
@@ -103,10 +124,10 @@ public interface Transform extends XMLStructure, AlgorithmMethod {
 
     /**
      * Transforms the specified data using the underlying transform algorithm.
-     * If the output of this transform is an <code>OctetStreamData</code>, then 
-     * this method returns <code>null</code> and the bytes are written to the 
-     * specified <code>OutputStream</code>. Otherwise, the 
-     * <code>OutputStream</code> is ignored and the method behaves as if 
+     * If the output of this transform is an <code>OctetStreamData</code>, then
+     * this method returns <code>null</code> and the bytes are written to the
+     * specified <code>OutputStream</code>. Otherwise, the
+     * <code>OutputStream</code> is ignored and the method behaves as if
      * {@link #transform(Data, XMLCryptoContext)} were invoked.
      *
      * @param data the data to be transformed

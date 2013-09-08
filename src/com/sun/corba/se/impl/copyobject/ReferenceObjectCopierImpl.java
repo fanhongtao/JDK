@@ -1,8 +1,26 @@
 /*
- * @(#)ReferenceObjectCopierImpl.java	1.8 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.copyobject ;
@@ -13,7 +31,6 @@ public class ReferenceObjectCopierImpl implements ObjectCopier
 {
     public Object copy( Object obj )
     {
-	return obj ;
+        return obj ;
     }
 }
-

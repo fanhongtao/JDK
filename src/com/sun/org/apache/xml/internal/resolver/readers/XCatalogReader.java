@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // XCatalogReader.java - Read XML Catalog files
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,7 +42,6 @@ import javax.xml.parsers.*;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class XCatalogReader extends SAXCatalogReader implements SAXCatalogParser {
   /** The catalog object needs to be stored by the object so that
@@ -94,9 +97,9 @@ public class XCatalogReader extends SAXCatalogReader implements SAXCatalogParser
    * @see CatalogEntry
    */
   public void startElement (String namespaceURI,
-			    String localName,
-			    String qName,
-			    Attributes atts)
+                            String localName,
+                            String qName,
+                            Attributes atts)
     throws SAXException {
 
     int entryType = -1;
@@ -113,8 +116,8 @@ public class XCatalogReader extends SAXCatalogReader implements SAXCatalogParser
       entryArgs.add(atts.getValue("HRef"));
 
       catalog.getCatalogManager().debug.message(4, "Delegate",
-		    PublicId.normalize(atts.getValue("PublicId")),
-		    atts.getValue("HRef"));
+                    PublicId.normalize(atts.getValue("PublicId")),
+                    atts.getValue("HRef"));
     } else if (localName.equals("Extend")) {
       entryType = catalog.CATALOG;
       entryArgs.add(atts.getValue("HRef"));
@@ -126,16 +129,16 @@ public class XCatalogReader extends SAXCatalogReader implements SAXCatalogParser
       entryArgs.add(atts.getValue("HRef"));
 
       catalog.getCatalogManager().debug.message(4, "Map",
-		    PublicId.normalize(atts.getValue("PublicId")),
-		    atts.getValue("HRef"));
+                    PublicId.normalize(atts.getValue("PublicId")),
+                    atts.getValue("HRef"));
     } else if (localName.equals("Remap")) {
       entryType = catalog.SYSTEM;
       entryArgs.add(atts.getValue("SystemId"));
       entryArgs.add(atts.getValue("HRef"));
 
       catalog.getCatalogManager().debug.message(4, "Remap",
-		    atts.getValue("SystemId"),
-		    atts.getValue("HRef"));
+                    atts.getValue("SystemId"),
+                    atts.getValue("HRef"));
     } else if (localName.equals("XMLCatalog")) {
       // nop, start of catalog
     } else {
@@ -145,22 +148,22 @@ public class XCatalogReader extends SAXCatalogReader implements SAXCatalogParser
 
     if (entryType >= 0) {
       try {
-	CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	catalog.addEntry(ce);
+        CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+        catalog.addEntry(ce);
       } catch (CatalogException cex) {
-	if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	  catalog.getCatalogManager().debug.message(1, "Invalid catalog entry type", localName);
-	} else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	  catalog.getCatalogManager().debug.message(1, "Invalid catalog entry", localName);
-	}
+        if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+          catalog.getCatalogManager().debug.message(1, "Invalid catalog entry type", localName);
+        } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+          catalog.getCatalogManager().debug.message(1, "Invalid catalog entry", localName);
+        }
       }
     }
     }
 
     /** The SAX <code>endElement</code> method does nothing. */
     public void endElement (String namespaceURI,
-			    String localName,
-			    String qName)
+                            String localName,
+                            String qName)
       throws SAXException {
       return;
     }

@@ -1,10 +1,28 @@
 /*
- * @(#)BasicButtonUI.java	1.119 09/08/10
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package javax.swing.plaf.basic;
 
 import sun.swing.SwingUtilities2;
@@ -25,7 +43,6 @@ import javax.swing.text.View;
 /**
  * BasicButton implementation
  *
- * @version 1.119 08/10/09
  * @author Jeff Dinkins
  */
 public class BasicButtonUI extends ButtonUI{
@@ -33,7 +50,7 @@ public class BasicButtonUI extends ButtonUI{
     // NOTE: This is not used or set any where. Were we allowed to remove
     // fields, this would be removed.
     protected int defaultTextIconGap;
-    
+
     // Amount to offset text, the value of this comes from
     // defaultTextShiftOffset once setTextShiftOffset has been invoked.
     private int shiftOffset = 0;
@@ -42,7 +59,7 @@ public class BasicButtonUI extends ButtonUI{
     protected int defaultTextShiftOffset;
 
     private final static String propertyPrefix = "Button" + ".";
-    
+
     private static final Object BASIC_BUTTON_UI_KEY = new Object();
 
     // ********************************
@@ -50,7 +67,7 @@ public class BasicButtonUI extends ButtonUI{
     // ********************************
     public static ComponentUI createUI(JComponent c) {
         AppContext appContext = AppContext.getAppContext();
-        BasicButtonUI buttonUI = 
+        BasicButtonUI buttonUI =
                 (BasicButtonUI) appContext.get(BASIC_BUTTON_UI_KEY);
         if (buttonUI == null) {
             buttonUI = new BasicButtonUI();
@@ -71,7 +88,7 @@ public class BasicButtonUI extends ButtonUI{
         installDefaults((AbstractButton) c);
         installListeners((AbstractButton) c);
         installKeyboardActions((AbstractButton) c);
-	BasicHTML.updateRenderer(c, ((AbstractButton) c).getText());
+        BasicHTML.updateRenderer(c, ((AbstractButton) c).getText());
     }
 
     protected void installDefaults(AbstractButton b) {
@@ -91,7 +108,7 @@ public class BasicButtonUI extends ButtonUI{
             b.setMargin(UIManager.getInsets(pp + "margin"));
         }
 
-	LookAndFeel.installColorsAndFont(b, pp + "background",
+        LookAndFeel.installColorsAndFont(b, pp + "background",
                                          pp + "foreground", pp + "font");
         LookAndFeel.installBorder(b, pp + "border");
 
@@ -100,7 +117,7 @@ public class BasicButtonUI extends ButtonUI{
             LookAndFeel.installProperty(b, "rolloverEnabled", rollover);
         }
 
-        LookAndFeel.installProperty(b, "iconTextGap", new Integer(4));
+        LookAndFeel.installProperty(b, "iconTextGap", Integer.valueOf(4));
     }
 
     protected void installListeners(AbstractButton b) {
@@ -113,7 +130,7 @@ public class BasicButtonUI extends ButtonUI{
             b.addChangeListener(listener);
         }
     }
-    
+
     protected void installKeyboardActions(AbstractButton b){
         BasicButtonListener listener = getButtonListener(b);
 
@@ -122,7 +139,7 @@ public class BasicButtonUI extends ButtonUI{
         }
     }
 
-        
+
     // ********************************
     //         Uninstall PLAF
     // ********************************
@@ -130,7 +147,7 @@ public class BasicButtonUI extends ButtonUI{
         uninstallKeyboardActions((AbstractButton) c);
         uninstallListeners((AbstractButton) c);
         uninstallDefaults((AbstractButton) c);
-	BasicHTML.updateRenderer(c, "");
+        BasicHTML.updateRenderer(c, "");
     }
 
     protected void uninstallKeyboardActions(AbstractButton b) {
@@ -154,9 +171,9 @@ public class BasicButtonUI extends ButtonUI{
     protected void uninstallDefaults(AbstractButton b) {
         LookAndFeel.uninstallBorder(b);
     }
-  
+
     // ********************************
-    //        Create Listeners 
+    //        Create Listeners
     // ********************************
     protected BasicButtonListener createButtonListener(AbstractButton b) {
         return new BasicButtonListener(b);
@@ -166,8 +183,8 @@ public class BasicButtonUI extends ButtonUI{
         return defaultTextIconGap;
     }
 
-    /* These rectangles/insets are allocated once for all 
-     * ButtonUI.paint() calls.  Re-using rectangles rather than 
+    /* These rectangles/insets are allocated once for all
+     * ButtonUI.paint() calls.  Re-using rectangles rather than
      * allocating them in each paint call substantially reduced the time
      * it took paint to run.  Obviously, this method can't be re-entered.
      */
@@ -179,7 +196,7 @@ public class BasicButtonUI extends ButtonUI{
     //          Paint Methods
     // ********************************
 
-    public void paint(Graphics g, JComponent c) 
+    public void paint(Graphics g, JComponent c)
     {
         AbstractButton b = (AbstractButton) c;
         ButtonModel model = b.getModel();
@@ -191,21 +208,21 @@ public class BasicButtonUI extends ButtonUI{
 
         // perform UI specific press action, e.g. Windows L&F shifts text
         if (model.isArmed() && model.isPressed()) {
-            paintButtonPressed(g,b); 
+            paintButtonPressed(g,b);
         }
 
         // Paint the Icon
-        if(b.getIcon() != null) { 
+        if(b.getIcon() != null) {
             paintIcon(g,c,iconRect);
         }
 
         if (text != null && !text.equals("")){
-	    View v = (View) c.getClientProperty(BasicHTML.propertyKey);
-	    if (v != null) {
-		v.paint(g, textRect);
-	    } else {
-		paintText(g, b, textRect, text);
-	    }
+            View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+            if (v != null) {
+                v.paint(g, textRect);
+            } else {
+                paintText(g, b, textRect, text);
+            }
         }
 
         if (b.isFocusPainted() && b.hasFocus()) {
@@ -213,61 +230,61 @@ public class BasicButtonUI extends ButtonUI{
             paintFocus(g,b,viewRect,textRect,iconRect);
         }
     }
-    
+
     protected void paintIcon(Graphics g, JComponent c, Rectangle iconRect){
-            AbstractButton b = (AbstractButton) c;                           
+            AbstractButton b = (AbstractButton) c;
             ButtonModel model = b.getModel();
             Icon icon = b.getIcon();
             Icon tmpIcon = null;
 
-	    if(icon == null) {
-	       return;
-	    }
+            if(icon == null) {
+               return;
+            }
 
             Icon selectedIcon = null;
 
             /* the fallback icon should be based on the selected state */
             if (model.isSelected()) {
-                selectedIcon = (Icon) b.getSelectedIcon();
+                selectedIcon = b.getSelectedIcon();
                 if (selectedIcon != null) {
                     icon = selectedIcon;
                 }
             }
 
             if(!model.isEnabled()) {
-		if(model.isSelected()) {
-                   tmpIcon = (Icon) b.getDisabledSelectedIcon();
+                if(model.isSelected()) {
+                   tmpIcon = b.getDisabledSelectedIcon();
                    if (tmpIcon == null) {
                        tmpIcon = selectedIcon;
                    }
                 }
 
                 if (tmpIcon == null) {
-                    tmpIcon = (Icon) b.getDisabledIcon();
+                    tmpIcon = b.getDisabledIcon();
                 }
             } else if(model.isPressed() && model.isArmed()) {
-                tmpIcon = (Icon) b.getPressedIcon();
+                tmpIcon = b.getPressedIcon();
                 if(tmpIcon != null) {
                     // revert back to 0 offset
                     clearTextShiftOffset();
                 }
             } else if(b.isRolloverEnabled() && model.isRollover()) {
-		if(model.isSelected()) {
-                   tmpIcon = (Icon) b.getRolloverSelectedIcon();
+                if(model.isSelected()) {
+                   tmpIcon = b.getRolloverSelectedIcon();
                    if (tmpIcon == null) {
                        tmpIcon = selectedIcon;
                    }
                 }
 
                 if (tmpIcon == null) {
-                    tmpIcon = (Icon) b.getRolloverIcon();
+                    tmpIcon = b.getRolloverIcon();
                 }
             }
-              
-	    if(tmpIcon != null) {
-	        icon = tmpIcon;
-	    }
-               
+
+            if(tmpIcon != null) {
+                icon = tmpIcon;
+            }
+
             if(model.isPressed() && model.isArmed()) {
                 icon.paintIcon(c, g, iconRect.x + getTextShiftOffset(),
                         iconRect.y + getTextShiftOffset());
@@ -282,28 +299,28 @@ public class BasicButtonUI extends ButtonUI{
      * Use the paintText method which takes the AbstractButton argument.
      */
     protected void paintText(Graphics g, JComponent c, Rectangle textRect, String text) {
-        AbstractButton b = (AbstractButton) c;                       
+        AbstractButton b = (AbstractButton) c;
         ButtonModel model = b.getModel();
         FontMetrics fm = SwingUtilities2.getFontMetrics(c, g);
         int mnemonicIndex = b.getDisplayedMnemonicIndex();
 
-	/* Draw the Text */
-	if(model.isEnabled()) {
-	    /*** paint the text normally */
-	    g.setColor(b.getForeground());
-	    SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
-					  textRect.x + getTextShiftOffset(),
-					  textRect.y + fm.getAscent() + getTextShiftOffset());
-	}
-	else {
-	    /*** paint the text disabled ***/
-	    g.setColor(b.getBackground().brighter());
-	    SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
-					  textRect.x, textRect.y + fm.getAscent());
-	    g.setColor(b.getBackground().darker());
-	    SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
-					  textRect.x - 1, textRect.y + fm.getAscent() - 1);
-	}
+        /* Draw the Text */
+        if(model.isEnabled()) {
+            /*** paint the text normally */
+            g.setColor(b.getForeground());
+            SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
+                                          textRect.x + getTextShiftOffset(),
+                                          textRect.y + fm.getAscent() + getTextShiftOffset());
+        }
+        else {
+            /*** paint the text disabled ***/
+            g.setColor(b.getBackground().brighter());
+            SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
+                                          textRect.x, textRect.y + fm.getAscent());
+            g.setColor(b.getBackground().darker());
+            SwingUtilities2.drawStringUnderlineCharAt(c, g,text, mnemonicIndex,
+                                          textRect.x - 1, textRect.y + fm.getAscent() - 1);
+        }
     }
 
     /**
@@ -316,15 +333,15 @@ public class BasicButtonUI extends ButtonUI{
      * @since 1.4
      */
     protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text) {
-	paintText(g, (JComponent)b, textRect, text);
+        paintText(g, (JComponent)b, textRect, text);
     }
 
-    // Method signature defined here overriden in subclasses. 
+    // Method signature defined here overriden in subclasses.
     // Perhaps this class should be abstract?
     protected void paintFocus(Graphics g, AbstractButton b,
                               Rectangle viewRect, Rectangle textRect, Rectangle iconRect){
     }
-  
+
 
 
     protected void paintButtonPressed(Graphics g, AbstractButton b){
@@ -347,11 +364,11 @@ public class BasicButtonUI extends ButtonUI{
     // ********************************
     public Dimension getMinimumSize(JComponent c) {
         Dimension d = getPreferredSize(c);
-	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
-	if (v != null) {
-	    d.width -= v.getPreferredSpan(View.X_AXIS) - v.getMinimumSpan(View.X_AXIS);
-	}
-	return d;
+        View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+        if (v != null) {
+            d.width -= v.getPreferredSpan(View.X_AXIS) - v.getMinimumSpan(View.X_AXIS);
+        }
+        return d;
     }
 
     public Dimension getPreferredSize(JComponent c) {
@@ -361,11 +378,11 @@ public class BasicButtonUI extends ButtonUI{
 
     public Dimension getMaximumSize(JComponent c) {
         Dimension d = getPreferredSize(c);
-	View v = (View) c.getClientProperty(BasicHTML.propertyKey);
-	if (v != null) {
-	    d.width += v.getMaximumSpan(View.X_AXIS) - v.getPreferredSpan(View.X_AXIS);
-	}
-	return d;
+        View v = (View) c.getClientProperty(BasicHTML.propertyKey);
+        if (v != null) {
+            d.width += v.getMaximumSpan(View.X_AXIS) - v.getPreferredSpan(View.X_AXIS);
+        }
+        return d;
     }
 
     /**
@@ -427,10 +444,10 @@ public class BasicButtonUI extends ButtonUI{
 
         // layout the text and icon
         return SwingUtilities.layoutCompoundLabel(
-            b, fm, b.getText(), b.getIcon(), 
+            b, fm, b.getText(), b.getIcon(),
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
-            viewRect, iconRect, textRect, 
+            viewRect, iconRect, textRect,
             b.getText() == null ? 0 : b.getIconTextGap());
     }
 
@@ -442,9 +459,9 @@ public class BasicButtonUI extends ButtonUI{
         MouseMotionListener[] listeners = b.getMouseMotionListeners();
 
         if (listeners != null) {
-            for (int counter = 0; counter < listeners.length; counter++) {
-                if (listeners[counter] instanceof BasicButtonListener) {
-                    return (BasicButtonListener)listeners[counter];
+            for (MouseMotionListener listener : listeners) {
+                if (listener instanceof BasicButtonListener) {
+                    return (BasicButtonListener) listener;
                 }
             }
         }

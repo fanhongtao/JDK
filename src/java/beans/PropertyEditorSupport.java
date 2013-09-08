@@ -1,8 +1,26 @@
 /*
- * @(#)PropertyEditorSupport.java	1.22 05/11/17
+ * Copyright (c) 1996, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
@@ -19,11 +37,11 @@ public class PropertyEditorSupport implements PropertyEditor {
 
     /**
      * Constructs a <code>PropertyEditorSupport</code> object.
-     * 
+     *
      * @since 1.5
      */
     public PropertyEditorSupport() {
-	setSource(this);
+        setSource(this);
     }
 
     /**
@@ -33,10 +51,10 @@ public class PropertyEditorSupport implements PropertyEditor {
      * @since 1.5
      */
     public PropertyEditorSupport(Object source) {
-	if (source == null) {
-	   throw new NullPointerException();
-	}
-	setSource(source);
+        if (source == null) {
+           throw new NullPointerException();
+        }
+        setSource(source);
     }
 
     /**
@@ -49,7 +67,7 @@ public class PropertyEditorSupport implements PropertyEditor {
      * @since 1.5
      */
     public Object getSource() {
-	return source;
+        return source;
     }
 
     /**
@@ -63,20 +81,20 @@ public class PropertyEditorSupport implements PropertyEditor {
      * @since 1.5
      */
     public void setSource(Object source) {
-	this.source = source;
+        this.source = source;
     }
 
     /**
      * Set (or change) the object that is to be edited.
      *
      * @param value The new target object to be edited.  Note that this
-     *     object should not be modified by the PropertyEditor, rather 
+     *     object should not be modified by the PropertyEditor, rather
      *     the PropertyEditor should create a new object to hold any
      *     modified value.
      */
     public void setValue(Object value) {
-	this.value = value;
-	firePropertyChange();
+        this.value = value;
+        firePropertyChange();
     }
 
     /**
@@ -85,7 +103,7 @@ public class PropertyEditorSupport implements PropertyEditor {
      * @return The value of the property.
      */
     public Object getValue() {
-	return value;
+        return value;
     }
 
     //----------------------------------------------------------------------
@@ -97,7 +115,7 @@ public class PropertyEditorSupport implements PropertyEditor {
      */
 
     public boolean isPaintable() {
-	return false;
+        return false;
     }
 
     /**
@@ -125,10 +143,10 @@ public class PropertyEditorSupport implements PropertyEditor {
      * Example results are "2", "new Color(127,127,34)", "Color.orange", etc.
      *
      * @return A fragment of Java code representing an initializer for the
-     *   	current value.
+     *          current value.
      */
     public String getJavaInitializationString() {
-	return "???";
+        return "???";
     }
 
     //----------------------------------------------------------------------
@@ -139,15 +157,14 @@ public class PropertyEditorSupport implements PropertyEditor {
      *
      * @return The property value as a string suitable for presentation
      *       to a human to edit.
-     * <p>   Returns "null" is the value can't be expressed as a string.
+     * <p>   Returns null if the value can't be expressed as a string.
      * <p>   If a non-null value is returned, then the PropertyEditor should
-     *	     be prepared to parse that string back in setAsText().
+     *       be prepared to parse that string back in setAsText().
      */
     public String getAsText() {
-	if (value instanceof String) {
-	    return (String)value;
-	}
-	return ("" + value);
+        return (this.value != null)
+                ? this.value.toString()
+                : null;
     }
 
     /**
@@ -159,28 +176,28 @@ public class PropertyEditorSupport implements PropertyEditor {
      * @param text  The string to be parsed.
      */
     public void setAsText(String text) throws java.lang.IllegalArgumentException {
-	if (value instanceof String) {
-	    setValue(text);
-	    return;
-	}
-	throw new java.lang.IllegalArgumentException(text);
+        if (value instanceof String) {
+            setValue(text);
+            return;
+        }
+        throw new java.lang.IllegalArgumentException(text);
     }
 
     //----------------------------------------------------------------------
 
     /**
-     * If the property value must be one of a set of known tagged values, 
+     * If the property value must be one of a set of known tagged values,
      * then this method should return an array of the tag values.  This can
      * be used to represent (for example) enum values.  If a PropertyEditor
      * supports tags, then it should support the use of setAsText with
      * a tag value as a way of setting the value.
      *
-     * @return The tag values for this property.  May be null if this 
+     * @return The tag values for this property.  May be null if this
      *   property cannot be represented as a tagged value.
-     *	
+     *
      */
     public String[] getTags() {
-	return null;
+        return null;
     }
 
     //----------------------------------------------------------------------
@@ -197,11 +214,11 @@ public class PropertyEditorSupport implements PropertyEditor {
      *
      * @return A java.awt.Component that will allow a human to directly
      *      edit the current property value.  May be null if this is
-     *	    not supported.
+     *      not supported.
      */
 
     public java.awt.Component getCustomEditor() {
-	return null;
+        return null;
     }
 
     /**
@@ -210,57 +227,71 @@ public class PropertyEditorSupport implements PropertyEditor {
      * @return  True if the propertyEditor can provide a custom editor.
      */
     public boolean supportsCustomEditor() {
-	return false;
+        return false;
     }
-  
+
     //----------------------------------------------------------------------
 
     /**
-     * Register a listener for the PropertyChange event.  The class will
-     * fire a PropertyChange value whenever the value is updated.
+     * Adds a listener for the value change.
+     * When the property editor changes its value
+     * it should fire a {@link PropertyChangeEvent}
+     * on all registered {@link PropertyChangeListener}s,
+     * specifying the {@code null} value for the property name.
+     * If the source property is set,
+     * it should be used as the source of the event.
+     * <p>
+     * The same listener object may be added more than once,
+     * and will be called as many times as it is added.
+     * If {@code listener} is {@code null},
+     * no exception is thrown and no action is taken.
      *
-     * @param listener  An object to be invoked when a PropertyChange
-     *		event is fired.
+     * @param listener  the {@link PropertyChangeListener} to add
      */
     public synchronized void addPropertyChangeListener(
-				PropertyChangeListener listener) {
-	if (listeners == null) {
-	    listeners = new java.util.Vector();
-	}
-	listeners.addElement(listener);
+                                PropertyChangeListener listener) {
+        if (listeners == null) {
+            listeners = new java.util.Vector();
+        }
+        listeners.addElement(listener);
     }
 
     /**
-     * Remove a listener for the PropertyChange event.
+     * Removes a listener for the value change.
+     * <p>
+     * If the same listener was added more than once,
+     * it will be notified one less time after being removed.
+     * If {@code listener} is {@code null}, or was never added,
+     * no exception is thrown and no action is taken.
      *
-     * @param listener  The PropertyChange listener to be removed.
+     * @param listener  the {@link PropertyChangeListener} to remove
      */
     public synchronized void removePropertyChangeListener(
-				PropertyChangeListener listener) {
-	if (listeners == null) {
-	    return;
-	}
-	listeners.removeElement(listener);
+                                PropertyChangeListener listener) {
+        if (listeners == null) {
+            return;
+        }
+        listeners.removeElement(listener);
     }
 
     /**
      * Report that we have been modified to any interested listeners.
      */
     public void firePropertyChange() {
-	java.util.Vector targets;
-	synchronized (this) {
-	    if (listeners == null) {
-	    	return;
-	    }
-	    targets = (java.util.Vector) listeners.clone();
-	}
-	// Tell our listeners that "everything" has changed.
+        java.util.Vector targets;
+        synchronized (this) {
+            if (listeners == null) {
+                return;
+            }
+            targets = (java.util.Vector) listeners.clone();
+        }
+        // Tell our listeners that "everything" has changed.
         PropertyChangeEvent evt = new PropertyChangeEvent(source, null, null, null);
 
-	for (int i = 0; i < targets.size(); i++) {
-	    PropertyChangeListener target = (PropertyChangeListener)targets.elementAt(i);
-	    target.propertyChange(evt);
-	}
+        for (int i = 0; i < targets.size(); i++) {
+            PropertyChangeListener target = (PropertyChangeListener)targets.elementAt(i);
+            target.propertyChange(evt);
+        }
     }
 
     //----------------------------------------------------------------------

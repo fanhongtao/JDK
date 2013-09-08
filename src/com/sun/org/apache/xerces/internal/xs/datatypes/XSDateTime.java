@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,11 +23,11 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
- * <p>Interface to expose the values for all date-time related types. The following 
- * table shows the methods defined for various XML Schema 1.0 built-in types. 'X' 
+ * <p>Interface to expose the values for all date-time related types. The following
+ * table shows the methods defined for various XML Schema 1.0 built-in types. 'X'
  * marks whether a particular method is defined for a particular type. Accessing undefined
  * methods may return unexpected values.
- * 
+ *
  * <table border="1">
  * <br/>
  * <tr>
@@ -198,91 +202,90 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * </tr>
  * </table>
  * </p>
- * 
+ *
  * @author Ankit Pasricha, IBM
- * 
- * @version $Id: XSDateTime.java,v 1.3.6.1 2005/09/06 03:58:10 sunithareddy Exp $
+ *
  */
 public interface XSDateTime {
-	
+
     /**
      * @return years - can be negative for date-time related types;
-     *          
+     *
      */
     public int getYears();
-    
+
     /**
      * @return months - can be negative only for duration types;
      *                  For duration types, it returns years*12 + months
      */
     public int getMonths();
-    
+
     /**
      * @return days - cannot be negative;
-     *          
+     *
      */
     public int getDays();
-    
+
     /**
      * @return hours - cannot be negative;
-     *          
+     *
      */
     public int getHours();
-    
+
     /**
      * @return minutes - cannot be negative;
-     *          
+     *
      */
     public int getMinutes();
-    
+
     /**
      * @return seconds - can be negative only for durations;
-     *                   For duration types, it returns days*24*3600 + hours*3600 
-     *                                                  + minutes*60 + seconds 
+     *                   For duration types, it returns days*24*3600 + hours*3600
+     *                                                  + minutes*60 + seconds
      */
     public double getSeconds();
-    
+
     /**
      * @return boolean (true when timezone is specified in the original lexical value)
-     *                  
+     *
      */
     public boolean hasTimeZone();
-    
+
     /**
      * @return timezone hours (for GMT-xx:xx this will be negative),
-     *                          
+     *
      */
     public int getTimeZoneHours();
-    
+
     /**
      * @return timezone minutes (for GMT-xx:xx this will be negative),
-     *                          
+     *
      */
     public int getTimeZoneMinutes();
-    
+
     /**
      * @return the original lexical value
      */
     public String getLexicalValue();
-    
+
     /**
      * @return a new date-time related object with normalized values
      *         (has no effect on objects already
      *          normalized)
      */
     public XSDateTime normalize();
-    
+
     /**
      * @return whether a date-time related object is normalized or not
      *         (value is not useful for types where timezone is not specified)
      */
     public boolean isNormalized();
-       
+
     /**
      * @return an un-normalized XMLGregorianCalendar (if applicable otherwise null)
      */
     public XMLGregorianCalendar getXMLGregorianCalendar();
-        
+
     /**
      * @return a Duration (if applicable otherwise null)
      */

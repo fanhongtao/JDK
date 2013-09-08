@@ -1,8 +1,26 @@
 /*
- * @(#)Servant.java	1.19 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package org.omg.PortableServer;
 
@@ -10,13 +28,13 @@ import org.omg.CORBA.ORB;
 import org.omg.PortableServer.portable.Delegate;
 
 /**
- * Defines the native <code>Servant</code> type. In Java, the 
- * <code>Servant</code> type is mapped to the Java 
+ * Defines the native <code>Servant</code> type. In Java, the
+ * <code>Servant</code> type is mapped to the Java
  * <code>org.omg.PortableServer.Servant</code> class.
- * It serves as the base class for all POA servant 
- * implementations and provides a number of methods that may 
- * be invoked by the application programmer, as well as methods 
- * which are invoked by the POA itself and may be overridden by 
+ * It serves as the base class for all POA servant
+ * implementations and provides a number of methods that may
+ * be invoked by the application programmer, as well as methods
+ * which are invoked by the POA itself and may be overridden by
  * the user to control aspects of servant behavior.
  * Based on IDL to Java spec. (CORBA V2.3.1) ptc/00-01-08.pdf.
  */
@@ -32,8 +50,8 @@ abstract public class Servant {
      */
     final public Delegate _get_delegate() {
         if (_delegate == null) {
-            throw 
-                new 
+            throw
+                new
                 org.omg.CORBA.BAD_INV_ORDER
                 ("The Servant has not been associated with an ORB instance");
         }
@@ -72,8 +90,8 @@ abstract public class Servant {
             ((org.omg.CORBA_2_3.ORB)orb).set_delegate(this);
         }
         catch(ClassCastException e) {
-            throw 
-                new 
+            throw
+                new
                 org.omg.CORBA.BAD_PARAM
                 ("POA Servant requires an instance of org.omg.CORBA_2_3.ORB");
         }
@@ -81,9 +99,9 @@ abstract public class Servant {
     }
 
     /**
-     * Returns the instance of the ORB 
+     * Returns the instance of the ORB
      * currently associated with the <code>Servant</code> (convenience method).
-     * @return <code>orb</code> the instance of the ORB currently 
+     * @return <code>orb</code> the instance of the ORB currently
      * associated with the <code>Servant</code>.
      */
     final public ORB _orb() {
@@ -91,8 +109,8 @@ abstract public class Servant {
     }
 
     /**
-     * Allows easy execution of common methods, equivalent to 
-     * <code>PortableServer::Current:get_POA</code>. 
+     * Allows easy execution of common methods, equivalent to
+     * <code>PortableServer::Current:get_POA</code>.
      * @return <code>poa</code> POA associated with the servant.
      */
     final public POA _poa() {
@@ -126,24 +144,24 @@ abstract public class Servant {
      * on the list returned by <code>_all_interfaces()</code> or is the
      * <code>repository_id</code> for the generic CORBA Object.
      * @param repository_id the <code>repository_id</code>
-     *		to be checked in the repository list or against the id
-     *		of generic CORBA objects.
+     *          to be checked in the repository list or against the id
+     *          of generic CORBA objects.
      * @return <code>is_a</code> boolean indicating whether the specified
-     *		<code>repository_id</code> is
+     *          <code>repository_id</code> is
      *         in the repository list or is same as a generic CORBA
      *         object.
      */
     public boolean _is_a(String repository_id) {
         return _get_delegate().is_a(this, repository_id);
     }
-    
+
     /**
      * Checks for the existence of an
      * <code>Object</code>.
      * The <code>Servant</code> provides a default implementation of
      * <code>_non_existent()</code> that can be overridden by derived servants.
      * @return <code>non_existent</code> <code>true</code> if that object does
-     *		 not exist,  <code>false</code> otherwise.
+     *           not exist,  <code>false</code> otherwise.
      */
     public boolean _non_existent() {
         return _get_delegate().non_existent(this);
@@ -172,7 +190,7 @@ abstract public class Servant {
     /**
      * Returns an <code>InterfaceDef</code> object as a
      * <code>CORBA::Object</code> that defines the runtime type of the
-     * <code>CORBA::Object</code> implemented by the <code>Servant</code>. 
+     * <code>CORBA::Object</code> implemented by the <code>Servant</code>.
      * The invoker of <code>_get_interface_def</code>
      * must narrow the result to an <code>InterfaceDef</code> in order
      * to use it.
@@ -180,10 +198,10 @@ abstract public class Servant {
      * can be overridden
      * by derived servants if the default behavior is not adequate.
      * As defined in the CORBA 2.3.1 specification, section 11.3.1, the
-     * default behavior of <code>_get_interface_def()</code> is to use 
+     * default behavior of <code>_get_interface_def()</code> is to use
      * the most derived
      * interface of a static servant or the most derived interface retrieved
-     * from a dynamic servant to obtain the <code>InterfaceDef</code>. 
+     * from a dynamic servant to obtain the <code>InterfaceDef</code>.
      * This behavior must
      * be supported by the <code>Delegate</code> that implements the
      * <code>Servant</code>.
@@ -237,7 +255,7 @@ abstract public class Servant {
     // methods for which the user must provide an
     // implementation
     /**
-     * Used by the ORB to obtain complete type 
+     * Used by the ORB to obtain complete type
      * information from the servant.
      * @param poa POA with which the servant is associated.
      * @param objectId is the id corresponding to the object

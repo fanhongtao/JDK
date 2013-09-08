@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -55,13 +59,12 @@ package com.sun.org.apache.bcel.internal.generic;
  */
 import com.sun.org.apache.bcel.internal.Constants;
 
-/** 
+/**
  * Instances of this class may be used, e.g., to generate typed
  * versions of instructions. Its main purpose is to be used as the
  * byte code generating backend of a compiler. You can subclass it to
  * add your own create methods.
  *
- * @version $Id: InstructionFactory.java,v 1.1.2.1 2005/07/31 23:45:04 jeffsuttor Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Constants
  */
@@ -99,7 +102,7 @@ public class InstructionFactory
    * @see Constants
    */
   public InvokeInstruction createInvoke(String class_name, String name, Type ret_type,
-					Type[] arg_types, short kind) {
+                                        Type[] arg_types, short kind) {
     int    index;
     int    nargs      = 0;
     String signature  = Type.getMethodSignature(ret_type, arg_types);
@@ -129,9 +132,9 @@ public class InstructionFactory
   public InstructionList createPrintln(String s) {
     InstructionList il      = new InstructionList();
     int             out     = cp.addFieldref("java.lang.System", "out",
-					     "Ljava/io/PrintStream;");
+                                             "Ljava/io/PrintStream;");
     int             println = cp.addMethodref("java.io.PrintStream", "println",
-					      "(Ljava/lang/String;)V");
+                                              "(Ljava/lang/String;)V");
 
     il.append(new GETSTATIC(out));
     il.append(new PUSH(cp, s));
@@ -183,30 +186,30 @@ public class InstructionFactory
 
   private static MethodObject[] append_mos = {
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER,
-		     new Type[] { Type.STRING }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.STRING }, Constants.ACC_PUBLIC),
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER,
-		     new Type[] { Type.OBJECT }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.OBJECT }, Constants.ACC_PUBLIC),
     null, null, // indices 2, 3
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER,
-		     new Type[] { Type.BOOLEAN }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.BOOLEAN }, Constants.ACC_PUBLIC),
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER,
-		     new Type[] { Type.CHAR }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.CHAR }, Constants.ACC_PUBLIC),
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER,
-		     new Type[] { Type.FLOAT }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.FLOAT }, Constants.ACC_PUBLIC),
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER,
-		     new Type[] { Type.DOUBLE }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.DOUBLE }, Constants.ACC_PUBLIC),
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER,
-		     new Type[] { Type.INT }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.INT }, Constants.ACC_PUBLIC),
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER, // No append(byte)
-		     new Type[] { Type.INT }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.INT }, Constants.ACC_PUBLIC),
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER, // No append(short)
-		     new Type[] { Type.INT }, Constants.ACC_PUBLIC),
+                     new Type[] { Type.INT }, Constants.ACC_PUBLIC),
     new MethodObject("java.lang.StringBuffer", "append", Type.STRINGBUFFER,
-		     new Type[] { Type.LONG }, Constants.ACC_PUBLIC)    
+                     new Type[] { Type.LONG }, Constants.ACC_PUBLIC)
   };
 
   private static final boolean isString(Type type) {
-    return ((type instanceof ObjectType) && 
+    return ((type instanceof ObjectType) &&
             ((ObjectType)type).getClassName().equals("java.lang.String"));
   }
 
@@ -218,7 +221,7 @@ public class InstructionFactory
 
     switch(t) {
     case Constants.T_BOOLEAN:
-    case Constants.T_CHAR: 
+    case Constants.T_CHAR:
     case Constants.T_FLOAT:
     case Constants.T_DOUBLE:
     case Constants.T_BYTE:
@@ -274,7 +277,7 @@ public class InstructionFactory
     case Constants.T_INT:
     case Constants.T_SHORT:
     case Constants.T_BOOLEAN:
-    case Constants.T_CHAR: 
+    case Constants.T_CHAR:
     case Constants.T_BYTE:    return IRETURN;
     case Constants.T_FLOAT:   return FRETURN;
     case Constants.T_DOUBLE:  return DRETURN;
@@ -285,7 +288,7 @@ public class InstructionFactory
       throw new RuntimeException("Invalid type: " + type);
     }
   }
-  
+
   private static final ArithmeticInstruction createBinaryIntOp(char first, String op) {
     switch(first) {
     case '-' : return ISUB;
@@ -478,27 +481,27 @@ public class InstructionFactory
       byte src  = src_type.getType();
 
       if(dest == Constants.T_LONG && (src == Constants.T_CHAR || src == Constants.T_BYTE ||
-				      src == Constants.T_SHORT))
-	src = Constants.T_INT;
+                                      src == Constants.T_SHORT))
+        src = Constants.T_INT;
 
       String[] short_names = { "C", "F", "D", "B", "S", "I", "L" };
 
       String name = "com.sun.org.apache.bcel.internal.generic." + short_names[src - Constants.T_CHAR] +
-	"2" + short_names[dest - Constants.T_CHAR];
-      
+        "2" + short_names[dest - Constants.T_CHAR];
+
       Instruction i = null;
       try {
-	i = (Instruction)java.lang.Class.forName(name).newInstance();
+        i = (Instruction)java.lang.Class.forName(name).newInstance();
       } catch(Exception e) {
-	throw new RuntimeException("Could not find instruction: " + name);
+        throw new RuntimeException("Could not find instruction: " + name);
       }
 
       return i;
     } else if((src_type instanceof ReferenceType) && (dest_type instanceof ReferenceType)) {
       if(dest_type instanceof ArrayType)
-	return new CHECKCAST(cp.addArrayClass((ArrayType)dest_type));
+        return new CHECKCAST(cp.addArrayClass((ArrayType)dest_type));
       else
-	return new CHECKCAST(cp.addClass(((ObjectType)dest_type).getClassName()));
+        return new CHECKCAST(cp.addClass(((ObjectType)dest_type).getClassName()));
     }
     else
       throw new RuntimeException("Can not cast " + src_type + " to " + dest_type);
@@ -548,18 +551,18 @@ public class InstructionFactory
   public Instruction createNewArray(Type t, short dim) {
     if(dim == 1) {
       if(t instanceof ObjectType)
-	return new ANEWARRAY(cp.addClass((ObjectType)t));
+        return new ANEWARRAY(cp.addClass((ObjectType)t));
       else if(t instanceof ArrayType)
-	return new ANEWARRAY(cp.addArrayClass((ArrayType)t));
+        return new ANEWARRAY(cp.addArrayClass((ArrayType)t));
       else
-	return new NEWARRAY(((BasicType)t).getType());
+        return new NEWARRAY(((BasicType)t).getType());
     } else {
       ArrayType at;
 
       if(t instanceof ArrayType)
-	at = (ArrayType)t;
+        at = (ArrayType)t;
       else
-	at = new ArrayType(t, dim);
+        at = new ArrayType(t, dim);
 
       return new MULTIANEWARRAY(cp.addArrayClass(at), dim);
     }
@@ -574,7 +577,7 @@ public class InstructionFactory
     case Constants.T_INT:
     case Constants.T_SHORT:
     case Constants.T_BOOLEAN:
-    case Constants.T_CHAR: 
+    case Constants.T_CHAR:
     case Constants.T_BYTE:    return ICONST_0;
     case Constants.T_FLOAT:   return FCONST_0;
     case Constants.T_DOUBLE:  return DCONST_0;
@@ -612,7 +615,7 @@ public class InstructionFactory
     case Constants.GOTO_W:    return new GOTO_W(target);
     case Constants.JSR_W:     return new JSR_W(target);
     default:
-	throw new RuntimeException("Invalid opcode: " + opcode);
+        throw new RuntimeException("Invalid opcode: " + opcode);
     }
   }
 

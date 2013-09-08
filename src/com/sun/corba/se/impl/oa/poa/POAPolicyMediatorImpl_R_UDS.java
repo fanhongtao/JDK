@@ -1,8 +1,26 @@
 /*
- * @(#)POAPolicyMediatorImpl_R_UDS.java	1.24 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.oa.poa ;
@@ -29,72 +47,72 @@ import com.sun.corba.se.impl.orbutil.ORBConstants ;
 public class POAPolicyMediatorImpl_R_UDS extends POAPolicyMediatorBase_R {
     private Servant defaultServant ;
 
-    POAPolicyMediatorImpl_R_UDS( Policies policies, POAImpl poa ) 
+    POAPolicyMediatorImpl_R_UDS( Policies policies, POAImpl poa )
     {
-	// assert policies.retainServants() 
-	super( policies, poa ) ;
-	defaultServant = null ;
+        // assert policies.retainServants()
+        super( policies, poa ) ;
+        defaultServant = null ;
 
-	// policies.useDefaultServant()
-	if (!policies.useDefaultServant())
-	    throw poa.invocationWrapper().policyMediatorBadPolicyInFactory() ;
-    }
-    
-    protected java.lang.Object internalGetServant( byte[] id, 
-	String operation ) throws ForwardRequest
-    { 
-	Servant servant = internalIdToServant( id ) ;
-	if (servant == null)
-	    servant = defaultServant ;
-
-	if (servant == null)
-	    throw poa.invocationWrapper().poaNoDefaultServant() ;
-
-	return servant ;
+        // policies.useDefaultServant()
+        if (!policies.useDefaultServant())
+            throw poa.invocationWrapper().policyMediatorBadPolicyInFactory() ;
     }
 
-    public void etherealizeAll() 
-    {	
-	// NO-OP
+    protected java.lang.Object internalGetServant( byte[] id,
+        String operation ) throws ForwardRequest
+    {
+        Servant servant = internalIdToServant( id ) ;
+        if (servant == null)
+            servant = defaultServant ;
+
+        if (servant == null)
+            throw poa.invocationWrapper().poaNoDefaultServant() ;
+
+        return servant ;
+    }
+
+    public void etherealizeAll()
+    {
+        // NO-OP
     }
 
     public ServantManager getServantManager() throws WrongPolicy
     {
-	throw new WrongPolicy();
+        throw new WrongPolicy();
     }
 
     public void setServantManager( ServantManager servantManager ) throws WrongPolicy
     {
-	throw new WrongPolicy();
+        throw new WrongPolicy();
     }
 
-    public Servant getDefaultServant() throws NoServant, WrongPolicy 
+    public Servant getDefaultServant() throws NoServant, WrongPolicy
     {
-	if (defaultServant == null)
-	    throw new NoServant();
-	else
-	    return defaultServant;
+        if (defaultServant == null)
+            throw new NoServant();
+        else
+            return defaultServant;
     }
 
     public void setDefaultServant( Servant servant ) throws WrongPolicy
     {
-	defaultServant = servant;
-	setDelegate(defaultServant, "DefaultServant".getBytes());
+        defaultServant = servant;
+        setDelegate(defaultServant, "DefaultServant".getBytes());
     }
 
-    public Servant idToServant( byte[] id ) 
-	throws WrongPolicy, ObjectNotActive
+    public Servant idToServant( byte[] id )
+        throws WrongPolicy, ObjectNotActive
     {
-	ActiveObjectMap.Key key = new ActiveObjectMap.Key( id ) ;
-	Servant s = internalKeyToServant(key);
-	
-	if (s == null)
-	    if (defaultServant != null)
-		s = defaultServant;
+        ActiveObjectMap.Key key = new ActiveObjectMap.Key( id ) ;
+        Servant s = internalKeyToServant(key);
 
-	if (s == null)
-	    throw new ObjectNotActive() ;
+        if (s == null)
+            if (defaultServant != null)
+                s = defaultServant;
 
-	return s;
+        if (s == null)
+            throw new ObjectNotActive() ;
+
+        return s;
     }
 }

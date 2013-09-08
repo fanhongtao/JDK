@@ -1,3 +1,31 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream.util;
 
 import java.io.Reader;
@@ -16,7 +44,7 @@ import javax.xml.stream.XMLStreamException;
  * parent interface.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see javax.xml.stream.XMLStreamReader
  * @see EventReaderDelegate
  * @since 1.6
@@ -54,43 +82,43 @@ public class StreamReaderDelegate implements XMLStreamReader {
     return reader;
   }
 
-  public int next() 
-    throws XMLStreamException 
+  public int next()
+    throws XMLStreamException
   {
     return reader.next();
   }
 
-  public int nextTag() 
-    throws XMLStreamException 
+  public int nextTag()
+    throws XMLStreamException
   {
     return reader.nextTag();
   }
 
-  public String getElementText() 
-    throws XMLStreamException 
+  public String getElementText()
+    throws XMLStreamException
   {
     return reader.getElementText();
   }
 
-  public void require(int type, String namespaceURI, String localName)  
+  public void require(int type, String namespaceURI, String localName)
     throws XMLStreamException
   {
     reader.require(type,namespaceURI,localName);
   }
 
-  public boolean hasNext() 
+  public boolean hasNext()
     throws XMLStreamException
   {
     return reader.hasNext();
   }
 
-  public void close() 
+  public void close()
     throws XMLStreamException
   {
     reader.close();
   }
 
-  public String getNamespaceURI(String prefix) 
+  public String getNamespaceURI(String prefix)
   {
     return reader.getNamespaceURI(prefix);
   }
@@ -116,7 +144,7 @@ public class StreamReaderDelegate implements XMLStreamReader {
   }
 
   public String getAttributeValue(String namespaceUri,
-                                  String localName) 
+                                  String localName)
   {
     return reader.getAttributeValue(namespaceUri,localName);
   }
@@ -173,10 +201,10 @@ public class StreamReaderDelegate implements XMLStreamReader {
     return reader.getText();
   }
 
-  public int getTextCharacters(int sourceStart, 
-                               char[] target, 
-                               int targetStart, 
-                               int length) 
+  public int getTextCharacters(int sourceStart,
+                               char[] target,
+                               int targetStart,
+                               int length)
     throws XMLStreamException {
     return reader.getTextCharacters(sourceStart,
                                     target,

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,15 +54,15 @@ public class IntStack extends IntVector
   {
     super(blocksize);
   }
-  
+
   /**
    * Copy constructor for IntStack
-   * 
+   *
    * @param v IntStack to copy
    */
   public IntStack (IntStack v)
   {
-  	super(v);
+        super(v);
   }
 
   /**
@@ -195,15 +199,15 @@ public class IntStack extends IntVector
 
     return -1;
   }
-  
+
   /**
    * Returns clone of current IntStack
-   * 
+   *
    * @return clone of current IntStack
    */
   public Object clone()
     throws CloneNotSupportedException
   {
-  	return (IntStack) super.clone();
+        return (IntStack) super.clone();
   }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsSplitPaneDivider.java	1.16 05/11/17
+ * Copyright (c) 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -24,7 +42,6 @@ import javax.swing.plaf.basic.BasicSplitPaneDivider;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.2 10/25/97
  * @author Jeff Dinkins
  */
 public class WindowsSplitPaneDivider extends BasicSplitPaneDivider
@@ -35,7 +52,7 @@ public class WindowsSplitPaneDivider extends BasicSplitPaneDivider
      */
     public WindowsSplitPaneDivider(BasicSplitPaneUI ui) {
         super(ui);
-    } 
+    }
 
     /**
       * Paints the divider.

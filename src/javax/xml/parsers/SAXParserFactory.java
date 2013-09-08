@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: SAXParserFactory.java,v 1.5 2006/04/24 13:41:47 ndw Exp $
- * @(#)SAXParserFactory.java	1.52 06/06/21
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.parsers;
@@ -40,7 +38,7 @@ import org.xml.sax.SAXNotSupportedException;
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
  * @author <a href="mailto:Neeraj.Bajaj@sun.com">Neeraj Bajaj</a>
  *
- * @version $Revision: 1.5 $, $Date: 2006/04/24 13:41:47 $
+ * @version $Revision: 1.9 $, $Date: 2010/05/25 16:19:44 $
  *
  */
 public abstract class SAXParserFactory {
@@ -445,13 +443,11 @@ public abstract class SAXParserFactory {
      * @since 1.5
      */
     public void setXIncludeAware(final boolean state) {
-        throw new UnsupportedOperationException(
-            "This parser does not support specification \""
-            + this.getClass().getPackage().getSpecificationTitle()
-            + "\" version \""
-            + this.getClass().getPackage().getSpecificationVersion()
-            + "\""
-            );
+        if (state) {
+            throw new UnsupportedOperationException(" setXIncludeAware " +
+                "is not supported on this JAXP"  +
+                " implementation or earlier: " + this.getClass());
+        }
     }
 
     /**

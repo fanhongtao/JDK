@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +37,7 @@ public class Trie
 
   /** The root node of the tree.    */
   Node m_Root;
-  
+
   /** helper buffer to convert Strings to char arrays */
   private char[] m_charBuffer = new char[0];
 
@@ -62,7 +66,7 @@ public class Trie
         // make the biggest buffer ever needed in get(String)
         m_charBuffer = new char[len];
     }
-    
+
     Node node = m_Root;
 
     for (int i = 0; i < len; i++)
@@ -134,7 +138,7 @@ public Object get(final String key)
                 }
                 return null;
             }
-//        comment out case 2 because the default is faster            
+//        comment out case 2 because the default is faster
 //        case 2 :
 //            {
 //                final char ch0 = key.charAt(0);
@@ -144,8 +148,8 @@ public Object get(final String key)
 //                    node = node.m_nextChar[ch0];
 //                    if (node != null)
 //                    {
-//                        
-//                        if (ch1 < ALPHA_SIZE) 
+//
+//                        if (ch1 < ALPHA_SIZE)
 //                        {
 //                            node = node.m_nextChar[ch1];
 //                            if (node != null)

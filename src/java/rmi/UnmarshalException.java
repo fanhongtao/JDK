@@ -1,8 +1,26 @@
 /*
- * @(#)UnmarshalException.java	1.13 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi;
@@ -24,8 +42,7 @@ package java.rmi;
  * <li> if there is a failure to create a remote reference object for
  * a remote object's stub when it is unmarshalled.
  * </ul>
- * 
- * @version 1.13, 11/17/05
+ *
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
@@ -42,7 +59,7 @@ public class UnmarshalException extends RemoteException {
      * @since JDK1.1
      */
     public UnmarshalException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -54,6 +71,6 @@ public class UnmarshalException extends RemoteException {
      * @since JDK1.1
      */
     public UnmarshalException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

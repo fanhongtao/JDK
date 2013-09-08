@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +76,7 @@ public class DescendantIterator extends LocPathIterator
         orSelf = true;
       // firstStepPos += 8;
     }
-    
+
     // Find the position of the last step.
     int nextStepPos = firstStepPos;
     while(true)
@@ -88,13 +92,13 @@ public class DescendantIterator extends LocPathIterator
       }
       else
         break;
-      
+
     }
-    
+
     // Fix for http://nagoya.apache.org/bugzilla/show_bug.cgi?id=1336
     if((analysis & WalkerFactory.BIT_CHILD) != 0)
       orSelf = false;
-      
+
     if(fromRoot)
     {
       if(orSelf)
@@ -111,7 +115,7 @@ public class DescendantIterator extends LocPathIterator
 
     if ((0 == (whatToShow
                & (DTMFilter.SHOW_ATTRIBUTE | DTMFilter.SHOW_ELEMENT
-                  | DTMFilter.SHOW_PROCESSING_INSTRUCTION))) || 
+                  | DTMFilter.SHOW_PROCESSING_INSTRUCTION))) ||
                    (whatToShow == DTMFilter.SHOW_ALL))
       initNodeTest(whatToShow);
     else
@@ -121,7 +125,7 @@ public class DescendantIterator extends LocPathIterator
     }
     initPredicateInfo(compiler, firstStepPos);
   }
-  
+
   /**
    * Create a DescendantIterator object.
    *
@@ -134,13 +138,13 @@ public class DescendantIterator extends LocPathIterator
     initNodeTest(whatToShow);
   }
 
-  
+
   /**
    *  Get a cloned Iterator that is reset to the beginning
    *  of the query.
-   * 
+   *
    *  @return A cloned NodeIterator set of the start of the query.
-   * 
+   *
    *  @throws CloneNotSupportedException
    */
   public DTMIterator cloneWithReset() throws CloneNotSupportedException
@@ -168,8 +172,8 @@ public class DescendantIterator extends LocPathIterator
    */
   public int nextNode()
   {
-   	if(m_foundLast)
-  		return DTM.NULL;
+        if(m_foundLast)
+                return DTM.NULL;
 
     if(DTM.NULL == m_lastFetched)
     {
@@ -177,7 +181,7 @@ public class DescendantIterator extends LocPathIterator
     }
 
     int next;
-    
+
     com.sun.org.apache.xpath.internal.VariableStack vars;
     int savedStart;
     if (-1 != m_stackFrame)
@@ -195,7 +199,7 @@ public class DescendantIterator extends LocPathIterator
       vars = null;
       savedStart = 0;
     }
-    
+
     try
     {
       do
@@ -210,10 +214,10 @@ public class DescendantIterator extends LocPathIterator
         {
           next = m_lastFetched = (DTM.NULL == m_lastFetched)
                        ? m_traverser.first(m_context, m_extendedTypeID)
-                       : m_traverser.next(m_context, m_lastFetched, 
+                       : m_traverser.next(m_context, m_lastFetched,
                                           m_extendedTypeID);
         }
-  
+
         if (DTM.NULL != next)
         {
           if(DTMIterator.FILTER_ACCEPT == acceptNode(next))
@@ -225,16 +229,16 @@ public class DescendantIterator extends LocPathIterator
           break;
       }
       while (next != DTM.NULL);
-  
+
       if (DTM.NULL != next)
       {
-      	m_pos++;
+        m_pos++;
         return next;
       }
       else
       {
         m_foundLast = true;
-  
+
         return DTM.NULL;
       }
     }
@@ -247,7 +251,7 @@ public class DescendantIterator extends LocPathIterator
       }
     }
   }
-  
+
   /**
    * Initialize the context values for this expression
    * after it is cloned.
@@ -259,7 +263,7 @@ public class DescendantIterator extends LocPathIterator
   {
     super.setRoot(context, environment);
     m_traverser = m_cdtm.getAxisTraverser(m_axis);
-    
+
     String localName = getLocalName();
     String namespace = getNamespace();
     int what = m_whatToShow;
@@ -276,12 +280,12 @@ public class DescendantIterator extends LocPathIterator
       int type = getNodeTypeTest(what);
       m_extendedTypeID = m_cdtm.getExpandedTypeID(namespace, localName, type);
     }
-    
+
   }
-  
+
   /**
-   * Return the first node out of the nodeset, if this expression is 
-   * a nodeset expression.  This is the default implementation for 
+   * Return the first node out of the nodeset, if this expression is
+   * a nodeset expression.  This is the default implementation for
    * nodesets.
    * <p>WARNING: Do not mutate this class from this function!</p>
    * @param xctxt The XPath runtime context.
@@ -294,16 +298,16 @@ public class DescendantIterator extends LocPathIterator
       return super.asNode(xctxt);
 
     int current = xctxt.getCurrentNode();
-    
+
     DTM dtm = xctxt.getDTM(current);
     DTMAxisTraverser traverser = dtm.getAxisTraverser(m_axis);
-    
+
     String localName = getLocalName();
     String namespace = getNamespace();
     int what = m_whatToShow;
-    
+
     // System.out.print(" (DescendantIterator) ");
-    
+
     // System.out.println("what: ");
     // NodeTest.debugWhatToShow(what);
     if(DTMFilter.SHOW_ALL == what
@@ -319,7 +323,7 @@ public class DescendantIterator extends LocPathIterator
       return traverser.first(current, extendedType);
     }
   }
-  
+
   /**
    *  Detaches the iterator from the set which it iterated over, releasing
    * any computational resources and placing the iterator in the INVALID
@@ -330,48 +334,48 @@ public class DescendantIterator extends LocPathIterator
   public void detach()
   {
     if (m_allowDetach) {
-      m_traverser = null;    
+      m_traverser = null;
       m_extendedTypeID = 0;
 
       // Always call the superclass detach last!
       super.detach();
     }
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
   {
     return m_axis;
   }
-  
-  
+
+
   /** The traverser to use to navigate over the descendants. */
   transient protected DTMAxisTraverser m_traverser;
-  
+
   /** The axis that we are traversing. */
   protected int m_axis;
-  
+
   /** The extended type ID, not set until setRoot. */
   protected int m_extendedTypeID;
-  
+
   /**
    * @see Expression#deepEquals(Expression)
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!super.deepEquals(expr))
-  		return false;
-  		
-  	if(m_axis != ((DescendantIterator)expr).m_axis)
-  		return false;
-  		
-  	return true;
+        if(!super.deepEquals(expr))
+                return false;
+
+        if(m_axis != ((DescendantIterator)expr).m_axis)
+                return false;
+
+        return true;
   }
 
-  
+
 }

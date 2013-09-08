@@ -1,8 +1,26 @@
 /*
- * @(#)X-Buffer.java	1.62 06/07/10
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -233,7 +251,6 @@ package java.nio;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.62, 06/07/10
  * @since 1.4
  */
 
@@ -246,26 +263,27 @@ public abstract class FloatBuffer
     // reduce the number of virtual method invocations needed to access these
     // values, which is especially costly when coding small buffers.
     //
-    final float[] hb;			// Non-null only for heap buffers
+    final float[] hb;                  // Non-null only for heap buffers
     final int offset;
-    boolean isReadOnly;			// Valid only for heap buffers
+    boolean isReadOnly;                 // Valid only for heap buffers
 
     // Creates a new buffer with the given mark, position, limit, capacity,
     // backing array, and array offset
     //
-    FloatBuffer(int mark, int pos, int lim, int cap,	// package-private
-		 float[] hb, int offset)
+    FloatBuffer(int mark, int pos, int lim, int cap,   // package-private
+                 float[] hb, int offset)
     {
-	super(mark, pos, lim, cap);
-	this.hb = hb;
-	this.offset = offset;
+        super(mark, pos, lim, cap);
+        this.hb = hb;
+        this.offset = offset;
     }
 
     // Creates a new buffer with the given mark, position, limit, and capacity
     //
-    FloatBuffer(int mark, int pos, int lim, int cap) {	// package-private
-	this(mark, pos, lim, cap, null, 0);
+    FloatBuffer(int mark, int pos, int lim, int cap) { // package-private
+        this(mark, pos, lim, cap, null, 0);
     }
+
 
 
 
@@ -294,7 +312,8 @@ public abstract class FloatBuffer
      * Allocates a new float buffer.
      *
      * <p> The new buffer's position will be zero, its limit will be its
-     * capacity, and its mark will be undefined.  It will have a {@link #array
+     * capacity, its mark will be undefined, and each of its elements will be
+     * initialized to zero.  It will have a {@link #array
      * </code>backing array<code>}, and its {@link #arrayOffset </code>array
      * offset<code>} will be zero.
      *
@@ -307,9 +326,9 @@ public abstract class FloatBuffer
      *          If the <tt>capacity</tt> is a negative integer
      */
     public static FloatBuffer allocate(int capacity) {
-	if (capacity < 0)
-	    throw new IllegalArgumentException();
-	return new HeapFloatBuffer(capacity, capacity);
+        if (capacity < 0)
+            throw new IllegalArgumentException();
+        return new HeapFloatBuffer(capacity, capacity);
     }
 
     /**
@@ -344,13 +363,13 @@ public abstract class FloatBuffer
      *          parameters do not hold
      */
     public static FloatBuffer wrap(float[] array,
-				    int offset, int length)
+                                    int offset, int length)
     {
-	try {
-	    return new HeapFloatBuffer(array, offset, length);
-	} catch (IllegalArgumentException x) {
-	    throw new IndexOutOfBoundsException();
-	}
+        try {
+            return new HeapFloatBuffer(array, offset, length);
+        } catch (IllegalArgumentException x) {
+            throw new IndexOutOfBoundsException();
+        }
     }
 
     /**
@@ -362,7 +381,7 @@ public abstract class FloatBuffer
      * <tt>array.length</tt>, its position will be zero, and its mark will be
      * undefined.  Its {@link #array </code>backing array<code>} will be the
      * given array, and its {@link #arrayOffset </code>array offset<code>} will
-     * be zero.  </p> 
+     * be zero.  </p>
      *
      * @param  array
      *         The array that will back this buffer
@@ -370,7 +389,7 @@ public abstract class FloatBuffer
      * @return  The new float buffer
      */
     public static FloatBuffer wrap(float[] array) {
-	return wrap(array, 0, array.length);
+        return wrap(array, 0, array.length);
     }
 
 
@@ -522,7 +541,7 @@ public abstract class FloatBuffer
      */
     public abstract FloatBuffer asReadOnlyBuffer();
 
-
+
     // -- Singleton get/put methods --
 
     /**
@@ -538,7 +557,7 @@ public abstract class FloatBuffer
 
     /**
      * Relative <i>put</i> method&nbsp;&nbsp;<i>(optional operation)</i>.
-     * 
+     *
      * <p> Writes the given float into this buffer at the current
      * position, and then increments the position. </p>
      *
@@ -572,7 +591,7 @@ public abstract class FloatBuffer
 
     /**
      * Absolute <i>put</i> method&nbsp;&nbsp;<i>(optional operation)</i>.
-     * 
+     *
      * <p> Writes the given float into this buffer at the given
      * index. </p>
      *
@@ -593,7 +612,7 @@ public abstract class FloatBuffer
      */
     public abstract FloatBuffer put(int index, float f);
 
-
+
     // -- Bulk get operations --
 
     /**
@@ -646,13 +665,13 @@ public abstract class FloatBuffer
      *          parameters do not hold
      */
     public FloatBuffer get(float[] dst, int offset, int length) {
-	checkBounds(offset, length, dst.length);
-	if (length > remaining())
-	    throw new BufferUnderflowException();
-	int end = offset + length;
-	for (int i = offset; i < end; i++)
-	    dst[i] = get();
-	return this;
+        checkBounds(offset, length, dst.length);
+        if (length > remaining())
+            throw new BufferUnderflowException();
+        int end = offset + length;
+        for (int i = offset; i < end; i++)
+            dst[i] = get();
+        return this;
     }
 
     /**
@@ -672,10 +691,10 @@ public abstract class FloatBuffer
      *          remaining in this buffer
      */
     public FloatBuffer get(float[] dst) {
-	return get(dst, 0, dst.length);
+        return get(dst, 0, dst.length);
     }
 
-
+
     // -- Bulk put operations --
 
     /**
@@ -720,14 +739,14 @@ public abstract class FloatBuffer
      *          If this buffer is read-only
      */
     public FloatBuffer put(FloatBuffer src) {
-	if (src == this)
-	    throw new IllegalArgumentException();
-	int n = src.remaining();
-	if (n > remaining())
-	    throw new BufferOverflowException();
-	for (int i = 0; i < n; i++)
-	    put(src.get());
-	return this;
+        if (src == this)
+            throw new IllegalArgumentException();
+        int n = src.remaining();
+        if (n > remaining())
+            throw new BufferOverflowException();
+        for (int i = 0; i < n; i++)
+            put(src.get());
+        return this;
     }
 
     /**
@@ -781,13 +800,13 @@ public abstract class FloatBuffer
      *          If this buffer is read-only
      */
     public FloatBuffer put(float[] src, int offset, int length) {
-	checkBounds(offset, length, src.length);
-	if (length > remaining())
-	    throw new BufferOverflowException();
-	int end = offset + length;
-	for (int i = offset; i < end; i++)
-	    this.put(src[i]);
-	return this;
+        checkBounds(offset, length, src.length);
+        if (length > remaining())
+            throw new BufferOverflowException();
+        int end = offset + length;
+        for (int i = offset; i < end; i++)
+            this.put(src[i]);
+        return this;
     }
 
     /**
@@ -810,7 +829,7 @@ public abstract class FloatBuffer
      *          If this buffer is read-only
      */
     public final FloatBuffer put(float[] src) {
-	return put(src, 0, src.length);
+        return put(src, 0, src.length);
     }
 
 
@@ -898,7 +917,7 @@ public abstract class FloatBuffer
 
 
 
-
+
     // -- Other stuff --
 
     /**
@@ -913,7 +932,7 @@ public abstract class FloatBuffer
      *          is backed by an array and is not read-only
      */
     public final boolean hasArray() {
-	return (hb != null) && !isReadOnly;
+        return (hb != null) && !isReadOnly;
     }
 
     /**
@@ -936,11 +955,11 @@ public abstract class FloatBuffer
      *          If this buffer is not backed by an accessible array
      */
     public final float[] array() {
-	if (hb == null)
-	    throw new UnsupportedOperationException();
-	if (isReadOnly)
-	    throw new ReadOnlyBufferException();
-	return hb;
+        if (hb == null)
+            throw new UnsupportedOperationException();
+        if (isReadOnly)
+            throw new ReadOnlyBufferException();
+        return hb;
     }
 
     /**
@@ -964,11 +983,11 @@ public abstract class FloatBuffer
      *          If this buffer is not backed by an accessible array
      */
     public final int arrayOffset() {
-	if (hb == null)
-	    throw new UnsupportedOperationException();
-	if (isReadOnly)
-	    throw new ReadOnlyBufferException();
-	return offset;
+        if (hb == null)
+            throw new UnsupportedOperationException();
+        if (isReadOnly)
+            throw new ReadOnlyBufferException();
+        return offset;
     }
 
     /**
@@ -1027,22 +1046,22 @@ public abstract class FloatBuffer
      * @return  A summary string
      */
     public String toString() {
-	StringBuffer sb = new StringBuffer();
-	sb.append(getClass().getName());
-	sb.append("[pos=");
-	sb.append(position());
-	sb.append(" lim=");
-	sb.append(limit());
-	sb.append(" cap=");
-	sb.append(capacity());
-	sb.append("]");
-	return sb.toString();
+        StringBuffer sb = new StringBuffer();
+        sb.append(getClass().getName());
+        sb.append("[pos=");
+        sb.append(position());
+        sb.append(" lim=");
+        sb.append(limit());
+        sb.append(" cap=");
+        sb.append(capacity());
+        sb.append("]");
+        return sb.toString();
     }
 
 
 
 
-    
+
 
     /**
      * Returns the current hash code of this buffer.
@@ -1058,11 +1077,11 @@ public abstract class FloatBuffer
      * @return  The current hash code of this buffer
      */
     public int hashCode() {
-	int h = 1;
-	int p = position();
-	for (int i = limit() - 1; i >= p; i--)
-	    h = 31 * h + (int)get(i);
-	return h;
+        int h = 1;
+        int p = position();
+        for (int i = limit() - 1; i >= p; i--)
+            h = 31 * h + (int)get(i);
+        return h;
     }
 
     /**
@@ -1079,6 +1098,13 @@ public abstract class FloatBuffer
      *
      *   <li><p> The two sequences of remaining elements, considered
      *   independently of their starting positions, are pointwise equal.
+
+     *   This method considers two float elements {@code a} and {@code b}
+     *   to be equal if
+     *   {@code (a == b) || (Float.isNaN(a) && Float.isNaN(b))}.
+     *   The values {@code -0.0} and {@code +0.0} are considered to be
+     *   equal, unlike {@link Float#equals(Object)}.
+
      *   </p></li>
      *
      * </ol>
@@ -1091,22 +1117,26 @@ public abstract class FloatBuffer
      *           given object
      */
     public boolean equals(Object ob) {
-	if (!(ob instanceof FloatBuffer))
-	    return false;
-	FloatBuffer that = (FloatBuffer)ob;
-	if (this.remaining() != that.remaining())
-	    return false;
-	int p = this.position();
-	for (int i = this.limit() - 1, j = that.limit() - 1; i >= p; i--, j--) {
-	    float v1 = this.get(i);
-	    float v2 = that.get(j);
-	    if (v1 != v2) {
-		if ((v1 != v1) && (v2 != v2))	// For float and double
-		    continue;
-		return false;
-	    }
-	}
-	return true;
+        if (this == ob)
+            return true;
+        if (!(ob instanceof FloatBuffer))
+            return false;
+        FloatBuffer that = (FloatBuffer)ob;
+        if (this.remaining() != that.remaining())
+            return false;
+        int p = this.position();
+        for (int i = this.limit() - 1, j = that.limit() - 1; i >= p; i--, j--)
+            if (!equals(this.get(i), that.get(j)))
+                return false;
+        return true;
+    }
+
+    private static boolean equals(float x, float y) {
+
+        return (x == y) || (Float.isNaN(x) && Float.isNaN(y));
+
+
+
     }
 
     /**
@@ -1115,30 +1145,44 @@ public abstract class FloatBuffer
      * <p> Two float buffers are compared by comparing their sequences of
      * remaining elements lexicographically, without regard to the starting
      * position of each sequence within its corresponding buffer.
+
+     * Pairs of {@code float} elements are compared as if by invoking
+     * {@link Float#compare(float,float)}, except that
+     * {@code -0.0} and {@code 0.0} are considered to be equal.
+     * {@code Float.NaN} is considered by this method to be equal
+     * to itself and greater than all other {@code float} values
+     * (including {@code Float.POSITIVE_INFINITY}).
+
+
+
+
      *
      * <p> A float buffer is not comparable to any other type of object.
      *
      * @return  A negative integer, zero, or a positive integer as this buffer
-     *		is less than, equal to, or greater than the given buffer
+     *          is less than, equal to, or greater than the given buffer
      */
     public int compareTo(FloatBuffer that) {
-	int n = this.position() + Math.min(this.remaining(), that.remaining());
-	for (int i = this.position(), j = that.position(); i < n; i++, j++) {
-	    float v1 = this.get(i);
-	    float v2 = that.get(j);
-	    if (v1 == v2)
-		continue;
-	    if ((v1 != v1) && (v2 != v2)) 	// For float and double
-		continue;
-	    if (v1 < v2)
-		return -1;
-	    return +1;
-	}
-	return this.remaining() - that.remaining();
+        int n = this.position() + Math.min(this.remaining(), that.remaining());
+        for (int i = this.position(), j = that.position(); i < n; i++, j++) {
+            int cmp = compare(this.get(i), that.get(j));
+            if (cmp != 0)
+                return cmp;
+        }
+        return this.remaining() - that.remaining();
     }
 
+    private static int compare(float x, float y) {
 
-
+        return ((x < y)  ? -1 :
+                (x > y)  ? +1 :
+                (x == y) ?  0 :
+                Float.isNaN(x) ? (Float.isNaN(y) ? 0 : +1) : -1);
+
+
+
+    }
+
     // -- Other char stuff --
 
 
@@ -1333,7 +1377,7 @@ public abstract class FloatBuffer
 
 
 
-
+
     // -- Other byte stuff: Access to binary data --
 
 

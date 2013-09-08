@@ -1,5 +1,26 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * $Id: DigestMethod.java,v 1.6 2005/05/10 16:03:46 mullan Exp $
@@ -12,9 +33,9 @@ import javax.xml.crypto.dsig.spec.DigestMethodParameterSpec;
 import java.security.spec.AlgorithmParameterSpec;
 
 /**
- * A representation of the XML <code>DigestMethod</code> element as 
+ * A representation of the XML <code>DigestMethod</code> element as
  * defined in the <a href="http://www.w3.org/TR/xmldsig-core/">
- * W3C Recommendation for XML-Signature Syntax and Processing</a>. 
+ * W3C Recommendation for XML-Signature Syntax and Processing</a>.
  * The XML Schema Definition is defined as:
  * <p>
  * <pre>
@@ -28,8 +49,8 @@ import java.security.spec.AlgorithmParameterSpec;
  *     &lt;/complexType&gt;
  * </pre>
  *
- * A <code>DigestMethod</code> instance may be created by invoking the 
- * {@link XMLSignatureFactory#newDigestMethod newDigestMethod} method 
+ * A <code>DigestMethod</code> instance may be created by invoking the
+ * {@link XMLSignatureFactory#newDigestMethod newDigestMethod} method
  * of the {@link XMLSignatureFactory} class.
  *
  * @author Sean Mullan
@@ -67,7 +88,7 @@ public interface DigestMethod extends XMLStructure, AlgorithmMethod {
      * Returns the algorithm-specific input parameters associated with this
      * <code>DigestMethod</code>.
      *
-     * <p>The returned parameters can be typecast to a {@link 
+     * <p>The returned parameters can be typecast to a {@link
      * DigestMethodParameterSpec} object.
      *
      * @return the algorithm-specific parameters (may be <code>null</code> if

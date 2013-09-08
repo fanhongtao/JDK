@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,80 +38,80 @@ public final class NthIterator extends DTMAxisIteratorBase {
     private boolean _ready;
 
     public NthIterator(DTMAxisIterator source, int n) {
-	_source = source;
-	_position = n;
+        _source = source;
+        _position = n;
     }
 
     public void setRestartable(boolean isRestartable) {
-	_isRestartable = isRestartable;
-	_source.setRestartable(isRestartable);
+        _isRestartable = isRestartable;
+        _source.setRestartable(isRestartable);
     }
-    
+
     public DTMAxisIterator cloneIterator() {
-	try {
-	    final NthIterator clone = (NthIterator) super.clone();
-	    clone._source = _source.cloneIterator();	// resets source
-	    clone._isRestartable = false;
-	    return clone;
-	}
-	catch (CloneNotSupportedException e) {
-	    BasisLibrary.runTimeError(BasisLibrary.ITERATOR_CLONE_ERR,
-				      e.toString());
-	    return null;
-	}
+        try {
+            final NthIterator clone = (NthIterator) super.clone();
+            clone._source = _source.cloneIterator();    // resets source
+            clone._isRestartable = false;
+            return clone;
+        }
+        catch (CloneNotSupportedException e) {
+            BasisLibrary.runTimeError(BasisLibrary.ITERATOR_CLONE_ERR,
+                                      e.toString());
+            return null;
+        }
     }
 
     public int next() {
-	if (_ready) {
-	    _ready = false;
-	    return _source.getNodeByPosition(_position);
-	}
-	return DTMAxisIterator.END;
-	/*
-	if (_ready && _position > 0) {
+        if (_ready) {
+            _ready = false;
+            return _source.getNodeByPosition(_position);
+        }
+        return DTMAxisIterator.END;
+        /*
+        if (_ready && _position > 0) {
             final int pos = _source.isReverse()
                                        ? _source.getLast() - _position + 1
                                        : _position;
 
-	    _ready = false;
-	    int node;
-	    while ((node = _source.next()) != DTMAxisIterator.END) {
-		if (pos == _source.getPosition()) {
-		    return node;
-		}
-	    }
-	}
-	return DTMAxisIterator.END;
-	*/
+            _ready = false;
+            int node;
+            while ((node = _source.next()) != DTMAxisIterator.END) {
+                if (pos == _source.getPosition()) {
+                    return node;
+                }
+            }
+        }
+        return DTMAxisIterator.END;
+        */
     }
 
     public DTMAxisIterator setStartNode(final int node) {
-	if (_isRestartable) {
-	    _source.setStartNode(node);
-	    _ready = true;
-	}
-	return this;
+        if (_isRestartable) {
+            _source.setStartNode(node);
+            _ready = true;
+        }
+        return this;
     }
-	
+
     public DTMAxisIterator reset() {
-	_source.reset();
-	_ready = true;
-	return this;
+        _source.reset();
+        _ready = true;
+        return this;
     }
-    
+
     public int getLast() {
-	return 1;
+        return 1;
     }
-    
+
     public int getPosition() {
-	return 1;
+        return 1;
     }
-    
+
     public void setMark() {
-	_source.setMark();
+        _source.setMark();
     }
-    
+
     public void gotoMark() {
-	_source.gotoMark();
+        _source.gotoMark();
     }
 }

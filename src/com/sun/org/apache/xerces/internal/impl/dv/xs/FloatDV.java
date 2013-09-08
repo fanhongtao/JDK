@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +32,7 @@ import com.sun.org.apache.xerces.internal.xs.datatypes.XSFloat;
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: FloatDV.java,v 1.2.6.1 2005/09/06 11:43:03 neerajbj Exp $
+ * @version $Id: FloatDV.java,v 1.7 2010-11-01 04:39:47 joehw Exp $
  */
 public class FloatDV extends TypeValidator {
 
@@ -49,10 +53,10 @@ public class FloatDV extends TypeValidator {
     public int compare(Object value1, Object value2){
         return ((XFloat)value1).compareTo((XFloat)value2);
     }//compare()
-    
+
     //distinguishes between identity and equality for float datatype
     //0.0 is equal but not identical to -0.0
-    public boolean isIdentical (Object value1, Object value2) {  	 	
+    public boolean isIdentical (Object value1, Object value2) {
         if (value2 instanceof XFloat) {
             return ((XFloat)value1).isIdentical((XFloat)value2);
         }
@@ -61,7 +65,7 @@ public class FloatDV extends TypeValidator {
 
     private static final class XFloat implements XSFloat {
 
-        private float value;
+        private final float value;
         public XFloat(String s) throws NumberFormatException {
             if (DoubleDV.isPossibleFP(s)) {
                 value = Float.parseFloat(s);
@@ -97,18 +101,23 @@ public class FloatDV extends TypeValidator {
 
             return false;
         }
-        
+
+        public int hashCode() {
+            // This check is necessary because floatToIntBits(+0) != floatToIntBits(-0)
+            return (value == 0f) ? 0 : Float.floatToIntBits(value);
+        }
+
         // NOTE: 0.0 is equal but not identical to -0.0
         public boolean isIdentical (XFloat val) {
             if (val == this) {
                 return true;
             }
-            
+
             if (value == val.value) {
-                return (value != 0.0f || 
+                return (value != 0.0f ||
                     (Float.floatToIntBits(value) == Float.floatToIntBits(val.value)));
             }
-            
+
             if (value != value && val.value != val.value)
                 return true;
 
@@ -130,7 +139,7 @@ public class FloatDV extends TypeValidator {
                 return 0;
 
             // one of the 2 values or both is/are NaN(s)
-            
+
             if (value != value) {
                 // this = NaN = other
                 if (oval != oval)
@@ -224,7 +233,7 @@ public class FloatDV extends TypeValidator {
             }
             return canonical;
         }
-        
+
         public float getValue() {
             return value;
         }

@@ -1,8 +1,26 @@
 /*
- * @(#)ClassLoaderRepository.java	1.20 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.loading;
@@ -10,9 +28,9 @@ package javax.management.loading;
 import javax.management.MBeanServer; // for Javadoc
 
 /**
- * <p>Instances of this interface are used to keep the list of ClassLoaders 
+ * <p>Instances of this interface are used to keep the list of ClassLoaders
  * registered in an MBean Server.
- * They provide the necessary methods to load classes using the registered 
+ * They provide the necessary methods to load classes using the registered
  * ClassLoaders.</p>
  *
  * <p>The first ClassLoader in a <code>ClassLoaderRepository</code> is
@@ -38,7 +56,6 @@ import javax.management.MBeanServer; // for Javadoc
  * @see javax.management.MBeanServerFactory
  *
  * @since 1.5
- * @since.unbundled JMX 1.1
  */
 public interface ClassLoaderRepository {
 
@@ -58,12 +75,12 @@ public interface ClassLoaderRepository {
      *
      * @return the loaded class.
      *
-     * @exception ClassNotFoundException The specified class could not be 
+     * @exception ClassNotFoundException The specified class could not be
      *            found.
      */
-    public Class<?> loadClass(String className) 
-	    throws ClassNotFoundException;
-    
+    public Class<?> loadClass(String className)
+            throws ClassNotFoundException;
+
     /**
      * <p>Load the given class name through the list of class loaders,
      * excluding the given one.  Each ClassLoader in turn from the
@@ -94,8 +111,8 @@ public interface ClassLoaderRepository {
      * be found.
      */
     public Class<?> loadClassWithout(ClassLoader exclude,
-				     String className) 
-	    throws ClassNotFoundException;
+                                     String className)
+            throws ClassNotFoundException;
 
     /**
      * <p>Load the given class name through the list of class loaders,
@@ -126,10 +143,9 @@ public interface ClassLoaderRepository {
      * @exception ClassNotFoundException The specified class could not
      * be found.
      *
-     * @since.unbundled JMX 1.2
      */
     public Class<?> loadClassBefore(ClassLoader stop,
-				    String className)
-	    throws ClassNotFoundException;
-    
+                                    String className)
+            throws ClassNotFoundException;
+
 }

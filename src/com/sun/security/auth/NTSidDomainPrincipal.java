@@ -1,8 +1,26 @@
 /*
- * @(#)NTSidDomainPrincipal.java	1.16 05/11/17
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.security.auth;
@@ -22,11 +40,10 @@ package com.sun.security.auth;
  * on how to achieve this.  Authorization decisions can then be based upon
  * the Principals associated with a <code>Subject</code>.
  *
- * @version 1.16, 11/17/05
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */
-public class NTSidDomainPrincipal extends NTSid {  
+public class NTSidDomainPrincipal extends NTSid {
 
     private static final long serialVersionUID = 5247810785821650912L;
 
@@ -36,7 +53,7 @@ public class NTSidDomainPrincipal extends NTSid {
      * <p>
      *
      * @param name a string version of the Windows NT SID for this
-     *			user's domain.<p>
+     *                  user's domain.<p>
      *
      * @exception NullPointerException if the <code>name</code>
      *                  is <code>null</code>.
@@ -44,24 +61,24 @@ public class NTSidDomainPrincipal extends NTSid {
     public NTSidDomainPrincipal(String name) {
         super(name);
     }
-    
+
     /**
      * Return a string representation of this <code>NTSidDomainPrincipal</code>.
      *
      * <p>
      *
      * @return a string representation of this
-     *		<code>NTSidDomainPrincipal</code>.
+     *          <code>NTSidDomainPrincipal</code>.
      */
     public String toString() {
-	java.text.MessageFormat form = new java.text.MessageFormat
-		(sun.security.util.ResourcesMgr.getString
-			("NTSidDomainPrincipal: name",
-			"sun.security.util.AuthResources"));
-	Object[] source = {getName()};
-	return form.format(source);
+        java.text.MessageFormat form = new java.text.MessageFormat
+                (sun.security.util.ResourcesMgr.getString
+                        ("NTSidDomainPrincipal.name",
+                        "sun.security.util.AuthResources"));
+        Object[] source = {getName()};
+        return form.format(source);
     }
-    
+
     /**
      * Compares the specified Object with this <code>NTSidDomainPrincipal</code>
      * for equality.  Returns true if the given object is also a
@@ -71,18 +88,18 @@ public class NTSidDomainPrincipal extends NTSid {
      * <p>
      *
      * @param o Object to be compared for equality with this
-     *		<code>NTSidDomainPrincipal</code>.
+     *          <code>NTSidDomainPrincipal</code>.
      *
      * @return true if the specified Object is equal equal to this
-     *		<code>NTSidDomainPrincipal</code>.
+     *          <code>NTSidDomainPrincipal</code>.
      */
     public boolean equals(Object o) {
-	    if (o == null)
-	        return false;
+            if (o == null)
+                return false;
 
         if (this == o)
             return true;
- 
+
         if (!(o instanceof NTSidDomainPrincipal))
             return false;
 

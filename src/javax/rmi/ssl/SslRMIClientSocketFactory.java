@@ -1,11 +1,26 @@
 /*
- * @(#)file      SslRMIClientSocketFactory.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.17
- * @(#)date      05/11/17
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.rmi.ssl;
@@ -106,7 +121,7 @@ public class SslRMIClientSocketFactory
             sslSocketFactory.createSocket(host, port);
         // Set the SSLSocket Enabled Cipher Suites
         //
-        final String enabledCipherSuites = (String)
+        final String enabledCipherSuites =
             System.getProperty("javax.rmi.ssl.client.enabledCipherSuites");
         if (enabledCipherSuites != null) {
             StringTokenizer st = new StringTokenizer(enabledCipherSuites, ",");
@@ -115,16 +130,16 @@ public class SslRMIClientSocketFactory
             for (int i = 0 ; i < tokens; i++) {
                 enabledCipherSuitesList[i] = st.nextToken();
             }
-	    try {
-		sslSocket.setEnabledCipherSuites(enabledCipherSuitesList);
-	    } catch (IllegalArgumentException e) {
-		throw (IOException)
-		    new IOException(e.getMessage()).initCause(e);
-	    }
+            try {
+                sslSocket.setEnabledCipherSuites(enabledCipherSuitesList);
+            } catch (IllegalArgumentException e) {
+                throw (IOException)
+                    new IOException(e.getMessage()).initCause(e);
+            }
         }
         // Set the SSLSocket Enabled Protocols
         //
-        final String enabledProtocols = (String)
+        final String enabledProtocols =
             System.getProperty("javax.rmi.ssl.client.enabledProtocols");
         if (enabledProtocols != null) {
             StringTokenizer st = new StringTokenizer(enabledProtocols, ",");
@@ -133,12 +148,12 @@ public class SslRMIClientSocketFactory
             for (int i = 0 ; i < tokens; i++) {
                 enabledProtocolsList[i] = st.nextToken();
             }
-	    try {
-		sslSocket.setEnabledProtocols(enabledProtocolsList);
-	    } catch (IllegalArgumentException e) {
-		throw (IOException)
-		    new IOException(e.getMessage()).initCause(e);
-	    }
+            try {
+                sslSocket.setEnabledProtocols(enabledProtocolsList);
+            } catch (IllegalArgumentException e) {
+                throw (IOException)
+                    new IOException(e.getMessage()).initCause(e);
+            }
         }
         // Return the preconfigured SSLSocket
         //

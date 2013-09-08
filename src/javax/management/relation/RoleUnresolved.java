@@ -1,20 +1,32 @@
 /*
- * @(#)RoleUnresolved.java	1.30 05/12/01
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.relation;
 
-import javax.management.ObjectName;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
-
-import java.security.AccessController;
-import java.security.PrivilegedAction;
+import static com.sun.jmx.mbeanserver.Util.cast;
+import com.sun.jmx.mbeanserver.GetPropertyAction;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,7 +34,13 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamField;
 import java.io.Serializable;
 
-import com.sun.jmx.mbeanserver.GetPropertyAction;
+import java.security.AccessController;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.management.ObjectName;
 
 /**
  * Represents an unresolved role: a role not retrieved from a relation due
@@ -31,9 +49,10 @@ import com.sun.jmx.mbeanserver.GetPropertyAction;
  * RoleStatus).
  *
  * <p>The <b>serialVersionUID</b> of this class is <code>-48350262537070138L</code>.
- * 
+ *
  * @since 1.5
  */
+@SuppressWarnings("serial")  // serialVersionUID not constant
 public class RoleUnresolved implements Serializable {
 
     // Serialization compatibility stuff:
@@ -42,14 +61,14 @@ public class RoleUnresolved implements Serializable {
     //  - "1.0" for JMX 1.0
     //  - any other value for JMX 1.1 and higher
     //
-    // Serial version for old serial form 
+    // Serial version for old serial form
     private static final long oldSerialVersionUID = -9026457686611660144L;
     //
-    // Serial version for new serial form 
+    // Serial version for new serial form
     private static final long newSerialVersionUID = -48350262537070138L;
     //
     // Serializable fields in old serial form
-    private static final ObjectStreamField[] oldSerialPersistentFields = 
+    private static final ObjectStreamField[] oldSerialPersistentFields =
     {
       new ObjectStreamField("myRoleName", String.class),
       new ObjectStreamField("myRoleValue", ArrayList.class),
@@ -57,7 +76,7 @@ public class RoleUnresolved implements Serializable {
     };
     //
     // Serializable fields in new serial form
-    private static final ObjectStreamField[] newSerialPersistentFields = 
+    private static final ObjectStreamField[] newSerialPersistentFields =
     {
       new ObjectStreamField("roleName", String.class),
       new ObjectStreamField("roleValue", List.class),
@@ -66,27 +85,27 @@ public class RoleUnresolved implements Serializable {
     //
     // Actual serial version and serial form
     private static final long serialVersionUID;
-    /** @serialField roleName String Role name 
+    /** @serialField roleName String Role name
      *  @serialField roleValue List Role value ({@link List} of {@link ObjectName} objects)
      *  @serialField problemType int Problem type
      */
     private static final ObjectStreamField[] serialPersistentFields;
-    private static boolean compat = false;  
+    private static boolean compat = false;
     static {
-	try {
-	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = AccessController.doPrivileged(act);
-	    compat = (form != null && form.equals("1.0"));
-	} catch (Exception e) {
-	    // OK : Too bad, no compat with 1.0
-	}
-	if (compat) {
-	    serialPersistentFields = oldSerialPersistentFields;
-	    serialVersionUID = oldSerialVersionUID;
-	} else {
-	    serialPersistentFields = newSerialPersistentFields;
-	    serialVersionUID = newSerialVersionUID;
-	}
+        try {
+            GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+            String form = AccessController.doPrivileged(act);
+            compat = (form != null && form.equals("1.0"));
+        } catch (Exception e) {
+            // OK : Too bad, no compat with 1.0
+        }
+        if (compat) {
+            serialPersistentFields = oldSerialPersistentFields;
+            serialVersionUID = oldSerialVersionUID;
+        } else {
+            serialPersistentFields = newSerialPersistentFields;
+            serialVersionUID = newSerialVersionUID;
+        }
     }
     //
     // END Serialization compatibility stuff
@@ -127,20 +146,20 @@ public class RoleUnresolved implements Serializable {
      * problem type
      */
     public RoleUnresolved(String name,
-			  List<ObjectName> value,
-			  int pbType)
-	throws IllegalArgumentException {
+                          List<ObjectName> value,
+                          int pbType)
+        throws IllegalArgumentException {
 
-	if (name == null) {
-	    String excMsg = "Invalid parameter.";
-	    throw new IllegalArgumentException(excMsg);
-	}
+        if (name == null) {
+            String excMsg = "Invalid parameter.";
+            throw new IllegalArgumentException(excMsg);
+        }
 
-	setRoleName(name);
-	setRoleValue(value);
-	// Can throw IllegalArgumentException
-	setProblemType(pbType);
-	return;
+        setRoleName(name);
+        setRoleValue(value);
+        // Can throw IllegalArgumentException
+        setProblemType(pbType);
+        return;
     }
 
     //
@@ -155,7 +174,7 @@ public class RoleUnresolved implements Serializable {
      * @see #setRoleName
      */
     public String getRoleName() {
-	return roleName;
+        return roleName;
     }
 
     /**
@@ -168,7 +187,7 @@ public class RoleUnresolved implements Serializable {
      * @see #setRoleValue
      */
     public List<ObjectName> getRoleValue() {
-	return roleValue;
+        return roleValue;
     }
 
     /**
@@ -180,7 +199,7 @@ public class RoleUnresolved implements Serializable {
      * @see #setProblemType
      */
     public int getProblemType() {
-	return problemType;
+        return problemType;
     }
 
     /**
@@ -193,15 +212,15 @@ public class RoleUnresolved implements Serializable {
      * @see #getRoleName
      */
     public void setRoleName(String name)
-	throws IllegalArgumentException {
+        throws IllegalArgumentException {
 
-	if (name == null) {
-	    String excMsg = "Invalid parameter.";
-	    throw new IllegalArgumentException(excMsg);
-	}
+        if (name == null) {
+            String excMsg = "Invalid parameter.";
+            throw new IllegalArgumentException(excMsg);
+        }
 
-	roleName = name;
-	return;
+        roleName = name;
+        return;
     }
 
     /**
@@ -214,12 +233,12 @@ public class RoleUnresolved implements Serializable {
      */
     public void setRoleValue(List<ObjectName> value) {
 
-	if (value != null) {
-	    roleValue = new ArrayList<ObjectName>(value);
-	} else {
-	    roleValue = null;
-	}
-	return;
+        if (value != null) {
+            roleValue = new ArrayList<ObjectName>(value);
+        } else {
+            roleValue = null;
+        }
+        return;
     }
 
     /**
@@ -233,14 +252,14 @@ public class RoleUnresolved implements Serializable {
      * @see #getProblemType
      */
     public void setProblemType(int pbType)
-	throws IllegalArgumentException {
+        throws IllegalArgumentException {
 
-	if (!(RoleStatus.isRoleStatus(pbType))) {
-	    String excMsg = "Incorrect problem type.";
-	    throw new IllegalArgumentException(excMsg);
-	}
-	problemType = pbType;
-	return;
+        if (!(RoleStatus.isRoleStatus(pbType))) {
+            String excMsg = "Incorrect problem type.";
+            throw new IllegalArgumentException(excMsg);
+        }
+        problemType = pbType;
+        return;
     }
 
     /**
@@ -249,11 +268,11 @@ public class RoleUnresolved implements Serializable {
      * @return an independent clone.
      */
     public Object clone() {
-	try {
-	    return new RoleUnresolved(roleName, roleValue, problemType);
-	} catch (IllegalArgumentException exc) {
-	    return null; // :)
-	}
+        try {
+            return new RoleUnresolved(roleName, roleValue, problemType);
+        } catch (IllegalArgumentException exc) {
+            return null; // :)
+        }
     }
 
     /**
@@ -262,45 +281,45 @@ public class RoleUnresolved implements Serializable {
      * @return a description of this RoleUnresolved object.
      */
     public String toString() {
-	StringBuffer result = new StringBuffer();
-	result.append("role name: " + roleName);
-	if (roleValue != null) {
-	    result.append("; value: ");
-	    for (Iterator objNameIter = roleValue.iterator();
-		 objNameIter.hasNext();) {
-		ObjectName currObjName = (ObjectName)(objNameIter.next());
-		result.append(currObjName.toString());
-		if (objNameIter.hasNext()) {
-		    result.append(", ");
-		}
-	    }
-	}
-	result.append("; problem type: " + problemType);
-	return result.toString();
+        StringBuilder result = new StringBuilder();
+        result.append("role name: " + roleName);
+        if (roleValue != null) {
+            result.append("; value: ");
+            for (Iterator<ObjectName> objNameIter = roleValue.iterator();
+                 objNameIter.hasNext();) {
+                ObjectName currObjName = objNameIter.next();
+                result.append(currObjName.toString());
+                if (objNameIter.hasNext()) {
+                    result.append(", ");
+                }
+            }
+        }
+        result.append("; problem type: " + problemType);
+        return result.toString();
     }
 
     /**
      * Deserializes a {@link RoleUnresolved} from an {@link ObjectInputStream}.
      */
     private void readObject(ObjectInputStream in)
-	    throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
       if (compat)
       {
         // Read an object serialized in the old serial form
         //
         ObjectInputStream.GetField fields = in.readFields();
-	roleName = (String) fields.get("myRoleName", null);
-	if (fields.defaulted("myRoleName"))
+        roleName = (String) fields.get("myRoleName", null);
+        if (fields.defaulted("myRoleName"))
         {
           throw new NullPointerException("myRoleName");
         }
-	roleValue = (List<ObjectName>) fields.get("myRoleValue", null);
-	if (fields.defaulted("myRoleValue"))
+        roleValue = cast(fields.get("myRoleValue", null));
+        if (fields.defaulted("myRoleValue"))
         {
           throw new NullPointerException("myRoleValue");
         }
-	problemType = fields.get("myPbType", (int)0);
-	if (fields.defaulted("myPbType"))
+        problemType = fields.get("myPbType", 0);
+        if (fields.defaulted("myPbType"))
         {
           throw new NullPointerException("myPbType");
         }
@@ -318,16 +337,16 @@ public class RoleUnresolved implements Serializable {
      * Serializes a {@link RoleUnresolved} to an {@link ObjectOutputStream}.
      */
     private void writeObject(ObjectOutputStream out)
-	    throws IOException {
+            throws IOException {
       if (compat)
       {
         // Serializes this instance in the old serial form
         //
         ObjectOutputStream.PutField fields = out.putFields();
-	fields.put("myRoleName", roleName);
-	fields.put("myRoleValue", (ArrayList)roleValue);
-	fields.put("myPbType", problemType);
-	out.writeFields();
+        fields.put("myRoleName", roleName);
+        fields.put("myRoleValue", roleValue);
+        fields.put("myPbType", problemType);
+        out.writeFields();
       }
       else
       {

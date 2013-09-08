@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,23 +38,23 @@ public final class Operators {
     private static final String[] names = {
     "=", "!=", ">", "<", ">=", "<="
     };
-    
+
     public static final String getOpNames(int operator) {
           return names[operator];
     }
-    
+
 //  Swap operator array
     private static final int[] swapOpArray = {
         EQ,     // EQ
         NE,     // NE
         LT,     // GT
-        GT,     // LT 
-        LE,     // GE 
+        GT,     // LT
+        LE,     // GE
         GE      // LE
     };
 
     public static final int swapOp(int operator) {
           return swapOpArray[operator];
-    }    
-      
+    }
+
 }

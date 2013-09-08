@@ -1,29 +1,26 @@
-
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2004, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)XPathFactoryFinder.java	1.11 05/11/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.xpath;
@@ -45,9 +42,8 @@ import java.util.Properties;
 
 /**
  * Implementation of {@link XPathFactory#newInstance(String)}.
- * 
+ *
  * @author <a href="Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.4 $, $Date: 2005/10/06 05:39:24 $
  * @since 1.5
  */
 class XPathFactoryFinder  {
@@ -67,16 +63,16 @@ class XPathFactoryFinder  {
     /**
      * <p>Cache properties for performance.</p>
      */
-	private static Properties cacheProps = new Properties();
-    
-	/**
-	 * <p>First time requires initialization overhead.</p>
-	 */
-	private static boolean firstTime = true;
-    
+        private static Properties cacheProps = new Properties();
+
+        /**
+         * <p>First time requires initialization overhead.</p>
+         */
+        private static boolean firstTime = true;
+
     /**
      * <p>Conditional debug printing.</p>
-     * 
+     *
      * @param msg to print
      */
     private static void debugPrintln(String msg) {
@@ -84,16 +80,16 @@ class XPathFactoryFinder  {
             System.err.println("JAXP: " + msg);
         }
     }
-    
+
     /**
      * <p><code>ClassLoader</code> to use to find <code>XPathFactory</code>.</p>
      */
     private final ClassLoader classLoader;
-    
+
     /**
      * <p>Constructor that specifies <code>ClassLoader</code> to use
      * to find <code>XPathFactory</code>.</p>
-     * 
+     *
      * @param loader
      *      to be used to load resource, {@link XPathFactory}, and
      *      {@link SchemaFactoryLoader} implementations during
@@ -107,7 +103,7 @@ class XPathFactoryFinder  {
             debugDisplayClassLoader();
         }
     }
-    
+
     private void debugDisplayClassLoader() {
         try {
             if( classLoader == ss.getContextClassLoader() ) {
@@ -115,9 +111,9 @@ class XPathFactoryFinder  {
                 return;
             }
         } catch( Throwable _ ) {
-            ; // getContextClassLoader() undefined in JDK1.1 
+            ; // getContextClassLoader() undefined in JDK1.1
         }
-        
+
         if( classLoader==ClassLoader.getSystemClassLoader() ) {
             debugPrintln("using system class loader ("+classLoader+") for search");
             return;
@@ -125,16 +121,16 @@ class XPathFactoryFinder  {
 
         debugPrintln("using class loader ("+classLoader+") for search");
     }
-    
+
     /**
      * <p>Creates a new {@link XPathFactory} object for the specified
      * schema language.</p>
-     * 
+     *
      * @param uri
      *       Identifies the underlying object model.
-     * 
+     *
      * @return <code>null</code> if the callee fails to create one.
-     * 
+     *
      * @throws NullPointerException
      *      If the parameter is null.
      */
@@ -148,19 +144,19 @@ class XPathFactoryFinder  {
         }
         return f;
     }
-    
+
     /**
      * <p>Lookup a {@link XPathFactory} for the given object model.</p>
-     * 
+     *
      * @param uri identifies the object model.
-     *  
+     *
      * @return {@link XPathFactory} for the given object model.
      */
     private XPathFactory _newFactory(String uri) {
         XPathFactory xpathFactory;
-        
+
         String propertyName = SERVICE_CLASS.getName() + ":" + uri;
-        
+
         // system property look up
         try {
             debugPrintln("Looking up system property '"+propertyName+"'" );
@@ -177,7 +173,7 @@ class XPathFactoryFinder  {
                 t.printStackTrace();
             }
         }
-        
+
         String javah = ss.getSystemProperty( "java.home" );
         String configFile = javah + File.separator +
         "lib" + File.separator + "jaxp.properties";
@@ -192,14 +188,14 @@ class XPathFactoryFinder  {
                         File f=new File( configFile );
                         firstTime = false;
                         if(ss.doesFileExist(f)){
-                            debugPrintln("Read properties file " + f);                                
+                            debugPrintln("Read properties file " + f);
                             cacheProps.load(ss.getFileInputStream(f));
                         }
                     }
                 }
             }
-            factoryClassName = cacheProps.getProperty(propertyName);            
-            debugPrintln("found " + factoryClassName + " in $java.home/jaxp.properties"); 
+            factoryClassName = cacheProps.getProperty(propertyName);
+            debugPrintln("found " + factoryClassName + " in $java.home/jaxp.properties");
 
             if (factoryClassName != null) {
                 xpathFactory = createInstance(factoryClassName);
@@ -210,9 +206,9 @@ class XPathFactoryFinder  {
         } catch (Exception ex) {
             if (debug) {
                 ex.printStackTrace();
-            } 
+            }
         }
-                    
+
         // try META-INF/services files
         Iterator sitr = createServiceFileIterator();
         while(sitr.hasNext()) {
@@ -220,10 +216,10 @@ class XPathFactoryFinder  {
             debugPrintln("looking into " + resource);
             try {
                 xpathFactory = loadFromService(uri, resource.toExternalForm(),
-						ss.getURLInputStream(resource));
-		if (xpathFactory != null) {
+                                                ss.getURLInputStream(resource));
+                if (xpathFactory != null) {
                     return xpathFactory;
-		} 
+                }
             } catch(IOException e) {
                 if( debug ) {
                     debugPrintln("failed to read "+resource);
@@ -231,19 +227,19 @@ class XPathFactoryFinder  {
                 }
             }
         }
-        
+
         // platform default
         if(uri.equals(XPathFactory.DEFAULT_OBJECT_MODEL_URI)) {
             debugPrintln("attempting to use the platform default W3C DOM XPath lib");
             return createInstance("com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl");
         }
-        
+
         debugPrintln("all things were tried, but none was found. bailing out.");
         return null;
     }
-    
+
     /** <p>Create class using appropriate ClassLoader.</p>
-     * 
+     *
      * @param className Name of class to create.
      * @return Created class or <code>null</code>.
      */
@@ -264,26 +260,26 @@ class XPathFactoryFinder  {
 
             return clazz;
     }
-        
+
     /**
      * <p>Creates an instance of the specified and returns it.</p>
-     * 
+     *
      * @param className
      *      fully qualified class name to be instanciated.
-     * 
+     *
      * @return null
-     *      if it fails. Error messages will be printed by this method. 
+     *      if it fails. Error messages will be printed by this method.
      */
     XPathFactory createInstance( String className ) {
         XPathFactory xPathFactory = null;
 
         debugPrintln("createInstance(" + className + ")");
 
-        // get Class from className		
+        // get Class from className
         Class clazz = createClass(className);
         if (clazz == null) {
                 debugPrintln("failed to getClass(" + className + ")");
-                return null;	
+                return null;
         }
         debugPrintln("loaded " + className + " from " + which(clazz));
 
@@ -312,18 +308,18 @@ class XPathFactoryFinder  {
 
         return xPathFactory;
     }
-    
+
     /**
      * <p>Look up a value in a property file.</p>
-     * 
+     *
      * <p>Set <code>debug</code> to <code>true</code> to trace property evaluation.</p>
      *
      * @param objectModel URI of object model to support.
      * @param inputName Name of <code>InputStream</code>.
      * @param in <code>InputStream</code> of properties.
-     * 
+     *
      * @return <code>XPathFactory</code> as determined by <code>keyName</code> value or <code>null</code> if there was an error.
-     * 
+     *
      * @throws IOException If IO error reading from <code>in</code>.
      */
     private XPathFactory loadFromService(
@@ -364,7 +360,7 @@ class XPathFactoryFinder  {
                     if (clazz == null) {
                             continue;
                     }
-                    
+
                     // create an instance of the Class
                     try {
                             xPathFactory = (XPathFactory) clazz.newInstance();
@@ -378,7 +374,7 @@ class XPathFactoryFinder  {
                             xPathFactory = null;
                             continue;
                     }
-                                     
+
                     // does this Class support desired object model?
                     try {
                             Method isObjectModelSupported = clazz.getMethod(isObjectModelSupportedMethod, stringClassArray);
@@ -386,15 +382,15 @@ class XPathFactoryFinder  {
                             if (supported.booleanValue()) {
                                     break;
                             }
-                            
+
                     } catch (NoSuchMethodException noSuchMethodException) {
-                           
+
                     } catch (IllegalAccessException illegalAccessException) {
-                            
+
                     } catch (InvocationTargetException invocationTargetException) {
-                            
+
                     }
-                    xPathFactory = null;				
+                    xPathFactory = null;
             }
 
             // clean up
@@ -407,7 +403,7 @@ class XPathFactoryFinder  {
     /** Iterator that lazily computes one value and returns it. */
     private static abstract class SingleIterator implements Iterator {
         private boolean seen = false;
-        
+
         public final void remove() { throw new UnsupportedOperationException(); }
         public final boolean hasNext() { return !seen; }
         public final Object next() {
@@ -415,21 +411,21 @@ class XPathFactoryFinder  {
             seen = true;
             return value();
         }
-        
+
         protected abstract Object value();
     }
-    
+
     /**
      * Looks up a value in a property file
      * while producing all sorts of debug messages.
-     * 
+     *
      * @return null
      *      if there was an error.
      */
     private XPathFactory loadFromProperty( String keyName, String resourceName, InputStream in )
         throws IOException {
         debugPrintln("Reading "+resourceName );
-        
+
         Properties props = new Properties();
         props.load(in);
         in.close();
@@ -442,9 +438,9 @@ class XPathFactoryFinder  {
             return null;
         }
     }
-    
+
     /**
-     * Returns an {@link Iterator} that enumerates all 
+     * Returns an {@link Iterator} that enumerates all
      * the META-INF/services files that we care.
      */
     private Iterator createServiceFileIterator() {
@@ -463,7 +459,7 @@ class XPathFactoryFinder  {
                 if(!e.hasMoreElements()) {
                     debugPrintln("no "+SERVICE_ID+" file was found");
                 }
-                
+
                 // wrap it into an Iterator.
                 return new Iterator() {
                     public void remove() {
@@ -485,12 +481,12 @@ class XPathFactoryFinder  {
             }
         }
     }
-    
+
     private static final Class SERVICE_CLASS = XPathFactory.class;
     private static final String SERVICE_ID = "META-INF/services/" + SERVICE_CLASS.getName();
-    
-    
-    
+
+
+
     private static String which( Class clazz ) {
         return which( clazz.getName(), clazz.getClassLoader() );
     }
@@ -500,15 +496,15 @@ class XPathFactoryFinder  {
      *
      * @param classname the fully qualified name of the class to search for
      * @param loader the classloader to search
-     * 
+     *
      * @return the source location of the resource, or null if it wasn't found
      */
     private static String which(String classname, ClassLoader loader) {
 
         String classnameAsResource = classname.replace('.', '/') + ".class";
-        
+
         if( loader==null )  loader = ClassLoader.getSystemClassLoader();
-        
+
         //URL it = loader.getResource(classnameAsResource);
         URL it = ss.getResourceAsURL(loader, classnameAsResource);
         if (it != null) {

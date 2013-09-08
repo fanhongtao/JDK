@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -54,12 +58,11 @@ package com.sun.org.apache.bcel.internal.generic;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * LDC2_W - Push long or double from constant pool
  *
  * <PRE>Stack: ... -&gt; ..., item.word1, item.word2</PRE>
  *
- * @version $Id: LDC2_W.java,v 1.1.2.1 2005/07/31 23:44:40 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class LDC2_W extends CPInstruction
@@ -88,10 +91,10 @@ public class LDC2_W extends CPInstruction
 
     switch(c.getTag()) {
     case com.sun.org.apache.bcel.internal.Constants.CONSTANT_Long:
-	return new Long(((com.sun.org.apache.bcel.internal.classfile.ConstantLong)c).getBytes());
+        return new Long(((com.sun.org.apache.bcel.internal.classfile.ConstantLong)c).getBytes());
 
     case com.sun.org.apache.bcel.internal.Constants.CONSTANT_Double:
-	return new Double(((com.sun.org.apache.bcel.internal.classfile.ConstantDouble)c).getBytes());
+        return new Double(((com.sun.org.apache.bcel.internal.classfile.ConstantDouble)c).getBytes());
 
     default: // Never reached
       throw new RuntimeException("Unknown or invalid constant type at " + index);

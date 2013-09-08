@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,147 +39,146 @@ import org.w3c.dom.DOMException;
 
 
 /**
- * @xerces.internal 
- * 
+ * @xerces.internal
+ *
  * @author Rahul Srivastava, Sun Microsystems Inc.
  *
- * @version $Id: DefaultDocument.java,v 1.2.6.1 2005/09/08 09:31:10 sunithareddy Exp $
  */
 public class DefaultDocument extends NodeImpl
                              implements Document {
 
     private String fDocumentURI = null;
-    
+
     // default constructor
     public DefaultDocument() {
     }
-    
+
     //
     // org.w3c.dom.Document methods
     //
-    
+
     public DocumentType getDoctype() {
-	return null;
+        return null;
     }
 
 
     public DOMImplementation getImplementation() {
-	return null;
+        return null;
     }
 
 
     public Element getDocumentElement() {
-	return null;
+        return null;
     }
 
 
     public NodeList getElementsByTagName(String tagname) {
-	return null;
+        return null;
     }
 
 
     public NodeList getElementsByTagNameNS(String namespaceURI, String localName) {
-	return null;
+        return null;
     }
 
 
     public Element getElementById(String elementId) {
-	return null;
+        return null;
     }
 
 
     public Node importNode(Node importedNode, boolean deep) throws DOMException {
-	throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
 
     public Element createElement(String tagName) throws DOMException {
-	throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
 
     public DocumentFragment createDocumentFragment() {
-	return null;
+        return null;
     }
 
 
     public Text createTextNode(String data) {
-	return null;
+        return null;
     }
 
     public Comment createComment(String data) {
-	return null;
+        return null;
     }
-    
+
 
     public CDATASection createCDATASection(String data) throws DOMException {
-	throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
 
     public ProcessingInstruction createProcessingInstruction(String target, String data) throws DOMException {
-	throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
 
     public Attr createAttribute(String name) throws DOMException {
-	throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
 
     public EntityReference createEntityReference(String name) throws DOMException {
-	throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
 
     public Element createElementNS(String namespaceURI, String qualifiedName) throws DOMException {
-	throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
 
     public Attr createAttributeNS(String namespaceURI, String qualifiedName) throws DOMException {
-	throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
     // DOM Level 3 methods.
-    
+
     public String getInputEncoding(){
         return null;
     }
-    
+
     /**
     public void setInputEncoding(String actualEncoding){
        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
-	*/
-	
+        */
+
     public String getXmlEncoding(){
         return null;
     }
-    
-    
+
+
     /**
-     * An attribute specifying, as part of the XML declaration, the encoding 
+     * An attribute specifying, as part of the XML declaration, the encoding
      * of this document. This is <code>null</code> when unspecified.
      * @since DOM Level 3
     public void setXmlEncoding(String encoding){
         throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
      */
-     
+
     /**
-     * An attribute specifying, as part of the XML declaration, whether this 
+     * An attribute specifying, as part of the XML declaration, whether this
      * document is standalone.
-     * <br> This attribute represents the property [standalone] defined in . 
+     * <br> This attribute represents the property [standalone] defined in .
      * @since DOM Level 3
      */
     public boolean getXmlStandalone(){
         throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
     /**
-     * An attribute specifying, as part of the XML declaration, whether this 
+     * An attribute specifying, as part of the XML declaration, whether this
      * document is standalone.
-     * <br> This attribute represents the property [standalone] defined in . 
+     * <br> This attribute represents the property [standalone] defined in .
      * @since DOM Level 3
      */
     public void setXmlStandalone(boolean standalone){
@@ -183,11 +186,11 @@ public class DefaultDocument extends NodeImpl
     }
 
     /**
-     * An attribute specifying, as part of the XML declaration, the version 
+     * An attribute specifying, as part of the XML declaration, the version
      * number of this document. This is <code>null</code> when unspecified.
-     * <br> This attribute represents the property [version] defined in . 
+     * <br> This attribute represents the property [version] defined in .
      * @exception DOMException
-     *   NOT_SUPPORTED_ERR: Raised if the version is set to a value that is 
+     *   NOT_SUPPORTED_ERR: Raised if the version is set to a value that is
      *   not supported by this <code>Document</code>.
      * @since DOM Level 3
      */
@@ -195,11 +198,11 @@ public class DefaultDocument extends NodeImpl
         return null;
     }
     /**
-     * An attribute specifying, as part of the XML declaration, the version 
+     * An attribute specifying, as part of the XML declaration, the version
      * number of this document. This is <code>null</code> when unspecified.
-     * <br> This attribute represents the property [version] defined in . 
+     * <br> This attribute represents the property [version] defined in .
      * @exception DOMException
-     *   NOT_SUPPORTED_ERR: Raised if the version is set to a value that is 
+     *   NOT_SUPPORTED_ERR: Raised if the version is set to a value that is
      *   not supported by this <code>Document</code>.
      * @since DOM Level 3
      */
@@ -208,11 +211,11 @@ public class DefaultDocument extends NodeImpl
     }
 
     /**
-     * An attribute specifying whether errors checking is enforced or not. 
-     * When set to <code>false</code>, the implementation is free to not 
-     * test every possible error case normally defined on DOM operations, 
-     * and not raise any <code>DOMException</code>. In case of error, the 
-     * behavior is undefined. This attribute is <code>true</code> by 
+     * An attribute specifying whether errors checking is enforced or not.
+     * When set to <code>false</code>, the implementation is free to not
+     * test every possible error case normally defined on DOM operations,
+     * and not raise any <code>DOMException</code>. In case of error, the
+     * behavior is undefined. This attribute is <code>true</code> by
      * defaults.
      * @since DOM Level 3
      */
@@ -220,11 +223,11 @@ public class DefaultDocument extends NodeImpl
         return false;
     }
     /**
-     * An attribute specifying whether errors checking is enforced or not. 
-     * When set to <code>false</code>, the implementation is free to not 
-     * test every possible error case normally defined on DOM operations, 
-     * and not raise any <code>DOMException</code>. In case of error, the 
-     * behavior is undefined. This attribute is <code>true</code> by 
+     * An attribute specifying whether errors checking is enforced or not.
+     * When set to <code>false</code>, the implementation is free to not
+     * test every possible error case normally defined on DOM operations,
+     * and not raise any <code>DOMException</code>. In case of error, the
+     * behavior is undefined. This attribute is <code>true</code> by
      * defaults.
      * @since DOM Level 3
      */
@@ -234,19 +237,19 @@ public class DefaultDocument extends NodeImpl
 
     /**
      * The location of the document or <code>null</code> if undefined.
-     * <br>Beware that when the <code>Document</code> supports the feature 
-     * "HTML" , the href attribute of the HTML BASE element takes precedence 
+     * <br>Beware that when the <code>Document</code> supports the feature
+     * "HTML" , the href attribute of the HTML BASE element takes precedence
      * over this attribute.
      * @since DOM Level 3
      */
     public String getDocumentURI() {
         return fDocumentURI;
     }
-    
+
     /**
      * The location of the document or <code>null</code> if undefined.
-     * <br>Beware that when the <code>Document</code> supports the feature 
-     * "HTML" , the href attribute of the HTML BASE element takes precedence 
+     * <br>Beware that when the <code>Document</code> supports the feature
+     * "HTML" , the href attribute of the HTML BASE element takes precedence
      * over this attribute.
      * @since DOM Level 3
      */
@@ -258,31 +261,31 @@ public class DefaultDocument extends NodeImpl
     public Node adoptNode(Node source) throws DOMException{
         throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
-    
+
     /** DOM Level 3*/
     public void normalizeDocument(){
         throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
 
     /**
-     *  The configuration used when <code>Document.normalizeDocument</code> is 
-     * invoked. 
+     *  The configuration used when <code>Document.normalizeDocument</code> is
+     * invoked.
      * @since DOM Level 3
      */
     public DOMConfiguration getDomConfig(){
         throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
-    
+
     /** DOM Level 3*/
     public Node renameNode(Node n,String namespaceURI, String name) throws DOMException{
         throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
     }
-    
 
 
 
 
-    
+
+
 
 
 }

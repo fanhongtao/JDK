@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +64,7 @@ public class XResourceBundle extends ListResourceBundle
     //System.out.println("resource " + className + suffix);
     try
     {
-      
+
       // first try with the given locale
       String resourceName = className + suffix;
       return (XResourceBundle) ResourceBundle.getBundle(resourceName, locale);
@@ -122,16 +126,16 @@ public class XResourceBundle extends ListResourceBundle
   {
     { "ui_language", "en" }, { "help_language", "en" }, { "language", "en" },
     { "alphabet", new CharArrayWrapper(new char[]{ 'A', 'B', 'C', 'D', 'E', 'F', 'G',
-         'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 
+         'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
          'V', 'W', 'X', 'Y', 'Z' })},
-    { "tradAlphabet", new CharArrayWrapper(new char[]{ 'A', 'B', 'C', 'D', 'E', 'F', 
-         'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 
+    { "tradAlphabet", new CharArrayWrapper(new char[]{ 'A', 'B', 'C', 'D', 'E', 'F',
+         'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
          'U', 'V', 'W', 'X', 'Y', 'Z' }) },
 
     //language orientation
     { "orientation", "LeftToRight" },
 
-    //language numbering   
+    //language numbering
     { "numbering", "additive" },
   };
   }

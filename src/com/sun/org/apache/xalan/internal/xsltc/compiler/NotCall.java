@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,24 +37,24 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
  */
 final class NotCall extends FunctionCall {
     public NotCall(QName fname, Vector arguments) {
-	super(fname, arguments);
+        super(fname, arguments);
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final InstructionList il = methodGen.getInstructionList();
-	argument().translate(classGen, methodGen);
-	il.append(ICONST_1);
-	il.append(IXOR);
+        final InstructionList il = methodGen.getInstructionList();
+        argument().translate(classGen, methodGen);
+        il.append(ICONST_1);
+        il.append(IXOR);
     }
 
     public void translateDesynthesized(ClassGenerator classGen,
-				       MethodGenerator methodGen) {
-	final InstructionList il = methodGen.getInstructionList();
-	final Expression exp = argument();
-	exp.translateDesynthesized(classGen, methodGen);
-	final BranchHandle gotoh = il.append(new GOTO(null));
-	_trueList = exp._falseList; 	// swap flow lists
-	_falseList = exp._trueList;
-	_falseList.add(gotoh);
+                                       MethodGenerator methodGen) {
+        final InstructionList il = methodGen.getInstructionList();
+        final Expression exp = argument();
+        exp.translateDesynthesized(classGen, methodGen);
+        final BranchHandle gotoh = il.append(new GOTO(null));
+        _trueList = exp._falseList;     // swap flow lists
+        _falseList = exp._trueList;
+        _falseList.add(gotoh);
     }
 }

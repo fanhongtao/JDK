@@ -1,8 +1,26 @@
 /*
- * @(#)IORImpl.java	1.32 06/08/14
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior;
@@ -70,7 +88,7 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
 
     public ORB getORB()
     {
-	return factory ;
+        return factory ;
     }
 
     /* This variable is set directly from the constructors that take
@@ -85,18 +103,18 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
 
     public boolean equals( Object obj )
     {
-	if (obj == null)
-	    return false ;
+        if (obj == null)
+            return false ;
 
-	if (!(obj instanceof IOR))
-	    return false ;
+        if (!(obj instanceof IOR))
+            return false ;
 
-	IOR other = (IOR)obj ;
+        IOR other = (IOR)obj ;
 
-	return super.equals( obj ) && typeId.equals( other.getTypeId() ) ;
+        return super.equals( obj ) && typeId.equals( other.getTypeId() ) ;
     }
 
-    public synchronized int hashCode() 
+    public synchronized int hashCode()
     {
         if (! isCachedHashValue) {
               cachedHashValue =  (super.hashCode() ^ typeId.hashCode());
@@ -109,86 +127,86 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
     */
     public IORImpl( ORB orb )
     {
-	this( orb, "" ) ;
+        this( orb, "" ) ;
     }
 
     public IORImpl( ORB orb, String typeid )
     {
-	factory = orb ;
-	wrapper = IORSystemException.get( orb,
-	    CORBALogDomains.OA_IOR ) ;
-	this.typeId = typeid ;
+        factory = orb ;
+        wrapper = IORSystemException.get( orb,
+            CORBALogDomains.OA_IOR ) ;
+        this.typeId = typeid ;
     }
 
     /** Construct an IOR from an IORTemplate by applying the same
     * object id to each TaggedProfileTemplate in the IORTemplate.
     */
-    public IORImpl( ORB orb, String typeId, IORTemplate iortemp, ObjectId id) 
+    public IORImpl( ORB orb, String typeId, IORTemplate iortemp, ObjectId id)
     {
-	this( orb, typeId ) ;
+        this( orb, typeId ) ;
 
-	this.iortemps = IORFactories.makeIORTemplateList() ;
-	this.iortemps.add( iortemp ) ;
-    
-	addTaggedProfiles( iortemp, id ) ;
-	
-	makeImmutable() ;
+        this.iortemps = IORFactories.makeIORTemplateList() ;
+        this.iortemps.add( iortemp ) ;
+
+        addTaggedProfiles( iortemp, id ) ;
+
+        makeImmutable() ;
     }
-    
-    private void addTaggedProfiles( IORTemplate iortemp, ObjectId id ) 
+
+    private void addTaggedProfiles( IORTemplate iortemp, ObjectId id )
     {
-	ObjectKeyTemplate oktemp = iortemp.getObjectKeyTemplate() ;
-	Iterator templateIterator = iortemp.iterator() ;
+        ObjectKeyTemplate oktemp = iortemp.getObjectKeyTemplate() ;
+        Iterator templateIterator = iortemp.iterator() ;
 
-	while (templateIterator.hasNext()) {
-	    TaggedProfileTemplate ptemp = 
-		(TaggedProfileTemplate)(templateIterator.next()) ;
+        while (templateIterator.hasNext()) {
+            TaggedProfileTemplate ptemp =
+                (TaggedProfileTemplate)(templateIterator.next()) ;
 
-	    TaggedProfile profile = ptemp.create( oktemp, id ) ;
+            TaggedProfile profile = ptemp.create( oktemp, id ) ;
 
-	    add( profile ) ;
-	}	
+            add( profile ) ;
+        }
     }
 
     /** Construct an IOR from an IORTemplate by applying the same
     * object id to each TaggedProfileTemplate in the IORTemplate.
     */
-    public IORImpl( ORB orb, String typeId, IORTemplateList iortemps, ObjectId id) 
+    public IORImpl( ORB orb, String typeId, IORTemplateList iortemps, ObjectId id)
     {
-	this( orb, typeId ) ;
+        this( orb, typeId ) ;
 
-	this.iortemps = iortemps ;
+        this.iortemps = iortemps ;
 
-	Iterator iter = iortemps.iterator() ;
-	while (iter.hasNext()) {
-	    IORTemplate iortemp = (IORTemplate)(iter.next()) ;
-	    addTaggedProfiles( iortemp, id ) ;
-	}
-	
-	makeImmutable() ;
+        Iterator iter = iortemps.iterator() ;
+        while (iter.hasNext()) {
+            IORTemplate iortemp = (IORTemplate)(iter.next()) ;
+            addTaggedProfiles( iortemp, id ) ;
+        }
+
+        makeImmutable() ;
     }
-    
-    public IORImpl(InputStream is) 
+
+    public IORImpl(InputStream is)
     {
-	this( (ORB)(is.orb()), is.read_string() ) ;
+        this( (ORB)(is.orb()), is.read_string() ) ;
 
-    	IdentifiableFactoryFinder finder = 
-	    factory.getTaggedProfileFactoryFinder() ;
+        IdentifiableFactoryFinder finder =
+            factory.getTaggedProfileFactoryFinder() ;
 
-	EncapsulationUtility.readIdentifiableSequence( this, finder, is ) ;
+        EncapsulationUtility.readIdentifiableSequence( this, finder, is ) ;
 
-	makeImmutable() ;
+        makeImmutable() ;
     }
-    
-    public String getTypeId() 
+
+    public String getTypeId()
     {
-	return typeId ;
+        return typeId ;
     }
-    
-    public void write(OutputStream os) 
+
+    public void write(OutputStream os)
     {
-	os.write_string( typeId ) ;
-	EncapsulationUtility.writeIdentifiableSequence( this, os ) ;
+        os.write_string( typeId ) ;
+        EncapsulationUtility.writeIdentifiableSequence( this, os ) ;
     }
 
     public String stringify()
@@ -202,7 +220,7 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
         try {
             s.writeTo(new HexOutputStream(bs));
         } catch (IOException ex) {
-	    throw wrapper.stringifyWriteError( ex ) ;
+            throw wrapper.stringifyWriteError( ex ) ;
         }
 
         return ORBConstants.STRINGIFY_PREFIX + bs;
@@ -210,19 +228,19 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
 
     public synchronized void makeImmutable()
     {
-	makeElementsImmutable() ;
+        makeElementsImmutable() ;
 
-	if (iortemps != null)
-	    iortemps.makeImmutable() ;
+        if (iortemps != null)
+            iortemps.makeImmutable() ;
 
-	super.makeImmutable() ;
+        super.makeImmutable() ;
     }
-    
-    public org.omg.IOP.IOR getIOPIOR() {    
-	EncapsOutputStream os = new EncapsOutputStream(factory);
-	write(os);
-	InputStream is = (InputStream) (os.create_input_stream());
-	return org.omg.IOP.IORHelper.read(is);
+
+    public org.omg.IOP.IOR getIOPIOR() {
+        EncapsOutputStream os = new EncapsOutputStream(factory);
+        write(os);
+        InputStream is = (InputStream) (os.create_input_stream());
+        return org.omg.IOP.IORHelper.read(is);
     }
 
     public boolean isNil()
@@ -232,87 +250,87 @@ public class IORImpl extends IdentifiableContainerBase implements IOR
         // as a workaround for a bug in ORBs which send a
         // null objref with a non-empty typeId string.
         //
-	return ((size() == 0) /* && (typeId.length() == 0) */);
+        return ((size() == 0) /* && (typeId.length() == 0) */);
     }
 
     public boolean isEquivalent(IOR ior)
     {
-	Iterator myIterator = iterator() ;
-	Iterator otherIterator = ior.iterator() ;
-	while (myIterator.hasNext() && otherIterator.hasNext()) {
-	    TaggedProfile myProfile = (TaggedProfile)(myIterator.next()) ;
-	    TaggedProfile otherProfile = (TaggedProfile)(otherIterator.next()) ;
-	    if (!myProfile.isEquivalent( otherProfile ))
-		return false ;
-	}
+        Iterator myIterator = iterator() ;
+        Iterator otherIterator = ior.iterator() ;
+        while (myIterator.hasNext() && otherIterator.hasNext()) {
+            TaggedProfile myProfile = (TaggedProfile)(myIterator.next()) ;
+            TaggedProfile otherProfile = (TaggedProfile)(otherIterator.next()) ;
+            if (!myProfile.isEquivalent( otherProfile ))
+                return false ;
+        }
 
-	return myIterator.hasNext() == otherIterator.hasNext() ; 
+        return myIterator.hasNext() == otherIterator.hasNext() ;
     }
 
-    private void initializeIORTemplateList() 
+    private void initializeIORTemplateList()
     {
-	// Maps ObjectKeyTemplate to IORTemplate
-	Map oktempToIORTemplate = new HashMap() ;
+        // Maps ObjectKeyTemplate to IORTemplate
+        Map oktempToIORTemplate = new HashMap() ;
 
-	iortemps = IORFactories.makeIORTemplateList() ;
-	Iterator iter = iterator() ;
-	ObjectId oid = null ; // used to check that all profiles have the same oid.
-	while (iter.hasNext()) {
-	    TaggedProfile prof = (TaggedProfile)(iter.next()) ;
-	    TaggedProfileTemplate ptemp = prof.getTaggedProfileTemplate() ;
-	    ObjectKeyTemplate oktemp = prof.getObjectKeyTemplate() ;
+        iortemps = IORFactories.makeIORTemplateList() ;
+        Iterator iter = iterator() ;
+        ObjectId oid = null ; // used to check that all profiles have the same oid.
+        while (iter.hasNext()) {
+            TaggedProfile prof = (TaggedProfile)(iter.next()) ;
+            TaggedProfileTemplate ptemp = prof.getTaggedProfileTemplate() ;
+            ObjectKeyTemplate oktemp = prof.getObjectKeyTemplate() ;
 
-	    // Check that all oids for all profiles are the same: if they are not,
-	    // throw exception.
-	    if (oid == null)
-		oid = prof.getObjectId() ;
-	    else if (!oid.equals( prof.getObjectId() ))
-		throw wrapper.badOidInIorTemplateList() ;
+            // Check that all oids for all profiles are the same: if they are not,
+            // throw exception.
+            if (oid == null)
+                oid = prof.getObjectId() ;
+            else if (!oid.equals( prof.getObjectId() ))
+                throw wrapper.badOidInIorTemplateList() ;
 
-	    // Find or create the IORTemplate for oktemp.
-	    IORTemplate iortemp = (IORTemplate)(oktempToIORTemplate.get( oktemp )) ;
-	    if (iortemp == null) {
-		iortemp = IORFactories.makeIORTemplate( oktemp ) ;
-		oktempToIORTemplate.put( oktemp, iortemp ) ;
-		iortemps.add( iortemp ) ;
-	    }
+            // Find or create the IORTemplate for oktemp.
+            IORTemplate iortemp = (IORTemplate)(oktempToIORTemplate.get( oktemp )) ;
+            if (iortemp == null) {
+                iortemp = IORFactories.makeIORTemplate( oktemp ) ;
+                oktempToIORTemplate.put( oktemp, iortemp ) ;
+                iortemps.add( iortemp ) ;
+            }
 
-	    iortemp.add( ptemp ) ;
-	}
+            iortemp.add( ptemp ) ;
+        }
 
-	iortemps.makeImmutable() ;
+        iortemps.makeImmutable() ;
     }
 
     /** Return the IORTemplateList for this IOR.  Will throw
      * exception if it is not possible to generate an IOR
-     * from the IORTemplateList that is equal to this IOR, 
+     * from the IORTemplateList that is equal to this IOR,
      * which can only happen if not every TaggedProfile in the
      * IOR has the same ObjectId.
      */
-    public synchronized IORTemplateList getIORTemplates() 
+    public synchronized IORTemplateList getIORTemplates()
     {
-	if (iortemps == null) 
-	    initializeIORTemplateList() ;
+        if (iortemps == null)
+            initializeIORTemplateList() ;
 
-	return iortemps ;
+        return iortemps ;
     }
 
     /** Return the first IIOPProfile in this IOR.
      * XXX THIS IS TEMPORARY FOR BACKWARDS COMPATIBILITY AND WILL BE REMOVED
      * SOON!
      */
-    public IIOPProfile getProfile() 
+    public IIOPProfile getProfile()
     {
-	IIOPProfile iop = null ;
-	Iterator iter = iteratorById( TAG_INTERNET_IOP.value ) ;
-	if (iter.hasNext())
-	    iop = (IIOPProfile)(iter.next()) ;
- 
+        IIOPProfile iop = null ;
+        Iterator iter = iteratorById( TAG_INTERNET_IOP.value ) ;
+        if (iter.hasNext())
+            iop = (IIOPProfile)(iter.next()) ;
+
         if (iop != null)
             return iop ;
- 
+
         // if we come to this point then no IIOP Profile
         // is present.  Therefore, throw an exception.
-	throw wrapper.iorMustHaveIiopProfile() ;
+        throw wrapper.iorMustHaveIiopProfile() ;
     }
 }

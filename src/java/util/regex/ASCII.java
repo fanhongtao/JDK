@@ -1,8 +1,26 @@
 /*
- * @(#)ASCII.java	1.14 05/11/17
+ * Copyright (c) 1999, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.regex;
@@ -15,25 +33,25 @@ package java.util.regex;
  */
 
 final class ASCII {
-    
+
     static final int UPPER   = 0x00000100;
-    
+
     static final int LOWER   = 0x00000200;
-    
+
     static final int DIGIT   = 0x00000400;
-    
+
     static final int SPACE   = 0x00000800;
-    
+
     static final int PUNCT   = 0x00001000;
-    
+
     static final int CNTRL   = 0x00002000;
-    
+
     static final int BLANK   = 0x00004000;
-    
+
     static final int HEX     = 0x00008000;
-    
+
     static final int UNDER   = 0x00010000;
-    
+
     static final int ASCII   = 0x0000FF00;
 
     static final int ALPHA   = (UPPER|LOWER);
@@ -175,7 +193,7 @@ final class ASCII {
         PUNCT,                  /* 7D }     */
         PUNCT,                  /* 7E ~     */
         CNTRL,                  /* 7F (DEL) */
-    }; 
+    };
 
     static int getType(int ch) {
         return ((ch & 0xFFFFFF80) == 0 ? ctype[ch] : 0);

@@ -1,11 +1,25 @@
 /*
- * @(#)file      SnmpUsmKeyHandler.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.13
- * @(#)date      06/11/29
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 package com.sun.jmx.snmp;
@@ -13,12 +27,12 @@ package com.sun.jmx.snmp;
 /**
  * This interface allows you to compute key localization and delta generation. It is useful when adding user in USM MIB. An instance of <CODE> SnmpUsmKeyHandler </CODE> is associated to each <CODE> SnmpEngine </CODE> object.
  * When computing key, an authentication algorithm is needed. The supported ones are : usmHMACMD5AuthProtocol and usmHMACSHAAuthProtocol.
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  * @since 1.5
  */
 public interface SnmpUsmKeyHandler {
-    
+
     /**
      * DES privacy algorithm key size. To be used when localizing privacy key
      */
@@ -28,7 +42,7 @@ public interface SnmpUsmKeyHandler {
      * DES privacy algorithm delta size. To be used when calculing privacy key delta.
      */
     public static int DES_DELTA_SIZE = 16;
-    
+
     /**
      * Translate a password to a key. It MUST be compliant to RFC 2574 description.
      * @param algoName The authentication algorithm to use.
@@ -57,7 +71,7 @@ public interface SnmpUsmKeyHandler {
      * @exception IllegalArgumentException If the algorithm is unknown.
      */
     public byte[] localizePrivKey(String algoName, byte[] key, SnmpEngineId engineId,int keysize) throws IllegalArgumentException;
-    
+
     /**
      * Calculate the delta parameter needed when processing key change. This computation is done by the key change initiator. It MUST be compliant to RFC 2574 description.
      * @param algoName The authentication algorithm to use.
@@ -68,7 +82,7 @@ public interface SnmpUsmKeyHandler {
      * @exception IllegalArgumentException If the algorithm is unknown.
      */
     public byte[] calculateAuthDelta(String algoName, byte[] oldKey, byte[] newKey, byte[] random) throws IllegalArgumentException;
-    
+
     /**
      * Calculate the delta parameter needed when processing key change for a privacy algorithm. This computation is done by the key change initiator. It MUST be compliant to RFC 2574 description.
      * @param algoName The authentication algorithm to use.
@@ -80,5 +94,5 @@ public interface SnmpUsmKeyHandler {
      * @exception IllegalArgumentException If the algorithm is unknown.
      */
     public byte[] calculatePrivDelta(String algoName, byte[] oldKey, byte[] newKey, byte[] random, int deltaSize) throws IllegalArgumentException;
-    
+
 }

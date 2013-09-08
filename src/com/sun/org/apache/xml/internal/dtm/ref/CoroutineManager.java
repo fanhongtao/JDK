@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +30,7 @@ import com.sun.org.apache.xml.internal.res.XMLMessages;
 
 /**
  * <p>Support the coroutine design pattern.</p>
- * 
+ *
  * <p>A coroutine set is a very simple cooperative non-preemptive
  * multitasking model, where the switch from one task to another is
  * performed via an explicit request. Coroutines interact according to
@@ -48,7 +52,7 @@ import com.sun.org.apache.xml.internal.res.XMLMessages;
  * from one coroutine to another. Like pipes, neither coroutine is
  * actually "in charge", and neither must exit in order to transfer
  * control to the other. </p>
- * 
+ *
  * <p>One classic application of coroutines is in compilers, where both
  * the parser and the lexer are maintaining complex state
  * information. The parser resumes the lexer to process incoming
@@ -62,21 +66,21 @@ import com.sun.org.apache.xml.internal.res.XMLMessages;
  * intent, may have trouble handling cases where data flows in both
  * directions, and may not handle some of the more complex cases where
  * more than two coroutines are involved.</p>
- * 
+ *
  * <p>Most coroutine systems also provide a way to pass data between the
  * source and target of a resume operation; this is sometimes referred
  * to as "yielding" a value.  Others rely on the fact that, since only
  * one member of a coroutine set is running at a time and does not
  * lose control until it chooses to do so, data structures may be
  * directly shared between them with only minimal precautions.</p>
- * 
+ *
  * <p>"Note: This should not be taken to mean that producer/consumer
  * problems should be always be done with coroutines." Queueing is
  * often a better solution when only two threads of execution are
  * involved and full two-way handshaking is not required. It's a bit
  * difficult to find short pedagogical examples that require
  * coroutines for a clear solution.</p>
- * 
+ *
  * <p>The fact that only one of a group of coroutines is running at a
  * time, and the control transfer between them is explicit, simplifies
  * their possible interactions, and in some implementations permits
@@ -88,13 +92,13 @@ import com.sun.org.apache.xml.internal.res.XMLMessages;
  * <p>This version is built on top of standard Java threading, since
  * that's all we have available right now. It's been encapsulated for
  * code clarity and possible future optimization.</p>
- * 
+ *
  * <p>(Two possible approaches: wait-notify based and queue-based. Some
  * folks think that a one-item queue is a cleaner solution because it's
  * more abstract -- but since coroutine _is_ an abstraction I'm not really
  * worried about that; folks should be able to switch this code without
  * concern.)</p>
- * 
+ *
  * <p>%TBD% THIS SHOULD BE AN INTERFACE, to facilitate building other
  * implementations... perhaps including a true coroutine system
  * someday, rather than controlled threading. Arguably Coroutine
@@ -156,7 +160,7 @@ public class CoroutineManager
    * group.
    */
   int m_nextCoroutine=NOBODY;
-  
+
   /** <p>Each coroutine in the set managed by a single
    * CoroutineManager is identified by a small positive integer. This
    * brings up the question of how to manage those integers to avoid
@@ -228,7 +232,7 @@ public class CoroutineManager
 
     while(m_nextCoroutine != thisCoroutine)
       {
-        try 
+        try
           {
             wait();
           }
@@ -238,7 +242,7 @@ public class CoroutineManager
             // dance widdershins about the instruction cache?
           }
       }
-    
+
     return m_yield;
   }
 
@@ -252,7 +256,7 @@ public class CoroutineManager
    * @param thisCoroutine Integer identifier for this coroutine. This is the
    * ID we watch for to see if we're the ones being resumed.
    * @param toCoroutine  Integer identifier for the coroutine we wish to
-   * invoke. 
+   * invoke.
    * @exception java.lang.NoSuchMethodException if toCoroutine isn't a
    * registered member of this group. %REVIEW% whether this is the best choice.
    * */
@@ -269,7 +273,7 @@ public class CoroutineManager
     notify();
     while(m_nextCoroutine != thisCoroutine || m_nextCoroutine==ANYBODY || m_nextCoroutine==NOBODY)
       {
-        try 
+        try
           {
             // System.out.println("waiting...");
             wait();
@@ -289,10 +293,10 @@ public class CoroutineManager
         // %REVIEW% Should this throw/return something more useful?
         throw new java.lang.NoSuchMethodException(XMLMessages.createXMLMessage(XMLErrorResources.ER_COROUTINE_CO_EXIT, null)); //"CoroutineManager recieved co_exit() request");
       }
-    
+
     return m_yield;
   }
-  
+
   /** Terminate this entire set of coroutines. The others will be
    * deregistered and have exceptions thrown at them. Note that this
    * is intended as a panic-shutdown operation; under normal
@@ -300,7 +304,7 @@ public class CoroutineManager
    * order to politely inform at least one of its partners that it is
    * going away.
    *
-   * %TBD% This may need significantly more work. 
+   * %TBD% This may need significantly more work.
    *
    * %TBD% Should this just be co_exit_to(,,CoroutineManager.PANIC)?
    *
@@ -321,7 +325,7 @@ public class CoroutineManager
    * @param arg_object    A value to be passed to the other coroutine.
    * @param thisCoroutine Integer identifier for the coroutine leaving the set.
    * @param toCoroutine   Integer identifier for the coroutine we wish to
-   * invoke. 
+   * invoke.
    * @exception java.lang.NoSuchMethodException if toCoroutine isn't a
    * registered member of this group. %REVIEW% whether this is the best choice.
    * */
@@ -329,7 +333,7 @@ public class CoroutineManager
   {
     if(!m_activeIDs.get(toCoroutine))
       throw new java.lang.NoSuchMethodException(XMLMessages.createXMLMessage(XMLErrorResources.ER_COROUTINE_NOT_AVAIL, new Object[]{Integer.toString(toCoroutine)})); //"Coroutine not available, id="+toCoroutine);
-    
+
     // We expect these values to be overwritten during the notify()/wait()
     // periods, as other coroutines in this set get their opportunity to run.
     m_yield=arg_object;

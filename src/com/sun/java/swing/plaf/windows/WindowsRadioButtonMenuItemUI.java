@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsRadioButtonMenuItemUI.java	1.18 06/12/15
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -37,17 +55,17 @@ public class WindowsRadioButtonMenuItemUI extends BasicRadioButtonMenuItemUI {
            public State getState(JMenuItem menuItem) {
                return WindowsMenuItemUI.getState(this, menuItem);
            }
-           
+
            public Part getPart(JMenuItem menuItem) {
                return WindowsMenuItemUI.getPart(this, menuItem);
            }
     };
     public static ComponentUI createUI(JComponent b) {
         return new WindowsRadioButtonMenuItemUI();
-    }    
+    }
 
     @Override
-    protected  void paintBackground(Graphics g, JMenuItem menuItem, 
+    protected  void paintBackground(Graphics g, JMenuItem menuItem,
             Color bgColor) {
         if (WindowsMenuItemUI.isVistaPainting()) {
             WindowsMenuItemUI.paintBackground(accessor, g, menuItem, bgColor);
@@ -83,4 +101,3 @@ public class WindowsRadioButtonMenuItemUI extends BasicRadioButtonMenuItemUI {
         g.setColor(oldColor);
     }
 }
-

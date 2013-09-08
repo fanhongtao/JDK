@@ -1,15 +1,41 @@
 /*
- * @(#)FeatureDescriptor.java	1.34 05/11/17
+ * Copyright (c) 1996, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
 
+import com.sun.beans.TypeResolver;
+
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.SoftReference;
+
+import java.lang.reflect.Method;
+
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Map.Entry;
 
 /**
  * The FeatureDescriptor class is the common baseclass for PropertyDescriptor,
@@ -23,8 +49,9 @@ import java.lang.ref.SoftReference;
  */
 
 public class FeatureDescriptor {
+    private static final String TRANSIENT = "transient";
 
-    private Reference classRef;
+    private Reference<Class> classRef;
 
     /**
      * Constructs a <code>FeatureDescriptor</code>.
@@ -38,7 +65,7 @@ public class FeatureDescriptor {
      * @return The programmatic name of the property/method/event
      */
     public String getName() {
-	return name;
+        return name;
     }
 
     /**
@@ -47,30 +74,30 @@ public class FeatureDescriptor {
      * @param name  The programmatic name of the property/method/event
      */
     public void setName(String name) {
-	this.name = name;
+        this.name = name;
     }
 
     /**
      * Gets the localized display name of this feature.
      *
      * @return The localized display name for the property/method/event.
-     *	This defaults to the same as its programmatic name from getName.
+     *  This defaults to the same as its programmatic name from getName.
      */
     public String getDisplayName() {
-	if (displayName == null) {
-	    return getName();
-	}
-	return displayName;
+        if (displayName == null) {
+            return getName();
+        }
+        return displayName;
     }
 
     /**
      * Sets the localized display name of this feature.
      *
      * @param displayName  The localized display name for the
-     *		property/method/event.
+     *          property/method/event.
      */
     public void setDisplayName(String displayName) {
-	this.displayName = displayName;
+        this.displayName = displayName;
     }
 
     /**
@@ -80,7 +107,7 @@ public class FeatureDescriptor {
      * @return True if this feature is intended for use by experts only.
      */
     public boolean isExpert() {
-	return expert;
+        return expert;
     }
 
     /**
@@ -90,7 +117,7 @@ public class FeatureDescriptor {
      * @param expert True if this feature is intended for use by experts only.
      */
     public void setExpert(boolean expert) {
-	this.expert = expert;
+        this.expert = expert;
     }
 
     /**
@@ -100,7 +127,7 @@ public class FeatureDescriptor {
      * @return True if this feature should be hidden from human users.
      */
     public boolean isHidden() {
-	return hidden;
+        return hidden;
     }
 
     /**
@@ -110,7 +137,7 @@ public class FeatureDescriptor {
      * @param hidden  True if this feature should be hidden from human users.
      */
     public void setHidden(boolean hidden) {
-	this.hidden = hidden;
+        this.hidden = hidden;
     }
 
     /**
@@ -120,7 +147,7 @@ public class FeatureDescriptor {
      * @return True if this feature should be preferentially shown to human users.
      */
     public boolean isPreferred() {
-	return preferred;
+        return preferred;
     }
 
     /**
@@ -128,23 +155,23 @@ public class FeatureDescriptor {
      * important for presenting to humans.
      *
      * @param preferred  True if this feature should be preferentially shown
-     *		    	 to human users.
+     *                   to human users.
      */
     public void setPreferred(boolean preferred) {
-	this.preferred = preferred;
+        this.preferred = preferred;
     }
 
     /**
      * Gets the short description of this feature.
      *
-     * @return  A localized short description associated with this 
+     * @return  A localized short description associated with this
      *   property/method/event.  This defaults to be the display name.
      */
     public String getShortDescription() {
-	if (shortDescription == null) {
-	    return getDisplayName();
-	}
-	return shortDescription;
+        if (shortDescription == null) {
+            return getDisplayName();
+        }
+        return shortDescription;
     }
 
     /**
@@ -154,7 +181,7 @@ public class FeatureDescriptor {
      * this property/method/event.
      */
     public void setShortDescription(String text) {
-	shortDescription = text;
+        shortDescription = text;
     }
 
     /**
@@ -164,10 +191,7 @@ public class FeatureDescriptor {
      * @param value  The value.
      */
     public void setValue(String attributeName, Object value) {
-	if (table == null) {
-	    table = new java.util.Hashtable();
-	}
-	table.put(attributeName, value);
+        getTable().put(attributeName, value);
     }
 
     /**
@@ -175,27 +199,23 @@ public class FeatureDescriptor {
      *
      * @param attributeName  The locale-independent name of the attribute
      * @return  The value of the attribute.  May be null if
-     *	   the attribute is unknown.
+     *     the attribute is unknown.
      */
     public Object getValue(String attributeName) {
-	if (table == null) {
-	   return null;
-	}
-	return table.get(attributeName);
+        return (this.table != null)
+                ? this.table.get(attributeName)
+                : null;
     }
 
     /**
      * Gets an enumeration of the locale-independent names of this
      * feature.
      *
-     * @return  An enumeration of the locale-independent names of any 
+     * @return  An enumeration of the locale-independent names of any
      *    attributes that have been registered with setValue.
      */
-    public java.util.Enumeration<String> attributeNames() {
-	if (table == null) {
-	    table = new java.util.Hashtable();
-	}
-	return table.keys();
+    public Enumeration<String> attributeNames() {
+        return getTable().keys();
     }
 
     /**
@@ -209,24 +229,24 @@ public class FeatureDescriptor {
      * @param y  The second (higher priority) MethodDescriptor
      */
     FeatureDescriptor(FeatureDescriptor x, FeatureDescriptor y) {
-	expert = x.expert | y.expert;
-	hidden = x.hidden | y.hidden;
-	preferred = x.preferred | y.preferred;
-	name = y.name;
-	shortDescription = x.shortDescription;
-	if (y.shortDescription != null) {
-	    shortDescription = y.shortDescription;
-	}
-	displayName = x.displayName;
-	if (y.displayName != null) {
-	    displayName = y.displayName;
-	}
-	classRef = x.classRef;
-	if (y.classRef != null) {
-	    classRef = y.classRef;
-	}
-	addTable(x.table);
-	addTable(y.table);
+        expert = x.expert | y.expert;
+        hidden = x.hidden | y.hidden;
+        preferred = x.preferred | y.preferred;
+        name = y.name;
+        shortDescription = x.shortDescription;
+        if (y.shortDescription != null) {
+            shortDescription = y.shortDescription;
+        }
+        displayName = x.displayName;
+        if (y.displayName != null) {
+            displayName = y.displayName;
+        }
+        classRef = x.classRef;
+        if (y.classRef != null) {
+            classRef = y.classRef;
+        }
+        addTable(x.table);
+        addTable(y.table);
     }
 
     /*
@@ -234,74 +254,137 @@ public class FeatureDescriptor {
      * This must isolate the new object from any changes to the old object.
      */
     FeatureDescriptor(FeatureDescriptor old) {
-	expert = old.expert;
-	hidden = old.hidden;
-	preferred = old.preferred;
-	name = old.name;
-	shortDescription = old.shortDescription;
-	displayName = old.displayName;
-	classRef = old.classRef;
+        expert = old.expert;
+        hidden = old.hidden;
+        preferred = old.preferred;
+        name = old.name;
+        shortDescription = old.shortDescription;
+        displayName = old.displayName;
+        classRef = old.classRef;
 
-	addTable(old.table);
+        addTable(old.table);
     }
 
-    private void addTable(java.util.Hashtable t) {
-	if (t == null) {
-	    return;
-	}
-	java.util.Enumeration keys = t.keys();
-	while (keys.hasMoreElements()) {
-	    String key = (String)keys.nextElement();
-	    Object value = t.get(key);
-	    setValue(key, value);
-	}
+    /**
+     * Copies all values from the specified attribute table.
+     * If some attribute is exist its value should be overridden.
+     *
+     * @param table  the attribute table with new values
+     */
+    private void addTable(Hashtable<String, Object> table) {
+        if ((table != null) && !table.isEmpty()) {
+            getTable().putAll(table);
+        }
+    }
+
+    /**
+     * Returns the initialized attribute table.
+     *
+     * @return the initialized attribute table
+     */
+    private Hashtable<String, Object> getTable() {
+        if (this.table == null) {
+            this.table = new Hashtable<String, Object>();
+        }
+        return this.table;
+    }
+
+    /**
+     * Sets the "transient" attribute according to the annotation.
+     * If the "transient" attribute is already set
+     * it should not be changed.
+     *
+     * @param annotation  the annotation of the element of the feature
+     */
+    void setTransient(Transient annotation) {
+        if ((annotation != null) && (null == getValue(TRANSIENT))) {
+            setValue(TRANSIENT, annotation.value());
+        }
+    }
+
+    /**
+     * Indicates whether the feature is transient.
+     *
+     * @return {@code true} if the feature is transient,
+     *         {@code false} otherwise
+     */
+    boolean isTransient() {
+        Object value = getValue(TRANSIENT);
+        return (value instanceof Boolean)
+                ? (Boolean) value
+                : false;
     }
 
     // Package private methods for recreating the weak/soft referent
 
     void setClass0(Class cls) {
-	classRef = createReference(cls);
+        this.classRef = getWeakReference(cls);
     }
 
     Class getClass0() {
-	return (Class)getObject(classRef);
+        return (this.classRef != null)
+                ? this.classRef.get()
+                : null;
     }
 
     /**
-     * Create a Reference wrapper for the object.
+     * Creates a new soft reference that refers to the given object.
      *
-     * @param obj object that will be wrapped
-     * @param soft true if a SoftReference should be created; otherwise Soft
-     * @return a Reference or null if obj is null.
+     * @return a new soft reference or <code>null</code> if object is <code>null</code>
+     *
+     * @see SoftReference
      */
-    static Reference createReference(Object obj, boolean soft) {
-	Reference ref = null;
-	if (obj != null) {
-	    if (soft) {
-		ref = new SoftReference(obj);
-	    } else {
-		ref = new WeakReference(obj);
-	    }
-	}
-	return ref;
-    }
-
-    // Convenience method which creates a WeakReference.
-    static Reference createReference(Object obj) {
-	return createReference(obj, false);
+    static <T> Reference<T> getSoftReference(T object) {
+        return (object != null)
+                ? new SoftReference<T>(object)
+                : null;
     }
 
     /**
-     * Returns an object from a Reference wrapper.
+     * Creates a new weak reference that refers to the given object.
      *
-     * @return the Object in a wrapper or null.
+     * @return a new weak reference or <code>null</code> if object is <code>null</code>
+     *
+     * @see WeakReference
      */
-    static Object getObject(Reference ref) {
-	return (ref == null) ? null : (Object)ref.get();
+    static <T> Reference<T> getWeakReference(T object) {
+        return (object != null)
+                ? new WeakReference<T>(object)
+                : null;
     }
 
-    static String capitalize(String s) {
-	return NameGenerator.capitalize(s);
+    /**
+     * Resolves the return type of the method.
+     *
+     * @param base    the class that contains the method in the hierarchy
+     * @param method  the object that represents the method
+     * @return a class identifying the return type of the method
+     *
+     * @see Method#getGenericReturnType
+     * @see Method#getReturnType
+     */
+    static Class getReturnType(Class base, Method method) {
+        if (base == null) {
+            base = method.getDeclaringClass();
+        }
+        return TypeResolver.erase(TypeResolver.resolveInClass(base, method.getGenericReturnType()));
+    }
+
+    /**
+     * Resolves the parameter types of the method.
+     *
+     * @param base    the class that contains the method in the hierarchy
+     * @param method  the object that represents the method
+     * @return an array of classes identifying the parameter types of the method
+     *
+     * @see Method#getGenericParameterTypes
+     * @see Method#getParameterTypes
+     */
+    static Class[] getParameterTypes(Class base, Method method) {
+        if (base == null) {
+            base = method.getDeclaringClass();
+        }
+        return TypeResolver.erase(TypeResolver.resolveInClass(base, method.getGenericParameterTypes()));
     }
 
     private boolean expert;
@@ -310,5 +393,53 @@ public class FeatureDescriptor {
     private String shortDescription;
     private String name;
     private String displayName;
-    private java.util.Hashtable table;
+    private Hashtable<String, Object> table;
+
+    /**
+     * Returns a string representation of the object.
+     *
+     * @return a string representation of the object
+     *
+     * @since 1.7
+     */
+    public String toString() {
+        StringBuilder sb = new StringBuilder(getClass().getName());
+        sb.append("[name=").append(this.name);
+        appendTo(sb, "displayName", this.displayName);
+        appendTo(sb, "shortDescription", this.shortDescription);
+        appendTo(sb, "preferred", this.preferred);
+        appendTo(sb, "hidden", this.hidden);
+        appendTo(sb, "expert", this.expert);
+        if ((this.table != null) && !this.table.isEmpty()) {
+            sb.append("; values={");
+            for (Entry<String, Object> entry : this.table.entrySet()) {
+                sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
+            }
+            sb.setLength(sb.length() - 2);
+            sb.append("}");
+        }
+        appendTo(sb);
+        return sb.append("]").toString();
+    }
+
+    void appendTo(StringBuilder sb) {
+    }
+
+    static void appendTo(StringBuilder sb, String name, Reference reference) {
+        if (reference != null) {
+            appendTo(sb, name, reference.get());
+        }
+    }
+
+    static void appendTo(StringBuilder sb, String name, Object value) {
+        if (value != null) {
+            sb.append("; ").append(name).append("=").append(value);
+        }
+    }
+
+    static void appendTo(StringBuilder sb, String name, boolean value) {
+        if (value) {
+            sb.append("; ").append(name);
+        }
+    }
 }

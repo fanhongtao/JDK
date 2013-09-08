@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,17 +31,16 @@ import org.w3c.dom.DOMImplementation;
 
 
 /**
- * Implements XSImplementation interface that allows one to retrieve an instance of <code>XSLoader</code>. 
- * This interface should be implemented on the same object that implements 
+ * Implements XSImplementation interface that allows one to retrieve an instance of <code>XSLoader</code>.
+ * This interface should be implemented on the same object that implements
  * DOMImplementation.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Elena Litani, IBM
- * @version $Id: XSImplementationImpl.java,v 1.2.6.1 2005/09/09 07:30:56 sunithareddy Exp $
  */
-public class XSImplementationImpl extends CoreDOMImplementationImpl 
- 								  implements XSImplementation {
+public class XSImplementationImpl extends CoreDOMImplementationImpl
+                                                                  implements XSImplementation {
 
     //
     // Data
@@ -55,16 +58,16 @@ public class XSImplementationImpl extends CoreDOMImplementationImpl
     /** NON-DOM: Obtain and return the single shared object */
     public static DOMImplementation getDOMImplementation() {
         return singleton;
-    }  
+    }
 
     //
     // DOMImplementation methods
     //
 
-    /** 
+    /**
      * Test if the DOM implementation supports a specific "feature" --
      * currently meaning language and level thereof.
-     * 
+     *
      * @param feature      The package name of the feature to test.
      * In Level 1, supported values are "HTML" and "XML" (case-insensitive).
      * At this writing, com.sun.org.apache.xerces.internal.dom supports only XML.
@@ -77,32 +80,32 @@ public class XSImplementationImpl extends CoreDOMImplementationImpl
      * feature and version.
      */
     public boolean hasFeature(String feature, String version) {
-    	
+
         return (feature.equalsIgnoreCase("XS-Loader") && (version == null || version.equals("1.0")) ||
-		super.hasFeature(feature, version));
+                super.hasFeature(feature, version));
     } // hasFeature(String,String):boolean
-    
+
 
 
     /* (non-Javadoc)
      * @see com.sun.org.apache.xerces.internal.xs.XSImplementation#createXSLoader(com.sun.org.apache.xerces.internal.xs.StringList)
      */
     public XSLoader createXSLoader(StringList versions) throws XSException {
-    	XSLoader loader = new XSLoaderImpl();
-    	if (versions == null){
-			return loader;
-    	}
-    	for (int i=0; i<versions.getLength();i++){
-    		if (!versions.item(i).equals("1.0")){
-				String msg =
-					DOMMessageFormatter.formatMessage(
-						DOMMessageFormatter.DOM_DOMAIN,
-						"FEATURE_NOT_SUPPORTED",
-						new Object[] { versions.item(i) });
-				throw new XSException(XSException.NOT_SUPPORTED_ERR, msg);
-    		}
-    	}
-    	return loader;
+        XSLoader loader = new XSLoaderImpl();
+        if (versions == null){
+                        return loader;
+        }
+        for (int i=0; i<versions.getLength();i++){
+                if (!versions.item(i).equals("1.0")){
+                                String msg =
+                                        DOMMessageFormatter.formatMessage(
+                                                DOMMessageFormatter.DOM_DOMAIN,
+                                                "FEATURE_NOT_SUPPORTED",
+                                                new Object[] { versions.item(i) });
+                                throw new XSException(XSException.NOT_SUPPORTED_ERR, msg);
+                }
+        }
+        return loader;
     }
 
     /* (non-Javadoc)

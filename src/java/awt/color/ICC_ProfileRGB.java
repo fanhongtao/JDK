@@ -1,8 +1,26 @@
 /*
- * @(#)ICC_ProfileRGB.java	1.23 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /**********************************************************************
@@ -18,19 +36,19 @@
 package java.awt.color;
 
 import java.awt.image.LookupTable;
-import sun.awt.color.ProfileDeferralInfo;
+import sun.java2d.cmm.ProfileDeferralInfo;
 
 /**
  *
  * The ICC_ProfileRGB class is a subclass of the ICC_Profile class
- * that represents profiles which meet the following criteria: 
+ * that represents profiles which meet the following criteria:
  * <ul>
  * <li>The profile's color space type is RGB.</li>
  * <li>The profile includes the <code>redColorantTag</code>,
- * <code>greenColorantTag</code>, <code>blueColorantTag</code>, 
+ * <code>greenColorantTag</code>, <code>blueColorantTag</code>,
  * <code>redTRCTag</code>, <code>greenTRCTag</code>,
  * <code>blueTRCTag</code>, and <code>mediaWhitePointTag</code> tags.</li>
- * </ul>  
+ * </ul>
  * The <code>ICC_Profile</code> <code>getInstance</code> method will
  * return an <code>ICC_ProfileRGB</code> object when these conditions are met.
  * Three-component, matrix-based input profiles and RGB display profiles are
@@ -50,16 +68,16 @@ import sun.awt.color.ProfileDeferralInfo;
  * &nbsp;               linearR = redTRC[deviceR]
  *
  * &nbsp;               linearG = greenTRC[deviceG]
- * 
+ *
  * &nbsp;               linearB = blueTRC[deviceB]
- * 
+ *
  * &nbsp; _      _       _                                             _   _         _
  * &nbsp;[  PCSX  ]     [  redColorantX  greenColorantX  blueColorantX  ] [  linearR  ]
  * &nbsp;[        ]     [                                               ] [           ]
  * &nbsp;[  PCSY  ]  =  [  redColorantY  greenColorantY  blueColorantY  ] [  linearG  ]
  * &nbsp;[        ]     [                                               ] [           ]
  * &nbsp;[_ PCSZ _]     [_ redColorantZ  greenColorantZ  blueColorantZ _] [_ linearB _]
- * 
+ *
  * </pre>
  * The inverse transform is performed by converting PCS XYZ components to linear
  * RGB components through the inverse of the above 3x3 matrix, and then converting
@@ -71,6 +89,8 @@ import sun.awt.color.ProfileDeferralInfo;
 
 public class ICC_ProfileRGB
 extends ICC_Profile {
+
+    static final long serialVersionUID = 8505067385152579334L;
 
     /**
      * Used to get a gamma value or TRC for the red component.
@@ -99,9 +119,9 @@ extends ICC_Profile {
     }
 
     /**
-     * Constructs a new <code>ICC_ProfileRGB</code> from a 
+     * Constructs a new <code>ICC_ProfileRGB</code> from a
      * ProfileDeferralInfo object.
-     * 
+     *
      * @param pdi
      */
     ICC_ProfileRGB(ProfileDeferralInfo pdi) {
@@ -155,23 +175,23 @@ extends ICC_Profile {
 
     /**
      * Returns a gamma value representing the tone reproduction curve
-     * (TRC) for a particular component.  The component parameter 
-     * must be one of REDCOMPONENT, GREENCOMPONENT, or BLUECOMPONENT.  
+     * (TRC) for a particular component.  The component parameter
+     * must be one of REDCOMPONENT, GREENCOMPONENT, or BLUECOMPONENT.
      * <p>
      * If the profile
      * represents the TRC for the corresponding component
      * as a table rather than a single gamma value, an
      * exception is thrown.  In this case the actual table
-     * can be obtained through the {@link #getTRC(int)} method.  
+     * can be obtained through the {@link #getTRC(int)} method.
      * When using a gamma value,
      * the linear component (R, G, or B) is computed as follows:
      * <pre>
-     * 
+     *
      * &nbsp;                                         gamma
      * &nbsp;        linearComponent = deviceComponent
      *
      *</pre>
-     * @param component The <CODE>ICC_ProfileRGB</CODE> constant that 
+     * @param component The <CODE>ICC_ProfileRGB</CODE> constant that
      * represents the component whose TRC you want to retrieve
      * @return the gamma value as a float.
      * @exception ProfileDataException if the profile does not specify
@@ -204,9 +224,9 @@ extends ICC_Profile {
     }
 
     /**
-     * Returns the TRC for a particular component as an array.  
+     * Returns the TRC for a particular component as an array.
      * Component must be <code>REDCOMPONENT</code>,
-     * <code>GREENCOMPONENT</code>, or <code>BLUECOMPONENT</code>. 
+     * <code>GREENCOMPONENT</code>, or <code>BLUECOMPONENT</code>.
      * Otherwise the returned array
      * represents a lookup table where the input component value
      * is conceptually in the range [0.0, 1.0].  Value 0.0 maps
@@ -216,17 +236,17 @@ extends ICC_Profile {
      * array.  Output values also map linearly to the range [0.0, 1.0].
      * Value 0.0 is represented by an array value of 0x0000 and
      * value 1.0 by 0xFFFF.  In other words, the values are really unsigned
-     * <code>short</code> values even though they are returned in a 
+     * <code>short</code> values even though they are returned in a
      * <code>short</code> array.
      *
      * If the profile has specified the corresponding TRC
      * as linear (gamma = 1.0) or as a simple gamma value, this method
      * throws an exception.  In this case, the {@link #getGamma(int)}
-     * method should be used to get the gamma value.      
+     * method should be used to get the gamma value.
      *
      * @param component The <CODE>ICC_ProfileRGB</CODE> constant that
      * represents the component whose TRC you want to retrieve:
-     * <CODE>REDCOMPONENT</CODE>, <CODE>GREENCOMPONENT</CODE>, or   
+     * <CODE>REDCOMPONENT</CODE>, <CODE>GREENCOMPONENT</CODE>, or
      * <CODE>BLUECOMPONENT</CODE>.
      *
      * @return a short array representing the TRC.
@@ -260,4 +280,3 @@ extends ICC_Profile {
     }
 
 }
-

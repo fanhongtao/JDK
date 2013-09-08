@@ -1,8 +1,26 @@
 /*
- * @(#)ObjectFactoryBuilder.java	1.11 05/11/17
+ * Copyright (c) 1999, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.spi;
@@ -30,7 +48,6 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.11 05/11/17
   *
   * @see ObjectFactory
   * @see NamingManager#getObjectInstance
@@ -47,12 +64,12 @@ public interface ObjectFactoryBuilder {
       *
       * @param obj The possibly null object for which to create a factory.
       * @param environment Environment to use when creating the factory.
-      *			Can be null.
+      *                 Can be null.
       * @return A non-null new instance of an ObjectFactory.
-      *	@exception NamingException If an object factory cannot be created.
+      * @exception NamingException If an object factory cannot be created.
       *
       */
     public ObjectFactory createObjectFactory(Object obj,
-					     Hashtable<?,?> environment)
-	throws NamingException;
+                                             Hashtable<?,?> environment)
+        throws NamingException;
 }

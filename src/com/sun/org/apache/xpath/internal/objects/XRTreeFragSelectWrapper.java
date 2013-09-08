@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,22 +39,22 @@ public class XRTreeFragSelectWrapper extends XRTreeFrag implements Cloneable
   {
     super(expr);
   }
-  
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
   {
     ((Expression)m_obj).fixupVariables(vars, globalsSize);
   }
-  
+
   /**
    * For support of literal objects in xpaths.
    *
@@ -63,7 +67,7 @@ public class XRTreeFragSelectWrapper extends XRTreeFrag implements Cloneable
   public XObject execute(XPathContext xctxt)
           throws javax.xml.transform.TransformerException
   {
-	 XObject m_selected;
+         XObject m_selected;
      m_selected = ((Expression)m_obj).execute(xctxt);
      m_selected.allowDetachToRelease(m_allowRelease);
      if (m_selected.getType() == CLASS_STRING)
@@ -71,21 +75,21 @@ public class XRTreeFragSelectWrapper extends XRTreeFrag implements Cloneable
      else
        return new XString(m_selected.str());
   }
-    
+
   /**
    * Detaches the <code>DTMIterator</code> from the set which it iterated
    * over, releasing any computational resources and placing the iterator
    * in the INVALID state. After <code>detach</code> has been invoked,
    * calls to <code>nextNode</code> or <code>previousNode</code> will
    * raise a runtime exception.
-   * 
+   *
    * In general, detach should only be called once on the object.
    */
   public void detach()
   {
-	throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_DETACH_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER, null)); //"detach() not supported by XRTreeFragSelectWrapper!");
+        throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_DETACH_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER, null)); //"detach() not supported by XRTreeFragSelectWrapper!");
   }
-  
+
   /**
    * Cast result object to a number.
    *
@@ -95,30 +99,30 @@ public class XRTreeFragSelectWrapper extends XRTreeFrag implements Cloneable
     throws javax.xml.transform.TransformerException
   {
 
-	throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_NUM_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER, null)); //"num() not supported by XRTreeFragSelectWrapper!");
+        throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_NUM_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER, null)); //"num() not supported by XRTreeFragSelectWrapper!");
   }
 
-  
+
   /**
    * Cast result object to an XMLString.
    *
-   * @return The document fragment node data or the empty string. 
+   * @return The document fragment node data or the empty string.
    */
   public XMLString xstr()
   {
-	throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_XSTR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER, null)); //"xstr() not supported by XRTreeFragSelectWrapper!");
+        throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_XSTR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER, null)); //"xstr() not supported by XRTreeFragSelectWrapper!");
   }
 
   /**
    * Cast result object to a string.
    *
-   * @return The document fragment node data or the empty string. 
+   * @return The document fragment node data or the empty string.
    */
   public String str()
   {
-	throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_STR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER, null)); //"str() not supported by XRTreeFragSelectWrapper!");
+        throw new RuntimeException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_STR_NOT_SUPPORTED_XRTREEFRAGSELECTWRAPPER, null)); //"str() not supported by XRTreeFragSelectWrapper!");
   }
-  
+
   /**
    * Tell what kind of class this is.
    *

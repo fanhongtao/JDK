@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +54,7 @@ import javax.xml.transform.SourceLocator;
  * <p>
  * A SimpleResultTreeImpl has only two nodes, i.e. the ROOT node and its Text child. All DOM
  * interfaces are overridden with this in mind. For example, the getStringValue() interface
- * returns the value of the Text node. This class receives the character data from the 
+ * returns the value of the Text node. This class receives the character data from the
  * characters() interface.
  * <p>
  * This class implements DOM and SerializationHandler. It also implements the DTM interface
@@ -59,7 +63,7 @@ import javax.xml.transform.SourceLocator;
  */
 public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
 {
-    
+
     /**
      * The SimpleIterator is designed to support the nodeset() extension function. It has
      * a traversal direction parameter. The DOWN direction is used for child and descendant
@@ -73,34 +77,34 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         static final int DIRECTION_UP = 0;
         static final int DIRECTION_DOWN = 1;
         static final int NO_TYPE = -1;
-        
+
         // The direction of traversal (default to DOWN).
         // DOWN is for child and descendant. UP is for parent and ancestor.
         int _direction = DIRECTION_DOWN;
-        
+
         int _type = NO_TYPE;
         int _currentNode;
-        
+
         public SimpleIterator()
         {
         }
-        
+
         public SimpleIterator(int direction)
         {
             _direction = direction;
         }
-        
+
         public SimpleIterator(int direction, int type)
         {
              _direction = direction;
              _type = type;
         }
-        
+
         public int next()
         {
             // Increase the node ID for down traversal. Also match the node type
             // if the type is given.
-            if (_direction == DIRECTION_DOWN) {                
+            if (_direction == DIRECTION_DOWN) {
                 while (_currentNode < NUMBER_OF_NODES) {
                     if (_type != NO_TYPE) {
                         if ((_currentNode == RTF_ROOT && _type == DTM.ROOT_NODE)
@@ -112,11 +116,11 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
                     else
                         return returnNode(getNodeHandle(_currentNode++));
                 }
-                
+
                 return END;
             }
             // Decrease the node ID for up traversal.
-            else {                
+            else {
                 while (_currentNode >= 0) {
                     if (_type != NO_TYPE) {
                         if ((_currentNode == RTF_ROOT && _type == DTM.ROOT_NODE)
@@ -128,16 +132,16 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
                     else
                         return returnNode(getNodeHandle(_currentNode--));
                 }
-                
+
                 return END;
             }
         }
-                
+
         public DTMAxisIterator setStartNode(int nodeHandle)
         {
             int nodeID = getNodeIdent(nodeHandle);
             _startNode = nodeID;
-            
+
             // Increase the node ID by 1 if self is not included.
             if (!_includeSelf && nodeID != DTM.NULL) {
                 if (_direction == DIRECTION_DOWN)
@@ -145,23 +149,23 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
                 else if (_direction == DIRECTION_UP)
                     nodeID--;
             }
-            
+
             _currentNode = nodeID;
             return this;
         }
-                
+
         public void setMark()
         {
             _markedNode = _currentNode;
         }
-        
+
         public void gotoMark()
         {
             _currentNode = _markedNode;
         }
-        
+
     } // END of SimpleIterator
-    
+
     /**
      * The SingletonIterator is used for the self axis.
      */
@@ -170,21 +174,21 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         static final int NO_TYPE = -1;
         int _type = NO_TYPE;
         int _currentNode;
-        
+
         public SingletonIterator()
         {
         }
-        
+
         public SingletonIterator(int type)
         {
             _type = type;
         }
-        
+
         public void setMark()
         {
             _markedNode = _currentNode;
         }
-        
+
         public void gotoMark()
         {
             _currentNode = _markedNode;
@@ -195,14 +199,14 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             _currentNode = _startNode = getNodeIdent(nodeHandle);
             return this;
         }
-        
+
         public int next()
         {
             if (_currentNode == END)
                 return END;
-            
+
             _currentNode = END;
-            
+
             if (_type != NO_TYPE) {
                 if ((_currentNode == RTF_ROOT && _type == DTM.ROOT_NODE)
                     || (_currentNode == RTF_TEXT && _type == DTM.TEXT_NODE))
@@ -210,10 +214,10 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             }
             else
                 return getNodeHandle(_currentNode);
-            
-            return END;                
+
+            return END;
         }
-        
+
     }  // END of SingletonIterator
 
     // empty iterator to be returned when there are no children
@@ -229,47 +233,47 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             public DTMAxisIterator cloneIterator() { return this; }
             public void setRestartable(boolean isRestartable) { }
         };
-    
-    
+
+
     // The root node id of the simple RTF
     public static final int RTF_ROOT = 0;
-    
+
     // The Text node id of the simple RTF (simple RTF has only one Text node).
     public static final int RTF_TEXT = 1;
-    
+
     // The number of nodes.
     public static final int NUMBER_OF_NODES = 2;
-    
+
     // Document URI index, which increases by 1 at each getDocumentURI() call.
     private static int _documentURIIndex = 0;
-    
+
     // Constant for empty String
     private static final String EMPTY_STR = "";
-    
+
     // The String value of the Text node.
     // This is set at the endDocument() call.
     private String _text;
-    
+
     // The array of Text items, which is built by the characters() call.
     // The characters() interface can be called multiple times. Each character item
     // can have different escape settings.
     protected String[] _textArray;
-    
+
     // The DTMManager
     protected XSLTCDTMManager _dtmManager;
-    
+
     // Number of character items
     protected int _size = 0;
-    
+
     // The document ID
     private int _documentID;
 
     // A BitArray, each bit holding the escape setting for a character item.
     private BitArray _dontEscape = null;
-    
+
     // The current escape setting
     private boolean _escaping = true;
-    
+
     // Create a SimpleResultTreeImpl from a DTMManager and a document ID.
     public SimpleResultTreeImpl(XSLTCDTMManager dtmManager, int documentID)
     {
@@ -277,12 +281,12 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         _documentID = documentID;
         _textArray = new String[4];
     }
-    
+
     public DTMManagerDefault getDTMManager()
     {
-        return _dtmManager;	
+        return _dtmManager;
     }
-    
+
     // Return the document ID
     public int getDocument()
     {
@@ -294,22 +298,22 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
     {
         return _text;
     }
-    
+
     public DTMAxisIterator getIterator()
     {
         return new SingletonIterator(getDocument());
     }
-	
+
     public DTMAxisIterator getChildren(final int node)
     {
         return new SimpleIterator().setStartNode(node);
     }
-    
+
     public DTMAxisIterator getTypedChildren(final int type)
     {
         return new SimpleIterator(SimpleIterator.DIRECTION_DOWN, type);
     }
-    
+
     // Return the axis iterator for a given axis.
     // The SimpleIterator is used for the child, descendant, parent and ancestor axes.
     public DTMAxisIterator getAxisIterator(final int axis)
@@ -332,7 +336,7 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
                 return EMPTY_ITERATOR;
         }
     }
-    
+
     public DTMAxisIterator getTypedAxisIterator(final int axis, final int type)
     {
         switch (axis)
@@ -353,30 +357,30 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
                 return EMPTY_ITERATOR;
         }
     }
-    
+
     // %REVISIT% Can this one ever get used?
     public DTMAxisIterator getNthDescendant(int node, int n, boolean includeself)
     {
-        return null; 
+        return null;
     }
-    
+
     public DTMAxisIterator getNamespaceAxisIterator(final int axis, final int ns)
     {
         return null;
     }
-    
+
     // %REVISIT% Can this one ever get used?
     public DTMAxisIterator getNodeValueIterator(DTMAxisIterator iter, int returnType,
-					     String value, boolean op)
+                                             String value, boolean op)
     {
         return null;
     }
-    
+
     public DTMAxisIterator orderNodes(DTMAxisIterator source, int node)
     {
         return source;
     }
-    
+
     public String getNodeName(final int node)
     {
         if (getNodeIdent(node) == RTF_TEXT)
@@ -384,17 +388,17 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         else
             return EMPTY_STR;
     }
-    
+
     public String getNodeNameX(final int node)
     {
         return EMPTY_STR;
     }
-    
+
     public String getNamespaceName(final int node)
     {
         return EMPTY_STR;
     }
-    
+
     // Return the expanded type id of a given node
     public int getExpandedTypeID(final int nodeHandle)
     {
@@ -406,23 +410,23 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         else
             return DTM.NULL;
     }
-    
+
     public int getNamespaceType(final int node)
     {
         return 0;
     }
-    
+
     public int getParent(final int nodeHandle)
     {
         int nodeID = getNodeIdent(nodeHandle);
-        return (nodeID == RTF_TEXT) ? getNodeHandle(RTF_ROOT) : DTM.NULL;            
+        return (nodeID == RTF_TEXT) ? getNodeHandle(RTF_ROOT) : DTM.NULL;
     }
-    
+
     public int getAttributeNode(final int gType, final int element)
     {
         return DTM.NULL;
     }
-    
+
     public String getStringValueX(final int nodeHandle)
     {
         int nodeID = getNodeIdent(nodeHandle);
@@ -431,15 +435,15 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         else
             return EMPTY_STR;
     }
-    
+
     public void copy(final int node, SerializationHandler handler)
-	throws TransletException
+        throws TransletException
     {
         characters(node, handler);
     }
-    
+
     public void copy(DTMAxisIterator nodes, SerializationHandler handler)
-	throws TransletException
+        throws TransletException
     {
         int node;
         while ((node = nodes.next()) != DTM.NULL)
@@ -447,14 +451,14 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             copy(node, handler);
         }
     }
-    
+
     public String shallowCopy(final int node, SerializationHandler handler)
-	throws TransletException
+        throws TransletException
     {
         characters(node, handler);
         return null;
     }
-    
+
     public boolean lessThan(final int node1, final int node2)
     {
         if (node1 == DTM.NULL) {
@@ -466,7 +470,7 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         else
             return (node1 < node2);
     }
-    
+
     /**
      * Dispatch the character content of a node to an output handler.
      *
@@ -490,9 +494,9 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
                             oldEscapeSetting = handler.setEscaping(false);
                         }
                     }
-                
+
                     handler.characters(_textArray[i]);
-                
+
                     if (escapeBit) {
                         handler.setEscaping(oldEscapeSetting);
                     }
@@ -502,67 +506,67 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             }
         }
     }
-    
+
     // %REVISIT% Can the makeNode() and makeNodeList() interfaces ever get used?
     public Node makeNode(int index)
     {
         return null;
     }
-    
+
     public Node makeNode(DTMAxisIterator iter)
     {
         return null;
     }
-    
+
     public NodeList makeNodeList(int index)
     {
         return null;
     }
-    
+
     public NodeList makeNodeList(DTMAxisIterator iter)
     {
         return null;
     }
-    
+
     public String getLanguage(int node)
     {
         return null;
     }
-    
+
     public int getSize()
     {
         return 2;
     }
-    
+
     public String getDocumentURI(int node)
     {
         return "simple_rtf" + _documentURIIndex++;
     }
-    
+
     public void setFilter(StripFilter filter)
     {
     }
-    
+
     public void setupMapping(String[] names, String[] uris, int[] types, String[] namespaces)
     {
     }
-    
+
     public boolean isElement(final int node)
     {
         return false;
     }
-    
+
     public boolean isAttribute(final int node)
     {
         return false;
     }
-    
+
     public String lookupNamespace(int node, String prefix)
-	throws TransletException
+        throws TransletException
     {
         return null;
     }
-    
+
     /**
      * Return the node identity from a node handle.
      */
@@ -570,7 +574,7 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
     {
         return (nodehandle != DTM.NULL) ? (nodehandle - _documentID) : DTM.NULL;
     }
-    
+
     /**
      * Return the node handle from a node identity.
      */
@@ -578,50 +582,50 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
     {
         return (nodeId != DTM.NULL) ? (nodeId + _documentID) : DTM.NULL;
     }
-    
+
     public DOM getResultTreeFrag(int initialSize, int rtfType)
     {
         return null;
     }
-    
+
     public DOM getResultTreeFrag(int initialSize, int rtfType, boolean addToManager)
     {
         return null;
     }
-    
+
     public SerializationHandler getOutputDomBuilder()
     {
         return this;
     }
-    
+
     public int getNSType(int node)
     {
         return 0;
     }
-    
+
     public String getUnparsedEntityURI(String name)
     {
         return null;
     }
-    
+
     public Hashtable getElementsWithIDs()
     {
         return null;
     }
 
     /** Implementation of the SerializationHandler interfaces **/
-    
+
     /**
-     * We only need to override the endDocument, characters, and 
+     * We only need to override the endDocument, characters, and
      * setEscaping interfaces. A simple RTF does not have element
      * nodes. We do not need to touch startElement and endElement.
      */
-    
+
     public void startDocument() throws SAXException
     {
-    
+
     }
-    
+
     public void endDocument() throws SAXException
     {
         // Set the String value when the document is built.
@@ -644,7 +648,7 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             System.arraycopy(_textArray, 0, newTextArray, 0, _textArray.length);
             _textArray = newTextArray;
         }
-        
+
         // If the escape setting is false, set the corresponding bit in
         // the _dontEscape BitArray.
         if (!_escaping) {
@@ -652,19 +656,19 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             if (_dontEscape == null) {
                 _dontEscape = new BitArray(8);
             }
-            
+
             // Resize the _dontEscape array if necessary
             if (_size >= _dontEscape.size())
                 _dontEscape.resize(_dontEscape.size() * 2);
-            
+
             _dontEscape.setBit(_size);
         }
-        
+
         _textArray[_size++] = str;
     }
-    
+
     public void characters(char[] ch, int offset, int length)
-	throws SAXException
+        throws SAXException
     {
         if (_size >= _textArray.length) {
             String[] newTextArray = new String[_textArray.length * 2];
@@ -676,26 +680,26 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             if (_dontEscape == null) {
                 _dontEscape = new BitArray(8);
             }
-            
+
             if (_size >= _dontEscape.size())
                 _dontEscape.resize(_dontEscape.size() * 2);
-            
+
             _dontEscape.setBit(_size);
         }
-       
+
         _textArray[_size++] = new String(ch, offset, length);
-        
+
     }
-    
+
     public boolean setEscaping(boolean escape) throws SAXException
     {
         final boolean temp = _escaping;
-        _escaping = escape; 
+        _escaping = escape;
         return temp;
     }
-        
+
     /** Implementation of the DTM interfaces **/
-    
+
     /**
      * The DTM interfaces are not used in this class. Implementing the DTM
      * interface is a requirement from MultiDOM. If we have a better way
@@ -704,25 +708,25 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
      * The following interfaces are just placeholders. The implementation
      * does not have an impact because they will not be used.
      */
-     
+
     public void setFeature(String featureId, boolean state)
     {
     }
-    
+
     public void setProperty(String property, Object value)
     {
     }
-    
+
     public DTMAxisTraverser getAxisTraverser(final int axis)
     {
         return null;
     }
-    
+
     public boolean hasChildNodes(int nodeHandle)
     {
         return (getNodeIdent(nodeHandle) == RTF_ROOT);
     }
-    
+
     public int getFirstChild(int nodeHandle)
     {
         int nodeID = getNodeIdent(nodeHandle);
@@ -731,109 +735,109 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         else
             return DTM.NULL;
     }
-    
+
     public int getLastChild(int nodeHandle)
     {
         return getFirstChild(nodeHandle);
     }
-    
+
     public int getAttributeNode(int elementHandle, String namespaceURI, String name)
     {
         return DTM.NULL;
     }
-    
+
     public int getFirstAttribute(int nodeHandle)
     {
         return DTM.NULL;
     }
-    
+
     public int getFirstNamespaceNode(int nodeHandle, boolean inScope)
     {
         return DTM.NULL;
     }
-    
+
     public int getNextSibling(int nodeHandle)
     {
         return DTM.NULL;
     }
-    
+
     public int getPreviousSibling(int nodeHandle)
     {
         return DTM.NULL;
     }
-    
+
     public int getNextAttribute(int nodeHandle)
     {
         return DTM.NULL;
     }
-    
+
     public int getNextNamespaceNode(int baseHandle, int namespaceHandle,
                                   boolean inScope)
     {
         return DTM.NULL;
     }
-    
+
     public int getOwnerDocument(int nodeHandle)
     {
         return getDocument();
     }
-    
+
     public int getDocumentRoot(int nodeHandle)
     {
         return getDocument();
     }
-    
+
     public XMLString getStringValue(int nodeHandle)
     {
         return new XMLStringDefault(getStringValueX(nodeHandle));
     }
-    
+
     public int getStringValueChunkCount(int nodeHandle)
     {
         return 0;
     }
-    
+
     public char[] getStringValueChunk(int nodeHandle, int chunkIndex,
                                     int[] startAndLen)
     {
         return null;
     }
-    
+
     public int getExpandedTypeID(String namespace, String localName, int type)
     {
         return DTM.NULL;
     }
-    
+
     public String getLocalNameFromExpandedNameID(int ExpandedNameID)
     {
         return EMPTY_STR;
     }
-    
+
     public String getNamespaceFromExpandedNameID(int ExpandedNameID)
     {
         return EMPTY_STR;
     }
-    
+
     public String getLocalName(int nodeHandle)
     {
         return EMPTY_STR;
     }
-    
+
     public String getPrefix(int nodeHandle)
     {
         return null;
     }
-    
+
     public String getNamespaceURI(int nodeHandle)
     {
         return EMPTY_STR;
     }
-    
+
     public String getNodeValue(int nodeHandle)
     {
         return (getNodeIdent(nodeHandle) == RTF_TEXT) ? _text : null;
     }
-    
+
     public short getNodeType(int nodeHandle)
     {
         int nodeID = getNodeIdent(nodeHandle);
@@ -843,9 +847,9 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
             return DTM.ROOT_NODE;
         else
             return DTM.NULL;
-        
+
     }
-    
+
     public short getLevel(int nodeHandle)
     {
         int nodeID = getNodeIdent(nodeHandle);
@@ -854,88 +858,88 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
         else if (nodeID == RTF_ROOT)
             return 1;
         else
-            return DTM.NULL;            
+            return DTM.NULL;
     }
-    
+
     public boolean isSupported(String feature, String version)
     {
         return false;
     }
-    
+
     public String getDocumentBaseURI()
     {
         return EMPTY_STR;
     }
-    
+
     public void setDocumentBaseURI(String baseURI)
     {
     }
-    
+
     public String getDocumentSystemIdentifier(int nodeHandle)
     {
         return null;
     }
-    
+
     public String getDocumentEncoding(int nodeHandle)
     {
         return null;
     }
-    
+
     public String getDocumentStandalone(int nodeHandle)
     {
         return null;
     }
-    
+
     public String getDocumentVersion(int documentHandle)
     {
         return null;
     }
-    
+
     public boolean getDocumentAllDeclarationsProcessed()
     {
         return false;
     }
-    
+
     public String getDocumentTypeDeclarationSystemIdentifier()
     {
         return null;
     }
-    
+
     public String getDocumentTypeDeclarationPublicIdentifier()
     {
         return null;
     }
-    
+
     public int getElementById(String elementId)
     {
         return DTM.NULL;
     }
-        
+
     public boolean supportsPreStripping()
     {
         return false;
     }
-    
+
     public boolean isNodeAfter(int firstNodeHandle, int secondNodeHandle)
     {
         return lessThan(firstNodeHandle, secondNodeHandle);
     }
-    
+
     public boolean isCharacterElementContentWhitespace(int nodeHandle)
     {
         return false;
     }
-    
+
     public boolean isDocumentAllDeclarationsProcessed(int documentHandle)
     {
         return false;
     }
-    
+
     public boolean isAttributeSpecified(int attributeHandle)
     {
         return false;
     }
-    
+
     public void dispatchCharactersEvents(
         int nodeHandle,
         org.xml.sax.ContentHandler ch,
@@ -943,69 +947,69 @@ public class SimpleResultTreeImpl extends EmptySerializer implements DOM, DTM
           throws org.xml.sax.SAXException
     {
     }
-    
+
     public void dispatchToEvents(int nodeHandle, org.xml.sax.ContentHandler ch)
       throws org.xml.sax.SAXException
     {
     }
-    
+
     public org.w3c.dom.Node getNode(int nodeHandle)
     {
         return makeNode(nodeHandle);
     }
-    
+
     public boolean needsTwoThreads()
     {
         return false;
     }
-    
+
     public org.xml.sax.ContentHandler getContentHandler()
     {
         return null;
     }
-    
+
     public org.xml.sax.ext.LexicalHandler getLexicalHandler()
     {
         return null;
     }
-    
+
     public org.xml.sax.EntityResolver getEntityResolver()
     {
         return null;
     }
-    
+
     public org.xml.sax.DTDHandler getDTDHandler()
     {
         return null;
     }
-    
+
     public org.xml.sax.ErrorHandler getErrorHandler()
     {
         return null;
     }
-    
+
     public org.xml.sax.ext.DeclHandler getDeclHandler()
     {
         return null;
     }
-    
+
     public void appendChild(int newChild, boolean clone, boolean cloneDepth)
     {
     }
-    
+
     public void appendTextChild(String str)
     {
     }
-    
+
     public SourceLocator getSourceLocatorFor(int node)
     {
-    	return null;
+        return null;
     }
-    
+
     public void documentRegistration()
     {
     }
-    
+
     public void documentRelease()
     {
     }

@@ -1,8 +1,26 @@
 /*
- * @(#)TimerAlarmClockNotification.java	1.21 06/03/29
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.timer;
@@ -12,7 +30,7 @@ package javax.management.timer;
  * MBeans.</p>
  */
 class TimerAlarmClockNotification
-    extends javax.management.Notification { 
+    extends javax.management.Notification {
 
     /* Serial version */
     private static final long serialVersionUID = -4841061275673620641L;
@@ -22,7 +40,7 @@ class TimerAlarmClockNotification
      *  CONSTRUCTORS
      * ------------------------------------------
      */
-    
+
     /**
      * Constructor.
      *

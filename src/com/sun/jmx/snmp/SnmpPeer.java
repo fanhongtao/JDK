@@ -1,16 +1,11 @@
 /*
- * @(#)file      SnmpPeer.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   3.44
- * @(#)date      09/03/09
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 // Copyright (c) 1995-96 by Cisco Systems, Inc.
 
-package com.sun.jmx.snmp ;
+package com.sun.jmx.snmp;
 
 // java imports
 //
@@ -62,6 +57,8 @@ import java.io.Serializable;
  */
 
 public class SnmpPeer implements Serializable {
+    private static final long serialVersionUID = -5554565062847175999L;
+
     // PUBLIC VARIABLES
     //-----------------
 
@@ -92,7 +89,7 @@ public class SnmpPeer implements Serializable {
      * Port number of the destination host.
      * The default port is 161.
      */
-    private int	portNum = 161 ;
+    private int portNum = 161 ;
 
     /**
      * Number of times to try before giving up.
@@ -165,7 +162,7 @@ public class SnmpPeer implements Serializable {
      * @exception UnknownHostException If the host name cannot be resolved.
      */
     public SnmpPeer(String host) throws UnknownHostException {
-        this(host, (int)161) ;
+        this(host, 161) ;
     }
 
     /**
@@ -222,8 +219,8 @@ public class SnmpPeer implements Serializable {
     final public synchronized String ipAddressInUse() {
         byte [] adr = _devAddr.getAddress() ;
         return
-	    (adr[0]&0xFF) + "." + (adr[1]&0xFF) + "." +
-	    (adr[2]&0xFF) + "." + (adr[3]&0xFF);
+            (adr[0]&0xFF) + "." + (adr[1]&0xFF) + "." +
+            (adr[2]&0xFF) + "." + (adr[3]&0xFF);
     }
 
     /**
@@ -247,7 +244,7 @@ public class SnmpPeer implements Serializable {
             return ;
 /* NPCTE fix for bug 4486059, esc 0 MR 03-August-2001 */
 /*      if (_addrIndex > _devAddrList.length) */
-	if (_addrIndex > _devAddrList.length-1)
+        if (_addrIndex > _devAddrList.length-1)
 /* end of NPCTE fix for bugid 4486059 */
             _addrIndex = 0 ;
         _devAddr = _devAddrList[_addrIndex++] ;
@@ -369,14 +366,14 @@ public class SnmpPeer implements Serializable {
      * @param params The desired parameters.
      */
     public void setParams(SnmpParams params) {
-	_snmpParameter = params;
+        _snmpParameter = params;
     }
     /**
      * Gets the <CODE>SnmpParams</CODE> object associated with the peer.
      * @return The associated parameters.
      */
     public SnmpParams getParams() {
-	return _snmpParameter;
+        return _snmpParameter;
     }
 
     /**
@@ -396,7 +393,7 @@ public class SnmpPeer implements Serializable {
     }
 
     boolean isCustomPduFactory() {
-	return customPduFactory;
+        return customPduFactory;
     }
 
     /**

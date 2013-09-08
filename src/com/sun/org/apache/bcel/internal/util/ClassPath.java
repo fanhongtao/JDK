@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -62,7 +66,6 @@ import java.io.*;
  * Responsible for loading (class) files from the CLASSPATH. Inspired by
  * sun.tools.ClassPath.
  *
- * @version $Id: ClassPath.java,v 1.2 2005/08/16 19:34:42 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ClassPath implements Serializable {
@@ -80,24 +83,24 @@ public class ClassPath implements Serializable {
     ArrayList vec = new ArrayList();
 
     for(StringTokenizer tok=new StringTokenizer(class_path,
-						System.getProperty("path.separator"));
-	tok.hasMoreTokens();)
+                                                System.getProperty("path.separator"));
+        tok.hasMoreTokens();)
     {
       String path = tok.nextToken();
-      
-      if(!path.equals("")) {
-	File file = new File(path);
 
-	try {
-	  if(file.exists()) {
-	    if(file.isDirectory())
-	      vec.add(new Dir(path));
-	    else
-	      vec.add(new Zip(new ZipFile(file)));
-	  }
-	} catch(IOException e) {
-	  System.err.println("CLASSPATH component " + file + ": " + e);
-	}
+      if(!path.equals("")) {
+        File file = new File(path);
+
+        try {
+          if(file.exists()) {
+            if(file.isDirectory())
+              vec.add(new Dir(path));
+            else
+              vec.add(new Zip(new ZipFile(file)));
+          }
+        } catch(IOException e) {
+          System.err.println("CLASSPATH component " + file + ": " + e);
+        }
       }
     }
 
@@ -119,7 +122,7 @@ public class ClassPath implements Serializable {
   public String toString() {
     return class_path;
   }
-  
+
   public int hashCode() {
     return class_path.hashCode();
   }
@@ -140,8 +143,8 @@ public class ClassPath implements Serializable {
         String name = tok.nextToken();
         File   file = new File(name);
 
-	if(file.exists())
-	  list.add(name);
+        if(file.exists())
+          list.add(name);
       }
     }
   }
@@ -152,9 +155,9 @@ public class ClassPath implements Serializable {
    * @return class path as used by default by BCEL
    */
   public static final String getClassPath() {
-      
+
     String class_path, boot_path, ext_path;
-    
+
     try {
       class_path = System.getProperty("java.class.path");
       boot_path  = System.getProperty("sun.boot.class.path");
@@ -163,7 +166,7 @@ public class ClassPath implements Serializable {
     catch (SecurityException e) {
         return "";
     }
-    
+
     ArrayList list = new ArrayList();
 
     getPathComponents(class_path, list);
@@ -175,15 +178,15 @@ public class ClassPath implements Serializable {
     for(Iterator e = dirs.iterator(); e.hasNext(); ) {
       File     ext_dir    = new File((String)e.next());
       String[] extensions = ext_dir.list(new FilenameFilter() {
-	public boolean accept(File dir, String name) {
-	  name = name.toLowerCase();
-	  return name.endsWith(".zip") || name.endsWith(".jar");
-	}
+        public boolean accept(File dir, String name) {
+          name = name.toLowerCase();
+          return name.endsWith(".zip") || name.endsWith(".jar");
+        }
       });
 
       if(extensions != null)
-	for(int i=0; i < extensions.length; i++)
-	  list.add(ext_path + File.separatorChar + extensions[i]);
+        for(int i=0; i < extensions.length; i++)
+          list.add(ext_path + File.separatorChar + extensions[i]);
     }
 
     StringBuffer buf = new StringBuffer();
@@ -192,7 +195,7 @@ public class ClassPath implements Serializable {
       buf.append((String)e.next());
 
       if(e.hasNext())
-	buf.append(File.pathSeparatorChar);
+        buf.append(File.pathSeparatorChar);
     }
 
     return buf.toString().intern();
@@ -205,7 +208,7 @@ public class ClassPath implements Serializable {
   public InputStream getInputStream(String name) throws IOException {
     return getInputStream(name, ".class");
   }
-    
+
   /**
    * Return stream for class or resource on CLASSPATH.
    *
@@ -222,7 +225,7 @@ public class ClassPath implements Serializable {
 
     if(is != null)
       return is;
-    
+
     return getClassFile(name, suffix).getInputStream();
   }
 
@@ -236,7 +239,7 @@ public class ClassPath implements Serializable {
       ClassFile cf;
 
       if((cf = paths[i].getClassFile(name, suffix)) != null)
-	return cf;
+        return cf;
     }
 
     throw new IOException("Couldn't find: " + name + suffix);
@@ -257,7 +260,7 @@ public class ClassPath implements Serializable {
    */
   public byte[] getBytes(String name, String suffix) throws IOException {
     InputStream is = getInputStream(name, suffix);
-    
+
     if(is == null)
       throw new IOException("Couldn't find: " + name + suffix);
 
@@ -288,7 +291,7 @@ public class ClassPath implements Serializable {
       suffix = name.substring(index);
       name   = name.substring(0, index);
     }
-    
+
     return getPath(name, suffix);
   }
 
@@ -329,7 +332,7 @@ public class ClassPath implements Serializable {
      */
     public abstract long getSize();
   }
-    
+
   private static class Dir extends PathEntry {
     private String dir;
 
@@ -337,18 +340,18 @@ public class ClassPath implements Serializable {
 
     ClassFile getClassFile(String name, String suffix) throws IOException {
       final File file = new File(dir + File.separatorChar +
-				 name.replace('.', File.separatorChar) + suffix);
-      
+                                 name.replace('.', File.separatorChar) + suffix);
+
       return file.exists()? new ClassFile() {
-	public InputStream getInputStream() throws IOException { return new FileInputStream(file); }
+        public InputStream getInputStream() throws IOException { return new FileInputStream(file); }
 
-	public String      getPath()        { try {
-	  return file.getCanonicalPath(); 
-	} catch(IOException e) { return null; }
+        public String      getPath()        { try {
+          return file.getCanonicalPath();
+        } catch(IOException e) { return null; }
 
-	}
-	public long        getTime()        { return file.lastModified(); }
-	public long        getSize()        { return file.length(); }
+        }
+        public long        getTime()        { return file.lastModified(); }
+        public long        getSize()        { return file.length(); }
         public String getBase() {  return dir;  }
 
       } : null;
@@ -366,16 +369,14 @@ public class ClassPath implements Serializable {
       final ZipEntry entry = zip.getEntry(name.replace('.', '/') + suffix);
 
       return (entry != null)? new ClassFile() {
-	public InputStream getInputStream() throws IOException { return zip.getInputStream(entry); }
-	public String      getPath()        { return entry.toString(); }
-	public long        getTime()        { return entry.getTime(); }
-	public long        getSize()       { return entry.getSize(); }
+        public InputStream getInputStream() throws IOException { return zip.getInputStream(entry); }
+        public String      getPath()        { return entry.toString(); }
+        public long        getTime()        { return entry.getTime(); }
+        public long        getSize()       { return entry.getSize(); }
         public String getBase() {
-	  return zip.getName();
-	}
+          return zip.getName();
+        }
       } : null;
     }
   }
 }
-
-

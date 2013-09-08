@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -325,43 +329,43 @@ public class DTMException extends RuntimeException {
             isJdk14OrHigher = true;
         } catch (NoSuchMethodException nsme) {
             // do nothing
-        }        
+        }
 
-        // The printStackTrace method of the Throwable class in jdk 1.4 
+        // The printStackTrace method of the Throwable class in jdk 1.4
         // and higher will include the cause when printing the backtrace.
-        // The following code is only required when using jdk 1.3 or lower                
+        // The following code is only required when using jdk 1.3 or lower
         if (!isJdk14OrHigher) {
             Throwable exception = getException();
-    
+
             for (int i = 0; (i < 10) && (null != exception); i++) {
                 s.println("---------");
-    
+
                 try {
                     if (exception instanceof DTMException) {
                         String locInfo =
                             ((DTMException) exception)
                                 .getLocationAsString();
-    
+
                         if (null != locInfo) {
                             s.println(locInfo);
                         }
                     }
-    
+
                     exception.printStackTrace(s);
                 } catch (Throwable e) {
                     s.println("Could not print stack trace...");
                 }
-    
+
                 try {
                     Method meth =
                         ((Object) exception).getClass().getMethod("getException",
                             (Class[]) null);
-    
+
                     if (null != meth) {
                         Throwable prev = exception;
-    
+
                         exception = (Throwable) meth.invoke(exception, (Object[]) null);
-    
+
                         if (prev == exception) {
                             break;
                         }

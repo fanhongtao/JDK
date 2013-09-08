@@ -1,8 +1,26 @@
 /*
- * @(#)VariableElement.java	1.4 06/10/05
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
@@ -10,18 +28,16 @@ package javax.lang.model.element;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 
-
 /**
  * Represents a field, {@code enum} constant, method or constructor
- * parameter, local variable, or exception parameter.
+ * parameter, local variable, resource variable, or exception
+ * parameter.
  *
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/10/05
  * @since 1.6
  */
-
 public interface VariableElement extends Element {
 
     /**
@@ -43,8 +59,8 @@ public interface VariableElement extends Element {
      * otherwise
      *
      * @see Elements#getConstantExpression(Object)
-     * @jls3 15.28 Constant Expression
-     * @jls3 4.12.4 final Variables
+     * @jls 15.28 Constant Expression
+     * @jls 4.12.4 final Variables
      */
     Object getConstantValue();
 }

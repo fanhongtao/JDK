@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +63,7 @@ public abstract class DTMAxisIteratorBase implements DTMAxisIterator
    * the iterator was produced by cloning another iterator.)
    */
   protected boolean _isRestartable = true;
-  
+
   /**
    * Get start to END should 'close' the iterator,
    * i.e. subsequent call to next() should return END.
@@ -90,7 +94,7 @@ public abstract class DTMAxisIteratorBase implements DTMAxisIterator
   }
 
   /**
-   * Set the flag to include the start node in the iteration. 
+   * Set the flag to include the start node in the iteration.
    *
    *
    * @return This default method returns just returns this DTMAxisIterator,
@@ -120,7 +124,7 @@ public abstract class DTMAxisIteratorBase implements DTMAxisIterator
   public int getLast()
   {
 
-    if (_last == -1)		// Not previously established
+    if (_last == -1)            // Not previously established
     {
       // Note that we're doing both setMark() -- which saves _currentChild
       // -- and explicitly saving our position counter (number of nodes
@@ -132,14 +136,14 @@ public abstract class DTMAxisIteratorBase implements DTMAxisIterator
       final int temp = _position; // Save state
       setMark();
 
-      reset();			// Count the nodes found by this iterator
+      reset();                  // Count the nodes found by this iterator
       do
       {
         _last++;
       }
       while (next() != END);
 
-      gotoMark();		// Restore saved state
+      gotoMark();               // Restore saved state
       _position = temp;
     }
 
@@ -228,36 +232,36 @@ public abstract class DTMAxisIteratorBase implements DTMAxisIterator
 
     return this;
   }
-  
+
   /**
-   * Returns true if all the nodes in the iteration well be returned in document 
+   * Returns true if all the nodes in the iteration well be returned in document
    * order.
-   * 
+   *
    * @return true as a default.
    */
   public boolean isDocOrdered()
   {
     return true;
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
   {
     return -1;
   }
-  
+
   public void setRestartable(boolean isRestartable) {
     _isRestartable = isRestartable;
-  }  
+  }
 
   /**
    * Return the node at the given position.
-   * 
+   *
    * @param position The position
    * @return The node at the given position.
    */
@@ -275,5 +279,5 @@ public abstract class DTMAxisIteratorBase implements DTMAxisIterator
     }
     return END;
   }
-  
+
 }

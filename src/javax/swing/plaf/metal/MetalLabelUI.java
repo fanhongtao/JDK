@@ -1,8 +1,26 @@
 /*
- * @(#)MetalLabelUI.java	1.16 09/08/10
+ * Copyright (c) 1998, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -19,11 +37,10 @@ import java.awt.*;
 
 
 /**
- * A Windows L&F implementation of LabelUI.  This implementation 
- * is completely static, i.e. there's only one UIView implementation 
+ * A Windows L&F implementation of LabelUI.  This implementation
+ * is completely static, i.e. there's only one UIView implementation
  * that's shared by all JLabel objects.
  *
- * @version 1.16 08/10/09
  * @author Hans Muller
  */
 
@@ -34,27 +51,27 @@ public class MetalLabelUI extends BasicLabelUI
     * not be used. To change the default instance use a subclass which
     * overrides the <code>createUI</code> method, and place that class
     * name in defaults table under the key "LabelUI".
-    */ 
+    */
     protected static MetalLabelUI metalLabelUI = new MetalLabelUI();
-    
+
     private static final Object METAL_LABEL_UI_KEY = new Object();
 
     public static ComponentUI createUI(JComponent c) {
         if (System.getSecurityManager() != null) {
             AppContext appContext = AppContext.getAppContext();
-            MetalLabelUI safeMetalLabelUI = 
+            MetalLabelUI safeMetalLabelUI =
                     (MetalLabelUI) appContext.get(METAL_LABEL_UI_KEY);
             if (safeMetalLabelUI == null) {
                 safeMetalLabelUI = new MetalLabelUI();
                 appContext.put(METAL_LABEL_UI_KEY, safeMetalLabelUI);
             }
             return safeMetalLabelUI;
-        }   
+        }
         return metalLabelUI;
     }
 
     /**
-     * Just paint the text gray (Label.disabledForeground) rather than 
+     * Just paint the text gray (Label.disabledForeground) rather than
      * in the labels foreground color.
      *
      * @see #paint
@@ -62,10 +79,9 @@ public class MetalLabelUI extends BasicLabelUI
      */
     protected void paintDisabledText(JLabel l, Graphics g, String s, int textX, int textY)
     {
-	int mnemIndex = l.getDisplayedMnemonicIndex();
-	g.setColor(UIManager.getColor("Label.disabledForeground"));
-	SwingUtilities2.drawStringUnderlineCharAt(l, g, s, mnemIndex,
+        int mnemIndex = l.getDisplayedMnemonicIndex();
+        g.setColor(UIManager.getColor("Label.disabledForeground"));
+        SwingUtilities2.drawStringUnderlineCharAt(l, g, s, mnemIndex,
                                                    textX, textY);
     }
 }
-

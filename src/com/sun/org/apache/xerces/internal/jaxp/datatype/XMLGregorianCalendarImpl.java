@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2004, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLGregorianCalendarImpl.java,v 1.7 2005/11/03 17:54:07 jeffsuttor Exp $
- * @(#)XMLGregorianCalendarImpl.java	1.15 06/07/27
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.org.apache.xerces.internal.jaxp.datatype;
@@ -121,8 +119,12 @@ import com.sun.org.apache.xerces.internal.util.DatatypeMessageFormatter;
  *       <td> hour </td>
  *       <td> {@link #getHour()} </td>
  *       <td>
- *         0 to 24 or {@link DatatypeConstants#FIELD_UNDEFINED}
- *         <a href="http://www.w3.org/2001/05/xmlschema-errata#e2-45">For a value of 24, the minute and second field must be zero.</a>
+ *         0 to 23 or {@link DatatypeConstants#FIELD_UNDEFINED}.
+ *         An hour value of 24 is allowed to be set in the lexical space provided the minute and second
+ *         field values are zero. However, an hour value of 24 is not allowed in value space and will be
+ *         transformed to represent the value of the first instance of the following day as per
+ *         <a href="http://www.w3.org/TR/xmlschema-2/#built-in-primitive-datatypes">
+ *         XML Schema Part 2: Datatypes Second Edition, 3.2 Primitive datatypes</a>.
  *       </td>
  *     </tr>
  *     <a name="datetimefield-minute"/>
@@ -184,7 +186,7 @@ import com.sun.org.apache.xerces.internal.util.DatatypeMessageFormatter;
  * @author <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
  * @author <a href="mailto:Joseph.Fialli@Sun.com">Joseph Fialli</a>
  * @author <a href="mailto:Sunitha.Reddy@Sun.com">Sunitha Reddy</a>
- * @version $Revision: 1.7 $, $Date: 2005/11/03 17:54:07 $
+ * @version $Revision: 1.14 $, $Date: 2010-11-10 07:41:41 $
  * @see javax.xml.datatype.Duration
  * @since 1.5
  */
@@ -1303,6 +1305,10 @@ public class XMLGregorianCalendarImpl
                     || getSecond() != 0) {
                 invalidFieldValue(HOUR, getHour());
             }
+            // while 0-24 is acceptable in the lexical space, 24 is not valid in value space
+            // W3C XML Schema Part 2, Section 3.2.7.1
+            setHour(0, false);
+            add(new DurationImpl(true, 0, 0, 1, 0, 0, 0));
         }
     }
 
@@ -2786,6 +2792,7 @@ public class XMLGregorianCalendarImpl
                 // some tokens are left in the input
                 throw new IllegalArgumentException(value); //,vidx);
             }
+            testHour();
         }
 
         private char peek() throws IllegalArgumentException {
@@ -2944,7 +2951,29 @@ public class XMLGregorianCalendarImpl
             case 's':
                 bufPtr = print2Number(buf,bufPtr,getSecond());
                 if (getFractionalSecond() != null) {
+                    // Note: toPlainString() isn't available before Java 1.5
                     String frac = getFractionalSecond().toString();
+                    
+                    int pos = frac.indexOf("E-");
+                    if (pos >= 0) {
+                        String zeros = frac.substring(pos+2);
+                        frac = frac.substring(0,pos);
+                        pos = frac.indexOf(".");
+                        if (pos >= 0) {
+                            frac = frac.substring(0,pos) + frac.substring(pos+1);
+                        }
+                        int count = Integer.parseInt(zeros);
+                        if (count < 40) {
+                            frac = "00000000000000000000000000000000000000000".substring(0,count-1) + frac;
+                        } else {
+                            // do it the hard way
+                            while (count > 1) {
+                                frac = "0" + frac;
+                                count--;
+                            }
+                        }
+                        frac = "0." + frac;
+                    }
 
                     // reallocate the buffer now so that it has enough space
                     char[] n = new char[buf.length+frac.length()];

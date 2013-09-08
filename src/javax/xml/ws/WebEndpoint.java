@@ -1,6 +1,26 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.ws;
@@ -11,7 +31,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 
-/** 
+/**
  *  Used to annotate the <code>get<em>PortName</em>()</code>
  *  methods of a generated service interface.
  *

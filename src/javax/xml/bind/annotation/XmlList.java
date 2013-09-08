@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 package javax.xml.bind.annotation;
 
 import java.lang.annotation.Retention;
@@ -13,8 +38,8 @@ import static java.lang.annotation.ElementType.PARAMETER;
  * <p><b>Usage</b> </p>
  * <p>
  * The <tt>@XmlList</tt> annotation can be used with the
- * following program elements: 
- * <ul> 
+ * following program elements:
+ * <ul>
  *   <li> JavaBean property </li>
  *   <li> field </li>
  * </ul>
@@ -34,14 +59,14 @@ import static java.lang.annotation.ElementType.PARAMETER;
  *
  * would produce XML like this:
  *
- * <pre><xmp>
- * <foo>
- *   <data>abc</data>
- *   <data>def</data>
- * </foo>
- * </xmp></pre>
+ * <pre>
+ * &lt;foo>
+ *   &lt;data>abc</data>
+ *   &lt;data>def</data>
+ * &lt;/foo>
+ * </pre>
  *
- * &#64;XmlList annotation, on the other hand, allows multiple values to be 
+ * &#64;XmlList annotation, on the other hand, allows multiple values to be
  * represented as whitespace-separated tokens in a single element. For example,
  *
  * <pre>
@@ -55,14 +80,14 @@ import static java.lang.annotation.ElementType.PARAMETER;
  *
  * the above code will produce XML like this:
  *
- * <pre><xmp>
- * <foo>
- *   <data>abc def</data>
- * </foo>
- * </xmp></pre>
+ * <pre>
+ * &lt;foo>
+ *   &lt;data>abc def</data>
+ * &lt;/foo>
+ * </pre>
  *
  * <p>This annotation can be used with the following annotations:
- *        {@link XmlElement}, 
+ *        {@link XmlElement},
  *        {@link XmlAttribute},
  *        {@link XmlValue},
  *        {@link XmlIDREF}.
@@ -70,12 +95,12 @@ import static java.lang.annotation.ElementType.PARAMETER;
  *    <li> The use of <tt>@XmlList</tt> with {@link XmlValue} while
  *         allowed, is redundant since  {@link XmlList} maps a
  *         collection type to a simple schema type that derives by
- *         list just as {@link XmlValue} would. </li> 
+ *         list just as {@link XmlValue} would. </li>
  *
  *    <li> The use of <tt>@XmlList</tt> with {@link XmlAttribute} while
  *         allowed, is redundant since  {@link XmlList} maps a
  *         collection type to a simple schema type that derives by
- *         list just as {@link XmlAttribute} would. </li> 
+ *         list just as {@link XmlAttribute} would. </li>
  *  </ul>
  *
  * @author <ul><li>Kohsuke Kawaguchi, Sun Microsystems, Inc.</li><li>Sekhar Vajjhala, Sun Microsystems, Inc.</li></ul>

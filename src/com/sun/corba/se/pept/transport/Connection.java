@@ -1,8 +1,26 @@
 /*
- * @(#)Connection.java	1.22 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.pept.transport;
@@ -19,13 +37,13 @@ import com.sun.corba.se.pept.transport.EventHandler;
  * <p><code>Connection</code> represents a <em>transport</em> in the
  * PEPt architecture.</p>
  *
- * @author Harold Carr 
+ * @author Harold Carr
 */
-public interface Connection 
+public interface Connection
 {
     /**
      * Used to determine if the <code>Connection</code> should register
-     * with the 
+     * with the
      * {@link com.sun.corba.se.pept.transport.TransportManager
      * TransportManager}
      * {@link com.sun.corba.se.pept.transport.Selector Selector}
@@ -40,7 +58,7 @@ public interface Connection
 
     /**
      * Used to determine if the <code>Connection</code> should register
-     * with the 
+     * with the
      * {@link com.sun.corba.se.pept.transport.TransportManager
      * TransportManager}
      * {@link com.sun.corba.se.pept.transport.Selector Selector}
@@ -74,7 +92,7 @@ public interface Connection
      * {@link com.sun.corba.se.pept.transport.Acceptor Acceptor}
      * that created this <code>Connection</code>.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.transport.Acceptor Acceptor}
      */
     public Acceptor getAcceptor();
@@ -84,23 +102,23 @@ public interface Connection
      * {@link com.sun.corba.se.pept.transport.ContactInfo ContactInfo}
      * that created this <code>Connection</code>.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.transport.ContactInfo ContactInfo}
      */
     public ContactInfo getContactInfo();
 
     /**
-     * Get the 
+     * Get the
      * {@link com.sun.corba.se.pept.transport.EventHandler EventHandler}
      * associated with this <code>Acceptor</code>.
      *
-     * @return 
+     * @return
      * {@link com.sun.corba.se.pept.transport.EventHandler EventHandler}
      */
     public EventHandler getEventHandler();
 
     /**
-     * Indicates whether a 
+     * Indicates whether a
      * {@link com.sun.corba.se.pept.transport.ContactInfo ContactInfo}
      * or a
      * {@link com.sun.corba.se.pept.transport.Acceptor Acceptor}
@@ -170,7 +188,7 @@ public interface Connection
     public void sendWithoutLock(OutputObject outputObject);
 
     /**
-     * Register an invocation's 
+     * Register an invocation's
      * {@link com.sun.corba.se.pept.protocol.MessageMediator MessageMediator}
      * with the <code>Connection</code>.
      *
@@ -193,7 +211,7 @@ public interface Connection
     public InputObject waitForResponse(MessageMediator messageMediator);
 
     /**
-     * Unregister an invocation's 
+     * Unregister an invocation's
      * {@link com.sun.corba.se.pept.protocol.MessageMediator MessageMediator}
      * with the <code>Connection</code>.
      *
@@ -207,7 +225,3 @@ public interface Connection
 }
 
 // End of file.
-
-
-
-

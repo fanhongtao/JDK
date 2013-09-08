@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -58,11 +62,10 @@ import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.classfile.*;
 import java.util.ArrayList;
 
-/** 
+/**
  * Abstract super class for all possible java types, namely basic types
  * such as int, object types like String and array types, e.g. int[]
  *
- * @version $Id: Type.java,v 1.1.2.1 2005/07/31 23:45:18 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class Type implements java.io.Serializable {
@@ -87,7 +90,7 @@ public abstract class Type implements java.io.Serializable {
   public static final Type[]        NO_ARGS      = new Type[0];
   public static final ReferenceType NULL         = new ReferenceType(){};
   public static final Type          UNKNOWN      = new Type(Constants.T_UNKNOWN,
-							    "<unknown object>"){};
+                                                            "<unknown object>"){};
 
   protected Type(byte t, String s) {
     type      = t;
@@ -132,7 +135,7 @@ public abstract class Type implements java.io.Serializable {
    * @param arg_types what are the argument types
    * @return method signature for given type(s).
    */
-  public static String getMethodSignature(Type return_type, Type[] arg_types) { 
+  public static String getMethodSignature(Type return_type, Type[] arg_types) {
     StringBuffer buf = new StringBuffer("(");
     int length = (arg_types == null)? 0 : arg_types.length;
 
@@ -163,7 +166,7 @@ public abstract class Type implements java.io.Serializable {
     } else if(type == Constants.T_ARRAY) {
       int dim=0;
       do { // Count dimensions
-	dim++;
+        dim++;
       } while(signature.charAt(dim) == '[');
 
       // Recurse, but just once, if the signature is ok
@@ -176,8 +179,8 @@ public abstract class Type implements java.io.Serializable {
       int index = signature.indexOf(';'); // Look for closing `;'
 
       if(index < 0)
-	throw new ClassFormatException("Invalid signature: " + signature);
-	
+        throw new ClassFormatException("Invalid signature: " + signature);
+
       consumed_chars = index + 1; // "Lblabla;" `L' and `;' are removed
 
       return new ObjectType(signature.substring(1, index).replace('/', '.'));
@@ -212,18 +215,18 @@ public abstract class Type implements java.io.Serializable {
 
     try { // Read all declarations between for `(' and `)'
       if(signature.charAt(0) != '(')
-	throw new ClassFormatException("Invalid method signature: " + signature);
+        throw new ClassFormatException("Invalid method signature: " + signature);
 
       index = 1; // current string position
 
       while(signature.charAt(index) != ')') {
-	vec.add(getType(signature.substring(index)));
-	index += consumed_chars; // update position
+        vec.add(getType(signature.substring(index)));
+        index += consumed_chars; // update position
       }
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
       throw new ClassFormatException("Invalid method signature: " + signature);
     }
-	
+
     types = new Type[vec.size()];
     vec.toArray(types);
     return types;
@@ -245,27 +248,27 @@ public abstract class Type implements java.io.Serializable {
       return getType(cl.getName());
     } else if(cl.isPrimitive()) {
       if(cl == Integer.TYPE) {
-	return INT;
+        return INT;
       } else if(cl == Void.TYPE) {
-	return VOID;
+        return VOID;
       } else if(cl == Double.TYPE) {
-	return DOUBLE;
+        return DOUBLE;
       } else if(cl == Float.TYPE) {
-	return FLOAT;
+        return FLOAT;
       } else if(cl == Boolean.TYPE) {
-	return BOOLEAN;
+        return BOOLEAN;
       } else if(cl == Byte.TYPE) {
-	return BYTE;
+        return BYTE;
       } else if(cl == Short.TYPE) {
-	return SHORT;
+        return SHORT;
       } else if(cl == Byte.TYPE) {
-	return BYTE;
+        return BYTE;
       } else if(cl == Long.TYPE) {
-	return LONG;
+        return LONG;
       } else if(cl == Character.TYPE) {
-	return CHAR;
+        return CHAR;
       } else {
-	throw new IllegalStateException("Ooops, what primitive type is " + cl);
+        throw new IllegalStateException("Ooops, what primitive type is " + cl);
       }
     } else { // "Real" class
       return new ObjectType(cl.getName());

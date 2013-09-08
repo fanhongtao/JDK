@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2001, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // NewInstance.java - create a new instance of a class by name.
 // http://www.saxproject.org
 // Written by Edwin Goei, edwingo@apache.org
@@ -29,7 +54,6 @@ import java.lang.reflect.InvocationTargetException;
  * including versions of Java 2.</p>
  *
  * @author Edwin Goei, David Brownell
- * @version 2.0.1 (sax2r2)
  */
 class NewInstance {
 
@@ -54,7 +78,7 @@ class NewInstance {
     /**
      * Figure out which ClassLoader to use.  For JDK 1.2 and later use
      * the context ClassLoader.
-     */           
+     */
     static ClassLoader getClassLoader ()
     {
         Method m = null;

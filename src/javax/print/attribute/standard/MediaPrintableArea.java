@@ -1,8 +1,26 @@
 /*
- * @(#)MediaPrintableArea.java	1.13 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.print.attribute.standard;
 
@@ -16,7 +34,7 @@ import javax.print.attribute.PrintRequestAttribute;
  * the printable and non-printable areas of media.
  * <p>
  * The printable area is specified to be a rectangle, within the overall
- * dimensions of a media. 
+ * dimensions of a media.
  * <p>
  * Most printers cannot print on the entire surface of the media, due
  * to printer hardware limitations. This class can be used to query
@@ -43,7 +61,7 @@ import javax.print.attribute.PrintRequestAttribute;
  * The rectangular printable area is defined thus:
  * The (x,y) origin is positioned at the top-left of the paper in portrait
  * mode regardless of the orientation specified in the requesting context.
- * For example a printable area for A4 paper in portrait or landscape 
+ * For example a printable area for A4 paper in portrait or landscape
  * orientation will have height > width.
  * <p>
  * A printable area attribute's values are stored
@@ -60,7 +78,7 @@ import javax.print.attribute.PrintRequestAttribute;
  * <B>IPP Compatibility:</B> MediaPrintableArea is not an IPP attribute.
  */
 
-public final class MediaPrintableArea 
+public final class MediaPrintableArea
       implements DocAttribute, PrintRequestAttribute, PrintJobAttribute {
 
     private int x, y, w, h;
@@ -90,21 +108,21 @@ public final class MediaPrintableArea
       *
       * @exception  IllegalArgumentException
       *     Thrown if <CODE>x</CODE> < 0 or <CODE>y</CODE> < 0
-      *     or <CODE>w</CODE> <= 0 or <CODE>h</CODE> <= 0 or 
+      *     or <CODE>w</CODE> <= 0 or <CODE>h</CODE> <= 0 or
       *     <CODE>units</CODE> < 1.
       */
     public MediaPrintableArea(float x, float y, float w, float h, int units) {
-	if ((x < 0.0) || (y < 0.0) || (w <= 0.0) || (h <= 0.0) ||
-	    (units < 1)) {
-	    throw new IllegalArgumentException("0 or negative value argument");
-	}
+        if ((x < 0.0) || (y < 0.0) || (w <= 0.0) || (h <= 0.0) ||
+            (units < 1)) {
+            throw new IllegalArgumentException("0 or negative value argument");
+        }
 
         this.x = (int) (x * units + 0.5f);
         this.y = (int) (y * units + 0.5f);
         this.w = (int) (w * units + 0.5f);
         this.h = (int) (h * units + 0.5f);
- 
-    } 
+
+    }
 
     /**
       * Constructs a MediaPrintableArea object from integer values.
@@ -113,23 +131,23 @@ public final class MediaPrintableArea
       * @param w      printable width
       * @param h      printable height
       * @param units  in which the values are expressed.
-      * 
+      *
       * @exception  IllegalArgumentException
       *     Thrown if <CODE>x</CODE> < 0 or <CODE>y</CODE> < 0
-      *     or <CODE>w</CODE> <= 0 or <CODE>h</CODE> <= 0 or 
+      *     or <CODE>w</CODE> <= 0 or <CODE>h</CODE> <= 0 or
       *     <CODE>units</CODE> < 1.
       */
     public MediaPrintableArea(int x, int y, int w, int h, int units) {
-	if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) ||
-	    (units < 1)) {
-	    throw new IllegalArgumentException("0 or negative value argument");
-	}
+        if ((x < 0) || (y < 0) || (w <= 0) || (h <= 0) ||
+            (units < 1)) {
+            throw new IllegalArgumentException("0 or negative value argument");
+        }
         this.x = x * units;
         this.y = y * units;
         this.w = w * units;
         this.h = h * units;
 
-    } 
+    }
 
     /**
      * Get the printable area as an array of 4 values in the order
@@ -289,7 +307,7 @@ public final class MediaPrintableArea
         if (unitsName == null) {
             unitsName = "";
         }
-	float []vals = getPrintableArea(units);
+        float []vals = getPrintableArea(units);
         String str = "("+vals[0]+","+vals[1]+")->("+vals[2]+","+vals[3]+")";
         return str + unitsName;
     }
@@ -305,7 +323,7 @@ public final class MediaPrintableArea
      * Returns a hash code value for this attribute.
      */
     public int hashCode() {
-	return x + 37*y + 43*w + 47*h;
+        return x + 37*y + 43*w + 47*h;
     }
 
     private static float convertFromMicrometers(int x, int units) {

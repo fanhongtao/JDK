@@ -1,8 +1,26 @@
 /*
- * @(#)ClipboardOwner.java	1.12 05/11/17
+ * Copyright (c) 1996, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.datatransfer;
@@ -13,15 +31,14 @@ package java.awt.datatransfer;
  * of the contents of a clipboard (clipboard owner) if it is
  * passed as an argument to
  * {@link java.awt.datatransfer.Clipboard#setContents} method of
- * the clipboard and this method returns successfully. 
+ * the clipboard and this method returns successfully.
  * The instance remains the clipboard owner until another application
  * or another object within this application asserts ownership
  * of this clipboard.
  *
  * @see java.awt.datatransfer.Clipboard
- * 
- * @version 	1.12, 11/17/05
- * @author	Amy Fowler
+ *
+ * @author      Amy Fowler
  */
 
 public interface ClipboardOwner {

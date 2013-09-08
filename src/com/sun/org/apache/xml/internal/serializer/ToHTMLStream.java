@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,19 +38,19 @@ import org.xml.sax.SAXException;
  * This serializer takes a series of SAX or
  * SAX-like events and writes its output
  * to the given stream.
- * 
+ *
  * This class is not a public API, it is public
  * because it is used from another package.
- * 
+ *
  * @xsl.usage internal
  */
-public final class ToHTMLStream extends ToStream 
+public final class ToHTMLStream extends ToStream
 {
 
     /** This flag is set while receiving events from the DTD */
     protected boolean m_inDTD = false;
 
-    /** True if the current element is a block element.  (seems like 
+    /** True if the current element is a block element.  (seems like
      *  this needs to be a stack. -sb). */
     private boolean m_inBlockElem = false;
 
@@ -321,7 +325,7 @@ public final class ToHTMLStream extends ToStream
                     | ElemDesc.BLOCK
                     | ElemDesc.BLOCKFORM
                     | ElemDesc.BLOCKFORMFIELDSET));
-                    
+
         // Netscape 4 extension
         m_elementFlags.put(
             "LAYER",
@@ -330,7 +334,7 @@ public final class ToHTMLStream extends ToStream
                     | ElemDesc.BLOCK
                     | ElemDesc.BLOCKFORM
                     | ElemDesc.BLOCKFORMFIELDSET));
-        // Netscape 4 extension                    
+        // Netscape 4 extension
         m_elementFlags.put(
             "ILAYER",
             new ElemDesc(
@@ -348,7 +352,7 @@ public final class ToHTMLStream extends ToStream
         elemDesc = (ElemDesc) m_elementFlags.get("A");
         elemDesc.setAttr("HREF", ElemDesc.ATTRURL);
         elemDesc.setAttr("NAME", ElemDesc.ATTRURL);
-        
+
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("AREA");
         elemDesc.setAttr("HREF", ElemDesc.ATTRURL);
@@ -369,21 +373,21 @@ public final class ToHTMLStream extends ToStream
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("DEL");
         elemDesc.setAttr("CITE", ElemDesc.ATTRURL);
-     
+
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("DIR");
         elemDesc.setAttr("COMPACT", ElemDesc.ATTREMPTY);
-           
+
         // ----------------------------------------------
-        
+
         elemDesc = (ElemDesc) m_elementFlags.get("DIV");
         elemDesc.setAttr("SRC", ElemDesc.ATTRURL); // Netscape 4 extension
         elemDesc.setAttr("NOWRAP", ElemDesc.ATTREMPTY); // Internet-Explorer extension
-   
-        // ----------------------------------------------        
+
+        // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("DL");
         elemDesc.setAttr("COMPACT", ElemDesc.ATTREMPTY);
-           
+
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("FORM");
         elemDesc.setAttr("ACTION", ElemDesc.ATTRURL);
@@ -399,10 +403,10 @@ public final class ToHTMLStream extends ToStream
         elemDesc = (ElemDesc) m_elementFlags.get("HEAD");
         elemDesc.setAttr("PROFILE", ElemDesc.ATTRURL);
 
-        // ----------------------------------------------        
+        // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("HR");
         elemDesc.setAttr("NOSHADE", ElemDesc.ATTREMPTY);
-        
+
         // ----------------------------------------------
         // HTML 4.0, section 16.5
         elemDesc = (ElemDesc) m_elementFlags.get("IFRAME");
@@ -429,7 +433,7 @@ public final class ToHTMLStream extends ToStream
         elemDesc.setAttr("DISABLED", ElemDesc.ATTREMPTY);
         elemDesc.setAttr("ISMAP", ElemDesc.ATTREMPTY);
         elemDesc.setAttr("READONLY", ElemDesc.ATTREMPTY);
-        
+
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("INS");
         elemDesc.setAttr("CITE", ElemDesc.ATTRURL);
@@ -442,11 +446,11 @@ public final class ToHTMLStream extends ToStream
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("LINK");
         elemDesc.setAttr("HREF", ElemDesc.ATTRURL);
-       
-        // ----------------------------------------------       
+
+        // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("MENU");
         elemDesc.setAttr("COMPACT", ElemDesc.ATTREMPTY);
-        
+
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("OBJECT");
         elemDesc.setAttr("CLASSID", ElemDesc.ATTRURL);
@@ -455,11 +459,11 @@ public final class ToHTMLStream extends ToStream
         elemDesc.setAttr("ARCHIVE", ElemDesc.ATTRURL);
         elemDesc.setAttr("USEMAP", ElemDesc.ATTRURL);
         elemDesc.setAttr("DECLARE", ElemDesc.ATTREMPTY);
-        
-        // ----------------------------------------------        
+
+        // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("OL");
         elemDesc.setAttr("COMPACT", ElemDesc.ATTREMPTY);
-        
+
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("OPTGROUP");
         elemDesc.setAttr("DISABLED", ElemDesc.ATTREMPTY);
@@ -468,7 +472,7 @@ public final class ToHTMLStream extends ToStream
         elemDesc = (ElemDesc) m_elementFlags.get("OPTION");
         elemDesc.setAttr("SELECTED", ElemDesc.ATTREMPTY);
         elemDesc.setAttr("DISABLED", ElemDesc.ATTREMPTY);
-        
+
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("Q");
         elemDesc.setAttr("CITE", ElemDesc.ATTRURL);
@@ -487,8 +491,8 @@ public final class ToHTMLStream extends ToStream
         // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("TABLE");
         elemDesc.setAttr("NOWRAP", ElemDesc.ATTREMPTY); // Internet-Explorer extension
-        
-        // ----------------------------------------------        
+
+        // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("TD");
         elemDesc.setAttr("NOWRAP", ElemDesc.ATTREMPTY);
 
@@ -496,18 +500,18 @@ public final class ToHTMLStream extends ToStream
         elemDesc = (ElemDesc) m_elementFlags.get("TEXTAREA");
         elemDesc.setAttr("DISABLED", ElemDesc.ATTREMPTY);
         elemDesc.setAttr("READONLY", ElemDesc.ATTREMPTY);
-       
-        // ----------------------------------------------                
+
+        // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("TH");
         elemDesc.setAttr("NOWRAP", ElemDesc.ATTREMPTY);
-        
+
         // ----------------------------------------------
         // The nowrap attribute of a tr element is both
-        // a Netscape and Internet-Explorer extension                
+        // a Netscape and Internet-Explorer extension
         elemDesc = (ElemDesc) m_elementFlags.get("TR");
         elemDesc.setAttr("NOWRAP", ElemDesc.ATTREMPTY);
-        
-        // ----------------------------------------------        
+
+        // ----------------------------------------------
         elemDesc = (ElemDesc) m_elementFlags.get("UL");
         elemDesc.setAttr("COMPACT", ElemDesc.ATTREMPTY);
     }
@@ -549,19 +553,19 @@ public final class ToHTMLStream extends ToStream
      * it will switch to the new format. This method should not be
      * called while the serializer is in the process of serializing
      * a document.
-     * 
+     *
      * This method can be called multiple times before starting
      * the serialization of a particular result-tree. In principle
      * all serialization parameters can be changed, with the exception
      * of method="html" (it must be method="html" otherwise we
-     * shouldn't even have a ToHTMLStream object here!) 
+     * shouldn't even have a ToHTMLStream object here!)
      *
      * @param format The output format or serialzation parameters
      * to use.
      */
     public void setOutputFormat(Properties format)
     {
- 
+
         m_specialEscapeURLs =
             OutputPropertyUtils.getBooleanProperty(
                 OutputPropertiesFactory.S_USE_URL_ESCAPING,
@@ -600,7 +604,7 @@ public final class ToHTMLStream extends ToStream
      *
      * @param name non-null name of element, case insensitive.
      *
-     * @return non-null reference to ElemDesc, which may be m_dummy if no 
+     * @return non-null reference to ElemDesc, which may be m_dummy if no
      *         element description matches the given name.
      */
     public static final ElemDesc getElemDesc(String name)
@@ -613,7 +617,7 @@ public final class ToHTMLStream extends ToStream
             return (ElemDesc)obj;
         return m_dummy;
     }
-    
+
     /**
      * A Trie that is just a copy of the "static" one.
      * We need this one to be able to use the faster, but not thread-safe
@@ -660,7 +664,7 @@ public final class ToHTMLStream extends ToStream
     {
         super.startDocumentInternal();
 
-        m_needToCallStartDocument = false; 
+        m_needToCallStartDocument = false;
         m_needToOutputDocTypeDecl = true;
         m_startNewLine = false;
         setOmitXMLDeclaration(true);
@@ -708,7 +712,7 @@ public final class ToHTMLStream extends ToStream
     }
 
     /**
-     * Receive notification of the end of a document. 
+     * Receive notification of the end of a document.
      *
      * @throws org.xml.sax.SAXException Any SAX exception, possibly
      *            wrapping another exception.
@@ -717,7 +721,7 @@ public final class ToHTMLStream extends ToStream
      */
     public final void endDocument() throws org.xml.sax.SAXException
     {
-        
+
         flushPending();
         if (m_doIndent && !m_isprevtext)
         {
@@ -784,7 +788,7 @@ public final class ToHTMLStream extends ToStream
 
             return;
         }
-        
+
         try
         {
             // getElemDesc2(name) is faster than getElemDesc(name)
@@ -814,7 +818,7 @@ public final class ToHTMLStream extends ToStream
 
             // save any attributes for later processing
             if (atts != null)
-                addAttributes(atts);            
+                addAttributes(atts);
 
             m_isprevtext = false;
             final java.io.Writer writer = m_writer;
@@ -825,8 +829,8 @@ public final class ToHTMLStream extends ToStream
 
             if (m_tracer != null)
                 firePseudoAttributes();
-            
-            if ((elemFlags & ElemDesc.EMPTY) != 0)  
+
+            if ((elemFlags & ElemDesc.EMPTY) != 0)
             {
                 // an optimization for elements which are expected
                 // to be empty.
@@ -836,8 +840,8 @@ public final class ToHTMLStream extends ToStream
                  */
                 m_elemContext.m_elementName = name;
                 m_elemContext.m_elementDesc = elemDesc;
-                return;                
-            } 
+                return;
+            }
             else
             {
                 elemContext = elemContext.push(namespaceURI,localName,name);
@@ -845,7 +849,7 @@ public final class ToHTMLStream extends ToStream
                 elemContext.m_elementDesc = elemDesc;
                 elemContext.m_isRaw = (elemFlags & ElemDesc.RAW) != 0;
             }
-            
+
 
             if ((elemFlags & ElemDesc.HEADELEM) != 0)
             {
@@ -938,7 +942,7 @@ public final class ToHTMLStream extends ToStream
             {
                 // the start-tag open when this method was called,
                 // so we need to process it now.
-                
+
                 if (m_tracer != null)
                     super.fireStartElem(name);
 
@@ -967,7 +971,7 @@ public final class ToHTMLStream extends ToStream
                     writer.write('>');
                 }
             }
-            
+
             // clean up because the element has ended
             if ((elemFlags & ElemDesc.WHITESPACESENSITIVE) != 0)
                 m_ispreserve = true;
@@ -975,9 +979,9 @@ public final class ToHTMLStream extends ToStream
 
             // fire off the end element event
             if (m_tracer != null)
-                super.fireEndElem(name);            
-                           
-            // OPTIMIZE-EMPTY                
+                super.fireEndElem(name);
+
+            // OPTIMIZE-EMPTY
             if (elemEmpty)
             {
                 // a quick exit if the HTML element had no children.
@@ -987,7 +991,7 @@ public final class ToHTMLStream extends ToStream
                 return;
             }
 
-            // some more clean because the element has ended. 
+            // some more clean because the element has ended.
             if (!elemContext.m_startTagOpen)
             {
                 if (m_doIndent && !m_preserves.isEmpty())
@@ -1007,7 +1011,7 @@ public final class ToHTMLStream extends ToStream
      * @param   writer The writer to write the processed output to.
      * @param   name   The name of the attribute.
      * @param   value   The value of the attribute.
-     * @param   elemDesc The description of the HTML element 
+     * @param   elemDesc The description of the HTML element
      *           that has this attribute.
      *
      * @throws org.xml.sax.SAXException
@@ -1022,7 +1026,7 @@ public final class ToHTMLStream extends ToStream
         writer.write(' ');
 
         if (   ((value.length() == 0) || value.equalsIgnoreCase(name))
-            && elemDesc != null 
+            && elemDesc != null
             && elemDesc.isAttrFlagSet(name, ElemDesc.ATTREMPTY))
         {
             writer.write(name);
@@ -1054,11 +1058,11 @@ public final class ToHTMLStream extends ToStream
 
     /**
      * Make an integer into an HH hex value.
-     * Does no checking on the size of the input, since this 
+     * Does no checking on the size of the input, since this
      * is only meant to be used locally by writeAttrURI.
-     * 
+     *
      * @param i must be a value less than 255.
-     * 
+     *
      * @return should be a two character string.
      */
     private static String makeHHString(int i)
@@ -1096,7 +1100,7 @@ public final class ToHTMLStream extends ToStream
      * with <CODE>%HH</CODE>, where HH is the hex of the byte value.
      *
      * @param   string      String to convert to XML format.
-     * @param doURLEscaping True if we should try to encode as 
+     * @param doURLEscaping True if we should try to encode as
      *                      per http://www.ietf.org/rfc/rfc2396.txt.
      *
      * @throws org.xml.sax.SAXException if a bad surrogate pair is detected.
@@ -1116,22 +1120,22 @@ public final class ToHTMLStream extends ToStream
         // must be separated into its components before the escaped characters
         // within those components can be safely decoded.
         //
-        // ...So we do our best to do limited escaping of the URL, without 
-        // causing damage.  If the URL is already properly escaped, in theory, this 
+        // ...So we do our best to do limited escaping of the URL, without
+        // causing damage.  If the URL is already properly escaped, in theory, this
         // function should not change the string value.
 
         final int end = string.length();
         if (end > m_attrBuff.length)
         {
-           m_attrBuff = new char[end*2 + 1];               
+           m_attrBuff = new char[end*2 + 1];
         }
-        string.getChars(0,end, m_attrBuff, 0); 
+        string.getChars(0,end, m_attrBuff, 0);
         final char[] chars = m_attrBuff;
 
         int cleanStart = 0;
         int cleanLength = 0;
-        
-        
+
+
         char ch = 0;
         for (int i = 0; i < end; i++)
         {
@@ -1155,7 +1159,7 @@ public final class ToHTMLStream extends ToStream
                     //  {
                     //    writer.write(ch);
                     //  }
-                    //  else 
+                    //  else
                     if (ch <= 0x7F)
                     {
                         writer.write('%');
@@ -1163,7 +1167,7 @@ public final class ToHTMLStream extends ToStream
                     }
                     else if (ch <= 0x7FF)
                     {
-                        // Clear low 6 bits before rotate, put high 4 bits in low byte, 
+                        // Clear low 6 bits before rotate, put high 4 bits in low byte,
                         // and set two high bits.
                         int high = (ch >> 6) | 0xC0;
                         int low = (ch & 0x3F) | 0x80;
@@ -1175,11 +1179,11 @@ public final class ToHTMLStream extends ToStream
                     }
                     else if (Encodings.isHighUTF16Surrogate(ch)) // high surrogate
                     {
-                        // I'm sure this can be done in 3 instructions, but I choose 
-                        // to try and do it exactly like it is done in the book, at least 
-                        // until we are sure this is totally clean.  I don't think performance 
-                        // is a big issue with this particular function, though I could be 
-                        // wrong.  Also, the stuff below clearly does more masking than 
+                        // I'm sure this can be done in 3 instructions, but I choose
+                        // to try and do it exactly like it is done in the book, at least
+                        // until we are sure this is totally clean.  I don't think performance
+                        // is a big issue with this particular function, though I could be
+                        // wrong.  Also, the stuff below clearly does more masking than
                         // it needs to do.
 
                         // Clear high 6 bits.
@@ -1187,7 +1191,7 @@ public final class ToHTMLStream extends ToStream
 
                         // Middle 4 bits (wwww) + 1
                         // "Note that the value of wwww from the high surrogate bit pattern
-                        // is incremented to make the uuuuu bit pattern in the scalar value 
+                        // is incremented to make the uuuuu bit pattern in the scalar value
                         // so the surrogate pair don't address the BMP."
                         int wwww = ((highSurrogate & 0x03C0) >> 6);
                         int uuuuu = wwww + 1;
@@ -1251,14 +1255,14 @@ public final class ToHTMLStream extends ToStream
                     writer.write(Integer.toString(ch));
                     writer.write(';');
                 }
-                // In this character range we have first written out any previously accumulated 
+                // In this character range we have first written out any previously accumulated
                 // "clean" characters, then processed the current more complicated character,
                 // which may have incremented "i".
                 // We now we reset the next possible clean character.
                 cleanStart = i + 1;
             }
             // Since http://www.ietf.org/rfc/rfc2396.txt refers to the URI grammar as
-            // not allowing quotes in the URI proper syntax, nor in the fragment 
+            // not allowing quotes in the URI proper syntax, nor in the fragment
             // identifier, we believe that it's OK to double escape quotes.
             else if (ch == '"')
             {
@@ -1276,9 +1280,9 @@ public final class ToHTMLStream extends ToStream
                 {
                     writer.write(chars, cleanStart, cleanLength);
                     cleanLength = 0;
-                }   
-                
-                
+                }
+
+
                 // Mike Kay encodes this as &#34;, so he may know something I don't?
                 if (doURLEscaping)
                     writer.write("%22");
@@ -1287,7 +1291,20 @@ public final class ToHTMLStream extends ToStream
 
                 // We have written out any clean characters, then the escaped '%' and now we
                 // We now we reset the next possible clean character.
-                cleanStart = i + 1;    
+                cleanStart = i + 1;
+            }
+            else if (ch == '&')
+            {
+                // HTML 4.01 reads, "Authors should use "&amp;" (ASCII decimal 38)
+                // instead of "&" to avoid confusion with the beginning of a character
+                // reference (entity reference open delimiter).
+                if (cleanLength > 0)
+                {
+                    writer.write(chars, cleanStart, cleanLength);
+                    cleanLength = 0;
+                }
+                writer.write("&amp;");
+                cleanStart = i + 1;
             }
             else
             {
@@ -1296,7 +1313,7 @@ public final class ToHTMLStream extends ToStream
                 cleanLength++;
             }
         }
-        
+
         // are there any clean characters at the end of the array
         // that we haven't processed yet?
         if (cleanLength > 1)
@@ -1338,7 +1355,7 @@ public final class ToHTMLStream extends ToStream
         string.getChars(0, end, m_attrBuff, 0);
         final char[] chars = m_attrBuff;
 
-        
+
 
         int cleanStart = 0;
         int cleanLength = 0;
@@ -1382,14 +1399,14 @@ public final class ToHTMLStream extends ToStream
                 {
                     if (Encodings.isHighUTF16Surrogate(ch))
                     {
- 
+
                             writeUTF16Surrogate(ch, chars, i, end);
                             i++; // two input characters processed
                                  // this increments by one and the for()
                                  // loop itself increments by another one.
                     }
 
-                    // The next is kind of a hack to keep from escaping in the case 
+                    // The next is kind of a hack to keep from escaping in the case
                     // of Shift_JIS and the like.
 
                     /*
@@ -1419,7 +1436,7 @@ public final class ToHTMLStream extends ToStream
                 cleanStart = i + 1;
             }
         } // end of for()
-        
+
         // are there any clean characters at the end of the array
         // that we haven't processed yet?
         if (cleanLength > 1)
@@ -1483,7 +1500,7 @@ public final class ToHTMLStream extends ToStream
                     m_elemContext.m_startTagOpen = false;
                 }
                 m_ispreserve = true;
-                
+
 //              With m_ispreserve just set true it looks like shouldIndent()
 //              will always return false, so drop any possible indentation.
 //              if (shouldIndent())
@@ -1494,11 +1511,11 @@ public final class ToHTMLStream extends ToStream
                 writeNormalizedChars(chars, start, length, false, m_lineSepUse);
 
                 // writer.write("]]>");
-                
+
                 // time to generate characters event
                 if (m_tracer != null)
                     super.fireCharEvent(chars, start, length);
-                
+
                 return;
             }
             catch (IOException ioe)
@@ -1600,9 +1617,9 @@ public final class ToHTMLStream extends ToStream
     {
 
         // Process any pending starDocument and startElement first.
-        flushPending(); 
-        
-        // Use a fairly nasty hack to tell if the next node is supposed to be 
+        flushPending();
+
+        // Use a fairly nasty hack to tell if the next node is supposed to be
         // unescaped text.
         if (target.equals(Result.PI_DISABLE_OUTPUT_ESCAPING))
         {
@@ -1633,13 +1650,13 @@ public final class ToHTMLStream extends ToStream
             writer.write(target);
 
             if (data.length() > 0 && !Character.isSpaceChar(data.charAt(0)))
-                writer.write(' '); 
+                writer.write(' ');
 
             //writer.write(data + ">"); // different from XML
             writer.write(data); // different from XML
             writer.write('>'); // different from XML
 
-            // Always output a newline char if not inside of an 
+            // Always output a newline char if not inside of an
             // element. The whitespace is not significant in that
             // case.
             if (m_elemContext.m_currentElemDepth <= 0)
@@ -1652,7 +1669,7 @@ public final class ToHTMLStream extends ToStream
                 throw new SAXException(e);
             }
         }
-               
+
         // now generate the PI event
         if (m_tracer != null)
             super.fireEscapingEvent(target, data);
@@ -1675,7 +1692,7 @@ public final class ToHTMLStream extends ToStream
         writer.write('&');
         writer.write(name);
         writer.write(';');
-        
+
         } catch(IOException e)
         {
             throw new SAXException(e);
@@ -1693,9 +1710,9 @@ public final class ToHTMLStream extends ToStream
      * Process the attributes, which means to write out the currently
      * collected attributes to the writer. The attributes are not
      * cleared by this method
-     * 
+     *
      * @param writer the writer to write processed attributes to.
-     * @param nAttrs the number of attributes in m_attributes 
+     * @param nAttrs the number of attributes in m_attributes
      * to be processed
      *
      * @throws org.xml.sax.SAXException
@@ -1703,7 +1720,7 @@ public final class ToHTMLStream extends ToStream
     public void processAttributes(java.io.Writer writer, int nAttrs)
         throws IOException,SAXException
     {
-            /* 
+            /*
              * process the collected attributes
              */
             for (int i = 0; i < nAttrs; i++)
@@ -1729,9 +1746,9 @@ public final class ToHTMLStream extends ToStream
 
             // finish processing attributes, time to fire off the start element event
             if (m_tracer != null)
-                super.fireStartElem(m_elemContext.m_elementName);  
-            
-            int nAttrs = m_attributes.getLength();   
+                super.fireStartElem(m_elemContext.m_elementName);
+
+            int nAttrs = m_attributes.getLength();
             if (nAttrs>0)
             {
                 processAttributes(m_writer, nAttrs);
@@ -1745,14 +1762,14 @@ public final class ToHTMLStream extends ToStream
              * lets determine if the current element is specified in the cdata-
              * section-elements list.
              */
-            if (m_cdataSectionElements != null) 
+            if (m_cdataSectionElements != null)
                 m_elemContext.m_isCdataSection = isCdataSection();
             if (m_doIndent)
             {
                 m_isprevtext = false;
                 m_preserves.push(m_ispreserve);
             }
-            
+
             }
             catch(IOException e)
             {
@@ -1777,7 +1794,7 @@ public final class ToHTMLStream extends ToStream
          }
         super.init(output,format, false);
     }
-    
+
         /**
          * Specifies an output stream to which the document should be
          * serialized. This method should not be called while the
@@ -1806,7 +1823,7 @@ public final class ToHTMLStream extends ToStream
 
                 // Should have been warned in init, I guess...
             }
-        }    
+        }
         /**
          * This method is used when a prefix/uri namespace mapping
          * is indicated after the element was started with a
@@ -1833,7 +1850,7 @@ public final class ToHTMLStream extends ToStream
                     // the uri for the element... lets remember it
                     m_elemContext.m_elementURI = uri;
                 }
-            }            
+            }
             startPrefixMapping(prefix,uri,false);
         }
 
@@ -1898,10 +1915,10 @@ public final class ToHTMLStream extends ToStream
     }
 
     /**
-     * This method is used to add an attribute to the currently open element. 
+     * This method is used to add an attribute to the currently open element.
      * The caller has guaranted that this attribute is unique, which means that it
      * not been seen before and will not be seen again.
-     * 
+     *
      * @param name the qualified name of the attribute
      * @param value the value of the attribute which can contain only
      * ASCII printable characters characters in the range 32 to 127 inclusive.
@@ -1961,16 +1978,16 @@ public final class ToHTMLStream extends ToStream
             return;
         super.comment(ch, start, length);
     }
-    
+
     public boolean reset()
     {
         boolean ret = super.reset();
         if (!ret)
             return false;
         initToHTMLStream();
-        return true;        
+        return true;
     }
-    
+
     private void initToHTMLStream()
     {
 //        m_elementDesc = null;
@@ -1978,9 +1995,9 @@ public final class ToHTMLStream extends ToStream
         m_inDTD = false;
 //        m_isRawStack.clear();
         m_omitMetaTag = false;
-        m_specialEscapeURLs = true;     
+        m_specialEscapeURLs = true;
     }
-    
+
     static class Trie
     {
         /**
@@ -1988,15 +2005,15 @@ public final class ToHTMLStream extends ToStream
          * The API is a subset of java.util.Hashtable
          * The key must be a 7-bit ASCII string
          * The value may be any Java Object
-         * One can get an object stored in a trie from its key, 
-         * but the search is either case sensitive or case 
+         * One can get an object stored in a trie from its key,
+         * but the search is either case sensitive or case
          * insensitive to the characters in the key, and this
          * choice of sensitivity or insensitivity is made when
          * the Trie is created, before any objects are put in it.
-         * 
-         * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+         *
+         * This class is a copy of the one in com.sun.org.apache.xml.internal.utils.
          * It exists to cut the serializers dependancy on that package.
-         *  
+         *
          * @xsl.usage internal
          */
 
@@ -2068,7 +2085,7 @@ public final class ToHTMLStream extends ToStream
                         Node newNode = new Node();
                         if (m_lowerCaseOnly)
                         {
-                            // put this value into the tree only with a lower case key 
+                            // put this value into the tree only with a lower case key
                             node.m_nextChar[Character.toLowerCase(
                                 key.charAt(i))] =
                                 newNode;
@@ -2136,7 +2153,7 @@ public final class ToHTMLStream extends ToStream
                         }
                         return null;
                     }
-                    //                comment out case 2 because the default is faster            
+                    //                comment out case 2 because the default is faster
                     //                case 2 :
                     //                    {
                     //                        final char ch0 = key.charAt(0);
@@ -2146,8 +2163,8 @@ public final class ToHTMLStream extends ToStream
                     //                            node = node.m_nextChar[ch0];
                     //                            if (node != null)
                     //                            {
-                    //                        
-                    //                                if (ch1 < ALPHA_SIZE) 
+                    //
+                    //                                if (ch1 < ALPHA_SIZE)
                     //                                {
                     //                                    node = node.m_nextChar[ch1];
                     //                                    if (node != null)
@@ -2206,7 +2223,7 @@ public final class ToHTMLStream extends ToStream
          * Both the existing Trie and this new one share the same table for
          * lookup, and it is assumed that the table is fully populated and
          * not changing anymore.
-         * 
+         *
          * @param existingTrie the Trie that this one is a copy of.
          */
         public Trie(Trie existingTrie)
@@ -2266,7 +2283,7 @@ public final class ToHTMLStream extends ToStream
                         /* Copy string into array. This is not thread-safe because
                          * it modifies the contents of m_charBuffer. If multiple
                          * threads were to use this Trie they all would be
-                         * using this same array (not good). So this 
+                         * using this same array (not good). So this
                          * method is not thread-safe, but it is faster because
                          * converting to a char[] and looping over elements of
                          * the array is faster than a String's charAt(i).
@@ -2293,7 +2310,7 @@ public final class ToHTMLStream extends ToStream
         }
 
         /**
-         * Get the length of the longest key used in the table. 
+         * Get the length of the longest key used in the table.
          */
         public int getLongestKeyLength()
         {

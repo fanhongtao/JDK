@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +29,7 @@ import java.util.Locale;
  * @xerces.internal
  *
  * @author TAMURA Kent &lt;kent@trl.ibm.co.jp&gt;
- * @version $Id: ParserForXMLSchema.java,v 1.2.6.1 2005/09/06 11:46:32 neerajbj Exp $
+ * @version $Id: ParserForXMLSchema.java,v 1.9 2010-11-12 18:09:45 joehw Exp $
  */
 class ParserForXMLSchema extends RegexParser {
 
@@ -33,7 +37,7 @@ class ParserForXMLSchema extends RegexParser {
         //this.setLocale(Locale.getDefault());
     }
     public ParserForXMLSchema(Locale locale) {
-        //this.setLocale(locale);
+        super(locale);
     }
 
     Token processCaret() throws ParseException {
@@ -158,8 +162,8 @@ class ParserForXMLSchema extends RegexParser {
      * c-c-subtraction  ::= (positive-c-group | negative-c-group) subtraction
      * subtraction      ::= '-' c-c-expression
      * c-range          ::= single-range | from-to-range
-     * single-range     ::= multi-c-escape | category-c-escape | block-c-escape | <any XML char>
-     * cc-normal-c      ::= <any character except [, ], \>
+     * single-range     ::= multi-c-escape | category-c-escape | block-c-escape | &lt;any XML char&gt;
+     * cc-normal-c      ::= &lt;any character except [, ], \&gt;
      * from-to-range    ::= cc-normal-c '-' cc-normal-c
      *
      * @param useNrage Ignored.
@@ -184,7 +188,7 @@ class ParserForXMLSchema extends RegexParser {
         int type;
         boolean firstloop = true;
         while ((type = this.read()) != T_EOF) { // Don't use 'cotinue' for this loop.
-        	
+
         	wasDecoded = false;
             // single-range | from-to-range | subtraction
             if (type == T_CHAR && this.chardata == ']' && !firstloop) {
@@ -210,7 +214,7 @@ class ParserForXMLSchema extends RegexParser {
                     c = this.processCIinCharacterClass(tok, c);
                     if (c < 0)  end = true;
                     break;
-                    
+
                   case 'p':
                   case 'P':
                     int pstart = this.offset;
@@ -219,7 +223,7 @@ class ParserForXMLSchema extends RegexParser {
                     tok.mergeRanges(tok2);
                     end = true;
                     break;
-                   
+
                  case '-':
                  	c = this.decodeEscaped();
                  	wasDecoded = true;
@@ -246,26 +250,33 @@ class ParserForXMLSchema extends RegexParser {
                 if (type == T_CHAR) {
                     if (c == '[')  throw this.ex("parser.cc.6", this.offset-2);
                     if (c == ']')  throw this.ex("parser.cc.7", this.offset-2);
-                    if (c == '-' && this.chardata == ']' && firstloop)  throw this.ex("parser.cc.8", this.offset-2);	// if regex = '[-]' then invalid
+                    if (c == '-' && this.chardata != ']' && !firstloop)  throw this.ex("parser.cc.8", this.offset-2);	// if regex = '[-]' then invalid
                 }
-                if(c == '-' && this.chardata == '-' && this.read() != T_BACKSOLIDUS && !wasDecoded) {
-                	throw this.ex("parser.cc.8", this.offset-2);
-                }
-                if (this.read() != T_CHAR || this.chardata != '-') { // Here is no '-'.
-                    tok.addRange(c, c);
+                if (this.read() != T_CHAR || this.chardata != '-' || c == '-' && firstloop) { // Here is no '-'.
+                    if (!this.isSet(RegularExpression.IGNORE_CASE) || c > 0xffff) {
+                        tok.addRange(c, c);
+                    }
+                    else {
+                        addCaseInsensitiveChar(tok, c);
+                    }
                 } else {                        // Found '-'
                                                 // Is this '-' is a from-to token??
                     this.next(); // Skips '-'
                     if ((type = this.read()) == T_EOF)  throw this.ex("parser.cc.2", this.offset);
                                                 // c '-' ']' -> '-' is a single-range.
                     if(type == T_CHAR && this.chardata == ']') {				// if - is at the last position of the group
-                    	tok.addRange(c, c);
+                        if (!this.isSet(RegularExpression.IGNORE_CASE) || c > 0xffff) {
+                    	    tok.addRange(c, c);
+                        }
+                        else {
+                            addCaseInsensitiveChar(tok, c);
+                        }
                     	tok.addRange('-', '-');
                     }
                     else if (type == T_XMLSCHEMA_CC_SUBTRACTION) {
                         throw this.ex("parser.cc.8", this.offset-1);
                     } else {
-                    	
+
                         int rangeend = this.chardata;
                         if (type == T_CHAR) {
                             if (rangeend == '[')  throw this.ex("parser.cc.6", this.offset-1);
@@ -277,7 +288,13 @@ class ParserForXMLSchema extends RegexParser {
                         this.next();
 
                         if (c > rangeend)  throw this.ex("parser.ope.3", this.offset-1);
-                        tok.addRange(c, rangeend);
+                        if (!this.isSet(RegularExpression.IGNORE_CASE) ||
+                                (c > 0xffff && rangeend > 0xffff)) {
+                            tok.addRange(c, rangeend);
+                        }
+                        else {
+                            addCaseInsensitiveCharRange(tok, c, rangeend);
+                        }
                     }
                 }
             }
@@ -297,7 +314,7 @@ class ParserForXMLSchema extends RegexParser {
     protected RangeToken parseSetOperations() throws ParseException {
         throw this.ex("parser.process.1", this.offset);
     }
- 
+
     Token getTokenForShorthand(int ch) {
         switch (ch) {
           case 'd':
@@ -481,5 +498,5 @@ class ParserForXMLSchema extends RegexParser {
     private static final String DIGITS =
         "\u0030\u0039\u0660\u0669\u06F0\u06F9\u0966\u096F\u09E6\u09EF\u0A66\u0A6F\u0AE6\u0AEF"
         +"\u0B66\u0B6F\u0BE7\u0BEF\u0C66\u0C6F\u0CE6\u0CEF\u0D66\u0D6F\u0E50\u0E59\u0ED0\u0ED9"
-        +"\u0F20\u0F29";
+        +"\u0F20\u0F29\u1040\u1049\u1369\u1371\u17E0\u17E9\u1810\u1819\uFF10\uFF19";
 }

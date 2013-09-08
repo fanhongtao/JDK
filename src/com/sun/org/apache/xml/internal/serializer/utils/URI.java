@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,13 +55,13 @@ import java.io.Serializable;
  * default port for a specific scheme). Rather, it only knows the
  * grammar and basic set of operations that can be applied to a URI.
  *
- * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+ * This class is a copy of the one in com.sun.org.apache.xml.internal.utils.
  * It exists to cut the serializers dependancy on that package.
- * 
+ *
  * A minor change from the original is that this class no longer implements
  * Serializable, and the serialVersionUID magic field is dropped, and
  * the class is no longer "public".
- *  
+ *
  * @xsl.usage internal
  */
 final class URI
@@ -97,7 +101,7 @@ final class URI
 
   /**
    * URI punctuation mark characters - these, combined with
-   *   alphanumerics, constitute the "unreserved" characters 
+   *   alphanumerics, constitute the "unreserved" characters
    */
   private static final String MARK_CHARACTERS = "-_.!~*'() ";
 
@@ -106,7 +110,7 @@ final class URI
 
   /**
    * userinfo can be composed of unreserved, escaped and these
-   *   characters 
+   *   characters
    */
   private static final String USERINFO_CHARACTERS = ";:&=+$,";
 
@@ -132,8 +136,8 @@ final class URI
 
   /**
    * If specified, stores the query string for this URI; otherwise
-   *   null. 
-   * @serial 
+   *   null.
+   * @serial
    */
   private String m_queryString = null;
 
@@ -443,7 +447,7 @@ final class URI
     // In some cases, it might make more sense to throw an exception
     // (when scheme is specified is the string spec and the base URI
     // is also specified, for example), but we're just following the
-    // RFC specifications 
+    // RFC specifications
     if (p_base != null)
     {
 
@@ -451,7 +455,7 @@ final class URI
       // note that this is slightly different from the RFC spec in that
       // we don't include the check for query string being null
       // - this handles cases where the urispec is just a query
-      // string or a fragment (e.g. "?y" or "#s") - 
+      // string or a fragment (e.g. "?y" or "#s") -
       // see <http://www.ics.uci.edu/~fielding/url/test1.html> which
       // identified this as a bug in the RFC
       if (m_path.length() == 0 && m_scheme == null && m_host == null)
@@ -529,7 +533,7 @@ final class URI
         path = path.substring(0, path.length() - 1);
       }
 
-      // 6e - remove all "<segment>/../" where "<segment>" is a complete 
+      // 6e - remove all "<segment>/../" where "<segment>" is a complete
       // path segment not equal to ".."
       index = -1;
 
@@ -551,7 +555,7 @@ final class URI
         }
       }
 
-      // 6f - remove ending "<segment>/.." where "<segment>" is a 
+      // 6f - remove ending "<segment>/.." where "<segment>" is a
       // complete path segment
       if (path.endsWith("/.."))
       {
@@ -1370,7 +1374,7 @@ final class URI
   public boolean isGenericURI()
   {
 
-    // presence of the host (whether valid or empty) means 
+    // presence of the host (whether valid or empty) means
     // double-slashes which means generic uri
     return (m_host != null);
   }
@@ -1462,7 +1466,7 @@ final class URI
       int numDots = 0;
 
       // make sure that 1) we see only digits and dot separators, 2) that
-      // any dot separator is preceded and followed by a digit and 
+      // any dot separator is preceded and followed by a digit and
       // 3) that we find 3 dots
       for (int i = 0; i < addrLength; i++)
       {

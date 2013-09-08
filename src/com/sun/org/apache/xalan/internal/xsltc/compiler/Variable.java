@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,48 +43,50 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 final class Variable extends VariableBase {
 
     public int getIndex() {
-	return (_local != null) ? _local.getIndex() : -1;
+        return (_local != null) ? _local.getIndex() : -1;
     }
 
     /**
      * Parse the contents of the variable
      */
     public void parseContents(Parser parser) {
-	// Parse 'name' and 'select' attributes plus parameter contents
-	super.parseContents(parser);
+        // Parse 'name' and 'select' attributes plus parameter contents
+        super.parseContents(parser);
 
-	// Add a ref to this var to its enclosing construct
-	SyntaxTreeNode parent = getParent();
-	if (parent instanceof Stylesheet) {
-	    // Mark this as a global variable
-	    _isLocal = false;
-	    // Check if a global variable with this name already exists...
-	    Variable var = parser.getSymbolTable().lookupVariable(_name);
-	    // ...and if it does we need to check import precedence
-	    if (var != null) {
-		final int us = this.getImportPrecedence();
-		final int them = var.getImportPrecedence();
-		// It is an error if the two have the same import precedence
-		if (us == them) {
-		    final String name = _name.toString();
-		    reportError(this, parser, ErrorMsg.VARIABLE_REDEF_ERR,name);
-		}
-		// Ignore this if previous definition has higher precedence
-		else if (them > us) {
-		    _ignore = true;
-		    return;
-		}
-		else {
-		    var.disable();
-		}
-		// Add this variable if we have higher precedence
-	    }
-	    ((Stylesheet)parent).addVariable(this);
-	    parser.getSymbolTable().addVariable(this);
-	}
-	else {
-	    _isLocal = true;
-	}
+        // Add a ref to this var to its enclosing construct
+        SyntaxTreeNode parent = getParent();
+        if (parent instanceof Stylesheet) {
+            // Mark this as a global variable
+            _isLocal = false;
+            // Check if a global variable with this name already exists...
+            Variable var = parser.getSymbolTable().lookupVariable(_name);
+            // ...and if it does we need to check import precedence
+            if (var != null) {
+                final int us = this.getImportPrecedence();
+                final int them = var.getImportPrecedence();
+                // It is an error if the two have the same import precedence
+                if (us == them) {
+                    final String name = _name.toString();
+                    reportError(this, parser, ErrorMsg.VARIABLE_REDEF_ERR,name);
+                }
+                // Ignore this if previous definition has higher precedence
+                else if (them > us) {
+                    _ignore = true;
+                    copyReferences(var);
+                    return;
+                }
+                else {
+                    var.copyReferences(this);
+                    var.disable();
+                }
+                // Add this variable if we have higher precedence
+            }
+            ((Stylesheet)parent).addVariable(this);
+            parser.getSymbolTable().addVariable(this);
+        }
+        else {
+            _isLocal = true;
+        }
     }
 
     /**
@@ -89,22 +95,22 @@ final class Variable extends VariableBase {
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
 
-	// Type check the 'select' expression if present
-	if (_select != null) {
-	    _type = _select.typeCheck(stable);
-	}
-	// Type check the element contents otherwise
-	else if (hasContents()) {
-	    typeCheckContents(stable);
-	    _type = Type.ResultTree;
-	}
-	else {
-	    _type = Type.Reference;
-	}
-	// The return type is void as the variable element does not leave
-	// anything on the JVM's stack. The '_type' global will be returned
-	// by the references to this variable, and not by the variable itself.
-	return Type.Void;
+        // Type check the 'select' expression if present
+        if (_select != null) {
+            _type = _select.typeCheck(stable);
+        }
+        // Type check the element contents otherwise
+        else if (hasContents()) {
+            typeCheckContents(stable);
+            _type = Type.ResultTree;
+        }
+        else {
+            _type = Type.Reference;
+        }
+        // The return type is void as the variable element does not leave
+        // anything on the JVM's stack. The '_type' global will be returned
+        // by the references to this variable, and not by the variable itself.
+        return Type.Void;
     }
 
     /**
@@ -113,73 +119,73 @@ final class Variable extends VariableBase {
      * method in the ForEach class for an explanation
      */
     public void initialize(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// This is only done for local variables that are actually used
-	if (isLocal() && !_refs.isEmpty()) {
-	    // Create a variable slot if none is allocated
-	    if (_local == null) {
-		_local = methodGen.addLocalVariable2(getEscapedName(),
-						     _type.toJCType(),
-						     il.getEnd());
-	    }
-	    // Push the default value on the JVM's stack
-	    if ((_type instanceof IntType) ||
-		(_type instanceof NodeType) ||
-		(_type instanceof BooleanType))
-		il.append(new ICONST(0)); // 0 for node-id, integer and boolean
-	    else if (_type instanceof RealType)
-		il.append(new DCONST(0)); // 0.0 for floating point numbers
-	    else
-		il.append(new ACONST_NULL()); // and 'null' for anything else
-	    il.append(_type.STORE(_local.getIndex()));
-	}
+        // This is only done for local variables that are actually used
+        if (isLocal() && !_refs.isEmpty()) {
+            // Create a variable slot if none is allocated
+            if (_local == null) {
+                _local = methodGen.addLocalVariable2(getEscapedName(),
+                                                     _type.toJCType(),
+                                                     il.getEnd());
+            }
+            // Push the default value on the JVM's stack
+            if ((_type instanceof IntType) ||
+                (_type instanceof NodeType) ||
+                (_type instanceof BooleanType))
+                il.append(new ICONST(0)); // 0 for node-id, integer and boolean
+            else if (_type instanceof RealType)
+                il.append(new DCONST(0)); // 0.0 for floating point numbers
+            else
+                il.append(new ACONST_NULL()); // and 'null' for anything else
+            il.append(_type.STORE(_local.getIndex()));
+        }
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
         // Don't generate code for unreferenced variables
         if (_refs.isEmpty()) {
             _ignore = true;
         }
 
-	// Make sure that a variable instance is only compiled once
-	if (_ignore) return;
-	_ignore = true;
+        // Make sure that a variable instance is only compiled once
+        if (_ignore) return;
+        _ignore = true;
 
-	final String name = getEscapedName();
+        final String name = getEscapedName();
 
-	if (isLocal()) {
-	    // Compile variable value computation
-	    translateValue(classGen, methodGen);
+        if (isLocal()) {
+            // Compile variable value computation
+            translateValue(classGen, methodGen);
 
-	    // Add a new local variable and store value
-	    if (_local == null) {
+            // Add a new local variable and store value
+            if (_local == null) {
                 mapRegister(methodGen);
             }
-	    il.append(_type.STORE(_local.getIndex()));
-	}
-	else {
-	    String signature = _type.toSignature();
+            il.append(_type.STORE(_local.getIndex()));
+        }
+        else {
+            String signature = _type.toSignature();
 
-	    // Global variables are store in class fields
-	    if (classGen.containsField(name) == null) {
-		classGen.addField(new Field(ACC_PUBLIC, 
-					    cpg.addUtf8(name),
-					    cpg.addUtf8(signature),
-					    null, cpg.getConstantPool()));
+            // Global variables are store in class fields
+            if (classGen.containsField(name) == null) {
+                classGen.addField(new Field(ACC_PUBLIC,
+                                            cpg.addUtf8(name),
+                                            cpg.addUtf8(signature),
+                                            null, cpg.getConstantPool()));
 
-		// Push a reference to "this" for putfield
-		il.append(classGen.loadTranslet());
-		// Compile variable value computation
-		translateValue(classGen, methodGen);
-		// Store the variable in the allocated field
-		il.append(new PUTFIELD(cpg.addFieldref(classGen.getClassName(),
-						       name, signature)));
-	    }
-	}
+                // Push a reference to "this" for putfield
+                il.append(classGen.loadTranslet());
+                // Compile variable value computation
+                translateValue(classGen, methodGen);
+                // Store the variable in the allocated field
+                il.append(new PUTFIELD(cpg.addFieldref(classGen.getClassName(),
+                                                       name, signature)));
+            }
+        }
     }
 }

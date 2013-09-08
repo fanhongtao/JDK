@@ -1,8 +1,26 @@
 /*
- * @(#)NetPermission.java	1.51 06/04/21
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -36,6 +54,65 @@ import java.util.StringTokenizer;
  * <th>What the Permission Allows</th>
  * <th>Risks of Allowing this Permission</th>
  * </tr>
+ * <tr>
+ *   <td>allowHttpTrace</td>
+ *   <td>The ability to use the HTTP TRACE method in HttpURLConnection.</td>
+ *   <td>Malicious code using HTTP TRACE could get access to security sensitive
+ *   information in the HTTP headers (such as cookies) that it might not
+ *   otherwise have access to.</td>
+ *   </tr>
+ *
+ * <tr>
+ *   <td>getCookieHandler</td>
+ *   <td>The ability to get the cookie handler that processes highly
+ *   security sensitive cookie information for an Http session.</td>
+ *   <td>Malicious code can get a cookie handler to obtain access to
+ *   highly security sensitive cookie information. Some web servers
+ *   use cookies to save user private information such as access
+ *   control information, or to track user browsing habit.</td>
+ *   </tr>
+ *
+ * <tr>
+ *  <td>getNetworkInformation</td>
+ *  <td>The ability to retrieve all information about local network interfaces.</td>
+ *  <td>Malicious code can read information about network hardware such as
+ *  MAC addresses, which could be used to construct local IPv6 addresses.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>getProxySelector</td>
+ *   <td>The ability to get the proxy selector used to make decisions
+ *   on which proxies to use when making network connections.</td>
+ *   <td>Malicious code can get a ProxySelector to discover proxy
+ *   hosts and ports on internal networks, which could then become
+ *   targets for attack.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>getResponseCache</td>
+ *   <td>The ability to get the response cache that provides
+ *   access to a local response cache.</td>
+ *   <td>Malicious code getting access to the local response cache
+ *   could access security sensitive information.</td>
+ *   </tr>
+ *
+ * <tr>
+ *   <td>requestPasswordAuthentication</td>
+ *   <td>The ability
+ * to ask the authenticator registered with the system for
+ * a password</td>
+ *   <td>Malicious code may steal this password.</td>
+ * </tr>
+ *
+ * <tr>
+ *   <td>setCookieHandler</td>
+ *   <td>The ability to set the cookie handler that processes highly
+ *   security sensitive cookie information for an Http session.</td>
+ *   <td>Malicious code can set a cookie handler to obtain access to
+ *   highly security sensitive cookie information. Some web servers
+ *   use cookies to save user private information such as access
+ *   control information, or to track user browsing habit.</td>
+ *   </tr>
  *
  * <tr>
  *   <td>setDefaultAuthenticator</td>
@@ -48,26 +125,6 @@ import java.util.StringTokenizer;
  * </tr>
  *
  * <tr>
- *   <td>requestPasswordAuthentication</td>
- *   <td>The ability
- * to ask the authenticator registered with the system for
- * a password</td>
- *   <td>Malicious code may steal this password.</td>
- * </tr>
- *
- * <tr>
- *   <td>specifyStreamHandler</td>
- *   <td>The ability
- * to specify a stream handler when constructing a URL</td>
- *   <td>Malicious code may create a URL with resources that it would
-normally not have access to (like file:/foo/fum/), specifying a
-stream handler that gets the actual bytes from someplace it does 
-have access to. Thus it might be able to trick the system into
-creating a ProtectionDomain/CodeSource for a class even though
-that class really didn't come from that location.</td>
- * </tr>
- *
- * <tr> 
  *   <td>setProxySelector</td>
  *   <td>The ability to set the proxy selector used to make decisions
  *   on which proxies to use when making network connections.</td>
@@ -75,36 +132,7 @@ that class really didn't come from that location.</td>
  *   traffic to an arbitrary network host.</td>
  * </tr>
  *
- * <tr> 
- *   <td>getProxySelector</td>
- *   <td>The ability to get the proxy selector used to make decisions
- *   on which proxies to use when making network connections.</td>
- *   <td>Malicious code can get a ProxySelector to discover proxy
- *   hosts and ports on internal networks, which could then become
- *   targets for attack.</td>
- * </tr>
- *
- * <tr> 
- *   <td>setCookieHandler</td>
- *   <td>The ability to set the cookie handler that processes highly
- *   security sensitive cookie information for an Http session.</td>
- *   <td>Malicious code can set a cookie handler to obtain access to
- *   highly security sensitive cookie information. Some web servers
- *   use cookies to save user private information such as access
- *   control information, or to track user browsing habit.</td>
- *   </tr>
- *
- * <tr> 
- *   <td>getCookieHandler</td>
- *   <td>The ability to get the cookie handler that processes highly
- *   security sensitive cookie information for an Http session.</td>
- *   <td>Malicious code can get a cookie handler to obtain access to
- *   highly security sensitive cookie information. Some web servers
- *   use cookies to save user private information such as access
- *   control information, or to track user browsing habit.</td>
- *   </tr>
- *
- * <tr> 
+ * <tr>
  *   <td>setResponseCache</td>
  *   <td>The ability to set the response cache that provides access to
  *   a local response cache.</td>
@@ -113,14 +141,17 @@ that class really didn't come from that location.</td>
  *   entries in the response cache.</td>
  *   </tr>
  *
- * <tr> 
- *   <td>getResponseCache</td>
- *   <td>The ability to get the response cache that provides
- *   access to a local response cache.</td>
- *   <td>Malicious code getting access to the local response cache
- *   could access security sensitive information.</td>
- *   </tr>
- *
+ * <tr>
+ *   <td>specifyStreamHandler</td>
+ *   <td>The ability
+ * to specify a stream handler when constructing a URL</td>
+ *   <td>Malicious code may create a URL with resources that it would
+normally not have access to (like file:/foo/fum/), specifying a
+stream handler that gets the actual bytes from someplace it does
+have access to. Thus it might be able to trick the system into
+creating a ProtectionDomain/CodeSource for a class even though
+that class really didn't come from that location.</td>
+ * </tr>
  * </table>
  *
  * @see java.security.BasicPermission
@@ -129,7 +160,6 @@ that class really didn't come from that location.</td>
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.51 06/04/21
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -153,7 +183,7 @@ public final class NetPermission extends BasicPermission {
 
     public NetPermission(String name)
     {
-	super(name);
+        super(name);
     }
 
     /**
@@ -170,6 +200,6 @@ public final class NetPermission extends BasicPermission {
 
     public NetPermission(String name, String actions)
     {
-	super(name, actions);
+        super(name, actions);
     }
 }

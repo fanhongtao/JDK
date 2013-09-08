@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,13 +79,7 @@ public class ErrorMessages_ca extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    /** Get the lookup table for error messages.   
-     *
-     * @return The message lookup table.
-     */
-    public Object[][] getContents()
-    {
-      return new Object[][] {
+    private static final Object[][] _contents =  new Object[][] {
 
         /*
          * Note to translators:  the substitution text in the following message
@@ -224,6 +222,14 @@ public class ErrorMessages_ca extends ListResourceBundle {
         {BasisLibrary.CANT_RESOLVE_RELATIVE_URI_ERR,
         "No s''ha pogut resoldre la refer\u00e8ncia d''URI ''{0}''."}
     };
+
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return _contents;
     }
 
 }

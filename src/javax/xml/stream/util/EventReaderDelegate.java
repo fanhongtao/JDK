@@ -1,3 +1,31 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream.util;
 
 import javax.xml.namespace.QName;
@@ -8,7 +36,7 @@ import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 /**
- * This is the base class for deriving an XMLEventReader 
+ * This is the base class for deriving an XMLEventReader
  * filter.
  *
  * This class is designed to sit between an XMLEventReader and an
@@ -17,7 +45,7 @@ import javax.xml.stream.XMLStreamException;
  * parent interface.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see javax.xml.stream.XMLEventReader
  * @see StreamReaderDelegate
  * @since 1.6
@@ -55,7 +83,7 @@ public class EventReaderDelegate implements XMLEventReader {
     return reader;
   }
 
-  public XMLEvent nextEvent() 
+  public XMLEvent nextEvent()
     throws XMLStreamException
   {
     return reader.nextEvent();
@@ -65,31 +93,31 @@ public class EventReaderDelegate implements XMLEventReader {
     return reader.next();
   }
 
-  public boolean hasNext() 
+  public boolean hasNext()
   {
     return reader.hasNext();
   }
 
-  public XMLEvent peek() 
-    throws XMLStreamException 
+  public XMLEvent peek()
+    throws XMLStreamException
   {
     return reader.peek();
   }
 
-  public void close() 
+  public void close()
     throws XMLStreamException
   {
     reader.close();
   }
-  
-  public String getElementText() 
+
+  public String getElementText()
     throws XMLStreamException
   {
     return reader.getElementText();
   }
 
-  public XMLEvent nextTag() 
-    throws XMLStreamException 
+  public XMLEvent nextTag()
+    throws XMLStreamException
   {
     return reader.nextTag();
   }

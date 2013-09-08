@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,7 +38,6 @@ import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
  * @author Pavani Mukthipudi, Sun Microsystems
  * @author Neeraj Bajaj, SUN Microsystems
  *
- * @version $Id: XMLGrammarPoolImpl.java,v 1.2.6.1 2005/09/05 08:58:08 neerajbj Exp $
  */
 public class XMLGrammarPoolImpl implements XMLGrammarPool {
 
@@ -86,9 +89,9 @@ public class XMLGrammarPoolImpl implements XMLGrammarPool {
      * validation attempt. </p>
      *
      * @param grammarType The type of the grammar, from the
-     *  		  <code>com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarDescription</code>
-     *  		  interface.
-     * @return 		  The set of grammars the validator may put in its "bucket"
+     *                    <code>com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarDescription</code>
+     *                    interface.
+     * @return            The set of grammars the validator may put in its "bucket"
      */
     public Grammar [] retrieveInitialGrammarSet (String grammarType) {
         synchronized (fGrammars) {
@@ -116,8 +119,8 @@ public class XMLGrammarPoolImpl implements XMLGrammarPool {
      * us not to accept any new grammars.</p>
      *
      * @param grammarType The type of the grammars being returned;
-     * @param grammars 	  An array containing the set of grammars being
-     *  		  returned; order is not significant.
+     * @param grammars    An array containing the set of grammars being
+     *                    returned; order is not significant.
      */
     public void cacheGrammars(String grammarType, Grammar[] grammars) {
         if(!fPoolIsLocked) {
@@ -144,7 +147,7 @@ public class XMLGrammarPoolImpl implements XMLGrammarPool {
      *
      * @param desc The description of the Grammar being requested.
      * @return     The Grammar corresponding to this description or null if
-     *  	   no such Grammar is known.
+     *             no such Grammar is known.
      */
     public Grammar retrieveGrammar(XMLGrammarDescription desc) {
         if(DEBUG){

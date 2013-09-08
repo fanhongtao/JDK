@@ -1,8 +1,26 @@
 /*
- * @(#)AnnotationValue.java	1.4 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.javadoc;
@@ -10,9 +28,8 @@ package com.sun.javadoc;
 
 /**
  * Represents a value of an annotation type element.
- * 
+ *
  * @author Scott Seligman
- * @version 1.4 05/11/17
  * @since 1.5
  */
 public interface AnnotationValue {
@@ -36,7 +53,7 @@ public interface AnnotationValue {
      * Returns a string representation of the value.
      *
      * @return the text of a Java language annotation value expression
-     *		whose value is the value of this element.
+     *          whose value is the value of this element.
      */
     String toString();
 }

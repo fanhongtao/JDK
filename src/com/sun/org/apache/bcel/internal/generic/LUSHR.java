@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -54,11 +58,10 @@ package com.sun.org.apache.bcel.internal.generic;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * LUSHR - Logical shift right long
  * <PRE>Stack: ..., value1, value2 -&gt; ..., result</PRE>
  *
- * @version $Id: LUSHR.java,v 1.1.2.1 2005/07/31 23:45:55 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class LUSHR extends ArithmeticInstruction {

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +38,7 @@ public class XPATHMessages extends XMLMessages
   /** The class name of the XPath error message string table.     */
   private static final String XPATH_ERROR_RESOURCES =
     "com.sun.org.apache.xpath.internal.res.XPATHErrorResources";
-  
+
   /**
    * Creates a message from the specified key and replacement
    * arguments, localized to the given locale.
@@ -45,11 +49,11 @@ public class XPATHMessages extends XMLMessages
    *
    * @return The formatted message string.
    */
-  public static final String createXPATHMessage(String msgKey, Object args[])  //throws Exception 
+  public static final String createXPATHMessage(String msgKey, Object args[])  //throws Exception
   {
     if (XPATHBundle == null)
       XPATHBundle = loadResourceBundle(XPATH_ERROR_RESOURCES);
-    
+
     if (XPATHBundle != null)
     {
       return createXPATHMsg(XPATHBundle, msgKey, args);
@@ -101,7 +105,7 @@ public class XPATHMessages extends XMLMessages
     String msg = null;
 
     if (msgKey != null)
-      msg = fResourceBundle.getString(msgKey); 
+      msg = fResourceBundle.getString(msgKey);
 
     if (msg == null)
     {

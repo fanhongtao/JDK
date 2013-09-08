@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,44 +40,44 @@ public final class ClonedNodeListIterator extends DTMAxisIteratorBase {
     private int _index = 0;
 
     public ClonedNodeListIterator(CachedNodeListIterator source) {
-	_source = source;
+        _source = source;
     }
 
     public void setRestartable(boolean isRestartable) {
-	//_isRestartable = isRestartable;
-	//_source.setRestartable(isRestartable);
+        //_isRestartable = isRestartable;
+        //_source.setRestartable(isRestartable);
     }
 
     public DTMAxisIterator setStartNode(int node) {
-	return this;
+        return this;
     }
 
     public int next() {
         return _source.getNode(_index++);
     }
-    
+
     public int getPosition() {
-    	return _index == 0 ? 1 : _index;
+        return _index == 0 ? 1 : _index;
     }
 
     public int getNodeByPosition(int pos) {
-    	return _source.getNode(pos);
+        return _source.getNode(pos);
     }
-    
+
     public DTMAxisIterator cloneIterator() {
-	return _source.cloneIterator();
+        return _source.cloneIterator();
     }
 
     public DTMAxisIterator reset() {
-    	_index = 0;
-    	return this;
+        _index = 0;
+        return this;
     }
-    
+
     public void setMark() {
-	_source.setMark();
+        _source.setMark();
     }
 
     public void gotoMark() {
-	_source.gotoMark();
+        _source.gotoMark();
     }
 }

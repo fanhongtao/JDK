@@ -1,8 +1,26 @@
 /*
- * @(#)PKCS8EncodedKeySpec.java	1.22 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.spec;
@@ -31,7 +49,6 @@ package java.security.spec;
  *
  * @author Jan Luehe
  *
- * @version 1.22, 11/17/05
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -48,23 +65,23 @@ public class PKCS8EncodedKeySpec extends EncodedKeySpec {
      * Creates a new PKCS8EncodedKeySpec with the given encoded key.
      *
      * @param encodedKey the key, which is assumed to be
-     * encoded according to the PKCS #8 standard. The contents of 
+     * encoded according to the PKCS #8 standard. The contents of
      * the array are copied to protect against subsequent modification.
      * @exception NullPointerException if <code>encodedKey</code>
      * is null.
      */
     public PKCS8EncodedKeySpec(byte[] encodedKey) {
-	super(encodedKey);
+        super(encodedKey);
     }
 
     /**
      * Returns the key bytes, encoded according to the PKCS #8 standard.
      *
-     * @return the PKCS #8 encoding of the key. Returns a new array 
+     * @return the PKCS #8 encoding of the key. Returns a new array
      * each time this method is called.
      */
     public byte[] getEncoded() {
-	return super.getEncoded();
+        return super.getEncoded();
     }
 
     /**
@@ -74,6 +91,6 @@ public class PKCS8EncodedKeySpec extends EncodedKeySpec {
      * @return the string <code>"PKCS#8"</code>.
      */
     public final String getFormat() {
-	return "PKCS#8";
+        return "PKCS#8";
     }
 }

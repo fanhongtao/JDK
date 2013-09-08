@@ -1,8 +1,26 @@
 /*
- * @(#)MalformedInputException.java	1.10 05/11/17
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.charset;
@@ -20,18 +38,20 @@ public class MalformedInputException
     extends CharacterCodingException
 {
 
+    private static final long serialVersionUID = -3438823399834806194L;
+
     private int inputLength;
 
     public MalformedInputException(int inputLength) {
-	this.inputLength = inputLength;
+        this.inputLength = inputLength;
     }
 
     public int getInputLength() {
-	return inputLength;
+        return inputLength;
     }
 
     public String getMessage() {
-	return "Input length = " + inputLength;
+        return "Input length = " + inputLength;
     }
 
 }

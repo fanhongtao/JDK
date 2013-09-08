@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -61,8 +65,7 @@ import java.util.Stack;
  * class supplies the traversal strategy, other classes can make use
  * of it.
  *
- * @version $Id: DescendingVisitor.java,v 1.1.2.1 2005/07/31 23:46:23 jeffsuttor Exp $
- * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class DescendingVisitor implements Visitor {
   private JavaClass clazz;
@@ -131,7 +134,7 @@ public class DescendingVisitor implements Visitor {
   public void visitField(Field field) {
     stack.push(field);
     field.accept(visitor);
-    
+
     Attribute[] attributes = field.getAttributes();
     for(int i=0; i < attributes.length; i++)
       attributes[i].accept(this);
@@ -147,7 +150,7 @@ public class DescendingVisitor implements Visitor {
   public void visitMethod(Method method) {
     stack.push(method);
     method.accept(visitor);
-    
+
     Attribute[] attributes = method.getAttributes();
     for(int i=0; i < attributes.length; i++)
       attributes[i].accept(this);
@@ -237,7 +240,7 @@ public class DescendingVisitor implements Visitor {
     Constant[] constants = cp.getConstantPool();
     for(int i=1; i < constants.length; i++) {
       if(constants[i] != null)
-	constants[i].accept(this);
+        constants[i].accept(this);
     }
 
     stack.pop();
@@ -287,7 +290,7 @@ public class DescendingVisitor implements Visitor {
 
   public void visitConstantMethodref(ConstantMethodref constant) {
     stack.push(constant);
-    constant.accept(visitor); 
+    constant.accept(visitor);
     stack.pop();
   }
 
@@ -336,7 +339,7 @@ public class DescendingVisitor implements Visitor {
     attribute.accept(visitor);
     stack.pop();
   }
-  
+
   public void visitSourceFile(SourceFile attribute) {
     stack.push(attribute);
     attribute.accept(visitor);

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2006 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,31 +85,31 @@ final class KeyCall extends FunctionCall {
      * @param arguments A vector containing the arguments the the function
      */
     public KeyCall(QName fname, Vector arguments) {
-	super(fname, arguments);
-	switch(argumentCount()) {
-	case 1:
-	    _name = null;
-	    _value = argument(0);
-	    break;
-	case 2:
-	    _name = argument(0);
-	    _value = argument(1);
-	    break;
-	default:
-	    _name = _value = null;
-	    break;
-	}
+        super(fname, arguments);
+        switch(argumentCount()) {
+        case 1:
+            _name = null;
+            _value = argument(0);
+            break;
+        case 2:
+            _name = argument(0);
+            _value = argument(1);
+            break;
+        default:
+            _name = _value = null;
+            break;
+        }
     }
 
      /**
      * If this call to key() is in a top-level element like  another variable
-     * or param, add a dependency between that top-level element and the 
+     * or param, add a dependency between that top-level element and the
      * referenced key. For example,
      *
      *   <xsl:key name="x" .../>
      *   <xsl:variable name="y" select="key('x', 1)"/>
      *
-     * and assuming this class represents "key('x', 1)", add a reference 
+     * and assuming this class represents "key('x', 1)", add a reference
      * between variable y and key x. Note that if 'x' is unknown statically
      * in key('x', 1), there's nothing we can do at this point.
      */
@@ -113,17 +117,17 @@ final class KeyCall extends FunctionCall {
         // If name unknown statically, there's nothing we can do
         if (_resolvedQName == null) return;
 
-	SyntaxTreeNode node = this;
-	while (node != null && node instanceof TopLevelElement == false) {
-	    node = node.getParent();
-	}
+        SyntaxTreeNode node = this;
+        while (node != null && node instanceof TopLevelElement == false) {
+            node = node.getParent();
+        }
 
         TopLevelElement parent = (TopLevelElement) node;
         if (parent != null) {
             parent.addDependency(getSymbolTable().getKey(_resolvedQName));
         }
     }
-    
+
    /**
      * Type check the parameters for the id() or key() function.
      * The index name (for key() call only) must be a string or convertable
@@ -132,45 +136,45 @@ final class KeyCall extends FunctionCall {
      * @throws TypeCheckError When the parameters have illegal type
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	final Type returnType = super.typeCheck(stable);
+        final Type returnType = super.typeCheck(stable);
 
-	// Run type check on the key name (first argument) - must be a string,
-	// and if it is not it must be converted to one using string() rules.
-	if (_name != null) {
-	    final Type nameType = _name.typeCheck(stable); 
+        // Run type check on the key name (first argument) - must be a string,
+        // and if it is not it must be converted to one using string() rules.
+        if (_name != null) {
+            final Type nameType = _name.typeCheck(stable);
 
-	    if (_name instanceof LiteralExpr) {
-		final LiteralExpr literal = (LiteralExpr) _name;
-		_resolvedQName = 
-		    getParser().getQNameIgnoreDefaultNs(literal.getValue());
-	    }
-	    else if (nameType instanceof StringType == false) {
-		_name = new CastExpr(_name, Type.String);
-	    }
-	}
+            if (_name instanceof LiteralExpr) {
+                final LiteralExpr literal = (LiteralExpr) _name;
+                _resolvedQName =
+                    getParser().getQNameIgnoreDefaultNs(literal.getValue());
+            }
+            else if (nameType instanceof StringType == false) {
+                _name = new CastExpr(_name, Type.String);
+            }
+        }
 
-	// Run type check on the value for this key. This value can be of
-	// any data type, so this should never cause any type-check errors.
+        // Run type check on the value for this key. This value can be of
+        // any data type, so this should never cause any type-check errors.
         // If the value is a reference, then we have to defer the decision
         // of how to process it until run-time.
-	// If the value is known not to be a node-set, then it should be
-        // converted to a string before the lookup is done. If the value is 
+        // If the value is known not to be a node-set, then it should be
+        // converted to a string before the lookup is done. If the value is
         // known to be a node-set then this process (convert to string, then
         // do lookup) should be applied to every node in the set, and the
         // result from all lookups should be added to the resulting node-set.
-	_valueType = _value.typeCheck(stable);
+        _valueType = _value.typeCheck(stable);
 
-	if (_valueType != Type.NodeSet
+        if (_valueType != Type.NodeSet
                 && _valueType != Type.Reference
                 && _valueType != Type.String) {
-	    _value = new CastExpr(_value, Type.String);
+            _value = new CastExpr(_value, Type.String);
             _valueType = _value.typeCheck(stable);
-	}
-        
+        }
+
         // If in a top-level element, create dependency to the referenced key
         addParentDependency();
 
-	return returnType;
+        return returnType;
     }
 
     /**
@@ -182,26 +186,26 @@ final class KeyCall extends FunctionCall {
      * @param methodGen The method generator
      */
     public void translate(ClassGenerator classGen,
-			  MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+                          MethodGenerator methodGen) {
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// Returns the KeyIndex object of a given name
-	final int getKeyIndex = cpg.addMethodref(TRANSLET_CLASS,
-						 "getKeyIndex",
-						 "(Ljava/lang/String;)"+
-						 KEY_INDEX_SIG);
+        // Returns the KeyIndex object of a given name
+        final int getKeyIndex = cpg.addMethodref(TRANSLET_CLASS,
+                                                 "getKeyIndex",
+                                                 "(Ljava/lang/String;)"+
+                                                 KEY_INDEX_SIG);
 
-	// KeyIndex.setDom(Dom, node) => void
-	final int keyDom = cpg.addMethodref(KEY_INDEX_CLASS,
-					    "setDom",
-					    "(" + DOM_INTF_SIG + "I)V");
+        // KeyIndex.setDom(Dom, node) => void
+        final int keyDom = cpg.addMethodref(KEY_INDEX_CLASS,
+                                            "setDom",
+                                            "(" + DOM_INTF_SIG + "I)V");
 
-	// Initialises a KeyIndex to return nodes with specific values
-	final int getKeyIterator =
+        // Initialises a KeyIndex to return nodes with specific values
+        final int getKeyIterator =
                         cpg.addMethodref(KEY_INDEX_CLASS,
-					 "getKeyIndexIterator",
-					 "(" + _valueType.toSignature() + "Z)"
+                                         "getKeyIndexIterator",
+                                         "(" + _valueType.toSignature() + "Z)"
                                              + KEY_INDEX_ITERATOR_SIG);
 
         // Initialise the index specified in the first parameter of key()

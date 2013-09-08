@@ -1,8 +1,26 @@
 /*
- * @(#)DynValueCommonImpl.java	1.9 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.dynamicany;
@@ -60,9 +78,9 @@ abstract class DynValueCommonImpl extends DynAnyComplexImpl implements DynValueC
     }
 
     // If this object represents a null valuetype then this operation
-    // replaces it with a newly constructed value with its components 
+    // replaces it with a newly constructed value with its components
     // initialized to default values as in DynAnyFactory::create_dyn_any_from_type_code.
-    // If this object represents a non-null valuetype, then this operation has no effect. 
+    // If this object represents a non-null valuetype, then this operation has no effect.
     public void set_to_value() {
         if (isNull) {
             isNull = false;
@@ -80,7 +98,7 @@ abstract class DynValueCommonImpl extends DynAnyComplexImpl implements DynValueC
         throws org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if (isNull) {
             throw new InvalidValue();
@@ -94,7 +112,7 @@ abstract class DynValueCommonImpl extends DynAnyComplexImpl implements DynValueC
         throws org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if (isNull) {
             throw new InvalidValue();

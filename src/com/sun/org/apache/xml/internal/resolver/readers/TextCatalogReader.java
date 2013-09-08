@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // TextCatalogReader.java - Read text/plain Catalog files
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,7 +46,6 @@ import com.sun.org.apache.xml.internal.resolver.readers.CatalogReader;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class TextCatalogReader implements CatalogReader {
   /** The input stream used to read the catalog */
@@ -104,7 +107,7 @@ public class TextCatalogReader implements CatalogReader {
       readCatalog(catalog, urlCon.getInputStream());
     } catch (FileNotFoundException e) {
       catalog.getCatalogManager().debug.message(1, "Failed to load catalog, file not found",
-						catURL.toString());
+                                                catURL.toString());
     }
   }
 
@@ -121,57 +124,57 @@ public class TextCatalogReader implements CatalogReader {
 
     try {
       while (true) {
-	String token = nextToken();
+        String token = nextToken();
 
-	if (token == null) {
-	  if (unknownEntry != null) {
-	    catalog.unknownEntry(unknownEntry);
-	    unknownEntry = null;
-	  }
-	  catfile.close();
-	  catfile = null;
-	  return;
-	}
+        if (token == null) {
+          if (unknownEntry != null) {
+            catalog.unknownEntry(unknownEntry);
+            unknownEntry = null;
+          }
+          catfile.close();
+          catfile = null;
+          return;
+        }
 
-	String entryToken = null;
-	if (caseSensitive) {
-	  entryToken = token;
-	} else {
-	  entryToken = token.toUpperCase();
-	}
+        String entryToken = null;
+        if (caseSensitive) {
+          entryToken = token;
+        } else {
+          entryToken = token.toUpperCase();
+        }
 
-	try {
-	  int type = CatalogEntry.getEntryType(entryToken);
-	  int numArgs = CatalogEntry.getEntryArgCount(type);
-	  Vector args = new Vector();
+        try {
+          int type = CatalogEntry.getEntryType(entryToken);
+          int numArgs = CatalogEntry.getEntryArgCount(type);
+          Vector args = new Vector();
 
-	  if (unknownEntry != null) {
-	    catalog.unknownEntry(unknownEntry);
-	    unknownEntry = null;
-	  }
+          if (unknownEntry != null) {
+            catalog.unknownEntry(unknownEntry);
+            unknownEntry = null;
+          }
 
-	  for (int count = 0; count < numArgs; count++) {
-	    args.addElement(nextToken());
-	  }
+          for (int count = 0; count < numArgs; count++) {
+            args.addElement(nextToken());
+          }
 
-	  catalog.addEntry(new CatalogEntry(entryToken, args));
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    if (unknownEntry == null) {
-	      unknownEntry = new Vector();
-	    }
-	    unknownEntry.addElement(token);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    catalog.getCatalogManager().debug.message(1, "Invalid catalog entry", token);
-	    unknownEntry = null;
-	  } else if (cex.getExceptionType() == CatalogException.UNENDED_COMMENT) {
-	    catalog.getCatalogManager().debug.message(1, cex.getMessage());
-	  }
-	}
+          catalog.addEntry(new CatalogEntry(entryToken, args));
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            if (unknownEntry == null) {
+              unknownEntry = new Vector();
+            }
+            unknownEntry.addElement(token);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            catalog.getCatalogManager().debug.message(1, "Invalid catalog entry", token);
+            unknownEntry = null;
+          } else if (cex.getExceptionType() == CatalogException.UNENDED_COMMENT) {
+            catalog.getCatalogManager().debug.message(1, cex.getMessage());
+          }
+        }
       }
     } catch (CatalogException cex2) {
       if (cex2.getExceptionType() == CatalogException.UNENDED_COMMENT) {
-	catalog.getCatalogManager().debug.message(1, cex2.getMessage());
+        catalog.getCatalogManager().debug.message(1, cex2.getMessage());
       }
     }
   }
@@ -184,9 +187,9 @@ public class TextCatalogReader implements CatalogReader {
   protected void finalize() {
     if (catfile != null) {
       try {
-	catfile.close();
+        catfile.close();
       } catch (IOException e) {
-	// whatever...
+        // whatever...
       }
     }
     catfile = null;
@@ -216,38 +219,38 @@ public class TextCatalogReader implements CatalogReader {
       // skip leading whitespace
       ch = catfile.read();
       while (ch <= ' ') {      // all ctrls are whitespace
-	ch = catfile.read();
-	if (ch < 0) {
-	  return null;
-	}
+        ch = catfile.read();
+        if (ch < 0) {
+          return null;
+        }
       }
 
       // now 'ch' is the current char from the file
       nextch = catfile.read();
       if (nextch < 0) {
-	return null;
+        return null;
       }
 
       if (ch == '-' && nextch == '-') {
-	// we've found a comment, skip it...
-	ch = ' ';
-	nextch = nextChar();
-	while ((ch != '-' || nextch != '-') && nextch > 0) {
-	  ch = nextch;
-	  nextch = nextChar();
-	}
+        // we've found a comment, skip it...
+        ch = ' ';
+        nextch = nextChar();
+        while ((ch != '-' || nextch != '-') && nextch > 0) {
+          ch = nextch;
+          nextch = nextChar();
+        }
 
-	if (nextch < 0) {
-	  throw new CatalogException(CatalogException.UNENDED_COMMENT,
-				     "Unterminated comment in catalog file; EOF treated as end-of-comment.");
-	}
+        if (nextch < 0) {
+          throw new CatalogException(CatalogException.UNENDED_COMMENT,
+                                     "Unterminated comment in catalog file; EOF treated as end-of-comment.");
+        }
 
-	// Ok, we've found the end of the comment,
-	// loop back to the top and start again...
+        // Ok, we've found the end of the comment,
+        // loop back to the top and start again...
       } else {
-	stack[++top] = nextch;
-	stack[++top] = ch;
-	break;
+        stack[++top] = nextch;
+        stack[++top] = ch;
+        break;
       }
     }
 
@@ -255,28 +258,28 @@ public class TextCatalogReader implements CatalogReader {
     if (ch == '"' || ch == '\'') {
       int quote = ch;
       while ((ch = nextChar()) != quote) {
-	char[] chararr = new char[1];
-	chararr[0] = (char) ch;
-	String s = new String(chararr);
-	token = token.concat(s);
+        char[] chararr = new char[1];
+        chararr[0] = (char) ch;
+        String s = new String(chararr);
+        token = token.concat(s);
       }
       return token;
     } else {
       // return the next whitespace or comment delimited
       // string
       while (ch > ' ') {
-	nextch = nextChar();
-	if (ch == '-' && nextch == '-') {
-	  stack[++top] = ch;
-	  stack[++top] = nextch;
-	  return token;
-	} else {
-	  char[] chararr = new char[1];
-	  chararr[0] = (char) ch;
-	  String s = new String(chararr);
-	  token = token.concat(s);
-	  ch = nextch;
-	}
+        nextch = nextChar();
+        if (ch == '-' && nextch == '-') {
+          stack[++top] = ch;
+          stack[++top] = nextch;
+          return token;
+        } else {
+          char[] chararr = new char[1];
+          chararr[0] = (char) ch;
+          String s = new String(chararr);
+          token = token.concat(s);
+          ch = nextch;
+        }
       }
       return token;
     }

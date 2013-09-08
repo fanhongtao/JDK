@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +23,9 @@ package com.sun.org.apache.xerces.internal.parsers;
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaValidator;
 import com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter;
+import com.sun.org.apache.xerces.internal.util.FeatureState;
+import com.sun.org.apache.xerces.internal.util.PropertyState;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
@@ -57,7 +64,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: StandardParserConfiguration.java,v 1.2.6.1 2005/09/06 13:51:13 sunithareddy Exp $
+ * @version $Id: StandardParserConfiguration.java,v 1.7 2010-11-01 04:40:10 joehw Exp $
  */
 public class StandardParserConfiguration
     extends DTDConfiguration {
@@ -103,6 +110,14 @@ public class StandardParserConfiguration
     protected static final String HONOUR_ALL_SCHEMALOCATIONS = 
         Constants.XERCES_FEATURE_PREFIX + Constants.HONOUR_ALL_SCHEMALOCATIONS_FEATURE;
 
+    /** Feature identifier: namespace growth */
+    protected static final String NAMESPACE_GROWTH =
+        Constants.XERCES_FEATURE_PREFIX + Constants.NAMESPACE_GROWTH_FEATURE;
+
+    /** Feature identifier: tolerate duplicates */
+    protected static final String TOLERATE_DUPLICATES =
+        Constants.XERCES_FEATURE_PREFIX + Constants.TOLERATE_DUPLICATES_FEATURE;
+
     // property identifiers
 
     /** Property identifier: XML Schema validator. */
@@ -116,6 +131,10 @@ public class StandardParserConfiguration
     /** Property identifier: no namespace schema location. */
     protected static final String SCHEMA_NONS_LOCATION =
     Constants.XERCES_PROPERTY_PREFIX + Constants.SCHEMA_NONS_LOCATION;
+
+    /** Property identifier: Schema DV Factory */
+    protected static final String SCHEMA_DV_FACTORY =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.SCHEMA_DV_FACTORY_PROPERTY;
 
     //
     // Data
@@ -185,6 +204,8 @@ public class StandardParserConfiguration
             GENERATE_SYNTHETIC_ANNOTATIONS,
             VALIDATE_ANNOTATIONS,
             HONOUR_ALL_SCHEMALOCATIONS,
+            NAMESPACE_GROWTH,
+            TOLERATE_DUPLICATES,
             // NOTE: These shouldn't really be here but since the XML Schema
             //       validator is constructed dynamically, its recognized
             //       features might not have been set and it would cause a
@@ -201,6 +222,8 @@ public class StandardParserConfiguration
         setFeature(GENERATE_SYNTHETIC_ANNOTATIONS, false);
         setFeature(VALIDATE_ANNOTATIONS, false);
         setFeature(HONOUR_ALL_SCHEMALOCATIONS, false);
+        setFeature(NAMESPACE_GROWTH, false);
+        setFeature(TOLERATE_DUPLICATES, false);
 
         // add default recognized properties
     
@@ -210,7 +233,8 @@ public class StandardParserConfiguration
             //       properties might not have been set and it would cause a
             //       not-recognized exception to be thrown. -Ac
             SCHEMA_LOCATION,
-            SCHEMA_NONS_LOCATION,       
+            SCHEMA_NONS_LOCATION,
+            SCHEMA_DV_FACTORY,
             };
 
 			addRecognizedProperties(recognizedProperties);
@@ -263,7 +287,7 @@ public class StandardParserConfiguration
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkFeature(String featureId)
+    protected FeatureState checkFeature(String featureId)
         throws XMLConfigurationException {
 
         //
@@ -279,24 +303,24 @@ public class StandardParserConfiguration
             //
             if (suffixLength == Constants.SCHEMA_VALIDATION_FEATURE.length() && 
                 featureId.endsWith(Constants.SCHEMA_VALIDATION_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
             // activate full schema checking
             if (suffixLength == Constants.SCHEMA_FULL_CHECKING.length() &&
                 featureId.endsWith(Constants.SCHEMA_FULL_CHECKING)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
             // Feature identifier: expose schema normalized value 
             //  http://apache.org/xml/features/validation/schema/normalized-value
             if (suffixLength == Constants.SCHEMA_NORMALIZED_VALUE.length() && 
                 featureId.endsWith(Constants.SCHEMA_NORMALIZED_VALUE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             } 
             // Feature identifier: send element default value via characters() 
             // http://apache.org/xml/features/validation/schema/element-default
             if (suffixLength == Constants.SCHEMA_ELEMENT_DEFAULT.length() && 
                 featureId.endsWith(Constants.SCHEMA_ELEMENT_DEFAULT)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
         }
 
@@ -304,7 +328,7 @@ public class StandardParserConfiguration
         // Not recognized
         //
 
-        super.checkFeature(featureId);
+        return super.checkFeature(featureId);
 
     } // checkFeature(String)
 
@@ -321,7 +345,7 @@ public class StandardParserConfiguration
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkProperty(String propertyId)
+    protected PropertyState checkProperty(String propertyId)
         throws XMLConfigurationException {
 
         //
@@ -333,11 +357,11 @@ public class StandardParserConfiguration
             
             if (suffixLength == Constants.SCHEMA_LOCATION.length() && 
                 propertyId.endsWith(Constants.SCHEMA_LOCATION)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
             if (suffixLength == Constants.SCHEMA_NONS_LOCATION.length() && 
                 propertyId.endsWith(Constants.SCHEMA_NONS_LOCATION)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
         }
 
@@ -346,7 +370,7 @@ public class StandardParserConfiguration
         	
             if (suffixLength == Constants.SCHEMA_SOURCE.length() && 
                 propertyId.endsWith(Constants.SCHEMA_SOURCE)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
         }
 
@@ -354,7 +378,7 @@ public class StandardParserConfiguration
         // Not recognized
         //
 
-        super.checkProperty(propertyId);
+        return super.checkProperty(propertyId);
 
     } // checkProperty(String)
 

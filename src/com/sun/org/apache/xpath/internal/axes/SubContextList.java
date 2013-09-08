@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +23,7 @@
 package com.sun.org.apache.xpath.internal.axes;
 
 import com.sun.org.apache.xpath.internal.XPathContext;
- 
+
 /**
  * A class that implements this interface is a sub context node list, meaning it
  * is a node list for a location path step for a predicate.
@@ -29,7 +33,7 @@ public interface SubContextList
 {
 
   /**
-   * Get the number of nodes in the node list, which, in the XSLT 1 based 
+   * Get the number of nodes in the node list, which, in the XSLT 1 based
    * counting system, is the last index position.
    *
    *

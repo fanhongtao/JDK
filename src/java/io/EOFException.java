@@ -1,8 +1,26 @@
 /*
- * @(#)EOFException.java	1.14 05/11/17
+ * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -17,19 +35,20 @@ package java.io;
  * <p>
  *
  * @author  Frank Yellin
- * @version 1.14, 11/17/05
  * @see     java.io.DataInputStream
  * @see     java.io.IOException
  * @since   JDK1.0
  */
 public
 class EOFException extends IOException {
+    private static final long serialVersionUID = 6433858223774886977L;
+
     /**
      * Constructs an <code>EOFException</code> with <code>null</code>
      * as its error detail message.
      */
     public EOFException() {
-	super();
+        super();
     }
 
     /**
@@ -41,6 +60,6 @@ class EOFException extends IOException {
      * @param   s   the detail message.
      */
     public EOFException(String s) {
-	super(s);
+        super(s);
     }
 }

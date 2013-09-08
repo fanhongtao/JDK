@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,7 +89,7 @@ import org.w3c.dom.Node;
  * of thing but in a much simpler manner.</p>
  *
  * @author Shane_Curcuru@us.ibm.com
- * @version $Id: EnvironmentCheck.java,v 1.4 2005/08/30 10:06:03 neerajbj Exp $
+ * @version $Id: EnvironmentCheck.java,v 1.10 2010-11-01 04:34:13 joehw Exp $
  */
 public class EnvironmentCheck
 {
@@ -222,7 +226,9 @@ public class EnvironmentCheck
     checkProcessorVersion(hash);
     checkParserVersion(hash);
     checkAntVersion(hash);
+    if (!checkDOML3(hash)) {
     checkDOMVersion(hash);
+    }
     checkSAXVersion(hash);
     checkSystemProperties(hash);
 
@@ -255,7 +261,7 @@ public class EnvironmentCheck
     boolean errors = false;
 
     logMsg(
-      "#---- BEGIN writeEnvironmentReport($Revision: 1.4 $): Useful stuff found: ----");
+      "#---- BEGIN writeEnvironmentReport($Revision: 1.10 $): Useful stuff found: ----");
 
     // Fake the Properties-like output
     for (Enumeration keys = h.keys(); 
@@ -414,7 +420,7 @@ public class EnvironmentCheck
     try
     {
       Element envCheckNode = factory.createElement("EnvironmentCheck");
-      envCheckNode.setAttribute("version", "$Revision: 1.4 $");
+      envCheckNode.setAttribute("version", "$Revision: 1.10 $");
       container.appendChild(envCheckNode);
 
       if (null == h)
@@ -782,42 +788,24 @@ public class EnvironmentCheck
     if (null == h)
       h = new Hashtable();
 
-    final Class noArgs[] = new Class[0];
     Class clazz = null;
 
     try
     {
-      final String JAXP1_CLASS = "javax.xml.parsers.DocumentBuilder";
-      final String JAXP11_METHOD = "getDOMImplementation";
+      final String JAXP1_CLASS = "javax.xml.stream.XMLStreamConstants";
 
       clazz = ObjectFactory.findProviderClass(
         JAXP1_CLASS, ObjectFactory.findClassLoader(), true);
 
-      Method method = clazz.getMethod(JAXP11_METHOD, noArgs);
-
-      // If we succeeded, we at least have JAXP 1.1 available
-      h.put(VERSION + "JAXP", "1.1 or higher");
+      // If we succeeded, we have JAXP 1.4 available
+      h.put(VERSION + "JAXP", "1.4");
     }
     catch (Exception e)
     {
-      if (null != clazz)
-      {
-
-        // We must have found the class itself, just not the 
-        //  method, so we (probably) have JAXP 1.0.1
-        h.put(ERROR + VERSION + "JAXP", "1.0.1");
+        h.put(ERROR + VERSION + "JAXP", "1.3");
         h.put(ERROR, ERROR_FOUND);
       }
-      else
-      {
-        // We couldn't even find the class, and don't have 
-        //  any JAXP support at all, or only have the 
-        //  transform half of it
-        h.put(ERROR + VERSION + "JAXP", CLASS_NOTPRESENT);
-        h.put(ERROR, ERROR_FOUND);
       }
-    }
-  }
 
   /**
    * Report product version information from Xalan-J.
@@ -1008,6 +996,38 @@ public class EnvironmentCheck
   /**
    * Report version info from DOM interfaces. 
    *
+   * @param h Hashtable to put information in
+   */
+  protected boolean checkDOML3(Hashtable h)
+  {
+
+    if (null == h)
+      h = new Hashtable();
+
+    final String DOM_CLASS = "org.w3c.dom.Document";
+    final String DOM_LEVEL3_METHOD = "getDoctype";  // no parameter
+
+    try
+    {
+      Class clazz = ObjectFactory.findProviderClass(
+        DOM_CLASS, ObjectFactory.findClassLoader(), true);
+
+      Method method = clazz.getMethod(DOM_LEVEL3_METHOD, null);
+
+      // If we succeeded, we have loaded interfaces from a
+      //  level 3 DOM somewhere
+      h.put(VERSION + "DOM", "3.0");
+      return true;
+    }
+    catch (Exception e)
+    {
+      return false;
+    }
+  }
+
+  /**
+   * Report version info from DOM interfaces. 
+   *
    * Currently distinguishes between pre-DOM level 2, the DOM 
    * level 2 working draft, the DOM level 2 final draft, 
    * and not found.
@@ -1022,6 +1042,7 @@ public class EnvironmentCheck
 
     final String DOM_LEVEL2_CLASS = "org.w3c.dom.Document";
     final String DOM_LEVEL2_METHOD = "createElementNS";  // String, String
+    final String DOM_LEVEL3_METHOD = "getDoctype";  // no parameter
     final String DOM_LEVEL2WD_CLASS = "org.w3c.dom.Node";
     final String DOM_LEVEL2WD_METHOD = "supported";  // String, String
     final String DOM_LEVEL2FD_CLASS = "org.w3c.dom.Node";

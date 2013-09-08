@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,16 +23,15 @@
 package com.sun.org.apache.xpath.internal.axes;
 
 /**
- * Classes who implement this information provide information needed for 
+ * Classes who implement this information provide information needed for
  * static analysis of a path component.
  */
 public interface PathComponent
 {
-  /** 
+  /**
    * Get the analysis bits for this path component, as defined in the WalkerFactory.
    * @return One of WalkerFactory#BIT_DESCENDANT, etc.
    */
   public int getAnalysisBits();
 
 }
-

@@ -1,8 +1,26 @@
 /*
- * @(#)ComboPopup.java	1.17 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.basic;
@@ -26,7 +44,6 @@ import javax.swing.JList;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.17 11/17/05
  * @author Tom Santos
  */
 public interface ComboPopup {
@@ -42,7 +59,7 @@ public interface ComboPopup {
 
     /**
      * Returns true if the popup is visible (currently being displayed).
-     * 
+     *
      * @return <code>true</code> if the component is visible; <code>false</code> otherwise.
      */
     public boolean isVisible();

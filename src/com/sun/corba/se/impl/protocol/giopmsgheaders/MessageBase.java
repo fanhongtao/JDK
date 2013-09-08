@@ -1,8 +1,26 @@
 /*
- * @(#)MessageBase.java	1.20 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -51,7 +69,6 @@ import com.sun.corba.se.impl.protocol.AddressingDispositionException;
  * support GIOP 1.0, 1.1 and 1.2 message types.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public abstract class MessageBase implements Message{
@@ -62,72 +79,72 @@ public abstract class MessageBase implements Message{
     private ByteBuffer byteBuffer;
     private int threadPoolToUse;
 
-    // (encodingVersion == 0x00) implies CDR encoding, 
+    // (encodingVersion == 0x00) implies CDR encoding,
     // (encodingVersion >  0x00) implies Java serialization version.
     byte encodingVersion = (byte) Message.CDR_ENC_VERSION;
 
-    private static ORBUtilSystemException wrapper = 
-	ORBUtilSystemException.get( CORBALogDomains.RPC_PROTOCOL ) ;
+    private static ORBUtilSystemException wrapper =
+        ORBUtilSystemException.get( CORBALogDomains.RPC_PROTOCOL ) ;
 
     // Static methods
 
     public static String typeToString(int type)
     {
-	return typeToString((byte)type);
+        return typeToString((byte)type);
     }
 
     public static String typeToString(byte type)
     {
-	String result = type + "/";
-	switch (type) {
-	case GIOPRequest         : result += "GIOPRequest";         break;
-	case GIOPReply           : result += "GIOPReply";           break;
-	case GIOPCancelRequest   : result += "GIOPCancelRequest";   break;
-	case GIOPLocateRequest   : result += "GIOPLocateRequest";   break;
-	case GIOPLocateReply     : result += "GIOPLocateReply";     break;
-	case GIOPCloseConnection : result += "GIOPCloseConnection"; break;
-	case GIOPMessageError    : result += "GIOPMessageError";    break;
-	case GIOPFragment        : result += "GIOPFragment";        break;
-	default                  : result += "Unknown";             break;
-	}
-	return result;
+        String result = type + "/";
+        switch (type) {
+        case GIOPRequest         : result += "GIOPRequest";         break;
+        case GIOPReply           : result += "GIOPReply";           break;
+        case GIOPCancelRequest   : result += "GIOPCancelRequest";   break;
+        case GIOPLocateRequest   : result += "GIOPLocateRequest";   break;
+        case GIOPLocateReply     : result += "GIOPLocateReply";     break;
+        case GIOPCloseConnection : result += "GIOPCloseConnection"; break;
+        case GIOPMessageError    : result += "GIOPMessageError";    break;
+        case GIOPFragment        : result += "GIOPFragment";        break;
+        default                  : result += "Unknown";             break;
+        }
+        return result;
     }
 
     public static MessageBase readGIOPMessage(ORB orb, CorbaConnection connection)
     {
-	MessageBase msg = readGIOPHeader(orb, connection);
-	msg = (MessageBase)readGIOPBody(orb, connection, (Message)msg);
-	return msg;
+        MessageBase msg = readGIOPHeader(orb, connection);
+        msg = (MessageBase)readGIOPBody(orb, connection, (Message)msg);
+        return msg;
     }
 
     public static MessageBase readGIOPHeader(ORB orb, CorbaConnection connection)
     {
         MessageBase msg = null;
         ReadTimeouts readTimeouts =
-	                   orb.getORBData().getTransportTCPReadTimeouts();
+                           orb.getORBData().getTransportTCPReadTimeouts();
 
-	ByteBuffer buf = null;
+        ByteBuffer buf = null;
 
-	try {
-	    buf = connection.read(GIOPMessageHeaderLength,
-			  0, GIOPMessageHeaderLength,
-			  readTimeouts.get_max_giop_header_time_to_wait());
-	} catch (IOException e) {
-	    throw wrapper.ioexceptionWhenReadingConnection(e);
-	}
+        try {
+            buf = connection.read(GIOPMessageHeaderLength,
+                          0, GIOPMessageHeaderLength,
+                          readTimeouts.get_max_giop_header_time_to_wait());
+        } catch (IOException e) {
+            throw wrapper.ioexceptionWhenReadingConnection(e);
+        }
 
         if (orb.giopDebugFlag) {
             // Since this is executed in debug mode only the overhead of
             // using a View Buffer is not an issue. We'll also use a
             // read-only View Buffer so we don't disturb the state of
-            // byteBuffer. 
+            // byteBuffer.
             dprint(".readGIOPHeader: " + typeToString(buf.get(7)));
-	    dprint(".readGIOPHeader: GIOP header is: ");
+            dprint(".readGIOPHeader: GIOP header is: ");
             ByteBuffer viewBuffer = buf.asReadOnlyBuffer();
             viewBuffer.position(0).limit(GIOPMessageHeaderLength);
-	    ByteBufferWithInfo bbwi = new ByteBufferWithInfo(orb,viewBuffer);
-	    bbwi.buflen = GIOPMessageHeaderLength;
-	    CDRInputStream_1_0.printBuffer(bbwi);
+            ByteBufferWithInfo bbwi = new ByteBufferWithInfo(orb,viewBuffer);
+            bbwi.buflen = GIOPMessageHeaderLength;
+            CDRInputStream_1_0.printBuffer(bbwi);
         }
 
         // Sanity checks
@@ -153,23 +170,23 @@ public abstract class MessageBase implements Message{
         if (magic != GIOPBigMagic) {
             // If Magic is incorrect, it is an error.
             // ACTION : send MessageError and close the connection.
-	    throw wrapper.giopMagicError( CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopMagicError( CompletionStatus.COMPLETED_MAYBE);
         }
 
-	// Extract the encoding version from the request GIOP Version,
-	// if it contains an encoding, and set GIOP version appropriately.
-	// For Java serialization, we use GIOP Version 1.2 message format.
-	byte requestEncodingVersion = Message.CDR_ENC_VERSION;
-	if ((buf.get(4) == 0x0D) &&
-	    (buf.get(5) <= Message.JAVA_ENC_VERSION) &&
-	    (buf.get(5) > Message.CDR_ENC_VERSION) &&
-	    orb.getORBData().isJavaSerializationEnabled()) {
-	    // Entering this block means the request is using Java encoding,
-	    // and the encoding version is <= this ORB's Java encoding version.
-	    requestEncodingVersion = buf.get(5);
-	    buf.put(4, (byte) 0x01);
-	    buf.put(5, (byte) 0x02);
-	}
+        // Extract the encoding version from the request GIOP Version,
+        // if it contains an encoding, and set GIOP version appropriately.
+        // For Java serialization, we use GIOP Version 1.2 message format.
+        byte requestEncodingVersion = Message.CDR_ENC_VERSION;
+        if ((buf.get(4) == 0x0D) &&
+            (buf.get(5) <= Message.JAVA_ENC_VERSION) &&
+            (buf.get(5) > Message.CDR_ENC_VERSION) &&
+            orb.getORBData().isJavaSerializationEnabled()) {
+            // Entering this block means the request is using Java encoding,
+            // and the encoding version is <= this ORB's Java encoding version.
+            requestEncodingVersion = buf.get(5);
+            buf.put(4, (byte) 0x01);
+            buf.put(5, (byte) 0x02);
+        }
 
         GIOPVersion orbVersion = orb.getORBData().getGIOPVersion();
 
@@ -194,7 +211,7 @@ public abstract class MessageBase implements Message{
             // ACTION : Send back a MessageError() with the the highest version
             // the server ORB supports, and close the connection.
             if ( buf.get(7) != GIOPMessageError ) {
-		throw wrapper.giopVersionError( CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError( CompletionStatus.COMPLETED_MAYBE);
             }
         }
 
@@ -216,8 +233,8 @@ public abstract class MessageBase implements Message{
             } else if ( (buf.get(4) == 0x01) && (buf.get(5) == 0x02) ) { // 1.2
                 msg = new RequestMessage_1_2(orb);
             } else {
-		throw wrapper.giopVersionError(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
             break;
 
@@ -233,8 +250,8 @@ public abstract class MessageBase implements Message{
             } else if ( (buf.get(4) == 0x01) && (buf.get(5) == 0x02) ) { // 1.2
                 msg = new LocateRequestMessage_1_2(orb);
             } else {
-		throw wrapper.giopVersionError(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
             break;
 
@@ -250,8 +267,8 @@ public abstract class MessageBase implements Message{
             } else if ( (buf.get(4) == 0x01) && (buf.get(5) == 0x02) ) { // 1.2
                 msg = new CancelRequestMessage_1_2();
             } else {
-		throw wrapper.giopVersionError(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
             break;
 
@@ -267,8 +284,8 @@ public abstract class MessageBase implements Message{
             } else if ( (buf.get(4) == 0x01) && (buf.get(5) == 0x02) ) { // 1.2
                 msg = new ReplyMessage_1_2(orb);
             } else {
-		throw wrapper.giopVersionError(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
             break;
 
@@ -284,8 +301,8 @@ public abstract class MessageBase implements Message{
             } else if ( (buf.get(4) == 0x01) && (buf.get(5) == 0x02) ) { // 1.2
                 msg = new LocateReplyMessage_1_2(orb);
             } else {
-		throw wrapper.giopVersionError(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
             break;
 
@@ -306,8 +323,8 @@ public abstract class MessageBase implements Message{
             } else if ( (buf.get(4) == 0x01) && (buf.get(5) == 0x02) ) { // 1.2
                 msg = new Message_1_1();
             } else {
-		throw wrapper.giopVersionError(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
             break;
 
@@ -323,19 +340,19 @@ public abstract class MessageBase implements Message{
             } else if ( (buf.get(4) == 0x01) && (buf.get(5) == 0x02) ) { // 1.2
                 msg = new FragmentMessage_1_2();
             } else {
-		throw wrapper.giopVersionError(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
             break;
 
         default:
             if (orb.giopDebugFlag)
                 dprint(".readGIOPHeader: UNKNOWN MESSAGE TYPE: "
-		       + buf.get(7));
+                       + buf.get(7));
             // unknown message type ?
             // ACTION : send MessageError and close the connection
-	    throw wrapper.giopVersionError(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopVersionError(
+                CompletionStatus.COMPLETED_MAYBE);
         }
 
         //
@@ -347,9 +364,9 @@ public abstract class MessageBase implements Message{
             msg10.magic = magic;
             msg10.GIOP_version = new GIOPVersion(buf.get(4), buf.get(5));
             msg10.byte_order = (buf.get(6) == LITTLE_ENDIAN_BIT);
-	    // 'request partitioning' not supported on GIOP version 1.0
-	    // so just use the default thread pool, 0.
-	    msg.threadPoolToUse = 0;
+            // 'request partitioning' not supported on GIOP version 1.0
+            // so just use the default thread pool, 0.
+            msg.threadPoolToUse = 0;
             msg10.message_type = buf.get(7);
             msg10.message_size = readSize(buf.get(8), buf.get(9), buf.get(10), buf.get(11),
                                           msg10.isLittleEndian()) +
@@ -359,18 +376,18 @@ public abstract class MessageBase implements Message{
             msg11.magic = magic;
             msg11.GIOP_version = new GIOPVersion(buf.get(4), buf.get(5));
             msg11.flags = (byte)(buf.get(6) & TRAILING_TWO_BIT_BYTE_MASK);
-	    // IMPORTANT: For 'request partitioning', the thread pool to use
-	    //            information is stored in the leading 6 bits of byte 6.
-	    //
-	    // IMPORTANT: Request partitioning is a PROPRIETARY EXTENSION !!!
-	    //
-	    // NOTE: Bitwise operators will promote a byte to an int before 
-	    //       performing a bitwise operation and bytes, ints, longs, etc
-	    //       are signed types in Java. Thus, the need for the 
-	    //       THREAD_POOL_TO_USE_MASK operation.
-	    msg.threadPoolToUse = (buf.get(6) >>> 2) & THREAD_POOL_TO_USE_MASK;
+            // IMPORTANT: For 'request partitioning', the thread pool to use
+            //            information is stored in the leading 6 bits of byte 6.
+            //
+            // IMPORTANT: Request partitioning is a PROPRIETARY EXTENSION !!!
+            //
+            // NOTE: Bitwise operators will promote a byte to an int before
+            //       performing a bitwise operation and bytes, ints, longs, etc
+            //       are signed types in Java. Thus, the need for the
+            //       THREAD_POOL_TO_USE_MASK operation.
+            msg.threadPoolToUse = (buf.get(6) >>> 2) & THREAD_POOL_TO_USE_MASK;
             msg11.message_type = buf.get(7);
-            msg11.message_size = 
+            msg11.message_size =
                       readSize(buf.get(8), buf.get(9), buf.get(10), buf.get(11),
                               msg11.isLittleEndian()) + GIOPMessageHeaderLength;
         }
@@ -380,7 +397,7 @@ public abstract class MessageBase implements Message{
             // Since this is executed in debug mode only the overhead of
             // using a View Buffer is not an issue. We'll also use a
             // read-only View Buffer so we don't disturb the state of
-            // byteBuffer. 
+            // byteBuffer.
             dprint(".readGIOPHeader: header construction complete.");
 
             // For debugging purposes, save the 12 bytes of the header
@@ -388,44 +405,44 @@ public abstract class MessageBase implements Message{
             byte[] msgBuf = new byte[GIOPMessageHeaderLength];
             viewBuf.position(0).limit(GIOPMessageHeaderLength);
             viewBuf.get(msgBuf,0,msgBuf.length);
-	    // REVISIT: is giopHeader still used?
+            // REVISIT: is giopHeader still used?
             ((MessageBase)msg).giopHeader = msgBuf;
         }
 
-	msg.setByteBuffer(buf);
-	msg.setEncodingVersion(requestEncodingVersion);
+        msg.setByteBuffer(buf);
+        msg.setEncodingVersion(requestEncodingVersion);
 
-	return msg;
+        return msg;
     }
 
     public static Message readGIOPBody(ORB orb,
-			               CorbaConnection connection,
-				       Message msg)
+                                       CorbaConnection connection,
+                                       Message msg)
     {
         ReadTimeouts readTimeouts =
-	                   orb.getORBData().getTransportTCPReadTimeouts();
-	ByteBuffer buf = msg.getByteBuffer();
+                           orb.getORBData().getTransportTCPReadTimeouts();
+        ByteBuffer buf = msg.getByteBuffer();
 
-	buf.position(MessageBase.GIOPMessageHeaderLength);
-	int msgSizeMinusHeader =
-	    msg.getSize() - MessageBase.GIOPMessageHeaderLength;
-	try {
-	    buf = connection.read(buf, 
-			  GIOPMessageHeaderLength, msgSizeMinusHeader,
-			  readTimeouts.get_max_time_to_wait());
-	} catch (IOException e) {
-	    throw wrapper.ioexceptionWhenReadingConnection(e);
-	}
+        buf.position(MessageBase.GIOPMessageHeaderLength);
+        int msgSizeMinusHeader =
+            msg.getSize() - MessageBase.GIOPMessageHeaderLength;
+        try {
+            buf = connection.read(buf,
+                          GIOPMessageHeaderLength, msgSizeMinusHeader,
+                          readTimeouts.get_max_time_to_wait());
+        } catch (IOException e) {
+            throw wrapper.ioexceptionWhenReadingConnection(e);
+        }
 
-	msg.setByteBuffer(buf);
+        msg.setByteBuffer(buf);
 
-	if (orb.giopDebugFlag) {
-	    dprint(".readGIOPBody: received message:");
-	    ByteBuffer viewBuffer = buf.asReadOnlyBuffer();
-	    viewBuffer.position(0).limit(msg.getSize());
-	    ByteBufferWithInfo bbwi = new ByteBufferWithInfo(orb, viewBuffer);
-	    CDRInputStream_1_0.printBuffer(bbwi);
-	}
+        if (orb.giopDebugFlag) {
+            dprint(".readGIOPBody: received message:");
+            ByteBuffer viewBuffer = buf.asReadOnlyBuffer();
+            viewBuffer.position(0).limit(msg.getSize());
+            ByteBufferWithInfo bbwi = new ByteBufferWithInfo(orb, viewBuffer);
+            CDRInputStream_1_0.printBuffer(bbwi);
+        }
 
         return msg;
     }
@@ -437,8 +454,8 @@ public abstract class MessageBase implements Message{
 
         if (gv.equals(GIOPVersion.V1_0)) { // 1.0
             return new RequestMessage_1_0(orb, service_contexts, request_id,
-					 response_expected, object_key,
-					 operation, requesting_principal);
+                                         response_expected, object_key,
+                                         operation, requesting_principal);
         } else if (gv.equals(GIOPVersion.V1_1)) { // 1.1
             return new RequestMessage_1_1(orb, service_contexts, request_id,
                 response_expected, new byte[] { 0x00, 0x00, 0x00 },
@@ -471,46 +488,46 @@ public abstract class MessageBase implements Message{
             */
             TargetAddress target = new TargetAddress();
             target.object_key(object_key);
-            RequestMessage msg = 
-		new RequestMessage_1_2(orb, request_id, response_flags,
-				       new byte[] { 0x00, 0x00, 0x00 },
-				       target, operation, service_contexts);
-	    msg.setEncodingVersion(encodingVersion);
-	    return msg;
+            RequestMessage msg =
+                new RequestMessage_1_2(orb, request_id, response_flags,
+                                       new byte[] { 0x00, 0x00, 0x00 },
+                                       target, operation, service_contexts);
+            msg.setEncodingVersion(encodingVersion);
+            return msg;
         } else {
-	    throw wrapper.giopVersionError(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopVersionError(
+                CompletionStatus.COMPLETED_MAYBE);
         }
     }
 
     public static RequestMessage createRequest(
             ORB orb, GIOPVersion gv, byte encodingVersion, int request_id,
-	    boolean response_expected, IOR ior,
-	    short addrDisp, String operation,
+            boolean response_expected, IOR ior,
+            short addrDisp, String operation,
             ServiceContexts service_contexts, Principal requesting_principal) {
 
-	RequestMessage requestMessage = null;
+        RequestMessage requestMessage = null;
         IIOPProfile profile = ior.getProfile();
-            
-        if (addrDisp == KeyAddr.value) {  
+
+        if (addrDisp == KeyAddr.value) {
             // object key will be used for target addressing
             profile = ior.getProfile();
-    	    ObjectKey objKey = profile.getObjectKey();
-	    byte[] object_key = objKey.getBytes(orb);            
-	    requestMessage = 
-		   createRequest(orb, gv, encodingVersion, request_id,
-				 response_expected, object_key,
-				 operation, service_contexts,
-                                 requesting_principal);            
+            ObjectKey objKey = profile.getObjectKey();
+            byte[] object_key = objKey.getBytes(orb);
+            requestMessage =
+                   createRequest(orb, gv, encodingVersion, request_id,
+                                 response_expected, object_key,
+                                 operation, service_contexts,
+                                 requesting_principal);
         } else {
-        
-            if (!(gv.equals(GIOPVersion.V1_2))) {        
-                // only object_key based target addressing is allowed for 
+
+            if (!(gv.equals(GIOPVersion.V1_2))) {
+                // only object_key based target addressing is allowed for
                 // GIOP 1.0 & 1.1
-	        throw wrapper.giopVersionError(
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.giopVersionError(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
-    
+
             // Note: Currently we use response_expected flag to decide if the
             // call is oneway or not. Ideally, it is possible to expect a
             // response on a oneway call too, but we do not support it now.
@@ -520,53 +537,53 @@ public abstract class MessageBase implements Message{
             } else {
                 response_flags = 0x00;
             }
-            
-            TargetAddress target = new TargetAddress();            
+
+            TargetAddress target = new TargetAddress();
             if (addrDisp == ProfileAddr.value) { // iop profile will be used
                 profile = ior.getProfile();
                 target.profile(profile.getIOPProfile());
             } else if (addrDisp == ReferenceAddr.value) {  // ior will be used
-                IORAddressingInfo iorInfo = 
+                IORAddressingInfo iorInfo =
                     new IORAddressingInfo( 0, // profile index
                         ior.getIOPIOR());
-                target.ior(iorInfo);  
-            } else { 
+                target.ior(iorInfo);
+            } else {
                 // invalid target addressing disposition value
-	        throw wrapper.illegalTargetAddressDisposition(
-		    CompletionStatus.COMPLETED_NO);
+                throw wrapper.illegalTargetAddressDisposition(
+                    CompletionStatus.COMPLETED_NO);
             }
-        
-	    requestMessage =
+
+            requestMessage =
                    new RequestMessage_1_2(orb, request_id, response_flags,
                                   new byte[] { 0x00, 0x00, 0x00 }, target,
                                   operation, service_contexts);
-	    requestMessage.setEncodingVersion(encodingVersion);
-	}
+            requestMessage.setEncodingVersion(encodingVersion);
+        }
 
-	if (gv.supportsIORIIOPProfileComponents()) {
-	    // add request partitioning thread pool to use info
-	    int poolToUse = 0; // default pool
-	    IIOPProfileTemplate temp = 
-		(IIOPProfileTemplate)profile.getTaggedProfileTemplate();
-	    Iterator iter = 
-		temp.iteratorById(ORBConstants.TAG_REQUEST_PARTITIONING_ID);
-	    if (iter.hasNext()) {
-		poolToUse = 
-		    ((RequestPartitioningComponent)iter.next()).getRequestPartitioningId();
-	    }
+        if (gv.supportsIORIIOPProfileComponents()) {
+            // add request partitioning thread pool to use info
+            int poolToUse = 0; // default pool
+            IIOPProfileTemplate temp =
+                (IIOPProfileTemplate)profile.getTaggedProfileTemplate();
+            Iterator iter =
+                temp.iteratorById(ORBConstants.TAG_REQUEST_PARTITIONING_ID);
+            if (iter.hasNext()) {
+                poolToUse =
+                    ((RequestPartitioningComponent)iter.next()).getRequestPartitioningId();
+            }
 
-	    if (poolToUse < ORBConstants.REQUEST_PARTITIONING_MIN_THREAD_POOL_ID ||
-		poolToUse > ORBConstants.REQUEST_PARTITIONING_MAX_THREAD_POOL_ID) {
-		throw wrapper.invalidRequestPartitioningId(new Integer(poolToUse),
-		      new Integer(ORBConstants.REQUEST_PARTITIONING_MIN_THREAD_POOL_ID),
-	      	      new Integer(ORBConstants.REQUEST_PARTITIONING_MAX_THREAD_POOL_ID));
-	    }
-	    requestMessage.setThreadPoolToUse(poolToUse);
-	}
+            if (poolToUse < ORBConstants.REQUEST_PARTITIONING_MIN_THREAD_POOL_ID ||
+                poolToUse > ORBConstants.REQUEST_PARTITIONING_MAX_THREAD_POOL_ID) {
+                throw wrapper.invalidRequestPartitioningId(new Integer(poolToUse),
+                      new Integer(ORBConstants.REQUEST_PARTITIONING_MIN_THREAD_POOL_ID),
+                      new Integer(ORBConstants.REQUEST_PARTITIONING_MAX_THREAD_POOL_ID));
+            }
+            requestMessage.setThreadPoolToUse(poolToUse);
+        }
 
-	return requestMessage;
+        return requestMessage;
     }
-                    
+
     public static ReplyMessage createReply(
             ORB orb, GIOPVersion gv, byte encodingVersion, int request_id,
             int reply_status, ServiceContexts service_contexts, IOR ior) {
@@ -578,14 +595,14 @@ public abstract class MessageBase implements Message{
             return new ReplyMessage_1_1(orb, service_contexts, request_id,
                                         reply_status, ior);
         } else if (gv.equals(GIOPVersion.V1_2)) { // 1.2
-            ReplyMessage msg = 
-		new ReplyMessage_1_2(orb, request_id, reply_status,
-				     service_contexts, ior);
-	    msg.setEncodingVersion(encodingVersion);
-	    return msg;
+            ReplyMessage msg =
+                new ReplyMessage_1_2(orb, request_id, reply_status,
+                                     service_contexts, ior);
+            msg.setEncodingVersion(encodingVersion);
+            return msg;
         } else {
-	    throw wrapper.giopVersionError(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopVersionError(
+                CompletionStatus.COMPLETED_MAYBE);
         }
     }
 
@@ -601,17 +618,17 @@ public abstract class MessageBase implements Message{
             TargetAddress target = new TargetAddress();
             target.object_key(object_key);
             LocateRequestMessage msg =
-		new LocateRequestMessage_1_2(orb, request_id, target);
-	    msg.setEncodingVersion(encodingVersion);
-	    return msg;
+                new LocateRequestMessage_1_2(orb, request_id, target);
+            msg.setEncodingVersion(encodingVersion);
+            return msg;
         } else {
-	    throw wrapper.giopVersionError(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopVersionError(
+                CompletionStatus.COMPLETED_MAYBE);
         }
     }
 
     public static LocateReplyMessage createLocateReply(
-	    ORB orb, GIOPVersion gv, byte encodingVersion,
+            ORB orb, GIOPVersion gv, byte encodingVersion,
             int request_id, int locate_status, IOR ior) {
 
         if (gv.equals(GIOPVersion.V1_0)) { // 1.0
@@ -621,14 +638,14 @@ public abstract class MessageBase implements Message{
             return new LocateReplyMessage_1_1(orb, request_id,
                                               locate_status, ior);
         } else if (gv.equals(GIOPVersion.V1_2)) { // 1.2
-            LocateReplyMessage msg = 
-		new LocateReplyMessage_1_2(orb, request_id, 
-					   locate_status, ior);
-	    msg.setEncodingVersion(encodingVersion);
-	    return msg;
+            LocateReplyMessage msg =
+                new LocateReplyMessage_1_2(orb, request_id,
+                                           locate_status, ior);
+            msg.setEncodingVersion(encodingVersion);
+            return msg;
         } else {
-	    throw wrapper.giopVersionError(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopVersionError(
+                CompletionStatus.COMPLETED_MAYBE);
         }
     }
 
@@ -642,8 +659,8 @@ public abstract class MessageBase implements Message{
         } else if (gv.equals(GIOPVersion.V1_2)) { // 1.2
             return new CancelRequestMessage_1_2(request_id);
         } else {
-	    throw wrapper.giopVersionError(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopVersionError(
+                CompletionStatus.COMPLETED_MAYBE);
         }
     }
 
@@ -660,8 +677,8 @@ public abstract class MessageBase implements Message{
                                    FLAG_NO_FRAG_BIG_ENDIAN,
                                    Message.GIOPCloseConnection, 0);
         } else {
-	    throw wrapper.giopVersionError(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopVersionError(
+                CompletionStatus.COMPLETED_MAYBE);
         }
     }
 
@@ -678,8 +695,8 @@ public abstract class MessageBase implements Message{
                                    FLAG_NO_FRAG_BIG_ENDIAN,
                                    Message.GIOPMessageError, 0);
         } else {
-	    throw wrapper.giopVersionError(
-		CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.giopVersionError(
+                CompletionStatus.COMPLETED_MAYBE);
         }
     }
 
@@ -707,8 +724,8 @@ public abstract class MessageBase implements Message{
             return ((FragmentMessage) msg).getRequestId();
         }
 
-	throw wrapper.illegalGiopMsgType( 
-	    CompletionStatus.COMPLETED_MAYBE);
+        throw wrapper.illegalGiopMsgType(
+            CompletionStatus.COMPLETED_MAYBE);
     }
 
     /**
@@ -732,8 +749,8 @@ public abstract class MessageBase implements Message{
 
         if ( (major == 0x01) && (minor == 0x00) ) { // 1.0
             if (msgType == GIOPFragment) {
-		throw wrapper.fragmentationDisallowed( 
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.fragmentationDisallowed(
+                    CompletionStatus.COMPLETED_MAYBE);
             }
         }
 
@@ -742,13 +759,13 @@ public abstract class MessageBase implements Message{
             case GIOPCancelRequest :
             case GIOPCloseConnection :
             case GIOPMessageError :
-		throw wrapper.fragmentationDisallowed( 
-		    CompletionStatus.COMPLETED_MAYBE);
+                throw wrapper.fragmentationDisallowed(
+                    CompletionStatus.COMPLETED_MAYBE);
             case GIOPLocateRequest :
             case GIOPLocateReply :
                 if ( (major == 0x01) && (minor == 0x01) ) { // 1.1
-		    throw wrapper.fragmentationDisallowed( 
-			CompletionStatus.COMPLETED_MAYBE);
+                    throw wrapper.fragmentationDisallowed(
+                        CompletionStatus.COMPLETED_MAYBE);
                 }
                 break;
             }
@@ -764,19 +781,19 @@ public abstract class MessageBase implements Message{
 
         try {
             if (objKey != null) {
-                ObjectKey objectKey = 
-		    orb.getObjectKeyFactory().create(objKey);
+                ObjectKey objectKey =
+                    orb.getObjectKeyFactory().create(objKey);
                 if (objectKey != null) {
                     return objectKey;
                 }
             }
         } catch (Exception e) {
-	    // XXX log this exception
-	}
+            // XXX log this exception
+        }
 
-	// This exception is thrown if any exceptions are raised while
-	// extracting the object key or if the object key is empty.
-	throw wrapper.invalidObjectKey();
+        // This exception is thrown if any exceptions are raised while
+        // extracting the object key or if the object key is empty.
+        throw wrapper.invalidObjectKey();
     }
 
     /**
@@ -785,10 +802,10 @@ public abstract class MessageBase implements Message{
      * @return ObjectKey the object key.
      */
     static ObjectKey extractObjectKey(TargetAddress target, ORB orb) {
-    
+
         short orbTargetAddrPref = orb.getORBData().getGIOPTargetAddressPreference();
         short reqAddrDisp = target.discriminator();
-            
+
         switch (orbTargetAddrPref) {
         case ORBConstants.ADDR_DISP_OBJKEY :
             if (reqAddrDisp != KeyAddr.value) {
@@ -807,17 +824,17 @@ public abstract class MessageBase implements Message{
             break;
         case ORBConstants.ADDR_DISP_HANDLE_ALL :
             break;
-        default : 
-	    throw wrapper.orbTargetAddrPreferenceInExtractObjectkeyInvalid() ;
-        }    
-        
+        default :
+            throw wrapper.orbTargetAddrPreferenceInExtractObjectkeyInvalid() ;
+        }
+
         try {
             switch (reqAddrDisp) {
             case KeyAddr.value :
                 byte[] objKey = target.object_key();
                 if (objKey != null) { // AddressingDisposition::KeyAddr
-                    ObjectKey objectKey = 
-			orb.getObjectKeyFactory().create(objKey);
+                    ObjectKey objectKey =
+                        orb.getObjectKeyFactory().create(objKey);
                     if (objectKey != null) {
                        return objectKey;
                    }
@@ -853,10 +870,10 @@ public abstract class MessageBase implements Message{
             }
         } catch (Exception e) {}
 
-	// This exception is thrown if any exceptions are raised while
-	// extracting the object key from the TargetAddress or if all the
-	// the valid TargetAddress::AddressingDispositions are empty.
-	throw wrapper.invalidObjectKey() ;
+        // This exception is thrown if any exceptions are raised while
+        // extracting the object key from the TargetAddress or if all the
+        // the valid TargetAddress::AddressingDispositions are empty.
+        throw wrapper.invalidObjectKey() ;
     }
 
     private static int readSize(byte b1, byte b2, byte b3, byte b4,
@@ -881,29 +898,29 @@ public abstract class MessageBase implements Message{
 
     static void nullCheck(Object obj) {
         if (obj == null) {
-	    throw wrapper.nullNotAllowed() ;
+            throw wrapper.nullNotAllowed() ;
         }
     }
 
     static SystemException getSystemException(
         String exClassName, int minorCode, CompletionStatus completionStatus,
-	String message, ORBUtilSystemException wrapper)
+        String message, ORBUtilSystemException wrapper)
     {
-	SystemException sysEx = null;
+        SystemException sysEx = null;
 
         try {
-	    Class clazz = ORBClassLoader.loadClass(exClassName);
-	    if (message == null) {
-		sysEx = (SystemException) clazz.newInstance();
-	    } else {
-		Class[] types = { String.class };
-		Constructor constructor = clazz.getConstructor(types);
-		Object[] args = { message };
-		sysEx = (SystemException)constructor.newInstance(args);
-	    }
+            Class clazz = ORBClassLoader.loadClass(exClassName);
+            if (message == null) {
+                sysEx = (SystemException) clazz.newInstance();
+            } else {
+                Class[] types = { String.class };
+                Constructor constructor = clazz.getConstructor(types);
+                Object[] args = { message };
+                sysEx = (SystemException)constructor.newInstance(args);
+            }
         } catch (Exception someEx) {
-	    throw wrapper.badSystemExceptionInReply( 
-		CompletionStatus.COMPLETED_MAYBE, someEx );
+            throw wrapper.badSystemExceptionInReply(
+                CompletionStatus.COMPLETED_MAYBE, someEx );
         }
 
         sysEx.minor = minorCode;
@@ -920,29 +937,29 @@ public abstract class MessageBase implements Message{
 
     public ByteBuffer getByteBuffer()
     {
-	return byteBuffer;
+        return byteBuffer;
     }
 
     public void setByteBuffer(ByteBuffer byteBuffer)
     {
-	this.byteBuffer = byteBuffer;
+        this.byteBuffer = byteBuffer;
     }
 
     public int getThreadPoolToUse()
     {
-	return threadPoolToUse;
+        return threadPoolToUse;
     }
 
     public byte getEncodingVersion() {
-	return this.encodingVersion;
+        return this.encodingVersion;
     }
 
     public void setEncodingVersion(byte version) {
-	this.encodingVersion = version;
+        this.encodingVersion = version;
     }
 
     private static void dprint(String msg)
     {
-	ORBUtility.dprint("MessageBase", msg);
+        ORBUtility.dprint("MessageBase", msg);
     }
 }

@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +37,6 @@ import java.io.Reader;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLInputSource.java,v 1.2.6.1 2005/09/06 08:31:30 neerajbj Exp $
  */
 public class XMLInputSource {
 
@@ -63,7 +66,7 @@ public class XMLInputSource {
     // Constructors
     //
 
-    /** 
+    /**
      * Constructs an input source from just the public and system
      * identifiers, leaving resolution of the entity and opening of
      * the input stream up to the caller.
@@ -78,14 +81,14 @@ public class XMLInputSource {
      *                     always be set to the fully expanded URI of the
      *                     base system identifier, if possible.
      */
-    public XMLInputSource(String publicId, String systemId,  
+    public XMLInputSource(String publicId, String systemId,
                           String baseSystemId) {
         fPublicId = publicId;
         fSystemId = systemId;
         fBaseSystemId = baseSystemId;
     } // <init>(String,String,String)
 
-    /** 
+    /**
      * Constructs an input source from a XMLResourceIdentifier
      * object, leaving resolution of the entity and opening of
      * the input stream up to the caller.
@@ -114,7 +117,7 @@ public class XMLInputSource {
      * @param byteStream   The byte stream.
      * @param encoding     The encoding of the byte stream, if known.
      */
-    public XMLInputSource(String publicId, String systemId,  
+    public XMLInputSource(String publicId, String systemId,
                           String baseSystemId, InputStream byteStream,
                           String encoding) {
         fPublicId = publicId;
@@ -140,7 +143,7 @@ public class XMLInputSource {
      * @param encoding     The original encoding of the byte stream
      *                     used by the reader, if known.
      */
-    public XMLInputSource(String publicId, String systemId,  
+    public XMLInputSource(String publicId, String systemId,
                           String baseSystemId, Reader charStream,
                           String encoding) {
         fPublicId = publicId;
@@ -154,8 +157,8 @@ public class XMLInputSource {
     // Public methods
     //
 
-    /** 
-     * Sets the public identifier. 
+    /**
+     * Sets the public identifier.
      *
      * @param publicId The new public identifier.
      */
@@ -168,8 +171,8 @@ public class XMLInputSource {
         return fPublicId;
     } // getPublicId():String
 
-    /** 
-     * Sets the system identifier. 
+    /**
+     * Sets the system identifier.
      *
      * @param systemId The new system identifier.
      */
@@ -182,8 +185,8 @@ public class XMLInputSource {
         return fSystemId;
     } // getSystemId():String
 
-    /** 
-     * Sets the base system identifier. 
+    /**
+     * Sets the base system identifier.
      *
      * @param baseSystemId The new base system identifier.
      */
@@ -216,9 +219,9 @@ public class XMLInputSource {
 
     /**
      * Sets the character stream. If the character stream is not already
-     * opened when this object is instantiated, then the code that opens 
-     * the stream should also set the character stream on this object. 
-     * Also, the encoding of the byte stream used by the reader should 
+     * opened when this object is instantiated, then the code that opens
+     * the stream should also set the character stream on this object.
+     * Also, the encoding of the byte stream used by the reader should
      * also be set on this object, if known.
      *
      * @param charStream The new character stream.

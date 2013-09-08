@@ -1,8 +1,26 @@
 /*
- * @(#)LockInfo.java	1.6 06/02/27
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.management;
@@ -16,10 +34,10 @@ import java.beans.ConstructorProperties;
  * an <em>ownable synchronizer</em>, or the {@link Condition Condition}
  * object associated with synchronizers.
  * <p>
- * <a name="OwnableSynchronizer">An ownable synchronizer</a> is 
+ * <a name="OwnableSynchronizer">An ownable synchronizer</a> is
  * a synchronizer that may be exclusively owned by a thread and uses
- * {@link AbstractOwnableSynchronizer AbstractOwnableSynchronizer} 
- * (or its subclass) to implement its synchronization property. 
+ * {@link AbstractOwnableSynchronizer AbstractOwnableSynchronizer}
+ * (or its subclass) to implement its synchronization property.
  * {@link ReentrantLock ReentrantLock} and
  * {@link ReentrantReadWriteLock ReentrantReadWriteLock} are
  * two examples of ownable synchronizers provided by the platform.
@@ -28,12 +46,11 @@ import java.beans.ConstructorProperties;
  * <tt>LockInfo</tt> is mapped to a {@link CompositeData CompositeData}
  * as specified in the <a href="../../../javax/management/MXBean.html#mapping-rules">
  * type mapping rules</a> of {@linkplain javax.management.MXBean MXBeans}.
- * 
+ *
  * @see java.util.concurrent.locks.AbstractOwnableSynchronizer
  * @see java.util.concurrent.locks.Condition
  *
  * @author  Mandy Chung
- * @version 1.6, 02/27/06
  * @since   1.6
  */
 
@@ -41,12 +58,12 @@ public class LockInfo {
 
     private String className;
     private int    identityHashCode;
-    
+
     /**
      * Constructs a <tt>LockInfo</tt> object.
      *
      * @param className the fully qualified name of the class of the lock object.
-     * @param identityHashCode the {@link System#identityHashCode 
+     * @param identityHashCode the {@link System#identityHashCode
      *                         identity hash code} of the lock object.
      */
     @ConstructorProperties({"className", "identityHashCode"})
@@ -87,9 +104,9 @@ public class LockInfo {
 
     /**
      * Returns a string representation of a lock.  The returned
-     * string representation consists of the name of the class of the 
-     * lock object, the at-sign character `@', and the unsigned 
-     * hexadecimal representation of the <em>identity</em> hash code 
+     * string representation consists of the name of the class of the
+     * lock object, the at-sign character `@', and the unsigned
+     * hexadecimal representation of the <em>identity</em> hash code
      * of the object.  This method returns a string equals to the value of:
      * <blockquote>
      * <pre>

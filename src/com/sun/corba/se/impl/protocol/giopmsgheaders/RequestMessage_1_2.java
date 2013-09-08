@@ -1,8 +1,26 @@
 /*
- * @(#)RequestMessage_1_2.java	1.19 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -25,7 +43,6 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
  * This implements the GIOP 1.2 Request header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public final class RequestMessage_1_2 extends Message_1_2
@@ -46,8 +63,8 @@ public final class RequestMessage_1_2 extends Message_1_2
 
     RequestMessage_1_2(ORB orb) {
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
     }
 
     RequestMessage_1_2(ORB orb, int _request_id, byte _response_flags,
@@ -56,8 +73,8 @@ public final class RequestMessage_1_2 extends Message_1_2
         super(Message.GIOPBigMagic, GIOPVersion.V1_2, FLAG_NO_FRAG_BIG_ENDIAN,
             Message.GIOPRequest, 0);
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
         request_id = _request_id;
         response_flags = _response_flags;
         reserved = _reserved;
@@ -98,11 +115,11 @@ public final class RequestMessage_1_2 extends Message_1_2
 
     public ObjectKey getObjectKey() {
         if (this.objectKey == null) {
-	    // this will raise a MARSHAL exception upon errors.
-	    this.objectKey = MessageBase.extractObjectKey(target, orb);
+            // this will raise a MARSHAL exception upon errors.
+            this.objectKey = MessageBase.extractObjectKey(target, orb);
         }
 
-	return this.objectKey;
+        return this.objectKey;
     }
 
     public String getOperation() {
@@ -131,7 +148,7 @@ public final class RequestMessage_1_2 extends Message_1_2
         this.target = TargetAddressHelper.read(istream);
         getObjectKey(); // this does AddressingDisposition check
         this.operation = istream.read_string();
-        this.service_contexts 
+        this.service_contexts
             = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream);
 
         // CORBA formal 00-11-0 15.4.2.2 GIOP 1.2 body must be
@@ -140,7 +157,7 @@ public final class RequestMessage_1_2 extends Message_1_2
         // during body deconstruction, would skip the header padding, that was
         // inserted to ensure that the body was aligned on an 8-octet boundary.
         ((CDRInputStream)istream).setHeaderPadding(true);
-        
+
     }
 
     public void write(org.omg.CORBA.portable.OutputStream ostream) {
@@ -149,7 +166,7 @@ public final class RequestMessage_1_2 extends Message_1_2
         ostream.write_octet(this.response_flags);
         nullCheck(this.reserved);
         if (this.reserved.length != (3)) {
-	    throw wrapper.badReservedLength(
+            throw wrapper.badReservedLength(
                 org.omg.CORBA.CompletionStatus.COMPLETED_MAYBE);
         }
         for (int _i0 = 0;_i0 < (3); ++_i0) {
@@ -159,11 +176,11 @@ public final class RequestMessage_1_2 extends Message_1_2
         TargetAddressHelper.write(ostream, this.target);
         ostream.write_string(this.operation);
         if (this.service_contexts != null) {
-	        service_contexts.write(
+                service_contexts.write(
                 (org.omg.CORBA_2_3.portable.OutputStream) ostream,
                 GIOPVersion.V1_2);
-	    } else {
-	        ServiceContexts.writeNullServiceContext(
+            } else {
+                ServiceContexts.writeNullServiceContext(
                 (org.omg.CORBA_2_3.portable.OutputStream) ostream);
         }
 

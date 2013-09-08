@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +32,6 @@ import java.util.MissingResourceException;
  *
  * @author Andy Clark
  *
- * @version $Id: MessageFormatter.java,v 1.2.6.1 2005/09/05 08:40:47 neerajbj Exp $
  */
 public interface MessageFormatter {
 
@@ -39,13 +42,13 @@ public interface MessageFormatter {
     /**
      * Formats a message with the specified arguments using the given
      * locale information.
-     * 
+     *
      * @param locale    The locale of the message.
      * @param key       The message key.
      * @param arguments The message replacement text arguments. The order
      *                  of the arguments must match that of the placeholders
      *                  in the actual message.
-     * 
+     *
      * @return Returns the formatted message.
      *
      * @throws MissingResourceException Thrown if the message with the

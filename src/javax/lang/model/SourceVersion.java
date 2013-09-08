@@ -1,8 +1,26 @@
 /*
- * @(#)SourceVersion.java	1.6 06/08/15
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model;
@@ -13,11 +31,10 @@ import java.util.HashSet;
 
 /**
  * Source versions of the Java&trade; programming language.
- * 
- * See <a
- * href="http://java.sun.com/docs/books/jls/">http://java.sun.com/docs/books/jls/</a>
- * for information on editions of <i>The Java&trade; Language
- * Specification</i>, including updates and clarifications.
+ *
+ * See the appropriate edition of
+ * <cite>The Java&trade; Language Specification</cite>
+ * for information about a particular source version.
  *
  * <p>Note that additional source version constants will be added to
  * model future releases of the language.
@@ -25,7 +42,6 @@ import java.util.HashSet;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.6 06/08/15
  * @since 1.6
  */
 public enum SourceVersion {
@@ -35,24 +51,23 @@ public enum SourceVersion {
      * 1.2: strictfp
      * 1.3: no changes
      * 1.4: assert
-     * 1.5: annotations, generics, autoboxing, var-args... 
+     * 1.5: annotations, generics, autoboxing, var-args...
      * 1.6: no changes
      */
 
     /**
      * The original version.
-     * 
-     * The language described in the first edition of <i>The
-     * Java&trade; Language Specification</i>.
+     *
+     * The language described in
+     * <cite>The Java&trade; Language Specification, First Edition</cite>.
      */
     RELEASE_0,
 
     /**
      * The version recognized by the Java Platform 1.1.
      *
-     * The language is {@code RELEASE_0} <a
-     * href="http://java.sun.com/docs/books/jls/first_edition/html/1.1Update.html">augmented</a>
-     * with nested classes.
+     * The language is {@code RELEASE_0} augmented with nested classes as described in the 1.1 update to
+     * <cite>The Java&trade; Language Specification, First Edition</cite>.
      */
     RELEASE_1,
 
@@ -60,8 +75,9 @@ public enum SourceVersion {
      * The version recognized by the Java 2 Platform, Standard Edition,
      * v 1.2.
      *
-     * The language described in <i>The Java&trade; Language
-     * Specification, Second Edition</i>, which includes the {@code
+     * The language described in
+     * <cite>The Java&trade; Language Specification,
+     * Second Edition</cite>, which includes the {@code
      * strictfp} modifier.
      */
     RELEASE_2,
@@ -86,8 +102,9 @@ public enum SourceVersion {
      * The version recognized by the Java 2 Platform, Standard
      * Edition 5.0.
      *
-     * The language described in <i>The Java&trade; Language
-     * Specification, Third Edition</i>.  First release to support
+     * The language described in
+     * <cite>The Java&trade; Language Specification,
+     * Third Edition</cite>.  First release to support
      * generics, annotations, autoboxing, var-args, enhanced {@code
      * for} loop, and hexadecimal floating-point literals.
      */
@@ -99,8 +116,18 @@ public enum SourceVersion {
      *
      * No major changes from {@code RELEASE_5}.
      */
-    RELEASE_6;
+    RELEASE_6,
 
+    /**
+     * The version recognized by the Java Platform, Standard Edition
+     * 7.
+     *
+     * @since 1.7
+     */
+    RELEASE_7;
+
+    // Note that when adding constants for newer releases, the
+    // behavior of latest() and latestSupported() must be updated too.
 
     /**
      * Returns the latest source version that can be modeled.
@@ -108,7 +135,21 @@ public enum SourceVersion {
      * @return the latest source version that can be modeled
      */
     public static SourceVersion latest() {
-	return RELEASE_6;
+        return RELEASE_7;
+    }
+
+    private static final SourceVersion latestSupported = getLatestSupported();
+
+    private static SourceVersion getLatestSupported() {
+        try {
+            String specVersion = System.getProperty("java.specification.version");
+            if ("1.7".equals(specVersion))
+                return RELEASE_7;
+            else if ("1.6".equals(specVersion))
+                return RELEASE_6;
+        } catch (SecurityException se) {}
+
+        return RELEASE_5;
     }
 
     /**
@@ -119,7 +160,7 @@ public enum SourceVersion {
      * @return the latest source version that is fully supported
      */
     public static SourceVersion latestSupported() {
-	return RELEASE_6;
+        return latestSupported;
     }
 
     /**
@@ -140,22 +181,22 @@ public enum SourceVersion {
      * otherwise.
      */
     public static boolean isIdentifier(CharSequence name) {
-	String id = name.toString();
-	
-	if (id.length() == 0) {
-	    return false;
-	}
-	int cp = id.codePointAt(0);
+        String id = name.toString();
+
+        if (id.length() == 0) {
+            return false;
+        }
+        int cp = id.codePointAt(0);
         if (!Character.isJavaIdentifierStart(cp)) {
-	    return false;
-	}
+            return false;
+        }
         for (int i = Character.charCount(cp);
-		i < id.length();
-		i += Character.charCount(cp)) {
-	    cp = id.codePointAt(i);
+                i < id.length();
+                i += Character.charCount(cp)) {
+            cp = id.codePointAt(i);
             if (!Character.isJavaIdentifierPart(cp)) {
-		return false;
-	    }
+                return false;
+            }
         }
         return true;
     }
@@ -169,38 +210,38 @@ public enum SourceVersion {
      * @param name the string to check
      * @return {@code true} if this string is a
      * syntactically valid name, {@code false} otherwise.
-     * @jls3 6.2 Names and Identifiers
+     * @jls 6.2 Names and Identifiers
      */
     public static boolean isName(CharSequence name) {
-	String id = name.toString();
-	
-	for(String s : id.split("\\.", -1)) {
-	    if (!isIdentifier(s) || isKeyword(s))
-		return false;
-	}
-	return true;
+        String id = name.toString();
+
+        for(String s : id.split("\\.", -1)) {
+            if (!isIdentifier(s) || isKeyword(s))
+                return false;
+        }
+        return true;
     }
 
     private final static Set<String> keywords;
     static {
-	Set<String> s = new HashSet<String>();
-	String [] kws = {
-	    "abstract",	"continue",	"for",		"new",		"switch",
-	    "assert",	"default",	"if",		"package",	"synchronized",
-	    "boolean",	"do",		"goto",		"private",	"this",
-	    "break",	"double",	"implements",	"protected",	"throw",
-	    "byte",	"else",		"import",	"public",	"throws",
-	    "case",	"enum",		"instanceof",	"return",	"transient",
-	    "catch",	"extends",	"int",		"short",	"try",
-	    "char",	"final",	"interface",	"static",	"void",
-	    "class",	"finally",	"long",		"strictfp",	"volatile",
-	    "const",	"float",	"native",	"super",	"while",
-	    // literals
-	    "null",	"true",		"false"
-	};
-	for(String kw : kws)
-	    s.add(kw);
-	keywords = Collections.unmodifiableSet(s);
+        Set<String> s = new HashSet<String>();
+        String [] kws = {
+            "abstract", "continue",     "for",          "new",          "switch",
+            "assert",   "default",      "if",           "package",      "synchronized",
+            "boolean",  "do",           "goto",         "private",      "this",
+            "break",    "double",       "implements",   "protected",    "throw",
+            "byte",     "else",         "import",       "public",       "throws",
+            "case",     "enum",         "instanceof",   "return",       "transient",
+            "catch",    "extends",      "int",          "short",        "try",
+            "char",     "final",        "interface",    "static",       "void",
+            "class",    "finally",      "long",         "strictfp",     "volatile",
+            "const",    "float",        "native",       "super",        "while",
+            // literals
+            "null",     "true",         "false"
+        };
+        for(String kw : kws)
+            s.add(kw);
+        keywords = Collections.unmodifiableSet(s);
     }
 
     /**
@@ -211,7 +252,7 @@ public enum SourceVersion {
      * @return {@code true} if {@code s} is a keyword or literal, {@code false} otherwise.
      */
     public static boolean isKeyword(CharSequence s) {
-	String keywordOrLiteral = s.toString();
-	return keywords.contains(keywordOrLiteral);
+        String keywordOrLiteral = s.toString();
+        return keywords.contains(keywordOrLiteral);
     }
-} 
+}

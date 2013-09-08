@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsDesktopIconUI.java	1.21 05/11/17
+ * Copyright (c) 1997, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -38,9 +56,9 @@ public class WindowsDesktopIconUI extends BasicDesktopIconUI {
     }
 
     public void installUI(JComponent c)   {
-	super.installUI(c);
+        super.installUI(c);
 
-	c.setOpaque(XPStyle.getXP() == null);
+        c.setOpaque(XPStyle.getXP() == null);
     }
 
     // Uninstall the listeners added by the WindowsInternalFrameTitlePane
@@ -56,9 +74,9 @@ public class WindowsDesktopIconUI extends BasicDesktopIconUI {
         desktopIcon.setLayout(new BorderLayout());
         desktopIcon.add(iconPane, BorderLayout.CENTER);
 
-	if (XPStyle.getXP() != null) {
-	    desktopIcon.setBorder(null);
-	}
+        if (XPStyle.getXP() != null) {
+            desktopIcon.setBorder(null);
+        }
     }
 
     public Dimension getPreferredSize(JComponent c) {

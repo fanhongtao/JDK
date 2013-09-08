@@ -1,8 +1,26 @@
 /*
- * @(#)BeanContextServiceAvailableEvent.java	1.9 03/12/19
+ * Copyright (c) 1998, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans.beancontext;
@@ -22,6 +40,7 @@ import java.util.Iterator;
  */
 
 public class BeanContextServiceAvailableEvent extends BeanContextEvent {
+    private static final long serialVersionUID = -5333985775656400778L;
 
     /**
      * Construct a <code>BeanContextAvailableServiceEvent</code>.
@@ -29,9 +48,9 @@ public class BeanContextServiceAvailableEvent extends BeanContextEvent {
      * @param sc A <code>Class</code> reference to the newly available service
      */
     public BeanContextServiceAvailableEvent(BeanContextServices bcs, Class sc) {
-	super((BeanContext)bcs);
+        super((BeanContext)bcs);
 
-	serviceClass = sc;
+        serviceClass = sc;
     }
 
     /**
@@ -39,7 +58,7 @@ public class BeanContextServiceAvailableEvent extends BeanContextEvent {
      * @return The context in which the service has become available
      */
     public BeanContextServices getSourceAsBeanContextServices() {
-	return (BeanContextServices)getBeanContext();
+        return (BeanContextServices)getBeanContext();
     }
 
     /**
@@ -53,7 +72,7 @@ public class BeanContextServiceAvailableEvent extends BeanContextEvent {
      * @return the current selectors available from the service
      */
     public Iterator getCurrentServiceSelectors() {
-    	return ((BeanContextServices)getSource()).getCurrentServiceSelectors(serviceClass);
+        return ((BeanContextServices)getSource()).getCurrentServiceSelectors(serviceClass);
     }
 
     /*
@@ -63,9 +82,5 @@ public class BeanContextServiceAvailableEvent extends BeanContextEvent {
     /**
      * A <code>Class</code> reference to the newly available service
      */
-    protected Class			 serviceClass;
+    protected Class                      serviceClass;
 }
-
-
-
-

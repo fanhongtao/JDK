@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,11 +38,11 @@ public class JAXPPrefixResolver implements PrefixResolver
 {
 
     private NamespaceContext namespaceContext;
-    
+
 
     public JAXPPrefixResolver ( NamespaceContext nsContext ) {
         this.namespaceContext = nsContext;
-    } 
+    }
 
 
     public String getNamespaceForPrefix( String prefix ) {
@@ -55,7 +59,7 @@ public class JAXPPrefixResolver implements PrefixResolver
     }
 
     /**
-     * @see PrefixResolver#handlesNullPrefixes() 
+     * @see PrefixResolver#handlesNullPrefixes()
      */
     public boolean handlesNullPrefixes() {
         return false;
@@ -64,9 +68,9 @@ public class JAXPPrefixResolver implements PrefixResolver
 
     /**
      * The URI for the XML namespace.
-     * (Duplicate of that found in com.sun.org.apache.xpath.internal.XPathContext). 
+     * (Duplicate of that found in com.sun.org.apache.xpath.internal.XPathContext).
      */
-     
+
     public static final String S_XMLNAMESPACEURI =
         "http://www.w3.org/XML/1998/namespace";
 
@@ -122,4 +126,3 @@ public class JAXPPrefixResolver implements PrefixResolver
     }
 
 }
-

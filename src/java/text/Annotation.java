@@ -1,8 +1,26 @@
 /*
- * @(#)Annotation.java	1.16 05/11/17
+ * Copyright (c) 1997, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.text;
@@ -58,7 +76,7 @@ public class Annotation {
      * Returns the String representation of this Annotation.
      */
     public String toString() {
-	return getClass().getName() + "[value=" + value + "]";
+        return getClass().getName() + "[value=" + value + "]";
     }
 
     private Object value;

@@ -1,8 +1,37 @@
 /*
- * @(#)Exchanger.java	1.13 06/03/30
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea, Bill Scherer, and Michael Scott with
+ * assistance from members of JCP JSR-166 Expert Group and released to
+ * the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -135,8 +164,8 @@ public class Exchanger<V> {
      * races between two threads or thread pre-emptions occurring
      * between reading and CASing.  Also, very transient peak
      * contention can be much higher than the average sustainable
-     * levels.  The max limit is decreased on average 50% of the times
-     * that a non-slot-zero wait elapses without being fulfilled.
+     * levels.  An attempt to decrease the max limit is usually made
+     * when a non-slot-zero wait elapses without being fulfilled.
      * Threads experiencing elapsed waits move closer to zero, so
      * eventually find existing (or future) threads even if the table
      * has been shrunk due to inactivity.  The chosen mechanics and
@@ -326,7 +355,9 @@ public class Exchanger<V> {
             else if (y == null &&                 // Try to occupy
                      slot.compareAndSet(null, me)) {
                 if (index == 0)                   // Blocking wait for slot 0
-                    return timed? awaitNanos(me, slot, nanos): await(me, slot);
+                    return timed ?
+                        awaitNanos(me, slot, nanos) :
+                        await(me, slot);
                 Object v = spinWait(me, slot);    // Spin wait for non-0
                 if (v != CANCEL)
                     return v;
@@ -568,8 +599,8 @@ public class Exchanger<V> {
      * dormant until one of two things happens:
      * <ul>
      * <li>Some other thread enters the exchange; or
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts} the current
-     * thread.
+     * <li>Some other thread {@linkplain Thread#interrupt interrupts}
+     * the current thread.
      * </ul>
      * <p>If the current thread:
      * <ul>
@@ -587,7 +618,7 @@ public class Exchanger<V> {
      */
     public V exchange(V x) throws InterruptedException {
         if (!Thread.interrupted()) {
-            Object v = doExchange(x == null? NULL_ITEM : x, false, 0);
+            Object v = doExchange((x == null) ? NULL_ITEM : x, false, 0);
             if (v == NULL_ITEM)
                 return null;
             if (v != CANCEL)
@@ -642,7 +673,7 @@ public class Exchanger<V> {
     public V exchange(V x, long timeout, TimeUnit unit)
         throws InterruptedException, TimeoutException {
         if (!Thread.interrupted()) {
-            Object v = doExchange(x == null? NULL_ITEM : x,
+            Object v = doExchange((x == null) ? NULL_ITEM : x,
                                   true, unit.toNanos(timeout));
             if (v == NULL_ITEM)
                 return null;

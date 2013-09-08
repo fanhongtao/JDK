@@ -1,8 +1,26 @@
 /*
- * @(#)RMIFailureHandler.java	1.12 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.server;
@@ -16,12 +34,11 @@ package java.rmi.server;
  * indicating whether the runtime should attempt to re-create the
  * <code>ServerSocket</code>.
  *
- * @author 	Ann Wollrath
- * @version	@(#)RMIFailureHandler.java	1.12, 05/11/17
- * @since 	JDK1.1
+ * @author      Ann Wollrath
+ * @since       JDK1.1
  */
 public interface RMIFailureHandler {
- 
+
     /**
      * The <code>failure</code> callback is invoked when the RMI
      * runtime is unable to create a <code>ServerSocket</code> via the
@@ -39,6 +56,5 @@ public interface RMIFailureHandler {
      * @since JDK1.1
      */
     public boolean failure(Exception ex);
-    
-}
 
+}

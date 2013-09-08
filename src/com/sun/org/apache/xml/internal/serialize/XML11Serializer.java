@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,7 +61,7 @@ import org.w3c.dom.DOMError;
  * <p>
  * The serializer supports both DOM and SAX. SAX serializing is done by firing
  * SAX events and using the serializer as a document handler. DOM serializing is done
- * by calling {@link #serialize(Document)} or by using DOM Level 3  
+ * by calling {@link #serialize(Document)} or by using DOM Level 3
  * {@link org.w3c.dom.ls.DOMSerializer} and
  * serializing with {@link org.w3c.dom.ls.DOMSerializer#write},
  * {@link org.w3c.dom.ls.DOMSerializer#writeToString}.
@@ -75,7 +79,6 @@ import org.w3c.dom.DOMError;
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  * @author <a href="mailto:rahul.srivastava@sun.com">Rahul Srivastava</a>
  * @author Elena Litani IBM
- * @version $Revision: 1.2.6.1 $ $Date: 2005/09/09 07:26:18 $
  * @see Serializer
  */
 public class XML11Serializer
@@ -87,13 +90,13 @@ extends XMLSerializer {
 
     protected static final boolean DEBUG = false;
 
-    // 
+    //
     // data
     //
 
-    // 
+    //
     // DOM Level 3 implementation: variables intialized in DOMSerializerImpl
-    // 
+    //
 
     /** stores namespaces in scope */
     protected NamespaceSupport fNSBinder;
@@ -102,7 +105,7 @@ extends XMLSerializer {
     protected NamespaceSupport fLocalNSBinder;
 
     /** symbol table for serialization */
-    protected SymbolTable fSymbolTable;    
+    protected SymbolTable fSymbolTable;
 
     // is node dom level 1 node?
     protected boolean fDOML1 = false;
@@ -112,9 +115,9 @@ extends XMLSerializer {
 
     /**
      * Controls whether namespace fixup should be performed during
-     * the serialization. 
-     * NOTE: if this field is set to true the following 
-     * fields need to be initialized: fNSBinder, fLocalNSBinder, fSymbolTable, 
+     * the serialization.
+     * NOTE: if this field is set to true the following
+     * fields need to be initialized: fNSBinder, fLocalNSBinder, fSymbolTable,
      * XMLSymbols.EMPTY_STRING, fXmlSymbol, fXmlnsSymbol, fNamespaceCounter.
      */
     protected boolean fNamespaces = false;
@@ -208,16 +211,16 @@ extends XMLSerializer {
                     if ( ch == ']' && index + 2 < end &&
                         chars[ index + 1 ] == ']' && chars[ index + 2 ] == '>' ) {
                         _printer.printText("]]]]><![CDATA[>");
-                        index +=2; 
+                        index +=2;
                         continue;
                     }
                     if (!XML11Char.isXML11Valid(ch)) {
                         // check if it is surrogate
                         if (++index < end) {
                             surrogates(ch, chars[index]);
-                        } 
+                        }
                         else {
-                            fatalError("The character '"+(char)ch+"' is an invalid XML character"); 
+                            fatalError("The character '"+(char)ch+"' is an invalid XML character");
                         }
                         continue;
                     } else {
@@ -225,8 +228,8 @@ extends XMLSerializer {
                             _printer.printText((char)ch);
                         } else {
                             // The character is not printable -- split CDATA section
-                            _printer.printText("]]>&#x");                        
-                            _printer.printText(Integer.toHexString(ch));                        
+                            _printer.printText("]]>&#x");
+                            _printer.printText(Integer.toHexString(ch));
                             _printer.printText(";<![CDATA[");
                         }
                     }
@@ -267,23 +270,23 @@ extends XMLSerializer {
                 if (++i <length) {
                     surrogates(ch, source.charAt(i));
                 } else {
-                    fatalError("The character '"+(char)ch+"' is an invalid XML character"); 
+                    fatalError("The character '"+(char)ch+"' is an invalid XML character");
                 }
                 continue;
             }
             if (ch == '\n' || ch == '\r' || ch == '\t' || ch == 0x0085 || ch == 0x2028){
-				printHex(ch);
-			} else if (ch == '<') {
-				_printer.printText("&lt;");
-			} else if (ch == '&') {
-				_printer.printText("&amp;");
-			} else if (ch == '"') {
-				_printer.printText("&quot;");
-			} else if ((ch >= ' ' && _encodingInfo.isPrintable((char) ch))) {
-				_printer.printText((char) ch);
-			} else {
-				printHex(ch);
-			}
+                                printHex(ch);
+                        } else if (ch == '<') {
+                                _printer.printText("&lt;");
+                        } else if (ch == '&') {
+                                _printer.printText("&amp;");
+                        } else if (ch == '"') {
+                                _printer.printText("&quot;");
+                        } else if ((ch >= ' ' && _encodingInfo.isPrintable((char) ch))) {
+                                _printer.printText((char) ch);
+                        } else {
+                                printHex(ch);
+                        }
         }
     }
 
@@ -368,18 +371,18 @@ extends XMLSerializer {
     // note that this "int" should, in all cases, be a char.
     // REVISIT:  make it a char...
     protected final void printXMLChar( int ch ) throws IOException {
-    	
-    	if (ch == '\r' || ch == 0x0085 || ch == 0x2028) {
-			printHex(ch);
-    	} else if ( ch == '<') {
+
+        if (ch == '\r' || ch == 0x0085 || ch == 0x2028) {
+                        printHex(ch);
+        } else if ( ch == '<') {
             _printer.printText("&lt;");
         } else if (ch == '&') {
             _printer.printText("&amp;");
-		} else if (ch == '>'){
-			// character sequence "]]>" can't appear in content, therefore
-			// we should escape '>' 
-			_printer.printText("&gt;");
-        } else if ( _encodingInfo.isPrintable((char)ch) && XML11Char.isXML11ValidLiteral(ch)) { 
+                } else if (ch == '>'){
+                        // character sequence "]]>" can't appear in content, therefore
+                        // we should escape '>'
+                        _printer.printText("&gt;");
+        } else if ( _encodingInfo.isPrintable((char)ch) && XML11Char.isXML11ValidLiteral(ch)) {
             _printer.printText((char)ch);
         } else {
              printHex(ch);
@@ -392,27 +395,27 @@ extends XMLSerializer {
         if (XMLChar.isHighSurrogate(high)) {
             if (!XMLChar.isLowSurrogate(low)) {
                 //Invalid XML
-                fatalError("The character '"+(char)low+"' is an invalid XML character"); 
+                fatalError("The character '"+(char)low+"' is an invalid XML character");
             }
             else {
                 int supplemental = XMLChar.supplemental((char)high, (char)low);
                 if (!XML11Char.isXML11Valid(supplemental)) {
                     //Invalid XML
-                    fatalError("The character '"+(char)supplemental+"' is an invalid XML character"); 
+                    fatalError("The character '"+(char)supplemental+"' is an invalid XML character");
                 }
                 else {
                     if (content().inCData ) {
-                        _printer.printText("]]>&#x");                        
-                        _printer.printText(Integer.toHexString(supplemental));                        
+                        _printer.printText("]]>&#x");
+                        _printer.printText(Integer.toHexString(supplemental));
                         _printer.printText(";<![CDATA[");
-                    }  
+                    }
                     else {
-						printHex(supplemental);
+                                                printHex(supplemental);
                     }
                 }
             }
         } else {
-            fatalError("The character '"+(char)high+"' is an invalid XML character"); 
+            fatalError("The character '"+(char)high+"' is an invalid XML character");
         }
 
     }
@@ -435,7 +438,7 @@ extends XMLSerializer {
                     if (++index <length) {
                         surrogates(ch, text.charAt(index));
                     } else {
-                        fatalError("The character '"+(char)ch+"' is an invalid XML character"); 
+                        fatalError("The character '"+(char)ch+"' is an invalid XML character");
                     }
                     continue;
                 }
@@ -457,7 +460,7 @@ extends XMLSerializer {
                     if (++index <length) {
                         surrogates(ch, text.charAt(index));
                     } else {
-                        fatalError("The character '"+(char)ch+"' is an invalid XML character"); 
+                        fatalError("The character '"+(char)ch+"' is an invalid XML character");
                     }
                     continue;
                 }
@@ -489,7 +492,7 @@ extends XMLSerializer {
                     if ( length-- > 0) {
                         surrogates(ch, chars[start++]);
                     } else {
-                        fatalError("The character '"+(char)ch+"' is an invalid XML character"); 
+                        fatalError("The character '"+(char)ch+"' is an invalid XML character");
                     }
                     continue;
                 }
@@ -511,11 +514,11 @@ extends XMLSerializer {
                     if ( length-- > 0) {
                         surrogates(ch, chars[start++]);
                     } else {
-                        fatalError("The character '"+(char)ch+"' is an invalid XML character"); 
+                        fatalError("The character '"+(char)ch+"' is an invalid XML character");
                     }
                     continue;
                 }
-              
+
                 if ( unescaped && XML11Char.isXML11ValidLiteral(ch))
                     _printer.printText( ch );
                 else
@@ -532,7 +535,3 @@ extends XMLSerializer {
     }
 
 }
-
-
-
-

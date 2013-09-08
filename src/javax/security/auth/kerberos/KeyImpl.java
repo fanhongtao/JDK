@@ -1,8 +1,26 @@
 /*
- * @(#)KeyImpl.java	1.20 05/11/17
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.security.auth.kerberos;
@@ -26,9 +44,8 @@ import sun.security.util.DerValue;
  * with a principal and may represent an ephemeral session key.
  *
  * @author Mayank Upadhyay
- * @version 1.20, 11/17/05
  * @since 1.4
- * 
+ *
  * @serial include
  */
 class KeyImpl implements SecretKey, Destroyable, Serializable {
@@ -42,15 +59,15 @@ class KeyImpl implements SecretKey, Destroyable, Serializable {
 
     /**
      * Constructs a KeyImpl from the given bytes.
-     * 
+     *
      * @param keyBytes the raw bytes for the secret key
      * @param keyType the key type for the secret key as defined by the
      * Kerberos protocol specification.
      */
-    public KeyImpl(byte[] keyBytes, 
-		       int keyType) {
-	this.keyBytes = (byte[]) keyBytes.clone();
-	this.keyType = keyType;
+    public KeyImpl(byte[] keyBytes,
+                       int keyType) {
+        this.keyBytes = keyBytes.clone();
+        this.keyType = keyType;
     }
 
     /**
@@ -64,137 +81,136 @@ class KeyImpl implements SecretKey, Destroyable, Serializable {
      * assumed.
      */
     public KeyImpl(KerberosPrincipal principal,
-		   char[] password,
-		   String algorithm) {
+                   char[] password,
+                   String algorithm) {
 
-	try {
-	    PrincipalName princ = new PrincipalName(principal.getName());
-	    EncryptionKey key = 
-		new EncryptionKey(password, princ.getSalt(), algorithm);
-	    this.keyBytes = key.getBytes();
-	    this.keyType = key.getEType();
-	} catch (KrbException e) {
-	    throw new IllegalArgumentException(e.getMessage());
-	}
+        try {
+            PrincipalName princ = new PrincipalName(principal.getName());
+            EncryptionKey key =
+                new EncryptionKey(password, princ.getSalt(), algorithm);
+            this.keyBytes = key.getBytes();
+            this.keyType = key.getEType();
+        } catch (KrbException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
     /**
      * Returns the keyType for this key as defined in the Kerberos Spec.
      */
     public final int getKeyType() {
-	if (destroyed)
-	    throw new IllegalStateException("This key is no longer valid");
-	return keyType;
+        if (destroyed)
+            throw new IllegalStateException("This key is no longer valid");
+        return keyType;
     }
 
     /*
      * Methods from java.security.Key
      */
-    
+
     public final String getAlgorithm() {
-	return getAlgorithmName(keyType);
+        return getAlgorithmName(keyType);
     }
 
     private String getAlgorithmName(int eType) {
-	if (destroyed)
-	    throw new IllegalStateException("This key is no longer valid");
+        if (destroyed)
+            throw new IllegalStateException("This key is no longer valid");
 
-	switch (eType) {
-	case EncryptedData.ETYPE_DES_CBC_CRC:
-	case EncryptedData.ETYPE_DES_CBC_MD5:
-	    return "DES";
+        switch (eType) {
+        case EncryptedData.ETYPE_DES_CBC_CRC:
+        case EncryptedData.ETYPE_DES_CBC_MD5:
+            return "DES";
 
-	case EncryptedData.ETYPE_DES3_CBC_HMAC_SHA1_KD:
-	    return "DESede";
+        case EncryptedData.ETYPE_DES3_CBC_HMAC_SHA1_KD:
+            return "DESede";
 
-	case EncryptedData.ETYPE_ARCFOUR_HMAC:
-	    return "ArcFourHmac";
+        case EncryptedData.ETYPE_ARCFOUR_HMAC:
+            return "ArcFourHmac";
 
-	case EncryptedData.ETYPE_AES128_CTS_HMAC_SHA1_96:
-	    return "AES128";
+        case EncryptedData.ETYPE_AES128_CTS_HMAC_SHA1_96:
+            return "AES128";
 
-	case EncryptedData.ETYPE_AES256_CTS_HMAC_SHA1_96:
-	    return "AES256";
+        case EncryptedData.ETYPE_AES256_CTS_HMAC_SHA1_96:
+            return "AES256";
 
-	case EncryptedData.ETYPE_NULL:
-	    return "NULL";
+        case EncryptedData.ETYPE_NULL:
+            return "NULL";
 
-	default:
-	    throw new IllegalArgumentException(
-		"Unsupported encryption type: " + eType);
-	}
+        default:
+            throw new IllegalArgumentException(
+                "Unsupported encryption type: " + eType);
+        }
     }
-    
+
     public final String getFormat() {
-	if (destroyed)
-	    throw new IllegalStateException("This key is no longer valid");
-	return "RAW";
+        if (destroyed)
+            throw new IllegalStateException("This key is no longer valid");
+        return "RAW";
     }
-    
+
     public final byte[] getEncoded() {
-	if (destroyed)
-	    throw new IllegalStateException("This key is no longer valid");
-	return (byte[])keyBytes.clone();
+        if (destroyed)
+            throw new IllegalStateException("This key is no longer valid");
+        return keyBytes.clone();
     }
 
     public void destroy() throws DestroyFailedException {
-	if (!destroyed) {
-	    destroyed = true;
-	    Arrays.fill(keyBytes, (byte) 0);
-	}
+        if (!destroyed) {
+            destroyed = true;
+            Arrays.fill(keyBytes, (byte) 0);
+        }
     }
 
     public boolean isDestroyed() {
-	return destroyed;
+        return destroyed;
     }
 
     /**
      * @serialData this <code>KeyImpl</code> is serialized by
-     *			writing out the ASN1 Encoded bytes of the
-     *			encryption key. The ASN1 encoding is defined in 
-     *			RFC1510 and as  follows:
-     *			EncryptionKey ::=   SEQUENCE {
-     *				keytype[0]    INTEGER,
-     *				keyvalue[1]   OCTET STRING    	
-     *				}
+     * writing out the ASN1 Encoded bytes of the encryption key.
+     * The ASN1 encoding is defined in RFC4120 and as  follows:
+     * EncryptionKey   ::= SEQUENCE {
+     *          keytype    [0] Int32 -- actually encryption type --,
+     *          keyvalue   [1] OCTET STRING
+     * }
      */
-    private void writeObject(ObjectOutputStream ois) 
-		throws IOException {
-	if (destroyed) {
-	   throw new IOException("This key is no longer valid");
-	}
+    private void writeObject(ObjectOutputStream ois)
+                throws IOException {
+        if (destroyed) {
+           throw new IOException("This key is no longer valid");
+        }
 
-	try {
-	   ois.writeObject((new EncryptionKey(keyType, keyBytes)).asn1Encode());
-	} catch (Asn1Exception ae) {
-	   throw new IOException(ae.getMessage());
-	}
+        try {
+           ois.writeObject((new EncryptionKey(keyType, keyBytes)).asn1Encode());
+        } catch (Asn1Exception ae) {
+           throw new IOException(ae.getMessage());
+        }
     }
 
-    private void readObject(ObjectInputStream ois) 
-		throws IOException, ClassNotFoundException {
-	try {
-	    EncryptionKey encKey = new EncryptionKey(new 
-				     DerValue((byte[])ois.readObject()));
-	    keyType = encKey.getEType();
-	    keyBytes = encKey.getBytes();
-	} catch (Asn1Exception ae) {
-	    throw new IOException(ae.getMessage());
-	}
+    private void readObject(ObjectInputStream ois)
+                throws IOException, ClassNotFoundException {
+        try {
+            EncryptionKey encKey = new EncryptionKey(new
+                                     DerValue((byte[])ois.readObject()));
+            keyType = encKey.getEType();
+            keyBytes = encKey.getBytes();
+        } catch (Asn1Exception ae) {
+            throw new IOException(ae.getMessage());
+        }
     }
 
     public String toString() {
-	HexDumpEncoder hd = new HexDumpEncoder();	
-	return "EncryptionKey: keyType=" + keyType
+        HexDumpEncoder hd = new HexDumpEncoder();
+        return "EncryptionKey: keyType=" + keyType
                           + " keyBytes (hex dump)="
                           + (keyBytes == null || keyBytes.length == 0 ?
                              " Empty Key" :
-                             '\n' + hd.encode(keyBytes)
+                             '\n' + hd.encodeBuffer(keyBytes)
                           + '\n');
 
-	
+
     }
-    
+
     public int hashCode() {
         int result = 17;
         if(isDestroyed()) {
@@ -206,13 +222,13 @@ class KeyImpl implements SecretKey, Destroyable, Serializable {
 
     public boolean equals(Object other) {
 
-	if (other == this)
-	    return true;
+        if (other == this)
+            return true;
 
-	if (! (other instanceof KeyImpl)) {
-	    return false;
-	}
-        
+        if (! (other instanceof KeyImpl)) {
+            return false;
+        }
+
         KeyImpl otherKey = ((KeyImpl) other);
         if (isDestroyed() || otherKey.isDestroyed()) {
             return false;
@@ -223,6 +239,6 @@ class KeyImpl implements SecretKey, Destroyable, Serializable {
             return false;
         }
 
-        return true;            
+        return true;
     }
 }

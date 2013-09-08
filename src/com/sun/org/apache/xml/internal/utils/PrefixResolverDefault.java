@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -92,8 +96,8 @@ public class PrefixResolverDefault implements PrefixResolver
       {
         if (type == Node.ELEMENT_NODE)
         {
-                if (parent.getNodeName().indexOf(prefix+":") == 0) 
-                        return parent.getNamespaceURI();                
+                if (parent.getNodeName().indexOf(prefix+":") == 0)
+                        return parent.getNamespaceURI();
           NamedNodeMap nnm = parent.getAttributes();
 
           for (int i = 0; i < nnm.getLength(); i++)
@@ -133,11 +137,11 @@ public class PrefixResolverDefault implements PrefixResolver
   {
     return null;
   }
-	/**
-	 * @see PrefixResolver#handlesNullPrefixes()
-	 */
-	public boolean handlesNullPrefixes() {
-		return false;
-	}
+        /**
+         * @see PrefixResolver#handlesNullPrefixes()
+         */
+        public boolean handlesNullPrefixes() {
+                return false;
+        }
 
 }

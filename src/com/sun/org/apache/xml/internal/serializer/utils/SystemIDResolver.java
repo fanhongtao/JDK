@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,30 +29,30 @@ import javax.xml.transform.TransformerException;
 import com.sun.org.apache.xml.internal.serializer.utils.URI.MalformedURIException;
 
 /**
- * This class is used to resolve relative URIs and SystemID 
+ * This class is used to resolve relative URIs and SystemID
  * strings into absolute URIs.
  *
- * <p>This is a generic utility for resolving URIs, other than the 
- * fact that it's declared to throw TransformerException.  Please 
+ * <p>This is a generic utility for resolving URIs, other than the
+ * fact that it's declared to throw TransformerException.  Please
  * see code comments for details on how resolution is performed.</p>
- * 
- * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+ *
+ * This class is a copy of the one in com.sun.org.apache.xml.internal.utils.
  * It exists to cut the serializers dependancy on that package.
  *
  * This class is not a public API, it is only public because it is
- * used in com.sun.org.apache.xml.internal.serializer. 
- * 
+ * used in com.sun.org.apache.xml.internal.serializer.
+ *
  * @xsl.usage internal
  */
 public final class SystemIDResolver
 {
 
   /**
-   * Get an absolute URI from a given relative URI (local path). 
-   * 
+   * Get an absolute URI from a given relative URI (local path).
+   *
    * <p>The relative URI is a local filesystem path. The path can be
-   * absolute or relative. If it is a relative path, it is resolved relative 
-   * to the system property "user.dir" if it is available; if not (i.e. in an 
+   * absolute or relative. If it is a relative path, it is resolved relative
+   * to the system property "user.dir" if it is available; if not (i.e. in an
    * Applet perhaps which throws SecurityException) then we just return the
    * relative path. The space and backslash characters are also replaced to
    * generate a good absolute URI.</p>
@@ -61,18 +65,18 @@ public final class SystemIDResolver
   {
     if (localPath == null || localPath.length() == 0)
       return "";
-      
+
     // If the local path is a relative path, then it is resolved against
     // the "user.dir" system property.
     String absolutePath = localPath;
     if (!isAbsolutePath(localPath))
     {
-      try 
+      try
       {
         absolutePath = getAbsolutePathFromRelativePath(localPath);
       }
       // user.dir not accessible from applet
-      catch (SecurityException se) 
+      catch (SecurityException se)
       {
         return "file:" + localPath;
       }
@@ -84,14 +88,14 @@ public final class SystemIDResolver
       if (absolutePath.startsWith(File.separator))
         urlString = "file://" + absolutePath;
       else
-        urlString = "file:///" + absolutePath;        
+        urlString = "file:///" + absolutePath;
     }
     else
       urlString = "file:" + localPath;
-    
+
     return replaceChars(urlString);
   }
-  
+
   /**
    * Return an absolute path from a relative path.
    *
@@ -102,7 +106,7 @@ public final class SystemIDResolver
   {
     return new File(relativePath).getAbsolutePath();
   }
-  
+
   /**
    * Return true if the systemId denotes an absolute URI .
    *
@@ -116,34 +120,34 @@ public final class SystemIDResolver
       * character cannot be used as the first segment of a relative URI path
       * (e.g., "this:that"), because it would be mistaken for a scheme name.
      **/
-     /** 
+     /**
       * %REVIEW% Can we assume here that systemId is a valid URI?
-      * It looks like we cannot ( See discussion of this common problem in 
-      * Bugzilla Bug 22777 ). 
+      * It looks like we cannot ( See discussion of this common problem in
+      * Bugzilla Bug 22777 ).
      **/
      //"fix" for Bugzilla Bug 22777
     if(isWindowsAbsolutePath(systemId)){
         return false;
      }
-    
+
     final int fragmentIndex = systemId.indexOf('#');
     final int queryIndex = systemId.indexOf('?');
     final int slashIndex = systemId.indexOf('/');
     final int colonIndex = systemId.indexOf(':');
-    
-    //finding substring  before '#', '?', and '/' 
+
+    //finding substring  before '#', '?', and '/'
     int index = systemId.length() -1;
-    if(fragmentIndex > 0) 
+    if(fragmentIndex > 0)
         index = fragmentIndex;
-    if((queryIndex > 0) && (queryIndex <index)) 
+    if((queryIndex > 0) && (queryIndex <index))
         index = queryIndex;
     if((slashIndex > 0) && (slashIndex <index))
-        index = slashIndex; 
+        index = slashIndex;
     // return true if there is ':' before '#', '?', and '/'
     return ((colonIndex >0) && (colonIndex<index));
-    
+
   }
-  
+
   /**
    * Return true if the local path is an absolute path.
    *
@@ -156,9 +160,9 @@ public final class SystemIDResolver
         return false;
     final File file = new File(systemId);
     return file.isAbsolute();
-    
+
   }
-  
+
    /**
    * Return true if the local path is a Windows absolute path.
    *
@@ -170,7 +174,7 @@ public final class SystemIDResolver
     if(!isAbsolutePath(systemId))
       return false;
     // On Windows, an absolute path starts with "[drive_letter]:\".
-    if (systemId.length() > 2 
+    if (systemId.length() > 2
         && systemId.charAt(1) == ':'
         && Character.isLetter(systemId.charAt(0))
         && (systemId.charAt(2) == '\\' || systemId.charAt(2) == '/'))
@@ -178,9 +182,9 @@ public final class SystemIDResolver
     else
       return false;
   }
-  
+
   /**
-   * Replace spaces with "%20" and backslashes with forward slashes in 
+   * Replace spaces with "%20" and backslashes with forward slashes in
    * the input string to generate a well-formed URI string.
    *
    * @param str The input string
@@ -207,10 +211,10 @@ public final class SystemIDResolver
         buf.setCharAt(i, '/');
       }
     }
-    
+
     return buf.toString();
   }
-  
+
   /**
    * Take a SystemID string and try to turn it into a good absolute URI.
    *
@@ -227,7 +231,7 @@ public final class SystemIDResolver
       if (systemId.startsWith("file:"))
       {
         String str = systemId.substring(5);
-        
+
         // Resolve the absolute path if the systemId starts with "file:///"
         // or "file:/". Don't do anything if it only starts with "file://".
         if (str != null && str.startsWith("/"))
@@ -242,20 +246,20 @@ public final class SystemIDResolver
               String localPath = systemId.substring(secondColonIndex-1);
               try {
                 if (!isAbsolutePath(localPath))
-                  absoluteURI = systemId.substring(0, secondColonIndex-1) + 
+                  absoluteURI = systemId.substring(0, secondColonIndex-1) +
                                 getAbsolutePathFromRelativePath(localPath);
               }
               catch (SecurityException se) {
                 return systemId;
               }
             }
-          }          
+          }
         }
         else
         {
           return getAbsoluteURIFromRelative(systemId.substring(5));
         }
-                
+
         return replaceChars(absoluteURI);
       }
       else
@@ -263,7 +267,7 @@ public final class SystemIDResolver
     }
     else
       return getAbsoluteURIFromRelative(systemId);
-    
+
   }
 
 
@@ -278,13 +282,13 @@ public final class SystemIDResolver
    */
   public static String getAbsoluteURI(String urlString, String base)
           throws TransformerException
-  {    
+  {
     if (base == null)
       return getAbsoluteURI(urlString);
-    
+
     String absoluteBase = getAbsoluteURI(base);
     URI uri = null;
-    try 
+    try
     {
       URI baseURI = new URI(absoluteBase);
       uri = new URI(baseURI, urlString);
@@ -293,8 +297,8 @@ public final class SystemIDResolver
     {
       throw new TransformerException(mue);
     }
-    
+
     return replaceChars(uri.toString());
   }
-  
+
 }

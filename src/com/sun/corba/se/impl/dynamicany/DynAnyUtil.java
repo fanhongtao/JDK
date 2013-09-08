@@ -1,8 +1,26 @@
 /*
- * @(#)DynAnyUtil.java	1.13 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.dynamicany;
@@ -123,8 +141,8 @@ public class DynAnyUtil
 
     // Creates a default Any of the given type.
     static Any createDefaultAnyOfType(TypeCode typeCode, ORB orb) {
-	ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PRESENTATION ) ;
+        ORBUtilSystemException wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PRESENTATION ) ;
 
         Any returnValue = orb.create_any();
         // The spec for DynAny differs from Any on initialization via type code:
@@ -245,9 +263,9 @@ public class DynAnyUtil
                 break;
             case TCKind._tk_longdouble:
                 // Unspecified for Java
-		throw wrapper.tkLongDoubleNotSupported() ;
+                throw wrapper.tkLongDoubleNotSupported() ;
             default:
-		throw wrapper.typecodeNotSupported() ;
+                throw wrapper.typecodeNotSupported() ;
         }
         return returnValue;
     }

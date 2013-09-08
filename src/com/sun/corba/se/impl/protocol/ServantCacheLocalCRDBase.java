@@ -1,8 +1,26 @@
 /*
- * @(#)ServantCacheLocalCRDBase.java	1.26 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol;
@@ -38,40 +56,40 @@ public abstract class ServantCacheLocalCRDBase extends LocalClientRequestDispatc
 
     protected ServantCacheLocalCRDBase( ORB orb, int scid, IOR ior )
     {
-	super( orb, scid, ior ) ;
-	wrapper = POASystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        super( orb, scid, ior ) ;
+        wrapper = POASystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
     }
 
     protected synchronized OAInvocationInfo getCachedInfo()
     {
-	if (!servantIsLocal)
-	    throw wrapper.servantMustBeLocal() ;
+        if (!servantIsLocal)
+            throw wrapper.servantMustBeLocal() ;
 
-	if (cachedInfo == null) {
-	    ObjectAdapter oa = oaf.find( oaid ) ;
-	    cachedInfo = oa.makeInvocationInfo( objectId ) ;
+        if (cachedInfo == null) {
+            ObjectAdapter oa = oaf.find( oaid ) ;
+            cachedInfo = oa.makeInvocationInfo( objectId ) ;
 
-	    // InvocationInfo must be pushed before calling getInvocationServant
-	    orb.pushInvocationInfo( cachedInfo ) ;
+            // InvocationInfo must be pushed before calling getInvocationServant
+            orb.pushInvocationInfo( cachedInfo ) ;
 
-	    try {
+            try {
                 oa.enter( );
-		oa.getInvocationServant( cachedInfo ) ;
-	    } catch (ForwardException freq) {
-		throw wrapper.illegalForwardRequest( freq ) ;
+                oa.getInvocationServant( cachedInfo ) ;
+            } catch (ForwardException freq) {
+                throw wrapper.illegalForwardRequest( freq ) ;
             } catch( OADestroyed oades ) {
-		// This is an error since no user of this implementation
-		// should ever throw this exception
-		throw wrapper.adapterDestroyed( oades ) ;
-	    } finally {
+                // This is an error since no user of this implementation
+                // should ever throw this exception
+                throw wrapper.adapterDestroyed( oades ) ;
+            } finally {
                 oa.returnServant( );
                 oa.exit( );
-		orb.popInvocationInfo() ;
-	    }
-	}
+                orb.popInvocationInfo() ;
+            }
+        }
 
-	return cachedInfo ;
+        return cachedInfo ;
     }
 }
 

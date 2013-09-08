@@ -1,8 +1,26 @@
 /*
- * @(#)PrincipalComparator.java	1.11 05/11/17
+ * Copyright (c) 1999, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.security.auth;
@@ -21,7 +39,7 @@ package com.sun.security.auth;
  * Another example application of this method would be for
  * "role" object to imply a particular <code>Subject</code>
  * if that <code>Subject</code> is currently acting in that role.
- * 
+ *
  * <p> Although classes that implement this interface typically
  * also implement the <code>java.security.Principal</code> interface,
  * it is not required.  In other words, classes may implement the
@@ -29,7 +47,6 @@ package com.sun.security.auth;
  * the <code>PrincipalComparator</code> interface by itself,
  * or both at the same time.
  *
- * @version 1.11, 11/17/05
  * @see java.security.Principal
  * @see javax.security.auth.Subject
  */
@@ -41,7 +58,7 @@ public interface PrincipalComparator {
      * <p>
      *
      * @return true if the specified <code>Subject</code> is implied by
-     *		this object, or false otherwise.
+     *          this object, or false otherwise.
      */
     boolean implies(javax.security.auth.Subject subject);
 }

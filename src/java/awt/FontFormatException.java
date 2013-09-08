@@ -1,18 +1,35 @@
 /*
- * @(#)FontFormatException.java	1.10 05/11/17
+ * Copyright (c) 1999, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
 
 /**
- * Thrown by method createFont in the <code>Font</code> class to indicate 
- * that the specified font is bad. 
+ * Thrown by method createFont in the <code>Font</code> class to indicate
+ * that the specified font is bad.
  *
  * @author  Parry Kejriwal
- * @version 1.10, 11/17/05
  * @see     java.awt.Font
  * @since   1.3
  */

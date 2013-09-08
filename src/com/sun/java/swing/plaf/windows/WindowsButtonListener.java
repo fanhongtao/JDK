@@ -1,10 +1,28 @@
 /*
- * @(#)WindowsButtonListener.java	1.17 06/04/04
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 
 package com.sun.java.swing.plaf.windows;
 
@@ -23,17 +41,14 @@ import javax.swing.plaf.basic.*;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.17 04/04/06
  * @author Rich Schiavi
  */
 public class WindowsButtonListener extends BasicButtonListener {
     public WindowsButtonListener(AbstractButton b) {
-	super(b);
+        super(b);
     }
     /*
-     This class is currently not used, but exists in case customers 
+     This class is currently not used, but exists in case customers
      were subclassing it.
      */
 }
-
-

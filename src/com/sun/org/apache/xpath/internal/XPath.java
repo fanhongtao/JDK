@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +40,7 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
 import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
 
 /**
- * The XPath class wraps an expression object and provides general services 
+ * The XPath class wraps an expression object and provides general services
  * for execution of that expression.
  * @xsl.usage advanced
  */
@@ -44,10 +48,10 @@ public class XPath implements Serializable, ExpressionOwner
 {
     static final long serialVersionUID = 3976493477939110553L;
 
-  /** The top of the expression tree. 
+  /** The top of the expression tree.
    *  @serial */
   private Expression m_mainExp;
-  
+
   /**
    * The function table for xpath build-in functions
    */
@@ -57,7 +61,7 @@ public class XPath implements Serializable, ExpressionOwner
    * initial the function table
    */
   private void initFunctionTable(){
-  	      m_funcTable = new FunctionTable();
+              m_funcTable = new FunctionTable();
   }
 
   /**
@@ -70,15 +74,15 @@ public class XPath implements Serializable, ExpressionOwner
   {
     return m_mainExp;
   }
-  
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -94,8 +98,8 @@ public class XPath implements Serializable, ExpressionOwner
    */
   public void setExpression(Expression exp)
   {
-  	if(null != m_mainExp)
-    	exp.exprSetParent(m_mainExp.exprGetParent()); // a bit bogus
+        if(null != m_mainExp)
+        exp.exprSetParent(m_mainExp.exprGetParent()); // a bit bogus
     m_mainExp = exp;
   }
 
@@ -145,13 +149,13 @@ public class XPath implements Serializable, ExpressionOwner
   public static final int MATCH = 1;
 
   /**
-   * Construct an XPath object.  
+   * Construct an XPath object.
    *
    * (Needs review -sc) This method initializes an XPathParser/
    * Compiler and compiles the expression.
    * @param exprString The XPath expression.
    * @param locator The location of the expression, may be null.
-   * @param prefixResolver A prefix resolver to use to resolve prefixes to 
+   * @param prefixResolver A prefix resolver to use to resolve prefixes to
    *                       namespace URIs.
    * @param type one of {@link #SELECT} or {@link #MATCH}.
    * @param errorListener The error listener, or null if default should be used.
@@ -162,11 +166,11 @@ public class XPath implements Serializable, ExpressionOwner
           String exprString, SourceLocator locator, PrefixResolver prefixResolver, int type,
           ErrorListener errorListener)
             throws javax.xml.transform.TransformerException
-  { 
-    initFunctionTable();     
+  {
+    initFunctionTable();
     if(null == errorListener)
       errorListener = new com.sun.org.apache.xml.internal.utils.DefaultErrorHandler();
-    
+
     m_patternString = exprString;
 
     XPathParser parser = new XPathParser(errorListener, locator);
@@ -184,22 +188,22 @@ public class XPath implements Serializable, ExpressionOwner
 
     // System.out.println("expr: "+expr);
     this.setExpression(expr);
-    
+
     if((null != locator) && locator instanceof ExpressionNode)
     {
-    	expr.exprSetParent((ExpressionNode)locator);
+        expr.exprSetParent((ExpressionNode)locator);
     }
 
   }
 
   /**
-   * Construct an XPath object.  
+   * Construct an XPath object.
    *
    * (Needs review -sc) This method initializes an XPathParser/
    * Compiler and compiles the expression.
    * @param exprString The XPath expression.
    * @param locator The location of the expression, may be null.
-   * @param prefixResolver A prefix resolver to use to resolve prefixes to 
+   * @param prefixResolver A prefix resolver to use to resolve prefixes to
    *                       namespace URIs.
    * @param type one of {@link #SELECT} or {@link #MATCH}.
    * @param errorListener The error listener, or null if default should be used.
@@ -207,15 +211,15 @@ public class XPath implements Serializable, ExpressionOwner
    * @throws javax.xml.transform.TransformerException if syntax or other error.
    */
   public XPath(
-          String exprString, SourceLocator locator, 
+          String exprString, SourceLocator locator,
           PrefixResolver prefixResolver, int type,
           ErrorListener errorListener, FunctionTable aTable)
             throws javax.xml.transform.TransformerException
-  { 
-    m_funcTable = aTable;     
+  {
+    m_funcTable = aTable;
     if(null == errorListener)
       errorListener = new com.sun.org.apache.xml.internal.utils.DefaultErrorHandler();
-    
+
     m_patternString = exprString;
 
     XPathParser parser = new XPathParser(errorListener, locator);
@@ -227,8 +231,8 @@ public class XPath implements Serializable, ExpressionOwner
       parser.initMatchPattern(compiler, exprString, prefixResolver);
     else
       throw new RuntimeException(XSLMessages.createXPATHMessage(
-            XPATHErrorResources.ER_CANNOT_DEAL_XPATH_TYPE, 
-            new Object[]{Integer.toString(type)})); 
+            XPATHErrorResources.ER_CANNOT_DEAL_XPATH_TYPE,
+            new Object[]{Integer.toString(type)}));
             //"Can not deal with XPath type: " + type);
 
     // System.out.println("----------------");
@@ -236,22 +240,22 @@ public class XPath implements Serializable, ExpressionOwner
 
     // System.out.println("expr: "+expr);
     this.setExpression(expr);
-    
+
     if((null != locator) && locator instanceof ExpressionNode)
     {
-    	expr.exprSetParent((ExpressionNode)locator);
+        expr.exprSetParent((ExpressionNode)locator);
     }
 
   }
-  
+
   /**
-   * Construct an XPath object.  
+   * Construct an XPath object.
    *
    * (Needs review -sc) This method initializes an XPathParser/
    * Compiler and compiles the expression.
    * @param exprString The XPath expression.
    * @param locator The location of the expression, may be null.
-   * @param prefixResolver A prefix resolver to use to resolve prefixes to 
+   * @param prefixResolver A prefix resolver to use to resolve prefixes to
    *                       namespace URIs.
    * @param type one of {@link #SELECT} or {@link #MATCH}.
    *
@@ -260,8 +264,8 @@ public class XPath implements Serializable, ExpressionOwner
   public XPath(
           String exprString, SourceLocator locator, PrefixResolver prefixResolver, int type)
             throws javax.xml.transform.TransformerException
-  {  
-    this(exprString, locator, prefixResolver, type, null);    
+  {
+    this(exprString, locator, prefixResolver, type, null);
   }
 
   /**
@@ -272,15 +276,15 @@ public class XPath implements Serializable, ExpressionOwner
    * @throws javax.xml.transform.TransformerException if syntax or other error.
    */
   public XPath(Expression expr)
-  {  
+  {
     this.setExpression(expr);
-    initFunctionTable();   
+    initFunctionTable();
   }
-  
+
   /**
    * Given an expression and a context, evaluate the XPath
    * and return the result.
-   * 
+   *
    * @param xctxt The execution context.
    * @param contextNode The node that "." expresses.
    * @param namespaceContext The context in which namespaces in the
@@ -294,25 +298,25 @@ public class XPath implements Serializable, ExpressionOwner
    * @xsl.usage experimental
    */
   public XObject execute(
-          XPathContext xctxt, org.w3c.dom.Node contextNode, 
+          XPathContext xctxt, org.w3c.dom.Node contextNode,
           PrefixResolver namespaceContext)
             throws javax.xml.transform.TransformerException
   {
     return execute(
-          xctxt, xctxt.getDTMHandleFromNode(contextNode), 
+          xctxt, xctxt.getDTMHandleFromNode(contextNode),
           namespaceContext);
   }
-  
+
 
   /**
    * Given an expression and a context, evaluate the XPath
    * and return the result.
-   * 
+   *
    * @param xctxt The execution context.
    * @param contextNode The node that "." expresses.
    * @param namespaceContext The context in which namespaces in the
    * XPath are supposed to be expanded.
-   * 
+   *
    * @throws TransformerException thrown if the active ProblemListener decides
    * the error condition is severe enough to halt processing.
    *
@@ -354,12 +358,12 @@ public class XPath implements Serializable, ExpressionOwner
       // e.printStackTrace();
 
       String msg = e.getMessage();
-      
+
       if (msg == null || msg.length() == 0) {
            msg = XSLMessages.createXPATHMessage(
                XPATHErrorResources.ER_XPATH_ERROR, null);
-     
-      }  
+
+      }
       TransformerException te = new TransformerException(msg,
               getLocator(), e);
       ErrorListener el = xctxt.getErrorListener();
@@ -380,16 +384,16 @@ public class XPath implements Serializable, ExpressionOwner
 
     return xobj;
   }
-  
+
   /**
    * Given an expression and a context, evaluate the XPath
    * and return the result.
-   * 
+   *
    * @param xctxt The execution context.
    * @param contextNode The node that "." expresses.
    * @param namespaceContext The context in which namespaces in the
    * XPath are supposed to be expanded.
-   * 
+   *
    * @throws TransformerException thrown if the active ProblemListener decides
    * the error condition is severe enough to halt processing.
    *
@@ -429,13 +433,13 @@ public class XPath implements Serializable, ExpressionOwner
       // e.printStackTrace();
 
       String msg = e.getMessage();
-      
+
       if (msg == null || msg.length() == 0) {
            msg = XSLMessages.createXPATHMessage(
                XPATHErrorResources.ER_XPATH_ERROR, null);
-     
-      }        
-      
+
+      }
+
       TransformerException te = new TransformerException(msg,
               getLocator(), e);
       ErrorListener el = xctxt.getErrorListener();
@@ -457,7 +461,7 @@ public class XPath implements Serializable, ExpressionOwner
     return false;
   }
 
-  /** Set to true to get diagnostic messages about the result of 
+  /** Set to true to get diagnostic messages about the result of
    *  match pattern testing.  */
   private static final boolean DEBUG_MATCHES = false;
 
@@ -466,9 +470,9 @@ public class XPath implements Serializable, ExpressionOwner
    *
    * @param xctxt XPath runtime context.
    * @param context The current source tree context node.
-   * 
+   *
    * @return score, one of {@link #MATCH_SCORE_NODETEST},
-   * {@link #MATCH_SCORE_NONE}, {@link #MATCH_SCORE_OTHER}, 
+   * {@link #MATCH_SCORE_NONE}, {@link #MATCH_SCORE_OTHER},
    * or {@link #MATCH_SCORE_QNAME}.
    *
    * @throws javax.xml.transform.TransformerException
@@ -509,13 +513,13 @@ public class XPath implements Serializable, ExpressionOwner
    *
    * @param xctxt The XPath runtime context.
    * @param sourceNode Not used.
-   * @param msg An error msgkey that corresponds to one of the constants found 
-   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is 
+   * @param msg An error msgkey that corresponds to one of the constants found
+   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is
    *            a key for a format string.
-   * @param args An array of arguments represented in the format string, which 
+   * @param args An array of arguments represented in the format string, which
    *             may be null.
    *
-   * @throws TransformerException if the current ErrorListoner determines to 
+   * @throws TransformerException if the current ErrorListoner determines to
    *                              throw an exception.
    */
   public void warn(
@@ -540,7 +544,7 @@ public class XPath implements Serializable, ExpressionOwner
    *
    * @param b  If false, a runtime exception will be thrown.
    * @param msg The assertion message, which should be informative.
-   * 
+   *
    * @throws RuntimeException if the b argument is false.
    */
   public void assertion(boolean b, String msg)
@@ -562,13 +566,13 @@ public class XPath implements Serializable, ExpressionOwner
    *
    * @param xctxt The XPath runtime context.
    * @param sourceNode Not used.
-   * @param msg An error msgkey that corresponds to one of the constants found 
-   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is 
+   * @param msg An error msgkey that corresponds to one of the constants found
+   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is
    *            a key for a format string.
-   * @param args An array of arguments represented in the format string, which 
+   * @param args An array of arguments represented in the format string, which
    *             may be null.
    *
-   * @throws TransformerException if the current ErrorListoner determines to 
+   * @throws TransformerException if the current ErrorListoner determines to
    *                              throw an exception.
    */
   public void error(
@@ -592,19 +596,19 @@ public class XPath implements Serializable, ExpressionOwner
                          + slocator.getColumnNumber());
     }
   }
-  
+
   /**
-   * This will traverse the heararchy, calling the visitor for 
-   * each member.  If the called visitor method returns 
+   * This will traverse the heararchy, calling the visitor for
+   * each member.  If the called visitor method returns
    * false, the subtree should not be called.
-   * 
-   * @param owner The owner of the visitor, where that path may be 
+   *
+   * @param owner The owner of the visitor, where that path may be
    *              rewritten if needed.
    * @param visitor The visitor whose appropriate method will be called.
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	m_mainExp.callVisitors(this, visitor);
+        m_mainExp.callVisitors(this, visitor);
   }
 
   /**

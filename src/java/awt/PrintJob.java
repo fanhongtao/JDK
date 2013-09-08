@@ -1,27 +1,44 @@
 /*
- * @(#)PrintJob.java	1.14 05/11/17
+ * Copyright (c) 1996, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
 
-/** 
+/**
  * An abstract class which initiates and executes a print job.
  * It provides access to a print graphics object which renders
  * to an appropriate print device.
  *
  * @see Toolkit#getPrintJob
  *
- * @version 	1.14 11/17/05
- * @author 	Amy Fowler
+ * @author      Amy Fowler
  */
 public abstract class PrintJob {
 
     /**
      * Gets a Graphics object that will draw to the next page.
-     * The page is sent to the printer when the graphics 
+     * The page is sent to the printer when the graphics
      * object is disposed.  This graphics object will also implement
      * the PrintGraphics interface.
      * @see PrintGraphics
@@ -57,7 +74,7 @@ public abstract class PrintJob {
      * @see #end
      */
     public void finalize() {
-	end();
+        end();
     }
 
 }

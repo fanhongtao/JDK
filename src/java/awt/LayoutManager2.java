@@ -1,12 +1,30 @@
 /*
- * @(#)LayoutManager2.java	1.15 05/11/17
+ * Copyright (c) 1996, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt;
 
-/** 
+/**
  * Defines an interface for classes that know how to layout Containers
  * based on a layout constraints object.
  *
@@ -22,8 +40,7 @@ package java.awt;
  * @see LayoutManager
  * @see Container
  *
- * @version	1.15, 11/17/05
- * @author 	Jonni Kanerva
+ * @author      Jonni Kanerva
  */
 public interface LayoutManager2 extends LayoutManager {
 
@@ -35,7 +52,7 @@ public interface LayoutManager2 extends LayoutManager {
      */
     void addLayoutComponent(Component comp, Object constraints);
 
-    /** 
+    /**
      * Calculates the maximum size dimensions for the specified container,
      * given the components it contains.
      * @see java.awt.Component#getMaximumSize
@@ -45,7 +62,7 @@ public interface LayoutManager2 extends LayoutManager {
 
     /**
      * Returns the alignment along the x axis.  This specifies how
-     * the component would like to be aligned relative to other 
+     * the component would like to be aligned relative to other
      * components.  The value should be a number between 0 and 1
      * where 0 represents alignment along the origin, 1 is aligned
      * the furthest away from the origin, 0.5 is centered, etc.
@@ -54,7 +71,7 @@ public interface LayoutManager2 extends LayoutManager {
 
     /**
      * Returns the alignment along the y axis.  This specifies how
-     * the component would like to be aligned relative to other 
+     * the component would like to be aligned relative to other
      * components.  The value should be a number between 0 and 1
      * where 0 represents alignment along the origin, 1 is aligned
      * the furthest away from the origin, 0.5 is centered, etc.

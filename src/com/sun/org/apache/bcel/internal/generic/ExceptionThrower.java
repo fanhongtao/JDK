@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -59,7 +63,7 @@ package com.sun.org.apache.bcel.internal.generic;
  * exception (or both) during execution.  This is not quite the truth
  * as such; because all instructions may throw an
  * java.lang.VirtualMachineError. These exceptions are omitted.
- * 
+ *
  * The Lava Language Specification specifies exactly which
  * <i>RUN-TIME</i> and which <i>LINKING</i> exceptions each
  * instruction may throw which is reflected by the implementers.  Due
@@ -71,7 +75,6 @@ package com.sun.org.apache.bcel.internal.generic;
  * "Throwable" object; so this term is equally used for "Exception"
  * and "Error" objects.
  *
- * @version $Id: ExceptionThrower.java,v 1.1.2.1 2005/07/31 23:45:22 jeffsuttor Exp $
  * @author  <A HREF="http://www.inf.fu-berlin.de/~ehaase">Enver Haase</A>
  */
 public interface ExceptionThrower {

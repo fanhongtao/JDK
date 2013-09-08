@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,10 +40,10 @@ import com.sun.org.apache.xpath.internal.res.XPATHErrorResources;
  */
 public class XPathParser
 {
-	// %REVIEW% Is there a better way of doing this?
-	// Upside is minimum object churn. Downside is that we don't have a useful
-	// backtrace in the exception itself -- but we don't expect to need one.
-	static public final String CONTINUE_AFTER_FATAL_ERROR="CONTINUE_AFTER_FATAL_ERROR";
+        // %REVIEW% Is there a better way of doing this?
+        // Upside is minimum object churn. Downside is that we don't have a useful
+        // backtrace in the exception itself -- but we don't expect to need one.
+        static public final String CONTINUE_AFTER_FATAL_ERROR="CONTINUE_AFTER_FATAL_ERROR";
 
   /**
    * The XPath to be processed.
@@ -88,7 +92,7 @@ public class XPathParser
    * Given an string, init an XPath object for selections,
    * in order that a parse doesn't
    * have to be done each time the expression is evaluated.
-   * 
+   *
    * @param compiler The compiler object.
    * @param expression A string conforming to the XPath grammar.
    * @param namespaceContext An object that is able to resolve prefixes in
@@ -111,17 +115,17 @@ public class XPathParser
 
     m_ops.setOp(0,OpCodes.OP_XPATH);
     m_ops.setOp(OpMap.MAPINDEX_LENGTH,2);
-    
-    
-	// Patch for Christine's gripe. She wants her errorHandler to return from
-	// a fatal error and continue trying to parse, rather than throwing an exception.
-	// Without the patch, that put us into an endless loop.
-	//
-	// %REVIEW% Is there a better way of doing this?
-	// %REVIEW% Are there any other cases which need the safety net?
-	// 	(and if so do we care right now, or should we rewrite the XPath
-	//	grammar engine and can fix it at that time?)
-	try {
+
+
+        // Patch for Christine's gripe. She wants her errorHandler to return from
+        // a fatal error and continue trying to parse, rather than throwing an exception.
+        // Without the patch, that put us into an endless loop.
+        //
+        // %REVIEW% Is there a better way of doing this?
+        // %REVIEW% Are there any other cases which need the safety net?
+        //      (and if so do we care right now, or should we rewrite the XPath
+        //      grammar engine and can fix it at that time?)
+        try {
 
       nextToken();
       Expr();
@@ -144,18 +148,18 @@ public class XPathParser
               new Object[]{ extraTokens });  //"Extra illegal tokens: "+extraTokens);
       }
 
-    } 
+    }
     catch (com.sun.org.apache.xpath.internal.XPathProcessorException e)
     {
-	  if(CONTINUE_AFTER_FATAL_ERROR.equals(e.getMessage()))
-	  {
-		// What I _want_ to do is null out this XPath.
-		// I doubt this has the desired effect, but I'm not sure what else to do.
-		// %REVIEW%!!!
-		initXPath(compiler, "/..",  namespaceContext);
-	  }
-	  else
-		throw e;
+          if(CONTINUE_AFTER_FATAL_ERROR.equals(e.getMessage()))
+          {
+                // What I _want_ to do is null out this XPath.
+                // I doubt this has the desired effect, but I'm not sure what else to do.
+                // %REVIEW%!!!
+                initXPath(compiler, "/..",  namespaceContext);
+          }
+          else
+                throw e;
     }
 
     compiler.shrink();
@@ -219,19 +223,19 @@ public class XPathParser
   /** The error listener where syntax errors are to be sent.
    */
   private ErrorListener m_errorListener;
-  
+
   /** The source location of the XPath. */
   javax.xml.transform.SourceLocator m_sourceLocator;
-  
+
   /** The table contains build-in functions and customized functions */
   private FunctionTable m_functionTable;
 
   /**
-   * Allow an application to register an error event handler, where syntax 
-   * errors will be sent.  If the error listener is not set, syntax errors 
+   * Allow an application to register an error event handler, where syntax
+   * errors will be sent.  If the error listener is not set, syntax errors
    * will be sent to System.err.
-   * 
-   * @param handler Reference to error listener where syntax errors will be 
+   *
+   * @param handler Reference to error listener where syntax errors will be
    *                sent.
    */
   public void setErrorHandler(ErrorListener handler)
@@ -250,11 +254,11 @@ public class XPathParser
   }
 
   /**
-   * Check whether m_token matches the target string. 
+   * Check whether m_token matches the target string.
    *
    * @param s A string reference or null.
    *
-   * @return If m_token is null, returns false (or true if s is also null), or 
+   * @return If m_token is null, returns false (or true if s is also null), or
    * return true if the current token matches the string, else false.
    */
   final boolean tokenIs(String s)
@@ -263,11 +267,11 @@ public class XPathParser
   }
 
   /**
-   * Check whether m_tokenChar==c. 
+   * Check whether m_tokenChar==c.
    *
    * @param c A character to be tested.
    *
-   * @return If m_token is null, returns false, or return true if c matches 
+   * @return If m_token is null, returns false, or return true if c matches
    *         the current token.
    */
   final boolean tokenIs(char c)
@@ -309,7 +313,7 @@ public class XPathParser
   /**
    * Look behind the first character of the current token in order to
    * make a branching decision.
-   * 
+   *
    * @param c the character to compare it to.
    * @param n number of tokens to look behind.  Must be
    * greater than 1.  Note that the look behind terminates
@@ -317,7 +321,7 @@ public class XPathParser
    * character.  Because of this, this method should only
    * be used for pattern matching.
    *
-   * @return true if the token behind the current token matches the character 
+   * @return true if the token behind the current token matches the character
    *         argument.
    */
   private final boolean lookbehind(char c, int n)
@@ -352,13 +356,13 @@ public class XPathParser
   /**
    * look behind the current token in order to
    * see if there is a useable token.
-   * 
+   *
    * @param n number of tokens to look behind.  Must be
    * greater than 1.  Note that the look behind terminates
    * at either the beginning of the string or on a '|'
    * character.  Because of this, this method should only
    * be used for pattern matching.
-   * 
+   *
    * @return true if look behind has a token, false otherwise.
    */
   private final boolean lookbehindHasToken(int n)
@@ -384,12 +388,12 @@ public class XPathParser
   /**
    * Look ahead of the current token in order to
    * make a branching decision.
-   * 
+   *
    * @param s the string to compare it to.
    * @param n number of tokens to lookahead.  Must be
    * greater than 1.
    *
-   * @return true if the token behind the current token matches the string 
+   * @return true if the token behind the current token matches the string
    *         argument.
    */
   private final boolean lookahead(String s, int n)
@@ -432,10 +436,10 @@ public class XPathParser
 
   /**
    * Retrieve a token relative to the current token.
-   * 
+   *
    * @param i Position relative to current token.
    *
-   * @return The string at the given index, or null if the index is out 
+   * @return The string at the given index, or null if the index is out
    *         of range.
    */
   private final String getTokenRelative(int i)
@@ -498,11 +502,11 @@ public class XPathParser
       error(XPATHErrorResources.ER_EXPECTED_BUT_FOUND, new Object[]{ expected,
                                                                      m_token });  //"Expected "+expected+", but found: "+m_token);
 
-	  // Patch for Christina's gripe. She wants her errorHandler to return from
-	  // this error and continue trying to parse, rather than throwing an exception.
-	  // Without the patch, that put us into an endless loop.
-		throw new XPathProcessorException(CONTINUE_AFTER_FATAL_ERROR);
-	}
+          // Patch for Christina's gripe. She wants her errorHandler to return from
+          // this error and continue trying to parse, rather than throwing an exception.
+          // Without the patch, that put us into an endless loop.
+                throw new XPathProcessorException(CONTINUE_AFTER_FATAL_ERROR);
+        }
   }
 
   /**
@@ -527,23 +531,23 @@ public class XPathParser
             new Object[]{ String.valueOf(expected),
                           m_token });  //"Expected "+expected+", but found: "+m_token);
 
-	  // Patch for Christina's gripe. She wants her errorHandler to return from
-	  // this error and continue trying to parse, rather than throwing an exception.
-	  // Without the patch, that put us into an endless loop.
-		throw new XPathProcessorException(CONTINUE_AFTER_FATAL_ERROR);
+          // Patch for Christina's gripe. She wants her errorHandler to return from
+          // this error and continue trying to parse, rather than throwing an exception.
+          // Without the patch, that put us into an endless loop.
+                throw new XPathProcessorException(CONTINUE_AFTER_FATAL_ERROR);
     }
   }
 
   /**
    * Warn the user of a problem.
    *
-   * @param msg An error msgkey that corresponds to one of the constants found 
-   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is 
+   * @param msg An error msgkey that corresponds to one of the constants found
+   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is
    *            a key for a format string.
-   * @param args An array of arguments represented in the format string, which 
+   * @param args An array of arguments represented in the format string, which
    *             may be null.
    *
-   * @throws TransformerException if the current ErrorListoner determines to 
+   * @throws TransformerException if the current ErrorListoner determines to
    *                              throw an exception.
    */
   void warn(String msg, Object[] args) throws TransformerException
@@ -570,7 +574,7 @@ public class XPathParser
    *
    * @param b  If false, a runtime exception will be thrown.
    * @param msg The assertion message, which should be informative.
-   * 
+   *
    * @throws RuntimeException if the b argument is false.
    */
   private void assertion(boolean b, String msg)
@@ -590,13 +594,13 @@ public class XPathParser
    * Notify the user of an error, and probably throw an
    * exception.
    *
-   * @param msg An error msgkey that corresponds to one of the constants found 
-   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is 
+   * @param msg An error msgkey that corresponds to one of the constants found
+   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is
    *            a key for a format string.
-   * @param args An array of arguments represented in the format string, which 
+   * @param args An array of arguments represented in the format string, which
    *             may be null.
    *
-   * @throws TransformerException if the current ErrorListoner determines to 
+   * @throws TransformerException if the current ErrorListoner determines to
    *                              throw an exception.
    */
   void error(String msg, Object[] args) throws TransformerException
@@ -622,51 +626,51 @@ public class XPathParser
    * This method is added to support DOM 3 XPath API.
    * <p>
    * This method is exactly like error(String, Object[]); except that
-   * the underlying TransformerException is 
+   * the underlying TransformerException is
    * XpathStylesheetDOM3Exception (which extends TransformerException).
    * <p>
    * So older XPath code in Xalan is not affected by this. To older XPath code
    * the behavior of whether error() or errorForDOM3() is called because it is
    * always catching TransformerException objects and is oblivious to
-   * the new subclass of XPathStylesheetDOM3Exception. Older XPath code 
+   * the new subclass of XPathStylesheetDOM3Exception. Older XPath code
    * runs as before.
    * <p>
    * However, newer DOM3 XPath code upon catching a TransformerException can
    * can check if the exception is an instance of XPathStylesheetDOM3Exception
    * and take appropriate action.
-   * 
-   * @param msg An error msgkey that corresponds to one of the constants found 
-   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is 
+   *
+   * @param msg An error msgkey that corresponds to one of the constants found
+   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is
    *            a key for a format string.
-   * @param args An array of arguments represented in the format string, which 
+   * @param args An array of arguments represented in the format string, which
    *             may be null.
    *
-   * @throws TransformerException if the current ErrorListoner determines to 
+   * @throws TransformerException if the current ErrorListoner determines to
    *                              throw an exception.
    */
   void errorForDOM3(String msg, Object[] args) throws TransformerException
   {
 
-	String fmsg = XSLMessages.createXPATHMessage(msg, args);
-	ErrorListener ehandler = this.getErrorListener();
+        String fmsg = XSLMessages.createXPATHMessage(msg, args);
+        ErrorListener ehandler = this.getErrorListener();
 
-	TransformerException te = new XPathStylesheetDOM3Exception(fmsg, m_sourceLocator);
-	if (null != ehandler)
-	{
-	  // TO DO: Need to get stylesheet Locator from here.
-	  ehandler.fatalError(te);
-	}
-	else
-	{
-	  // System.err.println(fmsg);
-	  throw te;
-	}
+        TransformerException te = new XPathStylesheetDOM3Exception(fmsg, m_sourceLocator);
+        if (null != ehandler)
+        {
+          // TO DO: Need to get stylesheet Locator from here.
+          ehandler.fatalError(te);
+        }
+        else
+        {
+          // System.err.println(fmsg);
+          throw te;
+        }
   }
   /**
    * Dump the remaining token queue.
    * Thanks to Craig for this.
    *
-   * @return A dump of the remaining token queue, which may be appended to 
+   * @return A dump of the remaining token queue, which may be appended to
    *         an error message.
    */
   protected String dumpRemainingTokenQueue()
@@ -701,21 +705,21 @@ public class XPathParser
    *
    * @param key A local name of a function.
    *
-   * @return   The function ID, which may correspond to one of the FUNC_XXX 
-   *    values found in {@link com.sun.org.apache.xpath.internal.compiler.FunctionTable}, but may 
+   * @return   The function ID, which may correspond to one of the FUNC_XXX
+   *    values found in {@link com.sun.org.apache.xpath.internal.compiler.FunctionTable}, but may
    *    be a value installed by an external module.
    */
   final int getFunctionToken(String key)
   {
 
     int tok;
-    
+
     Object id;
 
     try
     {
       // These are nodetests, xpathparser treats them as functions when parsing
-      // a FilterExpr. 
+      // a FilterExpr.
       id = Keywords.lookupNodeTest(key);
       if (null == id) id = m_functionTable.getFunctionID(key);
       tok = ((Integer) id).intValue();
@@ -946,7 +950,7 @@ public class XPathParser
         int opPlusLeftHandLen = m_ops.getOp(OpMap.MAPINDEX_LENGTH) - addPos;
 
         addPos = RelationalExpr(addPos);
-        m_ops.setOp(addPos + OpMap.MAPINDEX_LENGTH, 
+        m_ops.setOp(addPos + OpMap.MAPINDEX_LENGTH,
           m_ops.getOp(addPos + opPlusLeftHandLen + 1) + opPlusLeftHandLen);
         addPos += 2;
       }
@@ -1024,7 +1028,7 @@ public class XPathParser
         int opPlusLeftHandLen = m_ops.getOp(OpMap.MAPINDEX_LENGTH) - addPos;
 
         addPos = AdditiveExpr(addPos);
-        m_ops.setOp(addPos + OpMap.MAPINDEX_LENGTH, 
+        m_ops.setOp(addPos + OpMap.MAPINDEX_LENGTH,
           m_ops.getOp(addPos + opPlusLeftHandLen + 1) + opPlusLeftHandLen);
         addPos += 2;
       }
@@ -1400,7 +1404,7 @@ public class XPathParser
       appendOp(2, OpCodes.OP_LITERAL);
       Literal();
 
-      m_ops.setOp(opPos + OpMap.MAPINDEX_LENGTH, 
+      m_ops.setOp(opPos + OpMap.MAPINDEX_LENGTH,
         m_ops.getOp(OpMap.MAPINDEX_LENGTH) - opPos);
 
       matchFound = true;
@@ -1410,7 +1414,7 @@ public class XPathParser
       nextToken();  // consume '$'
       appendOp(2, OpCodes.OP_VARIABLE);
       QName();
-      
+
       m_ops.setOp(opPos + OpMap.MAPINDEX_LENGTH,
         m_ops.getOp(OpMap.MAPINDEX_LENGTH) - opPos);
 
@@ -1551,7 +1555,7 @@ public class XPathParser
     // Terminate for safety.
     m_ops.setOp(m_ops.getOp(OpMap.MAPINDEX_LENGTH), OpCodes.ENDOP);
     m_ops.setOp(OpMap.MAPINDEX_LENGTH,m_ops.getOp(OpMap.MAPINDEX_LENGTH) + 1);
-    m_ops.setOp(opPos + OpMap.MAPINDEX_LENGTH, 
+    m_ops.setOp(opPos + OpMap.MAPINDEX_LENGTH,
       m_ops.getOp(OpMap.MAPINDEX_LENGTH) - opPos);
 
     return true;
@@ -1596,7 +1600,7 @@ public class XPathParser
       {
         // Neither a '/' nor a RelativeLocationPath - i.e., matched nothing
         // "Location path expected, but found "+m_token+" was encountered."
-        error(XPATHErrorResources.ER_EXPECTED_LOC_PATH, 
+        error(XPATHErrorResources.ER_EXPECTED_LOC_PATH,
               new Object [] {m_token});
       }
     }
@@ -1711,8 +1715,8 @@ public class XPathParser
       m_ops.setOp(m_ops.getOp(OpMap.MAPINDEX_LENGTH) - 1, OpCodes.NODETYPE_NODE);
     }
 
-    // There is probably a better way to test for this 
-    // transition... but it gets real hairy if you try 
+    // There is probably a better way to test for this
+    // transition... but it gets real hairy if you try
     // to do it in basis().
     else if (tokenIs('*') || tokenIs('@') || tokenIs('_')
              || (m_token!= null && Character.isLetter(m_token.charAt(0))))
@@ -1726,7 +1730,7 @@ public class XPathParser
 
       // Tell how long the entire step is.
       m_ops.setOp(opPos + OpMap.MAPINDEX_LENGTH,
-        m_ops.getOp(OpMap.MAPINDEX_LENGTH) - opPos); 
+        m_ops.getOp(OpMap.MAPINDEX_LENGTH) - opPos);
     }
     else
     {
@@ -1981,7 +1985,7 @@ public class XPathParser
       m_ops.setOp(m_ops.getOp(OpMap.MAPINDEX_LENGTH), OpCodes.EMPTY);
       m_ops.setOp(OpMap.MAPINDEX_LENGTH, m_ops.getOp(OpMap.MAPINDEX_LENGTH) + 1);
     }
-    
+
     // Local name
     m_ops.setOp(m_ops.getOp(OpMap.MAPINDEX_LENGTH), m_queueMark - 1);
     m_ops.setOp(OpMap.MAPINDEX_LENGTH, m_ops.getOp(OpMap.MAPINDEX_LENGTH) + 1);
@@ -2064,9 +2068,9 @@ public class XPathParser
 
       try
       {
-      	// XPath 1.0 does not support number in exp notation
-      	if ((m_token.indexOf('e') > -1)||(m_token.indexOf('E') > -1))
-      		throw new NumberFormatException();
+        // XPath 1.0 does not support number in exp notation
+        if ((m_token.indexOf('e') > -1)||(m_token.indexOf('E') > -1))
+                throw new NumberFormatException();
         num = Double.valueOf(m_token).doubleValue();
       }
       catch (NumberFormatException nfe)
@@ -2169,7 +2173,7 @@ public class XPathParser
       if (lookahead('/', 1))
       {
         appendOp(4, OpCodes.MATCH_ANY_ANCESTOR);
-        
+
         // Added this to fix bug reported by Myriam for match="//x/a"
         // patterns.  If you don't do this, the 'x' step will think it's part
         // of a '//' pattern, and so will cause 'a' to be matched when it has

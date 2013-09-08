@@ -1,4 +1,27 @@
-//Copyright Sun Microsystems Inc. 2004 - 2005.
+/*
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
 package javax.annotation;
 
@@ -40,6 +63,15 @@ public @interface Resource {
     String name() default "";
 
     /**
+     * The name of the resource that the reference points to. It can
+     * link to any compatible resource using the global JNDI names.
+     *
+     * @since Common Annotations 1.1
+     */
+
+    String lookup() default "";
+
+    /**
      * The Java type of the resource.  For field annotations,
      * the default is the type of the field.  For method annotations,
      * the default is the type of the JavaBeans property.
@@ -52,8 +84,8 @@ public @interface Resource {
      * The two possible authentication types for a resource.
      */
     enum AuthenticationType {
-	    CONTAINER,
-	    APPLICATION
+            CONTAINER,
+            APPLICATION
     }
 
     /**

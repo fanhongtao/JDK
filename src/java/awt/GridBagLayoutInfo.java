@@ -1,7 +1,32 @@
+/*
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 package java.awt;
 
 /**
- * The {@code GridBagLayoutInfo} is an utility class for 
+ * The {@code GridBagLayoutInfo} is an utility class for
  * {@code GridBagLayout} layout manager.
  * It stores align, size and baseline parameters for every component within a container.
  * <p>
@@ -33,7 +58,7 @@ public class GridBagLayoutInfo implements java.io.Serializable {
     int maxDescent[];           /* Max descent (height - baseline) */
 
     /**
-     * Creates an instance of GridBagLayoutInfo representing {@code GridBagLayout} 
+     * Creates an instance of GridBagLayoutInfo representing {@code GridBagLayout}
      * grid cells with it's own parameters.
      * @param width the columns
      * @param height the rows

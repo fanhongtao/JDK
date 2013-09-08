@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -63,7 +67,6 @@ import com.sun.org.apache.bcel.internal.classfile.*;
 /**
  * Super class for the GET/PUTxxx family of instructions.
  *
- * @version $Id: FieldInstruction.java,v 1.1.2.1 2005/07/31 23:45:49 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class FieldInstruction extends FieldOrMethod
@@ -88,7 +91,7 @@ public abstract class FieldInstruction extends FieldOrMethod
     return com.sun.org.apache.bcel.internal.Constants.OPCODE_NAMES[opcode] + " " +
       cp.constantToString(index, com.sun.org.apache.bcel.internal.Constants.CONSTANT_Fieldref);
   }
-  
+
   /** @return size of field (1 or 2)
    */
   protected int getFieldSize(ConstantPoolGen cpg) {
@@ -113,4 +116,3 @@ public abstract class FieldInstruction extends FieldOrMethod
     return getName(cpg);
   }
 }
-

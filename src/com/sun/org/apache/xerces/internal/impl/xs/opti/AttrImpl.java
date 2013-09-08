@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -57,32 +61,31 @@
 
 package com.sun.org.apache.xerces.internal.impl.xs.opti;
 
-import org.w3c.dom.TypeInfo;
 import org.w3c.dom.Attr;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
-
 import org.w3c.dom.DOMException;
-
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.TypeInfo;
 
 /**
  * This class represents a single attribute.
  *
  * @author Rahul Srivastava, Sun Microsystems Inc.
  *
- * @version $Id: AttrImpl.java,v 1.1.2.1 2005/08/01 03:38:05 jeffsuttor Exp $
+ * @version $Id: AttrImpl.java,v 1.5 2010-11-01 04:40:01 joehw Exp $
  */
-public class AttrImpl extends NodeImpl 
+public class AttrImpl extends NodeImpl
                       implements Attr {
 
     Element element;
     String value;
-    
+
     /** Default Constructor */
     public AttrImpl() {
         nodeType = Node.ATTRIBUTE_NODE;
     }
-    
+
     /**
      * Constructs an attribute.
      *
@@ -98,39 +101,43 @@ public class AttrImpl extends NodeImpl
         this.element = element;
         this.value = value;
     }
-    
-    
+
     public String getName() {
         return rawname;
     }
-    
-    
+
     public boolean getSpecified() {
         return true;
     }
-    
+
     public String getValue() {
         return value;
     }
-    
-    
+
+    public String getNodeValue() {
+        return getValue();
+    }
+
     public Element getOwnerElement() {
         return element;
     }
-    
-    
+
+    public Document getOwnerDocument() {
+        return element.getOwnerDocument();
+    }
+
     public void setValue(String value) throws DOMException {
         this.value = value;
     }
-    
+
     /**
-     * @since DOM Level 3 
+     * @since DOM Level 3
      */
     public boolean isId(){
         return false;
     }
-    
-        /**
+
+    /**
      * Method getSchemaTypeInfo.
      * @return TypeInfo
      */
@@ -138,4 +145,8 @@ public class AttrImpl extends NodeImpl
       return null;
     }
 
+    /** NON-DOM method for debugging convenience */
+    public String toString() {
+        return getName() + "=" + "\"" + getValue() + "\"";
+    }
 }

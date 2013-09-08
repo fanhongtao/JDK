@@ -1,8 +1,26 @@
 /*
- * @(#)PNGMetadataFormatResources.java	1.9 05/11/17
+ * Copyright (c) 2001, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.png;
@@ -126,7 +144,7 @@ public class PNGMetadataFormatResources extends ListResourceBundle {
             "The number of vertical pixels per unit, multiplied by 1e5" },
         { "pHYS/unitSpecifier",
             "The unit specifier for this chunk (i.e., meters)" },
-        
+
         { "sBIT_Grayscale/gray",
             "The number of significant bits of the gray samples" },
         { "sBIT_GrayAlpha/gray",

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,20 +40,20 @@ import java.util.ArrayList;
 import javax.xml.namespace.QName;
 
 /**
- * 
+ *
  * @author Ramesh Mandava ( ramesh.mandava@sun.com )
  */
 public class JAXPExtensionsProvider implements ExtensionsProvider {
-    	
+
     private final XPathFunctionResolver resolver;
     private boolean extensionInvocationDisabled = false;
-	
+
     public JAXPExtensionsProvider(XPathFunctionResolver resolver) {
         this.resolver = resolver;
         this.extensionInvocationDisabled = false;
     }
 
-    public JAXPExtensionsProvider(XPathFunctionResolver resolver, 
+    public JAXPExtensionsProvider(XPathFunctionResolver resolver,
         boolean featureSecureProcessing ) {
         this.resolver = resolver;
         this.extensionInvocationDisabled = featureSecureProcessing;
@@ -63,14 +67,14 @@ public class JAXPExtensionsProvider implements ExtensionsProvider {
           throws javax.xml.transform.TransformerException {
       try {
         if ( funcName == null ) {
-            String fmsg = XSLMessages.createXPATHMessage( 
+            String fmsg = XSLMessages.createXPATHMessage(
                 XPATHErrorResources.ER_ARG_CANNOT_BE_NULL,
                 new Object[] {"Function Name"} );
-            throw new NullPointerException ( fmsg ); 
+            throw new NullPointerException ( fmsg );
         }
         //Find the XPathFunction corresponding to namespace and funcName
         javax.xml.namespace.QName myQName = new QName( ns, funcName );
-        javax.xml.xpath.XPathFunction xpathFunction = 
+        javax.xml.xpath.XPathFunction xpathFunction =
             resolver.resolveFunction ( myQName, 0 );
         if (  xpathFunction == null ) {
             return false;
@@ -79,10 +83,10 @@ public class JAXPExtensionsProvider implements ExtensionsProvider {
       } catch ( Exception e ) {
         return false;
       }
-       
+
 
     }
-        
+
 
     /**
      * Is the extension element available?
@@ -103,12 +107,12 @@ public class JAXPExtensionsProvider implements ExtensionsProvider {
                 String fmsg = XSLMessages.createXPATHMessage(
                     XPATHErrorResources.ER_ARG_CANNOT_BE_NULL,
                     new Object[] {"Function Name"} );
-                throw new NullPointerException ( fmsg ); 
+                throw new NullPointerException ( fmsg );
             }
             //Find the XPathFunction corresponding to namespace and funcName
             javax.xml.namespace.QName myQName = new QName( ns, funcName );
 
-            // JAXP 1.3 spec says When XMLConstants.FEATURE_SECURE_PROCESSING 
+            // JAXP 1.3 spec says When XMLConstants.FEATURE_SECURE_PROCESSING
             // feature is set then invocation of extension functions need to
             // throw XPathFunctionException
             if ( extensionInvocationDisabled ) {
@@ -122,7 +126,7 @@ public class JAXPExtensionsProvider implements ExtensionsProvider {
             // default values )
             int arity = argVec.size();
 
-            javax.xml.xpath.XPathFunction xpathFunction = 
+            javax.xml.xpath.XPathFunction xpathFunction =
                 resolver.resolveFunction ( myQName, arity );
 
             // not using methodKey
@@ -144,12 +148,12 @@ public class JAXPExtensionsProvider implements ExtensionsProvider {
             return ( xpathFunction.evaluate ( argList ));
         } catch ( XPathFunctionException xfe ) {
             // If we get XPathFunctionException then we want to terminate
-            // further execution by throwing WrappedRuntimeException 
+            // further execution by throwing WrappedRuntimeException
             throw new com.sun.org.apache.xml.internal.utils.WrappedRuntimeException ( xfe );
         } catch ( Exception e ) {
             throw new javax.xml.transform.TransformerException ( e );
         }
-    
+
     }
 
     /**
@@ -162,7 +166,7 @@ public class JAXPExtensionsProvider implements ExtensionsProvider {
             String namespace = extFunction.getNamespace();
             String functionName = extFunction.getFunctionName();
             int arity = extFunction.getArgCount();
-            javax.xml.namespace.QName myQName = 
+            javax.xml.namespace.QName myQName =
                 new javax.xml.namespace.QName( namespace, functionName );
 
             // JAXP 1.3 spec says  When XMLConstants.FEATURE_SECURE_PROCESSING
@@ -174,7 +178,7 @@ public class JAXPExtensionsProvider implements ExtensionsProvider {
                 throw new XPathFunctionException ( fmsg );
             }
 
-            XPathFunction xpathFunction = 
+            XPathFunction xpathFunction =
                 resolver.resolveFunction( myQName, arity );
 
             ArrayList argList = new ArrayList( arity);
@@ -191,11 +195,11 @@ public class JAXPExtensionsProvider implements ExtensionsProvider {
                     argList.add ( i, argument );
                 }
             }
-       
+
             return ( xpathFunction.evaluate ( argList ));
 
         } catch ( XPathFunctionException xfe ) {
-            // If we get XPathFunctionException then we want to terminate 
+            // If we get XPathFunctionException then we want to terminate
             // further execution by throwing WrappedRuntimeException
             throw new com.sun.org.apache.xml.internal.utils.WrappedRuntimeException ( xfe );
         } catch ( Exception e ) {

@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +33,7 @@ import java.security.PrivilegedExceptionAction;
 /**
  * This class is duplicated for each subpackage so keep it in sync.
  * It is package private and therefore is not exposed as part of any API.
- * 
+ *
  * @xerces.internal
  */
 final class SecuritySupport {
@@ -55,7 +59,7 @@ final class SecuritySupport {
             }
         });
     }
-    
+
     ClassLoader getSystemClassLoader() {
         return (ClassLoader)
         AccessController.doPrivileged(new PrivilegedAction() {
@@ -68,7 +72,7 @@ final class SecuritySupport {
             }
         });
     }
-    
+
     ClassLoader getParentClassLoader(final ClassLoader cl) {
         return (ClassLoader)
         AccessController.doPrivileged(new PrivilegedAction() {
@@ -77,14 +81,14 @@ final class SecuritySupport {
                 try {
                     parent = cl.getParent();
                 } catch (SecurityException ex) {}
-                
+
                 // eliminate loops in case of the boot
                 // ClassLoader returning itself as a parent
                 return (parent == cl) ? null : parent;
             }
         });
     }
-    
+
     String getSystemProperty(final String propName) {
         return (String)
         AccessController.doPrivileged(new PrivilegedAction() {
@@ -93,7 +97,7 @@ final class SecuritySupport {
             }
         });
     }
-    
+
     FileInputStream getFileInputStream(final File file)
     throws FileNotFoundException
     {
@@ -108,7 +112,7 @@ final class SecuritySupport {
             throw (FileNotFoundException)e.getException();
         }
     }
-    
+
     InputStream getResourceAsStream(final ClassLoader cl,
             final String name)
     {
@@ -125,7 +129,7 @@ final class SecuritySupport {
             }
         });
     }
-    
+
     boolean getFileExists(final File f) {
         return ((Boolean)
                 AccessController.doPrivileged(new PrivilegedAction() {
@@ -134,7 +138,7 @@ final class SecuritySupport {
                     }
                 })).booleanValue();
     }
-    
+
     long getLastModified(final File f) {
         return ((Long)
                 AccessController.doPrivileged(new PrivilegedAction() {
@@ -143,6 +147,6 @@ final class SecuritySupport {
                     }
                 })).longValue();
     }
-    
+
     private SecuritySupport () {}
 }

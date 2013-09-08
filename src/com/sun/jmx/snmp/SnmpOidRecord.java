@@ -1,17 +1,11 @@
 /*
- * @(#)file      SnmpOidRecord.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.12
- * @(#)date      06/11/29
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-
+// Copyright (c) 1995-96 by Cisco Systems, Inc.
 
 package com.sun.jmx.snmp;
-
 
 /**
  * Represents an entry of an {@link com.sun.jmx.snmp.SnmpOidTable SnmpOidTable}. It contains the name of the MIB variable,
@@ -35,15 +29,15 @@ package com.sun.jmx.snmp;
  *<LI>"U"       for <CODE>Unsigned32</CODE>
  *</UL>
  *
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
- * @see com.sun.jmx.snmp.SnmpOidTable 
+ * @see com.sun.jmx.snmp.SnmpOidTable
  */
 
 public class SnmpOidRecord {
 
     /**
-     * Creates an <CODE>SnmpOidRecord</CODE> with the specified MIB variable 
+     * Creates an <CODE>SnmpOidRecord</CODE> with the specified MIB variable
      * name, OID and type.
      * @param name The logical name of the MIB variable.
      * @param oid The OID of the MIB variable.
@@ -56,24 +50,24 @@ public class SnmpOidRecord {
     }
 
     /**
-     * Gets the logical name of the MIB variable. 
-     * @return The MIB variable name. 
+     * Gets the logical name of the MIB variable.
+     * @return The MIB variable name.
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Gets the OID of the MIB variable. 
-     * @return The MIB variable OID. 
+     * Gets the OID of the MIB variable.
+     * @return The MIB variable OID.
      */
-    public String getOid() {	
+    public String getOid() {
         return oid;
     }
 
     /**
-     * Gets the type of the MIB variable. 
-     * @return The MIB variable type. 
+     * Gets the type of the MIB variable.
+     * @return The MIB variable type.
      */
     public String getType() {
         return type;
@@ -82,15 +76,15 @@ public class SnmpOidRecord {
     // PRIVATE VARIABLES
 
     /**
-     * The MIB variable name. 
+     * The MIB variable name.
      */
     private String name;
     /**
-     * The MIB variable OID. 
+     * The MIB variable OID.
      */
     private String oid;
     /**
-     * The MIB variable type. 
+     * The MIB variable type.
      */
     private String type;
 }

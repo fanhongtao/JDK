@@ -1,8 +1,26 @@
 /*
- * @(#)ComponentInputMap.java	1.11 06/04/07
+ * Copyright (c) 1999, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -14,7 +32,6 @@ package javax.swing;
  * <code>ComponentInputMap</code>s are used for
  * <code>WHEN_IN_FOCUSED_WINDOW</code> bindings.
  *
- * @version 1.11 04/07/06
  * @author Scott Violet
  * @since 1.3
  */
@@ -23,17 +40,17 @@ public class ComponentInputMap extends InputMap {
     private JComponent          component;
 
     /**
-     * Creates a <code>ComponentInputMap</code> associated with the 
-     * specified component.  
+     * Creates a <code>ComponentInputMap</code> associated with the
+     * specified component.
      *
      * @param component  a non-null <code>JComponent</code>
      * @throws IllegalArgumentException  if <code>component</code> is null
      */
     public ComponentInputMap(JComponent component) {
-	this.component = component;
-	if (component == null) {
-	    throw new IllegalArgumentException("ComponentInputMaps must be associated with a non-null JComponent");
-	}
+        this.component = component;
+        if (component == null) {
+            throw new IllegalArgumentException("ComponentInputMaps must be associated with a non-null JComponent");
+        }
     }
 
     /**
@@ -42,28 +59,28 @@ public class ComponentInputMap extends InputMap {
      * <code>ComponentInputMap</code>.
      *
      * @param map  a <code>ComponentInputMap</code>
-     *           
+     *
      * @throws IllegalArgumentException  if <code>map</code>
      *         is not a <code>ComponentInputMap</code>
      *         or is not associated with the same component
      */
     public void setParent(InputMap map) {
-	if (getParent() == map) {
-	    return;
-	}
-	if (map != null && (!(map instanceof ComponentInputMap) ||
-		 ((ComponentInputMap)map).getComponent() != getComponent())) {
-	    throw new IllegalArgumentException("ComponentInputMaps must have a parent ComponentInputMap associated with the same component");
-	}
-	super.setParent(map);
-	getComponent().componentInputMapChanged(this);
+        if (getParent() == map) {
+            return;
+        }
+        if (map != null && (!(map instanceof ComponentInputMap) ||
+                 ((ComponentInputMap)map).getComponent() != getComponent())) {
+            throw new IllegalArgumentException("ComponentInputMaps must have a parent ComponentInputMap associated with the same component");
+        }
+        super.setParent(map);
+        getComponent().componentInputMapChanged(this);
     }
 
     /**
      * Returns the component the <code>InputMap</code> was created for.
      */
     public JComponent getComponent() {
-	return component;
+        return component;
     }
 
     /**
@@ -72,30 +89,30 @@ public class ComponentInputMap extends InputMap {
      * for <code>keyStroke</code>.
      */
     public void put(KeyStroke keyStroke, Object actionMapKey) {
-	super.put(keyStroke, actionMapKey);
-	if (getComponent() != null) {
-	    getComponent().componentInputMapChanged(this);
-	}
+        super.put(keyStroke, actionMapKey);
+        if (getComponent() != null) {
+            getComponent().componentInputMapChanged(this);
+        }
     }
 
     /**
      * Removes the binding for <code>key</code> from this object.
      */
     public void remove(KeyStroke key) {
-	super.remove(key);
-	if (getComponent() != null) {
-	    getComponent().componentInputMapChanged(this);
-	}
+        super.remove(key);
+        if (getComponent() != null) {
+            getComponent().componentInputMapChanged(this);
+        }
     }
 
     /**
      * Removes all the mappings from this object.
      */
     public void clear() {
-	int oldSize = size();
-	super.clear();
-	if (oldSize > 0 && getComponent() != null) {
-	    getComponent().componentInputMapChanged(this);
-	}
+        int oldSize = size();
+        super.clear();
+        if (oldSize > 0 && getComponent() != null) {
+            getComponent().componentInputMapChanged(this);
+        }
     }
 }

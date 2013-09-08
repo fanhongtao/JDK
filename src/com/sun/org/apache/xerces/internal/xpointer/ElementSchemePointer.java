@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +37,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLErrorHandler;
  *
  * @xerces.internal
  * 
- * @version $Id: ElementSchemePointer.java,v 1.1.4.1 2005/09/08 05:25:43 sunithareddy Exp $
+ * @version $Id: ElementSchemePointer.java,v 1.4 2009/06/11 23:51:50 joehw Exp $
  *
  */
 class ElementSchemePointer implements XPointerPart {
@@ -301,6 +305,7 @@ class ElementSchemePointer implements XPointerPart {
         //     
         if (fIsResolveElement) {
             // start
+            fWasOnlyEmptyElementFound = false;
             if (event == XPointerPart.EVENT_ELEMENT_START) {
                 fCurrentChildSequence[fCurrentChildDepth] = fCurrentChildPosition;
                 fCurrentChildDepth++;
@@ -491,7 +496,7 @@ class ElementSchemePointer implements XPointerPart {
      * @xerces.internal
      * 
      * @author Neil Delima, IBM
-     * @version $Id: ElementSchemePointer.java,v 1.1.4.1 2005/09/08 05:25:43 sunithareddy Exp $
+     * @version $Id: ElementSchemePointer.java,v 1.4 2009/06/11 23:51:50 joehw Exp $
      * 
      */
     private final class Tokens {
@@ -657,7 +662,7 @@ class ElementSchemePointer implements XPointerPart {
      * 
      * @xerces.internal
      * 
-     * @version $Id: ElementSchemePointer.java,v 1.1.4.1 2005/09/08 05:25:43 sunithareddy Exp $
+     * @version $Id: ElementSchemePointer.java,v 1.4 2009/06/11 23:51:50 joehw Exp $
      */
     private class Scanner {
 

@@ -1,13 +1,29 @@
 /*
- * @(#)PIHandler.java	1.29 09/02/23
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.protocol;
-
-import java.io.Closeable ;
 
 import org.omg.PortableInterceptor.ObjectReferenceTemplate ;
 import org.omg.PortableInterceptor.Interceptor ;
@@ -35,14 +51,14 @@ import com.sun.corba.se.impl.protocol.giopmsgheaders.ReplyMessage ;
 /** This interface defines the PI interface that is used to interface the rest of the
  * ORB to the PI implementation.
  */
-public interface PIHandler extends Closeable {
+public interface PIHandler {
     /** Complete the initialization of the PIHandler.  This will execute the methods
     * on the ORBInitializers, if any are defined.  This must be done here so that
     * the ORB can obtain the PIHandler BEFORE the ORBInitializers run, since they
     * will need access to the PIHandler through the ORB.
     */
     public void initialize() ;
-    
+
     public void destroyInterceptors() ;
 
     /*
@@ -51,14 +67,14 @@ public interface PIHandler extends Closeable {
      ****************************/
 
     /**
-     * Called when a new object adapter is created.  
+     * Called when a new object adapter is created.
      *
      * @param oa The adapter associated with the interceptors to be
      *   invoked.
      */
     void objectAdapterCreated( ObjectAdapter oa )  ;
 
-    /** 
+    /**
      * Called whenever a state change occurs in an adapter manager.
      *
      * @param managerId managerId The adapter manager id
@@ -66,17 +82,17 @@ public interface PIHandler extends Closeable {
      * and by implication of all object adapters managed by this manager.
      */
     void adapterManagerStateChanged( int managerId,
-	short newState ) ;
+        short newState ) ;
 
     /** Called whenever a state change occurs in an object adapter that
     * was not caused by an adapter manager state change.
     *
     * @param templates The templates that are changing state.
-    * @param newState The new state of the adapters identified by the 
+    * @param newState The new state of the adapters identified by the
     * templates.
     */
     void adapterStateChanged( ObjectReferenceTemplate[] templates,
-	short newState ) ;
+        short newState ) ;
 
     /*
      *****************
@@ -126,6 +142,27 @@ public interface PIHandler extends Closeable {
         int replyStatus, Exception exception ) ;
 
     /**
+     * Called when a retry is needed after initiateClientPIRequest but
+     * before invokeClientPIRequest.  In this case, we need to properly
+     * balance initiateClientPIRequest/cleanupClientPIRequest calls,
+     * but WITHOUT extraneous calls to invokeClientPIEndingPoint
+     * (see bug 6763340).
+     *
+     * @param replyStatus One of the constants in iiop.messages.ReplyMessage
+     *     indicating which reply status to set.
+     * @param exception The exception before ending interception points have
+     *     been invoked, or null if no exception at the moment.
+     * @return The exception to be thrown, after having gone through
+     *     all ending points, or null if there is no exception to be
+     *     thrown.  Note that this exception can be either the same or
+     *     different from the exception set using setClientPIException.
+     *     There are four possible return types: null (no exception),
+     *     SystemException, UserException, or RemarshalException.
+     */
+    Exception makeCompletedClientRequest(
+        int replyStatus, Exception exception ) ;
+
+    /**
      * Invoked when a request is about to be created.  Must be called before
      * any of the setClientPI* methods so that a new info object can be
      * prepared for information collection.
@@ -151,7 +188,7 @@ public interface PIHandler extends Closeable {
      */
     void setClientPIInfo( RequestImpl requestImpl ) ;
 
-    /** 
+    /**
      * Notify PI of the MessageMediator for the request.
      */
     void setClientPIInfo(CorbaMessageMediator messageMediator) ;
@@ -188,7 +225,7 @@ public interface PIHandler extends Closeable {
      * to be invoked for all appropriate server-side request interceptors.
      *
      * @param replyMessage The iiop.messages.ReplyMessage containing the
-     *     reply status.  
+     *     reply status.
      * @throws ForwardException Thrown if an interceptor raises
      *     ForwardRequest.  This is an unchecked exception so that we need
      *     not modify the entire execution path to declare throwing
@@ -203,8 +240,8 @@ public interface PIHandler extends Closeable {
      * ServerRequestInfo object.  poaimpl is declared as an Object so that
      * we need not introduce a dependency on the POA package.
      */
-    void initializeServerPIInfo( CorbaMessageMediator request, 
-	ObjectAdapter oa, byte[] objectId, ObjectKeyTemplate oktemp ) ;
+    void initializeServerPIInfo( CorbaMessageMediator request,
+        ObjectAdapter oa, byte[] objectId, ObjectKeyTemplate oktemp ) ;
 
     /**
      * Notifies PI of additional information reqired for ServerRequestInfo.
@@ -256,8 +293,8 @@ public interface PIHandler extends Closeable {
 
     Policy create_policy( int type, Any val ) throws PolicyError ;
 
-    void register_interceptor( Interceptor interceptor, int type ) 
-	throws DuplicateName ;
+    void register_interceptor( Interceptor interceptor, int type )
+        throws DuplicateName ;
 
     Current getPICurrent() ;
 

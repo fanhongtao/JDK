@@ -1,8 +1,26 @@
 /*
- * @(#)AnnotationDesc.java	1.4 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.javadoc;
@@ -11,9 +29,8 @@ package com.sun.javadoc;
 /**
  * Represents an annotation.
  * An annotation associates a value with each element of an annotation type.
- * 
+ *
  * @author Scott Seligman
- * @version 1.4 05/11/17
  * @since 1.5
  */
 public interface AnnotationDesc {
@@ -39,25 +56,24 @@ public interface AnnotationDesc {
     /**
      * Represents an association between an annotation type element
      * and one of its values.
-     * 
+     *
      * @author Scott Seligman
-     * @version 1.4 05/11/17
      * @since 1.5
      */
     public interface ElementValuePair {
 
-	/**
-	 * Returns the annotation type element.
-	 *
-	 * @return the annotation type element.
-	 */
-	AnnotationTypeElementDoc element();
+        /**
+         * Returns the annotation type element.
+         *
+         * @return the annotation type element.
+         */
+        AnnotationTypeElementDoc element();
 
-	/**
-	 * Returns the value associated with the annotation type element.
-	 *
-	 * @return the value associated with the annotation type element.
-	 */
-	AnnotationValue value();
+        /**
+         * Returns the value associated with the annotation type element.
+         *
+         * @return the value associated with the annotation type element.
+         */
+        AnnotationValue value();
     }
 }

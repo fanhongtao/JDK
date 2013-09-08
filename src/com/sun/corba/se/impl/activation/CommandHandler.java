@@ -1,8 +1,26 @@
 /*
- * @(#)CommandHandler.java	1.15 05/11/17
+ * Copyright (c) 1997, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.activation;
 
@@ -11,7 +29,6 @@ import org.omg.CORBA.ORB;
 import java.io.PrintStream;
 
 /**
- * @version     1.15, 06/11/29
  * @author      Rohit Garg
  * @since       JDK1.2
  */

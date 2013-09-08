@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,21 +29,14 @@ import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
  * which contains no schema components.</p>
  * 
  * @author Michael Glavassevich, IBM
- * @version $Id: EmptyXMLSchema.java,v 1.1.4.1 2005/09/05 11:39:55 sunithareddy Exp $
+ * @version $Id: EmptyXMLSchema.java,v 1.6 2010-11-01 04:40:08 joehw Exp $
  */
 final class EmptyXMLSchema extends AbstractXMLSchema implements XMLGrammarPool {
-    
-    private static EmptyXMLSchema EMPTY_XML_SCHEMA_INSTANCE = new EmptyXMLSchema();
-    
+        
     /** Zero length grammar array. */
     private static final Grammar [] ZERO_LENGTH_GRAMMAR_ARRAY = new Grammar [0];
-
-    /** Returns the one and only instance of this class. */
-    public static EmptyXMLSchema getInstance() {
-        return EMPTY_XML_SCHEMA_INSTANCE;
-    }
     
-    private EmptyXMLSchema() {}
+    public EmptyXMLSchema() {}
     
     /*
      * XMLGrammarPool methods

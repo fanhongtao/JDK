@@ -1,8 +1,26 @@
 /*
- * @(#)RenderContext.java	1.18 06/04/07
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ********************************************************************
@@ -27,7 +45,7 @@ import java.awt.image.*;
  * be rendered specified in rendering-independent terms, the
  * resolution at which the rendering is to be performed, and hints
  * used to control the rendering process.
- * 
+ *
  * <p> Users create RenderContexts and pass them to the
  * RenderableImage via the createRendering method.  Most of the methods of
  * RenderContexts are not meant to be used directly by applications,
@@ -41,19 +59,19 @@ import java.awt.image.*;
  * instances of RenderContext may have undesired side effects.
  */
 public class RenderContext implements Cloneable {
-    
+
     /** Table of hints. May be null. */
     RenderingHints hints;
-    
+
     /** Transform to convert user coordinates to device coordinates.  */
     AffineTransform usr2dev;
-    
+
     /** The area of interest.  May be null. */
     Shape aoi;
-    
+
     // Various constructors that allow different levels of
     // specificity. If the Shape is missing the whole renderable area
-    // is assumed. If hints is missing no hints are assumed.  
+    // is assumed. If hints is missing no hints are assumed.
 
     /**
      * Constructs a RenderContext with a given transform.
@@ -71,7 +89,7 @@ public class RenderContext implements Cloneable {
         this.aoi = aoi;
         this.usr2dev = (AffineTransform)usr2dev.clone();
     }
-    
+
     /**
      * Constructs a RenderContext with a given transform.
      * The area of interest is taken to be the entire renderable area.
@@ -82,7 +100,7 @@ public class RenderContext implements Cloneable {
     public RenderContext(AffineTransform usr2dev) {
         this(usr2dev, null, null);
     }
-    
+
     /**
      * Constructs a RenderContext with a given transform and rendering hints.
      * The area of interest is taken to be the entire renderable area.
@@ -93,7 +111,7 @@ public class RenderContext implements Cloneable {
     public RenderContext(AffineTransform usr2dev, RenderingHints hints) {
         this(usr2dev, null, hints);
     }
-    
+
     /**
      * Constructs a RenderContext with a given transform and area of interest.
      * The area of interest is supplied as a Shape.
@@ -125,7 +143,7 @@ public class RenderContext implements Cloneable {
     public void setRenderingHints(RenderingHints hints) {
         this.hints = hints;
     }
-    
+
     /**
      * Sets the current user-to-device AffineTransform contained
      * in the RenderContext to a given transform.
@@ -136,7 +154,7 @@ public class RenderContext implements Cloneable {
     public void setTransform(AffineTransform newTransform) {
         usr2dev = (AffineTransform)newTransform.clone();
     }
-        
+
     /**
      * Modifies the current user-to-device transform by prepending another
      * transform.  In matrix notation the operation is:
@@ -149,9 +167,9 @@ public class RenderContext implements Cloneable {
      * @since 1.3
      */
     public void preConcatenateTransform(AffineTransform modTransform) {
-        this.preConcetenateTransform(modTransform);                
+        this.preConcetenateTransform(modTransform);
     }
-    
+
     /**
      * Modifies the current user-to-device transform by prepending another
      * transform.  In matrix notation the operation is:
@@ -169,7 +187,7 @@ public class RenderContext implements Cloneable {
      */
     @Deprecated
     public void preConcetenateTransform(AffineTransform modTransform) {
-        usr2dev.preConcatenate(modTransform);                
+        usr2dev.preConcatenate(modTransform);
     }
 
     /**
@@ -184,9 +202,9 @@ public class RenderContext implements Cloneable {
      * @since 1.3
      */
     public void concatenateTransform(AffineTransform modTransform) {
-        this.concetenateTransform(modTransform);                
+        this.concetenateTransform(modTransform);
     }
-    
+
     /**
      * Modifies the current user-to-device transform by appending another
      * transform.  In matrix notation the operation is:
@@ -204,9 +222,9 @@ public class RenderContext implements Cloneable {
      */
     @Deprecated
     public void concetenateTransform(AffineTransform modTransform) {
-        usr2dev.concatenate(modTransform);                
+        usr2dev.concatenate(modTransform);
     }
-    
+
     /**
      * Gets the current user-to-device AffineTransform.
      *
@@ -230,8 +248,8 @@ public class RenderContext implements Cloneable {
     /**
      * Gets the ares of interest currently contained in the
      * RenderContext.
-     * 
-     * @return a reference to the area of interest of the RenderContext, 
+     *
+     * @return a reference to the area of interest of the RenderContext,
      *         or null if none is specified.
      * @see #setAreaOfInterest(Shape)
      */

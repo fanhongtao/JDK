@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +33,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.util.ByteListImpl;
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: Base64BinaryDV.java,v 1.2.6.1 2005/09/06 11:43:01 neerajbj Exp $
+ * @version $Id: Base64BinaryDV.java,v 1.7 2010-11-01 04:39:46 joehw Exp $
  */
 public class Base64BinaryDV extends TypeValidator {
 
@@ -64,7 +68,7 @@ public class Base64BinaryDV extends TypeValidator {
             }
             return canonical;
         }
-        
+
         public boolean equals(Object obj) {
             if (!(obj instanceof XBase64))
                 return false;
@@ -77,6 +81,14 @@ public class Base64BinaryDV extends TypeValidator {
                     return false;
             }
             return true;
+        }
+
+        public int hashCode() {
+            int hash = 0;
+            for (int i = 0; i < data.length; ++i) {
+                hash = hash * 37 + (((int) data[i]) & 0xff);
+            }
+            return hash;
         }
     }
 } // class Base64BinaryDV

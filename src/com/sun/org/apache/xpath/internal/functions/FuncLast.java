@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,12 +37,12 @@ import com.sun.org.apache.xpath.internal.objects.XObject;
 public class FuncLast extends Function
 {
     static final long serialVersionUID = 9205812403085432943L;
-  
+
   private boolean m_isTopLevel;
-  
+
   /**
    * Figure out if we're executing a toplevel expression.
-   * If so, we can't be inside of a predicate. 
+   * If so, we can't be inside of a predicate.
    */
   public void postCompileStep(Compiler compiler)
   {
@@ -71,10 +75,10 @@ public class FuncLast extends Function
     if(null != cnl)
     {
       count = cnl.getLength();
-      // System.out.println("count: "+count); 
+      // System.out.println("count: "+count);
     }
     else
-      count = 0;   
+      count = 0;
     return count;
   }
 
@@ -92,7 +96,7 @@ public class FuncLast extends Function
     // System.out.println("last: "+xnum.num());
     return xnum;
   }
-  
+
   /**
    * No arguments to process, so this does nothing.
    */

@@ -1,8 +1,26 @@
 /*
- * @(#)RequestMessage_1_0.java	1.15 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -17,7 +35,6 @@ import com.sun.corba.se.spi.ior.ObjectKey;
  * This implements the GIOP 1.0 Request header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public final class RequestMessage_1_0 extends Message_1_0
@@ -74,11 +91,11 @@ public final class RequestMessage_1_0 extends Message_1_0
 
     public ObjectKey getObjectKey() {
         if (this.objectKey == null) {
-	    // this will raise a MARSHAL exception upon errors.
-	    this.objectKey = MessageBase.extractObjectKey(object_key, orb);
+            // this will raise a MARSHAL exception upon errors.
+            this.objectKey = MessageBase.extractObjectKey(object_key, orb);
         }
 
-	return this.objectKey;
+        return this.objectKey;
     }
 
     public String getOperation() {
@@ -91,10 +108,10 @@ public final class RequestMessage_1_0 extends Message_1_0
 
 
     // Mutators
-    
+
     public void setThreadPoolToUse(int poolToUse) {
-	// No-op, must be GIOP Version 1.1 or greater
-	// to support this SUN PROPRIETARY EXTENSION.
+        // No-op, must be GIOP Version 1.1 or greater
+        // to support this SUN PROPRIETARY EXTENSION.
     }
 
 
@@ -102,7 +119,7 @@ public final class RequestMessage_1_0 extends Message_1_0
 
     public void read(org.omg.CORBA.portable.InputStream istream) {
         super.read(istream);
-        this.service_contexts 
+        this.service_contexts
             = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream);
         this.request_id = istream.read_ulong();
         this.response_expected = istream.read_boolean();
@@ -115,12 +132,12 @@ public final class RequestMessage_1_0 extends Message_1_0
 
     public void write(org.omg.CORBA.portable.OutputStream ostream) {
         super.write(ostream);
-    	if (this.service_contexts != null) {
-	        service_contexts.write(
+        if (this.service_contexts != null) {
+                service_contexts.write(
                 (org.omg.CORBA_2_3.portable.OutputStream) ostream,
                 GIOPVersion.V1_0);
-	    } else {
-	        ServiceContexts.writeNullServiceContext(
+            } else {
+                ServiceContexts.writeNullServiceContext(
                 (org.omg.CORBA_2_3.portable.OutputStream) ostream);
         }
         ostream.write_ulong(this.request_id);

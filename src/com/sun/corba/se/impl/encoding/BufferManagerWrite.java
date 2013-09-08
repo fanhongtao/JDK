@@ -1,8 +1,26 @@
 /*
- * @(#)BufferManagerWrite.java	1.11 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.encoding;
@@ -26,13 +44,13 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException;
 public abstract class BufferManagerWrite
 {
     protected ORB orb ;
-    protected ORBUtilSystemException wrapper ; 
+    protected ORBUtilSystemException wrapper ;
 
-    BufferManagerWrite( ORB orb ) 
+    BufferManagerWrite( ORB orb )
     {
-	this.orb = orb ;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_ENCODING ) ;
+        this.orb = orb ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_ENCODING ) ;
     }
 
     /**
@@ -58,7 +76,7 @@ public abstract class BufferManagerWrite
      * Called from CDROutputStream.grow.
      *
      * bbwi.buf contains a byte array which needs to grow by bbwi.needed bytes.
-     * 
+     *
      * This can be handled in several ways:
      *
      * 1. Resize the bbwi.buf like the current implementation of
@@ -84,7 +102,7 @@ public abstract class BufferManagerWrite
     /**
      * Called after Stub._invoke (i.e., before complete message has been sent).
      *
-     * IIOPOutputStream.writeTo called from IIOPOutputStream.invoke 
+     * IIOPOutputStream.writeTo called from IIOPOutputStream.invoke
      *
      * Case: overflow was never called (bbwi.buf contains complete message).
      *       Backpatch size field.
@@ -108,8 +126,8 @@ public abstract class BufferManagerWrite
      */
 
     public abstract void sendMessage ();
-    
-    /** 
+
+    /**
      * A reference to the connection level stream will be required when
      * sending fragments.
      */
@@ -130,4 +148,3 @@ public abstract class BufferManagerWrite
 
     protected boolean sentFullMessage = false;
 }
-

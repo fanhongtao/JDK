@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: StAXStream2SAX.java,v 1.7 2007/05/16 15:03:52 spericas Exp $
- * @(#)StAXStream2SAX.java	1.7 07/05/29
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.org.apache.xalan.internal.xsltc.trax;
@@ -74,38 +72,38 @@ public class StAXStream2SAX implements XMLReader, Locator {
 
     //private final static String EMPTYSTRING = "";
     //private static final String XMLNS_PREFIX = "xmlns";
-  
+
     // StAX Stream source
     private final XMLStreamReader staxStreamReader;
-    
+
     //private Node _dom = null;
     private ContentHandler _sax = null;
     private LexicalHandler _lex = null;
     private SAXImpl _saxImpl = null;
     //private Hashtable _nsPrefixes = new Hashtable();
-    
+
     public StAXStream2SAX(XMLStreamReader staxSrc) {
             staxStreamReader = staxSrc;
     }
 
-    public ContentHandler getContentHandler() { 
-	return _sax;
+    public ContentHandler getContentHandler() {
+        return _sax;
     }
 
-    public void setContentHandler(ContentHandler handler) throws 
-	NullPointerException 
+    public void setContentHandler(ContentHandler handler) throws
+        NullPointerException
     {
-	_sax = handler;
-	if (handler instanceof LexicalHandler) {
-	    _lex = (LexicalHandler) handler;
-	}
-	
-	if (handler instanceof SAXImpl) {
-	    _saxImpl = (SAXImpl)handler;
-	}
+        _sax = handler;
+        if (handler instanceof LexicalHandler) {
+            _lex = (LexicalHandler) handler;
+        }
+
+        if (handler instanceof SAXImpl) {
+            _saxImpl = (SAXImpl)handler;
+        }
     }
 
-    
+
     public void parse(InputSource unused) throws IOException, SAXException {
         try {
             bridge();
@@ -120,15 +118,15 @@ public class StAXStream2SAX implements XMLReader, Locator {
         bridge();
     }
 
-    
+
    /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
     public void parse(String sysId) throws IOException, SAXException {
-	throw new IOException("This method is not yet implemented.");
+        throw new IOException("This method is not yet implemented.");
     }
-    
+
 
    public void bridge() throws XMLStreamException {
 
@@ -149,9 +147,9 @@ public class StAXStream2SAX implements XMLReader, Locator {
                 if (event != XMLStreamConstants.START_ELEMENT) {
                     throw new IllegalStateException("The current event is " +
                             "not START_ELEMENT\n but" + event);
-                }            
+                }
             }
-                  
+
             handleStartDocument();
 
             do {
@@ -203,7 +201,7 @@ public class StAXStream2SAX implements XMLReader, Locator {
                     default :
                         throw new InternalError("processing event: " + event);
                 }
-                
+
                 event=staxStreamReader.next();
             } while (depth!=0);
 
@@ -266,7 +264,7 @@ public class StAXStream2SAX implements XMLReader, Locator {
             throw new XMLStreamException(e);
         }
 
-        
+
 //        int start = 0;
 //        int len;
 //        do {
@@ -290,12 +288,12 @@ public class StAXStream2SAX implements XMLReader, Locator {
                 qname = qName.getPrefix() + ":";
             }
             qname += qName.getLocalPart();
-            
+
             // fire endElement
             _sax.endElement(
                 qName.getNamespaceURI(),
                 qName.getLocalPart(),
-                qname); 
+                qname);
 
             // end namespace bindings
             int nsCount = staxStreamReader.getNamespaceCount();
@@ -348,7 +346,7 @@ public class StAXStream2SAX implements XMLReader, Locator {
     /**
      * Get the attributes associated with the given START_ELEMENT or ATTRIBUTE
      * StAXevent.
-     * 
+     *
      * @return the StAX attributes converted to an org.xml.sax.Attributes
      */
     private Attributes getAttributes() {
@@ -360,7 +358,7 @@ public class StAXStream2SAX implements XMLReader, Locator {
             throw new InternalError(
                 "getAttributes() attempting to process: " + eventType);
         }
-        
+
         // in SAX, namespace declarations are not part of attributes by default.
         // (there's a property to control that, but as far as we are concerned
         // we don't use it.) So don't add xmlns:* to attributes.
@@ -429,124 +427,124 @@ public class StAXStream2SAX implements XMLReader, Locator {
         // no-op ???
         // this event is listed in the javadoc, but not in the spec.
     }
-    
-    
+
+
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
-    public DTDHandler getDTDHandler() { 
-	return null;
+    public DTDHandler getDTDHandler() {
+        return null;
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
     public ErrorHandler getErrorHandler() {
-	return null;
+        return null;
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
     public boolean getFeature(String name) throws SAXNotRecognizedException,
-	SAXNotSupportedException
+        SAXNotSupportedException
     {
-	return false;
+        return false;
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
-    public void setFeature(String name, boolean value) throws 
-	SAXNotRecognizedException, SAXNotSupportedException 
+    public void setFeature(String name, boolean value) throws
+        SAXNotRecognizedException, SAXNotSupportedException
     {
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
     public void setDTDHandler(DTDHandler handler) throws NullPointerException {
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
-    public void setEntityResolver(EntityResolver resolver) throws 
-	NullPointerException 
+    public void setEntityResolver(EntityResolver resolver) throws
+        NullPointerException
     {
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
     public EntityResolver getEntityResolver() {
-	return null;
+        return null;
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
-    public void setErrorHandler(ErrorHandler handler) throws 
-	NullPointerException
+    public void setErrorHandler(ErrorHandler handler) throws
+        NullPointerException
     {
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
     public void setProperty(String name, Object value) throws
-	SAXNotRecognizedException, SAXNotSupportedException {
+        SAXNotRecognizedException, SAXNotSupportedException {
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
     public Object getProperty(String name) throws SAXNotRecognizedException,
-	SAXNotSupportedException
+        SAXNotSupportedException
     {
-	return null;
-    }
-    
-    /**
-     * This class is only used internally so this method should never 
-     * be called.
-     */
-    public int getColumnNumber() { 
-	return 0; 
-    }
-    
-    /**
-     * This class is only used internally so this method should never 
-     * be called.
-     */
-    public int getLineNumber() { 
-	return 0; 
+        return null;
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
-    public String getPublicId() { 
-	return null; 
+    public int getColumnNumber() {
+        return 0;
     }
 
     /**
-     * This class is only used internally so this method should never 
+     * This class is only used internally so this method should never
      * be called.
      */
-    public String getSystemId() { 
-	return null; 
-    }  
-    
+    public int getLineNumber() {
+        return 0;
+    }
+
+    /**
+     * This class is only used internally so this method should never
+     * be called.
+     */
+    public String getPublicId() {
+        return null;
+    }
+
+    /**
+     * This class is only used internally so this method should never
+     * be called.
+     */
+    public String getSystemId() {
+        return null;
+    }
+
 }

@@ -1,21 +1,39 @@
 /*
- * @(#)MARSHAL.java	1.34 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * A request or reply from the network is structurally invalid. 
- * This error typically indicates a bug in either the client-side 
- * or server-side run time. For example, if a reply from the server 
- * indicates that the message contains 1000 bytes, but the actual 
- * message is shorter or longer than 1000 bytes, the ORB raises 
- * this exception. <tt>MARSHAL</tt> can also be caused by using 
- * the DII or DSI incorrectly, for example, if the type of the 
- * actual parameters sent does not agree with IDL signature of an 
+ * A request or reply from the network is structurally invalid.
+ * This error typically indicates a bug in either the client-side
+ * or server-side run time. For example, if a reply from the server
+ * indicates that the message contains 1000 bytes, but the actual
+ * message is shorter or longer than 1000 bytes, the ORB raises
+ * this exception. <tt>MARSHAL</tt> can also be caused by using
+ * the DII or DSI incorrectly, for example, if the type of the
+ * actual parameters sent does not agree with IDL signature of an
  * operation.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -24,7 +42,6 @@ package org.omg.CORBA;
  * See the section <A href="../../../../technotes/guides/idl/jidlExceptions.html#minorcodemeanings">Minor
  * Code Meanings</A> to see the minor codes for this exception.
  *
- * @version     1.18, 09/09/97
  * @since       JDK1.2
  */
 

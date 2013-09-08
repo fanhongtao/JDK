@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +49,7 @@ public class FilterExprIterator extends BasicTestIterator
   {
     super(null);
   }
-  
+
   /**
    * Create a FilterExprIterator object.
    *
@@ -65,11 +69,11 @@ public class FilterExprIterator extends BasicTestIterator
    */
   public void setRoot(int context, Object environment)
   {
-  	super.setRoot(context, environment);
- 	
-  	m_exprObj = FilterExprIteratorSimple.executeFilterExpr(context, 
-  	                  m_execContext, getPrefixResolver(), 
-  	                  getIsTopLevel(), m_stackFrame, m_expr);
+        super.setRoot(context, environment);
+
+        m_exprObj = FilterExprIteratorSimple.executeFilterExpr(context,
+                          m_execContext, getPrefixResolver(),
+                          getIsTopLevel(), m_stackFrame, m_expr);
    }
 
 
@@ -88,27 +92,27 @@ public class FilterExprIterator extends BasicTestIterator
 
     return m_lastFetched;
   }
-  
+
   /**
    * Detaches the walker from the set which it iterated over, releasing
    * any computational resources and placing the iterator in the INVALID
    * state.
    */
   public void detach()
-  {  
-  	super.detach();
-  	m_exprObj.detach();
-  	m_exprObj = null;
+  {
+        super.detach();
+        m_exprObj.detach();
+        m_exprObj = null;
   }
 
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -134,7 +138,7 @@ public class FilterExprIterator extends BasicTestIterator
     m_expr = expr;
   }
 
-  /** 
+  /**
    * Get the analysis bits for this walker, as defined in the WalkerFactory.
    * @return One of WalkerFactory#BIT_DESCENDANT, etc.
    */
@@ -148,10 +152,10 @@ public class FilterExprIterator extends BasicTestIterator
   }
 
   /**
-   * Returns true if all the nodes in the iteration well be returned in document 
+   * Returns true if all the nodes in the iteration well be returned in document
    * order.
    * Warning: This can only be called after setRoot has been called!
-   * 
+   *
    * @return true as a default.
    */
   public boolean isDocOrdered()
@@ -181,10 +185,10 @@ public class FilterExprIterator extends BasicTestIterator
   }
 
   /**
-   * This will traverse the heararchy, calling the visitor for 
-   * each member.  If the called visitor method returns 
+   * This will traverse the heararchy, calling the visitor for
+   * each member.  If the called visitor method returns
    * false, the subtree should not be called.
-   * 
+   *
    * @param visitor The visitor whose appropriate method will be called.
    */
   public void callPredicateVisitors(XPathVisitor visitor)

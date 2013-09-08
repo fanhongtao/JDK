@@ -1,10 +1,28 @@
 /*
- * @(#)SynthToggleButtonUI.java	1.8 08/02/19
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package javax.swing.plaf.synth;
 
 import java.awt.Graphics;
@@ -13,19 +31,30 @@ import javax.swing.JComponent;
 import javax.swing.plaf.ComponentUI;
 
 /**
- * Synth's ToggleButtonUI.
- * <p>
- * @version 1.8, 02/19/08
+ * Provides the Synth L&F UI delegate for
+ * {@link javax.swing.JToggleButton}.
+ *
  * @author Jeff Dinkins
+ * @since 1.7
  */
-class SynthToggleButtonUI extends SynthButtonUI {
+public class SynthToggleButtonUI extends SynthButtonUI {
     // ********************************
     //          Create PLAF
     // ********************************
+
+    /**
+     * Creates a new UI object for the given component.
+     *
+     * @param b component to create UI object for
+     * @return the UI object
+     */
     public static ComponentUI createUI(JComponent b) {
         return new SynthToggleButtonUI();
     }
 
+    /**
+     * @inheritDoc
+     */
     @Override
     protected String getPropertyPrefix() {
         return "ToggleButton.";
@@ -40,6 +69,9 @@ class SynthToggleButtonUI extends SynthButtonUI {
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     @Override
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {

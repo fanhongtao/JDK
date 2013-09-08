@@ -1,8 +1,26 @@
 /*
- * @(#)POAPolicyMediatorImpl_R_AOM.java	1.22 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.oa.poa ;
@@ -31,29 +49,29 @@ import com.sun.corba.se.impl.oa.NullServantImpl ;
  * </ul>
  */
 public class POAPolicyMediatorImpl_R_AOM extends POAPolicyMediatorBase_R {
-    POAPolicyMediatorImpl_R_AOM( Policies policies, POAImpl poa ) 
+    POAPolicyMediatorImpl_R_AOM( Policies policies, POAImpl poa )
     {
-	// assert policies.retainServants() 
-	super( policies, poa ) ;
+        // assert policies.retainServants()
+        super( policies, poa ) ;
 
-	// policies.useActiveObjectMapOnly()
-	if (!policies.useActiveMapOnly())
-	    throw poa.invocationWrapper().policyMediatorBadPolicyInFactory() ;
-    }
-    
-    protected java.lang.Object internalGetServant( byte[] id, 
-	String operation ) throws ForwardRequest
-    { 
-	java.lang.Object servant = internalIdToServant( id ) ;
-	if (servant == null)
-	    servant = new NullServantImpl( 
-		poa.invocationWrapper().nullServant() ) ;
-	return servant ;
+        // policies.useActiveObjectMapOnly()
+        if (!policies.useActiveMapOnly())
+            throw poa.invocationWrapper().policyMediatorBadPolicyInFactory() ;
     }
 
-    public void etherealizeAll() 
-    {	
-	// NO-OP
+    protected java.lang.Object internalGetServant( byte[] id,
+        String operation ) throws ForwardRequest
+    {
+        java.lang.Object servant = internalIdToServant( id ) ;
+        if (servant == null)
+            servant = new NullServantImpl(
+                poa.invocationWrapper().nullServant() ) ;
+        return servant ;
+    }
+
+    public void etherealizeAll()
+    {
+        // NO-OP
     }
 
     public ServantManager getServantManager() throws WrongPolicy
@@ -61,30 +79,30 @@ public class POAPolicyMediatorImpl_R_AOM extends POAPolicyMediatorBase_R {
         throw new WrongPolicy();
     }
 
-    public void setServantManager( ServantManager servantManager ) 
-	throws WrongPolicy
+    public void setServantManager( ServantManager servantManager )
+        throws WrongPolicy
     {
         throw new WrongPolicy();
     }
 
-    public Servant getDefaultServant() throws NoServant, WrongPolicy 
+    public Servant getDefaultServant() throws NoServant, WrongPolicy
     {
-	throw new WrongPolicy();
+        throw new WrongPolicy();
     }
 
     public void setDefaultServant( Servant servant ) throws WrongPolicy
     {
-	throw new WrongPolicy();
+        throw new WrongPolicy();
     }
 
-    public Servant idToServant( byte[] id ) 
-	throws WrongPolicy, ObjectNotActive
+    public Servant idToServant( byte[] id )
+        throws WrongPolicy, ObjectNotActive
     {
-	Servant s = internalIdToServant( id ) ; 
+        Servant s = internalIdToServant( id ) ;
 
-	if (s == null)
-	    throw new ObjectNotActive() ;
-	else
-	    return s;                
+        if (s == null)
+            throw new ObjectNotActive() ;
+        else
+            return s;
     }
 }

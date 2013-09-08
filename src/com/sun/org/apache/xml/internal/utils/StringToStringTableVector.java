@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,7 +57,7 @@ public class StringToStringTableVector
   /**
    * Construct a StringToStringTableVector, using the given block size.
    *
-   * @param blocksize Size of blocks to allocate 
+   * @param blocksize Size of blocks to allocate
    */
   public StringToStringTableVector(int blocksize)
   {
@@ -134,7 +138,7 @@ public class StringToStringTableVector
    * Given a string, find out if there is a value in this table
    * that matches the key.
    *
-   * @param key String to look for  
+   * @param key String to look for
    *
    * @return True if the string was found in table, null if not
    */

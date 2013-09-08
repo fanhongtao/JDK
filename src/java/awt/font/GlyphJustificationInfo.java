@@ -1,8 +1,26 @@
 /*
- * @(#)GlyphJustificationInfo.java	1.25 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -23,7 +41,7 @@ package java.awt.font;
 
 /**
  * The <code>GlyphJustificationInfo</code> class represents information
- * about the justification properties of a glyph.  A glyph is the visual 
+ * about the justification properties of a glyph.  A glyph is the visual
  * representation of one or more characters.  Many different glyphs can
  * be used to represent a single character or combination of characters.
  * The four justification properties represented by
@@ -82,13 +100,13 @@ public final class GlyphJustificationInfo {
      * of this glyph can shrink.  Must be non-negative.
      */
      public GlyphJustificationInfo(float weight,
-                                  boolean growAbsorb, 
+                                  boolean growAbsorb,
                                   int growPriority,
                                   float growLeftLimit,
                                   float growRightLimit,
-                                  boolean shrinkAbsorb, 
+                                  boolean shrinkAbsorb,
                                   int shrinkPriority,
-                                  float shrinkLeftLimit, 
+                                  float shrinkLeftLimit,
                                   float shrinkRightLimit)
     {
         if (weight < 0) {
@@ -147,45 +165,45 @@ public final class GlyphJustificationInfo {
      * The weight of this glyph.
      */
     public final float weight;
-    
+
     /**
      * The priority level of this glyph as it is growing.
      */
     public final int growPriority;
-    
+
     /**
      * If <code>true</code>, this glyph absorbs all extra
      * space at this and lower priority levels when it grows.
      */
     public final boolean growAbsorb;
-    
+
     /**
      * The maximum amount by which the left side of this glyph can grow.
      */
     public final float growLeftLimit;
-    
+
     /**
      * The maximum amount by which the right side of this glyph can grow.
      */
     public final float growRightLimit;
-    
+
     /**
      * The priority level of this glyph as it is shrinking.
      */
     public final int shrinkPriority;
-    
+
     /**
      * If <code>true</code>,this glyph absorbs all remaining shrinkage at
      * this and lower priority levels as it shrinks.
      */
     public final boolean shrinkAbsorb;
-    
+
     /**
      * The maximum amount by which the left side of this glyph can shrink
      * (a positive number).
      */
     public final float shrinkLeftLimit;
-    
+
     /**
      * The maximum amount by which the right side of this glyph can shrink
      * (a positive number).

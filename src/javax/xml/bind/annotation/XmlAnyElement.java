@@ -1,6 +1,26 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.bind.annotation;
@@ -10,7 +30,6 @@ import org.w3c.dom.Element;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.bind.annotation.*;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.List;
@@ -23,12 +42,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Maps a JavaBean property to XML infoset representation and/or JAXB element.
  *
  * <p>
- * This annotation serves as a "catch-all" property while unmarshalling 
+ * This annotation serves as a "catch-all" property while unmarshalling
  * xml content into a instance of a JAXB annotated class. It typically
  * annotates a multi-valued JavaBean property, but it can occur on
- * single value JavaBean property. During unmarshalling, each xml element 
- * that does not match a static &#64;XmlElement or &#64;XmlElementRef 
- * annotation for the other JavaBean properties on the class, is added to this 
+ * single value JavaBean property. During unmarshalling, each xml element
+ * that does not match a static &#64;XmlElement or &#64;XmlElementRef
+ * annotation for the other JavaBean properties on the class, is added to this
  * "catch-all" property.
  *
  * <p>
@@ -36,7 +55,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <pre>
  * &#64;XmlAnyElement
  * public {@link Element}[] others;
- * 
+ *
  * // Collection of {@link Element} or JAXB elements.
  * &#64;XmlAnyElement(lax="true")
  * public {@link Object}[] others;
@@ -61,7 +80,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <h2>Relationship to other annotations</h2>
  * <p>
  * This annotation can be used with {@link XmlJavaTypeAdapter}, so that users
- * can map their own data structure to DOM, which in turn can be composed 
+ * can map their own data structure to DOM, which in turn can be composed
  * into XML.
  *
  * <p>
@@ -76,15 +95,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <h2>Schema To Java example</h2>
  *
  * The following schema would produce the following Java class:
- * <pre><xmp>
- * <xs:complexType name="foo">
- *   <xs:sequence>
- *     <xs:element name="a" type="xs:int" />
- *     <xs:element name="b" type="xs:int" />
- *     <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
- *   </xs:sequence>
- * </xs:complexType>
- * </xmp></pre>
+ * <pre>
+ * &lt;xs:complexType name="foo">
+ *   &lt;xs:sequence>
+ *     &lt;xs:element name="a" type="xs:int" />
+ *     &lt;xs:element name="b" type="xs:int" />
+ *     &lt;xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+ *   &lt;/xs:sequence>
+ * &lt;/xs:complexType>
+ * </pre>
  *
  * <pre>
  * class Foo {
@@ -97,51 +116,51 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *
  * It can unmarshal instances like
  *
- * <pre><xmp>
- * <foo xmlns:e="extra">
- *   <a>1</a>
- *   <e:other />  // this will be bound to DOM, because unmarshalling is orderless
- *   <b>3</b>
- *   <e:other />
- *   <c>5</c>     // this will be bound to DOM, because the annotation doesn't remember namespaces.
- * </foo>
- * </xmp></pre>
+ * <pre>
+ * &lt;foo xmlns:e="extra">
+ *   &lt;a>1</a>
+ *   &lt;e:other />  // this will be bound to DOM, because unmarshalling is orderless
+ *   &lt;b>3</b>
+ *   &lt;e:other />
+ *   &lt;c>5</c>     // this will be bound to DOM, because the annotation doesn't remember namespaces.
+ * &lt;/foo>
+ * </pre>
  *
  *
  *
  * The following schema would produce the following Java class:
- * <pre><xmp>
- * <xs:complexType name="bar">
- *   <xs:complexContent>
- *   <xs:extension base="foo">
- *     <xs:sequence>
- *       <xs:element name="c" type="xs:int" />
- *       <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
- *     </xs:sequence>
- *   </xs:extension>
- * </xs:complexType>
- * </xmp></pre>
+ * <pre>
+ * &lt;xs:complexType name="bar">
+ *   &lt;xs:complexContent>
+ *   &lt;xs:extension base="foo">
+ *     &lt;xs:sequence>
+ *       &lt;xs:element name="c" type="xs:int" />
+ *       &lt;xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+ *     &lt;/xs:sequence>
+ *   &lt;/xs:extension>
+ * &lt;/xs:complexType>
+ * </pre>
  *
- * <pre><xmp>
+ * <pre>
  * class Bar extends Foo {
  *   int c;
  *   // Foo.getAny() also represents wildcard content for type definition bar.
  * }
- * </xmp></pre>
+ * </pre>
  *
  *
  * It can unmarshal instances like
  *
- * <pre><xmp>
- * <bar xmlns:e="extra">
- *   <a>1</a>
- *   <e:other />  // this will be bound to DOM, because unmarshalling is orderless
- *   <b>3</b>
- *   <e:other />
- *   <c>5</c>     // this now goes to Bar.c
- *   <e:other />  // this will go to Foo.any
- * </bar>
- * </xmp></pre>
+ * <pre>
+ * &lt;bar xmlns:e="extra">
+ *   &lt;a>1</a>
+ *   &lt;e:other />  // this will be bound to DOM, because unmarshalling is orderless
+ *   &lt;b>3</b>
+ *   &lt;e:other />
+ *   &lt;c>5</c>     // this now goes to Bar.c
+ *   &lt;e:other />  // this will go to Foo.any
+ * &lt;/bar>
+ * </pre>
  *
  *
  *
@@ -153,15 +172,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *
  * <p>
  * The following schema would produce the following Java class:
- * <pre><xmp>
- * <xs:complexType name="foo">
- *   <xs:choice maxOccurs="unbounded" minOccurs="0">
- *     <xs:element name="a" type="xs:int" />
- *     <xs:element name="b" type="xs:int" />
- *     <xs:any namespace="##other" processContents="lax" />
- *   </xs:choice>
- * </xs:complexType>
- * </xmp></pre>
+ * <pre>
+ * &lt;xs:complexType name="foo">
+ *   &lt;xs:choice maxOccurs="unbounded" minOccurs="0">
+ *     &lt;xs:element name="a" type="xs:int" />
+ *     &lt;xs:element name="b" type="xs:int" />
+ *     &lt;xs:any namespace="##other" processContents="lax" />
+ *   &lt;/xs:choice>
+ * &lt;/xs:complexType>
+ * </pre>
  *
  * <pre>
  * class Foo {
@@ -185,13 +204,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *
  * It can unmarshal instances like
  *
- * <pre><xmp>
- * <foo xmlns:e="extra">
- *   <a>1</a>     // this will unmarshal to a {@link JAXBElement} instance whose value is 1.
- *   <e:other />  // this will unmarshal to a DOM {@link Element}.
- *   <b>3</b>     // this will unmarshal to a {@link JAXBElement} instance whose value is 1.
- * </foo>
- * </xmp></pre>
+ * <pre>
+ * &lt;foo xmlns:e="extra">
+ *   &lt;a>1</a>     // this will unmarshal to a {@link JAXBElement} instance whose value is 1.
+ *   &lt;e:other />  // this will unmarshal to a DOM {@link Element}.
+ *   &lt;b>3</b>     // this will unmarshal to a {@link JAXBElement} instance whose value is 1.
+ * &lt;/foo>
+ * </pre>
  *
  *
  *
@@ -207,11 +226,11 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * }
  * </pre>
  * then the following document will unmarshal like this:
- * <pre><xmp>
- * <foo>
- *   <unknown />
- *   <foo />
- * </foo>
+ * <pre>
+ * &lt;foo>
+ *   &lt;unknown />
+ *   &lt;foo />
+ * &lt;/foo>
  *
  * Foo foo = unmarshal();
  * // 1 for 'unknown', another for 'foo'
@@ -221,8 +240,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * // because of lax=true, the 'foo' element eagerly
  * // unmarshals to a Foo object.
  * assert foo.others[1] instanceof Foo;
- * </xmp></pre>
- *
+ * </pre>
  *
  * @author Kohsuke Kawaguchi
  * @since JAXB2.0
@@ -250,7 +268,7 @@ public @interface XmlAnyElement {
      * instead of unmarshalling it to DOM. Additionally, if the element is
      * unknown but it has a known xsi:type, the unmarshaller eagerly unmarshals
      * the element to a {@link JAXBElement}, with the unknown element name and
-     * the JAXBElement value is set to an instance of the JAXB mapping of the 
+     * the JAXBElement value is set to an instance of the JAXB mapping of the
      * known xsi:type.
      *
      * <p>

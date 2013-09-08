@@ -1,8 +1,26 @@
 /*
- * @(#)LimitExceededException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -27,7 +45,6 @@ import javax.naming.Name;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
 
@@ -37,7 +54,7 @@ public class LimitExceededException extends NamingException {
       * all name resolution fields and explanation initialized to null.
      */
     public LimitExceededException() {
-	super();
+        super();
     }
 
     /**
@@ -47,7 +64,7 @@ public class LimitExceededException extends NamingException {
      * @see java.lang.Throwable#getMessage
      */
     public LimitExceededException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**

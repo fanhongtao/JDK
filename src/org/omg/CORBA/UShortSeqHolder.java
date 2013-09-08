@@ -1,14 +1,32 @@
 /*
- * @(#)UShortSeqHolder.java	1.12 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package org.omg.CORBA;
 
 
 /**
-* The Holder for <tt>UShortSeq</tt>.  For more information on 
+* The Holder for <tt>UShortSeq</tt>.  For more information on
 * Holder files, see <a href="doc-files/generatedfiles.html#holder">
 * "Generated Files: Holder Files"</a>.<P>
 * org/omg/CORBA/UShortSeqHolder.java
@@ -27,22 +45,22 @@ public final class UShortSeqHolder implements org.omg.CORBA.portable.Streamable
 
     public UShortSeqHolder (short[] initialValue)
     {
-	value = initialValue;
+        value = initialValue;
     }
 
     public void _read (org.omg.CORBA.portable.InputStream i)
     {
-	value = org.omg.CORBA.UShortSeqHelper.read (i);
+        value = org.omg.CORBA.UShortSeqHelper.read (i);
     }
 
     public void _write (org.omg.CORBA.portable.OutputStream o)
     {
-	org.omg.CORBA.UShortSeqHelper.write (o, value);
+        org.omg.CORBA.UShortSeqHelper.write (o, value);
     }
 
     public org.omg.CORBA.TypeCode _type ()
     {
-	return org.omg.CORBA.UShortSeqHelper.type ();
+        return org.omg.CORBA.UShortSeqHelper.type ();
     }
 
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -59,15 +63,14 @@ import com.sun.org.apache.bcel.internal.util.ByteSequence;
 import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.classfile.*;
 
-/** 
- * Abstract super class for instructions that use an index into the 
+/**
+ * Abstract super class for instructions that use an index into the
  * constant pool such as LDC, INVOKEVIRTUAL, etc.
  *
  * @see ConstantPoolGen
  * @see LDC
  * @see INVOKEVIRTUAL
  *
- * @version $Id: CPInstruction.java,v 1.1.2.1 2005/07/31 23:44:45 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class CPInstruction extends Instruction
@@ -101,7 +104,7 @@ public abstract class CPInstruction extends Instruction
   /**
    * Long output format:
    *
-   * &lt;name of opcode&gt; "["&lt;opcode number&gt;"]" 
+   * &lt;name of opcode&gt; "["&lt;opcode number&gt;"]"
    * "("&lt;length of instruction&gt;")" "&lt;"&lt; constant pool index&gt;"&gt;"
    *
    * @param verbose long/short format switch
@@ -145,7 +148,7 @@ public abstract class CPInstruction extends Instruction
    * Set the index to constant pool.
    * @param index in  constant pool.
    */
-  public void setIndex(int index) { 
+  public void setIndex(int index) {
     if(index < 0)
       throw new ClassGenException("Negative index value: " + index);
 

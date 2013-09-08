@@ -1,8 +1,26 @@
 /*
- * @(#)ServiceInformation.java	1.13 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -35,10 +53,9 @@ public final class ServiceInformation implements org.omg.CORBA.portable.IDLEntit
     * details.
     */
     public ServiceInformation(int[] __service_options,
-			      org.omg.CORBA.ServiceDetail[] __service_details)
+                              org.omg.CORBA.ServiceDetail[] __service_details)
     {
         service_options = __service_options;
         service_details = __service_details;
     }
 }
-

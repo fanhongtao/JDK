@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,11 +36,11 @@ import java.util.ResourceBundle;
  * messages that those keys map to are defined here.
  * <p>
  * The messages in the English version are intended to be
- * translated. 
- * 
- * This class is not a public API, it is only public because it is 
+ * translated.
+ *
+ * This class is not a public API, it is only public because it is
  * used in com.sun.org.apache.xml.internal.serializer.
- * 
+ *
  * @xsl.usage internal
  */
 public class SerializerMessages extends ListResourceBundle {
@@ -46,11 +50,11 @@ public class SerializerMessages extends ListResourceBundle {
      * Serializer Error Handling.
      *
      *  General notes to translators:
-    
+
      *  1) A stylesheet is a description of how to transform an input XML document
      *     into a resultant XML document (or HTML document or text).  The
      *     stylesheet itself is described in the form of an XML document.
-    
+
      *
      *  2) An element is a mark-up tag in an XML document; an attribute is a
      *     modifier on the tag.  For example, in <elem attr='val' attr2='val2'>
@@ -70,7 +74,7 @@ public class SerializerMessages extends ListResourceBundle {
         Object[][] contents = new Object[][] {
             {   MsgKey.BAD_MSGKEY,
                 "The message key ''{0}'' is not in the message class ''{1}''" },
-                
+
             {   MsgKey.BAD_MSGFORMAT,
                 "The format of message ''{0}'' in message class ''{1}'' failed." },
 
@@ -83,14 +87,14 @@ public class SerializerMessages extends ListResourceBundle {
             {   MsgKey.ER_RESOURCE_COULD_NOT_LOAD,
                     "The resource [ {0} ] could not load: {1} \n {2} \t {3}" },
 
-            {   MsgKey.ER_BUFFER_SIZE_LESSTHAN_ZERO, 
-                    "Buffer size <=0" }, 
+            {   MsgKey.ER_BUFFER_SIZE_LESSTHAN_ZERO,
+                    "Buffer size <=0" },
 
             {   MsgKey.ER_INVALID_UTF16_SURROGATE,
                     "Invalid UTF-16 surrogate detected: {0} ?" },
 
-            {   MsgKey.ER_OIERROR, 
-                "IO error" }, 
+            {   MsgKey.ER_OIERROR,
+                "IO error" },
 
             {   MsgKey.ER_ILLEGAL_ATTRIBUTE_POSITION,
                 "Cannot add attribute {0} after child nodes or before an element is produced.  Attribute will be ignored." },
@@ -99,7 +103,7 @@ public class SerializerMessages extends ListResourceBundle {
              * Note to translators:  The stylesheet contained a reference to a
              * namespace prefix that was undefined.  The value of the substitution
              * text is the name of the prefix.
-             */ 
+             */
             {   MsgKey.ER_NAMESPACE_PREFIX,
                 "Namespace for prefix ''{0}'' has not been declared." },
 
@@ -108,7 +112,7 @@ public class SerializerMessages extends ListResourceBundle {
              * being processed attempted to construct an XML document with an
              * attribute in a place other than on an element.  The substitution text
              * specifies the name of the attribute.
-             */ 
+             */
             {   MsgKey.ER_STRAY_ATTRIBUTE,
                 "Attribute ''{0}'' outside of element." },
 
@@ -118,7 +122,7 @@ public class SerializerMessages extends ListResourceBundle {
              * appear on an element.  The substitution text {0} is the namespace
              * prefix and {1} is the URI that was being used in the erroneous
              * namespace declaration.
-             */ 
+             */
             {   MsgKey.ER_STRAY_NAMESPACE,
                 "Namespace declaration ''{0}''=''{1}'' outside of element." },
 
@@ -131,8 +135,8 @@ public class SerializerMessages extends ListResourceBundle {
             {   MsgKey.ER_COULD_NOT_LOAD_METHOD_PROPERTY,
                 "Could not load the propery file ''{0}'' for output method ''{1}'' (check CLASSPATH)" },
 
-            {   MsgKey.ER_INVALID_PORT, 
-                "Invalid port number" }, 
+            {   MsgKey.ER_INVALID_PORT,
+                "Invalid port number" },
 
             {   MsgKey.ER_PORT_WHEN_HOST_NULL,
                 "Port cannot be set when host is null" },
@@ -161,8 +165,8 @@ public class SerializerMessages extends ListResourceBundle {
             {   MsgKey.ER_FRAG_FOR_GENERIC_URI,
                 "Fragment can only be set for a generic URI" },
 
-            {   MsgKey.ER_NO_SCHEME_IN_URI, 
-                "No scheme found in URI" }, 
+            {   MsgKey.ER_NO_SCHEME_IN_URI,
+                "No scheme found in URI" },
 
             {   MsgKey.ER_CANNOT_INIT_URI_EMPTY_PARMS,
                 "Cannot initialize URI with empty parameters" },
@@ -182,20 +186,20 @@ public class SerializerMessages extends ListResourceBundle {
             {   MsgKey.ER_XML_VERSION_NOT_SUPPORTED,
                 "Warning:  The version of the output document is requested to be ''{0}''.  This version of XML is not supported.  The version of the output document will be ''1.0''." },
 
-            {   MsgKey.ER_SCHEME_REQUIRED, 
+            {   MsgKey.ER_SCHEME_REQUIRED,
                 "Scheme is required!" },
-                
+
             /*
              * Note to translators:  The words 'Properties' and
              * 'SerializerFactory' in this message are Java class names
              * and should not be translated.
-             */    
+             */
             {   MsgKey.ER_FACTORY_PROPERTY_MISSING,
                 "The Properties object passed to the SerializerFactory does not have a ''{0}'' property." },
 
             {   MsgKey.ER_ENCODING_NOT_SUPPORTED,
                 "Warning:  The encoding ''{0}'' is not supported by the Java runtime." },
-                
+
 
         };
 

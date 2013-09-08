@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -56,12 +60,11 @@ package com.sun.org.apache.bcel.internal.generic;
 import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.ExceptionConstants;
 
-/** 
+/**
  * INVOKEVIRTUAL - Invoke instance method; dispatch based on class
  *
  * <PRE>Stack: ..., objectref, [arg1, [arg2 ...]] -&gt; ...</PRE>
  *
- * @version $Id: INVOKEVIRTUAL.java,v 1.1.2.1 2005/07/31 23:45:19 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class INVOKEVIRTUAL extends InvokeInstruction {
@@ -79,7 +82,7 @@ public class INVOKEVIRTUAL extends InvokeInstruction {
     Class[] cs = new Class[4 + ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length];
 
     System.arraycopy(ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION, 0,
-		     cs, 0, ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length);
+                     cs, 0, ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length);
 
     cs[ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length+3] = ExceptionConstants.UNSATISFIED_LINK_ERROR;
     cs[ExceptionConstants.EXCS_FIELD_AND_METHOD_RESOLUTION.length+2] = ExceptionConstants.ABSTRACT_METHOD_ERROR;

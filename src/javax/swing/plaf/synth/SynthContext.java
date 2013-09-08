@@ -1,8 +1,26 @@
 /*
- * @(#)SynthContext.java	1.10 05/11/17
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
@@ -17,12 +35,11 @@ import java.util.*;
  * a <code>SynthContext</code> that is passed to you and expect it to
  * remain valid.
  *
- * @version 1.10, 11/17/05
  * @since 1.5
  * @author Scott Violet
  */
 public class SynthContext {
-    private static final Map contextMap;
+    private static final Map<Class, List<SynthContext>> contextMap;
 
     private JComponent component;
     private Region region;
@@ -31,7 +48,7 @@ public class SynthContext {
 
 
     static {
-        contextMap = new HashMap();
+        contextMap = new HashMap<Class, List<SynthContext>>();
     }
 
 
@@ -41,13 +58,13 @@ public class SynthContext {
         SynthContext context = null;
 
         synchronized(contextMap) {
-            java.util.List instances = (java.util.List)contextMap.get(type);
+            List<SynthContext> instances = contextMap.get(type);
 
             if (instances != null) {
                 int size = instances.size();
 
                 if (size > 0) {
-                    context = (SynthContext)instances.remove(size - 1);
+                    context = instances.remove(size - 1);
                 }
             }
         }
@@ -64,11 +81,10 @@ public class SynthContext {
 
     static void releaseContext(SynthContext context) {
         synchronized(contextMap) {
-            java.util.List instances = (java.util.List)contextMap.get(
-                                       context.getClass());
+            List<SynthContext> instances = contextMap.get(context.getClass());
 
             if (instances == null) {
-                instances = new ArrayList(5);
+                instances = new ArrayList<SynthContext>(5);
                 contextMap.put(context.getClass(), instances);
             }
             instances.add(context);
@@ -103,7 +119,7 @@ public class SynthContext {
     /**
      * Returns the hosting component containing the region.
      *
-     * @return Hosting Component 
+     * @return Hosting Component
      */
     public JComponent getComponent() {
         return component;

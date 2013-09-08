@@ -1,8 +1,26 @@
 /*
- * @(#)CorbaInvocationInfo.java	1.19 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol;
@@ -19,7 +37,7 @@ import com.sun.corba.se.pept.protocol.ClientRequestDispatcher;
 /**
  * @author Harold Carr
  */
-public class CorbaInvocationInfo implements ClientInvocationInfo 
+public class CorbaInvocationInfo implements ClientInvocationInfo
 {
     // REVISIT - these needs to be an interface-based impl.
 
@@ -29,64 +47,64 @@ public class CorbaInvocationInfo implements ClientInvocationInfo
     private Iterator contactInfoListIterator;
     private ClientRequestDispatcher clientRequestDispatcher;
     private MessageMediator messageMediator;
-    
-    private CorbaInvocationInfo() 
+
+    private CorbaInvocationInfo()
     {
     }
 
-    public CorbaInvocationInfo(ORB orb) 
+    public CorbaInvocationInfo(ORB orb)
     {
-	this.orb = orb;
-	isRetryInvocation = false;
-	entryCount = 0;
+        this.orb = orb;
+        isRetryInvocation = false;
+        entryCount = 0;
     }
-    
-    public Iterator getContactInfoListIterator() 
+
+    public Iterator getContactInfoListIterator()
     {
-	return contactInfoListIterator;
+        return contactInfoListIterator;
     }
-    
+
     public void setContactInfoListIterator(Iterator contactInfoListIterator)
     {
-	this.contactInfoListIterator = contactInfoListIterator;
+        this.contactInfoListIterator = contactInfoListIterator;
     }
-    
-    public boolean isRetryInvocation() 
+
+    public boolean isRetryInvocation()
     {
-	return isRetryInvocation;
+        return isRetryInvocation;
     }
-    
-    public void setIsRetryInvocation(boolean isRetryInvocation) 
+
+    public void setIsRetryInvocation(boolean isRetryInvocation)
     {
-	this.isRetryInvocation = isRetryInvocation;
+        this.isRetryInvocation = isRetryInvocation;
     }
-    
-    public int getEntryCount() 
+
+    public int getEntryCount()
     {
-	return entryCount;
+        return entryCount;
     }
-    
-    public void incrementEntryCount() 
+
+    public void incrementEntryCount()
     {
-	entryCount++;
+        entryCount++;
     }
-    
-    public void decrementEntryCount() 
+
+    public void decrementEntryCount()
     {
-	entryCount--;
+        entryCount--;
     }
-    
+
     public void setClientRequestDispatcher(ClientRequestDispatcher clientRequestDispatcher)
     {
-	this.clientRequestDispatcher = clientRequestDispatcher;
+        this.clientRequestDispatcher = clientRequestDispatcher;
     }
 
     public ClientRequestDispatcher getClientRequestDispatcher()
     {
-	return clientRequestDispatcher;
+        return clientRequestDispatcher;
     }
 
-    public void setMessageMediator(MessageMediator messageMediator) 
+    public void setMessageMediator(MessageMediator messageMediator)
     {
         this.messageMediator = messageMediator;
     }

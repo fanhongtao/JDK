@@ -1,8 +1,26 @@
 /*
- * @(#)SynthBorder.java	1.15 06/11/30
+ * Copyright (c) 2002, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.synth;
 
@@ -11,13 +29,11 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import javax.swing.border.*;
 import javax.swing.plaf.UIResource;
-import sun.swing.plaf.synth.SynthUI;
 
 /**
  * SynthBorder is a border that delegates to a Painter. The Insets
  * are determined at construction time.
  *
- * @version 1.15, 11/30/06
  * @author Scott Violet
  */
 class SynthBorder extends AbstractBorder implements UIResource {
@@ -48,19 +64,7 @@ class SynthBorder extends AbstractBorder implements UIResource {
     }
 
     /**
-     * This default implementation returns a new <code>Insets</code>
-     * instance where the <code>top</code>, <code>left</code>,
-     * <code>bottom</code>, and 
-     * <code>right</code> fields are set to <code>0</code>.
-     * @param c the component for which this border insets value applies
-     * @return the new <code>Insets</code> object initialized to 0
-     */
-    public Insets getBorderInsets(Component c) { 
-        return getBorderInsets(c, null);
-    }
-
-    /** 
-     * Reinitializes the insets parameter with this Border's current Insets. 
+     * Reinitializes the insets parameter with this Border's current Insets.
      * @param c the component for which this border insets value applies
      * @param insets the object to be reinitialized
      * @return the <code>insets</code> object

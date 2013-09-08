@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,17 +22,16 @@ package com.sun.org.apache.xerces.internal.dom.events;
 import org.w3c.dom.events.Event;
 import org.w3c.dom.events.EventTarget;
 
-/**  
+/**
  * EventImpl is an implementation of the basic "generic" DOM Level 2 Event
  * object. It may be subclassed by more specialized event sets.
  * Note that in our implementation, events are re-dispatchable (dispatch
  * clears the stopPropagation and preventDefault flags before it starts);
  * I believe that is the DOM's intent but I don't see an explicit statement
  * to this effect.
- *   
- * @xerces.internal 
  *
- * @version $Id: EventImpl.java,v 1.2.6.1 2005/08/30 10:05:22 sunithareddy Exp $
+ * @xerces.internal
+ *
  */
 public class EventImpl implements Event
 {
@@ -38,7 +41,7 @@ public class EventImpl implements Event
     public short eventPhase;
     public boolean initialized=false, bubbles=true, cancelable=false;
     public boolean stopPropagation=false, preventDefault=false;
-     
+
     protected long timeStamp = System.currentTimeMillis();
 
     /** The DOM doesn't deal with constructors, so instead we have an
@@ -50,16 +53,16 @@ public class EventImpl implements Event
         initializations overwrite the event with new values of their
         parameters.
     */
-    public void initEvent(String eventTypeArg, boolean canBubbleArg, 
+    public void initEvent(String eventTypeArg, boolean canBubbleArg,
                         boolean cancelableArg)
     {
             type=eventTypeArg;
             bubbles=canBubbleArg;
             cancelable=cancelableArg;
-            
+
             initialized=true;
     }
-    
+
     /** @return true iff this Event is of a class and type which supports
         bubbling. In the generic case, this is True.
         */
@@ -85,7 +88,7 @@ public class EventImpl implements Event
         return currentTarget;
     }
 
-    /** @return the current processing phase for this event -- 
+    /** @return the current processing phase for this event --
         CAPTURING_PHASE, AT_TARGET, BUBBLING_PHASE. (There may be
         an internal DEFAULT_PHASE as well, but the users won't see it.) */
     public short getEventPhase()
@@ -109,12 +112,12 @@ public class EventImpl implements Event
     }
 
     public long getTimeStamp() {
-	return timeStamp;
+        return timeStamp;
     }
 
     /** Causes exit from in-progress event dispatch before the next
-        currentTarget is selected. Replaces the preventBubble() and 
-        preventCapture() methods which were present in early drafts; 
+        currentTarget is selected. Replaces the preventBubble() and
+        preventCapture() methods which were present in early drafts;
         they may be reintroduced in future levels of the DOM. */
     public void stopPropagation()
     {

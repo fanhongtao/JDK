@@ -1,8 +1,26 @@
 /*
- * @(#)RMIServer.java	1.20 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.remote.rmi;
@@ -11,7 +29,7 @@ import java.io.IOException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-/** 
+/**
  * <p>RMI object used to establish connections to an RMI connector.
  * There is one Remote object implementing this interface for each RMI
  * connector.</p>
@@ -21,7 +39,6 @@ import java.rmi.RemoteException;
  * implementations of that API will interoperate.</p>
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public interface RMIServer extends Remote {
     /**

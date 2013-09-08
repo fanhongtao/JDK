@@ -1,8 +1,26 @@
 /*
- * @(#)Declaration.java	1.7 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.declaration;
@@ -26,15 +44,20 @@ import com.sun.mirror.util.*;
  * method.  There is no guarantee that any particular declaration will
  * always be represented by the same object.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  The replacement for the
+ * functionality of this interface is {@link
+ * javax.lang.model.element.Element}.
+ *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.7 05/11/17
  *
  * @see Declarations
  * @see TypeMirror
  * @since 1.5
  */
-
+@Deprecated
+@SuppressWarnings("deprecation")
 public interface Declaration {
 
     /**
@@ -42,7 +65,7 @@ public interface Declaration {
      *
      * @param obj  the object to be compared with this declaration
      * @return <tt>true</tt> if the specified object represents the same
-     *		declaration as this
+     *          declaration as this
      */
     boolean equals(Object obj);
 
@@ -51,7 +74,7 @@ public interface Declaration {
      * this declaration.
      *
      * @return the documentation comment of this declaration, or <tt>null</tt>
-     *		if there is none
+     *          if there is none
      */
     String getDocComment();
 
@@ -59,7 +82,7 @@ public interface Declaration {
      * Returns the annotations that are directly present on this declaration.
      *
      * @return the annotations directly present on this declaration;
-     *		an empty collection if there are none
+     *          an empty collection if there are none
      */
     Collection<AnnotationMirror> getAnnotationMirrors();
 
@@ -92,7 +115,7 @@ public interface Declaration {
      *
      * @param <A>  the annotation type
      * @param annotationType  the <tt>Class</tt> object corresponding to
-     *		the annotation type
+     *          the annotation type
      * @return the annotation of this declaration having the specified type
      *
      * @see #getAnnotationMirrors()
@@ -105,7 +128,7 @@ public interface Declaration {
      * modifiers of interface members, are included.
      *
      * @return the modifiers of this declaration in undefined order;
-     *		an empty collection if there are none
+     *          an empty collection if there are none
      */
     Collection<Modifier> getModifiers();
 
@@ -133,7 +156,7 @@ public interface Declaration {
      * begins.
      *
      * @return the source position of the beginning of this declaration,
-     *		or null if the position is unknown or not applicable
+     *          or null if the position is unknown or not applicable
      */
     SourcePosition getPosition();
 

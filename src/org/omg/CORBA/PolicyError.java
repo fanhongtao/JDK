@@ -1,8 +1,26 @@
 /*
- * @(#)PolicyError.java	1.18 05/11/17
+ * Copyright (c) 1998, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -16,7 +34,7 @@ package org.omg.CORBA;
 
 public final class PolicyError extends org.omg.CORBA.UserException {
 
-    /** 
+    /**
      * The reason for the <code>PolicyError</code> exception being thrown.
      * @serial
      */
@@ -27,7 +45,7 @@ public final class PolicyError extends org.omg.CORBA.UserException {
      * with no reason code and an empty reason detail message.
      */
     public PolicyError() {
-	super();
+        super();
     }
 
     /**
@@ -36,8 +54,8 @@ public final class PolicyError extends org.omg.CORBA.UserException {
      * @param __reason the reason code.
      */
     public PolicyError(short __reason) {
-	super();
-	reason = __reason;
+        super();
+        reason = __reason;
     }
 
     /**
@@ -47,7 +65,7 @@ public final class PolicyError extends org.omg.CORBA.UserException {
      * @param __reason the reason code.
      */
     public PolicyError(String reason_string, short __reason) {
-	super(reason_string);
-	reason = __reason;
+        super(reason_string);
+        reason = __reason;
     }
 }

@@ -1,3 +1,31 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream.events;
 
 import javax.xml.namespace.QName;
@@ -8,11 +36,11 @@ import java.util.Iterator;
 
 /**
  * The StartElement interface provides access to information about
- * start elements.  A StartElement is reported for each Start Tag 
- * in the document.  
+ * start elements.  A StartElement is reported for each Start Tag
+ * in the document.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @since 1.6
  */
 public interface StartElement extends XMLEvent {
@@ -24,7 +52,7 @@ public interface StartElement extends XMLEvent {
   public QName getName();
 
   /**
-   * Returns an Iterator of non-namespace declared attributes declared on 
+   * Returns an Iterator of non-namespace declared attributes declared on
    * this START_ELEMENT,
    * returns an empty iterator if there are no attributes.  The
    * iterator must contain only implementations of the javax.xml.stream.Attribute
@@ -43,13 +71,13 @@ public interface StartElement extends XMLEvent {
    * Therefore this list may contain redeclared namespaces and duplicate namespace
    * declarations. Use the getNamespaceContext() method to get the
    * current context of namespace declarations.
-   *  
-   * <p>The iterator must contain only implementations of the 
+   *
+   * <p>The iterator must contain only implementations of the
    * javax.xml.stream.Namespace interface.
-   * 
+   *
    * <p>A Namespace isA Attribute.  One
-   * can iterate over a list of namespaces as a list of attributes.  
-   * However this method returns only the list of namespaces 
+   * can iterate over a list of namespaces as a list of attributes.
+   * However this method returns only the list of namespaces
    * declared on this START_ELEMENT and does not
    * include the attributes declared on this START_ELEMENT.
    *
@@ -69,7 +97,7 @@ public interface StartElement extends XMLEvent {
   public Attribute getAttributeByName(QName name);
 
   /**
-   * Gets a read-only namespace context. If no context is 
+   * Gets a read-only namespace context. If no context is
    * available this method will return an empty namespace context.
    * The NamespaceContext contains information about all namespaces
    * in scope for this StartElement.
@@ -80,7 +108,7 @@ public interface StartElement extends XMLEvent {
 
   /**
    * Gets the value that the prefix is bound to in the
-   * context of this element.  Returns null if 
+   * context of this element.  Returns null if
    * the prefix is not bound in this context
    * @param prefix the prefix to lookup
    * @return the uri bound to the prefix or null

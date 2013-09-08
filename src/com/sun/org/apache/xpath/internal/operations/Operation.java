@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,15 +42,15 @@ public class Operation extends Expression implements ExpressionOwner
   /** The right operand expression.
    *  @serial */
   protected Expression m_right;
-  
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -141,7 +145,7 @@ public class Operation extends Expression implements ExpressionOwner
   public Expression getRightOperand(){
     return m_right;
   }
-  
+
   class LeftExprOwner implements ExpressionOwner
   {
     /**
@@ -157,8 +161,8 @@ public class Operation extends Expression implements ExpressionOwner
      */
     public void setExpression(Expression exp)
     {
-    	exp.exprSetParent(Operation.this);
-    	m_left = exp;
+        exp.exprSetParent(Operation.this);
+        m_left = exp;
     }
   }
 
@@ -167,11 +171,11 @@ public class Operation extends Expression implements ExpressionOwner
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	if(visitor.visitBinaryOperation(owner, this))
-  	{
-  		m_left.callVisitors(new LeftExprOwner(), visitor);
-  		m_right.callVisitors(this, visitor);
-  	}
+        if(visitor.visitBinaryOperation(owner, this))
+        {
+                m_left.callVisitors(new LeftExprOwner(), visitor);
+                m_right.callVisitors(this, visitor);
+        }
   }
 
   /**
@@ -187,8 +191,8 @@ public class Operation extends Expression implements ExpressionOwner
    */
   public void setExpression(Expression exp)
   {
-  	exp.exprSetParent(this);
-  	m_right = exp;
+        exp.exprSetParent(this);
+        m_right = exp;
   }
 
   /**
@@ -196,15 +200,15 @@ public class Operation extends Expression implements ExpressionOwner
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!isSameClass(expr))
-  		return false;
-  		
-  	if(!m_left.deepEquals(((Operation)expr).m_left))
-  		return false;
-  		
-  	if(!m_right.deepEquals(((Operation)expr).m_right))
-  		return false;
-  		
-  	return true;
+        if(!isSameClass(expr))
+                return false;
+
+        if(!m_left.deepEquals(((Operation)expr).m_left))
+                return false;
+
+        if(!m_right.deepEquals(((Operation)expr).m_right))
+                return false;
+
+        return true;
   }
 }

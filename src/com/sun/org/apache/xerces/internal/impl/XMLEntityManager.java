@@ -1,28 +1,5 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
- *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLEntityManager.java,v 1.13 2007/03/16 16:13:11 spericas Exp $
- * @(#)XMLEntityManager.java	1.24 09/04/17
- *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -48,9 +25,7 @@ import com.sun.xml.internal.stream.StaxXMLInputSource;
 import com.sun.xml.internal.stream.XMLEntityStorage;
 import java.io.*;
 import java.io.BufferedReader;
-import java.net.URL;
 import java.util.*;
-import com.sun.org.apache.xerces.internal.util.AugmentationsImpl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,6 +36,7 @@ import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URISyntaxException;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
@@ -117,7 +93,7 @@ import com.sun.org.apache.xerces.internal.util.URI;
  * @author K.Venugopal SUN Microsystems
  * @author Neeraj Bajaj SUN Microsystems
  * @author Sunitha Reddy SUN Microsystems
- * @version $Id: XMLEntityManager.java,v 1.13 2007/03/16 16:13:11 spericas Exp $
+ * @version $Id: XMLEntityManager.java,v 1.17 2010-11-01 04:39:41 joehw Exp $
  */
 public class XMLEntityManager implements XMLComponent, XMLEntityResolver {
     
@@ -647,7 +623,7 @@ protected static final String PARSER_SETTINGS =
         if (reader == null) {
             stream = xmlInputSource.getByteStream();
             if (stream == null) {
-                URL location = new URL(expandedSystemId); 
+                URL location = new URL(escapeNonUSAscii(expandedSystemId));
                 URLConnection connect = location.openConnection();
                 if (!(connect instanceof HttpURLConnection)) {
                     stream = connect.getInputStream();
@@ -1477,12 +1453,7 @@ protected static final String PARSER_SETTINGS =
     public void reset(XMLComponentManager componentManager)
     throws XMLConfigurationException {
 
-        boolean parser_settings;
-        try {
-                parser_settings = componentManager.getFeature(PARSER_SETTINGS);
-        } catch (XMLConfigurationException e) {
-                parser_settings = true;
-        }
+        boolean parser_settings = componentManager.getFeature(PARSER_SETTINGS, true);
 
         if (!parser_settings) {
             // parser settings have not been changed
@@ -1497,67 +1468,22 @@ protected static final String PARSER_SETTINGS =
         }
         
         // sax features
-        try {
-            fValidation = componentManager.getFeature(VALIDATION);
-        } catch (XMLConfigurationException e) {
-            fValidation = false;
-        }
-        try {
-            fExternalGeneralEntities = componentManager.getFeature(EXTERNAL_GENERAL_ENTITIES);
-        } catch (XMLConfigurationException e) {
-            fExternalGeneralEntities = true;
-        }
-        try {
-            fExternalParameterEntities = componentManager.getFeature(EXTERNAL_PARAMETER_ENTITIES);
-        } catch (XMLConfigurationException e) {
-            fExternalParameterEntities = true;
-        }
-        
+        fValidation = componentManager.getFeature(VALIDATION, false);
+        fExternalGeneralEntities = componentManager.getFeature(EXTERNAL_GENERAL_ENTITIES, true);
+        fExternalParameterEntities = componentManager.getFeature(EXTERNAL_PARAMETER_ENTITIES, true);
+
         // xerces features
-        try {
-            fAllowJavaEncodings = componentManager.getFeature(ALLOW_JAVA_ENCODINGS);
-        } catch (XMLConfigurationException e) {
-            fAllowJavaEncodings = false;
-        }
-        
-        try {
-            fWarnDuplicateEntityDef = componentManager.getFeature(WARN_ON_DUPLICATE_ENTITYDEF);
-        } catch (XMLConfigurationException e) {
-            fWarnDuplicateEntityDef = false;
-        }
-        try {
-            fStrictURI = componentManager.getFeature(STANDARD_URI_CONFORMANT);
-        } catch (XMLConfigurationException e) {
-            fStrictURI = false;
-        }
-        
+        fAllowJavaEncodings = componentManager.getFeature(ALLOW_JAVA_ENCODINGS, false);
+        fWarnDuplicateEntityDef = componentManager.getFeature(WARN_ON_DUPLICATE_ENTITYDEF, false);
+        fStrictURI = componentManager.getFeature(STANDARD_URI_CONFORMANT, false);
+
         // xerces properties
         fSymbolTable = (SymbolTable)componentManager.getProperty(SYMBOL_TABLE);
         fErrorReporter = (XMLErrorReporter)componentManager.getProperty(ERROR_REPORTER);
-        try {
-            fEntityResolver = (XMLEntityResolver)componentManager.getProperty(ENTITY_RESOLVER);
-        } catch (XMLConfigurationException e) {
-            fEntityResolver = null;
-        }
-        
-        try {
-            fStaxEntityResolver = (StaxEntityResolverWrapper)componentManager.getProperty(STAX_ENTITY_RESOLVER);
-        } catch (XMLConfigurationException e) {
-            fStaxEntityResolver = null;
-        }
-        
-        try {
-            fValidationManager = (ValidationManager)componentManager.getProperty(VALIDATION_MANAGER);
-        }
-        catch (XMLConfigurationException e) {
-            fValidationManager = null;
-        }
-        try {
-            fSecurityManager = (SecurityManager)componentManager.getProperty(SECURITY_MANAGER);
-        }
-        catch (XMLConfigurationException e) {
-            fSecurityManager = null;
-        }
+        fEntityResolver = (XMLEntityResolver)componentManager.getProperty(ENTITY_RESOLVER, null);
+        fStaxEntityResolver = (StaxEntityResolverWrapper)componentManager.getProperty(STAX_ENTITY_RESOLVER, null);
+        fValidationManager = (ValidationManager)componentManager.getProperty(VALIDATION_MANAGER, null);
+        fSecurityManager = (SecurityManager)componentManager.getProperty(SECURITY_MANAGER, null);
 
         //reset general state
         reset();
@@ -2021,7 +1947,7 @@ protected static final String PARSER_SETTINGS =
     public static String expandSystemId(String systemId, String baseSystemId,
                                         boolean strict)
             throws URI.MalformedURIException {
-            
+
         // check if there is a system id before 
         // trying to expand it.
         if (systemId == null) {
@@ -2072,12 +1998,20 @@ protected static final String PARSER_SETTINGS =
 
         // Assume the URIs are well-formed. If it turns out they're not, try fixing them up.
         try {
-            return expandSystemIdStrictOff(systemId, baseSystemId);
+             return expandSystemIdStrictOff(systemId, baseSystemId);
         }
         catch (URI.MalformedURIException e) {
-            // continue on...
+            /** Xerces URI rejects unicode, try java.net.URI
+             * this is not ideal solution, but it covers known cases which either
+             * Xerces URI or java.net.URI can handle alone
+             * will file bug against java.net.URI
+             */
+            try {
+                return expandSystemIdStrictOff1(systemId, baseSystemId);
+            } catch (URISyntaxException ex) {
+                // continue on...
+            }
         }
-
         // check for bad parameters id
         if (systemId.length() == 0) {
             return systemId;
@@ -2172,14 +2106,12 @@ protected static final String PARSER_SETTINGS =
         catch (Exception exc) {}
     }
 
+
     /**
      * Helper method for expandSystemId(String,String,boolean):String
      */
     private static String expandSystemIdStrictOff(String systemId, String baseSystemId)
         throws URI.MalformedURIException {
-
-        systemId = escapeNonUSAscii(systemId);
-        baseSystemId = escapeNonUSAscii(baseSystemId);
 
         URI systemURI = new URI(systemId, true);
         // If it's already an absolute one, return it
@@ -2187,7 +2119,7 @@ protected static final String PARSER_SETTINGS =
             if (systemURI.getScheme().length() > 1) {
                 return systemId;
             }
-            /** 
+            /**
              * If the scheme's length is only one character,
              * it's likely that this was intended as a file
              * path. Fixing this up in expandSystemId to
@@ -2211,7 +2143,7 @@ protected static final String PARSER_SETTINGS =
 
         // absolutize the system identifier using the base URI
         systemURI.absolutize(baseURI);
-        
+
         // return the string rep of the new uri (an absolute one)
         return systemURI.toString();
 
@@ -2219,6 +2151,47 @@ protected static final String PARSER_SETTINGS =
 
     } // expandSystemIdStrictOff(String,String):String
 
+    private static String expandSystemIdStrictOff1(String systemId, String baseSystemId)
+        throws URISyntaxException, URI.MalformedURIException {
+
+            java.net.URI systemURI = new java.net.URI(systemId);
+        // If it's already an absolute one, return it
+        if (systemURI.isAbsolute()) {
+            if (systemURI.getScheme().length() > 1) {
+                return systemId;
+            }
+            /**
+             * If the scheme's length is only one character,
+             * it's likely that this was intended as a file
+             * path. Fixing this up in expandSystemId to
+             * maintain backwards compatibility.
+             */
+            throw new URISyntaxException(systemId, "the scheme's length is only one character");
+        }
+
+        // If there isn't a base URI, use the working directory
+        URI baseURI = null;
+        if (baseSystemId == null || baseSystemId.length() == 0) {
+            baseURI = getUserDir();
+        }
+        else {
+            baseURI = new URI(baseSystemId, true);
+            if (!baseURI.isAbsoluteURI()) {
+                // assume "base" is also a relative uri
+                baseURI.absolutize(getUserDir());
+            }
+        }
+
+        // absolutize the system identifier using the base URI
+//        systemURI.absolutize(baseURI);
+        systemURI = (new java.net.URI(baseURI.toString())).resolve(systemURI);
+
+        // return the string rep of the new uri (an absolute one)
+        return systemURI.toString();
+
+        // if any exception is thrown, it'll get thrown to the caller.
+
+    } // expandSystemIdStrictOff(String,String):String
 
     //
     // Protected methods
@@ -2618,9 +2591,8 @@ protected static final String PARSER_SETTINGS =
                 str = "file:" + str;
             }
         }
-
-        // SAPJVM 2008-07-22 Replace spaces in file names with %20.
-        // This was done in JDK5 and wrongly removed in JDK6.
+        
+        // replace spaces in file names with %20.
         // Original comment from JDK5: the following algorithm might not be
         // very performant, but people who want to use invalid URI's have to
         // pay the price.

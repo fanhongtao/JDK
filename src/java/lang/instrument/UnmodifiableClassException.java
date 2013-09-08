@@ -1,7 +1,26 @@
 /*
- * @(#)UnmodifiableClassException.java	1.3 06/04/07
+ * Copyright (c) 2004, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.instrument;
@@ -15,9 +34,11 @@ package java.lang.instrument;
  * @since   1.5
  */
 public class UnmodifiableClassException extends Exception {
+    private static final long serialVersionUID = 1716652643585309178L;
+
     /**
-     * Constructs an <code>UnmodifiableClassException</code> with no 
-     * detail message. 
+     * Constructs an <code>UnmodifiableClassException</code> with no
+     * detail message.
      */
     public
     UnmodifiableClassException() {
@@ -25,8 +46,8 @@ public class UnmodifiableClassException extends Exception {
     }
 
     /**
-     * Constructs an <code>UnmodifiableClassException</code> with the 
-     * specified detail message. 
+     * Constructs an <code>UnmodifiableClassException</code> with the
+     * specified detail message.
      *
      * @param   s   the detail message.
      */

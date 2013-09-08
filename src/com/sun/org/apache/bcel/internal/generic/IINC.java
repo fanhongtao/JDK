@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -59,7 +63,6 @@ import com.sun.org.apache.bcel.internal.util.ByteSequence;
 /**
  * IINC - Increment local variable by constant
  *
- * @version $Id: IINC.java,v 1.1.2.1 2005/07/31 23:45:40 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class IINC extends LocalVariableInstruction {
@@ -107,8 +110,8 @@ public class IINC extends LocalVariableInstruction {
 
   private final void setWide() {
     if(wide = ((n > com.sun.org.apache.bcel.internal.Constants.MAX_SHORT) ||
-	       (Math.abs(c) > Byte.MAX_VALUE)))
-      length = 6; // wide byte included  
+               (Math.abs(c) > Byte.MAX_VALUE)))
+      length = 6; // wide byte included
     else
       length = 3;
   }
@@ -136,12 +139,12 @@ public class IINC extends LocalVariableInstruction {
    */
   public String toString(boolean verbose) {
     return super.toString(verbose) + " " + c;
-  }  
+  }
 
   /**
    * Set index of local variable.
    */
-  public final void setIndex(int n) { 
+  public final void setIndex(int n) {
     if(n < 0)
       throw new ClassGenException("Negative index value: " + n);
 

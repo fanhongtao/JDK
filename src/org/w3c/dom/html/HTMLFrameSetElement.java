@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2000 World Wide Web Consortium,
  * (Massachusetts Institute of Technology, Institut National de
  * Recherche en Informatique et en Automatique, Keio University). All
@@ -18,18 +47,17 @@ package org.w3c.dom.html;
  */
 public interface HTMLFrameSetElement extends HTMLElement {
     /**
-     *  The number of columns of frames in the frameset. See the  cols 
+     *  The number of columns of frames in the frameset. See the  cols
      * attribute definition in HTML 4.0.
      */
     public String getCols();
     public void setCols(String cols);
 
     /**
-     *  The number of rows of frames in the frameset. See the  rows attribute 
+     *  The number of rows of frames in the frameset. See the  rows attribute
      * definition in HTML 4.0.
      */
     public String getRows();
     public void setRows(String rows);
 
 }
-

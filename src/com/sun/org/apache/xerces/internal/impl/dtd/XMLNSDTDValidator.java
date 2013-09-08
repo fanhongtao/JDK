@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  
+ * Copyright (c) 1999-2002 The Apache Software Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -90,12 +94,11 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  *  <li>http://apache.org/xml/properties/internal/grammar-pool</li>
  *  <li>http://apache.org/xml/properties/internal/datatype-validator-factory</li>
  * </ul>
- * 
+ *
  * @xerces.internal
  *
  * @author Elena Litani, IBM
  *
- * @version $Id: XMLNSDTDValidator.java,v 1.1.2.1 2005/08/01 03:36:42 jeffsuttor Exp $
 
  */
 public class XMLNSDTDValidator
@@ -108,7 +111,7 @@ public class XMLNSDTDValidator
     /** Bind namespaces */
     protected final void startNamespaceScope (QName element, XMLAttributes attributes,
                                       Augmentations augs) throws XNIException {
-        
+
         // add new namespace context
         fNamespaceContext.pushContext();
 
@@ -118,7 +121,7 @@ public class XMLNSDTDValidator
                                        new Object[]{element.rawname},
                                        XMLErrorReporter.SEVERITY_FATAL_ERROR);
         }
-        
+
         // search for new namespace bindings
         int length = attributes.getLength();
         for (int i = 0; i < length; i++) {
@@ -139,7 +142,7 @@ public class XMLNSDTDValidator
                                                new Object[]{attributes.getQName(i)},
                                                XMLErrorReporter.SEVERITY_FATAL_ERROR);
                 }
-                
+
                 // 2. the namespace for "xmlns" can't be bound to any prefix
                 if (uri == NamespaceContext.XMLNS_URI) {
                     fErrorReporter.reportError(XMLMessageFormatter.XMLNS_DOMAIN,
@@ -147,7 +150,7 @@ public class XMLNSDTDValidator
                                                new Object[]{attributes.getQName(i)},
                                                XMLErrorReporter.SEVERITY_FATAL_ERROR);
                 }
-                
+
                 // 3. "xml" can't be bound to any other namespace than it's own
                 if (localpart == XMLSymbols.PREFIX_XML) {
                     if (uri != NamespaceContext.XML_URI) {
@@ -268,5 +271,5 @@ public class XMLNSDTDValidator
         fNamespaceContext.popContext();
 
     } // endNamespaceScope(QName,boolean)
-    
+
 }

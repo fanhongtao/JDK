@@ -1,8 +1,26 @@
 /*
- * @(#)FormattableFlags.java	1.2 05/11/17
+ * Copyright (c) 2004, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -13,7 +31,6 @@ package java.util;
  * Formattable Formattables}.  Implementations of {@link Formattable} are
  * responsible for interpreting and validating any flags.
  *
- * @version 	1.2, 11/17/05
  * @since  1.5
  */
 public class FormattableFlags {
@@ -42,10 +59,10 @@ public class FormattableFlags {
      * <pre>
      *     out.toUpperCase() </pre>
      *
-     * <p> This flag corresponds to <tt>'^'</tt> (<tt>'&#92;u005e'</tt>) in
+     * <p> This flag corresponds to <tt>'S'</tt> (<tt>'&#92;u0053'</tt>) in
      * the format specifier.
      */
-    public static final int UPPERCASE = 1<<1;    // '^'
+    public static final int UPPERCASE = 1<<1;    // 'S'
 
     /**
      * Requires the output to use an alternate form.  The definition of the

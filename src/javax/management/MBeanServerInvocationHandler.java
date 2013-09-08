@@ -1,14 +1,32 @@
 /*
- * @(#)MBeanServerInvocationHandler.java	1.31 08/07/01
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
 
 import com.sun.jmx.mbeanserver.MXBeanProxy;
-import com.sun.jmx.mbeanserver.MXBeanSupport;
+
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -67,7 +85,6 @@ import java.util.WeakHashMap;
  * </ul>
  *
  * @since 1.5
- * @since.unbundled JMX 1.2
  */
 public class MBeanServerInvocationHandler implements InvocationHandler {
     /**
@@ -92,9 +109,9 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
      * to which methods will be forwarded.
      */
     public MBeanServerInvocationHandler(MBeanServerConnection connection,
-					ObjectName objectName) {
+                                        ObjectName objectName) {
 
-	this(connection, objectName, false);
+        this(connection, objectName, false);
     }
 
     /**
@@ -119,16 +136,16 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
      * @since 1.6
      */
     public MBeanServerInvocationHandler(MBeanServerConnection connection,
-					ObjectName objectName,
-					boolean isMXBean) {
-	if (connection == null) {
-	    throw new IllegalArgumentException("Null connection");
-	}
-	if (objectName == null) {
-	    throw new IllegalArgumentException("Null object name");
-	}
-	this.connection = connection;
-	this.objectName = objectName;
+                                        ObjectName objectName,
+                                        boolean isMXBean) {
+        if (connection == null) {
+            throw new IllegalArgumentException("Null connection");
+        }
+        if (objectName == null) {
+            throw new IllegalArgumentException("Null object name");
+        }
+        this.connection = connection;
+        this.objectName = objectName;
         this.isMXBean = isMXBean;
     }
 
@@ -211,45 +228,45 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
      * @see JMX#newMBeanProxy(MBeanServerConnection, ObjectName, Class)
      */
     public static <T> T newProxyInstance(MBeanServerConnection connection,
-					 ObjectName objectName,
-					 Class<T> interfaceClass,
-					 boolean notificationBroadcaster) {
-	final InvocationHandler handler =
-	    new MBeanServerInvocationHandler(connection, objectName);
-	final Class[] interfaces;
-	if (notificationBroadcaster) {
-	    interfaces =
-		new Class[] {interfaceClass, NotificationEmitter.class};
-	} else
-	    interfaces = new Class[] {interfaceClass};
+                                         ObjectName objectName,
+                                         Class<T> interfaceClass,
+                                         boolean notificationBroadcaster) {
+        final InvocationHandler handler =
+            new MBeanServerInvocationHandler(connection, objectName);
+        final Class<?>[] interfaces;
+        if (notificationBroadcaster) {
+            interfaces =
+                new Class<?>[] {interfaceClass, NotificationEmitter.class};
+        } else
+            interfaces = new Class<?>[] {interfaceClass};
 
-	Object proxy =
-	    Proxy.newProxyInstance(interfaceClass.getClassLoader(),
-				   interfaces,
-				   handler);
-	return interfaceClass.cast(proxy);
+        Object proxy =
+            Proxy.newProxyInstance(interfaceClass.getClassLoader(),
+                                   interfaces,
+                                   handler);
+        return interfaceClass.cast(proxy);
     }
 
     public Object invoke(Object proxy, Method method, Object[] args)
             throws Throwable {
-        final Class methodClass = method.getDeclaringClass();
+        final Class<?> methodClass = method.getDeclaringClass();
 
         if (methodClass.equals(NotificationBroadcaster.class)
             || methodClass.equals(NotificationEmitter.class))
             return invokeBroadcasterMethod(proxy, method, args);
 
         // local or not: equals, toString, hashCode
-	if (shouldDoLocally(proxy, method))
+        if (shouldDoLocally(proxy, method))
             return doLocally(proxy, method, args);
-        
+
         try {
-            if (isMXBean) {
+            if (isMXBean()) {
                 MXBeanProxy p = findMXBeanProxy(methodClass);
                 return p.invoke(connection, objectName, method, args);
             } else {
                 final String methodName = method.getName();
-                final Class[] paramTypes = method.getParameterTypes();
-                final Class returnType = method.getReturnType();
+                final Class<?>[] paramTypes = method.getParameterTypes();
+                final Class<?> returnType = method.getReturnType();
 
                 /* Inexplicably, InvocationHandler specifies that args is null
                    when the method takes no arguments rather than a
@@ -308,7 +325,7 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
            method being invoked on the proxy.
          */
     }
-    
+
     private static MXBeanProxy findMXBeanProxy(Class<?> mxbeanInterface) {
         synchronized (mxbeanProxies) {
             WeakReference<MXBeanProxy> proxyRef =
@@ -320,7 +337,10 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
                 } catch (IllegalArgumentException e) {
                     String msg = "Cannot make MXBean proxy for " +
                             mxbeanInterface.getName() + ": " + e.getMessage();
-                    throw new IllegalArgumentException(msg, e.getCause());
+                    IllegalArgumentException iae =
+                            new IllegalArgumentException(msg, e.getCause());
+                    iae.setStackTrace(e.getStackTrace());
+                    throw iae;
                 }
                 mxbeanProxies.put(mxbeanInterface,
                                   new WeakReference<MXBeanProxy>(p));
@@ -401,40 +421,40 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
     }
 
     private boolean shouldDoLocally(Object proxy, Method method) {
-	final String methodName = method.getName();
-	if ((methodName.equals("hashCode") || methodName.equals("toString"))
-	    && method.getParameterTypes().length == 0
-	    && isLocal(proxy, method))
-	    return true;
-	if (methodName.equals("equals")
-	    && Arrays.equals(method.getParameterTypes(),
-			     new Class[] {Object.class})
-	    && isLocal(proxy, method))
-	    return true;
-	return false;
+        final String methodName = method.getName();
+        if ((methodName.equals("hashCode") || methodName.equals("toString"))
+            && method.getParameterTypes().length == 0
+            && isLocal(proxy, method))
+            return true;
+        if (methodName.equals("equals")
+            && Arrays.equals(method.getParameterTypes(),
+                             new Class<?>[] {Object.class})
+            && isLocal(proxy, method))
+            return true;
+        return false;
     }
 
     private Object doLocally(Object proxy, Method method, Object[] args) {
         final String methodName = method.getName();
 
         if (methodName.equals("equals")) {
-            
+
             if (this == args[0]) {
                 return true;
             }
-            
+
             if (!(args[0] instanceof Proxy)) {
                 return false;
             }
-            
+
             final InvocationHandler ihandler =
                 Proxy.getInvocationHandler(args[0]);
-            
+
             if (ihandler == null ||
                 !(ihandler instanceof MBeanServerInvocationHandler)) {
                 return false;
             }
-            
+
             final MBeanServerInvocationHandler handler =
                 (MBeanServerInvocationHandler)ihandler;
 
@@ -442,24 +462,24 @@ public class MBeanServerInvocationHandler implements InvocationHandler {
                 objectName.equals(handler.objectName) &&
                 proxy.getClass().equals(args[0].getClass());
         } else if (methodName.equals("toString")) {
-            return (isMXBean ? "MX" : "M") + "BeanProxy(" +
-		connection + "[" + objectName + "])";
+            return (isMXBean() ? "MX" : "M") + "BeanProxy(" +
+                connection + "[" + objectName + "])";
         } else if (methodName.equals("hashCode")) {
             return objectName.hashCode()+connection.hashCode();
         }
 
-	throw new RuntimeException("Unexpected method name: " + methodName);
+        throw new RuntimeException("Unexpected method name: " + methodName);
     }
 
     private static boolean isLocal(Object proxy, Method method) {
-        final Class[] interfaces = proxy.getClass().getInterfaces();
+        final Class<?>[] interfaces = proxy.getClass().getInterfaces();
         if(interfaces == null) {
             return true;
         }
 
-	final String methodName = method.getName();
-	final Class[] params = method.getParameterTypes();
-	for (Class intf : interfaces) {
+        final String methodName = method.getName();
+        final Class<?>[] params = method.getParameterTypes();
+        for (Class<?> intf : interfaces) {
             try {
                 intf.getMethod(methodName, params);
                 return false; // found method in one of our interfaces

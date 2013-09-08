@@ -1,17 +1,35 @@
 /*
- * @(#)InternationalFormatter.java	1.19 06/02/20
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
 import java.awt.event.ActionEvent;
 import java.io.*;
 import java.text.*;
+import java.text.AttributedCharacterIterator.Attribute;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.text.*;
 
 /**
  * <code>InternationalFormatter</code> extends <code>DefaultFormatter</code>,
@@ -21,7 +39,7 @@ import javax.swing.text.*;
  * If <code>getAllowsInvalid()</code> is false, this will ask the
  * <code>Format</code> to format the current text on every edit.
  * <p>
- * You can specify a minimum and maximum value by way of the 
+ * You can specify a minimum and maximum value by way of the
  * <code>setMinimum</code> and <code>setMaximum</code> methods. In order
  * for this to work the values returned from <code>stringToValue</code> must be
  * comparable to the min/max values by way of the <code>Comparable</code>
@@ -72,7 +90,6 @@ import javax.swing.text.*;
  * @see java.text.Format
  * @see java.lang.Comparable
  *
- * @version 1.7 04/09/01
  * @since 1.4
  */
 public class InternationalFormatter extends DefaultFormatter {
@@ -335,13 +352,13 @@ public class InternationalFormatter extends DefaultFormatter {
             updateMask();
         }
 
-        Map attrs = getAttributes(offset);
+        Map<Attribute, Object> attrs = getAttributes(offset);
 
         if (attrs != null && attrs.size() > 0) {
-            ArrayList al = new ArrayList();
+            ArrayList<Attribute> al = new ArrayList<Attribute>();
 
             al.addAll(attrs.keySet());
-            return (Format.Field[])al.toArray(EMPTY_FIELD_ARRAY);
+            return al.toArray(EMPTY_FIELD_ARRAY);
         }
         return EMPTY_FIELD_ARRAY;
     }
@@ -423,7 +440,7 @@ public class InternationalFormatter extends DefaultFormatter {
     /**
      * Returns a Set of the attribute identifiers at <code>index</code>.
      */
-    Map getAttributes(int index) {
+    Map<Attribute, Object> getAttributes(int index) {
         if (isValidMask()) {
             AttributedCharacterIterator iterator = getIterator();
 
@@ -604,18 +621,8 @@ public class InternationalFormatter extends DefaultFormatter {
 
     /**
      * Overriden in an attempt to honor the literals.
-     * <p>
-     * If we do
-     * not allow invalid values and are in overwrite mode, this does the
-     * following for each character in the replacement range:
-     * <ol>
-     *   <li>If the character is a literal, add it to the string to replace
-     *       with.  If there is text to insert and it doesn't match the
-     *       literal, then insert the literal in the the middle of the insert
-     *       text.  This allows you to either paste in literals or not and
-     *       get the same behavior.
-     *   <li>If there is no text to insert, replace it with ' '.
-     * </ol>
+     * <p>If we do not allow invalid values and are in overwrite mode, this
+     * {@code rh.length} is corrected as to preserve trailing literals.
      * If not in overwrite mode, and there is text to insert it is
      * inserted at the next non literal index going forward.  If there
      * is only text to remove, it is removed from the next non literal
@@ -625,61 +632,27 @@ public class InternationalFormatter extends DefaultFormatter {
         if (!getAllowsInvalid()) {
             String text = rh.text;
             int tl = (text != null) ? text.length() : 0;
+            JTextComponent c = getFormattedTextField();
 
-            if (tl == 0 && rh.length == 1 && getFormattedTextField().
-                              getSelectionStart() != rh.offset) {
+            if (tl == 0 && rh.length == 1 && c.getSelectionStart() != rh.offset) {
                 // Backspace, adjust to actually delete next non-literal.
                 rh.offset = getNextNonliteralIndex(rh.offset, -1);
-            }
-            if (getOverwriteMode()) {
-                StringBuffer replace = null;
+            } else if (getOverwriteMode()) {
+                int pos = rh.offset;
+                int textPos = pos;
+                boolean overflown = false;
 
-                for (int counter = 0, textIndex = 0,
-                         max = Math.max(tl, rh.length); counter < max;
-                         counter++) {
-                    if (isLiteral(rh.offset + counter)) {
-                        if (replace != null) {
-                            replace.append(getLiteral(rh.offset +
-                                                      counter));
-                        }
-                        if (textIndex < tl && text.charAt(textIndex) ==
-                                      getLiteral(rh.offset + counter)) {
-                            textIndex++;
-                        }
-                        else if (textIndex == 0) {
-                            rh.offset++;
-                            rh.length--;
-                            counter--;
-                            max--;
-                        }
-                        else if (replace == null) {
-                            replace = new StringBuffer(max);
-                            replace.append(text.substring(0, textIndex));
-                            replace.append(getLiteral(rh.offset +
-                                                      counter));
-                        }
+                for (int i = 0; i < rh.length; i++) {
+                    while (isLiteral(pos)) pos++;
+                    if (pos >= string.length()) {
+                        pos = textPos;
+                        overflown = true;
+                        break;
                     }
-                    else if (textIndex < tl) {
-                        if (replace != null) {
-                            replace.append(text.charAt(textIndex));
-                        }
-                        textIndex++;
-                    }
-                    else {
-                        // Nothing to replace it with, assume ' '
-                        if (replace == null) {
-                            replace = new StringBuffer(max);
-                            if (textIndex > 0) {
-                                replace.append(text.substring(0, textIndex));
-                            }
-                        }
-                        if (replace != null) {
-                            replace.append(' ');
-                        }
-                    }
+                    textPos = ++pos;
                 }
-                if (replace != null) {
-                    rh.text = replace.toString();
+                if (overflown || c.getSelectedText() == null) {
+                    rh.length = pos - rh.offset;
                 }
             }
             else if (tl > 0) {
@@ -901,7 +874,6 @@ public class InternationalFormatter extends DefaultFormatter {
                     (f instanceof AttributedCharacterIterator.Attribute)) {
             AttributedCharacterIterator.Attribute field =
                                    (AttributedCharacterIterator.Attribute)f;
-            int index = 0;
 
             iterator.first();
             while (iterator.getIndex() < start) {
@@ -924,7 +896,7 @@ public class InternationalFormatter extends DefaultFormatter {
      * Subclasses supporting incrementing must override this to handle
      * the actual incrementing. <code>value</code> is the current value,
      * <code>attributes</code> gives the field the cursor is in (may be
-     * null depending upon <code>canIncrement</code>) and 
+     * null depending upon <code>canIncrement</code>) and
      * <code>direction</code> is the amount to increment by.
      */
     Object adjustValue(Object value, Map attributes, Object field,
@@ -935,7 +907,7 @@ public class InternationalFormatter extends DefaultFormatter {
 
     /**
      * Returns false, indicating InternationalFormatter does not allow
-     * incrementing of the value. Subclasses that wish to support 
+     * incrementing of the value. Subclasses that wish to support
      * incrementing/decrementing the value should override this and
      * return true. Subclasses should also override
      * <code>adjustValue</code>.
@@ -966,7 +938,7 @@ public class InternationalFormatter extends DefaultFormatter {
      * Subclassed to update the internal representation of the mask after
      * the default read operation has completed.
      */
-    private void readObject(ObjectInputStream s) 
+    private void readObject(ObjectInputStream s)
         throws IOException, ClassNotFoundException {
         s.defaultReadObject();
         updateMaskIfNecessary();
@@ -1033,7 +1005,7 @@ public class InternationalFormatter extends DefaultFormatter {
         }
 
         public void actionPerformed(ActionEvent ae) {
-        
+
             if (getFormattedTextField().isEditable()) {
                 if (getAllowsInvalid()) {
                     // This will work if the currently edited value is valid.

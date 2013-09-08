@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,10 +32,9 @@ import java.io.Writer;
  * Serializer} or {@link BaseMarkupSerializer}.
  *
  * @deprecated This class was deprecated in Xerces 2.6.2. It is
- * recommended that new applications use JAXP's Transformation API 
+ * recommended that new applications use JAXP's Transformation API
  * for XML (TrAX) for serializing XHTML. See the Xerces documentation
  * for more information.
- * @version $Revision: 1.2.6.1 $ $Date: 2005/09/09 07:26:18 $
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  * @see Serializer
  */

@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidKeySpecException.java	1.17 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.spec;
@@ -14,7 +32,6 @@ import java.security.GeneralSecurityException;
  *
  * @author Jan Luehe
  *
- * @version 1.17, 11/17/05
  *
  * @see KeySpec
  *
@@ -31,18 +48,18 @@ public class InvalidKeySpecException extends GeneralSecurityException {
      * exception.
      */
     public InvalidKeySpecException() {
-	super();
+        super();
     }
 
     /**
      * Constructs an InvalidKeySpecException with the specified detail
      * message. A detail message is a String that describes this
-     * particular exception.  
+     * particular exception.
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public InvalidKeySpecException(String msg) {
-	super(msg);
+        super(msg);
     }
 
     /**

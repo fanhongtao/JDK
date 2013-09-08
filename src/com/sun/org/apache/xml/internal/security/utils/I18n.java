@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,17 +20,12 @@
  */
 package com.sun.org.apache.xml.internal.security.utils;
 
-
-
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
-
 /**
  * The Internationalization (I18N) pack.
- *
- *
  *
  * @author Christian Geuer-Pollmann
  */
@@ -46,8 +45,8 @@ public class I18n {
 
    /** Field resourceBundle */
    private static ResourceBundle resourceBundle =
-      ResourceBundle.getBundle
-	(Constants.exceptionMessagesResourceBundleBase, Locale.US);
+       ResourceBundle.getBundle
+         (Constants.exceptionMessagesResourceBundleBase, Locale.US);
 
    /** Field alreadyInitialized */
    private static boolean alreadyInitialized = false;
@@ -114,7 +113,7 @@ public class I18n {
             return "No message with ID \"" + msgID
                    + "\" found in resource bundle \""
                    + Constants.exceptionMessagesResourceBundleBase + "\"";
-         } 
+         }
          return I18n.NOT_INITIALIZED_MSG;
       }
    }
@@ -143,7 +142,7 @@ public class I18n {
                    + "\". Original Exception was a "
                    + originalException.getClass().getName() + " and message "
                    + originalException.getMessage();
-         } 
+         }
           return I18n.NOT_INITIALIZED_MSG;
       }
    }
@@ -167,13 +166,13 @@ public class I18n {
             return "No message with ID \"" + msgID
                    + "\" found in resource bundle \""
                    + Constants.exceptionMessagesResourceBundleBase + "\"";
-         } 
+         }
          return I18n.NOT_INITIALIZED_MSG;
       }
    }
 
 //
-// Commented out because it modifies shared static 
+// Commented out because it modifies shared static
 // state which could be maliciously called by untrusted code
 //
 //   /**
@@ -201,7 +200,7 @@ public class I18n {
 //   }
 
 //
-// Commented out because it modifies shared static 
+// Commented out because it modifies shared static
 // state which could be maliciously called by untrusted code
 //
 //   /**

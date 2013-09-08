@@ -1,8 +1,26 @@
 /*
- * @(#)GetPropertyAction.java	1.2 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.orbutil ;
@@ -41,7 +59,7 @@ public class GetPropertyAction implements java.security.PrivilegedAction {
      * @param theProp the name of the system property.
      */
     public GetPropertyAction(String theProp) {
-	this.theProp = theProp;
+        this.theProp = theProp;
     }
 
     /**
@@ -52,8 +70,8 @@ public class GetPropertyAction implements java.security.PrivilegedAction {
      * @param defaulVal the default value.
      */
     public GetPropertyAction(String theProp, String defaultVal) {
-	this.theProp = theProp;
-	this.defaultVal = defaultVal;
+        this.theProp = theProp;
+        this.defaultVal = defaultVal;
     }
 
     /**
@@ -64,7 +82,7 @@ public class GetPropertyAction implements java.security.PrivilegedAction {
      *         or the default value if there is no property with that key.
      */
     public Object run() {
-	String value = System.getProperty(theProp);
-	return (value == null) ? defaultVal : value;
+        String value = System.getProperty(theProp);
+        return (value == null) ? defaultVal : value;
     }
 }

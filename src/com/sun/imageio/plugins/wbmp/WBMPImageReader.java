@@ -1,8 +1,26 @@
 /*
- * @(#)WBMPImageReader.java	1.11 05/11/17 14:15:06
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.wbmp;
@@ -27,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import com.sun.imageio.plugins.common.I18N;
+import com.sun.imageio.plugins.common.ReaderUtil;
 
 /** This class is the Java Image IO plugin reader for WBMP images.
  *  It may subsample the image, clip the image,
@@ -47,7 +66,7 @@ public class WBMPImageReader extends ImageReader {
     private int height;
 
     private int wbmpType;
-    
+
     private WBMPMetadata metadata;
 
     /** Constructs <code>WBMPImageReader</code> from the provided
@@ -109,27 +128,27 @@ public class WBMPImageReader extends ImageReader {
         }
 
         metadata = new WBMPMetadata();
-        
+
         wbmpType = iis.readByte();   // TypeField
         byte fixHeaderField = iis.readByte();
 
         // check for valid wbmp image
         if (fixHeaderField != 0
-            || !isValidWbmpType(wbmpType)) 
+            || !isValidWbmpType(wbmpType))
         {
             throw new IIOException(I18N.getString("WBMPImageReader2"));
         }
 
         metadata.wbmpType = wbmpType;
-        
+
         // Read image width
-        width = readMultiByteInteger();
+        width = ReaderUtil.readMultiByteInteger(iis);
         metadata.width = width;
-        
+
         // Read image height
-        height = readMultiByteInteger();
+        height = ReaderUtil.readMultiByteInteger(iis);
         metadata.height = height;
-        
+
         gotHeader = true;
     }
 
@@ -199,10 +218,10 @@ public class WBMPImageReader extends ImageReader {
                               destinationRegion.y + destinationRegion.height,
                               BufferedImage.TYPE_BYTE_BINARY);
 
-        boolean noTransform = 
+        boolean noTransform =
             destinationRegion.equals(new Rectangle(0, 0, width, height)) &&
             destinationRegion.equals(new Rectangle(0, 0, bi.getWidth(), bi.getHeight()));
-        
+
         // Get the image data.
         WritableRaster tile = bi.getWritableTile(0, 0);
 
@@ -293,21 +312,10 @@ public class WBMPImageReader extends ImageReader {
         gotHeader = false;
     }
 
-    private int readMultiByteInteger() throws IOException {
-        int value = iis.readByte();
-        int result = value & 0x7f;
-        while((value & 0x80) == 0x80) {
-            result <<= 7;
-            value = iis.readByte();
-            result |= (value & 0x7f);
-        }
-        return result;
-    }
-    
     /*
      * This method verifies that given byte is valid wbmp type marker.
      * At the moment only 0x0 marker is described by wbmp spec.
-     */      
+     */
     boolean isValidWbmpType(int type) {
         return type == 0;
     }

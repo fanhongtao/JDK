@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,13 +42,13 @@ import org.xml.sax.ext.Locator2;
  * This class acts as a base class for the XML "serializers"
  * and the stream serializers.
  * It contains a number of common fields and methods.
- * 
+ *
  * @xsl.usage internal
  */
 public abstract class SerializerBase
     implements SerializationHandler, SerializerConstants
 {
-    
+
 
     /**
      * To fire off the end element trace event
@@ -57,7 +61,7 @@ public abstract class SerializerBase
         {
             flushMyWriter();
             m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_ENDELEMENT,name, (Attributes)null);
-        }     	        	    	
+        }
     }
 
     /**
@@ -73,13 +77,13 @@ public abstract class SerializerBase
         {
             flushMyWriter();
             m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_CHARACTERS, chars, start,length);
-        }     	        	    	
+        }
     }
 
     /**
-     * true if we still need to call startDocumentInternal() 
-	 */
-    protected boolean m_needToCallStartDocument = true; 
+     * true if we still need to call startDocumentInternal()
+         */
+    protected boolean m_needToCallStartDocument = true;
 
     /** True if a trailing "]]>" still needs to be written to be
      * written out. Used to merge adjacent CDATA sections
@@ -88,7 +92,7 @@ public abstract class SerializerBase
 
     /**
      * All the attributes of the current element, collected from
-     * startPrefixMapping() calls, or addAddtribute() calls, or 
+     * startPrefixMapping() calls, or addAddtribute() calls, or
      * from the SAX attributes in a startElement() call.
      */
     protected AttributesImplSerializer m_attributes = new AttributesImplSerializer();
@@ -163,28 +167,28 @@ public abstract class SerializerBase
      */
     private Transformer m_transformer;
 
-    /** 
+    /**
      * Pairs of local names and corresponding URIs of CDATA sections. This list
      * comes from the cdata-section-elements attribute. Every second one is a
-     * local name, and every other second one is the URI for the local name. 
+     * local name, and every other second one is the URI for the local name.
      */
     protected Vector m_cdataSectionElements = null;
 
     /**
-     * Namespace support, that keeps track of currently defined 
+     * Namespace support, that keeps track of currently defined
      * prefix/uri mappings. As processed elements come and go, so do
      * the associated mappings for that element.
      */
     protected NamespaceMappings m_prefixMap;
-    
+
     /**
      * Handle for firing generate events.  This interface may be implemented
      * by the referenced transformer object.
      */
     protected SerializerTrace m_tracer;
-    
+
     protected SourceLocator m_sourceLocator;
-    
+
 
     /**
      * The writer to send output to. This field is only used in the ToStream
@@ -192,15 +196,15 @@ public abstract class SerializerBase
      * other fire... methods can flush this writer when tracing.
      */
     protected java.io.Writer m_writer = null;
-    
+
     /**
      * A reference to "stack frame" corresponding to
      * the current element. Such a frame is pushed at a startElement()
      * and popped at an endElement(). This frame contains information about
-     * the element, such as its namespace URI. 
+     * the element, such as its namespace URI.
      */
     protected ElemContext m_elemContext = new ElemContext();
-    
+
     /**
      * A utility buffer for converting Strings passed to
      * character() methods to character arrays.
@@ -208,22 +212,22 @@ public abstract class SerializerBase
      * everytime and it runs faster.
      */
     protected char[] m_charsBuff = new char[60];
-    
+
     /**
      * A utility buffer for converting Strings passed to
      * attribute methods to character arrays.
      * Reusing this buffer means not creating a new character array
      * everytime and it runs faster.
      */
-    protected char[] m_attrBuff = new char[30];    
+    protected char[] m_attrBuff = new char[30];
 
     private Locator m_locator = null;
-    
+
     protected boolean m_needToCallSetDocumentInfo = true;
-    
+
     /**
      * Receive notification of a comment.
-     * 
+     *
      * @see ExtendedLexicalHandler#comment(String)
      */
     public void comment(String data) throws SAXException
@@ -250,7 +254,7 @@ public abstract class SerializerBase
     protected String patchName(String qname)
     {
 
-        
+
         final int lastColon = qname.lastIndexOf(':');
 
         if (lastColon > 0) {
@@ -267,13 +271,13 @@ public abstract class SerializerBase
                 return prefix + ':' + localName;
             }
         }
-        return qname;        
+        return qname;
     }
 
     /**
      * Returns the local name of a qualified name. If the name has no prefix,
      * then it works as the identity (SAX2).
-     * @param qname the qualified name 
+     * @param qname the qualified name
      * @return the name, but excluding any prefix and colon.
      */
     protected static String getLocalName(String qname)
@@ -287,7 +291,7 @@ public abstract class SerializerBase
      *
      * @param locator An object that can return the location of any SAX document
      * event.
-     * 
+     *
      * Receive an object for locating the origin of SAX document events.
      *
      * <p>SAX parsers are strongly encouraged (though not absolutely
@@ -316,13 +320,13 @@ public abstract class SerializerBase
     /**
      * Adds the given attribute to the set of collected attributes , but only if
      * there is a currently open element.
-     * 
+     *
      * An element is currently open if a startElement() notification has
      * occured but the start of the element has not yet been written to the
      * output.  In the stream case this means that we have not yet been forced
      * to close the elements opening tag by another notification, such as a
      * character notification.
-     * 
+     *
      * @param uri the URI of the attribute
      * @param localName the local name of the attribute
      * @param rawName    the qualified name of the attribute
@@ -346,19 +350,19 @@ public abstract class SerializerBase
         }
 
     }
-    
+
     /**
      * Adds the given attribute to the set of attributes, even if there is
      * no currently open element. This is useful if a SAX startPrefixMapping()
      * should need to add an attribute before the element name is seen.
-     * 
+     *
      * @param uri the URI of the attribute
      * @param localName the local name of the attribute
      * @param rawName   the qualified name of the attribute
      * @param type the type of the attribute (probably CDATA)
      * @param value the value of the attribute
      * @param XSLAttribute true if this attribute is coming from an xsl:attribute element
-     * @return true if the attribute was added, 
+     * @return true if the attribute was added,
      * false if an existing value was replaced.
      */
     public boolean addAttributeAlways(
@@ -372,7 +376,7 @@ public abstract class SerializerBase
         boolean was_added;
 //            final int index =
 //                (localName == null || uri == null) ?
-//                m_attributes.getIndex(rawName):m_attributes.getIndex(uri, localName);        
+//                m_attributes.getIndex(rawName):m_attributes.getIndex(uri, localName);
             int index;
 //            if (localName == null || uri == null){
 //                index = m_attributes.getIndex(rawName);
@@ -380,7 +384,7 @@ public abstract class SerializerBase
 //            else {
 //                index = m_attributes.getIndex(uri, localName);
 //            }
-            
+
             if (localName == null || uri == null || uri.length() == 0)
                 index = m_attributes.getIndex(rawName);
             else {
@@ -402,12 +406,12 @@ public abstract class SerializerBase
                 was_added = true;
             }
             return was_added;
-        
+
     }
-  
+
 
     /**
-     *  Adds  the given attribute to the set of collected attributes, 
+     *  Adds  the given attribute to the set of collected attributes,
      * but only if there is a currently open element.
      *
      * @param name the attribute's qualified name
@@ -423,10 +427,10 @@ public abstract class SerializerBase
 
             addAttributeAlways(uri,localName, patchedName, "CDATA", value, false);
          }
-    }    
+    }
 
     /**
-     * Adds the given xsl:attribute to the set of collected attributes, 
+     * Adds the given xsl:attribute to the set of collected attributes,
      * but only if there is a currently open element.
      *
      * @param name the attribute's qualified name (prefix:localName)
@@ -442,7 +446,7 @@ public abstract class SerializerBase
 
             addAttributeAlways(uri,localName, patchedName, "CDATA", value, true);
          }
-    } 
+    }
 
     /**
      * Add the given attributes to the currently collected ones. These
@@ -460,7 +464,7 @@ public abstract class SerializerBase
 
             if (null == uri)
                 uri = "";
-            
+
             addAttributeAlways(
                 uri,
                 atts.getLocalName(i),
@@ -500,7 +504,7 @@ public abstract class SerializerBase
         m_inEntityRef = false;
 
         if (m_tracer != null)
-            this.fireEndEntity(name);        
+            this.fireEndEntity(name);
     }
 
     /**
@@ -564,10 +568,10 @@ public abstract class SerializerBase
     /**
      * Returns the previously set value of the value to be used as the public
      * identifier in the document type declaration (DTD).
-     * 
+     *
      *@return the public identifier to be used in the DOCTYPE declaration in the
      * output document.
-     */    
+     */
     public String getDoctypePublic()
     {
         return m_doctypePublic;
@@ -586,10 +590,10 @@ public abstract class SerializerBase
     /**
      * Returns the previously set value of the value to be used
      * as the system identifier in the document type declaration (DTD).
-	 * @return the system identifier to be used in the DOCTYPE declaration in
-	 * the output document.
+         * @return the system identifier to be used in the DOCTYPE declaration in
+         * the output document.
      *
-     */    
+     */
     public String getDoctypeSystem()
     {
         return m_doctypeSystem;
@@ -635,14 +639,14 @@ public abstract class SerializerBase
      * Sets the XSL standalone attribute, but does not remember if this is a
      * default or explicite setting.
      * @param standalone "yes" | "no"
-     */    
+     */
     protected void setStandaloneInternal(String standalone)
     {
         if ("yes".equals(standalone))
             m_standalone = "yes";
         else
             m_standalone = "no";
-        
+
     }
 
     /**
@@ -737,13 +741,13 @@ public abstract class SerializerBase
 
     /**
      * This method is used when a prefix/uri namespace mapping
-     * is indicated after the element was started with a 
+     * is indicated after the element was started with a
      * startElement() and before and endElement().
      * startPrefixMapping(prefix,uri) would be used before the
      * startElement() call.
      * @param uri the URI of the namespace
      * @param prefix the prefix associated with the given URI.
-     * 
+     *
      * @see ExtendedContentHandler#namespaceAfterStartElement(String, String)
      */
     public void namespaceAfterStartElement(String uri, String prefix)
@@ -763,7 +767,7 @@ public abstract class SerializerBase
      * @see Serializer#asDOMSerializer()
      */
     public DOMSerializer asDOMSerializer() throws IOException
-    { 
+    {
         return this;
     }
 
@@ -786,18 +790,18 @@ public abstract class SerializerBase
         if (null != m_cdataSectionElements)
         {
             if (m_elemContext.m_elementLocalName == null)
-                m_elemContext.m_elementLocalName = 
+                m_elemContext.m_elementLocalName =
                     getLocalName(m_elemContext.m_elementName);
             if (m_elemContext.m_elementURI == null)
             {
                 String prefix = getPrefixPart(m_elemContext.m_elementName);
                 if (prefix != null)
-                    m_elemContext.m_elementURI = 
+                    m_elemContext.m_elementURI =
                         m_prefixMap.lookupNamespace(prefix);
 
             }
 
-            if ((null != m_elemContext.m_elementURI) 
+            if ((null != m_elemContext.m_elementURI)
                 && m_elemContext.m_elementURI.length() == 0)
                 m_elemContext.m_elementURI = null;
 
@@ -834,10 +838,10 @@ public abstract class SerializerBase
     }
 
     /**
-     * Returns the local name of a qualified name. 
+     * Returns the local name of a qualified name.
      * If the name has no prefix,
-     * then it works as the identity (SAX2). 
-     * 
+     * then it works as the identity (SAX2).
+     *
      * @param qname a qualified name
      * @return returns the prefix of the qualified name,
      * or null if there is no prefix.
@@ -875,7 +879,7 @@ public abstract class SerializerBase
      * Returns the URI of an element or attribute. Note that default namespaces
      * do not apply directly to attributes.
      * @param qname a qualified name
-     * @param isElement true if the qualified name is the name of 
+     * @param isElement true if the qualified name is the name of
      * an element.
      * @return returns the namespace URI associated with the qualified name.
      */
@@ -904,8 +908,8 @@ public abstract class SerializerBase
 
     /**
      * Returns the URI of prefix (if any)
-     * 
-	 * @param prefix the prefix whose URI is searched for
+     *
+         * @param prefix the prefix whose URI is searched for
      * @return the namespace URI currently associated with the
      * prefix, null if the prefix is undefined.
      */
@@ -933,7 +937,7 @@ public abstract class SerializerBase
         endEntity(name);
 
         if (m_tracer != null)
-		    fireEntityReference(name);
+                    fireEntityReference(name);
     }
 
     /**
@@ -944,7 +948,7 @@ public abstract class SerializerBase
     public void setTransformer(Transformer t)
     {
         m_transformer = t;
-        
+
         // If this transformer object implements the SerializerTrace interface
         // then assign m_tracer to the transformer object so it can be used
         // to fire trace events.
@@ -964,7 +968,7 @@ public abstract class SerializerBase
     {
         return m_transformer;
     }
-    
+
     /**
      * This method gets the nodes value as a String and uses that String as if
      * it were an input character notification.
@@ -987,7 +991,7 @@ public abstract class SerializerBase
             characters(m_charsBuff, 0, length);
         }
     }
-    
+
 
     /**
      * @see org.xml.sax.ErrorHandler#error(SAXParseException)
@@ -999,7 +1003,7 @@ public abstract class SerializerBase
      * @see org.xml.sax.ErrorHandler#fatalError(SAXParseException)
      */
     public void fatalError(SAXParseException exc) throws SAXException {
-        
+
       m_elemContext.m_startTagOpen = false;
 
     }
@@ -1007,7 +1011,7 @@ public abstract class SerializerBase
     /**
      * @see org.xml.sax.ErrorHandler#warning(SAXParseException)
      */
-    public void warning(SAXParseException exc) throws SAXException 
+    public void warning(SAXParseException exc) throws SAXException
     {
     }
 
@@ -1017,12 +1021,12 @@ public abstract class SerializerBase
      */
     protected void fireStartEntity(String name)
         throws org.xml.sax.SAXException
-    {        
+    {
         if (m_tracer != null)
         {
             flushMyWriter();
             m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_ENTITYREF, name);
-        }     	        	    	
+        }
     }
 
     /**
@@ -1035,18 +1039,18 @@ public abstract class SerializerBase
 //        throws org.xml.sax.SAXException
 //    {
 //        if (m_tracer != null)
-//            m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_CHARACTERS, chars, start,length);     	        	    	
+//            m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_CHARACTERS, chars, start,length);
 //    }
-//        
+//
 
     /**
      * This method is only used internally when flushing the writer from the
-     * various fire...() trace events.  Due to the writer being wrapped with 
+     * various fire...() trace events.  Due to the writer being wrapped with
      * SerializerTraceWriter it may cause the flush of these trace events:
-     * EVENTTYPE_OUTPUT_PSEUDO_CHARACTERS 
+     * EVENTTYPE_OUTPUT_PSEUDO_CHARACTERS
      * EVENTTYPE_OUTPUT_CHARACTERS
      * which trace the output written to the output stream.
-     * 
+     *
      */
     private void flushMyWriter()
     {
@@ -1058,7 +1062,7 @@ public abstract class SerializerBase
             }
             catch(IOException ioe)
             {
-            
+
             }
         }
     }
@@ -1071,11 +1075,11 @@ public abstract class SerializerBase
     protected void fireCDATAEvent(char[] chars, int start, int length)
         throws org.xml.sax.SAXException
     {
-		if (m_tracer != null)
+                if (m_tracer != null)
         {
             flushMyWriter();
-			m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_CDATA, chars, start,length);
-        }     	        	    	
+                        m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_CDATA, chars, start,length);
+        }
     }
 
     /**
@@ -1087,11 +1091,11 @@ public abstract class SerializerBase
     protected void fireCommentEvent(char[] chars, int start, int length)
         throws org.xml.sax.SAXException
     {
-		if (m_tracer != null)
+                if (m_tracer != null)
         {
             flushMyWriter();
-			m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_COMMENT, new String(chars, start, length));
-        }     	        	    	
+                        m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_COMMENT, new String(chars, start, length));
+        }
     }
 
 
@@ -1104,8 +1108,8 @@ public abstract class SerializerBase
     {
         if (m_tracer != null)
             flushMyWriter();
-    	// we do not need to handle this.
-    }    
+        // we do not need to handle this.
+    }
 
     /**
      * To fire off start document trace  event
@@ -1117,8 +1121,8 @@ public abstract class SerializerBase
         {
             flushMyWriter();
             m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_STARTDOCUMENT);
-        }     	    
-    }    
+        }
+    }
 
 
     /**
@@ -1131,26 +1135,26 @@ public abstract class SerializerBase
         {
             flushMyWriter();
             m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_ENDDOCUMENT);
-        }     	        	
-    }    
-    
+        }
+    }
+
     /**
      * Report the start element trace event. This trace method needs to be
      * called just before the attributes are cleared.
-     * 
+     *
      * @param elemName the qualified name of the element
-     * 
+     *
      */
     protected void fireStartElem(String elemName)
         throws org.xml.sax.SAXException
-    {        
+    {
         if (m_tracer != null)
         {
             flushMyWriter();
             m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_STARTELEMENT,
-                elemName, m_attributes);     	 
-        }       	
-    }    
+                elemName, m_attributes);
+        }
+    }
 
 
     /**
@@ -1161,8 +1165,8 @@ public abstract class SerializerBase
 //        throws org.xml.sax.SAXException
 //    {
 //        if (m_tracer != null)
-//            m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_ENDELEMENT,name, (Attributes)null);     	        	    	
-//    }    
+//            m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_ENDELEMENT,name, (Attributes)null);
+//    }
 
 
     /**
@@ -1177,8 +1181,8 @@ public abstract class SerializerBase
         {
             flushMyWriter();
             m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_PI,name, data);
-        }     	        	    	
-    }    
+        }
+    }
 
 
     /**
@@ -1192,12 +1196,12 @@ public abstract class SerializerBase
         {
             flushMyWriter();
             m_tracer.fireGenerateEvent(SerializerTrace.EVENTTYPE_ENTITYREF,name, (Attributes)null);
-        }     	        	    	
-    }    
+        }
+    }
 
     /**
      * Receive notification of the beginning of a document.
-     * This method is never a self generated call, 
+     * This method is never a self generated call,
      * but only called externally.
      *
      * <p>The SAX parser will invoke this method only once, before any
@@ -1212,35 +1216,35 @@ public abstract class SerializerBase
     public void startDocument() throws org.xml.sax.SAXException
     {
 
-        // if we do get called with startDocument(), handle it right away       
+        // if we do get called with startDocument(), handle it right away
         startDocumentInternal();
         m_needToCallStartDocument = false;
         return;
-    }   
-    
+    }
+
     /**
      * This method handles what needs to be done at a startDocument() call,
-     * whether from an external caller, or internally called in the 
+     * whether from an external caller, or internally called in the
      * serializer.  For historical reasons the serializer is flexible to
      * startDocument() not always being called.
      * Even if no external call is
      * made into startDocument() this method will always be called as a self
      * generated internal startDocument, it handles what needs to be done at a
      * startDocument() call.
-     * 
+     *
      * This method exists just to make sure that startDocument() is only ever
      * called from an external caller, which in principle is just a matter of
      * style.
-     * 
+     *
      * @throws SAXException
      */
     protected void startDocumentInternal() throws org.xml.sax.SAXException
     {
         if (m_tracer != null)
             this.fireStartDoc();
-        
-    } 
-    
+
+    }
+
     /* This method extracts version and encoding information from SAX events.
      */
     protected void setDocumentInfo() {
@@ -1251,12 +1255,12 @@ public abstract class SerializerBase
             if (strVersion != null)
                 setVersion(strVersion);
             /*String strEncoding = ((Locator2)m_locator).getEncoding();
-            if (strEncoding != null) 
+            if (strEncoding != null)
                 setEncoding(strEncoding); */
-                  
+
         }catch(ClassCastException e){}
     }
-    
+
     /**
      * This method is used to set the source locator, which might be used to
      * generated an error message.
@@ -1266,96 +1270,96 @@ public abstract class SerializerBase
      */
     public void setSourceLocator(SourceLocator locator)
     {
-        m_sourceLocator = locator;    
+        m_sourceLocator = locator;
     }
 
-    
-    /** 
-     * Used only by TransformerSnapshotImpl to restore the serialization 
-     * to a previous state. 
-     * 
+
+    /**
+     * Used only by TransformerSnapshotImpl to restore the serialization
+     * to a previous state.
+     *
      * @param mappings NamespaceMappings
      */
     public void setNamespaceMappings(NamespaceMappings mappings) {
         m_prefixMap = mappings;
     }
-    
+
     public boolean reset()
     {
-    	resetSerializerBase();
-    	return true;
+        resetSerializerBase();
+        return true;
     }
-    
+
     /**
      * Reset all of the fields owned by SerializerBase
      *
      */
     private void resetSerializerBase()
     {
-    	this.m_attributes.clear();
-    	this.m_cdataSectionElements = null;
+        this.m_attributes.clear();
+        this.m_cdataSectionElements = null;
         this.m_elemContext = new ElemContext();
-    	this.m_doctypePublic = null;
-    	this.m_doctypeSystem = null;
-    	this.m_doIndent = false;
-    	this.m_encoding = null;
-    	this.m_indentAmount = 0;
-    	this.m_inEntityRef = false;
-    	this.m_inExternalDTD = false;
-    	this.m_mediatype = null;
-    	this.m_needToCallStartDocument = true;
-    	this.m_needToOutputDocTypeDecl = false;
+        this.m_doctypePublic = null;
+        this.m_doctypeSystem = null;
+        this.m_doIndent = false;
+        this.m_encoding = null;
+        this.m_indentAmount = 0;
+        this.m_inEntityRef = false;
+        this.m_inExternalDTD = false;
+        this.m_mediatype = null;
+        this.m_needToCallStartDocument = true;
+        this.m_needToOutputDocTypeDecl = false;
         if (this.m_prefixMap != null)
-    	    this.m_prefixMap.reset();
-    	this.m_shouldNotWriteXMLHeader = false;
-    	this.m_sourceLocator = null;
-    	this.m_standalone = null;
-    	this.m_standaloneWasSpecified = false;
-    	this.m_tracer = null;
-    	this.m_transformer = null;
-    	this.m_version = null;
-    	// don't set writer to null, so that it might be re-used
-    	//this.m_writer = null;
+            this.m_prefixMap.reset();
+        this.m_shouldNotWriteXMLHeader = false;
+        this.m_sourceLocator = null;
+        this.m_standalone = null;
+        this.m_standaloneWasSpecified = false;
+        this.m_tracer = null;
+        this.m_transformer = null;
+        this.m_version = null;
+        // don't set writer to null, so that it might be re-used
+        //this.m_writer = null;
     }
-    
+
     /**
      * Returns true if the serializer is used for temporary output rather than
      * final output.
-     * 
+     *
      * This concept is made clear in the XSLT 2.0 draft.
      */
-    final boolean inTemporaryOutputState() 
+    final boolean inTemporaryOutputState()
     {
         /* This is a hack. We should really be letting the serializer know
          * that it is in temporary output state with an explicit call, but
          * from a pragmatic point of view (for now anyways) having no output
          * encoding at all, not even the default UTF-8 indicates that the serializer
          * is being used for temporary RTF.
-         */ 
+         */
         return (getEncoding() == null);
-        
+
     }
-    
+
     /**
      * This method adds an attribute the the current element,
      * but should not be used for an xsl:attribute child.
      * @see ExtendedContentHandler#addAttribute(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
      */
-    public void addAttribute(String uri, String localName, String rawName, String type, String value) throws SAXException 
+    public void addAttribute(String uri, String localName, String rawName, String type, String value) throws SAXException
     {
         if (m_elemContext.m_startTagOpen)
         {
             addAttributeAlways(uri, localName, rawName, type, value, false);
         }
     }
-    
+
     /**
      * @see org.xml.sax.DTDHandler#notationDecl(java.lang.String, java.lang.String, java.lang.String)
      */
     public void notationDecl(String arg0, String arg1, String arg2)
         throws SAXException {
         // This method just provides a definition to satisfy the interface
-        // A particular sub-class of SerializerBase provides the implementation (if desired)        
+        // A particular sub-class of SerializerBase provides the implementation (if desired)
     }
 
     /**
@@ -1368,7 +1372,7 @@ public abstract class SerializerBase
         String arg3)
         throws SAXException {
         // This method just provides a definition to satisfy the interface
-        // A particular sub-class of SerializerBase provides the implementation (if desired)        
+        // A particular sub-class of SerializerBase provides the implementation (if desired)
     }
 
     /**
@@ -1377,7 +1381,7 @@ public abstract class SerializerBase
      */
     public void setDTDEntityExpansion(boolean expand) {
         // This method just provides a definition to satisfy the interface
-        // A particular sub-class of SerializerBase provides the implementation (if desired)        
+        // A particular sub-class of SerializerBase provides the implementation (if desired)
     }
 
 }

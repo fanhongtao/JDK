@@ -1,15 +1,33 @@
 /*
- * @(#)AccountExpiredException.java	1.19 05/11/17
+ * Copyright (c) 1998, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.security.auth.login;
 
 /**
  * Signals that a user account has expired.
- * 
+ *
  * <p> This exception is thrown by LoginModules when they determine
  * that an account has expired.  For example, a <code>LoginModule</code>,
  * after successfully authenticating a user, may determine that the
@@ -17,7 +35,6 @@ package javax.security.auth.login;
  * throws this exception to notify the application.  The application can
  * then take the appropriate steps to notify the user.
  *
- * @version 1.19, 11/17/05
  */
 public class AccountExpiredException extends AccountException {
 
@@ -28,7 +45,7 @@ public class AccountExpiredException extends AccountException {
      * message is a String that describes this particular exception.
      */
     public AccountExpiredException() {
-	super();
+        super();
     }
 
     /**
@@ -38,9 +55,9 @@ public class AccountExpiredException extends AccountException {
      *
      * <p>
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public AccountExpiredException(String msg) {
-	super(msg);
+        super(msg);
     }
 }

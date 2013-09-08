@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)SchemaFactoryFinder.java	1.18 05/11/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.validation;
@@ -43,9 +41,8 @@ import java.util.Properties;
 
 /**
  * Implementation of {@link SchemaFactory#newInstance(String)}.
- * 
+ *
  * @author <a href="Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.5 $, $Date: 2005/10/06 05:39:24 $
  * @since 1.5
  */
 class SchemaFactoryFinder  {
@@ -59,13 +56,13 @@ class SchemaFactoryFinder  {
     /**
      * <p>Cache properties for performance.</p>
      */
-	private static Properties cacheProps = new Properties();
-    
-	/**
-	 * <p>First time requires initialization overhead.</p>
-	 */
-	private static boolean firstTime = true;
-    
+        private static Properties cacheProps = new Properties();
+
+        /**
+         * <p>First time requires initialization overhead.</p>
+         */
+        private static boolean firstTime = true;
+
     static {
         // Use try/catch block to support applets
         try {
@@ -77,7 +74,7 @@ class SchemaFactoryFinder  {
 
     /**
      * <p>Conditional debug printing.</p>
-     * 
+     *
      * @param msg to print
      */
     private static void debugPrintln(String msg) {
@@ -85,16 +82,16 @@ class SchemaFactoryFinder  {
             System.err.println("JAXP: " + msg);
         }
     }
-    
+
     /**
      * <p><code>ClassLoader</code> to use to find <code>SchemaFactory</code>.</p>
      */
     private final ClassLoader classLoader;
-    
+
     /**
      * <p>Constructor that specifies <code>ClassLoader</code> to use
      * to find <code>SchemaFactory</code>.</p>
-     * 
+     *
      * @param loader
      *      to be used to load resource, {@link SchemaFactory}, and
      *      {@link SchemaFactoryLoader} implementations during
@@ -108,7 +105,7 @@ class SchemaFactoryFinder  {
             debugDisplayClassLoader();
         }
     }
-    
+
     private void debugDisplayClassLoader() {
         try {
             if( classLoader == ss.getContextClassLoader() ) {
@@ -116,9 +113,9 @@ class SchemaFactoryFinder  {
                 return;
             }
         } catch( Throwable _ ) {
-            ; // getContextClassLoader() undefined in JDK1.1 
+            ; // getContextClassLoader() undefined in JDK1.1
         }
-        
+
         if( classLoader==ClassLoader.getSystemClassLoader() ) {
             debugPrintln("using system class loader ("+classLoader+") for search");
             return;
@@ -126,17 +123,17 @@ class SchemaFactoryFinder  {
 
         debugPrintln("using class loader ("+classLoader+") for search");
     }
-    
+
     /**
      * <p>Creates a new {@link SchemaFactory} object for the specified
      * schema language.</p>
-     * 
+     *
      * @param schemaLanguage
      *      See {@link SchemaFactory Schema Language} table in <code>SchemaFactory</code>
      *      for the list of available schema languages.
-     * 
+     *
      * @return <code>null</code> if the callee fails to create one.
-     * 
+     *
      * @throws NullPointerException
      *      If the <code>schemaLanguage</code> parameter is null.
      */
@@ -150,19 +147,19 @@ class SchemaFactoryFinder  {
         }
         return f;
     }
-    
+
     /**
      * <p>Lookup a <code>SchemaFactory</code> for the given <code>schemaLanguage</code>.</p>
-     * 
+     *
      * @param schemaLanguage Schema language to lookup <code>SchemaFactory</code> for.
-     *  
+     *
      * @return <code>SchemaFactory</code> for the given <code>schemaLanguage</code>.
      */
     private SchemaFactory _newFactory(String schemaLanguage) {
         SchemaFactory sf;
-        
+
         String propertyName = SERVICE_CLASS.getName() + ":" + schemaLanguage;
-        
+
         // system property look up
         try {
             debugPrintln("Looking up system property '"+propertyName+"'" );
@@ -194,14 +191,14 @@ class SchemaFactoryFinder  {
                         File f=new File( configFile );
                         firstTime = false;
                         if(ss.doesFileExist(f)){
-                            debugPrintln("Read properties file " + f);                                
+                            debugPrintln("Read properties file " + f);
                             cacheProps.load(ss.getFileInputStream(f));
                         }
                     }
                 }
             }
-            factoryClassName = cacheProps.getProperty(propertyName);            
-            debugPrintln("found " + factoryClassName + " in $java.home/jaxp.properties"); 
+            factoryClassName = cacheProps.getProperty(propertyName);
+            debugPrintln("found " + factoryClassName + " in $java.home/jaxp.properties");
 
             if (factoryClassName != null) {
                 sf = createInstance(factoryClassName);
@@ -212,7 +209,7 @@ class SchemaFactoryFinder  {
         } catch (Exception ex) {
             if (debug) {
                 ex.printStackTrace();
-            } 
+            }
         }
 
         /**
@@ -236,7 +233,7 @@ class SchemaFactoryFinder  {
             }
         }
          */
-        
+
         // try META-INF/services files
         Iterator sitr = createServiceFileIterator();
         while(sitr.hasNext()) {
@@ -244,7 +241,7 @@ class SchemaFactoryFinder  {
             debugPrintln("looking into " + resource);
             try {
                 sf = loadFromService(schemaLanguage,resource.toExternalForm(),
-						ss.getURLInputStream(resource));
+                                                ss.getURLInputStream(resource));
                 if(sf!=null)    return sf;
             } catch(IOException e) {
                 if( debug ) {
@@ -253,19 +250,19 @@ class SchemaFactoryFinder  {
                 }
             }
         }
-        
+
         // platform default
         if(schemaLanguage.equals("http://www.w3.org/2001/XMLSchema")) {
             debugPrintln("attempting to use the platform default XML Schema validator");
             return createInstance("com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory");
         }
-        
+
         debugPrintln("all things were tried, but none was found. bailing out.");
         return null;
     }
-    
+
     /** <p>Create class using appropriate ClassLoader.</p>
-     * 
+     *
      * @param className Name of class to create.
      * @return Created class or <code>null</code>.
      */
@@ -286,26 +283,26 @@ class SchemaFactoryFinder  {
 
             return clazz;
     }
-    
+
     /**
      * <p>Creates an instance of the specified and returns it.</p>
-     * 
+     *
      * @param className
      *      fully qualified class name to be instanciated.
-     * 
+     *
      * @return null
-     *      if it fails. Error messages will be printed by this method. 
+     *      if it fails. Error messages will be printed by this method.
      */
     SchemaFactory createInstance( String className ) {
         SchemaFactory schemaFactory = null;
-		
+
         debugPrintln("createInstance(" + className + ")");
 
-        // get Class from className		
+        // get Class from className
         Class clazz = createClass(className);
         if (clazz == null) {
                 debugPrintln("failed to getClass(" + className + ")");
-                return null;	
+                return null;
         }
         debugPrintln("loaded " + className + " from " + which(clazz));
 
@@ -334,11 +331,11 @@ class SchemaFactoryFinder  {
 
         return schemaFactory;
     }
-    
+
     /** Iterator that lazily computes one value and returns it. */
     private static abstract class SingleIterator implements Iterator {
         private boolean seen = false;
-        
+
         public final void remove() { throw new UnsupportedOperationException(); }
         public final boolean hasNext() { return !seen; }
         public final Object next() {
@@ -346,21 +343,21 @@ class SchemaFactoryFinder  {
             seen = true;
             return value();
         }
-        
+
         protected abstract Object value();
     }
-    
+
     /**
      * Looks up a value in a property file
      * while producing all sorts of debug messages.
-     * 
+     *
      * @return null
      *      if there was an error.
      */
     private SchemaFactory loadFromProperty( String keyName, String resourceName, InputStream in )
         throws IOException {
         debugPrintln("Reading "+resourceName );
-        
+
         Properties props=new Properties();
         props.load(in);
         in.close();
@@ -373,18 +370,18 @@ class SchemaFactoryFinder  {
             return null;
         }
     }
-    
+
     /**
      * <p>Look up a value in a property file.</p>
-     * 
+     *
      * <p>Set <code>debug</code> to <code>true</code> to trace property evaluation.</p>
      *
      * @param schemaLanguage Schema Language to support.
      * @param inputName Name of <code>InputStream</code>.
      * @param in <code>InputStream</code> of properties.
-     * 
+     *
      * @return <code>SchemaFactory</code> as determined by <code>keyName</code> value or <code>null</code> if there was an error.
-     * 
+     *
      * @throws IOException If IO error reading from <code>in</code>.
      */
     private SchemaFactory loadFromService(
@@ -424,7 +421,7 @@ class SchemaFactoryFinder  {
                     Class clazz = createClass(line);
                     if (clazz == null) {
                             continue;
-                    } 
+                    }
 
                     // create an instance of the Class
                     try {
@@ -439,7 +436,7 @@ class SchemaFactoryFinder  {
                             schemaFactory = null;
                             continue;
                     }
-                    
+
                     // does this Class support desired Schema?
                     try {
                             Method isSchemaLanguageSupported = clazz.getMethod(isSchemaLanguageSupportedMethod, stringClassArray);
@@ -448,13 +445,13 @@ class SchemaFactoryFinder  {
                                     break;
                             }
                     } catch (NoSuchMethodException noSuchMethodException) {
-                           
+
                     } catch (IllegalAccessException illegalAccessException) {
-                            
+
                     } catch (InvocationTargetException invocationTargetException) {
-                            
+
                     }
-                    schemaFactory = null;						
+                    schemaFactory = null;
             }
 
             // clean up
@@ -465,7 +462,7 @@ class SchemaFactoryFinder  {
     }
 
     /**
-     * Returns an {@link Iterator} that enumerates all 
+     * Returns an {@link Iterator} that enumerates all
      * the META-INF/services files that we care.
      */
     private Iterator createServiceFileIterator() {
@@ -484,7 +481,7 @@ class SchemaFactoryFinder  {
                 if(!e.hasMoreElements()) {
                     debugPrintln("no "+SERVICE_ID+" file was found");
                 }
-                
+
                 // wrap it into an Iterator.
                 return new Iterator() {
                     public void remove() {
@@ -506,12 +503,12 @@ class SchemaFactoryFinder  {
             }
         }
     }
-    
+
     private static final Class SERVICE_CLASS = SchemaFactory.class;
     private static final String SERVICE_ID = "META-INF/services/" + SERVICE_CLASS.getName();
-    
-    
-    
+
+
+
     private static String which( Class clazz ) {
         return which( clazz.getName(), clazz.getClassLoader() );
     }
@@ -521,15 +518,15 @@ class SchemaFactoryFinder  {
      *
      * @param classname the fully qualified name of the class to search for
      * @param loader the classloader to search
-     * 
+     *
      * @return the source location of the resource, or null if it wasn't found
      */
     private static String which(String classname, ClassLoader loader) {
 
         String classnameAsResource = classname.replace('.', '/') + ".class";
-        
+
         if( loader==null )  loader = ClassLoader.getSystemClassLoader();
-        
+
         //URL it = loader.getResource(classnameAsResource);
         URL it = ss.getResourceAsURL(loader, classnameAsResource);
         if (it != null) {

@@ -1,8 +1,26 @@
 /*
- * @(#)FileImageInputStreamSpi.java	1.16 05/11/17
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.spi;
@@ -15,7 +33,7 @@ import javax.imageio.stream.FileImageInputStream;
 
 public class FileImageInputStreamSpi extends ImageInputStreamSpi {
 
-    private static final String vendorName = "Sun Microsystems, Inc.";
+    private static final String vendorName = "Oracle Corporation";
 
     private static final String version = "1.0";
 

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +22,8 @@
  */
 package com.sun.org.apache.xml.internal.serializer;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Stack;
 
 import org.xml.sax.ContentHandler;
@@ -66,17 +70,17 @@ public class NamespaceMappings
      * This member is continually incremented when new prefixes need to be
      * generated. ("ns0"  "ns1" ...)
      */
-    private int count = 0;
+    private int count;
 
     /**
-     * Each entry (prefix) in this hashtable points to a Stack of URIs
-     * This table maps a prefix (String) to a Stack of prefix mappings.
+     * Each entry (prefix) in this hashmap points to a Stack of URIs
+     * This maps a prefix (String) to a Stack of prefix mappings.
      * All mappings in that retrieved stack have the same prefix,
      * though possibly different URI's or depths. Such a stack must have
      * mappings at deeper depths push later on such a stack.  Mappings pushed
      * earlier on the stack will have smaller values for MappingRecord.m_declarationDepth.
      */
-    private Hashtable m_namespaces = new Hashtable();
+    private HashMap m_namespaces = new HashMap();
 
     /** 
      * The top of this stack contains the MapRecord
@@ -155,10 +159,9 @@ public class NamespaceMappings
     public String lookupPrefix(String uri)
     {
         String foundPrefix = null;
-        Enumeration prefixes = m_namespaces.keys();
-        while (prefixes.hasMoreElements())
-        {
-            String prefix = (String) prefixes.nextElement();
+        Iterator<String> itr = m_namespaces.keySet().iterator();
+        while (itr.hasNext()) {
+            String prefix = itr.next();
             String uri2 = lookupNamespace(prefix);
             if (uri2 != null && uri2.equals(uri))
             {
@@ -172,10 +175,10 @@ public class NamespaceMappings
     MappingRecord getMappingFromURI(String uri)
     {
         MappingRecord foundMap = null;
-        Enumeration prefixes = m_namespaces.keys();
-        while (prefixes.hasMoreElements())
+        Iterator<String> itr = m_namespaces.keySet().iterator();
+        while (itr.hasNext())
         {
-            String prefix = (String) prefixes.nextElement();
+            String prefix = itr.next();
             MappingRecord map2 = getMappingFromPrefix(prefix);
             if (map2 != null && (map2.m_uri).equals(uri))
             {
@@ -294,8 +297,7 @@ public class NamespaceMappings
     public Object clone() throws CloneNotSupportedException {
         NamespaceMappings clone = new NamespaceMappings();
         clone.m_nodeStack = (Stack) m_nodeStack.clone();
-        clone.m_namespaces = (Hashtable) m_namespaces.clone();
-        
+        clone.m_namespaces = (HashMap) m_namespaces.clone();
         clone.count = count;
         return clone;
         

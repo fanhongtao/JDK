@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,10 +59,10 @@ public class UnionPathIterator extends LocPathIterator
   }
 
   /**
-   * Initialize the context values for this expression 
+   * Initialize the context values for this expression
    * after it is cloned.
    *
-   * @param context The XPath runtime context for this 
+   * @param context The XPath runtime context for this
    * transformation.
    */
   public void setRoot(int context, Object environment)
@@ -71,7 +75,7 @@ public class UnionPathIterator extends LocPathIterator
       {
         int n = m_exprs.length;
         DTMIterator newIters[] = new DTMIterator[n];
-  
+
         for (int i = 0; i < n; i++)
         {
           DTMIterator iter = m_exprs[i].asIterator(m_execContext, context);
@@ -86,7 +90,7 @@ public class UnionPathIterator extends LocPathIterator
       throw new com.sun.org.apache.xml.internal.utils.WrappedRuntimeException(e);
     }
   }
-  
+
   /**
    * Add an iterator to the union list.
    *
@@ -115,9 +119,9 @@ public class UnionPathIterator extends LocPathIterator
     }
     expr.nextNode();
     if(expr instanceof Expression)
-    	((Expression)expr).exprSetParent(this);
+        ((Expression)expr).exprSetParent(this);
   }
-  
+
   /**
    *  Detaches the iterator from the set which it iterated over, releasing
    * any computational resources and placing the iterator in the INVALID
@@ -127,25 +131,25 @@ public class UnionPathIterator extends LocPathIterator
    */
   public void detach()
   {
-          if(m_allowDetach && null != m_iterators){         
+          if(m_allowDetach && null != m_iterators){
                   int n = m_iterators.length;
                   for(int i = 0; i < n; i++)
                   {
                           m_iterators[i].detach();
                   }
-                  m_iterators = null;                                
+                  m_iterators = null;
           }
   }
 
 
   /**
-   * Create a UnionPathIterator object, including creation 
-   * of location path iterators from the opcode list, and call back 
+   * Create a UnionPathIterator object, including creation
+   * of location path iterators from the opcode list, and call back
    * into the Compiler to create predicate expressions.
    *
-   * @param compiler The Compiler which is creating 
+   * @param compiler The Compiler which is creating
    * this expression.
-   * @param opPos The position of this iterator in the 
+   * @param opPos The position of this iterator in the
    * opcode list from the compiler.
    *
    * @throws javax.xml.transform.TransformerException
@@ -160,15 +164,15 @@ public class UnionPathIterator extends LocPathIterator
 
     loadLocationPaths(compiler, opPos, 0);
   }
-  
+
   /**
    * This will return an iterator capable of handling the union of paths given.
-   * 
-   * @param compiler The Compiler which is creating 
+   *
+   * @param compiler The Compiler which is creating
    * this expression.
-   * @param opPos The position of this iterator in the 
+   * @param opPos The position of this iterator in the
    * opcode list from the compiler.
-   * 
+   *
    * @return Object that is derived from LocPathIterator.
    *
    * @throws javax.xml.transform.TransformerException
@@ -176,73 +180,73 @@ public class UnionPathIterator extends LocPathIterator
   public static LocPathIterator createUnionIterator(Compiler compiler, int opPos)
           throws javax.xml.transform.TransformerException
   {
-  	// For the moment, I'm going to first create a full UnionPathIterator, and 
-  	// then see if I can reduce it to a UnionChildIterator.  It would obviously 
-  	// be more effecient to just test for the conditions for a UnionChildIterator, 
-  	// and then create that directly.
-  	UnionPathIterator upi = new UnionPathIterator(compiler, opPos);
-  	int nPaths = upi.m_exprs.length;
-  	boolean isAllChildIterators = true;
-  	for(int i = 0; i < nPaths; i++)
-  	{
-  		LocPathIterator lpi = upi.m_exprs[i];
-  		
-  		if(lpi.getAxis() != Axis.CHILD)
-  		{
-  			isAllChildIterators = false;
-  			break;
-  		}
-  		else
-  		{
-  			// check for positional predicates or position function, which won't work.
-  			if(HasPositionalPredChecker.check(lpi))
-  			{
-  				isAllChildIterators = false;
-  				break;
-  			}
-  		}
-  	}
-  	if(isAllChildIterators)
-  	{
-  		UnionChildIterator uci = new UnionChildIterator();
-  		
-	  	for(int i = 0; i < nPaths; i++)
-	  	{
-	  		PredicatedNodeTest lpi = upi.m_exprs[i];
-	  		// I could strip the lpi down to a pure PredicatedNodeTest, but 
-	  		// I don't think it's worth it.  Note that the test can be used 
-	  		// as a static object... so it doesn't have to be cloned.
-	  		uci.addNodeTest(lpi);
-	  	}
-	  	return uci;
-  		
-  	}
-  	else
-  		return upi;
+        // For the moment, I'm going to first create a full UnionPathIterator, and
+        // then see if I can reduce it to a UnionChildIterator.  It would obviously
+        // be more effecient to just test for the conditions for a UnionChildIterator,
+        // and then create that directly.
+        UnionPathIterator upi = new UnionPathIterator(compiler, opPos);
+        int nPaths = upi.m_exprs.length;
+        boolean isAllChildIterators = true;
+        for(int i = 0; i < nPaths; i++)
+        {
+                LocPathIterator lpi = upi.m_exprs[i];
+
+                if(lpi.getAxis() != Axis.CHILD)
+                {
+                        isAllChildIterators = false;
+                        break;
+                }
+                else
+                {
+                        // check for positional predicates or position function, which won't work.
+                        if(HasPositionalPredChecker.check(lpi))
+                        {
+                                isAllChildIterators = false;
+                                break;
+                        }
+                }
+        }
+        if(isAllChildIterators)
+        {
+                UnionChildIterator uci = new UnionChildIterator();
+
+                for(int i = 0; i < nPaths; i++)
+                {
+                        PredicatedNodeTest lpi = upi.m_exprs[i];
+                        // I could strip the lpi down to a pure PredicatedNodeTest, but
+                        // I don't think it's worth it.  Note that the test can be used
+                        // as a static object... so it doesn't have to be cloned.
+                        uci.addNodeTest(lpi);
+                }
+                return uci;
+
+        }
+        else
+                return upi;
   }
-  
-  /** 
+
+  /**
    * Get the analysis bits for this walker, as defined in the WalkerFactory.
    * @return One of WalkerFactory#BIT_DESCENDANT, etc.
    */
   public int getAnalysisBits()
   {
     int bits = 0;
-    
+
     if (m_exprs != null)
     {
       int n = m_exprs.length;
 
       for (int i = 0; i < n; i++)
       {
-      	int bit = m_exprs[i].getAnalysisBits();
+        int bit = m_exprs[i].getAnalysisBits();
         bits |= bit;
       }
     }
 
     return bits;
   }
-  
+
   /**
    * Read the object from a serialization stream.
    *
@@ -266,7 +270,7 @@ public class UnionPathIterator extends LocPathIterator
   }
 
   /**
-   * Get a cloned LocPathIterator that holds the same 
+   * Get a cloned LocPathIterator that holds the same
    * position as this iterator.
    *
    * @return A clone of this iterator that holds the same node position.
@@ -280,7 +284,7 @@ public class UnionPathIterator extends LocPathIterator
     if (m_iterators != null)
     {
       int n = m_iterators.length;
-      
+
       clone.m_iterators = new DTMIterator[n];
 
       for (int i = 0; i < n; i++)
@@ -291,14 +295,14 @@ public class UnionPathIterator extends LocPathIterator
 
     return clone;
   }
-  
-  
+
+
   /**
    * Create a new location path iterator.
    *
-   * @param compiler The Compiler which is creating 
+   * @param compiler The Compiler which is creating
    * this expression.
-   * @param opPos The position of this iterator in the 
+   * @param opPos The position of this iterator in the
    *
    * @return New location path iterator.
    *
@@ -307,7 +311,7 @@ public class UnionPathIterator extends LocPathIterator
   protected LocPathIterator createDTMIterator(
           Compiler compiler, int opPos) throws javax.xml.transform.TransformerException
   {
-    LocPathIterator lpi = (LocPathIterator)WalkerFactory.newDTMIterator(compiler, opPos, 
+    LocPathIterator lpi = (LocPathIterator)WalkerFactory.newDTMIterator(compiler, opPos,
                                       (compiler.getLocationPathDepth() <= 0));
     return lpi;
   }
@@ -315,9 +319,9 @@ public class UnionPathIterator extends LocPathIterator
   /**
    * Initialize the location path iterators.  Recursive.
    *
-   * @param compiler The Compiler which is creating 
+   * @param compiler The Compiler which is creating
    * this expression.
-   * @param opPos The position of this iterator in the 
+   * @param opPos The position of this iterator in the
    * opcode list from the compiler.
    * @param count The insert position of the iterator.
    *
@@ -341,7 +345,7 @@ public class UnionPathIterator extends LocPathIterator
     {
 
       // Have to check for unwrapped functions, which the LocPathIterator
-      // doesn't handle. 
+      // doesn't handle.
       switch (steptype)
       {
       case OpCodes.OP_VARIABLE :
@@ -353,7 +357,7 @@ public class UnionPathIterator extends LocPathIterator
         WalkingIterator iter =
           new WalkingIterator(compiler.getNamespaceContext());
         iter.exprSetParent(this);
-          
+
         if(compiler.getLocationPathDepth() <= 0)
           iter.setIsTopLevel(true);
 
@@ -378,10 +382,10 @@ public class UnionPathIterator extends LocPathIterator
    */
   public int nextNode()
   {
-  	if(m_foundLast)
-  		return DTM.NULL;
+        if(m_foundLast)
+                return DTM.NULL;
 
-    // Loop through the iterators getting the current fetched 
+    // Loop through the iterators getting the current fetched
     // node, and get the earliest occuring in document order
     int earliestNode = DTM.NULL;
 
@@ -436,26 +440,26 @@ public class UnionPathIterator extends LocPathIterator
 
     return earliestNode;
   }
-            
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
   {
-    for (int i = 0; i < m_exprs.length; i++) 
+    for (int i = 0; i < m_exprs.length; i++)
     {
       m_exprs[i].fixupVariables(vars, globalsSize);
     }
-    
+
   }
-  
+
   /**
    * The location path iterators, one for each
    * <a href="http://www.w3.org/TR/xpath#NT-LocationPath">location
@@ -464,7 +468,7 @@ public class UnionPathIterator extends LocPathIterator
    */
   protected LocPathIterator[] m_exprs;
 
-    
+
   /**
    * The location path iterators, one for each
    * <a href="http://www.w3.org/TR/xpath#NT-LocationPath">location
@@ -472,11 +476,11 @@ public class UnionPathIterator extends LocPathIterator
    * @serial
    */
   protected DTMIterator[] m_iterators;
-      
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
@@ -484,16 +488,16 @@ public class UnionPathIterator extends LocPathIterator
     // Could be smarter.
     return -1;
   }
-  
+
   class iterOwner implements ExpressionOwner
   {
-  	int m_index;
-  	
-  	iterOwner(int index)
-  	{
-  		m_index = index;
-  	}
-  	
+        int m_index;
+
+        iterOwner(int index)
+        {
+                m_index = index;
+        }
+
     /**
      * @see ExpressionOwner#getExpression()
      */
@@ -507,23 +511,23 @@ public class UnionPathIterator extends LocPathIterator
      */
     public void setExpression(Expression exp)
     {
-    	
-    	if(!(exp instanceof LocPathIterator))
-    	{
-    		// Yuck.  Need FilterExprIter.  Or make it so m_exprs can be just 
-    		// plain expressions?
-    		WalkingIterator wi = new WalkingIterator(getPrefixResolver());
-    		FilterExprWalker few = new FilterExprWalker(wi);
-    		wi.setFirstWalker(few);
-    		few.setInnerExpression(exp);
-    		wi.exprSetParent(UnionPathIterator.this);
-    		few.exprSetParent(wi);
-    		exp.exprSetParent(few);
-    		exp = wi;
-    	}
-    	else
-    		exp.exprSetParent(UnionPathIterator.this);
-    	m_exprs[m_index] = (LocPathIterator)exp;
+
+        if(!(exp instanceof LocPathIterator))
+        {
+                // Yuck.  Need FilterExprIter.  Or make it so m_exprs can be just
+                // plain expressions?
+                WalkingIterator wi = new WalkingIterator(getPrefixResolver());
+                FilterExprWalker few = new FilterExprWalker(wi);
+                wi.setFirstWalker(few);
+                few.setInnerExpression(exp);
+                wi.exprSetParent(UnionPathIterator.this);
+                few.exprSetParent(wi);
+                exp.exprSetParent(few);
+                exp = wi;
+        }
+        else
+                exp.exprSetParent(UnionPathIterator.this);
+        m_exprs[m_index] = (LocPathIterator)exp;
     }
 
   }
@@ -533,19 +537,19 @@ public class UnionPathIterator extends LocPathIterator
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	 	if(visitor.visitUnionPath(owner, this))
-  	 	{
-  	 		if(null != m_exprs)
-  	 		{
-  	 			int n = m_exprs.length;
-  	 			for(int i = 0; i < n; i++)
-  	 			{
-  	 				m_exprs[i].callVisitors(new iterOwner(i), visitor);
-  	 			}
-  	 		}
-  	 	}
+                if(visitor.visitUnionPath(owner, this))
+                {
+                        if(null != m_exprs)
+                        {
+                                int n = m_exprs.length;
+                                for(int i = 0; i < n; i++)
+                                {
+                                        m_exprs[i].callVisitors(new iterOwner(i), visitor);
+                                }
+                        }
+                }
   }
-  
+
     /**
      * @see Expression#deepEquals(Expression)
      */
@@ -559,14 +563,14 @@ public class UnionPathIterator extends LocPathIterator
       if (null != m_exprs)
       {
         int n = m_exprs.length;
-        
+
         if((null == upi.m_exprs) || (upi.m_exprs.length != n))
-        	return false;
-        
+                return false;
+
         for (int i = 0; i < n; i++)
         {
           if(!m_exprs[i].deepEquals(upi.m_exprs[i]))
-          	return false;
+                return false;
         }
       }
       else if (null != upi.m_exprs)

@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // SAX exception class.
 // http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
@@ -122,10 +147,10 @@ public class SAXException extends Exception {
     }
 
     /**
-    * Return the cause of the exception
-    *
-    * @return Return the cause of the exception
-    */
+     * Return the cause of the exception
+     *
+     * @return Return the cause of the exception
+     */
     public Throwable getCause() {
         return exception;
     }
@@ -138,7 +163,7 @@ public class SAXException extends Exception {
     public String toString ()
     {
 	if (exception != null) {
-	    return exception.toString();
+	    return super.toString() + "\n" + exception.toString();
 	} else {
 	    return super.toString();
 	}

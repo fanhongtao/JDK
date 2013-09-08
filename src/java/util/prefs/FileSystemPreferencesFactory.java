@@ -1,8 +1,26 @@
 /*
- * @(#)FileSystemPreferencesFactory.java	1.6 05/11/17
+ * Copyright (c) 2000, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.prefs;
@@ -13,7 +31,6 @@ package java.util.prefs;
  * java.util.prefs.PreferencesFactory system property.
  *
  * @author  Josh Bloch
- * @version 1.6, 11/17/05
  * @see     FileSystemPreferences
  * @see     Preferences
  * @since   1.4

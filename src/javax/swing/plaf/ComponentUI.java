@@ -1,8 +1,26 @@
 /*
- * @(#)ComponentUI.java	1.26 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf;
@@ -23,15 +41,15 @@ import java.awt.Insets;
  * look and feel architecture.  The UI delegate object for a Swing
  * component is responsible for implementing the aspects of the
  * component that depend on the look and feel.
- * The <code>JComponent</code> class 
+ * The <code>JComponent</code> class
  * invokes methods from this class in order to delegate operations
  * (painting, layout calculations, etc.) that may vary depending on the
  * look and feel installed.  <b>Client programs should not invoke methods
  * on this class directly.</b>
- * 
+ *
  * @see javax.swing.JComponent
- * @see javax.swing.UIManager 
- * 
+ * @see javax.swing.UIManager
+ *
  */
 public abstract class ComponentUI {
     /**
@@ -42,15 +60,15 @@ public abstract class ComponentUI {
     }
 
     /**
-     * Configures the specified component appropriate for the look and feel.
+     * Configures the specified component appropriately for the look and feel.
      * This method is invoked when the <code>ComponentUI</code> instance is being installed
      * as the UI delegate on the specified component.  This method should
      * completely configure the component for the look and feel,
      * including the following:
      * <ol>
-     * <li>Install any default property values for color, fonts, borders,
-     *     icons, opacity, etc. on the component.  Whenever possible, 
-     *     property values initialized by the client program should <i>not</i> 
+     * <li>Install default property values for color, fonts, borders,
+     *     icons, opacity, etc. on the component.  Whenever possible,
+     *     property values initialized by the client program should <i>not</i>
      *     be overridden.
      * <li>Install a <code>LayoutManager</code> on the component if necessary.
      * <li>Create/add any required sub-components to the component.
@@ -71,11 +89,11 @@ public abstract class ComponentUI {
 
     /**
      * Reverses configuration which was done on the specified component during
-     * <code>installUI</code>.  This method is invoked when this 
-     * <code>UIComponent</code> instance is being removed as the UI delegate 
+     * <code>installUI</code>.  This method is invoked when this
+     * <code>UIComponent</code> instance is being removed as the UI delegate
      * for the specified component.  This method should undo the
-     * configuration performed in <code>installUI</code>, being careful to 
-     * leave the <code>JComponent</code> instance in a clean state (no 
+     * configuration performed in <code>installUI</code>, being careful to
+     * leave the <code>JComponent</code> instance in a clean state (no
      * extraneous listeners, look-and-feel-specific property objects, etc.).
      * This should include the following:
      * <ol>
@@ -98,10 +116,10 @@ public abstract class ComponentUI {
     }
 
     /**
-     * Paints the specified component appropriate for the look and feel.
-     * This method is invoked from the <code>ComponentUI.update</code> method when 
-     * the specified component is being painted.  Subclasses should override 
-     * this method and use the specified <code>Graphics</code> object to 
+     * Paints the specified component appropriately for the look and feel.
+     * This method is invoked from the <code>ComponentUI.update</code> method when
+     * the specified component is being painted.  Subclasses should override
+     * this method and use the specified <code>Graphics</code> object to
      * render the content of the component.
      *
      * @param g the <code>Graphics</code> context in which to paint
@@ -111,44 +129,44 @@ public abstract class ComponentUI {
      *          and shared by multiple components
      *
      * @see #update
-     */ 
+     */
     public void paint(Graphics g, JComponent c) {
     }
 
     /**
-     * Notifies this UI delegate that it's time to paint the specified
-     * component.  This method is invoked by <code>JComponent</code> 
-     * when the specified component is being painted. 
-     * By default this method will fill the specified component with
-     * its background color (if its <code>opaque</code> property is
-     * <code>true</code>) and then immediately call <code>paint</code>.
-     * In general this method need not be overridden by subclasses;
-     * all look-and-feel rendering code should reside in the <code>paint</code>
-     * method.
+     * Notifies this UI delegate that it is time to paint the specified
+     * component.  This method is invoked by <code>JComponent</code>
+     * when the specified component is being painted.
+     *
+     * <p>By default this method fills the specified component with
+     * its background color if its {@code opaque} property is {@code true},
+     * and then immediately calls {@code paint}. In general this method need
+     * not be overridden by subclasses; all look-and-feel rendering code should
+     * reside in the {@code paint} method.
      *
      * @param g the <code>Graphics</code> context in which to paint
      * @param c the component being painted;
      *          this argument is often ignored,
      *          but might be used if the UI object is stateless
      *          and shared by multiple components
-     * 
+     *
      * @see #paint
      * @see javax.swing.JComponent#paintComponent
-     */ 
+     */
     public void update(Graphics g, JComponent c) {
-	if (c.isOpaque()) {
-	    g.setColor(c.getBackground());
-	    g.fillRect(0, 0, c.getWidth(),c.getHeight());
-	}
-	paint(g, c);
+        if (c.isOpaque()) {
+            g.setColor(c.getBackground());
+            g.fillRect(0, 0, c.getWidth(),c.getHeight());
+        }
+        paint(g, c);
     }
 
     /**
      * Returns the specified component's preferred size appropriate for
      * the look and feel.  If <code>null</code> is returned, the preferred
-     * size will be calculated by the component's layout manager instead 
+     * size will be calculated by the component's layout manager instead
      * (this is the preferred approach for any component with a specific
-     * layout manager installed).  The default implementation of this 
+     * layout manager installed).  The default implementation of this
      * method returns <code>null</code>.
      *
      * @param c the component whose preferred size is being queried;
@@ -160,15 +178,15 @@ public abstract class ComponentUI {
      * @see java.awt.LayoutManager#preferredLayoutSize
      */
     public Dimension getPreferredSize(JComponent c) {
-	return null;
+        return null;
     }
 
     /**
      * Returns the specified component's minimum size appropriate for
      * the look and feel.  If <code>null</code> is returned, the minimum
-     * size will be calculated by the component's layout manager instead 
+     * size will be calculated by the component's layout manager instead
      * (this is the preferred approach for any component with a specific
-     * layout manager installed).  The default implementation of this 
+     * layout manager installed).  The default implementation of this
      * method invokes <code>getPreferredSize</code> and returns that value.
      *
      * @param c the component whose minimum size is being queried;
@@ -183,15 +201,15 @@ public abstract class ComponentUI {
      * @see #getPreferredSize
      */
     public Dimension getMinimumSize(JComponent c) {
-	return getPreferredSize(c);
+        return getPreferredSize(c);
     }
 
     /**
      * Returns the specified component's maximum size appropriate for
      * the look and feel.  If <code>null</code> is returned, the maximum
-     * size will be calculated by the component's layout manager instead 
+     * size will be calculated by the component's layout manager instead
      * (this is the preferred approach for any component with a specific
-     * layout manager installed).  The default implementation of this 
+     * layout manager installed).  The default implementation of this
      * method invokes <code>getPreferredSize</code> and returns that value.
      *
      * @param c the component whose maximum size is being queried;
@@ -204,12 +222,12 @@ public abstract class ComponentUI {
      * @see java.awt.LayoutManager2#maximumLayoutSize
      */
     public Dimension getMaximumSize(JComponent c) {
-	return getPreferredSize(c);
+        return getPreferredSize(c);
     }
 
     /**
      * Returns <code>true</code> if the specified <i>x,y</i> location is
-     * contained within the look and feel's defined shape of the specified 
+     * contained within the look and feel's defined shape of the specified
      * component. <code>x</code> and <code>y</code> are defined to be relative
      * to the coordinate system of the specified component.  Although
      * a component's <code>bounds</code> is constrained to a rectangle,
@@ -227,7 +245,7 @@ public abstract class ComponentUI {
      * @see java.awt.Component#contains
      */
     public boolean contains(JComponent c, int x, int y) {
-	return c.inside(x, y);
+        return c.inside(x, y);
     }
 
     /**
@@ -241,7 +259,7 @@ public abstract class ComponentUI {
      * should never be invoked.
      */
     public static ComponentUI createUI(JComponent c) {
-	throw new Error("ComponentUI.createUI not implemented.");
+        throw new Error("ComponentUI.createUI not implemented.");
     }
 
     /**
@@ -340,4 +358,3 @@ public abstract class ComponentUI {
         return SwingUtilities.getAccessibleChild(c, i);
     }
 }
-

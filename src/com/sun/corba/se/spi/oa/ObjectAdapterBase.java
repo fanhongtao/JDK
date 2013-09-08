@@ -1,8 +1,26 @@
 /*
- * @(#)ObjectAdapterBase.java	1.41 05/11/17
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.oa ;
 
@@ -28,7 +46,7 @@ import com.sun.corba.se.impl.logging.POASystemException ;
 import com.sun.corba.se.impl.logging.OMGSystemException ;
 import com.sun.corba.se.impl.oa.poa.Policies;
 
-abstract public class ObjectAdapterBase extends org.omg.CORBA.LocalObject 
+abstract public class ObjectAdapterBase extends org.omg.CORBA.LocalObject
     implements ObjectAdapter
 {
     private ORB orb;
@@ -45,46 +63,46 @@ abstract public class ObjectAdapterBase extends org.omg.CORBA.LocalObject
     private IORTemplate iortemp;
     private byte[] adapterId ;
     private ObjectReferenceTemplate adapterTemplate ;
-    private ObjectReferenceFactory currentFactory ;  
-   
-    public ObjectAdapterBase( ORB orb ) 
+    private ObjectReferenceFactory currentFactory ;
+
+    public ObjectAdapterBase( ORB orb )
     {
-	this.orb = orb ;
-	_iorWrapper = POASystemException.get( orb,
-	    CORBALogDomains.OA_IOR ) ;
-	_lifecycleWrapper = POASystemException.get( orb,
-	    CORBALogDomains.OA_LIFECYCLE ) ;
-	_omgLifecycleWrapper = OMGSystemException.get( orb,
-	    CORBALogDomains.OA_LIFECYCLE ) ;
-	_invocationWrapper = POASystemException.get( orb,
-	    CORBALogDomains.OA_INVOCATION ) ;
-	_omgInvocationWrapper = OMGSystemException.get( orb,
-	    CORBALogDomains.OA_INVOCATION ) ;
+        this.orb = orb ;
+        _iorWrapper = POASystemException.get( orb,
+            CORBALogDomains.OA_IOR ) ;
+        _lifecycleWrapper = POASystemException.get( orb,
+            CORBALogDomains.OA_LIFECYCLE ) ;
+        _omgLifecycleWrapper = OMGSystemException.get( orb,
+            CORBALogDomains.OA_LIFECYCLE ) ;
+        _invocationWrapper = POASystemException.get( orb,
+            CORBALogDomains.OA_INVOCATION ) ;
+        _omgInvocationWrapper = OMGSystemException.get( orb,
+            CORBALogDomains.OA_INVOCATION ) ;
     }
 
     public final POASystemException iorWrapper()
     {
-	return _iorWrapper ;
+        return _iorWrapper ;
     }
 
     public final POASystemException lifecycleWrapper()
     {
-	return _lifecycleWrapper ;
+        return _lifecycleWrapper ;
     }
 
     public final OMGSystemException omgLifecycleWrapper()
     {
-	return _omgLifecycleWrapper ;
+        return _omgLifecycleWrapper ;
     }
 
     public final POASystemException invocationWrapper()
     {
-	return _invocationWrapper ;
+        return _invocationWrapper ;
     }
 
     public final OMGSystemException omgInvocationWrapper()
     {
-	return _omgInvocationWrapper ;
+        return _omgInvocationWrapper ;
     }
 
     /*
@@ -92,72 +110,72 @@ abstract public class ObjectAdapterBase extends org.omg.CORBA.LocalObject
      * When it is done, reference creation can proceed.
      */
     final public void initializeTemplate( ObjectKeyTemplate oktemp,
-	boolean notifyORB, Policies policies, String codebase,
-	String objectAdapterManagerId, ObjectAdapterId objectAdapterId)
+        boolean notifyORB, Policies policies, String codebase,
+        String objectAdapterManagerId, ObjectAdapterId objectAdapterId)
     {
-	adapterId = oktemp.getAdapterId() ;
+        adapterId = oktemp.getAdapterId() ;
 
-	iortemp = IORFactories.makeIORTemplate(oktemp) ;
+        iortemp = IORFactories.makeIORTemplate(oktemp) ;
 
-	// This calls acceptors which create profiles and may
-	// add tagged components to those profiles.
-	orb.getCorbaTransportManager().addToIORTemplate(
+        // This calls acceptors which create profiles and may
+        // add tagged components to those profiles.
+        orb.getCorbaTransportManager().addToIORTemplate(
             iortemp, policies,
-	    codebase, objectAdapterManagerId, objectAdapterId);
+            codebase, objectAdapterManagerId, objectAdapterId);
 
-	adapterTemplate = IORFactories.makeObjectReferenceTemplate( orb, 
-	    iortemp ) ;
-	currentFactory = adapterTemplate ;
+        adapterTemplate = IORFactories.makeObjectReferenceTemplate( orb,
+            iortemp ) ;
+        currentFactory = adapterTemplate ;
 
-	if (notifyORB) {
-	    PIHandler pih = orb.getPIHandler() ;
-	    if (pih != null)
-		// This runs the IORInterceptors.
-		pih.objectAdapterCreated( this ) ;
-	}
+        if (notifyORB) {
+            PIHandler pih = orb.getPIHandler() ;
+            if (pih != null)
+                // This runs the IORInterceptors.
+                pih.objectAdapterCreated( this ) ;
+        }
 
-	iortemp.makeImmutable() ;
+        iortemp.makeImmutable() ;
     }
 
     final public org.omg.CORBA.Object makeObject( String repId, byte[] oid )
     {
-	return currentFactory.make_object( repId, oid ) ;
+        return currentFactory.make_object( repId, oid ) ;
     }
 
-    final public byte[] getAdapterId() 
+    final public byte[] getAdapterId()
     {
-	return adapterId ;
+        return adapterId ;
     }
 
-    final public ORB getORB() 
+    final public ORB getORB()
     {
-	return orb ;
+        return orb ;
     }
 
     abstract public Policy getEffectivePolicy( int type ) ;
 
-    final public IORTemplate getIORTemplate() 
+    final public IORTemplate getIORTemplate()
     {
-	return iortemp ;
+        return iortemp ;
     }
 
     abstract public int getManagerId() ;
 
-    abstract public short getState() ; 
+    abstract public short getState() ;
 
     final public ObjectReferenceTemplate getAdapterTemplate()
     {
-	return adapterTemplate ;
+        return adapterTemplate ;
     }
 
     final public ObjectReferenceFactory getCurrentFactory()
     {
-	return currentFactory ;
+        return currentFactory ;
     }
 
     final public void setCurrentFactory( ObjectReferenceFactory factory )
     {
-	currentFactory = factory ;
+        currentFactory = factory ;
     }
 
     abstract public org.omg.CORBA.Object getLocalServant( byte[] objectId ) ;
@@ -176,10 +194,10 @@ abstract public class ObjectAdapterBase extends org.omg.CORBA.LocalObject
     // but overriding it would make sense for OAs that use a different InvocationInfo.
     public OAInvocationInfo makeInvocationInfo( byte[] objectId )
     {
-	OAInvocationInfo info = new OAInvocationInfo( this, objectId ) ;
-	info.setCopierFactory( getObjectCopierFactory() ) ;
-	return info ;
+        OAInvocationInfo info = new OAInvocationInfo( this, objectId ) ;
+        info.setCopierFactory( getObjectCopierFactory() ) ;
+        return info ;
     }
 
     abstract public String[] getInterfaces( Object servant, byte[] objectId ) ;
-} 
+}

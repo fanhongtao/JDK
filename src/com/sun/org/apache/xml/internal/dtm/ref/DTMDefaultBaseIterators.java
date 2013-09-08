@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -2088,10 +2092,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       }
       else if (_isRestartable)
       {
-        if (_currentNode == Integer.MIN_VALUE)
-        {
           _currentNode = _startNode = node;
-        }
 
         return resetPosition();
       }

@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: DocumentBuilder.java,v 1.5 2005/11/21 05:57:14 sunithareddy Exp $
- * @(#)DocumentBuilder.java	1.29 06/07/13
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.parsers;
@@ -59,12 +57,11 @@ import org.xml.sax.SAXException;
  * communicate with the application using these existing APIs.
  *
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Revision: 1.5 $, $Date: 2005/11/21 05:57:14 $
  */
 
 public abstract class DocumentBuilder {
-    
-    
+
+
     /** Protected constructor */
     protected DocumentBuilder () {
     }
@@ -87,7 +84,7 @@ public abstract class DocumentBuilder {
      * @since 1.5
      */
     public void reset() {
-        
+
         // implementors should override this method
         throw new UnsupportedOperationException(
                 "This DocumentBuilder, \"" + this.getClass().getName() + "\", does not support the reset functionality."
@@ -113,13 +110,13 @@ public abstract class DocumentBuilder {
      *
      * @see org.xml.sax.DocumentHandler
      */
-    
+
     public Document parse(InputStream is)
         throws SAXException, IOException {
         if (is == null) {
             throw new IllegalArgumentException("InputStream cannot be null");
         }
-        
+
         InputSource in = new InputSource(is);
         return parse(in);
     }
@@ -138,16 +135,16 @@ public abstract class DocumentBuilder {
      * @throws IOException If any IO errors occur.
      * @throws SAXException If any parse errors occur.
      * @throws IllegalArgumentException When <code>is</code> is <code>null</code>
-     * 
+     *
      * @see org.xml.sax.DocumentHandler
      */
-    
+
     public Document parse(InputStream is, String systemId)
         throws SAXException, IOException {
         if (is == null) {
             throw new IllegalArgumentException("InputStream cannot be null");
         }
-        
+
         InputSource in = new InputSource(is);
         in.setSystemId(systemId);
         return parse(in);
@@ -169,13 +166,13 @@ public abstract class DocumentBuilder {
      *
      * @see org.xml.sax.DocumentHandler
      */
-    
+
     public Document parse(String uri)
         throws SAXException, IOException {
         if (uri == null) {
             throw new IllegalArgumentException("URI cannot be null");
         }
-        
+
         InputSource in = new InputSource(uri);
         return parse(in);
     }
@@ -195,16 +192,16 @@ public abstract class DocumentBuilder {
      * @see org.xml.sax.DocumentHandler
      * @return A new DOM Document object.
      */
-    
+
     public Document parse(File f) throws SAXException, IOException {
         if (f == null) {
             throw new IllegalArgumentException("File cannot be null");
         }
 
-        //convert file to appropriate URI, f.toURI().toASCIIString() 
+        //convert file to appropriate URI, f.toURI().toASCIIString()
         //converts the URI to string as per rule specified in
         //RFC 2396,
-        InputSource in = new InputSource(f.toURI().toASCIIString());   
+        InputSource in = new InputSource(f.toURI().toASCIIString());
         return parse(in);
     }
 
@@ -224,11 +221,11 @@ public abstract class DocumentBuilder {
      *
      * @see org.xml.sax.DocumentHandler
      */
-    
+
     public abstract Document parse(InputSource is)
         throws SAXException, IOException;
 
-    
+
     /**
      * Indicates whether or not this parser is configured to
      * understand namespaces.
@@ -246,7 +243,7 @@ public abstract class DocumentBuilder {
      * @return true if this parser is configured to validate
      *         XML documents; false otherwise.
      */
-    
+
     public abstract boolean isValidating();
 
     /**
@@ -279,7 +276,7 @@ public abstract class DocumentBuilder {
      *
      * @return A new instance of a DOM Document object.
      */
-    
+
     public abstract Document newDocument();
 
     /**
@@ -289,7 +286,7 @@ public abstract class DocumentBuilder {
      */
 
     public abstract DOMImplementation getDOMImplementation();
-    
+
     /** <p>Get current state of canonicalization.</p>
      *
      * @return current state canonicalization control
@@ -299,7 +296,7 @@ public abstract class DocumentBuilder {
         return canonicalState;
     }
     */
-    
+
     /** <p>Get a reference to the the {@link Schema} being used by
      * the XML processor.</p>
      *
@@ -307,10 +304,10 @@ public abstract class DocumentBuilder {
      *
      * @return {@link Schema} being used or <code>null</code>
      *  if none in use
-     * 
+     *
      * @throws UnsupportedOperationException When implementation does not
      *   override this method
-     * 
+     *
      * @since 1.5
      */
     public Schema getSchema() {
@@ -322,21 +319,21 @@ public abstract class DocumentBuilder {
             + "\""
             );
     }
-    
-    
+
+
     /**
      * <p>Get the XInclude processing mode for this parser.</p>
-     * 
+     *
      * @return
      *      the return value of
      *      the {@link DocumentBuilderFactory#isXIncludeAware()}
      *      when this parser was created from factory.
-     * 
+     *
      * @throws UnsupportedOperationException When implementation does not
      *   override this method
-     * 
+     *
      * @since 1.5
-     * 
+     *
      * @see DocumentBuilderFactory#setXIncludeAware(boolean)
      */
     public boolean isXIncludeAware() {

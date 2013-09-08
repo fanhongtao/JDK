@@ -1,16 +1,34 @@
 /*
- * @(#)INV_IDENT.java	1.34 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * This exception indicates that an IDL identifier is syntactically 
- * invalid. It may be raised if, for example, an identifier passed 
- * to the interface repository does not conform to IDL identifier 
+ * This exception indicates that an IDL identifier is syntactically
+ * invalid. It may be raised if, for example, an identifier passed
+ * to the interface repository does not conform to IDL identifier
  * syntax, or if an illegal operation name is used with the DII.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -18,7 +36,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.16 09/09/97
  * @since       JDK1.2
  */
 
@@ -44,7 +61,7 @@ public final class INV_IDENT extends SystemException {
      * Constructs an <code>INV_IDENT</code> exception with the specified
      * minor code and completion status.
      * @param minor the minor code
-     * @param completed a <code>CompletionStatus</code> object indicating 
+     * @param completed a <code>CompletionStatus</code> object indicating
      *                  the completion status
      */
     public INV_IDENT(int minor, CompletionStatus completed) {
@@ -57,7 +74,7 @@ public final class INV_IDENT extends SystemException {
      * A detail message is a String that describes this particular exception.
      * @param s the String containing a detail message
      * @param minor the minor code
-     * @param completed a <code>CompletionStatus</code> object indicating 
+     * @param completed a <code>CompletionStatus</code> object indicating
      *                  the completion status
      */
     public INV_IDENT(String s, int minor, CompletionStatus completed) {

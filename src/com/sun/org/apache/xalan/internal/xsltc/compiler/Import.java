@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,53 +49,53 @@ final class Import extends TopLevelElement {
     private Stylesheet _imported = null;
 
     public Stylesheet getImportedStylesheet() {
-	return _imported;
+        return _imported;
     }
 
     public void parseContents(final Parser parser) {
-	final XSLTC xsltc = parser.getXSLTC();
-	final Stylesheet context = parser.getCurrentStylesheet();
+        final XSLTC xsltc = parser.getXSLTC();
+        final Stylesheet context = parser.getCurrentStylesheet();
 
-	try {
-	    String docToLoad = getAttribute("href");
-	    if (context.checkForLoop(docToLoad)) {
-		final ErrorMsg msg = new ErrorMsg(ErrorMsg.CIRCULAR_INCLUDE_ERR,
+        try {
+            String docToLoad = getAttribute("href");
+            if (context.checkForLoop(docToLoad)) {
+                final ErrorMsg msg = new ErrorMsg(ErrorMsg.CIRCULAR_INCLUDE_ERR,
                                                   docToLoad, this);
-		parser.reportError(Constants.FATAL, msg);
-		return;
-	    }
+                parser.reportError(Constants.FATAL, msg);
+                return;
+            }
 
-	    InputSource input = null;
-	    XMLReader reader = null;
-	    String currLoadedDoc = context.getSystemId();
-	    SourceLoader loader = context.getSourceLoader();
-            
+            InputSource input = null;
+            XMLReader reader = null;
+            String currLoadedDoc = context.getSystemId();
+            SourceLoader loader = context.getSourceLoader();
+
             // Use SourceLoader if available
-	    if (loader != null) {
-		input = loader.loadSource(docToLoad, currLoadedDoc, xsltc);
+            if (loader != null) {
+                input = loader.loadSource(docToLoad, currLoadedDoc, xsltc);
                 if (input != null) {
                     docToLoad = input.getSystemId();
                     reader = xsltc.getXMLReader();
                 } else if (parser.errorsFound()) {
                     return;
                 }
-	    }
+            }
 
             // No SourceLoader or not resolved by SourceLoader
             if (input == null) {
                 docToLoad = SystemIDResolver.getAbsoluteURI(docToLoad, currLoadedDoc);
                 input = new InputSource(docToLoad);
-	    }
+            }
 
-	    // Return if we could not resolve the URL
-	    if (input == null) {
-		final ErrorMsg msg = 
-		    new ErrorMsg(ErrorMsg.FILE_NOT_FOUND_ERR, docToLoad, this);
-		parser.reportError(Constants.FATAL, msg);
-		return;
-	    }
-            
-	    final SyntaxTreeNode root;
+            // Return if we could not resolve the URL
+            if (input == null) {
+                final ErrorMsg msg =
+                    new ErrorMsg(ErrorMsg.FILE_NOT_FOUND_ERR, docToLoad, this);
+                parser.reportError(Constants.FATAL, msg);
+                return;
+            }
+
+            final SyntaxTreeNode root;
             if (reader != null) {
                 root = parser.parse(reader,input);
             }
@@ -99,54 +103,54 @@ final class Import extends TopLevelElement {
                 root = parser.parse(input);
             }
 
-	    if (root == null) return;
-	    _imported = parser.makeStylesheet(root);
-	    if (_imported == null) return;
+            if (root == null) return;
+            _imported = parser.makeStylesheet(root);
+            if (_imported == null) return;
 
-	    _imported.setSourceLoader(loader);
-	    _imported.setSystemId(docToLoad);
-	    _imported.setParentStylesheet(context);
-	    _imported.setImportingStylesheet(context);
+            _imported.setSourceLoader(loader);
+            _imported.setSystemId(docToLoad);
+            _imported.setParentStylesheet(context);
+            _imported.setImportingStylesheet(context);
         _imported.setTemplateInlining(context.getTemplateInlining());
 
-	    // precedence for the including stylesheet
-	    final int currPrecedence = parser.getCurrentImportPrecedence();
-	    final int nextPrecedence = parser.getNextImportPrecedence();
-	    _imported.setImportPrecedence(currPrecedence);
-	    context.setImportPrecedence(nextPrecedence);
-	    parser.setCurrentStylesheet(_imported);
-	    _imported.parseContents(parser);
+            // precedence for the including stylesheet
+            final int currPrecedence = parser.getCurrentImportPrecedence();
+            final int nextPrecedence = parser.getNextImportPrecedence();
+            _imported.setImportPrecedence(currPrecedence);
+            context.setImportPrecedence(nextPrecedence);
+            parser.setCurrentStylesheet(_imported);
+            _imported.parseContents(parser);
 
-	    final Enumeration elements = _imported.elements();
-	    final Stylesheet topStylesheet = parser.getTopLevelStylesheet();
-	    while (elements.hasMoreElements()) {
-		final Object element = elements.nextElement();
-		if (element instanceof TopLevelElement) {
-		    if (element instanceof Variable) {
-			topStylesheet.addVariable((Variable) element);
-		    }
-		    else if (element instanceof Param) {
-			topStylesheet.addParam((Param) element);
-		    }
-		    else {
-			topStylesheet.addElement((TopLevelElement) element);
-		    }
-		}
-	    }
-	}
-	catch (Exception e) {
-	    e.printStackTrace();
-	}
-	finally {
-	    parser.setCurrentStylesheet(context);
-	}
+            final Enumeration elements = _imported.elements();
+            final Stylesheet topStylesheet = parser.getTopLevelStylesheet();
+            while (elements.hasMoreElements()) {
+                final Object element = elements.nextElement();
+                if (element instanceof TopLevelElement) {
+                    if (element instanceof Variable) {
+                        topStylesheet.addVariable((Variable) element);
+                    }
+                    else if (element instanceof Param) {
+                        topStylesheet.addParam((Param) element);
+                    }
+                    else {
+                        topStylesheet.addElement((TopLevelElement) element);
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            parser.setCurrentStylesheet(context);
+        }
     }
-    
+
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	return Type.Void;
+        return Type.Void;
     }
-    
+
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	// do nothing
+        // do nothing
     }
 }

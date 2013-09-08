@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +23,7 @@ package com.sun.org.apache.xpath.internal.objects;
 import com.sun.org.apache.xml.internal.dtm.DTM;
 import com.sun.org.apache.xpath.internal.XPathContext;
 /*
- * 
+ *
  * @author igorh
  *
  * Simple wrapper to DTM and XPathContext objects.
@@ -29,16 +33,16 @@ import com.sun.org.apache.xpath.internal.XPathContext;
   private DTM m_dtm;
   private int m_dtmIdentity = DTM.NULL;
   private XPathContext m_xctxt;
- 
+
   public DTMXRTreeFrag(int dtmIdentity, XPathContext xctxt){
       m_xctxt = xctxt;
       m_dtmIdentity = dtmIdentity;
-      m_dtm = xctxt.getDTM(dtmIdentity); 
+      m_dtm = xctxt.getDTM(dtmIdentity);
     }
 
   public final void destruct(){
-    m_dtm = null;         
-    m_xctxt = null; 
+    m_dtm = null;
+    m_xctxt = null;
  }
 
 final  DTM getDTM(){return m_dtm;}

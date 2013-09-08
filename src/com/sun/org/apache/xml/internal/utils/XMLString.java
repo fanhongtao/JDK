@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +58,7 @@ public interface XMLString
    */
   public abstract void dispatchAsComment(org.xml.sax.ext.LexicalHandler lh)
     throws org.xml.sax.SAXException;
-    
+
   /**
    * Conditionally trim all leading and trailing whitespace in the specified String.
    * All strings of white space are
@@ -63,7 +67,7 @@ public interface XMLString
    * This function may be useful to a formatter, but to get first class
    * results, the formatter should probably do it's own white space handling
    * based on the semantics of the formatting object.
-   * 
+   *
    * @param   trimHead    Trim leading whitespace?
    * @param   trimTail    Trim trailing whitespace?
    * @param   doublePunctuationSpaces    Use double spaces for punctuation?
@@ -119,7 +123,7 @@ public interface XMLString
    */
   public abstract void getChars(int srcBegin, int srcEnd, char dst[],
                                 int dstBegin);
-                                
+
   /**
    * Compares this string to the specified object.
    * The result is <code>true</code> if and only if the argument is not
@@ -654,19 +658,19 @@ public interface XMLString
    * @return  the string itself.
    */
   public abstract String toString();
-  
+
   /**
    * Tell if this object contains a java String object.
-   * 
+   *
    * @return true if this XMLString can return a string without creating one.
    */
   public abstract boolean hasString();
-  
+
   /**
    * Convert a string to a double -- Allowed input is in fixed
    * notation ddd.fff.
    *
-   * @return A double value representation of the string, or return Double.NaN 
+   * @return A double value representation of the string, or return Double.NaN
    * if the string can not be converted.
    */
   public double toDouble();

@@ -1,8 +1,26 @@
 /*
- * @(#)ManagementPermission.java	1.5 06/04/21
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.management;
@@ -30,7 +48,7 @@ at the permission allows, and associated risks">
  *   <td>Ability to control the runtime characteristics of the Java virtual
  *       machine, for example, setting the -verbose:gc and -verbose:class flag,
  *       setting the threshold of a memory pool, and enabling and disabling
- *       the thread contention monitoring support. 
+ *       the thread contention monitoring support.
  *   </td>
  *   <td>This allows an attacker to control the runtime characteristics
  *       of the Java virtual machine and cause the system to misbehave.
@@ -38,7 +56,7 @@ at the permission allows, and associated risks">
  * </tr>
  * <tr>
  *   <td>monitor</td>
- *   <td>Ability to retrieve runtime information about 
+ *   <td>Ability to retrieve runtime information about
  *       the Java virtual machine such as thread
  *       stack trace, a list of all loaded class names, and input arguments
  *       to the Java virtual machine.</td>
@@ -54,7 +72,6 @@ at the permission allows, and associated risks">
  * the security policy file.
  *
  * @author  Mandy Chung
- * @version 1.5, 04/21/06 
  * @since   1.5
  *
  * @see java.security.BasicPermission
@@ -66,6 +83,7 @@ at the permission allows, and associated risks">
  */
 
 public final class ManagementPermission extends java.security.BasicPermission {
+    private static final long serialVersionUID = 1897496590799378737L;
 
     /**
      * Constructs a ManagementPermission with the specified name.
@@ -77,9 +95,9 @@ public final class ManagementPermission extends java.security.BasicPermission {
      */
     public ManagementPermission(String name) {
         super(name);
-	if (!name.equals("control") && !name.equals("monitor")) {
-	    throw new IllegalArgumentException("name: " + name);
-	}
+        if (!name.equals("control") && !name.equals("monitor")) {
+            throw new IllegalArgumentException("name: " + name);
+        }
     }
 
     /**
@@ -92,14 +110,14 @@ public final class ManagementPermission extends java.security.BasicPermission {
      * @throws IllegalArgumentException if <code>name</code> is empty or
      * if arguments are invalid.
      */
-    public ManagementPermission(String name, String actions) 
+    public ManagementPermission(String name, String actions)
         throws IllegalArgumentException {
         super(name);
-	if (!name.equals("control") && !name.equals("monitor")) {
-	    throw new IllegalArgumentException("name: " + name);
-	}
-	if (actions != null && actions.length() > 0) {
-	    throw new IllegalArgumentException("actions: " + actions);
-	}
+        if (!name.equals("control") && !name.equals("monitor")) {
+            throw new IllegalArgumentException("name: " + name);
+        }
+        if (actions != null && actions.length() > 0) {
+            throw new IllegalArgumentException("actions: " + actions);
+        }
     }
 }

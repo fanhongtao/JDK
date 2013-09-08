@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,8 +39,7 @@ import org.xml.sax.SAXException;
  * @see EntityResolver
  *
  * @author Andy Clark, IBM
- * 
- * @version $Id: EntityResolverWrapper.java,v 1.2.6.1 2005/09/05 07:52:13 neerajbj Exp $
+ *
  */
 public class EntityResolverWrapper
     implements XMLEntityResolver {
@@ -77,12 +80,12 @@ public class EntityResolverWrapper
     //
     // XMLEntityResolver methods
     //
-    
+
     /**
      * Resolves an external parsed entity. If the entity cannot be
      * resolved, this method should return null.
      *
-     * @param resourceIdentifier	contains the physical co-ordinates of the resource to be resolved
+     * @param resourceIdentifier        contains the physical co-ordinates of the resource to be resolved
      *
      * @throws XNIException Thrown on general error.
      * @throws IOException  Thrown if resolved entity stream cannot be

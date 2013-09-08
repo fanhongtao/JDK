@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,6 +32,7 @@ import com.sun.org.apache.xerces.internal.dom.DOMStringListImpl;
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.util.DOMEntityResolverWrapper;
 import com.sun.org.apache.xerces.internal.util.DOMErrorHandlerWrapper;
+import com.sun.org.apache.xerces.internal.util.DOMUtil;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.util.XMLSymbols;
 import com.sun.org.apache.xerces.internal.xni.Augmentations;
@@ -73,7 +78,7 @@ import org.xml.sax.SAXException;
  * @author Pavani Mukthipudi, Sun Microsystems Inc.
  * @author Elena Litani, IBM
  * @author Rahul Srivastava, Sun Microsystems Inc.
- * @version $Id: DOMParserImpl.java,v 1.2.6.1 2005/09/06 13:27:46 sunithareddy Exp $
+ * @version $Id: DOMParserImpl.java,v 1.8 2010-11-01 04:40:09 joehw Exp $
  */
 
 
@@ -112,6 +117,14 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
     protected static final String DISALLOW_DOCTYPE_DECL_FEATURE =
         Constants.XERCES_FEATURE_PREFIX + Constants.DISALLOW_DOCTYPE_DECL_FEATURE;
 
+    /** Feature identifier: namespace growth */
+    protected static final String NAMESPACE_GROWTH =
+        Constants.XERCES_FEATURE_PREFIX + Constants.NAMESPACE_GROWTH_FEATURE;
+
+    /** Feature identifier: tolerate duplicates */
+    protected static final String TOLERATE_DUPLICATES =
+        Constants.XERCES_FEATURE_PREFIX + Constants.TOLERATE_DUPLICATES_FEATURE;
+
     // internal properties
     protected static final String SYMBOL_TABLE =
     Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY;
@@ -143,7 +156,7 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
     private String fSchemaLocation = null;
 	private DOMStringList fRecognizedParameters;
     
-    private AbortHandler abortHandler = new AbortHandler();
+    private AbortHandler abortHandler = null;
 
     //
     // Constructors
@@ -293,7 +306,7 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
             fSkippedElemStack.removeAllElements ();
         }
         fSchemaLocations.clear ();
-        fRejectedElement.clear ();
+        fRejectedElementDepth = 0;
         fFilterReject = false;
         fSchemaType = null;
 
@@ -442,7 +455,17 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
                     // Constants.DOM_CHARSET_OVERRIDES_XML_ENCODING feature,
                     // Constants.DOM_SPLIT_CDATA feature,
                     // or any Xerces feature
-                    fConfiguration.setFeature (name.toLowerCase(Locale.ENGLISH), state);
+                    String normalizedName;
+                    if (name.equals(NAMESPACE_GROWTH)) {
+                        normalizedName = NAMESPACE_GROWTH;
+                    }
+                    else if (name.equals(TOLERATE_DUPLICATES)) {
+                        normalizedName = TOLERATE_DUPLICATES;
+                    }
+                    else {
+                        normalizedName = name.toLowerCase(Locale.ENGLISH);
+                    }
+                    fConfiguration.setFeature (normalizedName, state);
                 }
 
             }
@@ -587,14 +610,30 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
                 fConfiguration.setProperty (DOCUMENT_CLASS_NAME, value);
             }
             else {
-                // REVISIT: check if this is a boolean parameter -- type mismatch should be thrown.
-                //parameter is not recognized
-                String msg =
-                DOMMessageFormatter.formatMessage (
-                DOMMessageFormatter.DOM_DOMAIN,
-                "FEATURE_NOT_FOUND",
-                new Object[] { name });
-                throw new DOMException (DOMException.NOT_FOUND_ERR, msg);
+                // Try to set the property.
+                String normalizedName = name.toLowerCase(Locale.ENGLISH);
+                try {
+                    fConfiguration.setProperty(normalizedName, value);
+                    return;
+                }
+                catch (XMLConfigurationException e) {}
+
+                // If this is a boolean parameter a type mismatch should be thrown.
+                try {
+                    if (name.equals(NAMESPACE_GROWTH)) {
+                        normalizedName = NAMESPACE_GROWTH;
+                    }
+                    else if (name.equals(TOLERATE_DUPLICATES)) {
+                        normalizedName = TOLERATE_DUPLICATES;
+                    }
+                    fConfiguration.getFeature(normalizedName);
+                    throw newTypeMismatchError(name);
+
+                }
+                catch (XMLConfigurationException e) {}
+
+                // Parameter is not recognized
+                throw newFeatureNotFoundError(name);
             }
         }
     }
@@ -709,12 +748,31 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
             return fConfiguration.getProperty (DOCUMENT_CLASS_NAME);
         }
         else {
-            String msg =
-            DOMMessageFormatter.formatMessage (
-            DOMMessageFormatter.DOM_DOMAIN,
-            "FEATURE_NOT_FOUND",
-            new Object[] { name });
-            throw new DOMException (DOMException.NOT_FOUND_ERR, msg);
+            // This could be a recognized feature or property.
+            String normalizedName;
+
+            if (name.equals(NAMESPACE_GROWTH)) {
+                normalizedName = NAMESPACE_GROWTH;
+            }
+            else if (name.equals(TOLERATE_DUPLICATES)) {
+                normalizedName = TOLERATE_DUPLICATES;
+            }
+            else {
+                normalizedName = name.toLowerCase(Locale.ENGLISH);
+            }
+            try {
+                return fConfiguration.getFeature(normalizedName)
+                    ? Boolean.TRUE : Boolean.FALSE;
+            }
+            catch (XMLConfigurationException e) {}
+
+            // This isn't a feature; perhaps it's a property
+            try {
+                return fConfiguration.getProperty(normalizedName);
+            }
+            catch (XMLConfigurationException e) {}
+
+            throw newFeatureNotFoundError(name);
         }
         return null;
     }
@@ -756,7 +814,17 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
 
             // Recognize Xerces features.
             try {
-                fConfiguration.getFeature(name.toLowerCase(Locale.ENGLISH));
+                String normalizedName;
+                if (name.equalsIgnoreCase(NAMESPACE_GROWTH)) {
+                    normalizedName = NAMESPACE_GROWTH;
+                }
+                else if (name.equalsIgnoreCase(TOLERATE_DUPLICATES)) {
+                    normalizedName = TOLERATE_DUPLICATES;
+                }
+                else {
+                    normalizedName = name.toLowerCase(Locale.ENGLISH);
+                }
+                fConfiguration.getFeature(normalizedName);
                 return true;
             }
             catch (XMLConfigurationException e) {
@@ -884,7 +952,7 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
             }
             // Consume this exception if the user
             // issued an interrupt or an abort.
-            if (e != abort) {
+            if (e != Abort.INSTANCE) {
                 if (!(e instanceof XMLParseException) && fErrorHandler != null) {
                     DOMErrorImpl error = new DOMErrorImpl ();
                     error.fException = e;
@@ -895,10 +963,12 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
                 if (DEBUG) {
                     e.printStackTrace ();
                 }
-                throw new LSException(LSException.PARSE_ERR, e.getMessage());
+                throw (LSException) DOMUtil.createLSException(LSException.PARSE_ERR, e).fillInStackTrace();
             }
         }
-        return getDocument ();
+        Document doc = getDocument();
+        dropDocumentReferences();
+        return doc;
     }
 
     /**
@@ -939,7 +1009,7 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
             }
             // Consume this exception if the user
             // issued an interrupt or an abort.
-            if (e != abort) {
+            if (e != Abort.INSTANCE) {
                 if (!(e instanceof XMLParseException) && fErrorHandler != null) {
                    DOMErrorImpl error = new DOMErrorImpl ();
                    error.fException = e;
@@ -950,10 +1020,12 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
                 if (DEBUG) {
                    e.printStackTrace ();
                 }
-                throw new LSException(LSException.PARSE_ERR, e.getMessage());
+                throw (LSException) DOMUtil.createLSException(LSException.PARSE_ERR, e).fillInStackTrace();
             }
         }
-        return getDocument ();
+        Document doc = getDocument();
+        dropDocumentReferences();
+        return doc;
     }
 
 
@@ -1061,13 +1133,15 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
             fBusy = false;
             if(currentThread != null) {
                 abortNow = true;
-                
+                if (abortHandler == null) {
+                    abortHandler = new AbortHandler();
+                }
                 fConfiguration.setDocumentHandler(abortHandler);
                 fConfiguration.setDTDHandler(abortHandler);
                 fConfiguration.setDTDContentModelHandler(abortHandler);
                 
                 if(currentThread == Thread.currentThread())
-                    throw abort;
+                    throw Abort.INSTANCE;
                 
                 currentThread.interrupt();
             }               
@@ -1108,67 +1182,67 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
         private XMLDTDSource dtdSource;
 
         public void startDocument(XMLLocator locator, String encoding, NamespaceContext namespaceContext, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void xmlDecl(String version, String encoding, String standalone, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void doctypeDecl(String rootElement, String publicId, String systemId, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void comment(XMLString text, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void processingInstruction(String target, XMLString data, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void startElement(QName element, XMLAttributes attributes, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void emptyElement(QName element, XMLAttributes attributes, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void startGeneralEntity(String name, XMLResourceIdentifier identifier, String encoding, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void textDecl(String version, String encoding, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endGeneralEntity(String name, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void characters(XMLString text, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void ignorableWhitespace(XMLString text, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endElement(QName element, Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void startCDATA(Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endCDATA(Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endDocument(Augmentations augs) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void setDocumentSource(XMLDocumentSource source) {
@@ -1180,71 +1254,71 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
         }
 
         public void startDTD(XMLLocator locator, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void startParameterEntity(String name, XMLResourceIdentifier identifier, String encoding, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endParameterEntity(String name, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void startExternalSubset(XMLResourceIdentifier identifier, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endExternalSubset(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void elementDecl(String name, String contentModel, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void startAttlist(String elementName, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void attributeDecl(String elementName, String attributeName, String type, String[] enumeration, String defaultType, XMLString defaultValue, XMLString nonNormalizedDefaultValue, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endAttlist(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void internalEntityDecl(String name, XMLString text, XMLString nonNormalizedText, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void externalEntityDecl(String name, XMLResourceIdentifier identifier, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void unparsedEntityDecl(String name, XMLResourceIdentifier identifier, String notation, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void notationDecl(String name, XMLResourceIdentifier identifier, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void startConditional(short type, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void ignoredCharacters(XMLString text, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endConditional(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endDTD(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void setDTDSource(XMLDTDSource source) {
@@ -1256,43 +1330,43 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
         }
 
         public void startContentModel(String elementName, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void any(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void empty(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void startGroup(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void pcdata(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void element(String elementName, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void separator(short separator, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void occurrence(short occurrence, Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endGroup(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void endContentModel(Augmentations augmentations) throws XNIException {
-            throw abort;
+            throw Abort.INSTANCE;
         }
 
         public void setDTDContentModelSource(XMLDTDContentModelSource source) {
@@ -1303,6 +1377,24 @@ extends AbstractDOMParser implements LSParser, DOMConfiguration {
             return dtdContentSource;
         }
         
+    }
+
+    private static DOMException newFeatureNotFoundError(String name) {
+        String msg =
+            DOMMessageFormatter.formatMessage (
+                    DOMMessageFormatter.DOM_DOMAIN,
+                    "FEATURE_NOT_FOUND",
+                    new Object[] { name });
+        return new DOMException (DOMException.NOT_FOUND_ERR, msg);
+    }
+
+    private static DOMException newTypeMismatchError(String name) {
+        String msg =
+            DOMMessageFormatter.formatMessage (
+                    DOMMessageFormatter.DOM_DOMAIN,
+                    "TYPE_MISMATCH_ERR",
+                    new Object[] { name });
+        return new DOMException (DOMException.TYPE_MISMATCH_ERR, msg);
     }
 	
 } // class DOMParserImpl

@@ -1,8 +1,26 @@
 /*
- * @(#)MemoryCacheImageOutputStream.java	1.19 06/01/05
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.stream;
@@ -14,13 +32,12 @@ import java.io.OutputStream;
  * An implementation of <code>ImageOutputStream</code> that writes its
  * output to a regular <code>OutputStream</code>.  A memory buffer is
  * used to cache at least the data between the discard position and
- * the current write position.  The only constructor takes an 
- * <code>OutputStream</code>, so this class may not be used for 
- * read/modify/write operations.  Reading can occur only on parts of 
+ * the current write position.  The only constructor takes an
+ * <code>OutputStream</code>, so this class may not be used for
+ * read/modify/write operations.  Reading can occur only on parts of
  * the stream that have already been written to the cache and not
  * yet flushed.
  *
- * @version 0.5
  */
 public class MemoryCacheImageOutputStream extends ImageOutputStreamImpl {
 
@@ -58,7 +75,7 @@ public class MemoryCacheImageOutputStream extends ImageOutputStreamImpl {
 
     public int read(byte[] b, int off, int len) throws IOException {
         checkClosed();
-        
+
         if (b == null) {
             throw new NullPointerException("b == null!");
         }

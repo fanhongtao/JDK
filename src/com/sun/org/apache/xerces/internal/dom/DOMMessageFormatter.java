@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,23 +27,22 @@ import java.util.PropertyResourceBundle;
 
 /**
  * Used to format DOM error messages, using the system locale.
- * 
+ *
  * @xerces.internal
  *
  * @author Sandy Gao, IBM
- * @version $Id: DOMMessageFormatter.java,v 1.2.6.1 2005/08/30 13:23:29 sunithareddy Exp $
  */
 public class DOMMessageFormatter {
     public static final String DOM_DOMAIN = "http://www.w3.org/dom/DOMTR";
     public static final String XML_DOMAIN = "http://www.w3.org/TR/1998/REC-xml-19980210";
     public static final String SERIALIZER_DOMAIN = "http://apache.org/xml/serializer";
-    
+
     private static ResourceBundle domResourceBundle = null;
     private static ResourceBundle xmlResourceBundle = null;
     private static ResourceBundle serResourceBundle = null;
     private static Locale locale = null;
-    
-    
+
+
     DOMMessageFormatter(){
         locale = Locale.getDefault();
     }
@@ -86,7 +89,7 @@ public class DOMMessageFormatter {
             msg = resourceBundle.getString("BadMessageKey");
             throw new MissingResourceException(key, msg, key);
         }
-        
+
         // no message
         if (msg == null) {
             msg = key;
@@ -101,10 +104,10 @@ public class DOMMessageFormatter {
                 }
             }
         }
-        
+
         return msg;
     }
-    
+
     static ResourceBundle getResourceBundle(String domain){
         if(domain == DOM_DOMAIN || domain.equals(DOM_DOMAIN))
             return domResourceBundle;
@@ -128,7 +131,7 @@ public class DOMMessageFormatter {
             xmlResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages");
         }
     }
-    
+
     /**
      * setLocale to be used by the formatter.
      * @param locale

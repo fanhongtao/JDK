@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +37,7 @@ import org.xml.sax.SAXNotSupportedException;
 /**
  * @author Rajiv Mordani
  * @author Edwin Goei
- * @version $Id: DocumentBuilderFactoryImpl.java,v 1.3 2005/09/26 13:02:47 sunithareddy Exp $
+ * @version $Id: DocumentBuilderFactoryImpl.java,v 1.6 2009/07/28 23:48:32 joehw Exp $
  */
 public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
     /** These are DocumentBuilderFactory attributes not DOM attributes */
@@ -189,6 +193,11 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
         throws ParserConfigurationException {
         // If this is the secure processing feature, save it then return.
         if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+            if (System.getSecurityManager() != null && (!value)) {
+                throw new ParserConfigurationException(
+                        SAXMessageFormatter.formatMessage(null, 
+                        "jaxp-secureprocessing-feature", null));
+            }
             fSecureProcess = value;
             return;
         }

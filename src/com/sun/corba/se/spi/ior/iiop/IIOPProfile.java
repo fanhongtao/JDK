@@ -1,8 +1,26 @@
 /*
- * @(#)IIOPProfile.java	1.16 05/11/17 
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior.iiop;
@@ -16,7 +34,7 @@ import com.sun.corba.se.spi.ior.iiop.GIOPVersion ;
 
 /** IIOPProfile represents an IIOP tagged profile.
 * It is essentially composed of an object identifier and
-* a template.  The template contains all of the 
+* a template.  The template contains all of the
 * IIOP specific information in the profile.
 * Templates are frequently shared between many different profiles,
 * while the object identifiy is unique to each profile.
@@ -25,8 +43,8 @@ public interface IIOPProfile extends TaggedProfile
 {
     ORBVersion getORBVersion() ;
 
-    /** Return the servant for this profile, if it is local 
-     * AND if the OA that implements this objref supports direct access to servants 
+    /** Return the servant for this profile, if it is local
+     * AND if the OA that implements this objref supports direct access to servants
      * outside of an invocation.
      * XXX move this to the ObjectKeyTemplate
      */

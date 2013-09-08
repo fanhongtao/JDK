@@ -1,8 +1,26 @@
 /*
- * @(#)TaggedComponentFactoryFinderImpl.java	1.18 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior;
@@ -28,27 +46,27 @@ import org.omg.CORBA_2_3.portable.InputStream ;
 /**
  * @author Ken Cavanaugh
  */
-public class TaggedComponentFactoryFinderImpl extends 
+public class TaggedComponentFactoryFinderImpl extends
     IdentifiableFactoryFinderBase implements TaggedComponentFactoryFinder
 {
     public TaggedComponentFactoryFinderImpl( ORB orb )
-    { 
-	super( orb ) ;
+    {
+        super( orb ) ;
     }
 
     public Identifiable handleMissingFactory( int id, InputStream is ) {
-	return new GenericTaggedComponent( id, is ) ;
+        return new GenericTaggedComponent( id, is ) ;
     }
 
     public TaggedComponent create( org.omg.CORBA.ORB orb,
-	org.omg.IOP.TaggedComponent comp )
+        org.omg.IOP.TaggedComponent comp )
     {
-	EncapsOutputStream os = new EncapsOutputStream( (ORB)orb ) ;
-	org.omg.IOP.TaggedComponentHelper.write( os, comp ) ;
-	InputStream is = (InputStream)(os.create_input_stream() ) ;
-	// Skip the component ID: we just wrote it out above
-	is.read_ulong() ;
+        EncapsOutputStream os = new EncapsOutputStream( (ORB)orb ) ;
+        org.omg.IOP.TaggedComponentHelper.write( os, comp ) ;
+        InputStream is = (InputStream)(os.create_input_stream() ) ;
+        // Skip the component ID: we just wrote it out above
+        is.read_ulong() ;
 
-	return (TaggedComponent)create( comp.tag, is ) ;
+        return (TaggedComponent)create( comp.tag, is ) ;
     }
 }

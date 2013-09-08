@@ -1,8 +1,26 @@
 /*
- * @(#)DynValue.java	1.19 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -36,20 +54,20 @@ public interface DynValue extends org.omg.CORBA.Object, org.omg.CORBA.DynAny {
      * stored in this <code>DynValue</code>.
      *
      * @return an array of name-value pairs.
-	 * @see #set_members
+         * @see #set_members
      */
     org.omg.CORBA.NameValuePair[] get_members();
 
     /**
      * Sets the members of the value object this <code>DynValue</code>
      * object represents to the given array of <code>NameValuePair</code>
-	 * objects.
+         * objects.
      *
      * @param value the array of name-value pairs to be set
      * @throws org.omg.CORBA.DynAnyPackage.InvalidSeq
      *         if an inconsistent value is part of the given array
-	 * @see #get_members
+         * @see #get_members
      */
     void set_members(NameValuePair[] value)
-	throws org.omg.CORBA.DynAnyPackage.InvalidSeq;
+        throws org.omg.CORBA.DynAnyPackage.InvalidSeq;
 }

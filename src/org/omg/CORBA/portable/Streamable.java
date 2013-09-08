@@ -1,8 +1,26 @@
 /*
- * @(#)Streamable.java	1.23 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package org.omg.CORBA.portable;
 
@@ -13,7 +31,6 @@ import org.omg.CORBA.TypeCode;
  * IDL types. The ORB treats all generated Holders as Streamable to invoke
  * the methods for marshalling and unmarshalling.
  *
- * @version 1.11, 03/18/98
  * @since   JDK1.2
  */
 
@@ -26,7 +43,7 @@ public interface Streamable {
      */
     void _read(InputStream istream);
     /**
-     * Marshals to <code>ostream</code> the value in the 
+     * Marshals to <code>ostream</code> the value in the
      * <code>value</code> field of the Holder.
      *
      * @param     ostream   the CDR OutputStream

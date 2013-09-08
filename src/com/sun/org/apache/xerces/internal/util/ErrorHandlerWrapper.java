@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,8 +34,7 @@ import org.xml.sax.SAXParseException;
  * @see ErrorHandler
  *
  * @author Andy Clark, IBM
- * 
- * @version $Id: ErrorHandlerWrapper.java,v 1.2.6.1 2005/09/05 07:54:22 neerajbj Exp $
+ *
  */
 public class ErrorHandlerWrapper
     implements XMLErrorHandler {
@@ -89,23 +92,23 @@ public class ErrorHandlerWrapper
      * @throws XNIException Thrown to signal that the parser should stop
      *                      parsing the document.
      */
-    public void warning(String domain, String key, 
+    public void warning(String domain, String key,
                         XMLParseException exception) throws XNIException {
 
         if (fErrorHandler != null) {
-        	SAXParseException saxException = createSAXParseException(exception);
-        	
-        	try {
-        		fErrorHandler.warning(saxException);
-        	}
-        	catch (SAXParseException e) {
-        		throw createXMLParseException(e);
-        	}
-        	catch (SAXException e) {
-        		throw createXNIException(e);
-        	}
+                SAXParseException saxException = createSAXParseException(exception);
+
+                try {
+                        fErrorHandler.warning(saxException);
+                }
+                catch (SAXParseException e) {
+                        throw createXMLParseException(e);
+                }
+                catch (SAXException e) {
+                        throw createXNIException(e);
+                }
         }
-        
+
     } // warning(String,String,XMLParseException)
 
     /**
@@ -124,21 +127,21 @@ public class ErrorHandlerWrapper
      * @throws XNIException Thrown to signal that the parser should stop
      *                      parsing the document.
      */
-    public void error(String domain, String key, 
+    public void error(String domain, String key,
                       XMLParseException exception) throws XNIException {
-        
+
         if (fErrorHandler != null) {
-        	SAXParseException saxException = createSAXParseException(exception);
-        	
-        	try {
-        		fErrorHandler.error(saxException);
-        	}
-        	catch (SAXParseException e) {
-        		throw createXMLParseException(e);
-        	}
-        	catch (SAXException e) {
-        		throw createXNIException(e);
-        	}
+                SAXParseException saxException = createSAXParseException(exception);
+
+                try {
+                        fErrorHandler.error(saxException);
+                }
+                catch (SAXParseException e) {
+                        throw createXMLParseException(e);
+                }
+                catch (SAXException e) {
+                        throw createXNIException(e);
+                }
         }
 
     } // error(String,String,XMLParseException)
@@ -155,33 +158,33 @@ public class ErrorHandlerWrapper
      * handler fails to throw an exception, the continuing operation of
      * the parser is undetermined.
      *
-     * @param domain    The domain of the fatal error. The domain can be 
+     * @param domain    The domain of the fatal error. The domain can be
      *                  any string but is suggested to be a valid URI. The
      *                  domain can be used to conveniently specify a web
      *                  site location of the relevent specification or
      *                  document pertaining to this fatal error.
-     * @param key       The fatal error key. This key can be any string 
+     * @param key       The fatal error key. This key can be any string
      *                  and is implementation dependent.
      * @param exception Exception.
      *
      * @throws XNIException Thrown to signal that the parser should stop
      *                      parsing the document.
      */
-    public void fatalError(String domain, String key, 
+    public void fatalError(String domain, String key,
                            XMLParseException exception) throws XNIException {
-                           	
+
         if (fErrorHandler != null) {
-        	SAXParseException saxException = createSAXParseException(exception);
-        	
-        	try {
-        		fErrorHandler.fatalError(saxException);
-        	}
-        	catch (SAXParseException e) {
-        		throw createXMLParseException(e);
-        	}
-        	catch (SAXException e) {
-        		throw createXNIException(e);
-        	}
+                SAXParseException saxException = createSAXParseException(exception);
+
+                try {
+                        fErrorHandler.fatalError(saxException);
+                }
+                catch (SAXParseException e) {
+                        throw createXMLParseException(e);
+                }
+                catch (SAXException e) {
+                        throw createXNIException(e);
+                }
         }
 
     } // fatalError(String,String,XMLParseException)
@@ -220,7 +223,7 @@ public class ErrorHandlerWrapper
         return new XMLParseException(location, exception.getMessage(),exception);
     } // createXMLParseException(SAXParseException):XMLParseException
 
-    /** Creates an XNIException from a SAXException. 
+    /** Creates an XNIException from a SAXException.
         NOTE:  care should be taken *not* to call this with a SAXParseException; this will
         lose information!!! */
     protected static XNIException createXNIException(SAXException exception) {

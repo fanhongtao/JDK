@@ -1,8 +1,26 @@
 /*
- * @(#)SynthToolTipUI.java	1.10 05/11/17
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.synth;
@@ -16,24 +34,33 @@ import javax.swing.plaf.basic.BasicHTML;
 import javax.swing.plaf.basic.BasicToolTipUI;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.text.View;
-import sun.swing.plaf.synth.SynthUI;
 
 
 /**
- * Synth's ToolTipUI.
+ * Provides the Synth L&F UI delegate for
+ * {@link javax.swing.JToolTip}.
  *
- * @version 1.10, 11/17/05
  * @author Joshua Outwater
+ * @since 1.7
  */
-class SynthToolTipUI extends BasicToolTipUI implements PropertyChangeListener,
-               SynthUI {
+public class SynthToolTipUI extends BasicToolTipUI
+                            implements PropertyChangeListener, SynthUI {
     private SynthStyle style;
 
-
+    /**
+     * Creates a new UI object for the given component.
+     *
+     * @param c component to create UI object for
+     * @return the UI object
+     */
     public static ComponentUI createUI(JComponent c) {
         return new SynthToolTipUI();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installDefaults(JComponent c) {
         updateStyle(c);
     }
@@ -43,7 +70,11 @@ class SynthToolTipUI extends BasicToolTipUI implements PropertyChangeListener,
         style = SynthLookAndFeel.updateStyle(context, this);
         context.dispose();
     }
-    
+
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallDefaults(JComponent c) {
         SynthContext context = getContext(c, ENABLED);
         style.uninstallDefaults(context);
@@ -51,14 +82,26 @@ class SynthToolTipUI extends BasicToolTipUI implements PropertyChangeListener,
         style = null;
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installListeners(JComponent c) {
         c.addPropertyChangeListener(this);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallListeners(JComponent c) {
         c.removePropertyChangeListener(this);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public SynthContext getContext(JComponent c) {
         return getContext(c, getComponentState(c));
     }
@@ -66,10 +109,6 @@ class SynthToolTipUI extends BasicToolTipUI implements PropertyChangeListener,
     private SynthContext getContext(JComponent c, int state) {
         return SynthContext.getContext(SynthContext.class, c,
                     SynthLookAndFeel.getRegion(c), style, state);
-    }
-
-    private Region getRegion(JComponent c) {
-        return SynthLookAndFeel.getRegion(c);
     }
 
     private int getComponentState(JComponent c) {
@@ -81,6 +120,19 @@ class SynthToolTipUI extends BasicToolTipUI implements PropertyChangeListener,
         return SynthLookAndFeel.getComponentState(c);
     }
 
+    /**
+     * Notifies this UI delegate to repaint the specified component.
+     * This method paints the component background, then calls
+     * the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * <p>In general, this method does not need to be overridden by subclasses.
+     * All Look and Feel rendering code should reside in the {@code paint} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void update(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -91,11 +143,25 @@ class SynthToolTipUI extends BasicToolTipUI implements PropertyChangeListener,
         context.dispose();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
         context.getPainter().paintToolTipBorder(context, g, x, y, w, h);
     }
 
+    /**
+     * Paints the specified component according to the Look and Feel.
+     * <p>This method is not used by Synth Look and Feel.
+     * Painting is handled by the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void paint(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -103,50 +169,64 @@ class SynthToolTipUI extends BasicToolTipUI implements PropertyChangeListener,
         context.dispose();
     }
 
+    /**
+     * Paints the specified component.
+     *
+     * @param context context for the component being painted
+     * @param g the {@code Graphics} object used for painting
+     * @see #update(Graphics,JComponent)
+     */
     protected void paint(SynthContext context, Graphics g) {
         JToolTip tip = (JToolTip)context.getComponent();
-	String tipText = tip.getToolTipText();
 
         Insets insets = tip.getInsets();
-	View v = (View)tip.getClientProperty(BasicHTML.propertyKey);
-	if (v != null) {
+        View v = (View)tip.getClientProperty(BasicHTML.propertyKey);
+        if (v != null) {
             Rectangle paintTextR = new Rectangle(insets.left, insets.top,
                   tip.getWidth() - (insets.left + insets.right),
                   tip.getHeight() - (insets.top + insets.bottom));
-	    v.paint(g, paintTextR);
-	} else {
+            v.paint(g, paintTextR);
+        } else {
             g.setColor(context.getStyle().getColor(context,
                                                    ColorType.TEXT_FOREGROUND));
             g.setFont(style.getFont(context));
             context.getStyle().getGraphicsUtils(context).paintText(
                 context, g, tip.getTipText(), insets.left, insets.top, -1);
-	}
+        }
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public Dimension getPreferredSize(JComponent c) {
         SynthContext context = getContext(c);
-	Insets insets = c.getInsets();
-	Dimension prefSize = new Dimension(insets.left+insets.right,
-					   insets.top+insets.bottom);
-	String text = ((JToolTip)c).getTipText();
+        Insets insets = c.getInsets();
+        Dimension prefSize = new Dimension(insets.left+insets.right,
+                                           insets.top+insets.bottom);
+        String text = ((JToolTip)c).getTipText();
 
-	if (text != null) {
-	    View v = (c != null) ? (View) c.getClientProperty("html") : null;
-	    if (v != null) {
-		prefSize.width += (int) v.getPreferredSpan(View.X_AXIS);
-		prefSize.height += (int) v.getPreferredSpan(View.Y_AXIS);
-	    } else {
+        if (text != null) {
+            View v = (c != null) ? (View) c.getClientProperty("html") : null;
+            if (v != null) {
+                prefSize.width += (int) v.getPreferredSpan(View.X_AXIS);
+                prefSize.height += (int) v.getPreferredSpan(View.Y_AXIS);
+            } else {
                 Font font = context.getStyle().getFont(context);
                 FontMetrics fm = c.getFontMetrics(font);
-		prefSize.width += context.getStyle().getGraphicsUtils(context).
+                prefSize.width += context.getStyle().getGraphicsUtils(context).
                                   computeStringWidth(context, font, fm, text);
-		prefSize.height += fm.getHeight();
-	    }
+                prefSize.height += fm.getHeight();
+            }
         }
         context.dispose();
-	return prefSize;
+        return prefSize;
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (SynthLookAndFeel.shouldUpdateStyle(e)) {
             updateStyle((JToolTip)e.getSource());

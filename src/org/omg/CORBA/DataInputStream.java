@@ -1,8 +1,26 @@
 /*
- * @(#)DataInputStream.java	1.11 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -12,14 +30,13 @@ package org.omg.CORBA;
 * written custom unmarshaling code for custom value types.
 * @see org.omg.CORBA.DataOutputStream
 * @see org.omg.CORBA.CustomMarshal
-* @version 1.11 11/17/05
 */
 public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
 {
     /** Reads an IDL <code>Any</code> value from the input stream.
     * @return  the <code>Any</code> read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     org.omg.CORBA.Any read_any ();
@@ -27,7 +44,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL boolean value from the input stream.
     * @return  the boolean read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     boolean read_boolean ();
@@ -35,7 +52,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL character value from the input stream.
     * @return  the character read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     char read_char ();
@@ -43,7 +60,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL wide character value from the input stream.
     * @return  the wide character read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     char read_wchar ();
@@ -51,7 +68,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL octet value from the input stream.
     * @return  the octet value read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     byte read_octet ();
@@ -59,7 +76,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL short from the input stream.
     * @return  the short read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     short read_short ();
@@ -67,7 +84,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL unsigned short from the input stream.
     * @return  the unsigned short read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     short read_ushort ();
@@ -75,7 +92,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL long from the input stream.
     * @return  the long read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     int read_long ();
@@ -83,7 +100,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL unsigned long from the input stream.
     * @return  the unsigned long read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     int read_ulong ();
@@ -91,7 +108,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL long long from the input stream.
     * @return  the long long read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     long read_longlong ();
@@ -99,7 +116,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an unsigned IDL long long from the input stream.
     * @return  the unsigned long long read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     long read_ulonglong ();
@@ -107,7 +124,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL float from the input stream.
     * @return  the float read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     float read_float ();
@@ -115,7 +132,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL double from the input stream.
     * @return  the double read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     double read_double ();
@@ -124,7 +141,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL string from the input stream.
     * @return  the string read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     String read_string ();
@@ -132,7 +149,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL wide string from the input stream.
     * @return  the wide string read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     String read_wstring ();
@@ -140,7 +157,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL CORBA::Object from the input stream.
     * @return  the CORBA::Object read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     org.omg.CORBA.Object read_Object ();
@@ -148,7 +165,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL Abstract interface from the input stream.
     * @return  the Abstract interface read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     java.lang.Object read_Abstract ();
@@ -156,7 +173,7 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL value type from the input stream.
     * @return  the value type read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     java.io.Serializable read_Value ();
@@ -164,165 +181,164 @@ public interface DataInputStream extends org.omg.CORBA.portable.ValueBase
     /** Reads an IDL typecode from the input stream.
     * @return  the typecode read.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     org.omg.CORBA.TypeCode read_TypeCode ();
 
     /** Reads array of IDL Anys from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_any_array (org.omg.CORBA.AnySeqHolder seq, int offset, int length);
 
     /** Reads array of IDL booleans from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_boolean_array (org.omg.CORBA.BooleanSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL characters from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_char_array (org.omg.CORBA.CharSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL wide characters from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_wchar_array (org.omg.CORBA.WCharSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL octets from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_octet_array (org.omg.CORBA.OctetSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL shorts from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_short_array (org.omg.CORBA.ShortSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL unsigned shorts from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_ushort_array (org.omg.CORBA.UShortSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL longs from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_long_array (org.omg.CORBA.LongSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL unsigned longs from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_ulong_array (org.omg.CORBA.ULongSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL unsigned long longs from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_ulonglong_array (org.omg.CORBA.ULongLongSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL long longs from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_longlong_array (org.omg.CORBA.LongLongSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL floats from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_float_array (org.omg.CORBA.FloatSeqHolder seq, int offset, int length);
 
     /** Reads array of IDL doubles from offset for length elements from the
-    * input stream.  
+    * input stream.
     * @param seq The out parameter holder for the array to be read.
     * @param offset The index into seq of the first element to read from the
     * input stream.
     * @param length The number of elements to read from the input stream.
     * @throws <code>org.omg.CORBA.MARSHAL</code>
-    * If an inconsistency is detected, including not having registered 
+    * If an inconsistency is detected, including not having registered
     * a streaming policy, then the standard system exception MARSHAL is raised.
     */
     void read_double_array (org.omg.CORBA.DoubleSeqHolder seq, int offset, int length);
 } // interface DataInputStream
-

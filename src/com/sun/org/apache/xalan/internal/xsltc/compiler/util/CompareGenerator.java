@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,65 +56,65 @@ public final class CompareGenerator extends MethodGenerator {
     private final Instruction _astoreIterator;
 
     public CompareGenerator(int access_flags, Type return_type,
-			    Type[] arg_types, String[] arg_names,
-			    String method_name, String class_name,
-			    InstructionList il, ConstantPoolGen cp) {
-	super(access_flags, return_type, arg_types, arg_names, method_name, 
-	      class_name, il, cp);
-	
-	_iloadCurrent = new ILOAD(CURRENT_INDEX);
-	_istoreCurrent = new ISTORE(CURRENT_INDEX);
-	_aloadDom = new ALOAD(DOM_INDEX);
-	_iloadLast = new ILOAD(LAST_INDEX);
+                            Type[] arg_types, String[] arg_names,
+                            String method_name, String class_name,
+                            InstructionList il, ConstantPoolGen cp) {
+        super(access_flags, return_type, arg_types, arg_names, method_name,
+              class_name, il, cp);
 
-	LocalVariableGen iterator =
-	    addLocalVariable("iterator",
-			     Util.getJCRefType(Constants.NODE_ITERATOR_SIG),
-			     null, null);
-	ITERATOR_INDEX = iterator.getIndex();
-	_aloadIterator = new ALOAD(ITERATOR_INDEX);
-	_astoreIterator = new ASTORE(ITERATOR_INDEX);
-	il.append(new ACONST_NULL());
-	il.append(storeIterator());
+        _iloadCurrent = new ILOAD(CURRENT_INDEX);
+        _istoreCurrent = new ISTORE(CURRENT_INDEX);
+        _aloadDom = new ALOAD(DOM_INDEX);
+        _iloadLast = new ILOAD(LAST_INDEX);
+
+        LocalVariableGen iterator =
+            addLocalVariable("iterator",
+                             Util.getJCRefType(Constants.NODE_ITERATOR_SIG),
+                             null, null);
+        ITERATOR_INDEX = iterator.getIndex();
+        _aloadIterator = new ALOAD(ITERATOR_INDEX);
+        _astoreIterator = new ASTORE(ITERATOR_INDEX);
+        il.append(new ACONST_NULL());
+        il.append(storeIterator());
     }
 
     public Instruction loadLastNode() {
-	return _iloadLast;
+        return _iloadLast;
     }
 
     public Instruction loadCurrentNode() {
-	return _iloadCurrent;
+        return _iloadCurrent;
     }
 
     public Instruction storeCurrentNode() {
-	return _istoreCurrent;
+        return _istoreCurrent;
     }
 
     public Instruction loadDOM() {
-	return _aloadDom;
+        return _aloadDom;
     }
 
     public int getHandlerIndex() {
-	return INVALID_INDEX;		// not available
+        return INVALID_INDEX;           // not available
     }
 
     public int getIteratorIndex() {
-	return INVALID_INDEX;
+        return INVALID_INDEX;
     }
 
     public Instruction storeIterator() {
-	return _astoreIterator;
+        return _astoreIterator;
     }
-    
+
     public Instruction loadIterator() {
-	return _aloadIterator;
+        return _aloadIterator;
     }
 
     //??? may not be used anymore
     public int getLocalIndex(String name) {
-	if (name.equals("current")) {
-	    return CURRENT_INDEX;
-	}
-	return super.getLocalIndex(name);
+        if (name.equals("current")) {
+            return CURRENT_INDEX;
+        }
+        return super.getLocalIndex(name);
     }
 }

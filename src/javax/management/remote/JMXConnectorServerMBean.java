@@ -1,8 +1,26 @@
 /*
- * @(#)JMXConnectorServerMBean.java	1.26 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -10,8 +28,6 @@ package javax.management.remote;
 
 import java.io.IOException;
 import java.util.Map;
-
-import javax.management.MBeanServer;
 
 /**
  * <p>MBean interface for connector servers.  A JMX API connector server
@@ -23,7 +39,6 @@ import javax.management.MBeanServer;
  * method has been called does it start listening for connections.</p>
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public interface JMXConnectorServerMBean {
     /**
@@ -90,23 +105,30 @@ public interface JMXConnectorServerMBean {
     public boolean isActive();
 
     /**
-     * <p>Adds an object that intercepts requests for the MBean server
+     * <p>Inserts an object that intercepts requests for the MBean server
      * that arrive through this connector server.  This object will be
      * supplied as the <code>MBeanServer</code> for any new connection
      * created by this connector server.  Existing connections are
      * unaffected.</p>
      *
-     * <p>If this connector server is already associated with an
+     * <p>This method can be called more than once with different
+     * {@link MBeanServerForwarder} objects.  The result is a chain
+     * of forwarders.  The last forwarder added is the first in the chain.
+     * In more detail:</p>
+     *
+     * <ul>
+     * <li><p>If this connector server is already associated with an
      * <code>MBeanServer</code> object, then that object is given to
      * {@link MBeanServerForwarder#setMBeanServer
      * mbsf.setMBeanServer}.  If doing so produces an exception, this
      * method throws the same exception without any other effect.</p>
      *
-     * <p>If this connector is not already associated with an
+     * <li><p>If this connector is not already associated with an
      * <code>MBeanServer</code> object, or if the
      * <code>mbsf.setMBeanServer</code> call just mentioned succeeds,
      * then <code>mbsf</code> becomes this connector server's
      * <code>MBeanServer</code>.</p>
+     * </ul>
      *
      * @param mbsf the new <code>MBeanServerForwarder</code>.
      *
@@ -129,6 +151,18 @@ public interface JMXConnectorServerMBean {
 
     /**
      * <p>The address of this connector server.</p>
+     * <p>
+     * The address returned may not be the exact original {@link JMXServiceURL}
+     * that was supplied when creating the connector server, since the original
+     * address may not always be complete. For example the port number may be
+     * dynamically allocated when starting the connector server. Instead the
+     * address returned is the actual {@link JMXServiceURL} of the
+     * {@link JMXConnectorServer}. This is the address that clients supply
+     * to {@link JMXConnectorFactory#connect(JMXServiceURL)}.
+     * </p>
+     * <p>Note that the address returned may be {@code null} if
+     *    the {@code JMXConnectorServer} is not yet {@link #isActive active}.
+     * </p>
      *
      * @return the address of this connector server, or null if it
      * does not have one.
@@ -152,7 +186,7 @@ public interface JMXConnectorServerMBean {
      * one new connection to this connector server.</p>
      *
      * <p>A given connector need not support the generation of client
-     * stubs.  However, the connectors specified by the JMX Remote API do 
+     * stubs.  However, the connectors specified by the JMX Remote API do
      * (JMXMP Connector and RMI Connector).</p>
      *
      * @param env client connection parameters of the same sort that
@@ -174,5 +208,5 @@ public interface JMXConnectorServerMBean {
      *
      */
     public JMXConnector toJMXConnector(Map<String,?> env)
-	throws IOException;
+        throws IOException;
 }

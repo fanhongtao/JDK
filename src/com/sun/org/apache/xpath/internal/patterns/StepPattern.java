@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -284,10 +288,10 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
     m_predicates = predicates;
     if(null != predicates)
     {
-    	for(int i = 0; i < predicates.length; i++)
-    	{
-    		predicates[i].exprSetParent(this);
-    	}
+        for(int i = 0; i < predicates.length; i++)
+        {
+                predicates[i].exprSetParent(this);
+        }
     }
 
     calcScore();
@@ -418,7 +422,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
    * @param predPos Which predicate we're evaluating of foo[1][2][3].
    * @param dtm The DTM of the current node.
    * @param context The currentNode.
-   * @param pos The position being requested, i.e. the value returned by 
+   * @param pos The position being requested, i.e. the value returned by
    *            m_predicates[predPos].execute(xctxt).
    *
    * @return true of the position of the context matches pos, false otherwise.
@@ -453,7 +457,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
                 try
                 {
                   XObject pred = m_predicates[i].execute(xctxt);
-                  
+
                   try
                   {
                     if (XObject.CLASS_NUMBER == pred.getType())
@@ -463,7 +467,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
                     else if (!pred.boolWithSideEffects())
                     {
                       pass = false;
-    
+
                       break;
                     }
                   }
@@ -518,7 +522,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
    * @return the proximity position index of the current node based on the
    *         node test.
    */
-  private final int getProximityPosition(XPathContext xctxt, int predPos, 
+  private final int getProximityPosition(XPathContext xctxt, int predPos,
                     boolean findLast)
   {
 
@@ -552,7 +556,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
                 try
                 {
                   XObject pred = m_predicates[i].execute(xctxt);
-  
+
                   try
                   {
                     if (XObject.CLASS_NUMBER == pred.getType())
@@ -560,14 +564,14 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
                       if ((pos + 1) != (int) pred.numWithSideEffects())
                       {
                         pass = false;
-    
+
                         break;
                       }
                     }
                     else if (!pred.boolWithSideEffects())
                     {
                       pass = false;
-    
+
                       break;
                     }
                   }
@@ -626,7 +630,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
   {
     return getProximityPosition(xctxt, xctxt.getPredicatePos(), false);
   }
-  
+
   /**
    * Get the count of the nodes that match the test, which is the proximity
    * position of the last node that can pass this test in the sub context
@@ -692,7 +696,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
   }
 
   /**
-   * Execute the predicates on this step to determine if the current node 
+   * Execute the predicates on this step to determine if the current node
    * should be filtered or accepted.
    *
    * @param xctxt The XPath runtime context.
@@ -729,30 +733,30 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
             if (XObject.CLASS_NUMBER == pred.getType())
             {
               int pos = (int) pred.num();
-  
+
               if (positionAlreadySeen)
               {
                 result = (pos == 1);
-  
+
                 break;
               }
               else
               {
                 positionAlreadySeen = true;
-  
+
                 if (!checkProximityPosition(xctxt, i, dtm, currentNode, pos))
                 {
                   result = false;
-  
+
                   break;
                 }
               }
-            
+
             }
             else if (!pred.boolWithSideEffects())
             {
               result = false;
-  
+
               break;
             }
           }
@@ -779,7 +783,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
    * Get the string represenentation of this step for diagnostic purposes.
    *
    *
-   * @return A string representation of this step, built by reverse-engineering 
+   * @return A string representation of this step, built by reverse-engineering
    * the contained info.
    */
   public String toString()
@@ -910,7 +914,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
   }
 
   /**
-   * Set the axis that this step should follow. 
+   * Set the axis that this step should follow.
    *
    *
    * @param axis The Axis for this test, one of of Axes.ANCESTORORSELF, etc.
@@ -921,7 +925,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
   }
 
   /**
-   * Get the axis that this step follows. 
+   * Get the axis that this step follows.
    *
    *
    * @return The Axis for this test, one of of Axes.ANCESTORORSELF, etc.
@@ -930,16 +934,16 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
   {
     return m_axis;
   }
-  
+
   class PredOwner implements ExpressionOwner
   {
-  	int m_index;
-  	
-  	PredOwner(int index)
-  	{
-  		m_index = index;
-  	}
-  	
+        int m_index;
+
+        PredOwner(int index)
+        {
+                m_index = index;
+        }
+
     /**
      * @see ExpressionOwner#getExpression()
      */
@@ -954,24 +958,24 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
      */
     public void setExpression(Expression exp)
     {
-    	exp.exprSetParent(StepPattern.this);
-    	m_predicates[m_index] = exp;
+        exp.exprSetParent(StepPattern.this);
+        m_predicates[m_index] = exp;
     }
   }
-  
+
   /**
    * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	 	if(visitor.visitMatchPattern(owner, this))
-  	 	{
-  	 		callSubtreeVisitors(visitor);
-  	 	}
+                if(visitor.visitMatchPattern(owner, this))
+                {
+                        callSubtreeVisitors(visitor);
+                }
   }
 
   /**
-   * Call the visitors on the subtree.  Factored out from callVisitors 
+   * Call the visitors on the subtree.  Factored out from callVisitors
    * so it may be called by derived classes.
    */
   protected void callSubtreeVisitors(XPathVisitor visitor)
@@ -1009,19 +1013,19 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
   public void setExpression(Expression exp)
   {
     exp.exprSetParent(this);
-  	m_relativePathPattern = (StepPattern)exp;
+        m_relativePathPattern = (StepPattern)exp;
   }
-  
+
   /**
    * @see Expression#deepEquals(Expression)
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!super.deepEquals(expr))
-  		return false;
-  		
-  	StepPattern sp = (StepPattern)expr;
-  	
+        if(!super.deepEquals(expr))
+                return false;
+
+        StepPattern sp = (StepPattern)expr;
+
     if (null != m_predicates)
     {
         int n = m_predicates.length;
@@ -1030,21 +1034,21 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
         for (int i = 0; i < n; i++)
         {
           if (!m_predicates[i].deepEquals(sp.m_predicates[i]))
-          	return false; 
+                return false;
         }
     }
     else if (null != sp.m_predicates)
-    	return false;
-  		
-  	if(null != m_relativePathPattern)
-  	{
-  		if(!m_relativePathPattern.deepEquals(sp.m_relativePathPattern))
-  			return false;
-  	}
-  	else if(sp.m_relativePathPattern != null)
-  		return false;
-  		
-  	return true;
+        return false;
+
+        if(null != m_relativePathPattern)
+        {
+                if(!m_relativePathPattern.deepEquals(sp.m_relativePathPattern))
+                        return false;
+        }
+        else if(sp.m_relativePathPattern != null)
+                return false;
+
+        return true;
   }
 
 

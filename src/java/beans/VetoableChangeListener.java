@@ -1,8 +1,26 @@
 /*
- * @(#)VetoableChangeListener.java	1.15 05/11/17
+ * Copyright (c) 1996, 1997, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
@@ -17,10 +35,10 @@ public interface VetoableChangeListener extends java.util.EventListener {
      * This method gets called when a constrained property is changed.
      *
      * @param     evt a <code>PropertyChangeEvent</code> object describing the
-     *   	      event source and the property that has changed.
+     *                event source and the property that has changed.
      * @exception PropertyVetoException if the recipient wishes the property
      *              change to be rolled back.
      */
     void vetoableChange(PropertyChangeEvent evt)
-				throws PropertyVetoException;
+                                throws PropertyVetoException;
 }

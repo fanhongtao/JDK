@@ -1,8 +1,26 @@
 /*
- * @(#)DataCollectorBase.java	1.20 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.orb ;
@@ -47,27 +65,27 @@ public abstract class DataCollectorBase implements DataCollector {
     private Properties resultProps ;
 
     public DataCollectorBase( Properties props, String localHostName,
-	String configurationHostName )
+        String configurationHostName )
     {
-	// XXX This is fully initialized here.  So do we ever want to 
-	// generalize this (or perhaps this is the wrong place for this?)
-	URLPropertyNames = new HashSet() ;
-	URLPropertyNames.add( ORBConstants.INITIAL_SERVICES_PROPERTY ) ;
+        // XXX This is fully initialized here.  So do we ever want to
+        // generalize this (or perhaps this is the wrong place for this?)
+        URLPropertyNames = new HashSet() ;
+        URLPropertyNames.add( ORBConstants.INITIAL_SERVICES_PROPERTY ) ;
 
-	propertyNames = new HashSet() ;
+        propertyNames = new HashSet() ;
 
-	// Make sure that we are ready to handle -ORBInitRef.  This is special
-	// due to the need to handle multiple -ORBInitRef args as prefix
-	// parsing.
-	propertyNames.add( ORBConstants.ORB_INIT_REF_PROPERTY ) ;
+        // Make sure that we are ready to handle -ORBInitRef.  This is special
+        // due to the need to handle multiple -ORBInitRef args as prefix
+        // parsing.
+        propertyNames.add( ORBConstants.ORB_INIT_REF_PROPERTY ) ;
 
-	propertyPrefixes = new HashSet() ;
+        propertyPrefixes = new HashSet() ;
 
-	this.originalProps = props ;
-	this.localHostName = localHostName ;
-	this.configurationHostName = configurationHostName ;
-	setParserCalled = false ;
-	resultProps = new Properties() ;
+        this.originalProps = props ;
+        this.localHostName = localHostName ;
+        this.configurationHostName = configurationHostName ;
+        setParserCalled = false ;
+        resultProps = new Properties() ;
     }
 
 //////////////////////////////////////////////////////////
@@ -76,30 +94,30 @@ public abstract class DataCollectorBase implements DataCollector {
 
     public boolean initialHostIsLocal()
     {
-	checkSetParserCalled() ;
-	return localHostName.equals( resultProps.getProperty( 
-	    ORBConstants.INITIAL_HOST_PROPERTY ) ) ;
+        checkSetParserCalled() ;
+        return localHostName.equals( resultProps.getProperty(
+            ORBConstants.INITIAL_HOST_PROPERTY ) ) ;
     }
 
     public void setParser( PropertyParser parser )
     {
-	Iterator iter = parser.iterator() ;
-	while (iter.hasNext()) {
-	    ParserAction pa = (ParserAction)(iter.next()) ;
-	    if (pa.isPrefix())
-		propertyPrefixes.add( pa.getPropertyName() ) ;
-	    else
-		propertyNames.add( pa.getPropertyName() ) ;
-	}
+        Iterator iter = parser.iterator() ;
+        while (iter.hasNext()) {
+            ParserAction pa = (ParserAction)(iter.next()) ;
+            if (pa.isPrefix())
+                propertyPrefixes.add( pa.getPropertyName() ) ;
+            else
+                propertyNames.add( pa.getPropertyName() ) ;
+        }
 
-	collect() ;
-	setParserCalled = true ;
+        collect() ;
+        setParserCalled = true ;
     }
 
     public Properties getProperties()
     {
-	checkSetParserCalled() ;
-	return resultProps ;
+        checkSetParserCalled() ;
+        return resultProps ;
     }
 
 //////////////////////////////////////////////////////////
@@ -124,24 +142,24 @@ public abstract class DataCollectorBase implements DataCollector {
         String host =
             resultProps.getProperty( ORBConstants.INITIAL_HOST_PROPERTY ) ;
 
-        if ((host == null) || (host.equals(""))) 
-            setProperty( ORBConstants.INITIAL_HOST_PROPERTY, 
-		configurationHostName );
+        if ((host == null) || (host.equals("")))
+            setProperty( ORBConstants.INITIAL_HOST_PROPERTY,
+                configurationHostName );
 
         String serverHost =
             resultProps.getProperty( ORBConstants.SERVER_HOST_PROPERTY ) ;
 
-        if (serverHost == null || 
-	    serverHost.equals("") ||
-	    serverHost.equals("0.0.0.0") ||
-	    serverHost.equals("::") ||
-	    serverHost.toLowerCase().equals("::ffff:0.0.0.0"))
-	{
+        if (serverHost == null ||
+            serverHost.equals("") ||
+            serverHost.equals("0.0.0.0") ||
+            serverHost.equals("::") ||
+            serverHost.toLowerCase().equals("::ffff:0.0.0.0"))
+        {
             setProperty(ORBConstants.SERVER_HOST_PROPERTY,
-			localHostName);
-	    setProperty(ORBConstants.LISTEN_ON_ALL_INTERFACES,
-			ORBConstants.LISTEN_ON_ALL_INTERFACES);
-	}
+                        localHostName);
+            setProperty(ORBConstants.LISTEN_ON_ALL_INTERFACES,
+                        ORBConstants.LISTEN_ON_ALL_INTERFACES);
+        }
     }
 
     protected void findPropertiesFromArgs( String[] params )
@@ -170,7 +188,7 @@ public abstract class DataCollectorBase implements DataCollector {
             }
 
             if (value != null) {
-		setProperty( name, value ) ;
+                setProperty( name, value ) ;
             }
         }
     }
@@ -178,57 +196,57 @@ public abstract class DataCollectorBase implements DataCollector {
     protected void findPropertiesFromApplet( final Applet app )
     {
         // Cannot use propertyPrefixes here, since there is no
-	// way to fetch properties by prefix from an Applet.
+        // way to fetch properties by prefix from an Applet.
         if (app == null)
             return;
 
         PropertyCallback callback = new PropertyCallback() {
-	    public String get(String name) {
-		return app.getParameter(name);
-	    }
-	} ;
+            public String get(String name) {
+                return app.getParameter(name);
+            }
+        } ;
 
-	findPropertiesByName( propertyNames.iterator(), callback ) ;
-    
+        findPropertiesByName( propertyNames.iterator(), callback ) ;
+
         // Special Case:
         //
         // Convert any applet parameter relative URLs to an
-        // absolute URL based on the Document Root. This is so HTML 
-	// URLs can be kept relative which is sometimes useful for 
-	// managing the Document Root layout.
-	PropertyCallback URLCallback = new PropertyCallback() {
-	    public String get( String name ) {
-		String value = resultProps.getProperty(name);
-		if (value == null)
-		    return null ;
+        // absolute URL based on the Document Root. This is so HTML
+        // URLs can be kept relative which is sometimes useful for
+        // managing the Document Root layout.
+        PropertyCallback URLCallback = new PropertyCallback() {
+            public String get( String name ) {
+                String value = resultProps.getProperty(name);
+                if (value == null)
+                    return null ;
 
-		try {
-		    URL url = new URL( app.getDocumentBase(), value ) ;
-		    return url.toExternalForm() ;
-		} catch (java.net.MalformedURLException exc) {
-		    // Just preserve the original (malformed) value:
-		    // the error will be handled later.
-		    return value ;
-		}
-	    }
-	} ;
+                try {
+                    URL url = new URL( app.getDocumentBase(), value ) ;
+                    return url.toExternalForm() ;
+                } catch (java.net.MalformedURLException exc) {
+                    // Just preserve the original (malformed) value:
+                    // the error will be handled later.
+                    return value ;
+                }
+            }
+        } ;
 
-	findPropertiesByName( URLPropertyNames.iterator(), 
-	    URLCallback ) ;
+        findPropertiesByName( URLPropertyNames.iterator(),
+            URLCallback ) ;
     }
 
-    private void doProperties( final Properties props ) 
+    private void doProperties( final Properties props )
     {
         PropertyCallback callback =  new PropertyCallback() {
-	    public String get(String name) {
-		return props.getProperty(name);
-	    }
-	} ;
-	
-	findPropertiesByName( propertyNames.iterator(), callback ) ;
+            public String get(String name) {
+                return props.getProperty(name);
+            }
+        } ;
 
-        findPropertiesByPrefix( propertyPrefixes, 
-	    makeIterator( props.propertyNames()), callback );
+        findPropertiesByName( propertyNames.iterator(), callback ) ;
+
+        findPropertiesByPrefix( propertyPrefixes,
+            makeIterator( props.propertyNames()), callback );
     }
 
     protected void findPropertiesFromFile()
@@ -237,7 +255,7 @@ public abstract class DataCollectorBase implements DataCollector {
         if (fileProps==null)
             return ;
 
-	doProperties( fileProps ) ;
+        doProperties( fileProps ) ;
     }
 
     protected void findPropertiesFromProperties()
@@ -245,7 +263,7 @@ public abstract class DataCollectorBase implements DataCollector {
         if (originalProps == null)
             return;
 
-	doProperties( originalProps ) ;
+        doProperties( originalProps ) ;
     }
 
     //
@@ -257,115 +275,115 @@ public abstract class DataCollectorBase implements DataCollector {
     // system properties that should impose a restriction.
     protected void findPropertiesFromSystem()
     {
-	Set normalNames = getCORBAPrefixes( propertyNames ) ;
-	Set prefixNames = getCORBAPrefixes( propertyPrefixes ) ;
+        Set normalNames = getCORBAPrefixes( propertyNames ) ;
+        Set prefixNames = getCORBAPrefixes( propertyPrefixes ) ;
 
-	PropertyCallback callback = new PropertyCallback() {
-	    public String get(String name) {
-		return getSystemProperty(name);
-	    }
-	} ;
+        PropertyCallback callback = new PropertyCallback() {
+            public String get(String name) {
+                return getSystemProperty(name);
+            }
+        } ;
 
-	findPropertiesByName( normalNames.iterator(), callback ) ;
+        findPropertiesByName( normalNames.iterator(), callback ) ;
 
         findPropertiesByPrefix( prefixNames,
-	    getSystemPropertyNames(), callback ) ;
+            getSystemPropertyNames(), callback ) ;
     }
 
 //////////////////////////////////////////////////////////
 // internal implementation
 //////////////////////////////////////////////////////////
 
-    // Store name, value in resultProps, with special 
+    // Store name, value in resultProps, with special
     // treatment of ORBInitRef.  All updates to resultProps
     // must happen through this method.
     private void setProperty( String name, String value )
     {
-	if( name.equals( ORBConstants.ORB_INIT_REF_PROPERTY ) ) {
-	    // Value is <name>=<URL>
-	    StringTokenizer st = new StringTokenizer( value, "=" ) ;
-	    if (st.countTokens() != 2)
-		throw new IllegalArgumentException() ;
+        if( name.equals( ORBConstants.ORB_INIT_REF_PROPERTY ) ) {
+            // Value is <name>=<URL>
+            StringTokenizer st = new StringTokenizer( value, "=" ) ;
+            if (st.countTokens() != 2)
+                throw new IllegalArgumentException() ;
 
-	    String refName = st.nextToken() ;
-	    String refValue = st.nextToken() ;
+            String refName = st.nextToken() ;
+            String refValue = st.nextToken() ;
 
-	    resultProps.setProperty( name + "." + refName, refValue ) ;
-	} else {
-	    resultProps.setProperty( name, value ) ;
-	}
+            resultProps.setProperty( name + "." + refName, refValue ) ;
+        } else {
+            resultProps.setProperty( name, value ) ;
+        }
     }
 
     private void checkSetParserCalled()
     {
-	if (!setParserCalled)
-	    throw new IllegalStateException( "setParser not called." ) ;
+        if (!setParserCalled)
+            throw new IllegalStateException( "setParser not called." ) ;
     }
 
     // For each prefix in prefixes, For each name in propertyNames,
     // if (prefix is a prefix of name) get value from getProperties and
     // setProperty (name, value).
-    private void findPropertiesByPrefix( Set prefixes, 
-	Iterator propertyNames, PropertyCallback getProperty )
+    private void findPropertiesByPrefix( Set prefixes,
+        Iterator propertyNames, PropertyCallback getProperty )
     {
-	while (propertyNames.hasNext()) {
-	    String name = (String)(propertyNames.next()) ;
-	    Iterator iter = prefixes.iterator() ;
-	    while (iter.hasNext()) {
-		String prefix = (String)(iter.next()) ;
-		if (name.startsWith( prefix )) {
-		    String value = getProperty.get( name ) ;
+        while (propertyNames.hasNext()) {
+            String name = (String)(propertyNames.next()) ;
+            Iterator iter = prefixes.iterator() ;
+            while (iter.hasNext()) {
+                String prefix = (String)(iter.next()) ;
+                if (name.startsWith( prefix )) {
+                    String value = getProperty.get( name ) ;
 
                     // Note: do a put even if value is null since just
                     // the presence of the property may be significant.
-		    setProperty( name, value ) ;
-		}
-	    }
-	}
+                    setProperty( name, value ) ;
+                }
+            }
+        }
     }
 
     // For each prefix in names, get the corresponding property
     // value from the callback, and store the name/value pair in
     // the result.
-    private void findPropertiesByName( Iterator names, 
-	PropertyCallback getProperty )
+    private void findPropertiesByName( Iterator names,
+        PropertyCallback getProperty )
     {
-	while (names.hasNext()) {
-	    String name = (String)(names.next()) ;
-	    String value = getProperty.get( name ) ;
-	    if (value != null)
-		setProperty( name, value ) ;
-	}
+        while (names.hasNext()) {
+            String name = (String)(names.next()) ;
+            String value = getProperty.get( name ) ;
+            if (value != null)
+                setProperty( name, value ) ;
+        }
     }
 
     private static String getSystemProperty(final String name)
     {
         return (String)AccessController.doPrivileged(
-	    new GetPropertyAction(name));
+            new GetPropertyAction(name));
     }
 
     // Map command-line arguments to ORB properties.
     //
     private String findMatchingPropertyName( Set names,
-	String suffix ) 
+        String suffix )
     {
-	Iterator iter = names.iterator() ;
-	while (iter.hasNext()) {
-	    String name = (String)(iter.next()) ;
-	    if (name.endsWith( suffix ))
-		return name ;
-	}
+        Iterator iter = names.iterator() ;
+        while (iter.hasNext()) {
+            String name = (String)(iter.next()) ;
+            if (name.endsWith( suffix ))
+                return name ;
+        }
 
-	return null ;
+        return null ;
     }
 
     private static Iterator makeIterator( final Enumeration enumeration )
     {
-	return new Iterator() {
-	    public boolean hasNext() { return enumeration.hasMoreElements() ; }
-	    public Object next() { return enumeration.nextElement() ; }
-	    public void remove() { throw new UnsupportedOperationException() ; }
-	} ;
+        return new Iterator() {
+            public boolean hasNext() { return enumeration.hasMoreElements() ; }
+            public Object next() { return enumeration.nextElement() ; }
+            public void remove() { throw new UnsupportedOperationException() ; }
+        } ;
     }
 
     private static Iterator getSystemPropertyNames()
@@ -379,29 +397,29 @@ public abstract class DataCollectorBase implements DataCollector {
                           return System.getProperties().propertyNames();
                       }
                 }
-	    );
+            );
 
-	return makeIterator( enumeration ) ;
+        return makeIterator( enumeration ) ;
     }
 
     private void getPropertiesFromFile( Properties props, String fileName )
     {
         try {
-	    File file = new File( fileName ) ;
-	    if (!file.exists())
-		return ;
+            File file = new File( fileName ) ;
+            if (!file.exists())
+                return ;
 
             FileInputStream in = new FileInputStream( file ) ;
-	    
-	    try {
-		props.load( in ) ;
-	    } finally {
-		in.close() ;
-	    }
+
+            try {
+                props.load( in ) ;
+            } finally {
+                in.close() ;
+            }
         } catch (Exception exc) {
             // if (ORBInitDebug)
-                // dprint( "ORB properties file " + fileName + " not found: " + 
-		    // exc) ;
+                // dprint( "ORB properties file " + fileName + " not found: " +
+                    // exc) ;
         }
     }
 
@@ -409,42 +427,42 @@ public abstract class DataCollectorBase implements DataCollector {
     {
         Properties defaults = new Properties() ;
 
-	String javaHome = getSystemProperty( "java.home" ) ;
-	String fileName = javaHome + File.separator + "lib" + File.separator +
-	    "orb.properties" ;
+        String javaHome = getSystemProperty( "java.home" ) ;
+        String fileName = javaHome + File.separator + "lib" + File.separator +
+            "orb.properties" ;
 
-	getPropertiesFromFile( defaults, fileName ) ;
+        getPropertiesFromFile( defaults, fileName ) ;
 
-	Properties results = new Properties( defaults ) ;
+        Properties results = new Properties( defaults ) ;
 
         String userHome = getSystemProperty( "user.home" ) ;
         fileName = userHome + File.separator + "orb.properties" ;
 
-	getPropertiesFromFile( results, fileName ) ;
-	return results ;
+        getPropertiesFromFile( results, fileName ) ;
+        return results ;
     }
 
     private boolean hasCORBAPrefix( String prefix )
     {
-	return prefix.startsWith( ORBConstants.ORG_OMG_PREFIX ) ||
-	    prefix.startsWith( ORBConstants.SUN_PREFIX ) ||
-	    prefix.startsWith( ORBConstants.SUN_LC_PREFIX ) ||
-	    prefix.startsWith( ORBConstants.SUN_LC_VERSION_PREFIX ) ;
+        return prefix.startsWith( ORBConstants.ORG_OMG_PREFIX ) ||
+            prefix.startsWith( ORBConstants.SUN_PREFIX ) ||
+            prefix.startsWith( ORBConstants.SUN_LC_PREFIX ) ||
+            prefix.startsWith( ORBConstants.SUN_LC_VERSION_PREFIX ) ;
     }
 
-    // Return only those element of prefixes for which hasCORBAPrefix 
-    // is true.  
+    // Return only those element of prefixes for which hasCORBAPrefix
+    // is true.
     private Set getCORBAPrefixes( final Set prefixes )
     {
-	Set result = new HashSet() ;
-	Iterator iter = prefixes.iterator() ;
-	while (iter.hasNext()) {
-	    String element = (String)(iter.next()) ;
-	    if (hasCORBAPrefix( element )) 
-		result.add( element ) ;
-	}
+        Set result = new HashSet() ;
+        Iterator iter = prefixes.iterator() ;
+        while (iter.hasNext()) {
+            String element = (String)(iter.next()) ;
+            if (hasCORBAPrefix( element ))
+                result.add( element ) ;
+        }
 
-	return result ;
+        return result ;
     }
 }
 

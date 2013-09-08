@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +47,7 @@ public interface ExpressionContext
    * defined in XSLT.
    */
   public NodeIterator getContextNodes();
-  
+
   /**
    * Get the error listener.
    * @return The registered error listener.
@@ -75,13 +79,13 @@ public interface ExpressionContext
    */
   public XObject getVariableOrParam(com.sun.org.apache.xml.internal.utils.QName qname)
             throws javax.xml.transform.TransformerException;
-  
+
   /**
    * Get the XPathContext that owns this ExpressionContext.
-   * 
+   *
    * Note: exslt:function requires the XPathContext to access
    * the variable stack and TransformerImpl.
-   * 
+   *
    * @return The current XPathContext.
    * @throws javax.xml.transform.TransformerException
    */

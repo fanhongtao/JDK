@@ -1,18 +1,37 @@
 /*
- * @(#)HyperlinkEvent.java	1.19 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.event;
 
+import java.awt.event.InputEvent;
 import java.util.EventObject;
 import java.net.URL;
 import javax.swing.text.Element;
 
 
 /**
- * HyperlinkEvent is used to notify interested parties that 
+ * HyperlinkEvent is used to notify interested parties that
  * something has happened with respect to a hypertext link.
  * <p>
  * <strong>Warning:</strong>
@@ -24,7 +43,6 @@ import javax.swing.text.Element;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 11/17/05
  * @author  Timothy Prinzing
  */
 public class HyperlinkEvent extends EventObject {
@@ -77,10 +95,36 @@ public class HyperlinkEvent extends EventObject {
     public HyperlinkEvent(Object source, EventType type, URL u, String desc,
                           Element sourceElement) {
         super(source);
-	this.type = type;
-	this.u = u;
-	this.desc = desc;
+        this.type = type;
+        this.u = u;
+        this.desc = desc;
         this.sourceElement = sourceElement;
+    }
+
+    /**
+     * Creates a new object representing a hypertext link event.
+     *
+     * @param source the object responsible for the event
+     * @param type the event type
+     * @param u the affected URL.  This may be null if a valid URL
+     *   could not be created.
+     * @param desc the description of the link.  This may be useful
+     *   when attempting to form a URL resulted in a MalformedURLException.
+     *   The description provides the text used when attempting to form the
+     *   URL.
+     * @param sourceElement Element in the Document representing the
+     *   anchor
+     * @param inputEvent  InputEvent that triggered the hyperlink event
+     * @since 1.7
+     */
+    public HyperlinkEvent(Object source, EventType type, URL u, String desc,
+                          Element sourceElement, InputEvent inputEvent) {
+        super(source);
+        this.type = type;
+        this.u = u;
+        this.desc = desc;
+        this.sourceElement = sourceElement;
+        this.inputEvent = inputEvent;
     }
 
     /**
@@ -89,7 +133,7 @@ public class HyperlinkEvent extends EventObject {
      * @return the type
      */
     public EventType getEventType() {
-	return type;
+        return type;
     }
 
     /**
@@ -99,16 +143,16 @@ public class HyperlinkEvent extends EventObject {
      * URL would be null.
      */
     public String getDescription() {
-	return desc;
+        return desc;
     }
-	
+
     /**
      * Gets the URL that the link refers to.
      *
      * @return the URL
      */
     public URL getURL() {
-	return u;
+        return u;
     }
 
     /**
@@ -122,15 +166,29 @@ public class HyperlinkEvent extends EventObject {
      * @since 1.4
      */
     public Element getSourceElement() {
-	return sourceElement;
+        return sourceElement;
+    }
+
+    /**
+     * Returns the {@code InputEvent} that triggered the hyperlink event.
+     * This will typically be a {@code MouseEvent}.  If a constructor is used
+     * that does not specify an {@code InputEvent}, or @{code null}
+     * was specified as the {@code InputEvent}, this returns {@code null}.
+     *
+     * @return  InputEvent that triggered the hyperlink event, or null
+     * @since 1.7
+     */
+    public InputEvent getInputEvent() {
+        return inputEvent;
     }
 
     private EventType type;
     private URL u;
     private String desc;
     private Element sourceElement;
+    private InputEvent inputEvent;
 
-	
+
     /**
      * Defines the ENTERED, EXITED, and ACTIVATED event types, along
      * with their string representations, returned by toString().
@@ -138,23 +196,23 @@ public class HyperlinkEvent extends EventObject {
     public static final class EventType {
 
         private EventType(String s) {
-	    typeString = s;
-	}
+            typeString = s;
+        }
 
         /**
          * Entered type.
          */
-	public static final EventType ENTERED = new EventType("ENTERED");
+        public static final EventType ENTERED = new EventType("ENTERED");
 
         /**
          * Exited type.
          */
-	public static final EventType EXITED = new EventType("EXITED");
+        public static final EventType EXITED = new EventType("EXITED");
 
         /**
          * Activated type.
          */
-	public static final EventType ACTIVATED = new EventType("ACTIVATED");
+        public static final EventType ACTIVATED = new EventType("ACTIVATED");
 
         /**
          * Converts the type to a string.
@@ -162,10 +220,9 @@ public class HyperlinkEvent extends EventObject {
          * @return the string
          */
         public String toString() {
-	    return typeString;
-	}
+            return typeString;
+        }
 
-	private String typeString;
+        private String typeString;
     }
 }
-

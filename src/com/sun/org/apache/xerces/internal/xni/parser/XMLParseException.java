@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,17 +27,16 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  * A parsing exception. This exception is different from the standard
  * XNI exception in that it stores the location in the document (or
  * its entities) where the exception occurred.
- * 
+ *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLParseException.java,v 1.2.6.1 2005/09/06 08:31:43 neerajbj Exp $
  */
 public class XMLParseException
     extends XNIException {
 
     /** Serialization version. */
     static final long serialVersionUID = 1732959359448549967L;
-    
+
     //
     // Data
     //
@@ -52,10 +55,10 @@ public class XMLParseException
 
     /** Line number. */
     protected int fLineNumber = -1;
-    
+
     /** Column number. */
     protected int fColumnNumber = -1;
-    
+
     /** Character offset. */
     protected int fCharacterOffset = -1;
 
@@ -125,7 +128,7 @@ public class XMLParseException
     public int getColumnNumber() {
         return fColumnNumber;
     } // getRowNumber():int
-    
+
     /** Returns the character offset. */
     public int getCharacterOffset() {
         return fCharacterOffset;

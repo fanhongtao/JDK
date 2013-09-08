@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,27 +49,27 @@ public class FuncExtFunction extends Function
   /**
    * The namespace for the extension function, which should not normally
    *  be null or empty.
-   *  @serial    
+   *  @serial
    */
   String m_namespace;
 
   /**
    * The local name of the extension.
-   *  @serial   
+   *  @serial
    */
   String m_extensionName;
 
   /**
    * Unique method key, which is passed to ExtensionsTable#extFunction in
    *  order to allow caching of the method.
-   *  @serial 
+   *  @serial
    */
   Object m_methodKey;
 
   /**
    * Array of static expressions which represent the parameters to the
    *  function.
-   *  @serial   
+   *  @serial
    */
   Vector m_argVec = new Vector();
 
@@ -95,7 +99,7 @@ public class FuncExtFunction extends Function
       }
     }
   }
-  
+
   /**
    * Return the namespace of the extension function.
    *
@@ -105,7 +109,7 @@ public class FuncExtFunction extends Function
   {
     return m_namespace;
   }
-  
+
   /**
    * Return the name of the extension function.
    *
@@ -115,7 +119,7 @@ public class FuncExtFunction extends Function
   {
     return m_extensionName;
   }
-  
+
   /**
    * Return the method key of the extension function.
    *
@@ -126,12 +130,12 @@ public class FuncExtFunction extends Function
     return m_methodKey;
   }
 
-  /** 
+  /**
    * Return the nth argument passed to the extension function.
-   * 
+   *
    * @param n The argument number index.
    * @return The Expression object at the given index.
-   */    
+   */
   public Expression getArg(int n) {
     if (n >= 0 && n < m_argVec.size())
       return (Expression) m_argVec.elementAt(n);
@@ -144,7 +148,7 @@ public class FuncExtFunction extends Function
    * into this extension function.
    *
    * @return The number of arguments.
-   */    
+   */
   public int getArgCount() {
     return m_argVec.size();
   }
@@ -185,7 +189,7 @@ public class FuncExtFunction extends Function
         XPATHMessages.createXPATHMessage(
           XPATHErrorResources.ER_EXTENSION_FUNCTION_CANNOT_BE_INVOKED,
           new Object[] {toString()}));
-      
+
     XObject result;
     Vector argVec = new Vector();
     int nArgs = m_argVec.size();
@@ -193,12 +197,12 @@ public class FuncExtFunction extends Function
     for (int i = 0; i < nArgs; i++)
     {
       Expression arg = (Expression) m_argVec.elementAt(i);
-      
+
       XObject xobj = arg.execute(xctxt);
       /*
        * Should cache the arguments for func:function
        */
-      xobj.allowDetachToRelease(false); 
+      xobj.allowDetachToRelease(false);
       argVec.addElement(xobj);
     }
     //dml
@@ -247,14 +251,14 @@ public class FuncExtFunction extends Function
 
   class ArgExtOwner implements ExpressionOwner
   {
-  
+
     Expression m_exp;
-  	
-  	ArgExtOwner(Expression exp)
-  	{
-  		m_exp = exp;
-  	}
-  	
+
+        ArgExtOwner(Expression exp)
+        {
+                m_exp = exp;
+        }
+
     /**
      * @see ExpressionOwner#getExpression()
      */
@@ -269,12 +273,12 @@ public class FuncExtFunction extends Function
      */
     public void setExpression(Expression exp)
     {
-    	exp.exprSetParent(FuncExtFunction.this);
-    	m_exp = exp;
+        exp.exprSetParent(FuncExtFunction.this);
+        m_exp = exp;
     }
   }
-  
-  
+
+
   /**
    * Call the visitors for the function arguments.
    */
@@ -285,21 +289,21 @@ public class FuncExtFunction extends Function
          Expression exp = (Expression)m_argVec.elementAt(i);
          exp.callVisitors(new ArgExtOwner(exp), visitor);
       }
-    
+
   }
 
   /**
    * Set the parent node.
    * For an extension function, we also need to set the parent
    * node for all argument expressions.
-   * 
+   *
    * @param n The parent node
    */
-  public void exprSetParent(ExpressionNode n) 
+  public void exprSetParent(ExpressionNode n)
   {
-	
+
     super.exprSetParent(n);
-      
+
     int nArgs = m_argVec.size();
 
     for (int i = 0; i < nArgs; i++)
@@ -307,7 +311,7 @@ public class FuncExtFunction extends Function
       Expression arg = (Expression) m_argVec.elementAt(i);
 
       arg.exprSetParent(n);
-    }		
+    }
   }
 
   /**
@@ -324,7 +328,7 @@ public class FuncExtFunction extends Function
 
     throw new RuntimeException(fMsg);
   }
-  
+
   /**
    * Return the name of the extesion function in string format
    */
@@ -334,5 +338,5 @@ public class FuncExtFunction extends Function
       return "{" + m_namespace + "}" + m_extensionName;
     else
       return m_extensionName;
-  }  
+  }
 }

@@ -1,11 +1,25 @@
 /*
- * @(#)file      SnmpPduFactoryBER.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   3.31
- * @(#)date      06/11/29
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -37,15 +51,15 @@ import com.sun.jmx.snmp.SnmpV3Message;
  * <BR>It uses the BER (basic encoding rules) standardized encoding scheme associated with ASN.1.
  * <P>
  * This implementation of the <CODE>SnmpPduFactory</CODE> is very
- * basic: it simply calls encoding and decoding methods from 
+ * basic: it simply calls encoding and decoding methods from
  * {@link com.sun.jmx.snmp.SnmpMsg}.
  * <BLOCKQUOTE>
  * <PRE>
- * public SnmpPdu decodeSnmpPdu(SnmpMsg msg) 
+ * public SnmpPdu decodeSnmpPdu(SnmpMsg msg)
  * throws SnmpStatusException {
  *   return msg.decodeSnmpPdu() ;
  * }
- * 
+ *
  * public SnmpMsg encodeSnmpPdu(SnmpPdu pdu, int maxPktSize)
  * throws SnmpStatusException, SnmpTooBigException {
  *   SnmpMsg result = new SnmpMessage() ;       // for SNMP v1/v2
@@ -58,11 +72,13 @@ import com.sun.jmx.snmp.SnmpV3Message;
  * </BLOCKQUOTE>
  * To implement your own object, you can implement <CODE>SnmpPduFactory</CODE>
  * or extend <CODE>SnmpPduFactoryBER</CODE>.
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  */
 
 public class SnmpPduFactoryBER implements SnmpPduFactory, Serializable {
+   private static final long serialVersionUID = -3525318344000547635L;
+
    /**
      * Calls {@link com.sun.jmx.snmp.SnmpMsg#decodeSnmpPdu SnmpMsg.decodeSnmpPdu}
      * on the specified message and returns the resulting <CODE>SnmpPdu</CODE>.
@@ -74,13 +90,13 @@ public class SnmpPduFactoryBER implements SnmpPduFactory, Serializable {
      * @since 1.5
      */
     public SnmpPdu decodeSnmpPdu(SnmpMsg msg) throws SnmpStatusException {
-	return msg.decodeSnmpPdu();
+        return msg.decodeSnmpPdu();
     }
 
     /**
      * Encodes the specified <CODE>SnmpPdu</CODE> and
      * returns the resulting <CODE>SnmpMsg</CODE>. If this
-     * method returns null, the specified <CODE>SnmpPdu</CODE> 
+     * method returns null, the specified <CODE>SnmpPdu</CODE>
      * will be dropped and the current SNMP request will be
      * aborted.
      *
@@ -94,23 +110,22 @@ public class SnmpPduFactoryBER implements SnmpPduFactory, Serializable {
      *
      * @since 1.5
      */
-    public SnmpMsg encodeSnmpPdu(SnmpPdu p, int maxDataLength) 
-	throws SnmpStatusException, SnmpTooBigException {
-	switch(p.version) {
-	case SnmpDefinitions.snmpVersionOne:
-	case SnmpDefinitions.snmpVersionTwo: {
-	    SnmpMessage result = new SnmpMessage();
-	    result.encodeSnmpPdu((SnmpPduPacket) p, maxDataLength);
-	    return result;
-	}
-	case SnmpDefinitions.snmpVersionThree: {
-	    SnmpV3Message result = new SnmpV3Message();
-	    result.encodeSnmpPdu(p, maxDataLength);
-	    return result;
-	}
-	default:
-	    return null;
-	}
+    public SnmpMsg encodeSnmpPdu(SnmpPdu p, int maxDataLength)
+        throws SnmpStatusException, SnmpTooBigException {
+        switch(p.version) {
+        case SnmpDefinitions.snmpVersionOne:
+        case SnmpDefinitions.snmpVersionTwo: {
+            SnmpMessage result = new SnmpMessage();
+            result.encodeSnmpPdu((SnmpPduPacket) p, maxDataLength);
+            return result;
+        }
+        case SnmpDefinitions.snmpVersionThree: {
+            SnmpV3Message result = new SnmpV3Message();
+            result.encodeSnmpPdu(p, maxDataLength);
+            return result;
+        }
+        default:
+            return null;
+        }
     }
 }
-

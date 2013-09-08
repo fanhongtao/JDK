@@ -1,8 +1,26 @@
 /*
- * @(#)MultipleMaster.java	1.19 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt.font;
 
@@ -12,7 +30,6 @@ import java.awt.Font;
  * The <code>MultipleMaster</code> interface represents Type 1
  * Multiple Master fonts.
  * A particular {@link Font} object can implement this interface.
- * @version 10 Feb 1997    
  */
 public interface MultipleMaster {
 
@@ -51,9 +68,9 @@ public interface MultipleMaster {
   /**
    * Creates a new instance of a multiple master font based on the design
    * axis values contained in the specified array. The size of the array
-   * must correspond to the value returned from 
+   * must correspond to the value returned from
    * <code>getNumDesignAxes</code> and the values of the array elements
-   * must fall within limits specified by 
+   * must fall within limits specified by
    * <code>getDesignAxesLimits</code>. In case of an error,
    * <code>null</code> is returned.
    * @param axes an array containing axis values
@@ -74,16 +91,16 @@ public interface MultipleMaster {
    * @param typicalXHeight the height of a typical lower case char
    * @param italicAngle the angle at which the italics lean, in degrees
    * counterclockwise from vertical
-   * @return a <code>Font</code> object that is an instance of 
+   * @return a <code>Font</code> object that is an instance of
    * <code>MultipleMaster</code> and is based on the specified metric
    * information.
    */
   public Font deriveMMFont(
-				   float[] glyphWidths,
-				   float avgStemWidth,
-				   float typicalCapHeight,
-				   float typicalXHeight,
-				   float italicAngle);
- 
+                                   float[] glyphWidths,
+                                   float avgStemWidth,
+                                   float typicalCapHeight,
+                                   float typicalXHeight,
+                                   float italicAngle);
+
 
 }

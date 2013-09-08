@@ -1,62 +1,81 @@
 /*
- * @(#)AWTEventListenerProxy.java	1.7 05/11/17
+ * Copyright (c) 2001, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
 
 import java.util.EventListenerProxy;
 import java.awt.AWTEvent;
-import java.awt.event.AWTEventListener;
 
 /**
- * A class which extends the <code>EventListenerProxy</code>, specifically 
- * for adding an <code>AWTEventListener</code> for a specific event mask.
- * Instances of this class can be added as <code>AWTEventListener</code>s to
- * a Toolkit object. 
+ * A class which extends the {@code EventListenerProxy}
+ * specifically for adding an {@code AWTEventListener}
+ * for a specific event mask.
+ * Instances of this class can be added as {@code AWTEventListener}s
+ * to a {@code Toolkit} object.
  * <p>
- * The <code>getAWTEventListeners</code> method of Toolkit can 
- * return a mixture of <code>AWTEventListener</code> and
- * <code>AWTEventListenerProxy</code> objects.
- * 
+ * The {@code getAWTEventListeners} method of {@code Toolkit}
+ * can return a mixture of {@code AWTEventListener}
+ * and {@code AWTEventListenerProxy} objects.
+ *
  * @see java.awt.Toolkit
  * @see java.util.EventListenerProxy
  * @since 1.4
  */
-public class AWTEventListenerProxy extends java.util.EventListenerProxy
+public class AWTEventListenerProxy
+        extends EventListenerProxy<AWTEventListener>
         implements AWTEventListener {
 
-    private long eventMask;
+    private final long eventMask;
 
     /**
-     * Constructor which binds the AWTEventListener to a specific
-     * event mask.
-     * 
-     * @param listener The listener object
-     * @param eventMask The bitmap of event types to receive
-     */ 
-    public AWTEventListenerProxy (long eventMask, 
-            AWTEventListener listener) {
+     * Constructor which binds the {@code AWTEventListener}
+     * to a specific event mask.
+     *
+     * @param eventMask  the bitmap of event types to receive
+     * @param listener   the listener object
+     */
+    public AWTEventListenerProxy (long eventMask, AWTEventListener listener) {
         super(listener);
         this.eventMask = eventMask;
     }
 
     /**
-     * Forwards the property change event to the listener delegate.
+     * Forwards the AWT event to the listener delegate.
      *
-     * @param evt the property change event
+     * @param event  the AWT event
      */
-    public void eventDispatched(AWTEvent evt) {
-        ((AWTEventListener)getListener()).eventDispatched(evt);
+    public void eventDispatched(AWTEvent event) {
+        getListener().eventDispatched(event);
     }
 
     /**
-     * Returns the event mask associated with the
-     * listener.
+     * Returns the event mask associated with the listener.
+     *
+     * @return the event mask associated with the listener
      */
     public long getEventMask() {
-        return eventMask;
+        return this.eventMask;
     }
 }

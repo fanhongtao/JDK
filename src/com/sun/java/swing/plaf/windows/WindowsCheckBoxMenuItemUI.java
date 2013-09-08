@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsCheckBoxMenuItemUI.java	1.18 06/12/15
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -28,7 +46,7 @@ import com.sun.java.swing.plaf.windows.TMSchema.State;
  */
 public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
 
-    final WindowsMenuItemUIAccessor accessor = 
+    final WindowsMenuItemUIAccessor accessor =
         new WindowsMenuItemUIAccessor() {
 
             public JMenuItem getMenuItem() {
@@ -45,10 +63,10 @@ public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
     };
     public static ComponentUI createUI(JComponent b) {
         return new WindowsCheckBoxMenuItemUI();
-    }   
-    
+    }
+
     @Override
-    protected  void paintBackground(Graphics g, JMenuItem menuItem, 
+    protected  void paintBackground(Graphics g, JMenuItem menuItem,
             Color bgColor) {
         if (WindowsMenuItemUI.isVistaPainting()) {
             WindowsMenuItemUI.paintBackground(accessor, g, menuItem, bgColor);
@@ -68,7 +86,7 @@ public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
     protected void paintText(Graphics g, JMenuItem menuItem,
                              Rectangle textRect, String text) {
         if (WindowsMenuItemUI.isVistaPainting()) {
-            WindowsMenuItemUI.paintText(accessor, g, menuItem, 
+            WindowsMenuItemUI.paintText(accessor, g, menuItem,
                                         textRect, text);
             return;
         }
@@ -84,4 +102,3 @@ public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
         g.setColor(oldColor);
     }
 }
-

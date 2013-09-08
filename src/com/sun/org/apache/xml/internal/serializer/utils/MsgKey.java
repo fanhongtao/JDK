@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,13 +34,13 @@ package com.sun.org.apache.xml.internal.serializer.utils;
 public class MsgKey {
 
     /** An internal error with the messages,
-     * this is the message to use if the message key can't be found 
+     * this is the message to use if the message key can't be found
      */
     public static final String BAD_MSGKEY = "BAD_MSGKEY";
 
-    /** 
+    /**
      * An internal error with the messages,
-     * this is the message to use if the message format operation failed.  
+     * this is the message to use if the message format operation failed.
      */
     public static final String BAD_MSGFORMAT = "BAD_MSGFORMAT";
 
@@ -94,5 +98,5 @@ public class MsgKey {
     public static final String ER_XML_VERSION_NOT_SUPPORTED = "ER_XML_VERSION_NOT_SUPPORTED";
     public static final String ER_FACTORY_PROPERTY_MISSING = "ER_FACTORY_PROPERTY_MISSING";
     public static final String ER_ENCODING_NOT_SUPPORTED = "ER_ENCODING_NOT_SUPPORTED";
-    
+
 }

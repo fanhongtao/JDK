@@ -1,8 +1,26 @@
 /*
- * @(#)PrivateMLet.java	1.14 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.loading;
@@ -19,7 +37,6 @@ import java.net.URLStreamHandlerFactory;
  * the interface {@link PrivateClassLoader}.
  *
  * @since 1.5
- * @since.unbundled JMX 1.2
  */
 public class PrivateMLet extends MLet implements PrivateClassLoader {
     private static final long serialVersionUID = 2503458973393711979L;
@@ -35,9 +52,9 @@ public class PrivateMLet extends MLet implements PrivateClassLoader {
       * either the parent ClassLoader or the URLs, the MLet should delegate
       * to its containing MBeanServer's {@link ClassLoaderRepository}.
       *
-      */     
+      */
     public PrivateMLet(URL[] urls, boolean delegateToCLR) {
-	super(urls, delegateToCLR);
+        super(urls, delegateToCLR);
     }
 
     /**
@@ -53,9 +70,9 @@ public class PrivateMLet extends MLet implements PrivateClassLoader {
       * either the parent ClassLoader or the URLs, the MLet should delegate
       * to its containing MBeanServer's {@link ClassLoaderRepository}.
       *
-      */     
+      */
     public PrivateMLet(URL[] urls, ClassLoader parent, boolean delegateToCLR) {
-	super(urls, parent, delegateToCLR);
+        super(urls, parent, delegateToCLR);
     }
 
     /**
@@ -72,11 +89,11 @@ public class PrivateMLet extends MLet implements PrivateClassLoader {
       * either the parent ClassLoader or the URLs, the MLet should delegate
       * to its containing MBeanServer's {@link ClassLoaderRepository}.
       *
-      */     
+      */
     public PrivateMLet(URL[] urls,
-		       ClassLoader parent,
-		       URLStreamHandlerFactory factory,
-		       boolean delegateToCLR) {
-	super(urls, parent, factory, delegateToCLR);
+                       ClassLoader parent,
+                       URLStreamHandlerFactory factory,
+                       boolean delegateToCLR) {
+        super(urls, parent, factory, delegateToCLR);
     }
 }

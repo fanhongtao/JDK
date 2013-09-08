@@ -1,8 +1,26 @@
 /*
- * @(#)IORTemplateImpl.java	1.15 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior;
@@ -29,7 +47,7 @@ import com.sun.corba.se.spi.orb.ORB ;
 
 /**
  * This class is a container of TaggedProfileTemplates.
- * @author 
+ * @author
  */
 public class IORTemplateImpl extends IdentifiableContainerBase implements IORTemplate
 {
@@ -37,84 +55,84 @@ public class IORTemplateImpl extends IdentifiableContainerBase implements IORTem
 
     public boolean equals( Object obj )
     {
-	if (obj == null)
-	    return false ;
+        if (obj == null)
+            return false ;
 
-	if (!(obj instanceof IORTemplateImpl))
-	    return false ;
+        if (!(obj instanceof IORTemplateImpl))
+            return false ;
 
-	IORTemplateImpl other = (IORTemplateImpl)obj ;
+        IORTemplateImpl other = (IORTemplateImpl)obj ;
 
-	return super.equals( obj ) && oktemp.equals( other.getObjectKeyTemplate() ) ;
+        return super.equals( obj ) && oktemp.equals( other.getObjectKeyTemplate() ) ;
     }
 
     public int hashCode()
     {
-	return super.hashCode() ^ oktemp.hashCode() ;
+        return super.hashCode() ^ oktemp.hashCode() ;
     }
 
     public ObjectKeyTemplate getObjectKeyTemplate()
     {
-	return oktemp ;
+        return oktemp ;
     }
 
     public IORTemplateImpl( ObjectKeyTemplate oktemp )
     {
-	this.oktemp = oktemp ;
+        this.oktemp = oktemp ;
     }
 
-    public IOR makeIOR( ORB orb, String typeid, ObjectId oid ) 
+    public IOR makeIOR( ORB orb, String typeid, ObjectId oid )
     {
-	return new IORImpl( orb, typeid, this, oid ) ;
+        return new IORImpl( orb, typeid, this, oid ) ;
     }
 
-    public boolean isEquivalent( IORFactory other ) 
+    public boolean isEquivalent( IORFactory other )
     {
-	if (!(other instanceof IORTemplate))
-	    return false ;
+        if (!(other instanceof IORTemplate))
+            return false ;
 
-	IORTemplate list = (IORTemplate)other ;
+        IORTemplate list = (IORTemplate)other ;
 
-	Iterator thisIterator = iterator() ;
-	Iterator listIterator = list.iterator() ;
-	while (thisIterator.hasNext() && listIterator.hasNext()) {
-	    TaggedProfileTemplate thisTemplate = 
-		(TaggedProfileTemplate)thisIterator.next() ;
-	    TaggedProfileTemplate listTemplate = 
-		(TaggedProfileTemplate)listIterator.next() ;
-	    if (!thisTemplate.isEquivalent( listTemplate ))
-		return false ;
-	}
+        Iterator thisIterator = iterator() ;
+        Iterator listIterator = list.iterator() ;
+        while (thisIterator.hasNext() && listIterator.hasNext()) {
+            TaggedProfileTemplate thisTemplate =
+                (TaggedProfileTemplate)thisIterator.next() ;
+            TaggedProfileTemplate listTemplate =
+                (TaggedProfileTemplate)listIterator.next() ;
+            if (!thisTemplate.isEquivalent( listTemplate ))
+                return false ;
+        }
 
-	return (thisIterator.hasNext() == listIterator.hasNext()) &&
-	    getObjectKeyTemplate().equals( list.getObjectKeyTemplate() ) ;
+        return (thisIterator.hasNext() == listIterator.hasNext()) &&
+            getObjectKeyTemplate().equals( list.getObjectKeyTemplate() ) ;
     }
 
     /** Ensure that this IORTemplate and all of its profiles can not be
-    * modified.  This overrides the method inherited from 
+    * modified.  This overrides the method inherited from
     * FreezableList through IdentifiableContainerBase.
     */
     public void makeImmutable()
     {
-	makeElementsImmutable() ;
-	super.makeImmutable() ;
+        makeElementsImmutable() ;
+        super.makeImmutable() ;
     }
 
-    public void write( OutputStream os ) 
+    public void write( OutputStream os )
     {
-	oktemp.write( os ) ;
-	EncapsulationUtility.writeIdentifiableSequence( this, os ) ;
+        oktemp.write( os ) ;
+        EncapsulationUtility.writeIdentifiableSequence( this, os ) ;
     }
 
-    public IORTemplateImpl( InputStream is ) 
+    public IORTemplateImpl( InputStream is )
     {
-	ORB orb = (ORB)(is.orb()) ;
-    	IdentifiableFactoryFinder finder = 
-	    orb.getTaggedProfileTemplateFactoryFinder() ;
+        ORB orb = (ORB)(is.orb()) ;
+        IdentifiableFactoryFinder finder =
+            orb.getTaggedProfileTemplateFactoryFinder() ;
 
-	oktemp = orb.getObjectKeyFactory().createTemplate( is ) ;
-	EncapsulationUtility.readIdentifiableSequence( this, finder, is ) ;
+        oktemp = orb.getObjectKeyFactory().createTemplate( is ) ;
+        EncapsulationUtility.readIdentifiableSequence( this, finder, is ) ;
 
-	makeImmutable() ;
+        makeImmutable() ;
     }
 }

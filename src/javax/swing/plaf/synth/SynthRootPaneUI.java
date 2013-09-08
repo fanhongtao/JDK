@@ -1,38 +1,68 @@
 /*
- * @(#)SynthRootPaneUI.java	1.13 05/11/17
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.synth;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.plaf.*;
 import javax.swing.plaf.basic.BasicRootPaneUI;
-import sun.swing.plaf.synth.SynthUI;
 
 /**
- * Synth's RootPaneUI.
+ * Provides the Synth L&F UI delegate for
+ * {@link javax.swing.JRootPane}.
  *
- * @version 1.13, 11/17/05
  * @author Scott Violet
+ * @since 1.7
  */
-class SynthRootPaneUI extends BasicRootPaneUI implements SynthUI {
+public class SynthRootPaneUI extends BasicRootPaneUI implements SynthUI {
     private SynthStyle style;
 
+    /**
+     * Creates a new UI object for the given component.
+     *
+     * @param c component to create UI object for
+     * @return the UI object
+     */
     public static ComponentUI createUI(JComponent c) {
         return new SynthRootPaneUI();
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void installDefaults(JRootPane c){
         updateStyle(c);
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     protected void uninstallDefaults(JRootPane root) {
         SynthContext context = getContext(root, ENABLED);
 
@@ -41,6 +71,10 @@ class SynthRootPaneUI extends BasicRootPaneUI implements SynthUI {
         style = null;
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public SynthContext getContext(JComponent c) {
         return getContext(c, getComponentState(c));
     }
@@ -48,10 +82,6 @@ class SynthRootPaneUI extends BasicRootPaneUI implements SynthUI {
     private SynthContext getContext(JComponent c, int state) {
         return SynthContext.getContext(SynthContext.class, c,
                     SynthLookAndFeel.getRegion(c), style, state);
-    }
-
-    private Region getRegion(JComponent c) {
-        return SynthLookAndFeel.getRegion(c);
     }
 
     private int getComponentState(JComponent c) {
@@ -71,6 +101,19 @@ class SynthRootPaneUI extends BasicRootPaneUI implements SynthUI {
         context.dispose();
     }
 
+    /**
+     * Notifies this UI delegate to repaint the specified component.
+     * This method paints the component background, then calls
+     * the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * <p>In general, this method does not need to be overridden by subclasses.
+     * All Look and Feel rendering code should reside in the {@code paint} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void update(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -81,6 +124,16 @@ class SynthRootPaneUI extends BasicRootPaneUI implements SynthUI {
         context.dispose();
     }
 
+    /**
+     * Paints the specified component according to the Look and Feel.
+     * <p>This method is not used by Synth Look and Feel.
+     * Painting is handled by the {@link #paint(SynthContext,Graphics)} method.
+     *
+     * @param g the {@code Graphics} object used for painting
+     * @param c the component being painted
+     * @see #paint(SynthContext,Graphics)
+     */
+    @Override
     public void paint(Graphics g, JComponent c) {
         SynthContext context = getContext(c);
 
@@ -88,9 +141,20 @@ class SynthRootPaneUI extends BasicRootPaneUI implements SynthUI {
         context.dispose();
     }
 
+    /**
+     * Paints the specified component. This implementation does nothing.
+     *
+     * @param context context for the component being painted
+     * @param g the {@code Graphics} object used for painting
+     * @see #update(Graphics,JComponent)
+     */
     protected void paint(SynthContext context, Graphics g) {
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
         context.getPainter().paintRootPaneBorder(context, g, x, y, w, h);
@@ -101,6 +165,7 @@ class SynthRootPaneUI extends BasicRootPaneUI implements SynthUI {
      * indicates the <code>defaultButton</code> has changed, this will
      * reinstall the keyboard actions.
      */
+    @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (SynthLookAndFeel.shouldUpdateStyle(e)) {
             updateStyle((JRootPane)e.getSource());

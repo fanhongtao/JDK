@@ -1,16 +1,32 @@
 /*
- * @(#)ValueHandler.java	1.15 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package javax.rmi.CORBA;
@@ -27,7 +43,7 @@ public interface ValueHandler {
      * @param value the value to be written to the stream.
      **/
     void writeValue(org.omg.CORBA.portable.OutputStream out,
-		    java.io.Serializable value);
+                    java.io.Serializable value);
 
     /**
      * Reads a value from the stream using Java semantics.
@@ -39,10 +55,10 @@ public interface ValueHandler {
      * @return the value read from the stream.
      **/
     java.io.Serializable readValue(org.omg.CORBA.portable.InputStream in,
-				   int offset,
-				   java.lang.Class clz, 
-				   String repositoryID,
-				   org.omg.SendingContext.RunTime sender);
+                                   int offset,
+                                   java.lang.Class clz,
+                                   String repositoryID,
+                                   org.omg.SendingContext.RunTime sender);
 
     /**
      * Returns the CORBA RepositoryId for the given Java class.

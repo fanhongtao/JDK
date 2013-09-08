@@ -1,14 +1,32 @@
 /*
- * @(#)AccessibleAttributeSequence.java	1.5 05/11/17
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.accessibility;
- 
+
 import javax.swing.text.AttributeSet;
- 
- 
+
+
 /**
  * <P>The AccessibleAttributeSequence provides information about
  * a contiguous sequence of text attributes
@@ -19,10 +37,9 @@ import javax.swing.text.AttributeSet;
  * @see AccessibleContext#getAccessibleText
  * @see AccessibleTextSequence
  *
- * @version      1.5 11/17/05
  * @author       Lynn Monsanto
  */
- 
+
 /**
  * This class collects together the span of text that share the same
  * contiguous set of attributes, along with that set of attributes.  It
@@ -59,4 +76,3 @@ public class AccessibleAttributeSequence {
     }
 
 };
-

@@ -1,16 +1,32 @@
 /*
- * @(#)ValueHandlerImpl_1_3.java	1.11 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.orbutil;
@@ -45,11 +61,11 @@ import java.security.PrivilegedAction;
 public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerImpl {
 
     public ValueHandlerImpl_1_3(){
-	super();
+        super();
     }
 
     public ValueHandlerImpl_1_3(boolean isInputStream) {
-	super(isInputStream);
+        super(isInputStream);
     }
 
     /**
@@ -58,7 +74,7 @@ public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerI
      * @param value The value to be written to the stream
      **/
     public void writeValue(org.omg.CORBA.portable.OutputStream _out, java.io.Serializable value) {
-	super.writeValue(_out, value);
+        super.writeValue(_out, value);
     }
 
     /**
@@ -68,12 +84,12 @@ public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerI
      * @param sender The sending context runtime
      **/
     public java.io.Serializable readValue(org.omg.CORBA.portable.InputStream _in,
-					  int offset, 
-					  java.lang.Class clazz, 
-					  String repositoryID,
-					  org.omg.SendingContext.RunTime _sender)
+                                          int offset,
+                                          java.lang.Class clazz,
+                                          String repositoryID,
+                                          org.omg.SendingContext.RunTime _sender)
     {
-	return super.readValue(_in, offset, clazz, repositoryID, _sender);
+        return super.readValue(_in, offset, clazz, repositoryID, _sender);
     }
 
     /**
@@ -82,7 +98,7 @@ public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerI
      * @return the repository ID of the Class.
      **/
     public java.lang.String getRMIRepositoryID(java.lang.Class clz) {
-	return RepositoryId_1_3.createForJavaType(clz);
+        return RepositoryId_1_3.createForJavaType(clz);
     }
 
     /**
@@ -93,7 +109,7 @@ public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerI
      * if it does not.
      **/
     public boolean isCustomMarshaled(java.lang.Class clz) {
-	return super.isCustomMarshaled(clz);
+        return super.isCustomMarshaled(clz);
     }
 
     /**
@@ -104,7 +120,7 @@ public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerI
      * @return the SendingContext.CodeBase of this ValueHandler.
      **/
     public org.omg.SendingContext.RunTime getRunTimeCodeBase() {
-	return super.getRunTimeCodeBase();
+        return super.getRunTimeCodeBase();
     }
 
     /**
@@ -113,7 +129,7 @@ public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerI
      * @return the true value to marshal on the wire.
      **/
     public java.io.Serializable writeReplace(java.io.Serializable value) {
-	return super.writeReplace(value);
+        return super.writeReplace(value);
     }
 
     // methods supported for backward compatability so that the appropriate
@@ -125,10 +141,10 @@ public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerI
      *  used for backward compatability
      */
 
-     public boolean useFullValueDescription(Class clazz, String repositoryID) 
-	throws IOException
-	
-     {        
+     public boolean useFullValueDescription(Class clazz, String repositoryID)
+        throws IOException
+
+     {
         return RepositoryId_1_3.useFullValueDescription(clazz, repositoryID);
      }
 
@@ -156,7 +172,7 @@ public class ValueHandlerImpl_1_3 extends com.sun.corba.se.impl.io.ValueHandlerI
      {
         return RepositoryId_1_3.createForAnyType(cl);
      }
-       
+
      public String getDefinedInId(String id)
      {
         RepositoryId_1_3 repId = RepositoryId_1_3.cache.getId(id);

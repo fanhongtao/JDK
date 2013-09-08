@@ -1,8 +1,26 @@
 /*
- * @(#)Enumeration.java	1.24 05/11/17
+ * Copyright (c) 1994, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -38,7 +56,6 @@ package java.util;
  * @see     java.util.Vector#elements()
  *
  * @author  Lee Boynton
- * @version 1.24, 11/17/05
  * @since   JDK1.0
  */
 public interface Enumeration<E> {

@@ -1,14 +1,32 @@
 /*
- * @(#)CurrentHelper.java	1.13 05/11/17
+ * Copyright (c) 1999, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package org.omg.CORBA;
 
 
 /**
-* The Helper for <tt>Current</tt>.  For more information on 
+* The Helper for <tt>Current</tt>.  For more information on
 * Helper files, see <a href="doc-files/generatedfiles.html#helper">
 * "Generated Files: Helper Files"</a>.<P>
 * org/omg/CORBA/CurrentHelper.java
@@ -62,7 +80,7 @@ abstract public class CurrentHelper
       return null;
     else if (obj instanceof org.omg.CORBA.Current)
       return (org.omg.CORBA.Current)obj;
-    else 
+    else
       throw new org.omg.CORBA.BAD_PARAM ();
   }
 

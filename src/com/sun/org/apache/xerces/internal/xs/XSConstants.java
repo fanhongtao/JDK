@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -70,12 +74,12 @@ public interface XSConstants {
      */
     public static final short ANNOTATION                = 12;
     /**
-     * The object describes a constraining facet. Note: this object does not 
+     * The object describes a constraining facet. Note: this object does not
      * describe pattern and enumeration facets.
      */
     public static final short FACET                     = 13;
     /**
-     * The object describes enumeration and pattern facets. 
+     * The object describes enumeration and pattern facets.
      */
     public static final short MULTIVALUE_FACET          = 14;
 
@@ -85,12 +89,12 @@ public interface XSConstants {
      */
     public static final short DERIVATION_NONE           = 0;
     /**
-     * <code>XSTypeDefinition</code> final set or 
+     * <code>XSTypeDefinition</code> final set or
      * <code>XSElementDeclaration</code> disallowed substitution group.
      */
     public static final short DERIVATION_EXTENSION      = 1;
     /**
-     * <code>XSTypeDefinition</code> final set or 
+     * <code>XSTypeDefinition</code> final set or
      * <code>XSElementDeclaration</code> disallowed substitution group.
      */
     public static final short DERIVATION_RESTRICTION    = 2;
@@ -125,18 +129,18 @@ public interface XSConstants {
 
     // Scope
     /**
-     * The scope of a declaration within named model groups or attribute 
-     * groups is <code>absent</code>. The scope of such a declaration is 
-     * determined when it is used in the construction of complex type 
-     * definitions. 
+     * The scope of a declaration within named model groups or attribute
+     * groups is <code>absent</code>. The scope of such a declaration is
+     * determined when it is used in the construction of complex type
+     * definitions.
      */
     public static final short SCOPE_ABSENT              = 0;
     /**
-     * A scope of <code>global</code> identifies top-level declarations. 
+     * A scope of <code>global</code> identifies top-level declarations.
      */
     public static final short SCOPE_GLOBAL              = 1;
     /**
-     * <code>Locally scoped</code> declarations are available for use only 
+     * <code>Locally scoped</code> declarations are available for use only
      * within the complex type.
      */
     public static final short SCOPE_LOCAL               = 2;
@@ -325,7 +329,7 @@ public interface XSConstants {
      */
     public static final short POSITIVEINTEGER_DT        = 42;
     /**
-     * The type represents a list type definition whose item type (itemType) 
+     * The type represents a list type definition whose item type (itemType)
      * is a union type definition
      */
     public static final short LISTOFUNION_DT            = 43;
@@ -337,5 +341,5 @@ public interface XSConstants {
      * The built-in type category is not available.
      */
     public static final short UNAVAILABLE_DT            = 45;
-    
+
 }

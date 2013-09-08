@@ -1,18 +1,36 @@
 /*
- * @(#)NO_IMPLEMENT.java	1.35 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * This exception indicates that even though the operation that 
- * was invoked exists (it has an IDL definition), no implementation 
- * for that operation exists. <tt>NO_IMPLEMENT</tt> can, for 
- * example, be raised by an ORB if a client asks for an object's 
- * type definition from the interface repository, but no interface 
+ * This exception indicates that even though the operation that
+ * was invoked exists (it has an IDL definition), no implementation
+ * for that operation exists. <tt>NO_IMPLEMENT</tt> can, for
+ * example, be raised by an ORB if a client asks for an object's
+ * type definition from the interface repository, but no interface
  * repository is provided by the ORB.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -21,7 +39,6 @@ package org.omg.CORBA;
  * See the section <A href="../../../../technotes/guides/idl/jidlExceptions.html#minorcodemeanings">Minor
  * Code Meanings</A> to see the minor codes for this exception.
  *
- * @version     1.17, 09/09/97
  * @since       JDK1.2
  */
 
@@ -32,7 +49,7 @@ public final class NO_IMPLEMENT extends SystemException {
      * and a null description.
      */
     public NO_IMPLEMENT() {
-	this("");
+        this("");
     }
 
     /**

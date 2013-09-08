@@ -1,6 +1,6 @@
 /*
- * Copyright 1997-2008 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
  *
@@ -22,12 +22,6 @@
  *
  *
  */
-/*
- * $Id: SOAPConnection.java,v 1.12 2005/04/05 21:03:23 mk125090 Exp $
- * $Revision: 1.12 $
- * $Date: 2005/04/05 21:03:23 $
- */
-
 
 package javax.xml.soap;
 
@@ -90,12 +84,12 @@ public abstract class SOAPConnection {
                                 throws SOAPException {
         throw new UnsupportedOperationException("All subclasses of SOAPConnection must override get()");
     }
-    
+
     /**
      * Closes this <code>SOAPConnection</code> object.
      *
      * @throws SOAPException if there is a SOAP error
      */
-    public abstract void close() 
-        throws SOAPException; 
+    public abstract void close()
+        throws SOAPException;
 }

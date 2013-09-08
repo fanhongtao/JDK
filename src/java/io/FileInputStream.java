@@ -1,8 +1,26 @@
 /*
- * @(#)FileInputStream.java	1.68 06/04/07
+ * Copyright (c) 1994, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -21,19 +39,32 @@ import sun.nio.ch.FileChannelImpl;
  * <code>FileReader</code>.
  *
  * @author  Arthur van Hoff
- * @version 1.68, 04/07/06
  * @see     java.io.File
  * @see     java.io.FileDescriptor
- * @see	    java.io.FileOutputStream
+ * @see     java.io.FileOutputStream
+ * @see     java.nio.file.Files#newInputStream
  * @since   JDK1.0
  */
 public
 class FileInputStream extends InputStream
 {
     /* File Descriptor - handle to the open file */
-    private FileDescriptor fd;
+    private final FileDescriptor fd;
 
     private FileChannel channel = null;
+
+    private final Object closeLock = new Object();
+    private volatile boolean closed = false;
+
+    private static final ThreadLocal<Boolean> runningFinalize =
+        new ThreadLocal<>();
+
+    private static boolean isRunningFinalize() {
+        Boolean val;
+        if ((val = runningFinalize.get()) != null)
+            return val.booleanValue();
+        return false;
+    }
 
     /**
      * Creates a <code>FileInputStream</code> by
@@ -94,16 +125,17 @@ class FileInputStream extends InputStream
      * @see        java.lang.SecurityManager#checkRead(java.lang.String)
      */
     public FileInputStream(File file) throws FileNotFoundException {
-	String name = (file != null ? file.getPath() : null);
-	SecurityManager security = System.getSecurityManager();
-	if (security != null) {
-	    security.checkRead(name);
-	}
+        String name = (file != null ? file.getPath() : null);
+        SecurityManager security = System.getSecurityManager();
+        if (security != null) {
+            security.checkRead(name);
+        }
         if (name == null) {
             throw new NullPointerException();
         }
-	fd = new FileDescriptor();
-	open(name);
+        fd = new FileDescriptor();
+        fd.incrementAndGetUseCount();
+        open(name);
     }
 
     /**
@@ -118,6 +150,11 @@ class FileInputStream extends InputStream
      * <p>
      * If <code>fdObj</code> is null then a <code>NullPointerException</code>
      * is thrown.
+     * <p>
+     * This constructor does not throw an exception if <code>fdObj</code>
+     * is {@link java.io.FileDescriptor#valid() invalid}.
+     * However, if the methods are invoked on the resulting stream to attempt
+     * I/O on the stream, an <code>IOException</code> is thrown.
      *
      * @param      fdObj   the file descriptor to be opened for reading.
      * @throws     SecurityException      if a security manager exists and its
@@ -126,14 +163,21 @@ class FileInputStream extends InputStream
      * @see        SecurityManager#checkRead(java.io.FileDescriptor)
      */
     public FileInputStream(FileDescriptor fdObj) {
-	SecurityManager security = System.getSecurityManager();
-	if (fdObj == null) {
-	    throw new NullPointerException();
-	}
-	if (security != null) {
-	    security.checkRead(fdObj);
-	}
-	fd = fdObj;
+        SecurityManager security = System.getSecurityManager();
+        if (fdObj == null) {
+            throw new NullPointerException();
+        }
+        if (security != null) {
+            security.checkRead(fdObj);
+        }
+        fd = fdObj;
+
+        /*
+         * FileDescriptor is being shared by streams.
+         * Ensure that it's GC'ed only when all the streams/channels are done
+         * using it.
+         */
+        fd.incrementAndGetUseCount();
     }
 
     /**
@@ -151,7 +195,6 @@ class FileInputStream extends InputStream
      * @exception  IOException  if an I/O error occurs.
      */
     public native int read() throws IOException;
-
 
     /**
      * Reads a subarray as a sequence of bytes.
@@ -174,7 +217,7 @@ class FileInputStream extends InputStream
      * @exception  IOException  if an I/O error occurs.
      */
     public int read(byte b[]) throws IOException {
-	return readBytes(b, 0, b.length);
+        return readBytes(b, 0, b.length);
     }
 
     /**
@@ -190,13 +233,13 @@ class FileInputStream extends InputStream
      *             <code>-1</code> if there is no more data because the end of
      *             the file has been reached.
      * @exception  NullPointerException If <code>b</code> is <code>null</code>.
-     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
-     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative,
+     * <code>len</code> is negative, or <code>len</code> is greater than
      * <code>b.length - off</code>
      * @exception  IOException  if an I/O error occurs.
      */
     public int read(byte b[], int off, int len) throws IOException {
-	return readBytes(b, off, len);
+        return readBytes(b, off, len);
     }
 
     /**
@@ -219,7 +262,7 @@ class FileInputStream extends InputStream
      * @param      n   the number of bytes to be skipped.
      * @return     the actual number of bytes skipped.
      * @exception  IOException  if n is negative, if the stream does not
-     *                   support seek, or if an I/O error occurs.
+     *             support seek, or if an I/O error occurs.
      */
     public native long skip(long n) throws IOException;
 
@@ -254,9 +297,34 @@ class FileInputStream extends InputStream
      * @spec JSR-51
      */
     public void close() throws IOException {
-        if (channel != null)
-            channel.close();
-        close0();
+        synchronized (closeLock) {
+            if (closed) {
+                return;
+            }
+            closed = true;
+        }
+        if (channel != null) {
+            /*
+             * Decrement the FD use count associated with the channel
+             * The use count is incremented whenever a new channel
+             * is obtained from this stream.
+             */
+           fd.decrementAndGetUseCount();
+           channel.close();
+        }
+
+        /*
+         * Decrement the FD use count associated with this stream
+         */
+        int useCount = fd.decrementAndGetUseCount();
+
+        /*
+         * If FileDescriptor is still in use by another stream, the finalizer
+         * will not close it.
+         */
+        if ((useCount <= 0) || !isRunningFinalize()) {
+            close0();
+        }
     }
 
     /**
@@ -270,8 +338,8 @@ class FileInputStream extends InputStream
      * @see        java.io.FileDescriptor
      */
     public final FileDescriptor getFD() throws IOException {
-	if (fd != null) return fd;
-	throw new IOException();
+        if (fd != null) return fd;
+        throw new IOException();
     }
 
     /**
@@ -291,11 +359,19 @@ class FileInputStream extends InputStream
      * @spec JSR-51
      */
     public FileChannel getChannel() {
-	synchronized (this) {
-	    if (channel == null)
-		channel = FileChannelImpl.open(fd, true, false, this);
-	    return channel;
-	}
+        synchronized (this) {
+            if (channel == null) {
+                channel = FileChannelImpl.open(fd, true, false, this);
+
+                /*
+                 * Increment fd's use count. Invoking the channel's close()
+                 * method will result in decrementing the use count set for
+                 * the channel.
+                 */
+                fd.incrementAndGetUseCount();
+            }
+            return channel;
+        }
     }
 
     private static native void initIDs();
@@ -303,7 +379,7 @@ class FileInputStream extends InputStream
     private native void close0() throws IOException;
 
     static {
-	initIDs();
+        initIDs();
     }
 
     /**
@@ -314,10 +390,19 @@ class FileInputStream extends InputStream
      * @see        java.io.FileInputStream#close()
      */
     protected void finalize() throws IOException {
-	if (fd != null) {
-	    if (fd != fd.in) {
-		close();
-	    }
-	}
+        if ((fd != null) &&  (fd != FileDescriptor.in)) {
+
+            /*
+             * Finalizer should not release the FileDescriptor if another
+             * stream is still using it. If the user directly invokes
+             * close() then the FileDescriptor is also released.
+             */
+            runningFinalize.set(Boolean.TRUE);
+            try {
+                close();
+            } finally {
+                runningFinalize.set(Boolean.FALSE);
+            }
+        }
     }
 }

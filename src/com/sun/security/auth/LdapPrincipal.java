@@ -1,8 +1,26 @@
 /*
- * @(#)LdapPrincipal.java	1.1 06/03/27
+ * Copyright (c) 2006, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.security.auth;
@@ -13,13 +31,13 @@ import javax.naming.ldap.LdapName;
 
 /**
  * A principal identified by a distinguished name as specified by
- * <a href="http://ietf.org//rfc/rfc2253.txt">RFC 2253</a>.
+ * <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>.
  *
- * <p> 
+ * <p>
  * After successful authentication, a user {@link java.security.Principal}
- * can be associated with a particular {@link javax.security.auth.Subject} 
- * to augment that <code>Subject</code> with an additional identity.  
- * Authorization decisions can then be based upon the 
+ * can be associated with a particular {@link javax.security.auth.Subject}
+ * to augment that <code>Subject</code> with an additional identity.
+ * Authorization decisions can then be based upon the
  * <code>Principal</code>s that are associated with a <code>Subject</code>.
  *
  * <p>
@@ -32,14 +50,14 @@ public final class LdapPrincipal implements Principal, java.io.Serializable {
     private static final long serialVersionUID = 6820120005580754861L;
 
     /**
-     * The principal's string name 
+     * The principal's string name
      *
      * @serial
      */
     private final String nameString;
 
     /**
-     * The principal's name 
+     * The principal's name
      *
      * @serial
      */
@@ -50,15 +68,15 @@ public final class LdapPrincipal implements Principal, java.io.Serializable {
      *
      * @param name The principal's string distinguished name.
      * @throws InvalidNameException If a syntax violation is detected.
-     * @exception NullPointerException If the <code>name</code> is 
+     * @exception NullPointerException If the <code>name</code> is
      * <code>null</code>.
      */
     public LdapPrincipal(String name) throws InvalidNameException {
         if (name == null) {
             throw new NullPointerException("null name is illegal");
         }
-	this.name = getLdapName(name);
-	nameString = name;
+        this.name = getLdapName(name);
+        nameString = name;
     }
 
     /**
@@ -68,20 +86,20 @@ public final class LdapPrincipal implements Principal, java.io.Serializable {
      * @return true if they are equal; false otherwise.
      */
     public boolean equals(Object object) {
-	if (this == object) {
-	    return true;
-	}
-	if (object instanceof LdapPrincipal) {
-	    try {
+        if (this == object) {
+            return true;
+        }
+        if (object instanceof LdapPrincipal) {
+            try {
 
-		return 
-		    name.equals(getLdapName(((LdapPrincipal)object).getName()));
+                return
+                    name.equals(getLdapName(((LdapPrincipal)object).getName()));
 
-	    } catch (InvalidNameException e) {
-		return false;
-	    }
-	}
-	return false;
+            } catch (InvalidNameException e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     /**
@@ -90,7 +108,7 @@ public final class LdapPrincipal implements Principal, java.io.Serializable {
      * @return The principal's hash code.
      */
     public int hashCode() {
-	return name.hashCode();
+        return name.hashCode();
     }
 
     /**
@@ -99,22 +117,22 @@ public final class LdapPrincipal implements Principal, java.io.Serializable {
      * @return The principal's string name.
      */
     public String getName() {
-	return nameString;
+        return nameString;
     }
 
     /**
      * Creates a string representation of this principal's name in the format
-     * defined by <a href="http://ietf.org/rfc/rfc2253.txt">RFC 2253</a>.
+     * defined by <a href="http://www.ietf.org/rfc/rfc2253.txt">RFC 2253</a>.
      * If the name has zero components an empty string is returned.
      *
      * @return The principal's string name.
      */
     public String toString() {
-	return name.toString();
+        return name.toString();
     }
 
     // Create an LdapName object from a string distinguished name.
     private LdapName getLdapName(String name) throws InvalidNameException {
-	return new LdapName(name);
+        return new LdapName(name);
     }
 }

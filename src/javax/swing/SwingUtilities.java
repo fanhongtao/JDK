@@ -1,8 +1,26 @@
 /*
- * @(#)SwingUtilities.java	1.148 09/08/07
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -14,6 +32,9 @@ import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.dnd.DropTarget;
+
+import java.util.Vector;
+import java.util.Hashtable;
 
 import java.lang.reflect.*;
 
@@ -29,7 +50,6 @@ import sun.awt.AppContext;
 /**
  * A collection of utility methods for Swing.
  *
- * @version 1.148 08/07/09
  * @author unknown
  */
 public class SwingUtilities implements SwingConstants
@@ -84,15 +104,12 @@ public class SwingUtilities implements SwingConstants
         }
     }
 
-    /** 
+    /**
      * Return true if <code>a</code> contains <code>b</code>
      */
     public static final boolean isRectangleContainingRectangle(Rectangle a,Rectangle b) {
-        if (b.x >= a.x && (b.x + b.width) <= (a.x + a.width) &&
-            b.y >= a.y && (b.y + b.height) <= (a.y + a.height)) {
-            return true;
-        }
-        return false;
+        return b.x >= a.x && (b.x + b.width) <= (a.x + a.width) &&
+                b.y >= a.y && (b.y + b.height) <= (a.y + a.height);
     }
 
     /**
@@ -187,7 +204,7 @@ public class SwingUtilities implements SwingConstants
         return convertPoint(source,point,destination);
     }
 
-    /** 
+    /**
      * Convert the rectangle <code>aRectangle</code> in <code>source</code> coordinate system to
      * <code>destination</code> coordinate system.
      * If <code>source</code> is {@code null}, <code>aRectangle</code> is assumed to be in <code>destination</code>'s
@@ -235,25 +252,24 @@ public class SwingUtilities implements SwingConstants
     }
 
     /**
-     * Returns the deepest visible descendent Component of <code>parent</code> 
-     * that contains the location <code>x</code>, <code>y</code>. 
+     * Returns the deepest visible descendent Component of <code>parent</code>
+     * that contains the location <code>x</code>, <code>y</code>.
      * If <code>parent</code> does not contain the specified location,
-     * then <code>null</code> is returned.  If <code>parent</code> is not a 
-     * container, or none of <code>parent</code>'s visible descendents 
+     * then <code>null</code> is returned.  If <code>parent</code> is not a
+     * container, or none of <code>parent</code>'s visible descendents
      * contain the specified location, <code>parent</code> is returned.
      *
      * @param parent the root component to begin the search
-     * @param x the x target location 
-     * @param y the y target location  
+     * @param x the x target location
+     * @param y the y target location
      */
     public static Component getDeepestComponentAt(Component parent, int x, int y) {
         if (!parent.contains(x, y)) {
             return null;
         }
-        if (parent instanceof Container) {        
+        if (parent instanceof Container) {
             Component components[] = ((Container)parent).getComponents();
-            for (int i = 0 ; i < components.length ; i++) {
-                Component comp = components[i];
+            for (Component comp : components) {
                 if (comp != null && comp.isVisible()) {
                     Point loc = comp.getLocation();
                     if (comp instanceof Container) {
@@ -271,7 +287,7 @@ public class SwingUtilities implements SwingConstants
     }
 
 
-    /** 
+    /**
      * Returns a MouseEvent similar to <code>sourceEvent</code> except that its x
      * and y members have been converted to <code>destination</code>'s coordinate
      * system.  If <code>source</code> is {@code null}, <code>sourceEvent</code> x and y members
@@ -297,49 +313,49 @@ public class SwingUtilities implements SwingConstants
         else
             newSource = source;
 
-	MouseEvent newEvent;
-	if (sourceEvent instanceof MouseWheelEvent) {
-	    MouseWheelEvent sourceWheelEvent = (MouseWheelEvent)sourceEvent;
-	    newEvent = new MouseWheelEvent(newSource,
-					   sourceWheelEvent.getID(),
-					   sourceWheelEvent.getWhen(),
-					   sourceWheelEvent.getModifiers(),
-					   p.x,p.y,
+        MouseEvent newEvent;
+        if (sourceEvent instanceof MouseWheelEvent) {
+            MouseWheelEvent sourceWheelEvent = (MouseWheelEvent)sourceEvent;
+            newEvent = new MouseWheelEvent(newSource,
+                                           sourceWheelEvent.getID(),
+                                           sourceWheelEvent.getWhen(),
+                                           sourceWheelEvent.getModifiers(),
+                                           p.x,p.y,
                                            sourceWheelEvent.getXOnScreen(),
                                            sourceWheelEvent.getYOnScreen(),
-					   sourceWheelEvent.getClickCount(),
-					   sourceWheelEvent.isPopupTrigger(),
-					   sourceWheelEvent.getScrollType(),
-					   sourceWheelEvent.getScrollAmount(),
-					   sourceWheelEvent.getWheelRotation());
-	}
-	else if (sourceEvent instanceof MenuDragMouseEvent) {
-	    MenuDragMouseEvent sourceMenuDragEvent = (MenuDragMouseEvent)sourceEvent;
-	    newEvent = new MenuDragMouseEvent(newSource,
-					      sourceMenuDragEvent.getID(),
-					      sourceMenuDragEvent.getWhen(),
-					      sourceMenuDragEvent.getModifiers(),
-					      p.x,p.y,
+                                           sourceWheelEvent.getClickCount(),
+                                           sourceWheelEvent.isPopupTrigger(),
+                                           sourceWheelEvent.getScrollType(),
+                                           sourceWheelEvent.getScrollAmount(),
+                                           sourceWheelEvent.getWheelRotation());
+        }
+        else if (sourceEvent instanceof MenuDragMouseEvent) {
+            MenuDragMouseEvent sourceMenuDragEvent = (MenuDragMouseEvent)sourceEvent;
+            newEvent = new MenuDragMouseEvent(newSource,
+                                              sourceMenuDragEvent.getID(),
+                                              sourceMenuDragEvent.getWhen(),
+                                              sourceMenuDragEvent.getModifiers(),
+                                              p.x,p.y,
                                               sourceMenuDragEvent.getXOnScreen(),
                                               sourceMenuDragEvent.getYOnScreen(),
-					      sourceMenuDragEvent.getClickCount(),
-					      sourceMenuDragEvent.isPopupTrigger(),
-					      sourceMenuDragEvent.getPath(),
-					      sourceMenuDragEvent.getMenuSelectionManager());
-	}
-	else {
-	    newEvent = new MouseEvent(newSource,
-				      sourceEvent.getID(),
-				      sourceEvent.getWhen(),
-				      sourceEvent.getModifiers(),
-				      p.x,p.y,
+                                              sourceMenuDragEvent.getClickCount(),
+                                              sourceMenuDragEvent.isPopupTrigger(),
+                                              sourceMenuDragEvent.getPath(),
+                                              sourceMenuDragEvent.getMenuSelectionManager());
+        }
+        else {
+            newEvent = new MouseEvent(newSource,
+                                      sourceEvent.getID(),
+                                      sourceEvent.getWhen(),
+                                      sourceEvent.getModifiers(),
+                                      p.x,p.y,
                                       sourceEvent.getXOnScreen(),
                                       sourceEvent.getYOnScreen(),
-				      sourceEvent.getClickCount(),
-				      sourceEvent.isPopupTrigger(),
+                                      sourceEvent.getClickCount(),
+                                      sourceEvent.isPopupTrigger(),
                                       MouseEvent.NOBUTTON );
-	}
-	return newEvent;
+        }
+        return newEvent;
     }
 
 
@@ -356,8 +372,8 @@ public class SwingUtilities implements SwingConstants
 
             do {
                 if(c instanceof JComponent) {
-                    x = ((JComponent)c).getX();
-                    y = ((JComponent)c).getY();
+                    x = c.getX();
+                    y = c.getY();
                 } else if(c instanceof java.applet.Applet ||
                           c instanceof java.awt.Window) {
                     try {
@@ -365,8 +381,8 @@ public class SwingUtilities implements SwingConstants
                         x = pp.x;
                         y = pp.y;
                     } catch (IllegalComponentStateException icse) {
-			x = c.getX();
-			y = c.getY();
+                        x = c.getX();
+                        y = c.getY();
                     }
                 } else {
                     x = c.getX();
@@ -383,7 +399,7 @@ public class SwingUtilities implements SwingConstants
         }
 
     /**
-     * Convert a point from a screen coordinates to a component's 
+     * Convert a point from a screen coordinates to a component's
      * coordinate system
      *
      * @param p  a Point object (converted to the new coordinate system)
@@ -395,8 +411,8 @@ public class SwingUtilities implements SwingConstants
 
         do {
             if(c instanceof JComponent) {
-                x = ((JComponent)c).getX();
-                y = ((JComponent)c).getY();
+                x = c.getX();
+                y = c.getY();
             }  else if(c instanceof java.applet.Applet ||
                        c instanceof java.awt.Window) {
                 try {
@@ -404,12 +420,12 @@ public class SwingUtilities implements SwingConstants
                     x = pp.x;
                     y = pp.y;
                 } catch (IllegalComponentStateException icse) {
-		    x = c.getX();
-		    y = c.getY();
+                    x = c.getX();
+                    y = c.getY();
                 }
             } else {
-		x = c.getX();
-		y = c.getY();
+                x = c.getX();
+                y = c.getY();
             }
 
             p.x -= x;
@@ -454,7 +470,7 @@ public class SwingUtilities implements SwingConstants
     /**
      * Convenience to calculate the intersection of two rectangles
      * without allocating a new rectangle.
-     * If the two rectangles don't intersect, 
+     * If the two rectangles don't intersect,
      * then the returned rectangle begins at (0,0)
      * and has zero width and height.
      *
@@ -477,10 +493,10 @@ public class SwingUtilities implements SwingConstants
         dest.width = x2 - x1;
         dest.height = y2 - y1;
 
-	// If rectangles don't intersect, return zero'd intersection.
-	if (dest.width < 0 || dest.height < 0) {
-	    dest.x = dest.y = dest.width = dest.height = 0;
-	}
+        // If rectangles don't intersect, return zero'd intersection.
+        if (dest.width < 0 || dest.height < 0) {
+            dest.x = dest.y = dest.width = dest.height = 0;
+        }
 
         return dest;
     }
@@ -776,7 +792,7 @@ public class SwingUtilities implements SwingConstants
      * @return true if the left mouse button was active
      */
     public static boolean isLeftMouseButton(MouseEvent anEvent) {
-         return ((anEvent.getModifiers() & InputEvent.BUTTON1_MASK) != 0);   
+         return ((anEvent.getModifiers() & InputEvent.BUTTON1_MASK) != 0);
     }
 
     /**
@@ -848,10 +864,10 @@ public class SwingUtilities implements SwingConstants
         // Translate LEADING/TRAILING values in horizontalAlignment
         // to LEFT/RIGHT values depending on the components orientation
         switch (horizontalAlignment) {
-        case LEADING: 
+        case LEADING:
             hAlign = (orientationIsLeftToRight) ? LEFT : RIGHT;
             break;
-        case TRAILING: 
+        case TRAILING:
             hAlign = (orientationIsLeftToRight) ? RIGHT : LEFT;
             break;
         }
@@ -859,26 +875,26 @@ public class SwingUtilities implements SwingConstants
         // Translate LEADING/TRAILING values in horizontalTextPosition
         // to LEFT/RIGHT values depending on the components orientation
         switch (horizontalTextPosition) {
-        case LEADING: 
+        case LEADING:
             hTextPos = (orientationIsLeftToRight) ? LEFT : RIGHT;
             break;
-        case TRAILING: 
+        case TRAILING:
             hTextPos = (orientationIsLeftToRight) ? RIGHT : LEFT;
             break;
         }
 
         return layoutCompoundLabelImpl(c,
-				       fm,
-				       text,
-				       icon,
-				       verticalAlignment,
-				       hAlign,
-				       verticalTextPosition,
-				       hTextPos,
-				       viewR,
-				       iconR,
-				       textR,
-				       textIconGap);
+                                       fm,
+                                       text,
+                                       icon,
+                                       verticalAlignment,
+                                       hAlign,
+                                       verticalTextPosition,
+                                       hTextPos,
+                                       viewR,
+                                       iconR,
+                                       textR,
+                                       textIconGap);
     }
 
     /**
@@ -904,14 +920,14 @@ public class SwingUtilities implements SwingConstants
         Rectangle textR,
         int textIconGap)
     {
-	return layoutCompoundLabelImpl(null, fm, text, icon, 
-				       verticalAlignment,
-				       horizontalAlignment,
-				       verticalTextPosition,
-				       horizontalTextPosition,
-				       viewR, iconR, textR, textIconGap);
+        return layoutCompoundLabelImpl(null, fm, text, icon,
+                                       verticalAlignment,
+                                       horizontalAlignment,
+                                       verticalTextPosition,
+                                       horizontalTextPosition,
+                                       viewR, iconR, textR, textIconGap);
     }
-				   
+
     /**
      * Compute and return the location of the icons origin, the
      * location of origin of the text baseline, and a possibly clipped
@@ -923,8 +939,8 @@ public class SwingUtilities implements SwingConstants
      * Use the other version of layoutCompoundLabel() instead.
      */
     private static String layoutCompoundLabelImpl(
-	JComponent c,        
-	FontMetrics fm,
+        JComponent c,
+        FontMetrics fm,
         String text,
         Icon icon,
         int verticalAlignment,
@@ -954,12 +970,13 @@ public class SwingUtilities implements SwingConstants
 
         boolean textIsEmpty = (text == null) || text.equals("");
         int lsb = 0;
+        int rsb = 0;
         /* Unless both text and icon are non-null, we effectively ignore
          * the value of textIconGap.
          */
         int gap;
 
-	View v = null;
+        View v;
         if (textIsEmpty) {
             textR.width = textR.height = 0;
             text = "";
@@ -975,12 +992,12 @@ public class SwingUtilities implements SwingConstants
             else {
                 availTextWidth = viewR.width - (iconR.width + gap);
             }
-	    v = (c != null) ? (View) c.getClientProperty("html") : null;
-	    if (v != null) {
-		textR.width = Math.min(availTextWidth,
+            v = (c != null) ? (View) c.getClientProperty("html") : null;
+            if (v != null) {
+                textR.width = Math.min(availTextWidth,
                                        (int) v.getPreferredSpan(View.X_AXIS));
-		textR.height = (int) v.getPreferredSpan(View.Y_AXIS);
-	    } else {
+                textR.height = (int) v.getPreferredSpan(View.Y_AXIS);
+            } else {
                 textR.width = SwingUtilities2.stringWidth(c, fm, text);
                 lsb = SwingUtilities2.getLeftSideBearing(c, fm, text);
                 if (lsb < 0) {
@@ -1001,8 +1018,8 @@ public class SwingUtilities implements SwingConstants
                                                       availTextWidth);
                     textR.width = SwingUtilities2.stringWidth(c, fm, text);
                 }
-		textR.height = fm.getHeight();
-	    }
+                textR.height = fm.getHeight();
+            }
         }
 
 
@@ -1039,6 +1056,10 @@ public class SwingUtilities implements SwingConstants
         else { // (horizontalTextPosition == RIGHT)
             textR.x = (iconR.width + gap);
         }
+
+        // WARNING: DefaultTreeCellEditor uses a shortened version of
+        // this algorithm to position it's Icon. If you change how this
+        // is calculated, be sure and update DefaultTreeCellEditor too.
 
         /* labelR is the rectangle that contains iconR and textR.
          * Move it to its proper position given the labelAlignment
@@ -1090,6 +1111,11 @@ public class SwingUtilities implements SwingConstants
             // lsb is negative. Shift the x location so that the text is
             // visually drawn at the right location.
             textR.x -= lsb;
+
+            textR.width += lsb;
+        }
+        if (rsb > 0) {
+            textR.width -= rsb;
         }
 
         return text;
@@ -1115,7 +1141,7 @@ public class SwingUtilities implements SwingConstants
      * below, you could end up with a <code>CellRendererPane</code>
      * per <code>Component</code>.
      * <p>
-     * If <code>c</code>'s parent is not a <code>CellRendererPane</code>, 
+     * If <code>c</code>'s parent is not a <code>CellRendererPane</code>,
      * a new <code>CellRendererPane</code> is created, <code>c</code> is
      * added to it, and the <code>CellRendererPane</code> is added to
      * <code>p</code>.  If <code>c</code>'s parent is a
@@ -1139,7 +1165,7 @@ public class SwingUtilities implements SwingConstants
      *           measured down from the top edge of the graphics context
      * @param w  an int specifying the width of the area draw in, in pixels
      * @param h  an int specifying the height of the area draw in, in pixels
-     * 
+     *
      * @see CellRendererPane
      * @see java.awt.Component#isLightweight
      */
@@ -1157,7 +1183,7 @@ public class SwingUtilities implements SwingConstants
      * @param c  the <code>Component</code> to draw
      * @param p  the intermediate <code>Container</code>
      * @param r  the <code>Rectangle</code> to draw in
-     * 
+     *
      * @see #paintComponent(Graphics,Component,Container,int,int,int,int)
      * @see CellRendererPane
      */
@@ -1167,7 +1193,7 @@ public class SwingUtilities implements SwingConstants
 
 
     /*
-     * Ensures that cell renderer <code>c</code> has a 
+     * Ensures that cell renderer <code>c</code> has a
      * <code>ComponentShell</code> parent and that
      * the shell's parent is p.
      */
@@ -1202,7 +1228,7 @@ public class SwingUtilities implements SwingConstants
             JComponent jc = (JComponent) c;
             jc.updateUI();
             JPopupMenu jpm =jc.getComponentPopupMenu();
-            if(jpm != null && jpm.isVisible() && jpm.getInvoker() == jc) {
+            if(jpm != null) {
                 updateComponentTreeUI(jpm);
             }
         }
@@ -1214,8 +1240,8 @@ public class SwingUtilities implements SwingConstants
             children = ((Container)c).getComponents();
         }
         if (children != null) {
-            for(int i = 0; i < children.length; i++) {
-                updateComponentTreeUI0(children[i]);
+            for (Component child : children) {
+                updateComponentTreeUI0(child);
             }
         }
     }
@@ -1254,11 +1280,11 @@ public class SwingUtilities implements SwingConstants
      * As of 1.3 this method is just a cover for <code>java.awt.EventQueue.invokeLater()</code>.
      * <p>
      * Unlike the rest of Swing, this method can be invoked from any thread.
-     * 
+     *
      * @see #invokeAndWait
      */
     public static void invokeLater(Runnable doRun) {
-	EventQueue.invokeLater(doRun);
+        EventQueue.invokeLater(doRun);
     }
 
 
@@ -1268,7 +1294,7 @@ public class SwingUtilities implements SwingConstants
      * all pending AWT events have been processed and (then)
      * <code>doRun.run()</code> returns. This method should
      * be used when an application thread needs to update the GUI.
-     * It should'nt be called from the <code>EventDispatchThread</code>.
+     * It shouldn't be called from the event dispatching thread.
      * Here's an example that creates a new application thread
      * that uses <code>invokeAndWait</code> to print a string from the event
      * dispatching thread and then, when that's finished, print
@@ -1317,20 +1343,20 @@ public class SwingUtilities implements SwingConstants
     public static void invokeAndWait(final Runnable doRun)
         throws InterruptedException, InvocationTargetException
     {
-	EventQueue.invokeAndWait(doRun);
+        EventQueue.invokeAndWait(doRun);
     }
 
     /**
      * Returns true if the current thread is an AWT event dispatching thread.
      * <p>
-     * As of 1.3 this method is just a cover for 
+     * As of 1.3 this method is just a cover for
      * <code>java.awt.EventQueue.isDispatchThread()</code>.
-     * 
+     *
      * @return true if the current thread is an AWT event dispatching thread
      */
     public static boolean isEventDispatchThread()
     {
-	return EventQueue.isDispatchThread();
+        return EventQueue.isDispatchThread();
     }
 
 
@@ -1350,7 +1376,7 @@ public class SwingUtilities implements SwingConstants
      * Otherwise, the index of the child in its accessible parent.
      */
     public static int getAccessibleIndexInParent(Component c) {
-	return c.getAccessibleContext().getAccessibleIndexInParent();
+        return c.getAccessibleContext().getAccessibleIndexInParent();
     }
 
     /**
@@ -1363,8 +1389,8 @@ public class SwingUtilities implements SwingConstants
      */
     public static Accessible getAccessibleAt(Component c, Point p) {
         if (c instanceof Container) {
-	    return c.getAccessibleContext().getAccessibleComponent().getAccessibleAt(p);
-	} else if (c instanceof Accessible) {
+            return c.getAccessibleContext().getAccessibleComponent().getAccessibleAt(p);
+        } else if (c instanceof Accessible) {
             Accessible a = (Accessible) c;
             if (a != null) {
                 AccessibleContext ac = a.getAccessibleContext();
@@ -1408,7 +1434,7 @@ public class SwingUtilities implements SwingConstants
      * @see AccessibleState
      */
     public static AccessibleStateSet getAccessibleStateSet(Component c) {
-	return c.getAccessibleContext().getAccessibleStateSet();
+        return c.getAccessibleContext().getAccessibleStateSet();
     }
 
     /**
@@ -1423,7 +1449,7 @@ public class SwingUtilities implements SwingConstants
      * @return the number of accessible children in the object.
      */
     public static int getAccessibleChildrenCount(Component c) {
-	return c.getAccessibleContext().getAccessibleChildrenCount();
+        return c.getAccessibleContext().getAccessibleChildrenCount();
     }
 
     /**
@@ -1437,7 +1463,7 @@ public class SwingUtilities implements SwingConstants
      * @return the nth Accessible child of the object
      */
     public static Accessible getAccessibleChild(Component c, int i) {
-	return c.getAccessibleContext().getAccessibleChild(i);
+        return c.getAccessibleContext().getAccessibleChild(i);
     }
 
     /**
@@ -1456,19 +1482,19 @@ public class SwingUtilities implements SwingConstants
      */
     @Deprecated
     public static Component findFocusOwner(Component c) {
-	Component focusOwner = KeyboardFocusManager.
-	    getCurrentKeyboardFocusManager().getFocusOwner();
+        Component focusOwner = KeyboardFocusManager.
+            getCurrentKeyboardFocusManager().getFocusOwner();
 
-	// verify focusOwner is a descendant of c
-	for (Component temp = focusOwner; temp != null;
-	     temp = (temp instanceof Window) ? null : temp.getParent())
-	{
-	    if (temp == c) {
-		return focusOwner;
-	    }
-	}
+        // verify focusOwner is a descendant of c
+        for (Component temp = focusOwner; temp != null;
+             temp = (temp instanceof Window) ? null : temp.getParent())
+        {
+            if (temp == c) {
+                return focusOwner;
+            }
+        }
 
-	return null;
+        return null;
     }
 
     /**
@@ -1504,6 +1530,17 @@ public class SwingUtilities implements SwingConstants
             }
         }
         return applet;
+    }
+
+    static JComponent getPaintingOrigin(JComponent c) {
+        Container p = c;
+        while ((p = p.getParent()) instanceof JComponent) {
+            JComponent jp = (JComponent) p;
+            if (jp.isPaintingOrigin()) {
+                return jp;
+            }
+        }
+        return null;
     }
 
     /**
@@ -1559,15 +1596,6 @@ public class SwingUtilities implements SwingConstants
      * processing the key bindings associated with JComponents.
      */
     static boolean isValidKeyEventForKeyBindings(KeyEvent e) {
-        if (e.getID() == KeyEvent.KEY_TYPED) {
-            int mod = e.getModifiers();
-            if (((mod & ActionEvent.ALT_MASK) != 0) &&
-                ((mod & ActionEvent.CTRL_MASK) == 0)) {
-                // filter out typed "alt-?" keys, but not those created
-                // with AltGr, and not control characters
-                return false;
-            }
-        }
         return true;
     }
 
@@ -1589,11 +1617,11 @@ public class SwingUtilities implements SwingConstants
      * @since 1.3
      */
     public static boolean notifyAction(Action action, KeyStroke ks,
-				       KeyEvent event, Object sender,
-				       int modifiers) {
-	if (action == null) {
-	    return false;
-	}
+                                       KeyEvent event, Object sender,
+                                       int modifiers) {
+        if (action == null) {
+            return false;
+        }
         if (action instanceof UIAction) {
             if (!((UIAction)action).isEnabled(sender)) {
                 return false;
@@ -1602,38 +1630,38 @@ public class SwingUtilities implements SwingConstants
         else if (!action.isEnabled()) {
             return false;
         }
-	Object commandO;
-	boolean stayNull;
+        Object commandO;
+        boolean stayNull;
 
-	// Get the command object.
-	commandO = action.getValue(Action.ACTION_COMMAND_KEY);
-	if (commandO == null && (action instanceof JComponent.ActionStandin)) {
-	    // ActionStandin is used for historical reasons to support
-	    // registerKeyboardAction with a null value.
-	    stayNull = true;
-	}
-	else {
-	    stayNull = false;
-	}
+        // Get the command object.
+        commandO = action.getValue(Action.ACTION_COMMAND_KEY);
+        if (commandO == null && (action instanceof JComponent.ActionStandin)) {
+            // ActionStandin is used for historical reasons to support
+            // registerKeyboardAction with a null value.
+            stayNull = true;
+        }
+        else {
+            stayNull = false;
+        }
 
-	// Convert it to a string.
-	String command;
+        // Convert it to a string.
+        String command;
 
-	if (commandO != null) {
-	    command = commandO.toString();
-	}
-	else if (!stayNull && event.getKeyChar() != KeyEvent.CHAR_UNDEFINED) {
-	    command = String.valueOf(event.getKeyChar());
-	}
-	else {
-	    // Do null for undefined chars, or if registerKeyboardAction
-	    // was called with a null.
-	    command = null;
-	}
-	action.actionPerformed(new ActionEvent(sender,
-			ActionEvent.ACTION_PERFORMED, command, event.getWhen(),
+        if (commandO != null) {
+            command = commandO.toString();
+        }
+        else if (!stayNull && event.getKeyChar() != KeyEvent.CHAR_UNDEFINED) {
+            command = String.valueOf(event.getKeyChar());
+        }
+        else {
+            // Do null for undefined chars, or if registerKeyboardAction
+            // was called with a null.
+            command = null;
+        }
+        action.actionPerformed(new ActionEvent(sender,
+                        ActionEvent.ACTION_PERFORMED, command, event.getWhen(),
                         modifiers));
-	return true;
+        return true;
     }
 
 
@@ -1645,17 +1673,17 @@ public class SwingUtilities implements SwingConstants
      * @since 1.3
      */
     public static void replaceUIInputMap(JComponent component, int type,
-					 InputMap uiInputMap) {
-	InputMap map = component.getInputMap(type, (uiInputMap != null));
+                                         InputMap uiInputMap) {
+        InputMap map = component.getInputMap(type, (uiInputMap != null));
 
-	while (map != null) {
-	    InputMap parent = map.getParent();
-	    if (parent == null || (parent instanceof UIResource)) {
-		map.setParent(uiInputMap);
-		return;
-	    }
-	    map = parent;
-	}
+        while (map != null) {
+            InputMap parent = map.getParent();
+            if (parent == null || (parent instanceof UIResource)) {
+                map.setParent(uiInputMap);
+                return;
+            }
+            map = parent;
+        }
     }
 
 
@@ -1667,17 +1695,17 @@ public class SwingUtilities implements SwingConstants
      * @since 1.3
      */
     public static void replaceUIActionMap(JComponent component,
-					  ActionMap uiActionMap) {
-        ActionMap map = component.getActionMap((uiActionMap != null));;
+                                          ActionMap uiActionMap) {
+        ActionMap map = component.getActionMap((uiActionMap != null));
 
-	while (map != null) {
-	    ActionMap parent = map.getParent();
-	    if (parent == null || (parent instanceof UIResource)) {
-		map.setParent(uiActionMap);
-		return;
-	    }
-	    map = parent;
-	}
+        while (map != null) {
+            ActionMap parent = map.getParent();
+            if (parent == null || (parent instanceof UIResource)) {
+                map.setParent(uiActionMap);
+                return;
+            }
+            map = parent;
+        }
     }
 
 
@@ -1690,39 +1718,40 @@ public class SwingUtilities implements SwingConstants
      * @since 1.3
      */
     public static InputMap getUIInputMap(JComponent component, int condition) {
-	InputMap map = component.getInputMap(condition, false);
-	while (map != null) {
-	    InputMap parent = map.getParent();
-	    if (parent instanceof UIResource) {
-		return parent;
-	    }
-	    map = parent;
-	}
-	return null;
+        InputMap map = component.getInputMap(condition, false);
+        while (map != null) {
+            InputMap parent = map.getParent();
+            if (parent instanceof UIResource) {
+                return parent;
+            }
+            map = parent;
+        }
+        return null;
     }
 
     /**
-     * Returns the ActionMap provided by the UI 
+     * Returns the ActionMap provided by the UI
      * in component <code>component</code>.
      * <p>This will return {@code null} if the UI has not installed an ActionMap.
      *
      * @since 1.3
      */
     public static ActionMap getUIActionMap(JComponent component) {
-	ActionMap map = component.getActionMap(false);
-	while (map != null) {
-	    ActionMap parent = map.getParent();
-	    if (parent instanceof UIResource) {
-		return parent;
-	    }
-	    map = parent;
-	}
-	return null;
+        ActionMap map = component.getActionMap(false);
+        while (map != null) {
+            ActionMap parent = map.getParent();
+            if (parent instanceof UIResource) {
+                return parent;
+            }
+            map = parent;
+        }
+        return null;
     }
 
 
     // Don't use String, as it's not guaranteed to be unique in a Hashtable.
-    private static final Object sharedOwnerFrameKey = new Object(); // SwingUtilities.sharedOwnerFrame
+    private static final Object sharedOwnerFrameKey =
+       new StringBuffer("SwingUtilities.sharedOwnerFrame");
 
     static class SharedOwnerFrame extends Frame implements WindowListener {
         public void addNotify() {
@@ -1735,8 +1764,7 @@ public class SwingUtilities implements SwingConstants
          */
         void installListeners() {
             Window[] windows = getOwnedWindows();
-            for (int ind = 0; ind < windows.length; ind++){ 
-                Window window = windows[ind];
+            for (Window window : windows) {
                 if (window != null) {
                     window.removeWindowListener(this);
                     window.addWindowListener(this);
@@ -1748,33 +1776,32 @@ public class SwingUtilities implements SwingConstants
          * Watches for displayability changes and disposes shared instance if there are no
          * displayable children left.
          */
-	public void windowClosed(WindowEvent e) {
-	    synchronized(getTreeLock()) {
-		Window[] windows = getOwnedWindows();
-		for (int ind = 0; ind < windows.length; ind++) {
-		    Window window = windows[ind];
-		    if (window != null) {
-			if (window.isDisplayable()) {
-			    return;
-			}
-			window.removeWindowListener(this);
-		    }
-		}
-		dispose();
-	    }
+        public void windowClosed(WindowEvent e) {
+            synchronized(getTreeLock()) {
+                Window[] windows = getOwnedWindows();
+                for (Window window : windows) {
+                    if (window != null) {
+                        if (window.isDisplayable()) {
+                            return;
+                        }
+                        window.removeWindowListener(this);
+                    }
+                }
+                dispose();
+            }
         }
-	public void windowOpened(WindowEvent e) {
-	}
-	public void windowClosing(WindowEvent e) {
-	}
-	public void windowIconified(WindowEvent e) {
-	}
-	public void windowDeiconified(WindowEvent e) {
-	}
-	public void windowActivated(WindowEvent e) {
-	}
-	public void windowDeactivated(WindowEvent e) {
-	}
+        public void windowOpened(WindowEvent e) {
+        }
+        public void windowClosing(WindowEvent e) {
+        }
+        public void windowIconified(WindowEvent e) {
+        }
+        public void windowDeiconified(WindowEvent e) {
+        }
+        public void windowActivated(WindowEvent e) {
+        }
+        public void windowDeactivated(WindowEvent e) {
+        }
 
         public void show() {
             // This frame can never be shown
@@ -1817,7 +1844,7 @@ public class SwingUtilities implements SwingConstants
      */
     static WindowListener getSharedOwnerFrameShutdownListener() throws HeadlessException {
         Frame sharedOwnerFrame = getSharedOwnerFrame();
-	return (WindowListener)sharedOwnerFrame;
+        return (WindowListener)sharedOwnerFrame;
     }
 
     /* Don't make these AppContext accessors public or protected --
@@ -1840,8 +1867,8 @@ public class SwingUtilities implements SwingConstants
     }
 
 
-    static Class loadSystemClass(String className) throws ClassNotFoundException {
-	return Class.forName(className, true, Thread.currentThread().
+    static Class<?> loadSystemClass(String className) throws ClassNotFoundException {
+        return Class.forName(className, true, Thread.currentThread().
                              getContextClassLoader());
     }
 
@@ -1862,9 +1889,9 @@ public class SwingUtilities implements SwingConstants
      * ImageIcon, and the image it contains is the same as <code>image</code>.
      */
     static boolean doesIconReferenceImage(Icon icon, Image image) {
-	Image iconImage = (icon != null && (icon instanceof ImageIcon)) ?
-	                   ((ImageIcon)icon).getImage() : null;
-	return (iconImage == image);
+        Image iconImage = (icon != null && (icon instanceof ImageIcon)) ?
+                           ((ImageIcon)icon).getImage() : null;
+        return (iconImage == image);
     }
 
     /**
@@ -1902,7 +1929,7 @@ public class SwingUtilities implements SwingConstants
      * in <code>r</code> and returns <code>r</code>.
      * The position and size specify the bounds of the component,
      * adjusted so as not to include the border area (the insets).
-     * This method is useful for classes 
+     * This method is useful for classes
      * that implement painting code.
      *
      * @param c  the JComponent in question; if {@code null}, this method returns {@code null}
@@ -1931,5 +1958,129 @@ public class SwingUtilities implements SwingConstants
         rect.height = c.getHeight() - insets.top - insets.bottom;
 
         return rect;
+    }
+
+    static void updateRendererOrEditorUI(Object rendererOrEditor) {
+        if (rendererOrEditor == null) {
+            return;
+        }
+
+        Component component = null;
+
+        if (rendererOrEditor instanceof Component) {
+            component = (Component)rendererOrEditor;
+        }
+        if (rendererOrEditor instanceof DefaultCellEditor) {
+            component = ((DefaultCellEditor)rendererOrEditor).getComponent();
+        }
+
+        if (component != null) {
+            SwingUtilities.updateComponentTreeUI(component);
+        }
+    }
+
+    /**
+     * Returns the first ancestor of the {@code component}
+     * which is not an instance of {@link JLayer}.
+     *
+     * @param component {@code Component} to get
+     * the first ancestor of, which is not a {@link JLayer} instance.
+     *
+     * @return the first ancestor of the {@code component}
+     * which is not an instance of {@link JLayer}.
+     * If such an ancestor can not be found, {@code null} is returned.
+     *
+     * @throws NullPointerException if {@code component} is {@code null}
+     * @see JLayer
+     *
+     * @since 1.7
+     */
+    public static Container getUnwrappedParent(Component component) {
+        Container parent = component.getParent();
+        while(parent instanceof JLayer) {
+            parent = parent.getParent();
+        }
+        return parent;
+    }
+
+    /**
+     * Returns the first {@code JViewport}'s descendant
+     * which is not an instance of {@code JLayer}.
+     * If such a descendant can not be found, {@code null} is returned.
+     *
+     * If the {@code viewport}'s view component is not a {@code JLayer},
+     * this method is equivalent to {@link JViewport#getView()}
+     * otherwise {@link JLayer#getView()} will be recursively
+     * called on all descending {@code JLayer}s.
+     *
+     * @param viewport {@code JViewport} to get the first descendant of,
+     * which in not a {@code JLayer} instance.
+     *
+     * @return the first {@code JViewport}'s descendant
+     * which is not an instance of {@code JLayer}.
+     * If such a descendant can not be found, {@code null} is returned.
+     *
+     * @throws NullPointerException if {@code viewport} is {@code null}
+     * @see JViewport#getView()
+     * @see JLayer
+     *
+     * @since 1.7
+     */
+    public static Component getUnwrappedView(JViewport viewport) {
+        Component view = viewport.getView();
+        while (view instanceof JLayer) {
+            view = ((JLayer)view).getView();
+        }
+        return view;
+    }
+
+   /**
+     * Retrieves the validate root of a given container.
+     *
+     * If the container is contained within a {@code CellRendererPane}, this
+     * method returns {@code null} due to the synthetic nature of the {@code
+     * CellRendererPane}.
+     * <p>
+     * The component hierarchy must be displayable up to the toplevel component
+     * (either a {@code Frame} or an {@code Applet} object.) Otherwise this
+     * method returns {@code null}.
+     * <p>
+     * If the {@code visibleOnly} argument is {@code true}, the found validate
+     * root and all its parents up to the toplevel component must also be
+     * visible. Otherwise this method returns {@code null}.
+     *
+     * @return the validate root of the given container or null
+     * @see java.awt.Component#isDisplayable()
+     * @see java.awt.Component#isVisible()
+     * @since 1.7
+     */
+    static Container getValidateRoot(Container c, boolean visibleOnly) {
+        Container root = null;
+
+        for (; c != null; c = c.getParent())
+        {
+            if (!c.isDisplayable() || c instanceof CellRendererPane) {
+                return null;
+            }
+            if (c.isValidateRoot()) {
+                root = c;
+                break;
+            }
+        }
+
+        if (root == null) {
+            return null;
+        }
+
+        for (; c != null; c = c.getParent()) {
+            if (!c.isDisplayable() || (visibleOnly && !c.isVisible())) {
+                return null;
+            }
+            if (c instanceof Window || c instanceof Applet) {
+                return root;
+            }
+        }
+
+        return null;
     }
 }

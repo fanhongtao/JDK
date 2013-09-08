@@ -1,8 +1,26 @@
 /*
- * @(#)StyledDocument.java	1.22 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -13,7 +31,6 @@ import java.awt.Color;
  * Interface for a generic styled document.
  *
  * @author  Timothy Prinzing
- * @version 1.22 11/17/05
  */
 public interface StyledDocument extends Document {
 

@@ -1,14 +1,32 @@
 /*
- * @(#)UnsupportedClassVersionError.java	1.11 05/11/17
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 /**
- * Thrown when the Java Virtual Machine attempts to read a class 
+ * Thrown when the Java Virtual Machine attempts to read a class
  * file and determines that the major and minor version numbers
  * in the file are not supported.
  *
@@ -16,21 +34,23 @@ package java.lang;
  */
 public
 class UnsupportedClassVersionError extends ClassFormatError {
+    private static final long serialVersionUID = -7123279212883497373L;
+
     /**
-     * Constructs a <code>UnsupportedClassVersionError</code> 
-     * with no detail message. 
+     * Constructs a <code>UnsupportedClassVersionError</code>
+     * with no detail message.
      */
     public UnsupportedClassVersionError() {
-	super();
+        super();
     }
 
     /**
      * Constructs a <code>UnsupportedClassVersionError</code> with
-     * the specified detail message. 
+     * the specified detail message.
      *
      * @param   s   the detail message.
      */
     public UnsupportedClassVersionError(String s) {
-	super(s);
+        super(s);
     }
 }

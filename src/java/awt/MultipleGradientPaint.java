@@ -1,8 +1,26 @@
 /*
- * @(#)MultipleGradientPaint.java	1.3 06/06/26
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -23,7 +41,7 @@ import java.util.Arrays;
  */
 public abstract class MultipleGradientPaint implements Paint {
 
-    /** The method to use when painting outside the gradient bounds. 
+    /** The method to use when painting outside the gradient bounds.
      * @since 1.6
      */
     public static enum CycleMethod {
@@ -99,7 +117,7 @@ public abstract class MultipleGradientPaint implements Paint {
      * @param colors array of colors corresponding to each fractional value
      * @param cycleMethod either {@code NO_CYCLE}, {@code REFLECT},
      *                    or {@code REPEAT}
-     * @param colorSpace which color space to use for interpolation, 
+     * @param colorSpace which color space to use for interpolation,
      *                   either {@code SRGB} or {@code LINEAR_RGB}
      * @param gradientTransform transform to apply to the gradient
      *
@@ -268,6 +286,10 @@ public abstract class MultipleGradientPaint implements Paint {
     /**
      * Returns a copy of the transform applied to the gradient.
      *
+     * <p>
+     * Note that if no transform is applied to the gradient
+     * when it is created, the identity transform is used.
+     *
      * @return a copy of the transform applied to the gradient
      */
     public final AffineTransform getTransform() {
@@ -275,10 +297,12 @@ public abstract class MultipleGradientPaint implements Paint {
     }
 
     /**
-     * Returns the transparency mode for this Paint object.
+     * Returns the transparency mode for this {@code Paint} object.
      *
-     * @return an integer value representing the transparency mode for
-     * this Paint object
+     * @return {@code OPAQUE} if all colors used by this
+     *         {@code Paint} object are opaque,
+     *         {@code TRANSLUCENT} if at least one of the
+     *         colors used by this {@code Paint} object is not opaque.
      * @see java.awt.Transparency
      */
     public final int getTransparency() {

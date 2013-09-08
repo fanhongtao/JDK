@@ -1,8 +1,26 @@
 /*
- * @(#)ReaderThreadImpl.java	1.14 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.transport;
@@ -20,8 +38,8 @@ import com.sun.corba.se.impl.orbutil.ORBUtility;
 
 public class ReaderThreadImpl
     implements
-	ReaderThread,
-	Work
+        ReaderThread,
+        Work
 {
     private ORB orb;
     private Connection connection;
@@ -29,32 +47,32 @@ public class ReaderThreadImpl
     private boolean keepRunning;
     private long enqueueTime;
 
-    public ReaderThreadImpl(ORB orb, 
-			    Connection connection, Selector selector)
+    public ReaderThreadImpl(ORB orb,
+                            Connection connection, Selector selector)
     {
-	this.orb = orb;
-	this.connection = connection;
-	this.selector = selector;
-	keepRunning = true;
+        this.orb = orb;
+        this.connection = connection;
+        this.selector = selector;
+        keepRunning = true;
     }
 
     ////////////////////////////////////////////////////
-    // 
+    //
     // ReaderThread methods.
     //
 
     public Connection getConnection()
     {
-	return connection;
+        return connection;
     }
 
     public void close()
     {
-	if (orb.transportDebugFlag) {
-	    dprint(".close: " + connection);
-	}
+        if (orb.transportDebugFlag) {
+            dprint(".close: " + connection);
+        }
 
-	keepRunning = false;
+        keepRunning = false;
     }
 
     ////////////////////////////////////////////////////
@@ -65,52 +83,52 @@ public class ReaderThreadImpl
     // REVISIT - this needs alot more from previous ReaderThread.
     public void doWork()
     {
-	try {
-	    if (orb.transportDebugFlag) {
-		dprint(".doWork: Start ReaderThread: " + connection);
-	    }
-	    while (keepRunning) {
-		try {
+        try {
+            if (orb.transportDebugFlag) {
+                dprint(".doWork: Start ReaderThread: " + connection);
+            }
+            while (keepRunning) {
+                try {
 
-		    if (orb.transportDebugFlag) {
-			dprint(".doWork: Start ReaderThread cycle: " 
-			       + connection);
-		    }
+                    if (orb.transportDebugFlag) {
+                        dprint(".doWork: Start ReaderThread cycle: "
+                               + connection);
+                    }
 
-		    if (connection.read()) {
-			// REVISIT - put in pool;
-			return;
-		    }
+                    if (connection.read()) {
+                        // REVISIT - put in pool;
+                        return;
+                    }
 
-		    if (orb.transportDebugFlag) {
-			dprint(".doWork: End ReaderThread cycle: "
-			       + connection);
-		    }
+                    if (orb.transportDebugFlag) {
+                        dprint(".doWork: End ReaderThread cycle: "
+                               + connection);
+                    }
 
-		} catch (Throwable t) {
-		    if (orb.transportDebugFlag) {
-			dprint(".doWork: exception in read: " + connection,t);
-		    }
-		    orb.getTransportManager().getSelector(0)
-			.unregisterForEvent(getConnection().getEventHandler());
-		    getConnection().close();
-		}
-	    }
-	} finally {
-	    if (orb.transportDebugFlag) {
-		dprint(".doWork: Terminated ReaderThread: " + connection);
-	    }
-	}
+                } catch (Throwable t) {
+                    if (orb.transportDebugFlag) {
+                        dprint(".doWork: exception in read: " + connection,t);
+                    }
+                    orb.getTransportManager().getSelector(0)
+                        .unregisterForEvent(getConnection().getEventHandler());
+                    getConnection().close();
+                }
+            }
+        } finally {
+            if (orb.transportDebugFlag) {
+                dprint(".doWork: Terminated ReaderThread: " + connection);
+            }
+        }
     }
 
-    public void setEnqueueTime(long timeInMillis) 
+    public void setEnqueueTime(long timeInMillis)
     {
-	enqueueTime = timeInMillis;
+        enqueueTime = timeInMillis;
     }
 
-    public long getEnqueueTime() 
+    public long getEnqueueTime()
     {
-	return enqueueTime;
+        return enqueueTime;
     }
 
     public String getName() { return "ReaderThread"; }
@@ -122,13 +140,13 @@ public class ReaderThreadImpl
 
     private void dprint(String msg)
     {
-	ORBUtility.dprint("ReaderThreadImpl", msg);
+        ORBUtility.dprint("ReaderThreadImpl", msg);
     }
 
     protected void dprint(String msg, Throwable t)
     {
-	dprint(msg);
-	t.printStackTrace(System.out);
+        dprint(msg);
+        t.printStackTrace(System.out);
     }
 }
 

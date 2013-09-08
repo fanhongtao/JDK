@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // SAX Attribute List Interface.
 // http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
@@ -65,17 +90,16 @@ package org.xml.sax;
  *             interface, which includes Namespace support.
  * @since SAX 1.0
  * @author David Megginson
- * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.DocumentHandler#startElement startElement
  * @see org.xml.sax.helpers.AttributeListImpl AttributeListImpl
  */
 public interface AttributeList {
 
-
+
     ////////////////////////////////////////////////////////////////////
     // Iteration methods.
     ////////////////////////////////////////////////////////////////////
-    
+
 
     /**
      * Return the number of attributes in this list.
@@ -85,11 +109,11 @@ public interface AttributeList {
      * declared or specified.  The number of attributes may be
      * zero.</p>
      *
-     * @return The number of attributes in the list.  
+     * @return The number of attributes in the list.
      */
     public abstract int getLength ();
-    
-    
+
+
     /**
      * Return the name of an attribute in this list (by position).
      *
@@ -104,11 +128,11 @@ public interface AttributeList {
      * @param i The index of the attribute in the list (starting at 0).
      * @return The name of the indexed attribute, or null
      *         if the index is out of range.
-     * @see #getLength 
+     * @see #getLength
      */
     public abstract String getName (int i);
-    
-    
+
+
     /**
      * Return the type of an attribute in the list (by position).
      *
@@ -127,12 +151,12 @@ public interface AttributeList {
      * @param i The index of the attribute in the list (starting at 0).
      * @return The attribute type as a string, or
      *         null if the index is out of range.
-     * @see #getLength 
+     * @see #getLength
      * @see #getType(java.lang.String)
      */
     public abstract String getType (int i);
-    
-    
+
+
     /**
      * Return the value of an attribute in the list (by position).
      *
@@ -149,12 +173,12 @@ public interface AttributeList {
     public abstract String getValue (int i);
 
 
-
+
     ////////////////////////////////////////////////////////////////////
     // Lookup methods.
     ////////////////////////////////////////////////////////////////////
-    
-    
+
+
     /**
      * Return the type of an attribute in the list (by name).
      *
@@ -170,8 +194,8 @@ public interface AttributeList {
      * @see #getType(int)
      */
     public abstract String getType (String name);
-    
-    
+
+
     /**
      * Return the value of an attribute in the list (by name).
      *
@@ -187,7 +211,7 @@ public interface AttributeList {
      * @see #getValue(int)
      */
     public abstract String getValue (String name);
-    
+
 }
 
 // end of AttributeList.java

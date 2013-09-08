@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,7 +62,7 @@ public class FuncSubstring extends Function3Args
       if (Double.isNaN(start))
       {
 
-        // Double.MIN_VALUE doesn't work with math below 
+        // Double.MIN_VALUE doesn't work with math below
         // so just use a big number and hope I never get caught.
         start = -1000000;
         startIndex = 0;
@@ -97,7 +101,7 @@ public class FuncSubstring extends Function3Args
   }
 
   /**
-   * Check that the number of arguments passed to this function is correct. 
+   * Check that the number of arguments passed to this function is correct.
    *
    *
    * @param argNum The number of arguments that is being passed to the function.

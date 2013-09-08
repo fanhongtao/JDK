@@ -1,8 +1,26 @@
 /*
- * @(#)MidiChannel.java	1.44 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sound.midi;
@@ -42,7 +60,6 @@ package javax.sound.midi;
  *
  * @see Synthesizer#getChannels
  *
- * @version 1.44, 11/17/05
  * @author David Rivas
  * @author Kara Kytle
  */

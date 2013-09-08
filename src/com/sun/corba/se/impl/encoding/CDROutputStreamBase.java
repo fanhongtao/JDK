@@ -1,8 +1,26 @@
 /*
- * @(#)CDROutputStreamBase.java	1.19 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -33,7 +51,7 @@ abstract class CDROutputStreamBase extends java.io.OutputStream
         this.parent = parent;
     }
 
-    public void init(org.omg.CORBA.ORB orb, 
+    public void init(org.omg.CORBA.ORB orb,
                      BufferManagerWrite bufferManager,
                      byte streamFormatVersion) {
         init(orb, false, bufferManager, streamFormatVersion, true);
@@ -92,7 +110,7 @@ abstract class CDROutputStreamBase extends java.io.OutputStream
     public abstract void write_value(java.io.Serializable value);
     public abstract void write_value(java.io.Serializable value, java.lang.Class clz);
     public abstract void write_value(java.io.Serializable value, String repository_id);
-    public abstract void write_value(java.io.Serializable value, 
+    public abstract void write_value(java.io.Serializable value,
                                      org.omg.CORBA.portable.BoxedValueHelper factory);
     public abstract void write_abstract_interface(java.lang.Object obj);
 
@@ -107,7 +125,7 @@ abstract class CDROutputStreamBase extends java.io.OutputStream
     public abstract void end_block();
     public abstract void putEndian();
     public abstract void writeTo(java.io.OutputStream s)
-	throws IOException;
+        throws IOException;
     public abstract byte[] toByteArray();
 
     // org.omg.CORBA.DataOutputStream
@@ -120,7 +138,7 @@ abstract class CDROutputStreamBase extends java.io.OutputStream
 
     // Needed by request and reply messages for GIOP versions >= 1.2 only.
     abstract void setHeaderPadding(boolean headerPadding);
-    
+
     // Required by IIOPOutputStream and other subclasses
     public abstract int getSize();
 
@@ -156,4 +174,3 @@ abstract class CDROutputStreamBase extends java.io.OutputStream
 
     public abstract void end_value();
 }
-

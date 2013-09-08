@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +92,7 @@ public class QName implements java.io.Serializable
    */
   public QName(String namespaceURI, String localName)
   {
-    this(namespaceURI, localName, false); 
+    this(namespaceURI, localName, false);
   }
 
   /**
@@ -100,7 +104,7 @@ public class QName implements java.io.Serializable
    * @param validate If true the new QName will be validated and an IllegalArgumentException will
    *                 be thrown if it is invalid.
    */
-  public QName(String namespaceURI, String localName, boolean validate) 
+  public QName(String namespaceURI, String localName, boolean validate)
   {
 
     // This check was already here.  So, for now, I will not add it to the validation
@@ -109,7 +113,7 @@ public class QName implements java.io.Serializable
       throw new IllegalArgumentException(XMLMessages.createXMLMessage(
             XMLErrorResources.ER_ARG_LOCALNAME_NULL, null)); //"Argument 'localName' is null");
 
-    if (validate) 
+    if (validate)
     {
         if (!XML11Char.isXML11ValidNCName(localName))
         {
@@ -117,12 +121,12 @@ public class QName implements java.io.Serializable
             XMLErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
         }
     }
-    
+
     _namespaceURI = namespaceURI;
     _localName = localName;
     m_hashCode = toString().hashCode();
   }
-  
+
   /**
    * Constructs a new QName with the specified namespace URI, prefix
    * and local name.
@@ -130,13 +134,13 @@ public class QName implements java.io.Serializable
    * @param namespaceURI The namespace URI if known, or null
    * @param prefix The namespace prefix is known, or null
    * @param localName The local name
-   * 
+   *
    */
   public QName(String namespaceURI, String prefix, String localName)
   {
      this(namespaceURI, prefix, localName, false);
   }
-  
+
  /**
    * Constructs a new QName with the specified namespace URI, prefix
    * and local name.
@@ -157,7 +161,7 @@ public class QName implements java.io.Serializable
             XMLErrorResources.ER_ARG_LOCALNAME_NULL, null)); //"Argument 'localName' is null");
 
     if (validate)
-    {    
+    {
         if (!XML11Char.isXML11ValidNCName(localName))
         {
             throw new IllegalArgumentException(XMLMessages.createXMLMessage(
@@ -175,20 +179,20 @@ public class QName implements java.io.Serializable
     _prefix = prefix;
     _localName = localName;
     m_hashCode = toString().hashCode();
-  }  
+  }
 
   /**
    * Construct a QName from a string, without namespace resolution.  Good
    * for a few odd cases.
    *
    * @param localName Local part of qualified name
-   * 
+   *
    */
   public QName(String localName)
   {
     this(localName, false);
   }
-  
+
   /**
    * Construct a QName from a string, without namespace resolution.  Good
    * for a few odd cases.
@@ -207,7 +211,7 @@ public class QName implements java.io.Serializable
             XMLErrorResources.ER_ARG_LOCALNAME_NULL, null)); //"Argument 'localName' is null");
 
     if (validate)
-    {    
+    {
         if (!XML11Char.isXML11ValidNCName(localName))
         {
             throw new IllegalArgumentException(XMLMessages.createXMLMessage(
@@ -217,7 +221,7 @@ public class QName implements java.io.Serializable
     _namespaceURI = null;
     _localName = localName;
     m_hashCode = toString().hashCode();
-  }  
+  }
 
   /**
    * Construct a QName from a string, resolving the prefix
@@ -296,15 +300,15 @@ public class QName implements java.io.Serializable
 
     _localName = (indexOfNSSep < 0)
                  ? qname : qname.substring(indexOfNSSep + 1);
-                 
+
     if (validate)
     {
-        if ((_localName == null) || (!XML11Char.isXML11ValidNCName(_localName))) 
+        if ((_localName == null) || (!XML11Char.isXML11ValidNCName(_localName)))
         {
            throw new IllegalArgumentException(XMLMessages.createXMLMessage(
             XMLErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
         }
-    }                 
+    }
     _namespaceURI = namespace;
     _prefix = prefix;
     m_hashCode = toString().hashCode();
@@ -312,9 +316,9 @@ public class QName implements java.io.Serializable
 
   /**
    * Construct a QName from a string, resolving the prefix
-   * using the given namespace context and prefix resolver. 
+   * using the given namespace context and prefix resolver.
    * The default namespace is not resolved.
-   * 
+   *
    * @param qname Qualified name to resolve
    * @param namespaceContext Namespace Context to use
    * @param resolver Prefix resolver for this context
@@ -327,9 +331,9 @@ public class QName implements java.io.Serializable
 
   /**
    * Construct a QName from a string, resolving the prefix
-   * using the given namespace context and prefix resolver. 
+   * using the given namespace context and prefix resolver.
    * The default namespace is not resolved.
-   * 
+   *
    * @param qname Qualified name to resolve
    * @param namespaceContext Namespace Context to use
    * @param resolver Prefix resolver for this context
@@ -356,7 +360,7 @@ public class QName implements java.io.Serializable
         {
           _namespaceURI = S_XMLNAMESPACEURI;
         }
-        
+
         // Do we want this?
         else if (prefix.equals("xmlns"))
         {
@@ -388,13 +392,13 @@ public class QName implements java.io.Serializable
 
     if (validate)
     {
-        if ((_localName == null) || (!XML11Char.isXML11ValidNCName(_localName))) 
+        if ((_localName == null) || (!XML11Char.isXML11ValidNCName(_localName)))
         {
            throw new IllegalArgumentException(XMLMessages.createXMLMessage(
             XMLErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
         }
-    }                 
-                 
+    }
+
     m_hashCode = toString().hashCode();
   }
 
@@ -425,7 +429,7 @@ public class QName implements java.io.Serializable
   public QName(String qname, PrefixResolver resolver, boolean validate)
   {
 
-	String prefix = null;
+        String prefix = null;
     _namespaceURI = null;
 
     int indexOfNSSep = qname.indexOf(':');
@@ -452,7 +456,7 @@ public class QName implements java.io.Serializable
       }
       _localName = qname.substring(indexOfNSSep + 1);
     }
-    else if (indexOfNSSep == 0) 
+    else if (indexOfNSSep == 0)
     {
       throw new RuntimeException(
          XMLMessages.createXMLMessage(
@@ -462,18 +466,18 @@ public class QName implements java.io.Serializable
     else
     {
       _localName = qname;
-    }   
-                 
+    }
+
     if (validate)
     {
-        if ((_localName == null) || (!XML11Char.isXML11ValidNCName(_localName))) 
+        if ((_localName == null) || (!XML11Char.isXML11ValidNCName(_localName)))
         {
            throw new IllegalArgumentException(XMLMessages.createXMLMessage(
             XMLErrorResources.ER_ARG_LOCALNAME_INVALID,null )); //"Argument 'localName' not a valid NCName");
         }
-    }                 
+    }
 
-              
+
     m_hashCode = toString().hashCode();
     _prefix = prefix;
   }
@@ -511,7 +515,7 @@ public class QName implements java.io.Serializable
   }
 
   /**
-   * Return the string representation of the qualified name, using the 
+   * Return the string representation of the qualified name, using the
    * prefix if available, or the '{ns}foo' notation if not. Performs
    * string concatenation, so beware of performance issues.
    *
@@ -525,9 +529,9 @@ public class QName implements java.io.Serializable
            : (_namespaceURI != null
               ? ("{"+_namespaceURI + "}" + _localName) : _localName);
   }
-  
+
   /**
-   * Return the string representation of the qualified name using the 
+   * Return the string representation of the qualified name using the
    * the '{ns}foo' notation. Performs
    * string concatenation, so beware of performance issues.
    *
@@ -577,9 +581,9 @@ public class QName implements java.io.Serializable
    * the name of the arg.
    *
    * @param ns Namespace URI to compare to
-   * @param localPart Local part of qualified name to compare to 
+   * @param localPart Local part of qualified name to compare to
    *
-   * @return True if the local name and uri match 
+   * @return True if the local name and uri match
    */
   public boolean equals(String ns, String localPart)
   {
@@ -620,7 +624,7 @@ public class QName implements java.io.Serializable
   }
 
   /**
-   * Given a string, create and return a QName object  
+   * Given a string, create and return a QName object
    *
    *
    * @param name String to use to create QName
@@ -649,7 +653,7 @@ public class QName implements java.io.Serializable
    *
    * @param attRawName Raw name of attribute
    *
-   * @return True if the attribute starts with or is equal to xmlns 
+   * @return True if the attribute starts with or is equal to xmlns
    */
   public static boolean isXMLNSDecl(String attRawName)
   {
@@ -693,9 +697,9 @@ public class QName implements java.io.Serializable
   /**
    * Returns the local name of the given node.
    *
-   * @param qname Input name 
+   * @param qname Input name
    *
-   * @return Prefix of name or empty string if none there   
+   * @return Prefix of name or empty string if none there
    */
   public static String getPrefixPart(String qname)
   {

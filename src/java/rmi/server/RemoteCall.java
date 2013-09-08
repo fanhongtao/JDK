@@ -1,8 +1,26 @@
 /*
- * @(#)RemoteCall.java	1.21 06/07/17
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.server;
@@ -19,7 +37,6 @@ import java.io.IOException;
  * deprecated because it is only used by deprecated methods of
  * <code>java.rmi.server.RemoteRef</code>.
  *
- * @version 1.21, 07/17/06
  * @since   JDK1.1
  * @author  Ann Wollrath
  * @author  Roger Riggs
@@ -40,7 +57,7 @@ public interface RemoteCall {
      */
     @Deprecated
     ObjectOutput getOutputStream()  throws IOException;
-    
+
     /**
      * Release the output stream; in some transports this would release
      * the stream.
@@ -64,7 +81,7 @@ public interface RemoteCall {
     @Deprecated
     ObjectInput getInputStream()  throws IOException;
 
-    
+
     /**
      * Release the input stream. This would allow some transports to release
      * the channel early.
@@ -91,8 +108,8 @@ public interface RemoteCall {
      */
     @Deprecated
     ObjectOutput getResultStream(boolean success) throws IOException,
-	StreamCorruptedException;
-    
+        StreamCorruptedException;
+
     /**
      * Do whatever it takes to execute the call.
      *

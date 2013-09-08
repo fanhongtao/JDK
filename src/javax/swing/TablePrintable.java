@@ -1,8 +1,26 @@
 /*
- * @(#)TablePrintable.java	1.41 05/11/17
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing;
@@ -75,7 +93,6 @@ import java.text.MessageFormat;
  * changed at any time after creation.
  *
  * @author  Shannon Hickey
- * @version 1.41 11/17/05
  */
 class TablePrintable implements Printable {
 
@@ -157,7 +174,7 @@ class TablePrintable implements Printable {
         header = table.getTableHeader();
         colModel = table.getColumnModel();
         totalColWidth = colModel.getTotalColumnWidth();
-        
+
         if (header != null) {
             // the header clip height can be set once since it's unchanging
             hclip.height = header.getHeight();
@@ -198,7 +215,7 @@ class TablePrintable implements Printable {
         }
 
         // to pass the page number when formatting the header and footer text
-        Object[] pageNumber = new Object[]{new Integer(pageIndex + 1)};
+        Object[] pageNumber = new Object[]{Integer.valueOf(pageIndex + 1)};
 
         // fetch the formatted header text, if any
         String headerText = null;
@@ -292,13 +309,15 @@ class TablePrintable implements Printable {
             last++;
         }
 
+        // create a copy of the graphics so we don't affect the one given to us
+        Graphics2D g2d = (Graphics2D)graphics.create();
+
         // translate into the co-ordinate system of the pageFormat
-        Graphics2D g2d = (Graphics2D)graphics;
         g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
-        
+
         // to save and store the transform
         AffineTransform oldTrans;
-        
+
         // if there's footer text, print it at the bottom of the imageable area
         if (footerText != null) {
             oldTrans = g2d.getTransform();
@@ -363,14 +382,17 @@ class TablePrintable implements Printable {
         g2d.translate(-clip.x, -clip.y);
         g2d.clip(clip);
         table.print(g2d);
-        
+
         // restore the original transform and clip
         g2d.setTransform(oldTrans);
         g2d.setClip(oldClip);
-        
+
         // draw a box around the table
         g2d.setColor(Color.BLACK);
         g2d.drawRect(0, 0, clip.width, hclip.height + clip.height);
+
+        // dispose the graphics copy
+        g2d.dispose();
 
         return PAGE_EXISTS;
     }
@@ -440,7 +462,7 @@ class TablePrintable implements Printable {
 
             // adjust clip to the top of the next set of rows
             clip.y += clip.height;
-            
+
             // adjust clip width and height to be zero
             clip.width = 0;
             clip.height = 0;

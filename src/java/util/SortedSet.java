@@ -1,8 +1,26 @@
 /*
- * @(#)SortedSet.java	1.32 06/04/21
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -77,7 +95,6 @@ package java.util;
  * @param <E> the type of elements maintained by this set
  *
  * @author  Josh Bloch
- * @version 1.32, 04/21/06
  * @see Set
  * @see TreeSet
  * @see SortedMap

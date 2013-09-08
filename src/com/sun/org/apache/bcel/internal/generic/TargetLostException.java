@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -67,14 +71,14 @@ package com.sun.org.apache.bcel.internal.generic;
  * <PRE>
  *     ...
  *     try {
- *	il.delete(start_ih, end_ih);
+ *      il.delete(start_ih, end_ih);
  *     } catch(TargetLostException e) {
  *       InstructionHandle[] targets = e.getTargets();
- *	 for(int i=0; i < targets.length; i++) {
- *	   InstructionTargeter[] targeters = targets[i].getTargeters();
- *     
- *	   for(int j=0; j < targeters.length; j++)
- *	     targeters[j].updateTarget(targets[i], new_target);
+ *       for(int i=0; i < targets.length; i++) {
+ *         InstructionTargeter[] targeters = targets[i].getTargeters();
+ *
+ *         for(int j=0; j < targeters.length; j++)
+ *           targeters[j].updateTarget(targets[i], new_target);
  *       }
  *     }
  * </PRE>
@@ -82,7 +86,6 @@ package com.sun.org.apache.bcel.internal.generic;
  * @see InstructionHandle
  * @see InstructionList
  * @see InstructionTargeter
- * @version $Id: TargetLostException.java,v 1.1.2.1 2005/07/31 23:45:34 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class TargetLostException extends Exception {

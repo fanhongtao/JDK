@@ -1,8 +1,26 @@
 /*
- * @(#)NavigationFilter.java	1.6 06/04/07
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -28,7 +46,6 @@ import java.awt.Shape;
  * @see javax.swing.text.DefaultCaret
  * @see javax.swing.text.View
  *
- * @version 1.6 04/07/06
  * @since 1.4
  */
 public class NavigationFilter {
@@ -85,7 +102,7 @@ public class NavigationFilter {
      *  location visual position
      * @exception BadLocationException
      * @exception IllegalArgumentException if <code>direction</code>
-     *		doesn't have one of the legal values above
+     *          doesn't have one of the legal values above
      */
     public int getNextVisualPositionFrom(JTextComponent text, int pos,
                                          Position.Bias bias, int direction,

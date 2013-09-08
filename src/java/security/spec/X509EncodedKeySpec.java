@@ -1,8 +1,26 @@
 /*
- * @(#)X509EncodedKeySpec.java	1.22 05/11/17
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.spec;
@@ -10,7 +28,7 @@ package java.security.spec;
 /**
  * This class represents the ASN.1 encoding of a public key,
  * encoded according to the ASN.1 type <code>SubjectPublicKeyInfo</code>.
- * The <code>SubjectPublicKeyInfo</code> syntax is defined in the X.509 
+ * The <code>SubjectPublicKeyInfo</code> syntax is defined in the X.509
  * standard as follows:
  *
  * <pre>
@@ -21,7 +39,6 @@ package java.security.spec;
  *
  * @author Jan Luehe
  *
- * @version 1.22, 11/17/05
  *
  * @see java.security.Key
  * @see java.security.KeyFactory
@@ -38,23 +55,23 @@ public class X509EncodedKeySpec extends EncodedKeySpec {
      * Creates a new X509EncodedKeySpec with the given encoded key.
      *
      * @param encodedKey the key, which is assumed to be
-     * encoded according to the X.509 standard. The contents of the 
+     * encoded according to the X.509 standard. The contents of the
      * array are copied to protect against subsequent modification.
      * @exception NullPointerException if <code>encodedKey</code>
      * is null.
      */
     public X509EncodedKeySpec(byte[] encodedKey) {
-	super(encodedKey);
+        super(encodedKey);
     }
 
     /**
      * Returns the key bytes, encoded according to the X.509 standard.
      *
-     * @return the X.509 encoding of the key. Returns a new array 
+     * @return the X.509 encoding of the key. Returns a new array
      * each time this method is called.
      */
     public byte[] getEncoded() {
-	return super.getEncoded();
+        return super.getEncoded();
     }
 
     /**
@@ -64,6 +81,6 @@ public class X509EncodedKeySpec extends EncodedKeySpec {
      * @return the string <code>"X.509"</code>.
      */
     public final String getFormat() {
-	return "X.509";
+        return "X.509";
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)ContextualRenderedImageFactory.java	1.12 05/11/17
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ********************************************************************
@@ -35,7 +53,7 @@ import java.awt.image.RenderedImage;
  * constructor with no arguments.
  */
 public interface ContextualRenderedImageFactory extends RenderedImageFactory {
- 
+
     /**
      * Maps the operation's output RenderContext into a RenderContext
      * for each of the operation's sources.  This is useful for
@@ -52,7 +70,7 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
      * @param paramBlock a ParameterBlock containing the operation's
      *        sources and parameters.
      * @param image the RenderableImage being rendered.
-     * @return a <code>RenderContext</code> for 
+     * @return a <code>RenderContext</code> for
      *         the source at the specified index of the parameters
      *         Vector contained in the specified ParameterBlock.
      */
@@ -60,7 +78,7 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
                                    RenderContext renderContext,
                                    ParameterBlock paramBlock,
                                    RenderableImage image);
-       
+
     /**
      * Creates a rendering, given a RenderContext and a ParameterBlock
      * containing the operation's sources and parameters.  The output
@@ -74,12 +92,12 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
      * @param paramBlock a ParameterBlock containing the operation's
      *        sources and parameters
      * @return a <code>RenderedImage</code> from the sources and parameters
-     *         in the specified ParameterBlock and according to the 
+     *         in the specified ParameterBlock and according to the
      *         rendering instructions in the specified RenderContext.
      */
     RenderedImage create(RenderContext renderContext,
                          ParameterBlock paramBlock);
-    
+
     /**
      * Returns the bounding box for the output of the operation,
      * performed on a given set of sources, in rendering-independent
@@ -88,13 +106,13 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
      *
      * @param paramBlock a ParameterBlock containing the operation's
      *        sources and parameters.
-     * @return a Rectangle2D specifying the rendering-independent 
+     * @return a Rectangle2D specifying the rendering-independent
      *         bounding box of the output.
      */
     Rectangle2D getBounds2D(ParameterBlock paramBlock);
 
     /**
-     * Gets the appropriate instance of the property specified by the name 
+     * Gets the appropriate instance of the property specified by the name
      * parameter.  This method must determine which instance of a property to
      * return when there are multiple sources that each specify the property.
      *
@@ -105,8 +123,8 @@ public interface ContextualRenderedImageFactory extends RenderedImageFactory {
      */
     Object getProperty(ParameterBlock paramBlock, String name);
 
-    /** 
-     * Returns a list of names recognized by getProperty. 
+    /**
+     * Returns a list of names recognized by getProperty.
      * @return the list of property names.
      */
     String[] getPropertyNames();

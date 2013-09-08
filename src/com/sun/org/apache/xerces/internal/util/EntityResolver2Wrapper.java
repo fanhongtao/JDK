@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,21 +37,20 @@ import org.xml.sax.SAXException;
 
 /**
  * <p>This class wraps a SAX entity resolver (EntityResolver2) in an XNI entity resolver.</p>
- * 
+ *
  * @author Michael Glavassevich, IBM
- * 
- * @version $Id: EntityResolver2Wrapper.java,v 1.2.6.1 2005/09/05 07:52:14 neerajbj Exp $
+ *
  */
-public class EntityResolver2Wrapper 
+public class EntityResolver2Wrapper
     implements ExternalSubsetResolver {
 
     //
     // Data
     //
-    
+
     /** An instance of SAX2 Extensions 1.1's EntityResolver2. */
     protected EntityResolver2 fEntityResolver;
-    
+
     //
     // Constructors
     //
@@ -57,7 +60,7 @@ public class EntityResolver2Wrapper
 
     /**
      * <p>Creates a new instance wrapping the given SAX entity resolver.</p>
-     * 
+     *
      * @param entityResolver the SAX entity resolver to wrap
      */
     public EntityResolver2Wrapper(EntityResolver2 entityResolver) {
@@ -70,7 +73,7 @@ public class EntityResolver2Wrapper
 
     /**
      * <p>Sets the SAX entity resolver wrapped by this object.</p>
-     * 
+     *
      * @param entityResolver the SAX entity resolver to wrap
      */
     public void setEntityResolver(EntityResolver2 entityResolver) {
@@ -79,17 +82,17 @@ public class EntityResolver2Wrapper
 
     /**
      * <p>Returns the SAX entity resolver wrapped by this object.</p>
-     * 
+     *
      * @return the SAX entity resolver wrapped by this object
      */
     public EntityResolver2 getEntityResolver() {
         return fEntityResolver;
     } // getEntityResolver():EntityResolver2
-    
+
     //
     // ExternalSubsetResolver methods
     //
-    
+
     /**
      * <p>Locates an external subset for documents which do not explicitly
      * provide one. If no external subset is provided, this method should
@@ -103,12 +106,12 @@ public class EntityResolver2Wrapper
      */
     public XMLInputSource getExternalSubset(XMLDTDDescription grammarDescription)
             throws XNIException, IOException {
-        
+
         if (fEntityResolver != null) {
-            
+
             String name = grammarDescription.getRootName();
             String baseURI = grammarDescription.getBaseSystemId();
-            
+
             // Resolve using EntityResolver2
             try {
                 InputSource inputSource = fEntityResolver.getExternalSubset(name, baseURI);
@@ -123,16 +126,16 @@ public class EntityResolver2Wrapper
                 throw new XNIException(ex);
             }
         }
-        
+
         // unable to resolve external subset
         return null;
-        
+
     } // getExternalSubset(XMLDTDDescription):XMLInputSource
 
     //
     // XMLEntityResolver methods
     //
-    
+
     /**
      * Resolves an external parsed entity. If the entity cannot be
      * resolved, this method should return null.
@@ -145,9 +148,9 @@ public class EntityResolver2Wrapper
      */
     public XMLInputSource resolveEntity(XMLResourceIdentifier resourceIdentifier)
             throws XNIException, IOException {
-        
+
         if (fEntityResolver != null) {
-            
+
             String pubId = resourceIdentifier.getPublicId();
             String sysId = resourceIdentifier.getLiteralSystemId();
             String baseURI = resourceIdentifier.getBaseSystemId();
@@ -158,7 +161,7 @@ public class EntityResolver2Wrapper
             else if (resourceIdentifier instanceof XMLEntityDescription) {
                 name = ((XMLEntityDescription) resourceIdentifier).getEntityName();
             }
-            
+
             // When both pubId and sysId are null, the user's entity resolver
             // can do nothing about it. We'd better not bother calling it.
             // This happens when the resourceIdentifier is a GrammarDescription,
@@ -167,10 +170,10 @@ public class EntityResolver2Wrapper
             if (pubId == null && sysId == null) {
                 return null;
             }
-            
+
             // Resolve using EntityResolver2
             try {
-                InputSource inputSource = 
+                InputSource inputSource =
                     fEntityResolver.resolveEntity(name, pubId, baseURI, sysId);
                 return (inputSource != null) ? createXMLInputSource(inputSource, baseURI) : null;
             }
@@ -181,19 +184,19 @@ public class EntityResolver2Wrapper
                     ex = e;
                 }
                 throw new XNIException(ex);
-            }   
+            }
         }
-        
+
         // unable to resolve entity
         return null;
-        
+
     } // resolveEntity(XMLResourceIdentifier):XMLInputSource
-    
+
     /**
      * Creates an XMLInputSource from a SAX InputSource.
      */
     private XMLInputSource createXMLInputSource(InputSource source, String baseURI) {
- 
+
         String publicId = source.getPublicId();
         String systemId = source.getSystemId();
         String baseSystemId = baseURI;
@@ -206,7 +209,7 @@ public class EntityResolver2Wrapper
         xmlInputSource.setCharacterStream(charStream);
         xmlInputSource.setEncoding(encoding);
         return xmlInputSource;
-        
+
     } // createXMLInputSource(InputSource,String):XMLInputSource
-    
+
 } // class EntityResolver2Wrapper

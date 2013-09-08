@@ -1,28 +1,5 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
- *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
- *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLScanner.java,v 1.6 2006/06/06 06:28:41 sunithareddy Exp $
- * @(#)XMLScanner.java	1.20 09/06/18
- *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -44,6 +21,7 @@
 package com.sun.org.apache.xerces.internal.impl;
 
 
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.xml.internal.stream.XMLEntityStorage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -89,7 +67,7 @@ import com.sun.xml.internal.stream.Entity;
  * @author Eric Ye, IBM
  * @author K.Venugopal SUN Microsystems
  * @author Sunitha Reddy, SUN Microsystems
- * @version $Id: XMLScanner.java,v 1.6 2006/06/06 06:28:41 sunithareddy Exp $
+ * @version $Id: XMLScanner.java,v 1.12 2010-11-01 04:39:41 joehw Exp $
  */
 public abstract class XMLScanner
         implements XMLComponent {
@@ -265,11 +243,7 @@ public abstract class XMLScanner
     public void reset(XMLComponentManager componentManager)
     throws XMLConfigurationException {
         
-		try {
-			fParserSettings = componentManager.getFeature(PARSER_SETTINGS);
-		} catch (XMLConfigurationException e) {
-			fParserSettings = true;
-		}
+		fParserSettings = componentManager.getFeature(PARSER_SETTINGS, true);
 
 		if (!fParserSettings) {
 			// parser settings have not been changed
@@ -287,23 +261,10 @@ public abstract class XMLScanner
         fEntityStore = fEntityManager.getEntityStore() ;
         
         // sax features
-        try {
-            fValidation = componentManager.getFeature(VALIDATION);
-        } catch (XMLConfigurationException e) {
-            fValidation = false;
-        }
-        try {
-            fNamespaces = componentManager.getFeature(NAMESPACES);
-        }
-        catch (XMLConfigurationException e) {
-            fNamespaces = true;
-        }
-        try {
-            fNotifyCharRefs = componentManager.getFeature(NOTIFY_CHAR_REFS);
-        } catch (XMLConfigurationException e) {
-            fNotifyCharRefs = false;
-        }
-        
+        fValidation = componentManager.getFeature(VALIDATION, false);
+        fNamespaces = componentManager.getFeature(NAMESPACES, true);
+        fNotifyCharRefs = componentManager.getFeature(NOTIFY_CHAR_REFS, false);
+
         init();
     } // reset(XMLComponentManager)
     
@@ -364,7 +325,7 @@ public abstract class XMLScanner
         } else if (NOTIFY_CHAR_REFS.equals(featureId)) {
             return fNotifyCharRefs;
         }
-        throw new XMLConfigurationException(XMLConfigurationException.NOT_RECOGNIZED, featureId);
+        throw new XMLConfigurationException(Status.NOT_RECOGNIZED, featureId);
     }
     
     //
@@ -509,7 +470,7 @@ public abstract class XMLScanner
                         standalone = fString.toString();
                         state = STATE_DONE;
                         if (!standalone.equals("yes") && !standalone.equals("no")) {
-                            reportFatalError("SDDeclInvalid", null);
+                            reportFatalError("SDDeclInvalid", new Object[] {standalone});
                         }
                     } else {
                         reportFatalError("EncodingDeclRequired", null);
@@ -525,7 +486,7 @@ public abstract class XMLScanner
                         standalone = fString.toString();
                         state = STATE_DONE;
                         if (!standalone.equals("yes") && !standalone.equals("no")) {
-                            reportFatalError("SDDeclInvalid", null);
+                            reportFatalError("SDDeclInvalid",  new Object[] {standalone});
                         }
                     } else {
                         reportFatalError("EncodingDeclRequired", null);

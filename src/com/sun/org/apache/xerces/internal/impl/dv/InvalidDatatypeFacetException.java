@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,17 +24,16 @@ package com.sun.org.apache.xerces.internal.impl.dv;
  * Datatype exception for invalid facet. This exception is only used by
  * schema datatypes.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Sandy Gao, IBM
  *
- * @version $Id: InvalidDatatypeFacetException.java,v 1.2.6.1 2005/09/12 10:59:46 neerajbj Exp $
  */
 public class InvalidDatatypeFacetException extends DatatypeException {
 
     /** Serialization version. */
     static final long serialVersionUID = -4104066085909970654L;
-    
+
     /**
      * Create a new datatype exception by providing an error code and a list
      * of error message substitution arguments.

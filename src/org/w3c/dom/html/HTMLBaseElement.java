@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2000 World Wide Web Consortium,
  * (Massachusetts Institute of Technology, Institut National de
  * Recherche en Informatique et en Automatique, Keio University). All
@@ -24,11 +53,10 @@ public interface HTMLBaseElement extends HTMLElement {
     public void setHref(String href);
 
     /**
-     *  The default target frame. See the  target attribute definition in HTML 
+     *  The default target frame. See the  target attribute definition in HTML
      * 4.0.
      */
     public String getTarget();
     public void setTarget(String target);
 
 }
-

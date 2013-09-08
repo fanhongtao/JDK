@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,7 +81,7 @@ abstract interface ExtendedContentHandler extends org.xml.sax.ContentHandler
      * @param value
      */
     public void addAttribute(String qName, String value);
-    
+
     /**
      * This method is used to notify of a character event, but passing the data
      * as a character String rather than the standard character array.
@@ -85,13 +89,13 @@ abstract interface ExtendedContentHandler extends org.xml.sax.ContentHandler
      * @throws SAXException
      */
     public void characters(String chars) throws SAXException;
-    
+
     /**
      * This method is used to notify of a character event, but passing the data
      * as a DOM Node rather than the standard character array.
      * @param node a DOM Node containing text.
      * @throws SAXException
-     */    
+     */
     public void characters(org.w3c.dom.Node node) throws org.xml.sax.SAXException;
     /**
      * This method is used to notify that an element has ended. Unlike the
@@ -117,7 +121,7 @@ abstract interface ExtendedContentHandler extends org.xml.sax.ContentHandler
      * @param uri the namespace URI of the element
      * @param localName the local name (without prefix) of the element
      * @param qName the qualified name of the element
-     * 
+     *
      * @throws SAXException
      */
     public void startElement(String uri, String localName, String qName)
@@ -142,7 +146,7 @@ abstract interface ExtendedContentHandler extends org.xml.sax.ContentHandler
      * startElement("prfx8:elem9")
      * namespaceAfterStartElement("http://namespace8","prfx8")
      * </pre>
-     * 
+     *
      * @param uri the namespace URI being declared
      * @param prefix the prefix that maps to the given namespace
      * @throws SAXException
@@ -178,7 +182,7 @@ abstract interface ExtendedContentHandler extends org.xml.sax.ContentHandler
     /**
      * This method returns an object that has the current namespace mappings in
      * effect.
-     * 
+     *
      * @return NamespaceMappings an object that has the current namespace
      * mappings in effect.
      */
@@ -216,14 +220,14 @@ abstract interface ExtendedContentHandler extends org.xml.sax.ContentHandler
     public void setSourceLocator(SourceLocator locator);
 
     // Bit constants for addUniqueAttribute().
-    
+
     // The attribute value contains no bad characters. A "bad" character is one which
     // is greater than 126 or it is one of '<', '>', '&' or '"'.
     public static final int NO_BAD_CHARS = 0x1;
-    
+
     // An HTML empty attribute (e.g. <OPTION selected>).
     public static final int HTML_ATTREMPTY = 0x2;
-    
+
     // An HTML URL attribute
     public static final int HTML_ATTRURL = 0x4;
 
@@ -240,15 +244,15 @@ abstract interface ExtendedContentHandler extends org.xml.sax.ContentHandler
      */
     public void addUniqueAttribute(String qName, String value, int flags)
         throws SAXException;
-    
+
     /**
      * Add an attribute from an xsl:attribute element.
      * @param qName the qualified attribute name (prefix:localName)
      * @param value the attributes value
      * @param uri the uri that the prefix of the qName is mapped to.
-     */    
+     */
     public void addXSLAttribute(String qName, final String value, final String uri);
-    
+
     /**
      * Add at attribute to the current element, not from an xsl:attribute
      * element.

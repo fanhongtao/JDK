@@ -1,8 +1,26 @@
 /*
- * @(#)SendingContextServiceContext.java	1.17 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.servicecontext;
@@ -19,13 +37,13 @@ import com.sun.corba.se.impl.ior.IORImpl ;
 public class SendingContextServiceContext extends ServiceContext {
     public SendingContextServiceContext( IOR ior )
     {
-	this.ior = ior ;
+        this.ior = ior ;
     }
 
     public SendingContextServiceContext(InputStream is, GIOPVersion gv)
     {
-	super(is, gv) ;
-	ior = new IORImpl( in ) ;
+        super(is, gv) ;
+        ior = new IORImpl( in ) ;
     }
 
     // Required SERVICE_CONTEXT_ID and getId definitions
@@ -34,18 +52,18 @@ public class SendingContextServiceContext extends ServiceContext {
 
     public void writeData( OutputStream os ) throws SystemException
     {
-	ior.write( os ) ;
+        ior.write( os ) ;
     }
 
-    public IOR getIOR() 
+    public IOR getIOR()
     {
-	return ior ;
+        return ior ;
     }
 
     private IOR ior = null ;
 
-    public String toString() 
+    public String toString()
     {
-	return "SendingContexServiceContext[ ior=" + ior + " ]" ;
+        return "SendingContexServiceContext[ ior=" + ior + " ]" ;
     }
 }

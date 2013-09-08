@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,7 +77,7 @@ public final class BoolStack implements Cloneable
    */
   public final void clear()
   {
-  	m_index = -1;
+        m_index = -1;
   }
 
   /**
@@ -120,7 +124,7 @@ public final class BoolStack implements Cloneable
   }
 
   /**
-   * Set the item at the top of this stack  
+   * Set the item at the top of this stack
    *
    *
    * @param b Object to set at the top of this stack
@@ -190,8 +194,8 @@ public final class BoolStack implements Cloneable
 
     m_values = newVector;
   }
-  
-  public Object clone() 
+
+  public Object clone()
     throws CloneNotSupportedException
   {
     return super.clone();

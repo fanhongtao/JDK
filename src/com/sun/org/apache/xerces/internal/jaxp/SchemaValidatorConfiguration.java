@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,6 +25,8 @@ import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
 import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
 import com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter;
 import com.sun.org.apache.xerces.internal.jaxp.validation.XSGrammarPoolContainer;
+import com.sun.org.apache.xerces.internal.util.FeatureState;
+import com.sun.org.apache.xerces.internal.util.PropertyState;
 import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponentManager;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
@@ -28,7 +34,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
 /**
  * <p>Parser configuration for Xerces' XMLSchemaValidator.</p>
  * 
- * @version $Id: SchemaValidatorConfiguration.java,v 1.1.4.1 2005/09/08 05:48:45 sunithareddy Exp $
+ * @version $Id: SchemaValidatorConfiguration.java,v 1.5 2010-11-01 04:40:06 joehw Exp $
  */
 final class SchemaValidatorConfiguration implements XMLComponentManager {
     
@@ -114,16 +120,34 @@ final class SchemaValidatorConfiguration implements XMLComponentManager {
      */
     public boolean getFeature(String featureId)
             throws XMLConfigurationException {
+        FeatureState state = getFeatureState(featureId);
+        if (state.isExceptional()) {
+            throw new XMLConfigurationException(state.status, featureId);
+        }
+        return state.state;
+    }
+
+    public FeatureState getFeatureState(String featureId) {
         if (PARSER_SETTINGS.equals(featureId)) {
-            return fParentComponentManager.getFeature(featureId);
+            return fParentComponentManager.getFeatureState(featureId);
         }
         else if (VALIDATION.equals(featureId) || SCHEMA_VALIDATION.equals(featureId)) {
-            return true;
+            return FeatureState.is(true);
         }
         else if (USE_GRAMMAR_POOL_ONLY.equals(featureId)) {
-            return fUseGrammarPoolOnly;
+            return FeatureState.is(fUseGrammarPoolOnly);
         }
-        return fParentComponentManager.getFeature(featureId);
+        return fParentComponentManager.getFeatureState(featureId);
+    }
+
+    public PropertyState getPropertyState(String propertyId) {
+        if (XMLGRAMMAR_POOL.equals(propertyId)) {
+            return PropertyState.is(fGrammarPool);
+        }
+        else if (VALIDATION_MANAGER.equals(propertyId)) {
+            return PropertyState.is(fValidationManager);
+        }
+        return fParentComponentManager.getPropertyState(propertyId);
     }
 
     /**
@@ -140,12 +164,29 @@ final class SchemaValidatorConfiguration implements XMLComponentManager {
      */
     public Object getProperty(String propertyId)
             throws XMLConfigurationException {
-        if (XMLGRAMMAR_POOL.equals(propertyId)) {
-            return fGrammarPool;
+        PropertyState state = getPropertyState(propertyId);
+        if (state.isExceptional()) {
+            throw new XMLConfigurationException(state.status, propertyId);
         }
-        else if (VALIDATION_MANAGER.equals(propertyId)) {
-            return fValidationManager;
-        }
-        return fParentComponentManager.getProperty(propertyId);
+        return state.state;
     }
+
+    public boolean getFeature(String featureId, boolean defaultValue) {
+        FeatureState state = getFeatureState(featureId);
+        if (state.isExceptional()) {
+            return defaultValue;
+        }
+        return state.state;
+    }
+
+    public Object getProperty(String propertyId, Object defaultValue) {
+        PropertyState state = getPropertyState(propertyId);
+        if (state.isExceptional()) {
+            return defaultValue;
+        }
+        return state.state;
+    }
+
+
+
 }

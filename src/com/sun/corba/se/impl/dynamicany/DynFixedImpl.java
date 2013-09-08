@@ -1,8 +1,26 @@
 /*
- * @(#)DynFixedImpl.java	1.9 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.dynamicany;
@@ -45,7 +63,7 @@ public class DynFixedImpl extends DynAnyBasicImpl implements DynFixed
     //
 /*
     public int component_count() {
-	return 0;
+        return 0;
     }
 */
     //
@@ -54,9 +72,9 @@ public class DynFixedImpl extends DynAnyBasicImpl implements DynFixed
 
     public String get_value () {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
-	return any.extract_fixed().toString();
+        return any.extract_fixed().toString();
     }
 
     // Initializes the value of the DynFixed.
@@ -81,7 +99,7 @@ public class DynFixedImpl extends DynAnyBasicImpl implements DynFixed
                org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         int digits = 0;
         int scale = 0;
@@ -149,7 +167,7 @@ public class DynFixedImpl extends DynAnyBasicImpl implements DynFixed
                 fractionPart = null;
             } else {
                 // integerPart.length() > digits
-                // unable to truncate fraction part 
+                // unable to truncate fraction part
                 throw new InvalidValue();
             }
         }

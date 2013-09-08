@@ -1,8 +1,26 @@
 /*
- * @(#)RequestPartitioningPolicy.java	1.3 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.extension ;
@@ -20,47 +38,47 @@ import com.sun.corba.se.impl.orbutil.ORBConstants ;
 */
 public class RequestPartitioningPolicy extends LocalObject implements Policy
 {
-    private static ORBUtilSystemException wrapper = 
-	ORBUtilSystemException.get( CORBALogDomains.OA_IOR ) ;
+    private static ORBUtilSystemException wrapper =
+        ORBUtilSystemException.get( CORBALogDomains.OA_IOR ) ;
     public final static int DEFAULT_VALUE = 0;
     private final int value;
 
-    public RequestPartitioningPolicy( int value ) 
+    public RequestPartitioningPolicy( int value )
     {
-	if (value < ORBConstants.REQUEST_PARTITIONING_MIN_THREAD_POOL_ID ||
-	    value > ORBConstants.REQUEST_PARTITIONING_MAX_THREAD_POOL_ID) {
-	    throw wrapper.invalidRequestPartitioningPolicyValue(
-		  new Integer(value),
-	          new Integer(
-		      ORBConstants.REQUEST_PARTITIONING_MIN_THREAD_POOL_ID),
-	          new Integer(
-		      ORBConstants.REQUEST_PARTITIONING_MAX_THREAD_POOL_ID));
-	}
-	this.value = value;
+        if (value < ORBConstants.REQUEST_PARTITIONING_MIN_THREAD_POOL_ID ||
+            value > ORBConstants.REQUEST_PARTITIONING_MAX_THREAD_POOL_ID) {
+            throw wrapper.invalidRequestPartitioningPolicyValue(
+                  new Integer(value),
+                  new Integer(
+                      ORBConstants.REQUEST_PARTITIONING_MIN_THREAD_POOL_ID),
+                  new Integer(
+                      ORBConstants.REQUEST_PARTITIONING_MAX_THREAD_POOL_ID));
+        }
+        this.value = value;
     }
 
     public int getValue()
     {
-	return value;
+        return value;
     }
 
     public int policy_type()
     {
-	return ORBConstants.REQUEST_PARTITIONING_POLICY;
+        return ORBConstants.REQUEST_PARTITIONING_POLICY;
     }
 
     public org.omg.CORBA.Policy copy()
     {
-	return this;
+        return this;
     }
 
     public void destroy()
     {
-	// NO-OP
+        // NO-OP
     }
 
-    public String toString() 
+    public String toString()
     {
-	return "RequestPartitioningPolicy[" + value + "]" ;
+        return "RequestPartitioningPolicy[" + value + "]" ;
     }
 }

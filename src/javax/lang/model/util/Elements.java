@@ -1,8 +1,26 @@
 /*
- * @(#)Elements.java	1.11 06/08/16
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.util;
@@ -24,7 +42,6 @@ import javax.lang.model.type.*;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.11 06/08/16
  * @see javax.annotation.processing.ProcessingEnvironment#getElementUtils
  * @since 1.6
  */
@@ -48,21 +65,37 @@ public interface Elements {
 
     /**
      * Returns the values of an annotation's elements, including defaults.
-     * 
+     *
      * @see AnnotationMirror#getElementValues()
      * @param a  annotation to examine
      * @return the values of the annotation's elements, including defaults
      */
     Map<? extends ExecutableElement, ? extends AnnotationValue>
-	    getElementValuesWithDefaults(AnnotationMirror a);
+            getElementValuesWithDefaults(AnnotationMirror a);
 
     /**
      * Returns the text of the documentation (&quot;Javadoc&quot;)
      * comment of an element.
      *
+     * <p> A documentation comment of an element is a comment that
+     * begins with "{@code /**}" , ends with a separate
+     * "<code>*&#47</code>", and immediately precedes the element,
+     * ignoring white space.  Therefore, a documentation comment
+     * contains at least three"{@code *}" characters.  The text
+     * returned for the documentation comment is a processed form of
+     * the comment as it appears in source code.  The leading "{@code
+     * /**}" and trailing "<code>*&#47</code>" are removed.  For lines
+     * of the comment starting after the initial "{@code /**}",
+     * leading white space characters are discarded as are any
+     * consecutive "{@code *}" characters appearing after the white
+     * space or starting the line.  The processed lines are then
+     * concatenated together (including line terminators) and
+     * returned.
+     *
      * @param e  the element being examined
      * @return the documentation comment of the element, or {@code null}
-     *		if there is none
+     *          if there is none
+     * @jls 3.6 White Space
      */
     String getDocComment(Element e);
 
@@ -81,7 +114,7 @@ public interface Elements {
      * @return the binary name
      *
      * @see TypeElement#getQualifiedName
-     * @jls3 13.1 The Form of a Binary
+     * @jls 13.1 The Form of a Binary
      */
     Name getBinaryName(TypeElement type);
 
@@ -125,7 +158,7 @@ public interface Elements {
      * @param hider   the first element
      * @param hidden  the second element
      * @return {@code true} if and only if the first element hides
-     *		the second
+     *          the second
      */
     boolean hides(Element hider, Element hidden);
 
@@ -147,7 +180,7 @@ public interface Elements {
      * {@code assert elements.overrides(m1, m2,
      *          elements.getTypeElement("java.lang.String")); }
      * </blockquote>
-     * 
+     *
      * A more interesting case can be illustrated by the following example
      * in which a method in type {@code A} does not override a
      * like-named method in type {@code B}:
@@ -161,8 +194,8 @@ public interface Elements {
      * {@code assert ! elements.overrides(m1, m2,
      *          elements.getTypeElement("A")); }
      * </blockquote>
-     * 
-     * When viewed as a member of a third type {@code C}, however, 
+     *
+     * When viewed as a member of a third type {@code C}, however,
      * the method in {@code A} does override the one in {@code B}:
      *
      * <blockquote>
@@ -176,12 +209,12 @@ public interface Elements {
      * @param overridden  the second method, possibly being overridden
      * @param type   the type of which the first method is a member
      * @return {@code true} if and only if the first method overrides
-     *		the second
-     * @jls3 8.4.8 Inheritance, Overriding, and Hiding
-     * @jls3 9.4.1 Inheritance and Overriding
+     *          the second
+     * @jls 8.4.8 Inheritance, Overriding, and Hiding
+     * @jls 9.4.1 Inheritance and Overriding
      */
     boolean overrides(ExecutableElement overrider, ExecutableElement overridden,
-		      TypeElement type);
+                      TypeElement type);
 
     /**
      * Returns the text of a <i>constant expression</i> representing a
@@ -192,7 +225,7 @@ public interface Elements {
      * @param value  a primitive value or string
      * @return the text of a constant expression
      * @throws IllegalArgumentException if the argument is not a primitive
-     *		value or string
+     *          value or string
      *
      * @see VariableElement#getConstantValue()
      */

@@ -1,8 +1,26 @@
 /*
- * @(#)SynthTextPaneUI.java	1.9 05/11/17
+ * Copyright (c) 2002, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.synth;
@@ -27,15 +45,15 @@ import java.awt.*;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author  Shannon Hickey
- * @version 1.9 11/17/05
+ * @since 1.7
  */
-class SynthTextPaneUI extends SynthEditorPaneUI {
+public class SynthTextPaneUI extends SynthEditorPaneUI {
 
     /**
      * Creates a UI for the JTextPane.
      *
      * @param c the JTextPane object
-     * @return the UI
+     * @return the UI object
      */
     public static ComponentUI createUI(JComponent c) {
         return new SynthTextPaneUI();
@@ -48,10 +66,36 @@ class SynthTextPaneUI extends SynthEditorPaneUI {
      *
      * @return the name ("TextPane")
      */
+    @Override
     protected String getPropertyPrefix() {
         return "TextPane";
     }
 
+    /**
+     * Installs the UI for a component.  This does the following
+     * things.
+     * <ol>
+     * <li>
+     * Sets opaqueness of the associated component according to its style,
+     * if the opaque property has not already been set by the client program.
+     * <li>
+     * Installs the default caret and highlighter into the
+     * associated component. These properties are only set if their
+     * current value is either {@code null} or an instance of
+     * {@link UIResource}.
+     * <li>
+     * Attaches to the editor and model.  If there is no
+     * model, a default one is created.
+     * <li>
+     * Creates the view factory and the view hierarchy used
+     * to represent the model.
+     * </ol>
+     *
+     * @param c the editor component
+     * @see javax.swing.plaf.basic.BasicTextUI#installUI
+     * @see ComponentUI#installUI
+     */
+    @Override
     public void installUI(JComponent c) {
         super.installUI(c);
         updateForeground(c.getForeground());
@@ -69,6 +113,7 @@ class SynthTextPaneUI extends SynthEditorPaneUI {
      *
      * @param evt the property change event
      */
+    @Override
     protected void propertyChange(PropertyChangeEvent evt) {
         super.propertyChange(evt);
 
@@ -105,7 +150,7 @@ class SynthTextPaneUI extends SynthEditorPaneUI {
             StyleConstants.setForeground(style, color);
         }
     }
-    
+
     /**
      * Update the font in the default style of the document.
      *
@@ -133,11 +178,16 @@ class SynthTextPaneUI extends SynthEditorPaneUI {
         }
     }
 
+    @Override
     void paintBackground(SynthContext context, Graphics g, JComponent c) {
         context.getPainter().paintTextPaneBackground(context, g, 0, 0,
                                                   c.getWidth(), c.getHeight());
     }
 
+    /**
+     * @inheritDoc
+     */
+    @Override
     public void paintBorder(SynthContext context, Graphics g, int x,
                             int y, int w, int h) {
         context.getPainter().paintTextPaneBorder(context, g, x, y, w, h);

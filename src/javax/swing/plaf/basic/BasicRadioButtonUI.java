@@ -1,8 +1,26 @@
 /*
- * @(#)BasicRadioButtonUI.java	1.72 09/08/10
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.basic;
@@ -20,10 +38,9 @@ import sun.awt.AppContext;
 /**
  * RadioButtonUI implementation for BasicRadioButtonUI
  *
- * @version 1.72 08/10/09
  * @author Jeff Dinkins
  */
-public class BasicRadioButtonUI extends BasicToggleButtonUI 
+public class BasicRadioButtonUI extends BasicToggleButtonUI
 {
     private static final Object BASIC_RADIO_BUTTON_UI_KEY = new Object();
 
@@ -31,14 +48,14 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
 
     private boolean defaults_initialized = false;
 
-    private final static String propertyPrefix = "RadioButton" + "."; 
+    private final static String propertyPrefix = "RadioButton" + ".";
 
     // ********************************
-    //        Create PLAF 
+    //        Create PLAF
     // ********************************
     public static ComponentUI createUI(JComponent b) {
         AppContext appContext = AppContext.getAppContext();
-        BasicRadioButtonUI radioButtonUI = 
+        BasicRadioButtonUI radioButtonUI =
                 (BasicRadioButtonUI) appContext.get(BASIC_RADIO_BUTTON_UI_KEY);
         if (radioButtonUI == null) {
             radioButtonUI = new BasicRadioButtonUI();
@@ -48,11 +65,11 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
     }
 
     protected String getPropertyPrefix() {
-        return propertyPrefix; 
+        return propertyPrefix;
     }
 
     // ********************************
-    //        Install PLAF 
+    //        Install PLAF
     // ********************************
     protected void installDefaults(AbstractButton b){
         super.installDefaults(b);
@@ -63,7 +80,7 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
     }
 
     // ********************************
-    //        Uninstall PLAF 
+    //        Uninstall PLAF
     // ********************************
     protected void uninstallDefaults(AbstractButton b){
         super.uninstallDefaults(b);
@@ -75,10 +92,10 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
     }
 
 
-    /* These Dimensions/Rectangles are allocated once for all 
-     * RadioButtonUI.paint() calls.  Re-using rectangles 
-     * rather than allocating them in each paint call substantially 
-     * reduced the time it took paint to run.  Obviously, this 
+    /* These Dimensions/Rectangles are allocated once for all
+     * RadioButtonUI.paint() calls.  Re-using rectangles
+     * rather than allocating them in each paint call substantially
+     * reduced the time it took paint to run.  Obviously, this
      * method can't be re-entered.
      */
     private static Dimension size = new Dimension();
@@ -100,7 +117,7 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
         Insets i = c.getInsets();
         size = b.getSize(size);
         viewRect.x = i.left;
-	viewRect.y = i.top;
+        viewRect.y = i.top;
         viewRect.width = size.width - (i.right + viewRect.x);
         viewRect.height = size.height - (i.bottom + viewRect.y);
         iconRect.x = iconRect.y = iconRect.width = iconRect.height = 0;
@@ -115,42 +132,42 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
             viewRect, iconRect, textRect,
-	    b.getText() == null ? 0 : b.getIconTextGap());
+            b.getText() == null ? 0 : b.getIconTextGap());
 
         // fill background
         if(c.isOpaque()) {
             g.setColor(b.getBackground());
-            g.fillRect(0,0, size.width, size.height); 
+            g.fillRect(0,0, size.width, size.height);
         }
 
 
         // Paint the radio button
-        if(altIcon != null) { 
+        if(altIcon != null) {
 
             if(!model.isEnabled()) {
-	        if(model.isSelected()) {
+                if(model.isSelected()) {
                    altIcon = b.getDisabledSelectedIcon();
-		} else {
+                } else {
                    altIcon = b.getDisabledIcon();
-		}
+                }
             } else if(model.isPressed() && model.isArmed()) {
                 altIcon = b.getPressedIcon();
                 if(altIcon == null) {
                     // Use selected icon
                     altIcon = b.getSelectedIcon();
-                } 
+                }
             } else if(model.isSelected()) {
                 if(b.isRolloverEnabled() && model.isRollover()) {
-                        altIcon = (Icon) b.getRolloverSelectedIcon();
+                        altIcon = b.getRolloverSelectedIcon();
                         if (altIcon == null) {
-                                altIcon = (Icon) b.getSelectedIcon();
+                                altIcon = b.getSelectedIcon();
                         }
                 } else {
-                        altIcon = (Icon) b.getSelectedIcon();
+                        altIcon = b.getSelectedIcon();
                 }
             } else if(b.isRolloverEnabled() && model.isRollover()) {
-                altIcon = (Icon) b.getRolloverIcon();
-            } 
+                altIcon = b.getRolloverIcon();
+            }
 
             if(altIcon == null) {
                 altIcon = b.getIcon();
@@ -167,14 +184,14 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
         if(text != null) {
             View v = (View) c.getClientProperty(BasicHTML.propertyKey);
             if (v != null) {
-		v.paint(g, textRect);
+                v.paint(g, textRect);
             } else {
-		paintText(g, b, textRect, text);
-	    }
-	    if(b.hasFocus() && b.isFocusPainted() && 
-	       textRect.width > 0 && textRect.height > 0 ) {
-		paintFocus(g, textRect, size);
-	    }
+                paintText(g, b, textRect, text);
+            }
+            if(b.hasFocus() && b.isFocusPainted() &&
+               textRect.width > 0 && textRect.height > 0 ) {
+                paintFocus(g, textRect, size);
+            }
         }
     }
 
@@ -182,10 +199,10 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
     }
 
 
-    /* These Insets/Rectangles are allocated once for all 
-     * RadioButtonUI.getPreferredSize() calls.  Re-using rectangles 
-     * rather than allocating them in each call substantially 
-     * reduced the time it took getPreferredSize() to run.  Obviously, 
+    /* These Insets/Rectangles are allocated once for all
+     * RadioButtonUI.getPreferredSize() calls.  Re-using rectangles
+     * rather than allocating them in each call substantially
+     * reduced the time it took getPreferredSize() to run.  Obviously,
      * this method can't be re-entered.
      */
     private static Rectangle prefViewRect = new Rectangle();
@@ -205,7 +222,7 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
 
         String text = b.getText();
 
-        Icon buttonIcon = (Icon) b.getIcon();
+        Icon buttonIcon = b.getIcon();
         if(buttonIcon == null) {
             buttonIcon = getDefaultIcon();
         }
@@ -223,15 +240,15 @@ public class BasicRadioButtonUI extends BasicToggleButtonUI
             c, fm, text, buttonIcon,
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
-            prefViewRect, prefIconRect, prefTextRect, 
+            prefViewRect, prefIconRect, prefTextRect,
             text == null ? 0 : b.getIconTextGap());
 
         // find the union of the icon and text rects (from Rectangle.java)
         int x1 = Math.min(prefIconRect.x, prefTextRect.x);
-        int x2 = Math.max(prefIconRect.x + prefIconRect.width, 
+        int x2 = Math.max(prefIconRect.x + prefIconRect.width,
                           prefTextRect.x + prefTextRect.width);
         int y1 = Math.min(prefIconRect.y, prefTextRect.y);
-        int y2 = Math.max(prefIconRect.y + prefIconRect.height, 
+        int y2 = Math.max(prefIconRect.y + prefIconRect.height,
                           prefTextRect.y + prefTextRect.height);
         int width = x2 - x1;
         int height = y2 - y1;

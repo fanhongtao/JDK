@@ -1,8 +1,26 @@
 /*
- * @(#)Console.java	1.12 09/04/01
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -68,11 +86,10 @@ import sun.nio.cs.StreamEncoder;
  * </pre></blockquote>
  *
  * @author  Xueming Shen
- * @version 1.12, 04/01/09
  * @since   1.6
  */
 
-public final class Console implements Flushable 
+public final class Console implements Flushable
 {
    /**
     * Retrieves the unique {@link java.io.PrintWriter PrintWriter} object
@@ -115,7 +132,7 @@ public final class Console implements Flushable
     */
     public Reader reader() {
         return reader;
-    } 
+    }
 
    /**
     * Writes a formatted string to this console's output stream using
@@ -131,8 +148,8 @@ public final class Console implements Flushable
     *         extra arguments are ignored.  The number of arguments is
     *         variable and may be zero.  The maximum number of arguments is
     *         limited by the maximum dimension of a Java array as defined by
-    *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
-    *         Virtual Machine Specification</a>.  The behaviour on a
+    *         <cite>The Java&trade; Virtual Machine Specification</cite>.
+    *         The behaviour on a
     *         <tt>null</tt> argument depends on the <a
     *         href="../util/Formatter.html#syntax">conversion</a>.
     *
@@ -170,8 +187,8 @@ public final class Console implements Flushable
     *         extra arguments are ignored.  The number of arguments is
     *         variable and may be zero.  The maximum number of arguments is
     *         limited by the maximum dimension of a Java array as defined by
-    *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
-    *         Virtual Machine Specification</a>.  The behaviour on a
+    *         <cite>The Java&trade; Virtual Machine Specification</cite>.
+    *         The behaviour on a
     *         <tt>null</tt> argument depends on the <a
     *         href="../util/Formatter.html#syntax">conversion</a>.
     *
@@ -187,7 +204,7 @@ public final class Console implements Flushable
     * @return  This console
     */
     public Console printf(String format, Object ... args) {
-	return format(format, args);
+        return format(format, args);
     }
 
    /**
@@ -203,8 +220,7 @@ public final class Console implements Flushable
     *         string.  If there are more arguments than format specifiers, the
     *         extra arguments are ignored.  The maximum number of arguments is
     *         limited by the maximum dimension of a Java array as defined by
-    *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
-    *         Virtual Machine Specification</a>.
+    *         <cite>The Java&trade; Virtual Machine Specification</cite>.
     *
     * @throws  IllegalFormatException
     *          If a format string contains an illegal syntax, a format
@@ -224,7 +240,7 @@ public final class Console implements Flushable
     */
     public String readLine(String fmt, Object ... args) {
         String line = null;
-        synchronized (writeLock) {  
+        synchronized (writeLock) {
             synchronized(readLock) {
                 if (fmt.length() != 0)
                     pw.format(fmt, args);
@@ -268,8 +284,7 @@ public final class Console implements Flushable
     *         string.  If there are more arguments than format specifiers, the
     *         extra arguments are ignored.  The maximum number of arguments is
     *         limited by the maximum dimension of a Java array as defined by
-    *         the <a href="http://java.sun.com/docs/books/vmspec/">Java
-    *         Virtual Machine Specification</a>.
+    *         <cite>The Java&trade; Virtual Machine Specification</cite>.
     *
     * @throws  IllegalFormatException
     *          If a format string contains an illegal syntax, a format
@@ -289,23 +304,35 @@ public final class Console implements Flushable
     */
     public char[] readPassword(String fmt, Object ... args) {
         char[] passwd = null;
-        synchronized (writeLock) {  
+        synchronized (writeLock) {
             synchronized(readLock) {
-                if (fmt.length() != 0)
-                    pw.format(fmt, args);
                 try {
                     echoOff = echo(false);
-                    passwd = readline(true);
                 } catch (IOException x) {
                     throw new IOError(x);
+                }
+                IOError ioe = null;
+                try {
+                    if (fmt.length() != 0)
+                        pw.format(fmt, args);
+                    passwd = readline(true);
+                } catch (IOException x) {
+                    ioe = new IOError(x);
                 } finally {
-		    try {
+                    try {
                         echoOff = echo(true);
-                    } catch (IOException xx) {}
+                    } catch (IOException x) {
+                        if (ioe == null)
+                            ioe = new IOError(x);
+                        else
+                            ioe.addSuppressed(x);
+                    }
+                    if (ioe != null)
+                        throw ioe;
                 }
                 pw.println();
-	    }
-	}
+            }
+        }
         return passwd;
     }
 
@@ -345,23 +372,23 @@ public final class Console implements Flushable
 
     private char[] readline(boolean zeroOut) throws IOException {
         int len = reader.read(rcb, 0, rcb.length);
-        if (len < 0) 
+        if (len < 0)
             return null;  //EOL
         if (rcb[len-1] == '\r')
             len--;        //remove CR at end;
-	else if (rcb[len-1] == '\n') {
+        else if (rcb[len-1] == '\n') {
             len--;        //remove LF at end;
-	    if (len > 0 && rcb[len-1] == '\r')
+            if (len > 0 && rcb[len-1] == '\r')
                 len--;    //remove the CR, if there is one
         }
-	char[] b = new char[len];
+        char[] b = new char[len];
         if (len > 0) {
-	    System.arraycopy(rcb, 0, b, 0, len);
+            System.arraycopy(rcb, 0, b, 0, len);
             if (zeroOut) {
                 Arrays.fill(rcb, 0, len, ' ');
             }
-	}
-	return b;
+        }
+        return b;
     }
 
     private char[] grow() {
@@ -385,12 +412,12 @@ public final class Console implements Flushable
         }
         public void close () {}
         public boolean ready() throws IOException {
-	    //in.ready synchronizes on readLock already
-            return in.ready(); 
+            //in.ready synchronizes on readLock already
+            return in.ready();
         }
 
         public int read(char cbuf[], int offset, int length)
-            throws IOException 
+            throws IOException
         {
             int off = offset;
             int end = offset + length;
@@ -398,108 +425,113 @@ public final class Console implements Flushable
                 end < 0 || end > cbuf.length) {
                 throw new IndexOutOfBoundsException();
             }
-	    synchronized(readLock) {
+            synchronized(readLock) {
                 boolean eof = false;
-		char c = 0;
-		for (;;) {
-                    if (nextChar >= nChars) {	//fill
-	                int n = 0;
-                	do {
-	                    n = in.read(cb, 0, cb.length);
-                	} while (n == 0);
-	                if (n > 0) {
-                      	    nChars = n;
-                      	    nextChar = 0;
-                            if (n < cb.length && 
-				cb[n-1] != '\n' && cb[n-1] != '\r') {
-			        /*
-			         * we're in canonical mode so each "fill" should 
-			         * come back with an eol. if there no lf or nl at
-			         * the end of returned bytes we reached an eof.
+                char c = 0;
+                for (;;) {
+                    if (nextChar >= nChars) {   //fill
+                        int n = 0;
+                        do {
+                            n = in.read(cb, 0, cb.length);
+                        } while (n == 0);
+                        if (n > 0) {
+                            nChars = n;
+                            nextChar = 0;
+                            if (n < cb.length &&
+                                cb[n-1] != '\n' && cb[n-1] != '\r') {
+                                /*
+                                 * we're in canonical mode so each "fill" should
+                                 * come back with an eol. if there no lf or nl at
+                                 * the end of returned bytes we reached an eof.
                                  */
-                                eof = true;  
-			    }
-	                } else { /*EOF*/
+                                eof = true;
+                            }
+                        } else { /*EOF*/
                             if (off - offset == 0)
                                 return -1;
                             return off - offset;
                         }
                     }
                     if (leftoverLF && cbuf == rcb && cb[nextChar] == '\n') {
-		        /*
-			 * if invoked by our readline, skip the leftover, otherwise
-		         * return the LF.
+                        /*
+                         * if invoked by our readline, skip the leftover, otherwise
+                         * return the LF.
                          */
                         nextChar++;
                     }
-                    leftoverLF = false; 
-		    while (nextChar < nChars) {
+                    leftoverLF = false;
+                    while (nextChar < nChars) {
                         c = cbuf[off++] = cb[nextChar];
                         cb[nextChar++] = 0;
-			if (c == '\n') {
+                        if (c == '\n') {
                             return off - offset;
                         } else if (c == '\r') {
                             if (off == end) {
-			        /* no space left even the next is LF, so return
-			         * whatever we have if the invoker is not our 
-			         * readLine()
+                                /* no space left even the next is LF, so return
+                                 * whatever we have if the invoker is not our
+                                 * readLine()
                                  */
-			        if (cbuf == rcb) {  
+                                if (cbuf == rcb) {
                                     cbuf = grow();
                                     end = cbuf.length;
                                 } else {
                                     leftoverLF = true;
-            			    return off - offset;
+                                    return off - offset;
                                 }
                             }
-			    if (nextChar == nChars && in.ready()) {
-			        /*
+                            if (nextChar == nChars && in.ready()) {
+                                /*
                                  * we have a CR and we reached the end of
                                  * the read in buffer, fill to make sure we
                                  * don't miss a LF, if there is one, it's possible
                                  * that it got cut off during last round reading
                                  * simply because the read in buffer was full.
                                  */
-	                        nChars = in.read(cb, 0, cb.length);
+                                nChars = in.read(cb, 0, cb.length);
                                 nextChar = 0;
-			    }
+                            }
                             if (nextChar < nChars && cb[nextChar] == '\n') {
                                 cbuf[off++] = '\n';
                                 nextChar++;
                             }
-			    return off - offset;
-			} else if (off == end) {
-			   if (cbuf == rcb) {
+                            return off - offset;
+                        } else if (off == end) {
+                           if (cbuf == rcb) {
                                 cbuf = grow();
                                 end = cbuf.length;
-			   } else {
+                           } else {
                                return off - offset;
                            }
-			}
-		    }
+                        }
+                    }
                     if (eof)
-                        return off - offset;   
-		}
-	    }
-	}
+                        return off - offset;
+                }
+            }
+        }
     }
-
 
     // Set up JavaIOAccess in SharedSecrets
     static {
-        // Add a shutdown hook to restore console's echo state should
-        // it be necessary.
-        sun.misc.SharedSecrets.getJavaLangAccess()
-            .registerShutdownHook(0 /* shutdown hook invocation order */,
-                new Runnable() {
-                    public void run() {
-                        try {
-                            if (echoOff) {
-                                echo(true);
-                            }
-                        } catch (IOException x) { }
-                    }
-                });
+        try {
+            // Add a shutdown hook to restore console's echo state should
+            // it be necessary.
+            sun.misc.SharedSecrets.getJavaLangAccess()
+                .registerShutdownHook(0 /* shutdown hook invocation order */,
+                    false /* only register if shutdown is not in progress */,
+                    new Runnable() {
+                        public void run() {
+                            try {
+                                if (echoOff) {
+                                    echo(true);
+                                }
+                            } catch (IOException x) { }
+                        }
+                    });
+        } catch (IllegalStateException e) {
+            // shutdown is already in progress and console is first used
+            // by a shutdown hook
+        }
 
         sun.misc.SharedSecrets.setJavaIOAccess(new sun.misc.JavaIOAccess() {
             public Console console() {
@@ -507,8 +539,8 @@ public final class Console implements Flushable
                     if (cons == null)
                         cons = new Console();
                     return cons;
-		}
-		return null;
+                }
+                return null;
             }
 
             public Charset charset() {
@@ -522,7 +554,7 @@ public final class Console implements Flushable
     private native static boolean istty();
     private Console() {
         readLock = new Object();
-        writeLock = new Object();    
+        writeLock = new Object();
         String csname = encoding();
         if (csname != null) {
             try {
@@ -533,15 +565,14 @@ public final class Console implements Flushable
             cs = Charset.defaultCharset();
         out = StreamEncoder.forOutputStreamWriter(
                   new FileOutputStream(FileDescriptor.out),
-		  writeLock, 
-		  cs);
+                  writeLock,
+                  cs);
         pw = new PrintWriter(out, true) { public void close() {} };
         formatter = new Formatter(out);
         reader = new LineReader(StreamDecoder.forInputStreamReader(
-		     new FileInputStream(FileDescriptor.in),
-		     readLock, 
-		     cs));
-	rcb = new char[1024];
+                     new FileInputStream(FileDescriptor.in),
+                     readLock,
+                     cs));
+        rcb = new char[1024];
     }
 }
-

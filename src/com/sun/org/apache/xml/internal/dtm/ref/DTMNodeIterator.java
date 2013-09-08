@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +31,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.traversal.NodeFilter;
 
 /**
- * <code>DTMNodeIterator</code> gives us an implementation of the 
+ * <code>DTMNodeIterator</code> gives us an implementation of the
  * DTMNodeIterator which returns DOM nodes.
  *
  * Please note that this is not necessarily equivlaent to a DOM
@@ -84,7 +88,7 @@ public class DTMNodeIterator implements org.w3c.dom.traversal.NodeIterator
     {
       return dtm_iter;
     }
-  
+
 
   //================================================================
   // org.w3c.dom.traversal.NodeFilter API follows
@@ -93,7 +97,7 @@ public class DTMNodeIterator implements org.w3c.dom.traversal.NodeIterator
    * releasing any computational resources and placing the iterator in
    * the INVALID state.
    * */
-  public void detach() 
+  public void detach()
     {
       // Theoretically, we could release dtm_iter at this point. But
       // some of the operations may still want to consult it even though
@@ -110,7 +114,7 @@ public class DTMNodeIterator implements org.w3c.dom.traversal.NodeIterator
     {
       return false;
     }
-  
+
   /** Return a handle to the filter used to screen nodes.
    *
    * This is ill-defined in Xalan's usage of Nodeiterator, where we have
@@ -119,15 +123,15 @@ public class DTMNodeIterator implements org.w3c.dom.traversal.NodeIterator
    * and allows querying whether a given node would be permitted if it appeared
    * as our next node, but in the current implementation that would be very
    * complex -- and just isn't all that useful.
-   * 
+   *
    * @throws DOMException -- NOT_SUPPORTED_ERROR because I can't think
    * of anything more useful to do in this case
    * */
-  public NodeFilter getFilter() 
+  public NodeFilter getFilter()
     {
       throw new DTMDOMException(DOMException.NOT_SUPPORTED_ERR);
     }
-  
+
 
   /** @return The root node of the NodeIterator, as specified
    * when it was created.
@@ -137,7 +141,7 @@ public class DTMNodeIterator implements org.w3c.dom.traversal.NodeIterator
       int handle=dtm_iter.getRoot();
       return dtm_iter.getDTM(handle).getNode(handle);
     }
-  
+
 
   /** Return a mask describing which node types are presented via the
    * iterator.
@@ -157,13 +161,13 @@ public class DTMNodeIterator implements org.w3c.dom.traversal.NodeIterator
     {
       if(!valid)
         throw new DTMDOMException(DOMException.INVALID_STATE_ERR);
-      
+
       int handle=dtm_iter.nextNode();
       if (handle==DTM.NULL)
         return null;
       return dtm_iter.getDTM(handle).getNode(handle);
     }
-  
+
 
   /** @return the next previous in the set and advance the position of the
    * iterator in the set.
@@ -171,14 +175,14 @@ public class DTMNodeIterator implements org.w3c.dom.traversal.NodeIterator
    * @throws DOMException - INVALID_STATE_ERR Raised if this method is
    * called after the detach method was invoked.
    *  */
-  public Node previousNode() 
+  public Node previousNode()
     {
       if(!valid)
         throw new DTMDOMException(DOMException.INVALID_STATE_ERR);
-      
+
       int handle=dtm_iter.previousNode();
       if (handle==DTM.NULL)
-        return null;      
+        return null;
       return dtm_iter.getDTM(handle).getNode(handle);
     }
 }

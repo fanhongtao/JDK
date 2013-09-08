@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -93,7 +97,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLNamespaceBinder.java,v 1.1.2.1 2005/08/01 03:34:08 jeffsuttor Exp $
+ * @version $Id: XMLNamespaceBinder.java,v 1.4 2010-11-01 04:39:41 joehw Exp $
  */
 public class XMLNamespaceBinder
     implements XMLComponent, XMLDocumentFilter {
@@ -239,12 +243,7 @@ public class XMLNamespaceBinder
         throws XNIException {
 
         // features
-        try {
-            fNamespaces = componentManager.getFeature(NAMESPACES);
-        }
-        catch (XMLConfigurationException e) {
-            fNamespaces = true;
-        }
+        fNamespaces = componentManager.getFeature(NAMESPACES, true);
 
         // Xerces properties
         fSymbolTable = (SymbolTable)componentManager.getProperty(SYMBOL_TABLE);

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -88,7 +92,7 @@ public class XMLErrorResources_it extends ListResourceBundle
   public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
 
 
-  /*
+  /* 
    * Message keys
    */
   public static final String ER_FUNCTION_NOT_SUPPORTED = "ER_FUNCTION_NOT_SUPPORTED";
@@ -144,14 +148,15 @@ public class XMLErrorResources_it extends ListResourceBundle
   public static final String ER_SYSTEMID_UNKNOWN = "ER_SYSTEMID_UNKNOWN";
   public static final String ER_LOCATION_UNKNOWN = "ER_LOCATION_UNKNOWN";
   public static final String ER_PREFIX_MUST_RESOLVE = "ER_PREFIX_MUST_RESOLVE";
-  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";
+  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";  
   public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT";
-  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";
-  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";
-  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";
-  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";
-  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";
-  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";
+  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";  
+  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";  
+  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";  
+  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";  
+  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";  
+  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";  
+  public static final String ER_NAME_CANT_START_WITH_COLON = "ER_NAME_CANT_START_WITH_COLON";
 
   // Message keys used by the serializer
   public static final String ER_RESOURCE_COULD_NOT_FIND = "ER_RESOURCE_COULD_NOT_FIND";
@@ -166,6 +171,7 @@ public class XMLErrorResources_it extends ListResourceBundle
   public static final String ER_COULD_NOT_LOAD_METHOD_PROPERTY = "ER_COULD_NOT_LOAD_METHOD_PROPERTY";
   public static final String ER_SERIALIZER_NOT_CONTENTHANDLER = "ER_SERIALIZER_NOT_CONTENTHANDLER";
   public static final String ER_ILLEGAL_ATTRIBUTE_POSITION = "ER_ILLEGAL_ATTRIBUTE_POSITION";
+  public static final String ER_ILLEGAL_CHARACTER = "ER_ILLEGAL_CHARACTER";
 
   /*
    * Now fill in the message text.
@@ -175,72 +181,66 @@ public class XMLErrorResources_it extends ListResourceBundle
 
   // Error messages...
 
-  /**
-   * Get the lookup table for error messages
-   *
-   * @return The association list.
-   */
-  public Object[][] getContents()
-  {
-    return new Object[][] {
+  /** The lookup table for error messages.   */
+  private static final Object[][] _contents = {
 
   /** Error message ID that has a null message, but takes in a single object.    */
     {"ER0000" , "{0}" },
-
-    { ER_FUNCTION_NOT_SUPPORTED,
+ 
+    { ER_FUNCTION_NOT_SUPPORTED, 
       "Funzione non supportata."},
 
     { ER_CANNOT_OVERWRITE_CAUSE,
-      "Impossibile sovrascrivere causa"},
+      "Impossibile sovrascrivere la causa"},
 
     { ER_NO_DEFAULT_IMPL,
-      "Non \u00e8 stata trovata alcuna implementazione predefinita "},
+      "Nessuna implementazione predefinita trovata "},
 
     { ER_CHUNKEDINTARRAY_NOT_SUPPORTED,
-      "ChunkedIntArray({0}) correntemente non supportato"},
+      "ChunkedIntArray({0}) non supportato al momento"},
 
     { ER_OFFSET_BIGGER_THAN_SLOT,
-      "Offset pi\u00f9 grande dello slot"},
+      "Offset pi\u00F9 grande dello slot"},
 
     { ER_COROUTINE_NOT_AVAIL,
-      "Coroutine non disponibile, id={0}"},
-
+      "Co-routine non disponibile, ID={0}"},
+    
     { ER_COROUTINE_CO_EXIT,
-      "CoroutineManager ha ricevuto la richiesta co_exit()"},
+      "CoroutineManager ha ricevuto una richiesta co_exit()"},
 
     { ER_COJOINROUTINESET_FAILED,
-      "co_joinCoroutineSet() con esito negativo"},
+      "co_joinCoroutineSet() non riuscito"},
 
     { ER_COROUTINE_PARAM,
-      "Errore parametro Coroutine {0})"},
+      "Errore del parametro di co-routine ({0})"},
 
     { ER_PARSER_DOTERMINATE_ANSWERS,
-      "\nNON PREVISTO: Risposte doTerminate del parser {0}"},
+      "\nIMPREVISTO: risposte doTerminate del parser {0}"},
 
     { ER_NO_PARSE_CALL_WHILE_PARSING,
-      "impossibile richiamare l'analisi durante l''analisi"},
+      "impossibile richiamare parse mentre \u00E8 in corso un'analisi"},
 
     { ER_TYPED_ITERATOR_AXIS_NOT_IMPLEMENTED,
-      "Errore: iteratore immesso per l''asse {0} non implementato "},
+      "Errore: l''iteratore con tipo per l''asse {0} non \u00E8 implementato"},
 
     { ER_ITERATOR_AXIS_NOT_IMPLEMENTED,
-      "Errore: iteratore per l''asse {0} non implementato "},
+      "Errore: l''iteratore per l''asse {0} non \u00E8 implementato "},
 
     { ER_ITERATOR_CLONE_NOT_SUPPORTED,
-      "Clone iteratore non supportato"},
+      "Duplicazione dell'iteratore non supportata"},
 
     { ER_UNKNOWN_AXIS_TYPE,
-      "Tipo trasversale di asse sconosciuto: {0}"},
+      "Tipo di asse trasversale sconosciuto: {0}"},
 
     { ER_AXIS_NOT_SUPPORTED,
-      "Trasversale dell''asse non supportato: {0}"},
+      "Asse trasversale non supportato: {0}"},
 
     { ER_NO_DTMIDS_AVAIL,
-      "Non vi sono ulteriori ID DTM disponibili"},
+      "Non sono disponibili altri ID DTM"},
 
     { ER_NOT_SUPPORTED,
       "Non supportato: {0}"},
-
+    
     { ER_NODE_NON_NULL,
       "Il nodo deve essere non nullo per getDTMHandleFromNode"},
 
@@ -248,28 +248,28 @@ public class XMLErrorResources_it extends ListResourceBundle
       "Impossibile risolvere il nodo in un handle"},
 
     { ER_STARTPARSE_WHILE_PARSING,
-       "Impossibile richiamare startParse durante l'analisi"},
+       "impossibile richiamare startParse mentre \u00E8 in corso un'analisi"},
 
     { ER_STARTPARSE_NEEDS_SAXPARSER,
-       "startParse richiede SAXParser non nullo"},
+       "startParse richiede un valore non nullo per SAXParser"},
 
     { ER_COULD_NOT_INIT_PARSER,
        "impossibile inizializzare il parser con"},
 
     { ER_EXCEPTION_CREATING_POOL,
-       "si \u00e8 verificata un'eccezione durante la creazione della nuova istanza per il pool"},
+       "eccezione durante la creazione di una nuova istanza per il pool"},
 
     { ER_PATH_CONTAINS_INVALID_ESCAPE_SEQUENCE,
        "Il percorso contiene sequenza di escape non valida"},
 
     { ER_SCHEME_REQUIRED,
-       "Lo schema \u00e8 obbligatorio."},
-
+       "Lo schema \u00E8 obbligatorio."},
+    
     { ER_NO_SCHEME_IN_URI,
        "Nessuno schema trovato nell''URI: {0}"},
 
     { ER_NO_SCHEME_INURI,
-       "Non \u00e8 stato trovato alcuno schema nell'URI"},
+       "Nessuno schema trovato nell'URI"},
 
     { ER_PATH_INVALID_CHAR,
        "Il percorso contiene un carattere non valido: {0}"},
@@ -278,61 +278,61 @@ public class XMLErrorResources_it extends ListResourceBundle
        "Impossibile impostare lo schema da una stringa nulla"},
 
     { ER_SCHEME_NOT_CONFORMANT,
-       "Lo schema non \u00e8 conforme."},
+       "Lo schema non \u00E8 conforme."},
 
     { ER_HOST_ADDRESS_NOT_WELLFORMED,
-       "Host non \u00e8 un'indirizzo corretto"},
+       "Host non \u00E8 un indirizzo corretto"},
 
     { ER_PORT_WHEN_HOST_NULL,
-       "La porta non pu\u00f2 essere impostata se l'host \u00e8 nullo"},
+       "La porta non pu\u00F2 essere impostata se l'host \u00E8 nullo"},
 
     { ER_INVALID_PORT,
        "Numero di porta non valido"},
 
     { ER_FRAG_FOR_GENERIC_URI,
-       "Il frammento pu\u00f2 essere impostato solo per un URI generico"},
+       "Il frammento pu\u00F2 essere impostato solo per un URI generico"},
 
     { ER_FRAG_WHEN_PATH_NULL,
-       "Il frammento non pu\u00f2 essere impostato se il percorso \u00e8 nullo"},
+       "Il frammento non pu\u00F2 essere impostato se il percorso \u00E8 nullo"},
 
     { ER_FRAG_INVALID_CHAR,
        "Il frammento contiene un carattere non valido"},
 
     { ER_PARSER_IN_USE,
-      "Parser gi\u00e0 in utilizzo"},
+      "Parser gi\u00E0 in uso"},
 
     { ER_CANNOT_CHANGE_WHILE_PARSING,
       "Impossibile modificare {0} {1} durante l''analisi"},
-
+   
     { ER_SELF_CAUSATION_NOT_PERMITTED,
-      "Self-causation non consentito"},
+      "Creazione automatica della causa non consentita"},
 
     { ER_NO_USERINFO_IF_NO_HOST,
-      "Userinfo non pu\u00f2 essere specificato se l'host non \u00e8 specificato"},
+      "Userinfo non pu\u00F2 essere specificato se l'host non \u00E8 specificato"},
 
     { ER_NO_PORT_IF_NO_HOST,
-      "La porta non pu\u00f2 essere specificata se l'host non \u00e8 specificato"},
+      "La porta non pu\u00F2 essere specificata se l'host non \u00E8 specificato"},
 
-    { ER_NO_QUERY_STRING_IN_PATH,
-      "La stringa di interrogazione non pu\u00f2 essere specificata nella stringa di interrogazione e percorso."},
+    { ER_NO_QUERY_STRING_IN_PATH, 
+      "La stringa di query non pu\u00F2 essere specificata nella stringa di percorso e query."},
 
     { ER_NO_FRAGMENT_STRING_IN_PATH,
-      "Il frammento non pu\u00f2 essere specificato sia nel percorso che nel frammento"},
+      "Il frammento non pu\u00F2 essere specificato sia nel percorso che nel frammento"},
 
-    { ER_CANNOT_INIT_URI_EMPTY_PARMS,
+    { ER_CANNOT_INIT_URI_EMPTY_PARMS, 
       "Impossibile inizializzare l'URI con i parametri vuoti"},
 
     { ER_METHOD_NOT_SUPPORTED,
-      "Metodo non ancora supportato "},
-
+      "Metodo attualmente non supportato "},
+    
     { ER_INCRSAXSRCFILTER_NOT_RESTARTABLE,
-      "IncrementalSAXSource_Filter correntemente non riavviabile"},
+      "IncrementalSAXSource_Filter attualmente non riavviabile"},
 
     { ER_XMLRDR_NOT_BEFORE_STARTPARSE,
       "XMLReader non si trova prima della richiesta startParse"},
 
     { ER_AXIS_TRAVERSER_NOT_SUPPORTED,
-      "Trasversale dell''asse non supportato: {0}"},
+      "Asse trasversale non supportato: {0}"},
 
     { ER_ERRORHANDLER_CREATED_WITH_NULL_PRINTWRITER,
       "ListingErrorHandler creato con PrintWriter nullo."},
@@ -341,66 +341,69 @@ public class XMLErrorResources_it extends ListResourceBundle
       "SystemId sconosciuto"},
 
     { ER_LOCATION_UNKNOWN,
-      "Posizione di errore sconosciuta"},
+      "Posizione sconosciuta dell'errore"},
 
     { ER_PREFIX_MUST_RESOLVE,
-      "Il prefisso deve risolvere in uno spazio nomi: {0}"},
+      "Il prefisso deve essere risolto in uno spazio di nomi: {0}"},
 
     { ER_CREATEDOCUMENT_NOT_SUPPORTED,
-      "createDocument() non supportato in XPathContext!"},
+      "createDocument() non supportato in XPathContext"},
 
     { ER_CHILD_HAS_NO_OWNER_DOCUMENT,
-      "Il secondario dell'attributo non ha un documento proprietario."},
+      "L'elemento figlio dell'attributo non dispone di un documento proprietario."},
 
     { ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT,
-      "Il secondario dell'attributo non ha un elemento del documento proprietario."},
+      "L'elemento figlio dell'attributo non dispone di un elemento di documento proprietario."},
 
     { ER_CANT_OUTPUT_TEXT_BEFORE_DOC,
-      "Attenzione: impossibile emettere testo prima dell'elemento del documento. Operazione ignorata..."},
+      "Avvertenza: impossibile creare l'output del testo prima dell'elemento del documento. Operazione ignorata..."},
 
     { ER_CANT_HAVE_MORE_THAN_ONE_ROOT,
-      "Impossibile avere pi\u00f9 di una root in un DOM!"},
+      "Non possono esistere pi\u00F9 radici in un DOM."},
 
     { ER_ARG_LOCALNAME_NULL,
-       "Argomento 'localName' nullo"},
-
+       "L'argomento 'localName' \u00E8 nullo"},
+ 
     // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
     // The localname is the portion after the optional colon; the message indicates
     // that there is a problem with that part of the QNAME.
     { ER_ARG_LOCALNAME_INVALID,
-       "Localname in QNAME deve essere un NCName valido "},
+       "Localname in QNAME deve essere un NCName valido"},
 
     // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
     // The prefix is the portion before the optional colon; the message indicates
     // that there is a problem with that part of the QNAME.
     { ER_ARG_PREFIX_INVALID,
-       "Prefix in QNAME deve essere un NCName valido "},
-
-    { "BAD_CODE", "Il parametro per createMessage fuori limite"},
-    { "FORMAT_FAILED", "Rilevata eccezione durante la chiamata messageFormat"},
-    { "line", "Riga #"},
-    { "column","Colonna #"},
-
+       "Il prefisso in QNAME deve essere un NCName valido"},
+       
+    { ER_NAME_CANT_START_WITH_COLON,
+      "Il nome non pu\u00F2 iniziare con i due punti"},
+       
+    { "BAD_CODE", "Parametro per createMessage fuori limite"},
+    { "FORMAT_FAILED", "Eccezione durante la chiamata messageFormat"},
+    { "line", "N. riga"},
+    { "column","N. colonna"},
+    
     {ER_SERIALIZER_NOT_CONTENTHANDLER,
-      "La classe serializer ''{0}'' non implementa org.xml.sax.ContentHandler."},
-
+      "La classe serializzatore ''{0}'' non implementa org.xml.sax.ContentHandler."},
+    
     {ER_RESOURCE_COULD_NOT_FIND,
       "Risorsa [ {0} ] non trovata.\n {1}" },
-
+    
     {ER_RESOURCE_COULD_NOT_LOAD,
       "Impossibile caricare la risorsa [ {0} ]: {1} \n {2} \t {3}" },
-
+    
     {ER_BUFFER_SIZE_LESSTHAN_ZERO,
       "Dimensione buffer <=0" },
-
+    
     {ER_INVALID_UTF16_SURROGATE,
-      "Rilevato surrogato UTF-16 non valido: {0} ?" },
-
+      "Rilevato surrogato UTF-16 non valido: {0}?" },
+    
     {ER_OIERROR,
       "Errore IO" },
-
+    
     {ER_ILLEGAL_ATTRIBUTE_POSITION,
-      "Impossibile aggiungere l''attributo {0} dopo i nodi secondari o prima che sia prodotto un elemento. L''attributo verr\u00e0 ignorato. "},
+      "Impossibile aggiungere l''attributo {0} dopo i nodi figlio o prima che sia prodotto un elemento. L''attributo verr\u00E0 ignorato."},
 
       /*
        * Note to translators:  The stylesheet contained a reference to a
@@ -408,7 +411,7 @@ public class XMLErrorResources_it extends ListResourceBundle
        * text is the name of the prefix.
        */
     {ER_NAMESPACE_PREFIX,
-      "Lo spazio nomi per il prefisso ''{0}'' non \u00e8 stato dichiarato. " },
+      "Lo spazio di nomi per il prefisso ''{0}'' non \u00E8 stato dichiarato." },
       /*
        * Note to translators:  This message is reported if the stylesheet
        * being processed attempted to construct an XML document with an
@@ -416,7 +419,7 @@ public class XMLErrorResources_it extends ListResourceBundle
        * specifies the name of the attribute.
        */
     {ER_STRAY_ATTRIBUTE,
-      "Attributo ''{0}'' al di fuori dell''elemento. " },
+      "Attributo ''{0}'' al di fuori dell''elemento." },
 
       /*
        * Note to translators:  As with the preceding message, a namespace
@@ -426,17 +429,29 @@ public class XMLErrorResources_it extends ListResourceBundle
        * namespace declaration.
        */
     {ER_STRAY_NAMESPACE,
-      "Dichiarazione dello spazio nome ''{0}''=''{1}'' al di fuori dell''elemento. " },
+      "Dichiarazione dello spazio di nomi ''{0}''=''{1}'' al di fuori dell''elemento." },
 
     {ER_COULD_NOT_LOAD_RESOURCE,
-      "Impossibile caricare ''{0}'' (verificare CLASSPATH); verranno utilizzati i valori predefiniti "},
+      "Impossibile caricare ''{0}'' (verificare CLASSPATH); verranno utilizzati i valori predefiniti"},
 
+    { ER_ILLEGAL_CHARACTER,
+       "Tentativo di eseguire l''output di un carattere di valore integrale {0} non rappresentato nella codifica di output {1} specificata."},
+    
     {ER_COULD_NOT_LOAD_METHOD_PROPERTY,
-      "Impossibile caricare il file delle propriet\u00e0 ''{0}'' per il metodo di emissione ''{1}'' (verificare CLASSPATH)" }
-
-
+      "Impossibile caricare il file delle propriet\u00E0 ''{0}'' per il metodo di emissione ''{1}'' (verificare CLASSPATH)" }
+    
+  
   };
-  }
+
+  /**
+   * Get the association list.
+   *
+   * @return The association list.
+   */
+ 
+    protected Object[][] getContents() {
+        return _contents;
+    }
 
   /**
    *   Return a named ResourceBundle for a particular locale.  This method mimics the behavior
@@ -468,7 +483,7 @@ public class XMLErrorResources_it extends ListResourceBundle
         // Since we can't find the localized property file,
         // fall back to en_US.
         return (XMLErrorResources) ResourceBundle.getBundle(className,
-                new Locale("it", "IT"));
+                new Locale("en", "US"));
       }
       catch (MissingResourceException e2)
       {
@@ -500,5 +515,5 @@ public class XMLErrorResources_it extends ListResourceBundle
 
     return suffix;
   }
-
+  
 }

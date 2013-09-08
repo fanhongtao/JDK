@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,107 +42,107 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
 final class ParentPattern extends RelativePathPattern {
     private final Pattern _left;
     private final RelativePathPattern _right;
-		
+
     public ParentPattern(Pattern left, RelativePathPattern right) {
-	(_left = left).setParent(this);
-	(_right = right).setParent(this);
+        (_left = left).setParent(this);
+        (_right = right).setParent(this);
     }
 
     public void setParser(Parser parser) {
-	super.setParser(parser);
-	_left.setParser(parser);
-	_right.setParser(parser);
+        super.setParser(parser);
+        _left.setParser(parser);
+        _right.setParser(parser);
     }
-    
+
     public boolean isWildcard() {
-	return false;
+        return false;
     }
-	
+
     public StepPattern getKernelPattern() {
-	return _right.getKernelPattern();
+        return _right.getKernelPattern();
     }
-	
+
     public void reduceKernelPattern() {
-	_right.reduceKernelPattern();
+        _right.reduceKernelPattern();
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	_left.typeCheck(stable);
-	return _right.typeCheck(stable);
+        _left.typeCheck(stable);
+        return _right.typeCheck(stable);
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
-	final LocalVariableGen local =
-	    methodGen.addLocalVariable2("ppt", 
-					Util.getJCRefType(NODE_SIG),
-					il.getEnd());
-	
-	final com.sun.org.apache.bcel.internal.generic.Instruction loadLocal =
-	    new ILOAD(local.getIndex());
-	final com.sun.org.apache.bcel.internal.generic.Instruction storeLocal =
-	    new ISTORE(local.getIndex());
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
+        final LocalVariableGen local =
+            methodGen.addLocalVariable2("ppt",
+                                        Util.getJCRefType(NODE_SIG),
+                                        il.getEnd());
 
-	if (_right.isWildcard()) {
-	    il.append(methodGen.loadDOM());
-	    il.append(SWAP);
-	}
-	else if (_right instanceof StepPattern) {
-	    il.append(DUP);
-	    il.append(storeLocal);
-	    
-	    _right.translate(classGen, methodGen);
-	    
-	    il.append(methodGen.loadDOM());
-	    local.setEnd(il.append(loadLocal));
-	}
-	else {
-	    _right.translate(classGen, methodGen);
+        final com.sun.org.apache.bcel.internal.generic.Instruction loadLocal =
+            new ILOAD(local.getIndex());
+        final com.sun.org.apache.bcel.internal.generic.Instruction storeLocal =
+            new ISTORE(local.getIndex());
 
-	    if (_right instanceof AncestorPattern) {
-		il.append(methodGen.loadDOM());
-		il.append(SWAP);
-	    }
-	}
+        if (_right.isWildcard()) {
+            il.append(methodGen.loadDOM());
+            il.append(SWAP);
+        }
+        else if (_right instanceof StepPattern) {
+            il.append(DUP);
+            il.append(storeLocal);
 
-	final int getParent = cpg.addInterfaceMethodref(DOM_INTF,
-							GET_PARENT,
-							GET_PARENT_SIG);
-	il.append(new INVOKEINTERFACE(getParent, 2));
+            _right.translate(classGen, methodGen);
 
-	final SyntaxTreeNode p = getParent();
-	if (p == null || p instanceof Instruction || 
-	    p instanceof TopLevelElement) 
-	{
-	    _left.translate(classGen, methodGen);
-	}
-	else {
-	    il.append(DUP);
-	    il.append(storeLocal);
-	    
-	    _left.translate(classGen, methodGen);
+            il.append(methodGen.loadDOM());
+            local.setEnd(il.append(loadLocal));
+        }
+        else {
+            _right.translate(classGen, methodGen);
 
-	    il.append(methodGen.loadDOM());
-	    local.setEnd(il.append(loadLocal));
-	}
+            if (_right instanceof AncestorPattern) {
+                il.append(methodGen.loadDOM());
+                il.append(SWAP);
+            }
+        }
 
-	methodGen.removeLocalVariable(local);
-	
-	/*
-	 * If _right is an ancestor pattern, backpatch _left false
-	 * list to the loop that searches for more ancestors.
-	 */
-	if (_right instanceof AncestorPattern) {
-	    final AncestorPattern ancestor = (AncestorPattern) _right;
-	    _left.backPatchFalseList(ancestor.getLoopHandle());    // clears list
-	}
+        final int getParent = cpg.addInterfaceMethodref(DOM_INTF,
+                                                        GET_PARENT,
+                                                        GET_PARENT_SIG);
+        il.append(new INVOKEINTERFACE(getParent, 2));
 
-	_trueList.append(_right._trueList.append(_left._trueList));
-	_falseList.append(_right._falseList.append(_left._falseList));
+        final SyntaxTreeNode p = getParent();
+        if (p == null || p instanceof Instruction ||
+            p instanceof TopLevelElement)
+        {
+            _left.translate(classGen, methodGen);
+        }
+        else {
+            il.append(DUP);
+            il.append(storeLocal);
+
+            _left.translate(classGen, methodGen);
+
+            il.append(methodGen.loadDOM());
+            local.setEnd(il.append(loadLocal));
+        }
+
+        methodGen.removeLocalVariable(local);
+
+        /*
+         * If _right is an ancestor pattern, backpatch _left false
+         * list to the loop that searches for more ancestors.
+         */
+        if (_right instanceof AncestorPattern) {
+            final AncestorPattern ancestor = (AncestorPattern) _right;
+            _left.backPatchFalseList(ancestor.getLoopHandle());    // clears list
+        }
+
+        _trueList.append(_right._trueList.append(_left._trueList));
+        _falseList.append(_right._falseList.append(_left._falseList));
     }
 
     public String toString() {
-	return "Parent(" + _left + ", " + _right + ')';
+        return "Parent(" + _left + ", " + _right + ')';
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)Completions.java	1.2 06/07/31
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.annotation.processing;
@@ -15,7 +33,6 @@ import java.util.Arrays;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.2 06/07/31
  * @since 1.6
  */
 public class Completions {
@@ -23,30 +40,30 @@ public class Completions {
     private Completions() {}
 
     private static class SimpleCompletion implements Completion {
-	private String value;
-	private String message;
+        private String value;
+        private String message;
 
-	SimpleCompletion(String value, String message) {
-	    if (value == null || message == null)
-		throw new NullPointerException("Null completion strings not accepted.");
-	    this.value = value;
-	    this.message = message;
-	}
+        SimpleCompletion(String value, String message) {
+            if (value == null || message == null)
+                throw new NullPointerException("Null completion strings not accepted.");
+            this.value = value;
+            this.message = message;
+        }
 
-	public String getValue() {
-	    return value;
-	}
+        public String getValue() {
+            return value;
+        }
 
 
-	public String getMessage() {
-	    return message;
-	}
+        public String getMessage() {
+            return message;
+        }
 
-	@Override
-	public String toString() {
-	    return "[\"" + value + "\", \"" + message + "\"]";
-	}
-	// Default equals and hashCode are fine.
+        @Override
+        public String toString() {
+            return "[\"" + value + "\", \"" + message + "\"]";
+        }
+        // Default equals and hashCode are fine.
     }
 
     /**
@@ -57,7 +74,7 @@ public class Completions {
      * @return a completion of the provided value and message
      */
     public static Completion of(String value, String message) {
-	return new SimpleCompletion(value, message);
+        return new SimpleCompletion(value, message);
     }
 
     /**
@@ -67,6 +84,6 @@ public class Completions {
      * @return a completion of the value and an empty message
      */
     public static Completion of(String value) {
-	return new SimpleCompletion(value, "");
+        return new SimpleCompletion(value, "");
     }
 }

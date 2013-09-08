@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2004 World Wide Web Consortium,
  *
  * (Massachusetts Institute of Technology, European Research Consortium for
@@ -91,8 +120,8 @@ public final class DOMImplementationRegistry {
      * application or the implementation, depending on the context, by
      * first checking the value of the Java system property
      * <code>org.w3c.dom.DOMImplementationSourceList</code> and
-     * the the service provider whose contents are at
-     * "<code>META_INF/services/org.w3c.dom.DOMImplementationSourceList</code>"
+     * the service provider whose contents are at
+     * "<code>META_INF/services/org.w3c.dom.DOMImplementationSourceList</code>". 
      * The value of this property is a white-space separated list of
      * names of availables classes implementing the
      * <code>DOMImplementationSource</code> interface. Each class listed

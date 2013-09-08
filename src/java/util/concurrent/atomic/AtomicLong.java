@@ -1,8 +1,36 @@
 /*
- * @(#)AtomicLong.java	1.12 06/06/15
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent.atomic;
@@ -30,7 +58,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
     /**
      * Records whether the underlying JVM supports lockless
-     * CompareAndSet for longs. While the unsafe.CompareAndSetLong
+     * compareAndSwap for longs. While the Unsafe.compareAndSwapLong
      * method works in either case, some constructions should be
      * handled at Java level to avoid locking user-visible locks.
      */
@@ -118,7 +146,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * the actual value was not equal to the expected value.
      */
     public final boolean compareAndSet(long expect, long update) {
-	return unsafe.compareAndSwapLong(this, valueOffset, expect, update);
+        return unsafe.compareAndSwapLong(this, valueOffset, expect, update);
     }
 
     /**
@@ -134,7 +162,7 @@ public class AtomicLong extends Number implements java.io.Serializable {
      * @return true if successful.
      */
     public final boolean weakCompareAndSet(long expect, long update) {
-	return unsafe.compareAndSwapLong(this, valueOffset, expect, update);
+        return unsafe.compareAndSwapLong(this, valueOffset, expect, update);
     }
 
     /**
@@ -233,19 +261,19 @@ public class AtomicLong extends Number implements java.io.Serializable {
 
 
     public int intValue() {
-	return (int)get();
+        return (int)get();
     }
 
     public long longValue() {
-	return (long)get();
+        return get();
     }
 
     public float floatValue() {
-	return (float)get();
+        return (float)get();
     }
 
     public double doubleValue() {
-	return (double)get();
+        return (double)get();
     }
 
 }

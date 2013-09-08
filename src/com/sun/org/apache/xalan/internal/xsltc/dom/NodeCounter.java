@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +29,6 @@ import com.sun.org.apache.xalan.internal.xsltc.DOM;
 import com.sun.org.apache.xalan.internal.xsltc.Translet;
 import com.sun.org.apache.xml.internal.dtm.DTM;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
-import com.sun.org.apache.xml.internal.dtm.Axis;
 
 /**
  * @author Jacek Ambroziak
@@ -65,13 +68,26 @@ public abstract class NodeCounter {
     private final static String[] Ones = 
     {"", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"};
   
-  private StringBuffer _tempBuffer = new StringBuffer();
+    private StringBuilder _tempBuffer = new StringBuilder();
+    
+    /**
+     * Indicates if this instance of xsl:number has a from pattern.
+     */
+    protected boolean _hasFrom;
     
     protected NodeCounter(Translet translet,
               DOM document, DTMAxisIterator iterator) {
     _translet = translet;
     _document = document;
     _iterator = iterator;
+    }
+    
+    protected NodeCounter(Translet translet,
+              DOM document, DTMAxisIterator iterator, boolean hasFrom) {
+        _translet = translet;
+        _document = document;
+        _iterator = iterator;
+        _hasFrom = hasFrom;
     }
 
     /** 
@@ -97,16 +113,70 @@ public abstract class NodeCounter {
     _lang = lang;
     _groupSep = groupSep;
     _letterValue = letterValue;
-
-    try {
-        _groupSize = Integer.parseInt(groupSize);
-    }
-    catch (NumberFormatException e) {
-       _groupSize = 0;
-    }
+    _groupSize = parseStringToAnInt(groupSize);
     setTokens(format);
 
  }
+
+    /**
+     * Effectively does the same thing as Integer.parseInt(String s) except
+     * instead of throwing a NumberFormatException, it returns 0.  This method
+     * is used instead of Integer.parseInt() since it does not incur the
+     * overhead of throwing an Exception which is expensive.
+     *
+     * @param s  A String to be parsed into an int.
+     * @return  Either an int represented by the incoming String s, or 0 if
+     *          the parsing is not successful.
+     */
+    private int parseStringToAnInt(String s) {
+        if (s == null)
+            return 0;
+
+        int result = 0;
+        boolean negative = false;
+        int radix = 10, i = 0, max = s.length();
+        int limit, multmin, digit;
+
+        if (max > 0) {
+            if (s.charAt(0) == '-') {
+                negative = true;
+                limit = Integer.MIN_VALUE;
+                i++;
+            } else {
+                limit = -Integer.MAX_VALUE;
+            }
+            multmin = limit / radix;
+            if (i < max) {
+                digit = Character.digit(s.charAt(i++), radix);
+                if (digit < 0)
+                    return 0;
+                else
+                    result = -digit;
+            }
+            while (i < max) {
+                // Accumulating negatively avoids surprises near MAX_VALUE
+                digit = Character.digit(s.charAt(i++), radix);
+                if (digit < 0)
+                    return 0;
+                if (result < multmin)
+                    return 0;
+                result *= radix;
+                if (result < limit + digit)
+                    return 0;
+                result -= digit;
+            }
+        } else {
+            return 0;
+        }
+        if (negative) {
+            if (i > 1)
+                return result;
+            else /* Only got "-" */
+                return 0;
+        } else {
+            return -result;
+        }
+    }
   
   // format == null assumed here 
  private final void setTokens(final String format){
@@ -223,7 +293,6 @@ public abstract class NodeCounter {
      */
     protected String formatNumbers(int[] values) {
     final int nValues = values.length;
-    final int length = _format.length();
 
     boolean isEmpty = true;
     for (int i = 0; i < nValues; i++)
@@ -235,7 +304,7 @@ public abstract class NodeCounter {
     boolean isFirst = true;
     int t = 0, n = 0, s = 1;
   _tempBuffer.setLength(0);
-    final StringBuffer buffer = _tempBuffer;
+    final StringBuilder buffer = _tempBuffer;
 
     // Append separation token before first digit/letter/numeral
     if (_separFirst) buffer.append((String)_separToks.elementAt(0));
@@ -263,15 +332,15 @@ public abstract class NodeCounter {
      * This method is based on saxon (Michael Kay) and only implements
      * lang="en".
      */
-    private void formatValue(int value, String format, StringBuffer buffer) {
+    private void formatValue(int value, String format, StringBuilder buffer) {
         char c = format.charAt(0);
 
         if (Character.isDigit(c)) {
             char zero = (char)(c - Character.getNumericValue(c));
 
-            StringBuffer temp = buffer;
+            StringBuilder temp = buffer;
             if (_groupSize > 0) {
-                temp = new StringBuffer();
+                temp = new StringBuilder();
             }
             String s = "";
             int n = value;

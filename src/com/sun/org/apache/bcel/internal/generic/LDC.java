@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -56,12 +60,11 @@ package com.sun.org.apache.bcel.internal.generic;
 import java.io.*;
 import com.sun.org.apache.bcel.internal.util.ByteSequence;
 
-/** 
+/**
  * LDC - Push item from constant pool.
  *
  * <PRE>Stack: ... -&gt; ..., item</PRE>
  *
- * @version $Id: LDC.java,v 1.1.2.1 2005/07/31 23:45:08 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class LDC extends CPInstruction
@@ -76,7 +79,7 @@ public class LDC extends CPInstruction
     super(com.sun.org.apache.bcel.internal.Constants.LDC_W, index);
     setSize();
   }
-  
+
   // Adjust to proper size
   protected final void setSize() {
     if(index <= com.sun.org.apache.bcel.internal.Constants.MAX_BYTE) { // Fits in one byte?
@@ -104,7 +107,7 @@ public class LDC extends CPInstruction
   /**
    * Set the index to constant pool and adjust size.
    */
-  public final void setIndex(int index) { 
+  public final void setIndex(int index) {
     super.setIndex(index);
     setSize();
   }
@@ -124,15 +127,15 @@ public class LDC extends CPInstruction
 
     switch(c.getTag()) {
       case com.sun.org.apache.bcel.internal.Constants.CONSTANT_String:
-	int i = ((com.sun.org.apache.bcel.internal.classfile.ConstantString)c).getStringIndex();
-	c = cpg.getConstantPool().getConstant(i);
-	return ((com.sun.org.apache.bcel.internal.classfile.ConstantUtf8)c).getBytes();
+        int i = ((com.sun.org.apache.bcel.internal.classfile.ConstantString)c).getStringIndex();
+        c = cpg.getConstantPool().getConstant(i);
+        return ((com.sun.org.apache.bcel.internal.classfile.ConstantUtf8)c).getBytes();
 
     case com.sun.org.apache.bcel.internal.Constants.CONSTANT_Float:
-	return new Float(((com.sun.org.apache.bcel.internal.classfile.ConstantFloat)c).getBytes());
+        return new Float(((com.sun.org.apache.bcel.internal.classfile.ConstantFloat)c).getBytes());
 
     case com.sun.org.apache.bcel.internal.Constants.CONSTANT_Integer:
-	return new Integer(((com.sun.org.apache.bcel.internal.classfile.ConstantInteger)c).getBytes());
+        return new Integer(((com.sun.org.apache.bcel.internal.classfile.ConstantInteger)c).getBytes());
 
     default: // Never reached
       throw new RuntimeException("Unknown or invalid constant type at " + index);

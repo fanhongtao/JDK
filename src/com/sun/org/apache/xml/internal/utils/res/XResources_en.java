@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,14 +33,7 @@ package com.sun.org.apache.xml.internal.utils.res;
 public class XResources_en extends XResourceBundle
 {
 
-  /**
-   * Get the association list.
-   *
-   * @return The association list.
-   */
-  public Object[][] getContents()
-  {
-    return new Object[][] 
+  private static final Object[][] _contents = new Object[][]
   {
     { "ui_language", "en" }, { "help_language", "en" }, { "language", "en" },
     { "alphabet", new CharArrayWrapper(
@@ -67,5 +64,13 @@ public class XResources_en extends XResourceBundle
     //hundreds, etc...
     //{"tables", new String[]{"tens", "digits"}}
   };
+  /**
+   * Get the association list.
+   *
+   * @return The association list.
+   */
+  public Object[][] getContents()
+  {
+      return _contents;
   }
 }

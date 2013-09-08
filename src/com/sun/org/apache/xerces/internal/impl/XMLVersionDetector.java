@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2003 The Apache Software Foundation.  
+ * Copyright (c) 1999-2003 The Apache Software Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -71,13 +75,12 @@ import com.sun.xml.internal.stream.Entity.ScannedEntity;
 /**
  * This class scans the version of the document to determine
  * which scanner to use: XML 1.1 or XML 1.0.
- * The version is scanned using XML 1.1. scanner.  
- * 
+ * The version is scanned using XML 1.1. scanner.
+ *
  * @xerces.internal
- * 
- * @author Neil Graham, IBM 
+ *
+ * @author Neil Graham, IBM
  * @author Elena Litani, IBM
- * @version $Id: XMLVersionDetector.java,v 1.2 2005/08/16 22:51:39 jeffsuttor Exp $
  */
 public class XMLVersionDetector {
 
@@ -91,15 +94,15 @@ public class XMLVersionDetector {
     // property identifiers
 
     /** Property identifier: symbol table. */
-    protected static final String SYMBOL_TABLE = 
+    protected static final String SYMBOL_TABLE =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY;
 
     /** Property identifier: error reporter. */
-    protected static final String ERROR_REPORTER = 
+    protected static final String ERROR_REPORTER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_REPORTER_PROPERTY;
 
     /** Property identifier: entity manager. */
-    protected static final String ENTITY_MANAGER = 
+    protected static final String ENTITY_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.ENTITY_MANAGER_PROPERTY;
 
     //
@@ -125,12 +128,12 @@ public class XMLVersionDetector {
 
     private XMLString fVersionNum = new XMLString();
 
-    private final char [] fExpectedVersionString = {'<', '?', 'x', 'm', 'l', ' ', 'v', 'e', 'r', 's', 
+    private final char [] fExpectedVersionString = {'<', '?', 'x', 'm', 'l', ' ', 'v', 'e', 'r', 's',
                     'i', 'o', 'n', '=', ' ', ' ', ' ', ' ', ' '};
 
     /**
-     * 
-     * 
+     *
+     *
      * @param componentManager The component manager.
      *
      * @throws SAXException Throws exception if required features and
@@ -163,23 +166,23 @@ public class XMLVersionDetector {
         }
         // Make sure the locator used by the error reporter is the current entity scanner.
         fErrorReporter.setDocumentLocator(fEntityManager.getEntityScanner());
-        
+
         // Note: above we reset fEntityScanner in the entity manager, thus in startEntity
         // in each scanner fEntityScanner field must be reset to reflect the change.
-        // 
+        //
         fEntityManager.setEntityHandler(scanner);
-        
-        scanner.startEntity(fXMLSymbol, fEntityManager.getCurrentResourceIdentifier(), fEncoding, null);        
+
+        scanner.startEntity(fXMLSymbol, fEntityManager.getCurrentResourceIdentifier(), fEncoding, null);
     }
 
 
     /**
-     * This methods scans the XML declaration to find out the version 
+     * This methods scans the XML declaration to find out the version
      * (and provisional encoding)  of the document.
      * The scanning is doing using XML 1.1 scanner.
      * @param inputSource
-     * @return short - Constants.XML_VERSION_1_1 if document version 1.1, 
-     *                  otherwise Constants.XML_VERSION_1_0 
+     * @return short - Constants.XML_VERSION_1_1 if document version 1.1,
+     *                  otherwise Constants.XML_VERSION_1_0
      * @throws IOException
      */
     public short determineDocVersion(XMLInputSource inputSource) throws IOException {
@@ -215,7 +218,7 @@ public class XMLVersionDetector {
             for (int versionPos = 0; versionPos < XML11_VERSION.length; versionPos++) {
                 fExpectedVersionString[15 + versionPos] = (char) scanner.scanChar();
             }
-            // REVISIT:  should we check whether this equals quoteChar? 
+            // REVISIT:  should we check whether this equals quoteChar?
             fExpectedVersionString[18] = (char) scanner.scanChar();
             fixupCurrentEntity(fEntityManager, fExpectedVersionString, 19);
             int matched = 0;
@@ -235,14 +238,14 @@ public class XMLVersionDetector {
                 null,
                 XMLErrorReporter.SEVERITY_FATAL_ERROR);
             return Constants.XML_VERSION_1_0;
-			
+
         }
 
     }
 
     // This method prepends "length" chars from the char array,
     // from offset 0, to the manager's fCurrentEntity.ch.
-    private void fixupCurrentEntity(XMLEntityManager manager, 
+    private void fixupCurrentEntity(XMLEntityManager manager,
                 char [] scannedChars, int length) {
         ScannedEntity currentEntity = manager.getCurrentEntity();
         if(currentEntity.count-currentEntity.position+length > currentEntity.ch.length) {
@@ -257,7 +260,7 @@ public class XMLVersionDetector {
             currentEntity.count += length-currentEntity.position;
         } else {
             // have to reintroduce some whitespace so this parses:
-            for(int i=length; i<currentEntity.position; i++) 
+            for(int i=length; i<currentEntity.position; i++)
                 currentEntity.ch[i]=' ';
         }
         // prepend contents...
@@ -269,4 +272,3 @@ public class XMLVersionDetector {
     }
 
 } // class XMLVersionDetector
-

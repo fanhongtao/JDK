@@ -1,8 +1,26 @@
 /*
- * @(#)FSM.java	1.9 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.orbutil.fsm ;
@@ -13,7 +31,7 @@ package com.sun.corba.se.spi.orbutil.fsm ;
  * StateEngine.  An instance of an FSM may be created either by calling
  * StateEngine.makeFSM( startState ) on a state engine, or by extending FSMImpl and
  * using a constructor.  Using FSMImpl as a base class is convenient if
- * additional state is associated with the FSM beyond that encoded 
+ * additional state is associated with the FSM beyond that encoded
  * by the current state.  This is especially convenient if an action
  * needs some additional information.  For example, counters are best
  * handled by special actions rather than encoding a bounded counter
@@ -21,7 +39,6 @@ package com.sun.corba.se.spi.orbutil.fsm ;
  * implements the FSM interface by delegating to an FSM instance
  * created by StateEngine.makeFSM.
  *
- * @version @(#)FSM.java	1.9 05/11/17
  * @author Ken Cavanaugh
  */
 public interface FSM
@@ -37,4 +54,3 @@ public interface FSM
 }
 
 // end of FSM.java
-

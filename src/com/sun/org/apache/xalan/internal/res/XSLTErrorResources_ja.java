@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +31,7 @@ import java.util.ResourceBundle;
  * Set up error messages.
  * We build a two dimensional array of message keys and
  * message strings. In order to add a new message here,
- * you need to first add a String constant. And
+ * you need to first add a String constant. And 
  *  you need to enter key , value pair as part of contents
  * Array. You also need to update MAX_CODE for error strings
  * and MAX_WARNING for warnings ( Needed for only information
@@ -74,26 +78,20 @@ public class XSLTErrorResources_ja extends ListResourceBundle
  *
  */
 
-  /** Maximum error messages, this is needed to keep track of the number of messages.    */
-  public static final int MAX_CODE = 201;
-
-  /** Maximum warnings, this is needed to keep track of the number of warnings.          */
-  public static final int MAX_WARNING = 29;
-
-  /** Maximum misc strings.   */
-  public static final int MAX_OTHERS = 55;
-
-  /** Maximum total warnings and error messages.          */
-  public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
-
-
-  /*
+  /* 
    * Static variables
    */
-  public static final String ER_NO_CURLYBRACE = "ER_NO_CURLYBRACE";;
+  public static final String ER_INVALID_NAMESPACE_URI_VALUE_FOR_RESULT_PREFIX = 
+	"ER_INVALID_SET_NAMESPACE_URI_VALUE_FOR_RESULT_PREFIX"; 
+	
+  public static final String ER_INVALID_NAMESPACE_URI_VALUE_FOR_RESULT_PREFIX_FOR_DEFAULT =
+	"ER_INVALID_NAMESPACE_URI_VALUE_FOR_RESULT_PREFIX_FOR_DEFAULT";
+   
+  public static final String ER_NO_CURLYBRACE = "ER_NO_CURLYBRACE";
+  public static final String ER_FUNCTION_NOT_SUPPORTED = "ER_FUNCTION_NOT_SUPPORTED";
   public static final String ER_ILLEGAL_ATTRIBUTE = "ER_ILLEGAL_ATTRIBUTE";
   public static final String ER_NULL_SOURCENODE_APPLYIMPORTS = "ER_NULL_SOURCENODE_APPLYIMPORTS";
-  public static final String ER_CANNOT_ADD = "ER_CANNOT_ADD";
+  public static final String ER_CANNOT_ADD = "ER_CANNOT_ADD"; 
   public static final String ER_NULL_SOURCENODE_HANDLEAPPLYTEMPLATES="ER_NULL_SOURCENODE_HANDLEAPPLYTEMPLATES";
   public static final String ER_NO_NAME_ATTRIB = "ER_NO_NAME_ATTRIB";
   public static final String ER_TEMPLATE_NOT_FOUND = "ER_TEMPLATE_NOT_FOUND";
@@ -101,16 +99,16 @@ public class XSLTErrorResources_ja extends ListResourceBundle
   public static final String ER_REQUIRES_ATTRIB = "ER_REQUIRES_ATTRIB";
   public static final String ER_MUST_HAVE_TEST_ATTRIB = "ER_MUST_HAVE_TEST_ATTRIB";
   public static final String ER_BAD_VAL_ON_LEVEL_ATTRIB =
-         "ER_BAD_VAL_ON_LEVEL_ATTRIB";
+	 "ER_BAD_VAL_ON_LEVEL_ATTRIB";
   public static final String ER_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML =
-         "ER_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML";
-  public static final String ER_PROCESSINGINSTRUCTION_NOTVALID_NCNAME =
-         "ER_PROCESSINGINSTRUCTION_NOTVALID_NCNAME";
+	 "ER_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML";
+  public static final String ER_PROCESSINGINSTRUCTION_NOTVALID_NCNAME = 
+	 "ER_PROCESSINGINSTRUCTION_NOTVALID_NCNAME";
   public static final String ER_NEED_MATCH_ATTRIB = "ER_NEED_MATCH_ATTRIB";
-  public static final String ER_NEED_NAME_OR_MATCH_ATTRIB =
-         "ER_NEED_NAME_OR_MATCH_ATTRIB";
+  public static final String ER_NEED_NAME_OR_MATCH_ATTRIB = 
+	 "ER_NEED_NAME_OR_MATCH_ATTRIB";
   public static final String ER_CANT_RESOLVE_NSPREFIX =
-         "ER_CANT_RESOLVE_NSPREFIX";
+	 "ER_CANT_RESOLVE_NSPREFIX";
   public static final String ER_ILLEGAL_VALUE = "ER_ILLEGAL_VALUE";
   public static final String ER_NO_OWNERDOC = "ER_NO_OWNERDOC";
   public static final String ER_ELEMTEMPLATEELEM_ERR ="ER_ELEMTEMPLATEELEM_ERR";
@@ -119,266 +117,274 @@ public class XSLTErrorResources_ja extends ListResourceBundle
   public static final String ER_NEED_TEST_ATTRIB = "ER_NEED_TEST_ATTRIB";
   public static final String ER_NEED_NAME_ATTRIB = "ER_NEED_NAME_ATTRIB";
   public static final String ER_NO_CONTEXT_OWNERDOC = "ER_NO_CONTEXT_OWNERDOC";
-  public static final String ER_COULD_NOT_CREATE_XML_PROC_LIAISON =
-         "ER_COULD_NOT_CREATE_XML_PROC_LIAISON";
-  public static final String ER_PROCESS_NOT_SUCCESSFUL =
-         "ER_PROCESS_NOT_SUCCESSFUL";
+  public static final String ER_COULD_NOT_CREATE_XML_PROC_LIAISON = 
+	 "ER_COULD_NOT_CREATE_XML_PROC_LIAISON";
+  public static final String ER_PROCESS_NOT_SUCCESSFUL = 
+	 "ER_PROCESS_NOT_SUCCESSFUL";
   public static final String ER_NOT_SUCCESSFUL = "ER_NOT_SUCCESSFUL";
-  public static final String ER_ENCODING_NOT_SUPPORTED =
-         "ER_ENCODING_NOT_SUPPORTED";
-  public static final String ER_COULD_NOT_CREATE_TRACELISTENER =
-         "ER_COULD_NOT_CREATE_TRACELISTENER";
-  public static final String ER_KEY_REQUIRES_NAME_ATTRIB =
-         "ER_KEY_REQUIRES_NAME_ATTRIB";
-  public static final String ER_KEY_REQUIRES_MATCH_ATTRIB =
-         "ER_KEY_REQUIRES_MATCH_ATTRIB";
-  public static final String ER_KEY_REQUIRES_USE_ATTRIB =
-         "ER_KEY_REQUIRES_USE_ATTRIB";
-  public static final String ER_REQUIRES_ELEMENTS_ATTRIB =
-         "ER_REQUIRES_ELEMENTS_ATTRIB";
-  public static final String ER_MISSING_PREFIX_ATTRIB =
-         "ER_MISSING_PREFIX_ATTRIB";
+  public static final String ER_ENCODING_NOT_SUPPORTED = 
+	 "ER_ENCODING_NOT_SUPPORTED";
+  public static final String ER_COULD_NOT_CREATE_TRACELISTENER = 
+	 "ER_COULD_NOT_CREATE_TRACELISTENER";
+  public static final String ER_KEY_REQUIRES_NAME_ATTRIB = 
+	 "ER_KEY_REQUIRES_NAME_ATTRIB";
+  public static final String ER_KEY_REQUIRES_MATCH_ATTRIB = 
+	 "ER_KEY_REQUIRES_MATCH_ATTRIB";
+  public static final String ER_KEY_REQUIRES_USE_ATTRIB = 
+	 "ER_KEY_REQUIRES_USE_ATTRIB";
+  public static final String ER_REQUIRES_ELEMENTS_ATTRIB = 
+	 "ER_REQUIRES_ELEMENTS_ATTRIB";
+  public static final String ER_MISSING_PREFIX_ATTRIB = 
+	 "ER_MISSING_PREFIX_ATTRIB";
   public static final String ER_BAD_STYLESHEET_URL = "ER_BAD_STYLESHEET_URL";
   public static final String ER_FILE_NOT_FOUND = "ER_FILE_NOT_FOUND";
   public static final String ER_IOEXCEPTION = "ER_IOEXCEPTION";
   public static final String ER_NO_HREF_ATTRIB = "ER_NO_HREF_ATTRIB";
-  public static final String ER_STYLESHEET_INCLUDES_ITSELF =
-         "ER_STYLESHEET_INCLUDES_ITSELF";
+  public static final String ER_STYLESHEET_INCLUDES_ITSELF = 
+	 "ER_STYLESHEET_INCLUDES_ITSELF";
   public static final String ER_PROCESSINCLUDE_ERROR ="ER_PROCESSINCLUDE_ERROR";
   public static final String ER_MISSING_LANG_ATTRIB = "ER_MISSING_LANG_ATTRIB";
-  public static final String ER_MISSING_CONTAINER_ELEMENT_COMPONENT =
-         "ER_MISSING_CONTAINER_ELEMENT_COMPONENT";
-  public static final String ER_CAN_ONLY_OUTPUT_TO_ELEMENT =
-         "ER_CAN_ONLY_OUTPUT_TO_ELEMENT";
+  public static final String ER_MISSING_CONTAINER_ELEMENT_COMPONENT = 
+	 "ER_MISSING_CONTAINER_ELEMENT_COMPONENT";
+  public static final String ER_CAN_ONLY_OUTPUT_TO_ELEMENT = 
+	 "ER_CAN_ONLY_OUTPUT_TO_ELEMENT";
   public static final String ER_PROCESS_ERROR = "ER_PROCESS_ERROR";
   public static final String ER_UNIMPLNODE_ERROR = "ER_UNIMPLNODE_ERROR";
   public static final String ER_NO_SELECT_EXPRESSION ="ER_NO_SELECT_EXPRESSION";
-  public static final String ER_CANNOT_SERIALIZE_XSLPROCESSOR =
-         "ER_CANNOT_SERIALIZE_XSLPROCESSOR";
+  public static final String ER_CANNOT_SERIALIZE_XSLPROCESSOR = 
+	 "ER_CANNOT_SERIALIZE_XSLPROCESSOR";
   public static final String ER_NO_INPUT_STYLESHEET = "ER_NO_INPUT_STYLESHEET";
-  public static final String ER_FAILED_PROCESS_STYLESHEET =
-         "ER_FAILED_PROCESS_STYLESHEET";
+  public static final String ER_FAILED_PROCESS_STYLESHEET = 
+	 "ER_FAILED_PROCESS_STYLESHEET";
   public static final String ER_COULDNT_PARSE_DOC = "ER_COULDNT_PARSE_DOC";
-  public static final String ER_COULDNT_FIND_FRAGMENT =
-         "ER_COULDNT_FIND_FRAGMENT";
+  public static final String ER_COULDNT_FIND_FRAGMENT = 
+	 "ER_COULDNT_FIND_FRAGMENT";
   public static final String ER_NODE_NOT_ELEMENT = "ER_NODE_NOT_ELEMENT";
-  public static final String ER_FOREACH_NEED_MATCH_OR_NAME_ATTRIB =
-         "ER_FOREACH_NEED_MATCH_OR_NAME_ATTRIB";
-  public static final String ER_TEMPLATES_NEED_MATCH_OR_NAME_ATTRIB =
-         "ER_TEMPLATES_NEED_MATCH_OR_NAME_ATTRIB";
-  public static final String ER_NO_CLONE_OF_DOCUMENT_FRAG =
-         "ER_NO_CLONE_OF_DOCUMENT_FRAG";
+  public static final String ER_FOREACH_NEED_MATCH_OR_NAME_ATTRIB = 
+	 "ER_FOREACH_NEED_MATCH_OR_NAME_ATTRIB";
+  public static final String ER_TEMPLATES_NEED_MATCH_OR_NAME_ATTRIB = 
+	 "ER_TEMPLATES_NEED_MATCH_OR_NAME_ATTRIB";
+  public static final String ER_NO_CLONE_OF_DOCUMENT_FRAG = 
+	 "ER_NO_CLONE_OF_DOCUMENT_FRAG";
   public static final String ER_CANT_CREATE_ITEM = "ER_CANT_CREATE_ITEM";
-  public static final String ER_XMLSPACE_ILLEGAL_VALUE =
-         "ER_XMLSPACE_ILLEGAL_VALUE";
-  public static final String ER_NO_XSLKEY_DECLARATION =
-         "ER_NO_XSLKEY_DECLARATION";
+  public static final String ER_XMLSPACE_ILLEGAL_VALUE = 
+	 "ER_XMLSPACE_ILLEGAL_VALUE";
+  public static final String ER_NO_XSLKEY_DECLARATION = 
+	 "ER_NO_XSLKEY_DECLARATION";
   public static final String ER_CANT_CREATE_URL = "ER_CANT_CREATE_URL";
-  public static final String ER_XSLFUNCTIONS_UNSUPPORTED =
-         "ER_XSLFUNCTIONS_UNSUPPORTED";
+  public static final String ER_XSLFUNCTIONS_UNSUPPORTED = 
+	 "ER_XSLFUNCTIONS_UNSUPPORTED";
   public static final String ER_PROCESSOR_ERROR = "ER_PROCESSOR_ERROR";
-  public static final String ER_NOT_ALLOWED_INSIDE_STYLESHEET =
-         "ER_NOT_ALLOWED_INSIDE_STYLESHEET";
-  public static final String ER_RESULTNS_NOT_SUPPORTED =
-         "ER_RESULTNS_NOT_SUPPORTED";
-  public static final String ER_DEFAULTSPACE_NOT_SUPPORTED =
-         "ER_DEFAULTSPACE_NOT_SUPPORTED";
-  public static final String ER_INDENTRESULT_NOT_SUPPORTED =
-         "ER_INDENTRESULT_NOT_SUPPORTED";
+  public static final String ER_NOT_ALLOWED_INSIDE_STYLESHEET = 
+	 "ER_NOT_ALLOWED_INSIDE_STYLESHEET";
+  public static final String ER_RESULTNS_NOT_SUPPORTED = 
+	 "ER_RESULTNS_NOT_SUPPORTED";
+  public static final String ER_DEFAULTSPACE_NOT_SUPPORTED = 
+	 "ER_DEFAULTSPACE_NOT_SUPPORTED";
+  public static final String ER_INDENTRESULT_NOT_SUPPORTED = 
+	 "ER_INDENTRESULT_NOT_SUPPORTED";
   public static final String ER_ILLEGAL_ATTRIB = "ER_ILLEGAL_ATTRIB";
   public static final String ER_UNKNOWN_XSL_ELEM = "ER_UNKNOWN_XSL_ELEM";
   public static final String ER_BAD_XSLSORT_USE = "ER_BAD_XSLSORT_USE";
   public static final String ER_MISPLACED_XSLWHEN = "ER_MISPLACED_XSLWHEN";
-  public static final String ER_XSLWHEN_NOT_PARENTED_BY_XSLCHOOSE =
-         "ER_XSLWHEN_NOT_PARENTED_BY_XSLCHOOSE";
-  public static final String ER_MISPLACED_XSLOTHERWISE =
-         "ER_MISPLACED_XSLOTHERWISE";
-  public static final String ER_XSLOTHERWISE_NOT_PARENTED_BY_XSLCHOOSE =
-         "ER_XSLOTHERWISE_NOT_PARENTED_BY_XSLCHOOSE";
-  public static final String ER_NOT_ALLOWED_INSIDE_TEMPLATE =
-         "ER_NOT_ALLOWED_INSIDE_TEMPLATE";
-  public static final String ER_UNKNOWN_EXT_NS_PREFIX =
-         "ER_UNKNOWN_EXT_NS_PREFIX";
-  public static final String ER_IMPORTS_AS_FIRST_ELEM =
-         "ER_IMPORTS_AS_FIRST_ELEM";
+  public static final String ER_XSLWHEN_NOT_PARENTED_BY_XSLCHOOSE = 
+	 "ER_XSLWHEN_NOT_PARENTED_BY_XSLCHOOSE";
+  public static final String ER_MISPLACED_XSLOTHERWISE = 
+	 "ER_MISPLACED_XSLOTHERWISE";
+  public static final String ER_XSLOTHERWISE_NOT_PARENTED_BY_XSLCHOOSE = 
+	 "ER_XSLOTHERWISE_NOT_PARENTED_BY_XSLCHOOSE";
+  public static final String ER_NOT_ALLOWED_INSIDE_TEMPLATE = 
+	 "ER_NOT_ALLOWED_INSIDE_TEMPLATE";
+  public static final String ER_UNKNOWN_EXT_NS_PREFIX = 
+	 "ER_UNKNOWN_EXT_NS_PREFIX";
+  public static final String ER_IMPORTS_AS_FIRST_ELEM = 
+	 "ER_IMPORTS_AS_FIRST_ELEM";
   public static final String ER_IMPORTING_ITSELF = "ER_IMPORTING_ITSELF";
   public static final String ER_XMLSPACE_ILLEGAL_VAL ="ER_XMLSPACE_ILLEGAL_VAL";
-  public static final String ER_PROCESSSTYLESHEET_NOT_SUCCESSFUL =
-         "ER_PROCESSSTYLESHEET_NOT_SUCCESSFUL";
+  public static final String ER_PROCESSSTYLESHEET_NOT_SUCCESSFUL = 
+	 "ER_PROCESSSTYLESHEET_NOT_SUCCESSFUL";
   public static final String ER_SAX_EXCEPTION = "ER_SAX_EXCEPTION";
   public static final String ER_XSLT_ERROR = "ER_XSLT_ERROR";
   public static final String ER_CURRENCY_SIGN_ILLEGAL=
-         "ER_CURRENCY_SIGN_ILLEGAL";
-  public static final String ER_DOCUMENT_FUNCTION_INVALID_IN_STYLESHEET_DOM =
-         "ER_DOCUMENT_FUNCTION_INVALID_IN_STYLESHEET_DOM";
-  public static final String ER_CANT_RESOLVE_PREFIX_OF_NON_PREFIX_RESOLVER =
-         "ER_CANT_RESOLVE_PREFIX_OF_NON_PREFIX_RESOLVER";
-  public static final String ER_REDIRECT_COULDNT_GET_FILENAME =
-         "ER_REDIRECT_COULDNT_GET_FILENAME";
-  public static final String ER_CANNOT_BUILD_FORMATTERLISTENER_IN_REDIRECT =
-         "ER_CANNOT_BUILD_FORMATTERLISTENER_IN_REDIRECT";
-  public static final String ER_INVALID_PREFIX_IN_EXCLUDERESULTPREFIX =
-         "ER_INVALID_PREFIX_IN_EXCLUDERESULTPREFIX";
+	 "ER_CURRENCY_SIGN_ILLEGAL";
+  public static final String ER_DOCUMENT_FUNCTION_INVALID_IN_STYLESHEET_DOM = 
+	 "ER_DOCUMENT_FUNCTION_INVALID_IN_STYLESHEET_DOM";
+  public static final String ER_CANT_RESOLVE_PREFIX_OF_NON_PREFIX_RESOLVER = 
+	 "ER_CANT_RESOLVE_PREFIX_OF_NON_PREFIX_RESOLVER";
+  public static final String ER_REDIRECT_COULDNT_GET_FILENAME = 
+	 "ER_REDIRECT_COULDNT_GET_FILENAME";
+  public static final String ER_CANNOT_BUILD_FORMATTERLISTENER_IN_REDIRECT = 
+	 "ER_CANNOT_BUILD_FORMATTERLISTENER_IN_REDIRECT";
+  public static final String ER_INVALID_PREFIX_IN_EXCLUDERESULTPREFIX = 
+	 "ER_INVALID_PREFIX_IN_EXCLUDERESULTPREFIX";
   public static final String ER_MISSING_NS_URI = "ER_MISSING_NS_URI";
-  public static final String ER_MISSING_ARG_FOR_OPTION =
-         "ER_MISSING_ARG_FOR_OPTION";
+  public static final String ER_MISSING_ARG_FOR_OPTION = 
+	 "ER_MISSING_ARG_FOR_OPTION";
   public static final String ER_INVALID_OPTION = "ER_INVALID_OPTION";
-  public static final String ER_MALFORMED_FORMAT_STRING =
-         "ER_MALFORMED_FORMAT_STRING";
-  public static final String ER_STYLESHEET_REQUIRES_VERSION_ATTRIB =
-         "ER_STYLESHEET_REQUIRES_VERSION_ATTRIB";
-  public static final String ER_ILLEGAL_ATTRIBUTE_VALUE =
-         "ER_ILLEGAL_ATTRIBUTE_VALUE";
+  public static final String ER_MALFORMED_FORMAT_STRING = 
+	 "ER_MALFORMED_FORMAT_STRING";
+  public static final String ER_STYLESHEET_REQUIRES_VERSION_ATTRIB = 
+	 "ER_STYLESHEET_REQUIRES_VERSION_ATTRIB";
+  public static final String ER_ILLEGAL_ATTRIBUTE_VALUE = 
+	 "ER_ILLEGAL_ATTRIBUTE_VALUE";
   public static final String ER_CHOOSE_REQUIRES_WHEN ="ER_CHOOSE_REQUIRES_WHEN";
-  public static final String ER_NO_APPLY_IMPORT_IN_FOR_EACH =
-         "ER_NO_APPLY_IMPORT_IN_FOR_EACH";
-  public static final String ER_CANT_USE_DTM_FOR_OUTPUT =
-         "ER_CANT_USE_DTM_FOR_OUTPUT";
-  public static final String ER_CANT_USE_DTM_FOR_INPUT =
-         "ER_CANT_USE_DTM_FOR_INPUT";
+  public static final String ER_NO_APPLY_IMPORT_IN_FOR_EACH = 
+	 "ER_NO_APPLY_IMPORT_IN_FOR_EACH";
+  public static final String ER_CANT_USE_DTM_FOR_OUTPUT = 
+	 "ER_CANT_USE_DTM_FOR_OUTPUT";
+  public static final String ER_CANT_USE_DTM_FOR_INPUT = 
+	 "ER_CANT_USE_DTM_FOR_INPUT";
   public static final String ER_CALL_TO_EXT_FAILED = "ER_CALL_TO_EXT_FAILED";
   public static final String ER_PREFIX_MUST_RESOLVE = "ER_PREFIX_MUST_RESOLVE";
-  public static final String ER_INVALID_UTF16_SURROGATE =
-         "ER_INVALID_UTF16_SURROGATE";
-  public static final String ER_XSLATTRSET_USED_ITSELF =
-         "ER_XSLATTRSET_USED_ITSELF";
+  public static final String ER_INVALID_UTF16_SURROGATE = 
+	 "ER_INVALID_UTF16_SURROGATE";
+  public static final String ER_XSLATTRSET_USED_ITSELF = 
+	 "ER_XSLATTRSET_USED_ITSELF";
   public static final String ER_CANNOT_MIX_XERCESDOM ="ER_CANNOT_MIX_XERCESDOM";
   public static final String ER_TOO_MANY_LISTENERS = "ER_TOO_MANY_LISTENERS";
-  public static final String ER_IN_ELEMTEMPLATEELEM_READOBJECT =
-         "ER_IN_ELEMTEMPLATEELEM_READOBJECT";
-  public static final String ER_DUPLICATE_NAMED_TEMPLATE =
-         "ER_DUPLICATE_NAMED_TEMPLATE";
+  public static final String ER_IN_ELEMTEMPLATEELEM_READOBJECT = 
+	 "ER_IN_ELEMTEMPLATEELEM_READOBJECT";
+  public static final String ER_DUPLICATE_NAMED_TEMPLATE = 
+	 "ER_DUPLICATE_NAMED_TEMPLATE";
   public static final String ER_INVALID_KEY_CALL = "ER_INVALID_KEY_CALL";
   public static final String ER_REFERENCING_ITSELF = "ER_REFERENCING_ITSELF";
-  public static final String ER_ILLEGAL_DOMSOURCE_INPUT =
-         "ER_ILLEGAL_DOMSOURCE_INPUT";
-  public static final String ER_CLASS_NOT_FOUND_FOR_OPTION =
-         "ER_CLASS_NOT_FOUND_FOR_OPTION";
-  public static final String ER_REQUIRED_ELEM_NOT_FOUND =
-         "ER_REQUIRED_ELEM_NOT_FOUND";
+  public static final String ER_ILLEGAL_DOMSOURCE_INPUT = 
+	 "ER_ILLEGAL_DOMSOURCE_INPUT";
+  public static final String ER_CLASS_NOT_FOUND_FOR_OPTION = 
+	 "ER_CLASS_NOT_FOUND_FOR_OPTION";
+  public static final String ER_REQUIRED_ELEM_NOT_FOUND = 
+	 "ER_REQUIRED_ELEM_NOT_FOUND";
   public static final String ER_INPUT_CANNOT_BE_NULL ="ER_INPUT_CANNOT_BE_NULL";
   public static final String ER_URI_CANNOT_BE_NULL = "ER_URI_CANNOT_BE_NULL";
   public static final String ER_FILE_CANNOT_BE_NULL = "ER_FILE_CANNOT_BE_NULL";
-  public static final String ER_SOURCE_CANNOT_BE_NULL =
-         "ER_SOURCE_CANNOT_BE_NULL";
+  public static final String ER_SOURCE_CANNOT_BE_NULL = 
+	 "ER_SOURCE_CANNOT_BE_NULL";
   public static final String ER_CANNOT_INIT_BSFMGR = "ER_CANNOT_INIT_BSFMGR";
   public static final String ER_CANNOT_CMPL_EXTENSN = "ER_CANNOT_CMPL_EXTENSN";
-  public static final String ER_CANNOT_CREATE_EXTENSN =
-         "ER_CANNOT_CREATE_EXTENSN";
-  public static final String ER_INSTANCE_MTHD_CALL_REQUIRES =
-         "ER_INSTANCE_MTHD_CALL_REQUIRES";
+  public static final String ER_CANNOT_CREATE_EXTENSN = 
+	 "ER_CANNOT_CREATE_EXTENSN";
+  public static final String ER_INSTANCE_MTHD_CALL_REQUIRES = 
+	 "ER_INSTANCE_MTHD_CALL_REQUIRES";
   public static final String ER_INVALID_ELEMENT_NAME ="ER_INVALID_ELEMENT_NAME";
-  public static final String ER_ELEMENT_NAME_METHOD_STATIC =
-         "ER_ELEMENT_NAME_METHOD_STATIC";
-  public static final String ER_EXTENSION_FUNC_UNKNOWN =
-         "ER_EXTENSION_FUNC_UNKNOWN";
-  public static final String ER_MORE_MATCH_CONSTRUCTOR =
-         "ER_MORE_MATCH_CONSTRUCTOR";
+  public static final String ER_ELEMENT_NAME_METHOD_STATIC = 
+	 "ER_ELEMENT_NAME_METHOD_STATIC";
+  public static final String ER_EXTENSION_FUNC_UNKNOWN = 
+	 "ER_EXTENSION_FUNC_UNKNOWN";
+  public static final String ER_MORE_MATCH_CONSTRUCTOR = 
+	 "ER_MORE_MATCH_CONSTRUCTOR";
   public static final String ER_MORE_MATCH_METHOD = "ER_MORE_MATCH_METHOD";
   public static final String ER_MORE_MATCH_ELEMENT = "ER_MORE_MATCH_ELEMENT";
-  public static final String ER_INVALID_CONTEXT_PASSED =
-         "ER_INVALID_CONTEXT_PASSED";
+  public static final String ER_INVALID_CONTEXT_PASSED = 
+	 "ER_INVALID_CONTEXT_PASSED";
   public static final String ER_POOL_EXISTS = "ER_POOL_EXISTS";
   public static final String ER_NO_DRIVER_NAME = "ER_NO_DRIVER_NAME";
   public static final String ER_NO_URL = "ER_NO_URL";
-  public static final String ER_POOL_SIZE_LESSTHAN_ONE =
-         "ER_POOL_SIZE_LESSTHAN_ONE";
+  public static final String ER_POOL_SIZE_LESSTHAN_ONE = 
+	 "ER_POOL_SIZE_LESSTHAN_ONE";
   public static final String ER_INVALID_DRIVER = "ER_INVALID_DRIVER";
   public static final String ER_NO_STYLESHEETROOT = "ER_NO_STYLESHEETROOT";
-  public static final String ER_ILLEGAL_XMLSPACE_VALUE =
-         "ER_ILLEGAL_XMLSPACE_VALUE";
-  public static final String ER_PROCESSFROMNODE_FAILED =
-         "ER_PROCESSFROMNODE_FAILED";
-  public static final String ER_RESOURCE_COULD_NOT_LOAD =
-         "ER_RESOURCE_COULD_NOT_LOAD";
-  public static final String ER_BUFFER_SIZE_LESSTHAN_ZERO =
-         "ER_BUFFER_SIZE_LESSTHAN_ZERO";
-  public static final String ER_UNKNOWN_ERROR_CALLING_EXTENSION =
-         "ER_UNKNOWN_ERROR_CALLING_EXTENSION";
+  public static final String ER_ILLEGAL_XMLSPACE_VALUE = 
+	 "ER_ILLEGAL_XMLSPACE_VALUE";
+  public static final String ER_PROCESSFROMNODE_FAILED = 
+	 "ER_PROCESSFROMNODE_FAILED";
+  public static final String ER_RESOURCE_COULD_NOT_LOAD = 
+	 "ER_RESOURCE_COULD_NOT_LOAD";
+  public static final String ER_BUFFER_SIZE_LESSTHAN_ZERO = 
+	 "ER_BUFFER_SIZE_LESSTHAN_ZERO";
+  public static final String ER_UNKNOWN_ERROR_CALLING_EXTENSION = 
+	 "ER_UNKNOWN_ERROR_CALLING_EXTENSION";
   public static final String ER_NO_NAMESPACE_DECL = "ER_NO_NAMESPACE_DECL";
-  public static final String ER_ELEM_CONTENT_NOT_ALLOWED =
-         "ER_ELEM_CONTENT_NOT_ALLOWED";
-  public static final String ER_STYLESHEET_DIRECTED_TERMINATION =
-         "ER_STYLESHEET_DIRECTED_TERMINATION";
+  public static final String ER_ELEM_CONTENT_NOT_ALLOWED = 
+	 "ER_ELEM_CONTENT_NOT_ALLOWED";
+  public static final String ER_STYLESHEET_DIRECTED_TERMINATION = 
+	 "ER_STYLESHEET_DIRECTED_TERMINATION";
   public static final String ER_ONE_OR_TWO = "ER_ONE_OR_TWO";
   public static final String ER_TWO_OR_THREE = "ER_TWO_OR_THREE";
-  public static final String ER_COULD_NOT_LOAD_RESOURCE =
-         "ER_COULD_NOT_LOAD_RESOURCE";
-  public static final String ER_CANNOT_INIT_DEFAULT_TEMPLATES =
-         "ER_CANNOT_INIT_DEFAULT_TEMPLATES";
+  public static final String ER_COULD_NOT_LOAD_RESOURCE = 
+	 "ER_COULD_NOT_LOAD_RESOURCE";
+  public static final String ER_CANNOT_INIT_DEFAULT_TEMPLATES = 
+	 "ER_CANNOT_INIT_DEFAULT_TEMPLATES";
   public static final String ER_RESULT_NULL = "ER_RESULT_NULL";
-  public static final String ER_RESULT_COULD_NOT_BE_SET =
-         "ER_RESULT_COULD_NOT_BE_SET";
+  public static final String ER_RESULT_COULD_NOT_BE_SET = 
+	 "ER_RESULT_COULD_NOT_BE_SET";
   public static final String ER_NO_OUTPUT_SPECIFIED = "ER_NO_OUTPUT_SPECIFIED";
-  public static final String ER_CANNOT_TRANSFORM_TO_RESULT_TYPE =
-         "ER_CANNOT_TRANSFORM_TO_RESULT_TYPE";
-  public static final String ER_CANNOT_TRANSFORM_SOURCE_TYPE =
-         "ER_CANNOT_TRANSFORM_SOURCE_TYPE";
+  public static final String ER_CANNOT_TRANSFORM_TO_RESULT_TYPE = 
+	 "ER_CANNOT_TRANSFORM_TO_RESULT_TYPE";
+  public static final String ER_CANNOT_TRANSFORM_SOURCE_TYPE = 
+	 "ER_CANNOT_TRANSFORM_SOURCE_TYPE";
   public static final String ER_NULL_CONTENT_HANDLER ="ER_NULL_CONTENT_HANDLER";
   public static final String ER_NULL_ERROR_HANDLER = "ER_NULL_ERROR_HANDLER";
   public static final String ER_CANNOT_CALL_PARSE = "ER_CANNOT_CALL_PARSE";
   public static final String ER_NO_PARENT_FOR_FILTER ="ER_NO_PARENT_FOR_FILTER";
-  public static final String ER_NO_STYLESHEET_IN_MEDIA =
-         "ER_NO_STYLESHEET_IN_MEDIA";
+  public static final String ER_NO_STYLESHEET_IN_MEDIA = 
+	 "ER_NO_STYLESHEET_IN_MEDIA";
   public static final String ER_NO_STYLESHEET_PI = "ER_NO_STYLESHEET_PI";
   public static final String ER_NOT_SUPPORTED = "ER_NOT_SUPPORTED";
-  public static final String ER_PROPERTY_VALUE_BOOLEAN =
-         "ER_PROPERTY_VALUE_BOOLEAN";
-  public static final String ER_COULD_NOT_FIND_EXTERN_SCRIPT =
-         "ER_COULD_NOT_FIND_EXTERN_SCRIPT";
-  public static final String ER_RESOURCE_COULD_NOT_FIND =
-         "ER_RESOURCE_COULD_NOT_FIND";
-  public static final String ER_OUTPUT_PROPERTY_NOT_RECOGNIZED =
-         "ER_OUTPUT_PROPERTY_NOT_RECOGNIZED";
-  public static final String ER_FAILED_CREATING_ELEMLITRSLT =
-         "ER_FAILED_CREATING_ELEMLITRSLT";
-  public static final String ER_VALUE_SHOULD_BE_NUMBER =
-         "ER_VALUE_SHOULD_BE_NUMBER";
+  public static final String ER_PROPERTY_VALUE_BOOLEAN = 
+	 "ER_PROPERTY_VALUE_BOOLEAN";
+  public static final String ER_COULD_NOT_FIND_EXTERN_SCRIPT = 
+	 "ER_COULD_NOT_FIND_EXTERN_SCRIPT";
+  public static final String ER_RESOURCE_COULD_NOT_FIND = 
+	 "ER_RESOURCE_COULD_NOT_FIND";
+  public static final String ER_OUTPUT_PROPERTY_NOT_RECOGNIZED = 
+	 "ER_OUTPUT_PROPERTY_NOT_RECOGNIZED";
+  public static final String ER_FAILED_CREATING_ELEMLITRSLT = 
+	 "ER_FAILED_CREATING_ELEMLITRSLT";
+  public static final String ER_VALUE_SHOULD_BE_NUMBER = 
+	 "ER_VALUE_SHOULD_BE_NUMBER";
   public static final String ER_VALUE_SHOULD_EQUAL = "ER_VALUE_SHOULD_EQUAL";
-  public static final String ER_FAILED_CALLING_METHOD =
-         "ER_FAILED_CALLING_METHOD";
-  public static final String ER_FAILED_CREATING_ELEMTMPL =
-         "ER_FAILED_CREATING_ELEMTMPL";
+  public static final String ER_FAILED_CALLING_METHOD = 
+	 "ER_FAILED_CALLING_METHOD";
+  public static final String ER_FAILED_CREATING_ELEMTMPL = 
+	 "ER_FAILED_CREATING_ELEMTMPL";
   public static final String ER_CHARS_NOT_ALLOWED = "ER_CHARS_NOT_ALLOWED";
   public static final String ER_ATTR_NOT_ALLOWED = "ER_ATTR_NOT_ALLOWED";
   public static final String ER_BAD_VALUE = "ER_BAD_VALUE";
-  public static final String ER_ATTRIB_VALUE_NOT_FOUND =
-         "ER_ATTRIB_VALUE_NOT_FOUND";
-  public static final String ER_ATTRIB_VALUE_NOT_RECOGNIZED =
-         "ER_ATTRIB_VALUE_NOT_RECOGNIZED";
+  public static final String ER_ATTRIB_VALUE_NOT_FOUND = 
+	 "ER_ATTRIB_VALUE_NOT_FOUND";
+  public static final String ER_ATTRIB_VALUE_NOT_RECOGNIZED = 
+	 "ER_ATTRIB_VALUE_NOT_RECOGNIZED";
   public static final String ER_NULL_URI_NAMESPACE = "ER_NULL_URI_NAMESPACE";
   public static final String ER_NUMBER_TOO_BIG = "ER_NUMBER_TOO_BIG";
-  public static final String  ER_CANNOT_FIND_SAX1_DRIVER =
-         "ER_CANNOT_FIND_SAX1_DRIVER";
-  public static final String  ER_SAX1_DRIVER_NOT_LOADED =
-         "ER_SAX1_DRIVER_NOT_LOADED";
-  public static final String  ER_SAX1_DRIVER_NOT_INSTANTIATED =
-         "ER_SAX1_DRIVER_NOT_INSTANTIATED" ;
-  public static final String ER_SAX1_DRIVER_NOT_IMPLEMENT_PARSER =
-         "ER_SAX1_DRIVER_NOT_IMPLEMENT_PARSER";
-  public static final String  ER_PARSER_PROPERTY_NOT_SPECIFIED =
-         "ER_PARSER_PROPERTY_NOT_SPECIFIED";
-  public static final String  ER_PARSER_ARG_CANNOT_BE_NULL =
-         "ER_PARSER_ARG_CANNOT_BE_NULL" ;
+  public static final String  ER_CANNOT_FIND_SAX1_DRIVER = 
+	 "ER_CANNOT_FIND_SAX1_DRIVER";
+  public static final String  ER_SAX1_DRIVER_NOT_LOADED = 
+	 "ER_SAX1_DRIVER_NOT_LOADED";
+  public static final String  ER_SAX1_DRIVER_NOT_INSTANTIATED = 
+	 "ER_SAX1_DRIVER_NOT_INSTANTIATED" ;
+  public static final String ER_SAX1_DRIVER_NOT_IMPLEMENT_PARSER = 
+	 "ER_SAX1_DRIVER_NOT_IMPLEMENT_PARSER";
+  public static final String  ER_PARSER_PROPERTY_NOT_SPECIFIED = 
+	 "ER_PARSER_PROPERTY_NOT_SPECIFIED";
+  public static final String  ER_PARSER_ARG_CANNOT_BE_NULL = 
+	 "ER_PARSER_ARG_CANNOT_BE_NULL" ;
   public static final String  ER_FEATURE = "ER_FEATURE";
   public static final String ER_PROPERTY = "ER_PROPERTY" ;
   public static final String ER_NULL_ENTITY_RESOLVER ="ER_NULL_ENTITY_RESOLVER";
   public static final String  ER_NULL_DTD_HANDLER = "ER_NULL_DTD_HANDLER" ;
-  public static final String ER_NO_DRIVER_NAME_SPECIFIED =
-         "ER_NO_DRIVER_NAME_SPECIFIED";
+  public static final String ER_NO_DRIVER_NAME_SPECIFIED = 
+	 "ER_NO_DRIVER_NAME_SPECIFIED";
   public static final String ER_NO_URL_SPECIFIED = "ER_NO_URL_SPECIFIED";
-  public static final String ER_POOLSIZE_LESS_THAN_ONE =
-         "ER_POOLSIZE_LESS_THAN_ONE";
+  public static final String ER_POOLSIZE_LESS_THAN_ONE = 
+	 "ER_POOLSIZE_LESS_THAN_ONE";
   public static final String ER_INVALID_DRIVER_NAME = "ER_INVALID_DRIVER_NAME";
   public static final String ER_ERRORLISTENER = "ER_ERRORLISTENER";
-  public static final String ER_ASSERT_NO_TEMPLATE_PARENT =
-         "ER_ASSERT_NO_TEMPLATE_PARENT";
-  public static final String ER_ASSERT_REDUNDENT_EXPR_ELIMINATOR =
-         "ER_ASSERT_REDUNDENT_EXPR_ELIMINATOR";
-  public static final String ER_NOT_ALLOWED_IN_POSITION =
-         "ER_NOT_ALLOWED_IN_POSITION";
-  public static final String ER_NONWHITESPACE_NOT_ALLOWED_IN_POSITION =
-         "ER_NONWHITESPACE_NOT_ALLOWED_IN_POSITION";
+  public static final String ER_ASSERT_NO_TEMPLATE_PARENT = 
+	 "ER_ASSERT_NO_TEMPLATE_PARENT";
+  public static final String ER_ASSERT_REDUNDENT_EXPR_ELIMINATOR = 
+	 "ER_ASSERT_REDUNDENT_EXPR_ELIMINATOR";
+  public static final String ER_NOT_ALLOWED_IN_POSITION = 
+	 "ER_NOT_ALLOWED_IN_POSITION";
+  public static final String ER_NONWHITESPACE_NOT_ALLOWED_IN_POSITION = 
+	 "ER_NONWHITESPACE_NOT_ALLOWED_IN_POSITION";
+  public static final String ER_NAMESPACE_CONTEXT_NULL_NAMESPACE =
+  	 "ER_NAMESPACE_CONTEXT_NULL_NAMESPACE";
+  public static final String ER_NAMESPACE_CONTEXT_NULL_PREFIX =
+ 	 "ER_NAMESPACE_CONTEXT_NULL_PREFIX";
+  public static final String ER_XPATH_RESOLVER_NULL_QNAME =
+	 "ER_XPATH_RESOLVER_NULL_QNAME";
+  public static final String ER_XPATH_RESOLVER_NEGATIVE_ARITY =
+	 "ER_XPATH_RESOLVER_NEGATIVE_ARITY";
   public static final String INVALID_TCHAR = "INVALID_TCHAR";
   public static final String INVALID_QNAME = "INVALID_QNAME";
   public static final String INVALID_ENUM = "INVALID_ENUM";
@@ -392,58 +398,71 @@ public class XSLTErrorResources_ja extends ListResourceBundle
   public static final String ER_TEMPLATE_NAME_MATCH = "ER_TEMPLATE_NAME_MATCH";
   public static final String ER_INVALID_PREFIX = "ER_INVALID_PREFIX";
   public static final String ER_NO_ATTRIB_SET = "ER_NO_ATTRIB_SET";
-
+  public static final String ER_FUNCTION_NOT_FOUND = 
+	 "ER_FUNCTION_NOT_FOUND"; 
+  public static final String ER_CANT_HAVE_CONTENT_AND_SELECT = 
+     "ER_CANT_HAVE_CONTENT_AND_SELECT";
+  public static final String ER_INVALID_SET_PARAM_VALUE = "ER_INVALID_SET_PARAM_VALUE";    
+  public static final String ER_SET_FEATURE_NULL_NAME =
+  	"ER_SET_FEATURE_NULL_NAME";
+  public static final String ER_GET_FEATURE_NULL_NAME =
+  	"ER_GET_FEATURE_NULL_NAME";
+  public static final String ER_UNSUPPORTED_FEATURE =
+  	"ER_UNSUPPORTED_FEATURE";
+  public static final String ER_EXTENSION_ELEMENT_NOT_ALLOWED_IN_SECURE_PROCESSING =
+  	"ER_EXTENSION_ELEMENT_NOT_ALLOWED_IN_SECURE_PROCESSING";
+     
   public static final String WG_FOUND_CURLYBRACE = "WG_FOUND_CURLYBRACE";
-  public static final String WG_COUNT_ATTRIB_MATCHES_NO_ANCESTOR =
-         "WG_COUNT_ATTRIB_MATCHES_NO_ANCESTOR";
-  public static final String WG_EXPR_ATTRIB_CHANGED_TO_SELECT =
-         "WG_EXPR_ATTRIB_CHANGED_TO_SELECT";
-  public static final String WG_NO_LOCALE_IN_FORMATNUMBER =
-         "WG_NO_LOCALE_IN_FORMATNUMBER";
+  public static final String WG_COUNT_ATTRIB_MATCHES_NO_ANCESTOR = 
+	 "WG_COUNT_ATTRIB_MATCHES_NO_ANCESTOR";
+  public static final String WG_EXPR_ATTRIB_CHANGED_TO_SELECT = 
+	 "WG_EXPR_ATTRIB_CHANGED_TO_SELECT";
+  public static final String WG_NO_LOCALE_IN_FORMATNUMBER = 
+	 "WG_NO_LOCALE_IN_FORMATNUMBER";
   public static final String WG_LOCALE_NOT_FOUND = "WG_LOCALE_NOT_FOUND";
   public static final String WG_CANNOT_MAKE_URL_FROM ="WG_CANNOT_MAKE_URL_FROM";
-  public static final String WG_CANNOT_LOAD_REQUESTED_DOC =
-         "WG_CANNOT_LOAD_REQUESTED_DOC";
+  public static final String WG_CANNOT_LOAD_REQUESTED_DOC = 
+	 "WG_CANNOT_LOAD_REQUESTED_DOC";
   public static final String WG_CANNOT_FIND_COLLATOR ="WG_CANNOT_FIND_COLLATOR";
-  public static final String WG_FUNCTIONS_SHOULD_USE_URL =
-         "WG_FUNCTIONS_SHOULD_USE_URL";
-  public static final String WG_ENCODING_NOT_SUPPORTED_USING_UTF8 =
-         "WG_ENCODING_NOT_SUPPORTED_USING_UTF8";
-  public static final String WG_ENCODING_NOT_SUPPORTED_USING_JAVA =
-         "WG_ENCODING_NOT_SUPPORTED_USING_JAVA";
-  public static final String WG_SPECIFICITY_CONFLICTS =
-         "WG_SPECIFICITY_CONFLICTS";
-  public static final String WG_PARSING_AND_PREPARING =
-         "WG_PARSING_AND_PREPARING";
+  public static final String WG_FUNCTIONS_SHOULD_USE_URL = 
+	 "WG_FUNCTIONS_SHOULD_USE_URL";
+  public static final String WG_ENCODING_NOT_SUPPORTED_USING_UTF8 = 
+	 "WG_ENCODING_NOT_SUPPORTED_USING_UTF8";
+  public static final String WG_ENCODING_NOT_SUPPORTED_USING_JAVA = 
+	 "WG_ENCODING_NOT_SUPPORTED_USING_JAVA";
+  public static final String WG_SPECIFICITY_CONFLICTS = 
+	 "WG_SPECIFICITY_CONFLICTS";
+  public static final String WG_PARSING_AND_PREPARING = 
+	 "WG_PARSING_AND_PREPARING";
   public static final String WG_ATTR_TEMPLATE = "WG_ATTR_TEMPLATE";
   public static final String WG_CONFLICT_BETWEEN_XSLSTRIPSPACE_AND_XSLPRESERVESPACE = "WG_CONFLICT_BETWEEN_XSLSTRIPSPACE_AND_XSLPRESERVESP";
   public static final String WG_ATTRIB_NOT_HANDLED = "WG_ATTRIB_NOT_HANDLED";
-  public static final String WG_NO_DECIMALFORMAT_DECLARATION =
-         "WG_NO_DECIMALFORMAT_DECLARATION";
+  public static final String WG_NO_DECIMALFORMAT_DECLARATION = 
+	 "WG_NO_DECIMALFORMAT_DECLARATION";
   public static final String WG_OLD_XSLT_NS = "WG_OLD_XSLT_NS";
-  public static final String WG_ONE_DEFAULT_XSLDECIMALFORMAT_ALLOWED =
-         "WG_ONE_DEFAULT_XSLDECIMALFORMAT_ALLOWED";
-  public static final String WG_XSLDECIMALFORMAT_NAMES_MUST_BE_UNIQUE =
-         "WG_XSLDECIMALFORMAT_NAMES_MUST_BE_UNIQUE";
+  public static final String WG_ONE_DEFAULT_XSLDECIMALFORMAT_ALLOWED = 
+	 "WG_ONE_DEFAULT_XSLDECIMALFORMAT_ALLOWED";
+  public static final String WG_XSLDECIMALFORMAT_NAMES_MUST_BE_UNIQUE = 
+	 "WG_XSLDECIMALFORMAT_NAMES_MUST_BE_UNIQUE";
   public static final String WG_ILLEGAL_ATTRIBUTE = "WG_ILLEGAL_ATTRIBUTE";
-  public static final String WG_COULD_NOT_RESOLVE_PREFIX =
-         "WG_COULD_NOT_RESOLVE_PREFIX";
-  public static final String WG_STYLESHEET_REQUIRES_VERSION_ATTRIB =
-         "WG_STYLESHEET_REQUIRES_VERSION_ATTRIB";
-  public static final String WG_ILLEGAL_ATTRIBUTE_NAME =
-         "WG_ILLEGAL_ATTRIBUTE_NAME";
-  public static final String WG_ILLEGAL_ATTRIBUTE_VALUE =
-         "WG_ILLEGAL_ATTRIBUTE_VALUE";
+  public static final String WG_COULD_NOT_RESOLVE_PREFIX = 
+	 "WG_COULD_NOT_RESOLVE_PREFIX";
+  public static final String WG_STYLESHEET_REQUIRES_VERSION_ATTRIB = 
+	 "WG_STYLESHEET_REQUIRES_VERSION_ATTRIB";
+  public static final String WG_ILLEGAL_ATTRIBUTE_NAME = 
+	 "WG_ILLEGAL_ATTRIBUTE_NAME";
+  public static final String WG_ILLEGAL_ATTRIBUTE_VALUE = 
+	 "WG_ILLEGAL_ATTRIBUTE_VALUE";
   public static final String WG_EMPTY_SECOND_ARG = "WG_EMPTY_SECOND_ARG";
-  public static final String WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML =
-         "WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML";
-  public static final String WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME =
-         "WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME";
-  public static final String WG_ILLEGAL_ATTRIBUTE_POSITION =
-         "WG_ILLEGAL_ATTRIBUTE_POSITION";
+  public static final String WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML = 
+	 "WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML";
+  public static final String WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME = 
+	 "WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME";
+  public static final String WG_ILLEGAL_ATTRIBUTE_POSITION = 
+	 "WG_ILLEGAL_ATTRIBUTE_POSITION";
+  public static final String NO_MODIFICATION_ALLOWED_ERR = 
+         "NO_MODIFICATION_ALLOWED_ERR";
 
-
-//  public static final int ER_NO_CURLYBRACE = 1;
   /*
    * Now fill in the message text.
    * Then fill in the message text for that message code in the
@@ -452,1576 +471,649 @@ public class XSLTErrorResources_ja extends ListResourceBundle
 
   // Error messages...
 
-  /** Get the lookup table for error messages.   
-   *
-   * @return The int to message lookup table.
-   */
-  public Object[][] getContents()
-  {
-    return new Object[][] {
+  private static final Object[][] _contents = new Object[][] {
 
   /** Error message ID that has a null message, but takes in a single object.    */
   {"ER0000" , "{0}" },
 
+    { ER_NO_CURLYBRACE,                            
+      "\u30A8\u30E9\u30FC: \u5F0F\u5185\u306B'{'\u3092\u6301\u3064\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093"},
 
-  /** ER_NO_CURLYBRACE          */
-
-//  public static final int ER_NO_CURLYBRACE = 1;
-
-    { ER_NO_CURLYBRACE,
-      "\u30a8\u30e9\u30fc: \u5f0f\u5185\u3067\u306f '{' \u3092\u4f7f\u7528\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** ER_ILLEGAL_ATTRIBUTE          */
-// public static final int ER_ILLEGAL_ATTRIBUTE = 2;
-
-    { ER_ILLEGAL_ATTRIBUTE ,
-     "{0} \u306b\u6b63\u3057\u304f\u306a\u3044\u5c5e\u6027\u304c\u3042\u308a\u307e\u3059: {1}"},
-
-  /** ER_NULL_SOURCENODE_APPLYIMPORTS          */
-//  public static final int ER_NULL_SOURCENODE_APPLYIMPORTS = 3;
+    { ER_ILLEGAL_ATTRIBUTE , 
+     "{0}\u306B\u4E0D\u6B63\u306A\u5C5E\u6027\u304C\u3042\u308A\u307E\u3059: {1}"},
 
   {ER_NULL_SOURCENODE_APPLYIMPORTS ,
-      "xsl:apply-imports \u5185\u306e sourceNode \u304c\u30cc\u30eb\u3067\u3059!"},
-
-  /** ER_CANNOT_ADD          */
- // public static final int ER_CANNOT_ADD = 4;
+      "sourceNode\u306Fxsl:apply-imports\u5185\u3067null\u3067\u3059\u3002"},
 
   {ER_CANNOT_ADD,
-      "{0} \u3092 {1} \u306b\u8ffd\u52a0\u3067\u304d\u307e\u305b\u3093\u3002"},
+      "{0}\u3092{1}\u306B\u8FFD\u52A0\u3067\u304D\u307E\u305B\u3093"},
 
+    { ER_NULL_SOURCENODE_HANDLEAPPLYTEMPLATES, 
+      "sourceNode\u306FhandleApplyTemplatesInstruction\u5185\u3067null\u3067\u3059\u3002"},
 
-  /** ER_NULL_SOURCENODE_HANDLEAPPLYTEMPLATES          */
-//  public static final int ER_NULL_SOURCENODE_HANDLEAPPLYTEMPLATES = 5;
-
-
-    { ER_NULL_SOURCENODE_HANDLEAPPLYTEMPLATES,
-      "handleApplyTemplatesInstruction \u5185\u306e sourceNode \u304c\u30cc\u30eb\u3067\u3059!"},
-
-  /** ER_NO_NAME_ATTRIB          */
-//  public static final int ER_NO_NAME_ATTRIB = 6;
-
-
-    { ER_NO_NAME_ATTRIB,
-     "{0} \u306b\u306f name \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_TEMPLATE_NOT_FOUND          */
-  //public static final int ER_TEMPLATE_NOT_FOUND = 7;
-
+    { ER_NO_NAME_ATTRIB, 
+     "{0}\u306B\u306Fname\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     {ER_TEMPLATE_NOT_FOUND,
-     "{0} \u3068\u3044\u3046\u540d\u524d\u306e\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** ER_CANT_RESOLVE_NAME_AVT          */
-  // public static final int ER_CANT_RESOLVE_NAME_AVT = 8;
+     "\u540D\u524D{0}\u306E\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F"},
 
     {ER_CANT_RESOLVE_NAME_AVT,
-      "xsl:call-template \u5185\u306e\u540d\u524d AVT \u3092\u89e3\u6c7a\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** ER_REQUIRES_ATTRIB          */
-  //public static final int ER_REQUIRES_ATTRIB = 9;
-
+      "xsl:call-template\u306E\u540D\u524DAVT\u3092\u89E3\u6C7A\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002"},
 
     {ER_REQUIRES_ATTRIB,
-     "{0} \u306b\u306f\u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059: {1}"},
+     "{0}\u306F\u5C5E\u6027{1}\u304C\u5FC5\u8981\u3067\u3059"},
 
-  /** ER_MUST_HAVE_TEST_ATTRIB          */
- // public static final int ER_MUST_HAVE_TEST_ATTRIB = 10;
-
-
-    { ER_MUST_HAVE_TEST_ATTRIB,
-      "{0} \u306b\u306f ''test'' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_BAD_VAL_ON_LEVEL_ATTRIB          */
-//  public static final int ER_BAD_VAL_ON_LEVEL_ATTRIB = 11;
-
+    { ER_MUST_HAVE_TEST_ATTRIB, 
+      "{0}\u306F''test''\u5C5E\u6027\u3092\u6301\u3064\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"},
 
     {ER_BAD_VAL_ON_LEVEL_ATTRIB,
-      "level \u5c5e\u6027\u3067\u5024\u304c\u9593\u9055\u3063\u3066\u3044\u307e\u3059: {0}"},
+      "level\u5C5E\u6027\u306E\u5024\u304C\u4E0D\u6B63\u3067\u3059: {0}"},
 
-  /** ER_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML          */
-//  public static final int ER_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML = 12;
-
-
-    {ER_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML,
-      "\u51e6\u7406\u547d\u4ee4\u306e\u540d\u524d\u306f 'xml' \u306b\u306f\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** ER_PROCESSINGINSTRUCTION_NOTVALID_NCNAME          */
-//  public static final int ER_PROCESSINGINSTRUCTION_NOTVALID_NCNAME = 13;
-
+    {ER_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML, 
+      "processing-instruction\u540D\u306F'xml'\u306B\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_PROCESSINGINSTRUCTION_NOTVALID_NCNAME,
-      "\u51e6\u7406\u547d\u4ee4\u306e\u540d\u524d\u306f\u6709\u52b9\u306a NCName \u3067\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093: {0}"},
-
-  /** ER_NEED_MATCH_ATTRIB          */
-//  public static final int ER_NEED_MATCH_ATTRIB = 14;
-
+      "processing-instruction\u540D\u306F\u6709\u52B9\u306ANCName\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059: {0}"},
 
     { ER_NEED_MATCH_ATTRIB,
-      "{0} \u306b\u30e2\u30fc\u30c9\u304c\u3042\u308b\u5834\u5408\u306f\u3001match \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_NEED_NAME_OR_MATCH_ATTRIB          */
-//  public static final int ER_NEED_NAME_OR_MATCH_ATTRIB = 15;
-
+      "\u30E2\u30FC\u30C9\u304C\u3042\u308B\u5834\u5408\u3001{0}\u306B\u306Fmatch\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_NEED_NAME_OR_MATCH_ATTRIB,
-      "{0} \u306b\u306f name \u307e\u305f\u306f match \u306e\u3044\u305a\u308c\u304b\u306e\u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_CANT_RESOLVE_NSPREFIX          */
-//  public static final int ER_CANT_RESOLVE_NSPREFIX = 16;
-
+      "{0}\u306B\u306Fname\u307E\u305F\u306Fmatch\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     {ER_CANT_RESOLVE_NSPREFIX,
-      "\u30cd\u30fc\u30e0\u30fb\u30b9\u30da\u30fc\u30b9\u63a5\u982d\u90e8\u3092\u89e3\u6c7a\u3067\u304d\u307e\u305b\u3093: {0}"},
-
-  /** ER_ILLEGAL_VALUE          */
-//  public static final int ER_ILLEGAL_VALUE = 17;
-
+      "\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u306E\u63A5\u982D\u8F9E\u3092\u89E3\u6C7A\u3067\u304D\u307E\u305B\u3093: {0}"},
 
     { ER_ILLEGAL_VALUE,
-     "xml:space \u306b\u306f\u6b63\u3057\u304f\u306a\u3044\u5024\u304c\u3042\u308a\u307e\u3059: {0}"},
-
-  /** ER_NO_OWNERDOC          */
-//  public static final int ER_NO_OWNERDOC = 18;
-
+     "xml:space\u306E\u5024\u304C\u4E0D\u6B63\u3067\u3059: {0}"},
 
     { ER_NO_OWNERDOC,
-      "\u4e0b\u4f4d\u30ce\u30fc\u30c9\u306b\u6240\u6709\u8005\u6587\u66f8\u304c\u3042\u308a\u307e\u305b\u3093!"},
-
-  /** ER_ELEMTEMPLATEELEM_ERR          */
-//  public static final int ER_ELEMTEMPLATEELEM_ERR = 19;
-
+      "\u5B50\u30CE\u30FC\u30C9\u306B\u6240\u6709\u8005\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u3042\u308A\u307E\u305B\u3093\u3002"},
 
     { ER_ELEMTEMPLATEELEM_ERR,
-     "ElemTemplateElement \u30a8\u30e9\u30fc: {0}"},
-
-  /** ER_NULL_CHILD          */
-//  public static final int ER_NULL_CHILD = 20;
-
+     "ElemTemplateElement\u30A8\u30E9\u30FC: {0}"},
 
     { ER_NULL_CHILD,
-     "\u30cc\u30eb\u306e\u5b50\u3092\u8ffd\u52a0\u3057\u3088\u3046\u3068\u3057\u3066\u3044\u307e\u3059!"},
-
-  /** ER_NEED_SELECT_ATTRIB          */
-//  public static final int ER_NEED_SELECT_ATTRIB = 21;
-
+     "null\u306E\u5B50\u3092\u8FFD\u52A0\u3057\u3088\u3046\u3068\u3057\u307E\u3057\u305F\u3002"},
 
     { ER_NEED_SELECT_ATTRIB,
-     "{0} \u306b\u306f select \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_NEED_TEST_ATTRIB          */
-//  public static final int ER_NEED_TEST_ATTRIB = 22;
-
+     "{0}\u306B\u306Fselect\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_NEED_TEST_ATTRIB ,
-      "xsl:when \u306b\u306f 'test' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_NEED_NAME_ATTRIB          */
-//  public static final int ER_NEED_NAME_ATTRIB = 23;
-
+      "xsl:when\u306B\u306F'test'\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_NEED_NAME_ATTRIB,
-      "xsl:with-param \u306b\u306f 'name' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_NO_CONTEXT_OWNERDOC          */
-//  public static final int ER_NO_CONTEXT_OWNERDOC = 24;
-
+      "xsl:with-param\u306B\u306F'name'\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_NO_CONTEXT_OWNERDOC,
-      "\u30b3\u30f3\u30c6\u30ad\u30b9\u30c8\u306b\u6240\u6709\u8005\u6587\u66f8\u304c\u3042\u308a\u307e\u305b\u3093!"},
-
-  /** ER_COULD_NOT_CREATE_XML_PROC_LIAISON          */
-//  public static final int ER_COULD_NOT_CREATE_XML_PROC_LIAISON = 25;
-
+      "\u30B3\u30F3\u30C6\u30AD\u30B9\u30C8\u306B\u6240\u6709\u8005\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u304C\u3042\u308A\u307E\u305B\u3093\u3002"},
 
     {ER_COULD_NOT_CREATE_XML_PROC_LIAISON,
-      "XML TransformerFactory Liaison \u3092\u4f5c\u6210\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f: {0}"},
-
-  /** ER_PROCESS_NOT_SUCCESSFUL          */
-//  public static final int ER_PROCESS_NOT_SUCCESSFUL = 26;
-
+      "XML TransformerFactory Liaison\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F: {0}"},
 
     {ER_PROCESS_NOT_SUCCESSFUL,
-      "Xalan: \u51e6\u7406\u306f\u6210\u529f\u3057\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** ER_NOT_SUCCESSFUL          */
-//  public static final int ER_NOT_SUCCESSFUL = 27;
-
+      "Xalan: \u30D7\u30ED\u30BB\u30B9\u306F\u6210\u529F\u3057\u307E\u305B\u3093\u3067\u3057\u305F\u3002"},
 
     { ER_NOT_SUCCESSFUL,
-     "Xalan: \u306f\u6210\u529f\u3057\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** ER_ENCODING_NOT_SUPPORTED          */
-//  public static final int ER_ENCODING_NOT_SUPPORTED = 28;
-
+     "Xalan: \u306F\u6210\u529F\u3057\u307E\u305B\u3093\u3067\u3057\u305F\u3002"},
 
     { ER_ENCODING_NOT_SUPPORTED,
-     "\u30a8\u30f3\u30b3\u30fc\u30c9\u306f\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u3066\u3044\u307e\u305b\u3093: {0}"},
-
-  /** ER_COULD_NOT_CREATE_TRACELISTENER          */
-//  public static final int ER_COULD_NOT_CREATE_TRACELISTENER = 29;
-
+     "\u30A8\u30F3\u30B3\u30FC\u30C7\u30A3\u30F3\u30B0{0}\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093"},
 
     {ER_COULD_NOT_CREATE_TRACELISTENER,
-      "TraceListener \u3092\u4f5c\u6210\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f: {0}"},
-
-  /** ER_KEY_REQUIRES_NAME_ATTRIB          */
-//  public static final int ER_KEY_REQUIRES_NAME_ATTRIB = 30;
-
+      "TraceListener\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F: {0}"},
 
     {ER_KEY_REQUIRES_NAME_ATTRIB,
-      "xsl:key \u306b\u306f 'name' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059!"},
-
-  /** ER_KEY_REQUIRES_MATCH_ATTRIB          */
-//  public static final int ER_KEY_REQUIRES_MATCH_ATTRIB = 31;
-
+      "xsl:key\u306B\u306F'name'\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_KEY_REQUIRES_MATCH_ATTRIB,
-      "xsl:key \u306b\u306f 'match' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059!"},
-
-  /** ER_KEY_REQUIRES_USE_ATTRIB          */
-//  public static final int ER_KEY_REQUIRES_USE_ATTRIB = 32;
-
+      "xsl:key\u306B\u306F'match'\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_KEY_REQUIRES_USE_ATTRIB,
-      "xsl:key \u306b\u306f 'use' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059!"},
-
-  /** ER_REQUIRES_ELEMENTS_ATTRIB          */
-//  public static final int ER_REQUIRES_ELEMENTS_ATTRIB = 33;
-
+      "xsl:key\u306B\u306F'use'\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_REQUIRES_ELEMENTS_ATTRIB,
-      "(StylesheetHandler) {0} \u306b\u306f ''elements'' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059!"},
-
-  /** ER_MISSING_PREFIX_ATTRIB          */
-//  public static final int ER_MISSING_PREFIX_ATTRIB = 34;
-
+      "(StylesheetHandler) {0}\u306B\u306F''elements''\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_MISSING_PREFIX_ATTRIB,
-      "(StylesheetHandler) {0} \u5c5e\u6027\u306e ''prefix'' \u304c\u3042\u308a\u307e\u305b\u3093"},
-
-  /** ER_BAD_STYLESHEET_URL          */
-//  public static final int ER_BAD_STYLESHEET_URL = 35;
-
+      "(StylesheetHandler) {0}\u5C5E\u6027''prefix''\u304C\u3042\u308A\u307E\u305B\u3093"},
 
     { ER_BAD_STYLESHEET_URL,
-     "\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8 URL \u304c\u9593\u9055\u3063\u3066\u3044\u307e\u3059: {0}"},
-
-  /** ER_FILE_NOT_FOUND          */
-//  public static final int ER_FILE_NOT_FOUND = 36;
-
+     "\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8URL\u304C\u4E0D\u6B63\u3067\u3059: {0}"},
 
     { ER_FILE_NOT_FOUND,
-     "\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u30fb\u30d5\u30a1\u30a4\u30eb\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f: {0}"},
-
-  /** ER_IOEXCEPTION          */
-//  public static final int ER_IOEXCEPTION = 37;
-
+     "\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u30FB\u30D5\u30A1\u30A4\u30EB\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F: {0}"},
 
     { ER_IOEXCEPTION,
-      "\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u30fb\u30d5\u30a1\u30a4\u30eb\u306b\u3088\u308b\u5165\u51fa\u529b\u4f8b\u5916\u304c\u8d77\u3053\u308a\u307e\u3057\u305f: {0}"},
+      "\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u30FB\u30D5\u30A1\u30A4\u30EB\u306B\u5165\u51FA\u529B\u4F8B\u5916\u304C\u3042\u308A\u307E\u3059: {0}"},
 
-  /** ER_NO_HREF_ATTRIB          */
-//  public static final int ER_NO_HREF_ATTRIB = 38;
+    { ER_NO_HREF_ATTRIB, 
+      "(StylesheetHandler) {0}\u306Ehref\u5C5E\u6027\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F"},
 
-
-    { ER_NO_HREF_ATTRIB,
-      "(StylesheetHandler) {0} \u306e href \u5c5e\u6027\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** ER_STYLESHEET_INCLUDES_ITSELF          */
-//  public static final int ER_STYLESHEET_INCLUDES_ITSELF = 39;
-
-
-    { ER_STYLESHEET_INCLUDES_ITSELF,
-      "(StylesheetHandler) {0} \u304c\u81ea\u5206\u81ea\u8eab\u3092\u76f4\u63a5\u7684\u307e\u305f\u306f\u9593\u63a5\u7684\u306b\u7d44\u307f\u8fbc\u3082\u3046\u3068\u3057\u3066\u3044\u307e\u3059!"},
-
-  /** ER_PROCESSINCLUDE_ERROR          */
-//  public static final int ER_PROCESSINCLUDE_ERROR = 40;
-
+    { ER_STYLESHEET_INCLUDES_ITSELF, 
+      "(StylesheetHandler) {0}\u306F\u305D\u308C\u81EA\u4F53\u3092\u76F4\u63A5\u7684\u307E\u305F\u306F\u9593\u63A5\u7684\u306B\u542B\u3093\u3067\u3044\u307E\u3059\u3002"},
 
     { ER_PROCESSINCLUDE_ERROR,
-      "StylesheetHandler.processInclude \u30a8\u30e9\u30fc\u3001{0}"},
-
-  /** ER_MISSING_LANG_ATTRIB          */
-//  public static final int ER_MISSING_LANG_ATTRIB = 41;
-
+      "StylesheetHandler.processInclude\u30A8\u30E9\u30FC\u3001{0}"},
 
     { ER_MISSING_LANG_ATTRIB,
-      "(StylesheetHandler) {0} \u5c5e\u6027\u306e ''lang'' \u304c\u3042\u308a\u307e\u305b\u3093"},
-
-  /** ER_MISSING_CONTAINER_ELEMENT_COMPONENT          */
-//  public static final int ER_MISSING_CONTAINER_ELEMENT_COMPONENT = 42;
+      "(StylesheetHandler) {0}\u5C5E\u6027''lang''\u304C\u3042\u308A\u307E\u305B\u3093"},
 
     { ER_MISSING_CONTAINER_ELEMENT_COMPONENT,
-      "(StylesheetHandler) {0} \u30a8\u30ec\u30e1\u30f3\u30c8\u306e\u5834\u6240\u3092\u9593\u9055\u3048\u305f\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002 \u30b3\u30f3\u30c6\u30ca\u30fc\u30fb\u30a8\u30ec\u30e1\u30f3\u30c8 ''component'' \u304c\u3042\u308a\u307e\u305b\u3093\u3002"},
-
-  /** ER_CAN_ONLY_OUTPUT_TO_ELEMENT          */
-//  public static final int ER_CAN_ONLY_OUTPUT_TO_ELEMENT = 43;
+      "(StylesheetHandler) {0}\u8981\u7D20\u306E\u914D\u7F6E\u304C\u4E0D\u6B63\u3067\u3059\u3002\u30B3\u30F3\u30C6\u30CA\u8981\u7D20''component''\u304C\u3042\u308A\u307E\u305B\u3093"},
 
     { ER_CAN_ONLY_OUTPUT_TO_ELEMENT,
-      "Element\u3001DocumentFragment\u3001Document\u3001\u307e\u305f\u306f PrintWriter \u3078\u306e\u51fa\u529b\u3057\u304b\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** ER_PROCESS_ERROR          */
-//  public static final int ER_PROCESS_ERROR = 44;
+      "Element\u3001DocumentFragment\u3001Document\u307E\u305F\u306FPrintWriter\u306B\u306E\u307F\u51FA\u529B\u3067\u304D\u307E\u3059\u3002"},
 
     { ER_PROCESS_ERROR,
-     "StylesheetRoot.\u51e6\u7406\u30a8\u30e9\u30fc"},
-
-  /** ER_UNIMPLNODE_ERROR          */
-//  public static final int ER_UNIMPLNODE_ERROR = 45;
+     "StylesheetRoot.process\u30A8\u30E9\u30FC"},
 
     { ER_UNIMPLNODE_ERROR,
-     "UnImplNode \u30a8\u30e9\u30fc: {0}"},
-
-  /** ER_NO_SELECT_EXPRESSION          */
-//  public static final int ER_NO_SELECT_EXPRESSION = 46;
+     "UnImplNode\u30A8\u30E9\u30FC: {0}"},
 
     { ER_NO_SELECT_EXPRESSION,
-      "\u30a8\u30e9\u30fc! xpath select \u5f0f (-select) \u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
+      "\u30A8\u30E9\u30FC\u3002xpath\u9078\u629E\u5F0F(-select)\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F\u3002"},
 
-  /** ER_CANNOT_SERIALIZE_XSLPROCESSOR          */
-//  public static final int ER_CANNOT_SERIALIZE_XSLPROCESSOR = 47;
-
-    { ER_CANNOT_SERIALIZE_XSLPROCESSOR,
-      "XSLProcessor \u3092\u30b7\u30ea\u30a2\u30e9\u30a4\u30ba\u3067\u304d\u307e\u305b\u3093!"},
-
-  /** ER_NO_INPUT_STYLESHEET          */
-//  public static final int ER_NO_INPUT_STYLESHEET = 48;
+    { ER_CANNOT_SERIALIZE_XSLPROCESSOR, 
+      "XSLProcessor\u3092\u30B7\u30EA\u30A2\u30E9\u30A4\u30BA\u3067\u304D\u307E\u305B\u3093\u3002"},
 
     { ER_NO_INPUT_STYLESHEET,
-      "\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u5165\u529b\u304c\u6307\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3067\u3057\u305f!"},
-
-  /** ER_FAILED_PROCESS_STYLESHEET          */
-//  public static final int ER_FAILED_PROCESS_STYLESHEET = 49;
+      "\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u5165\u529B\u304C\u6307\u5B9A\u3055\u308C\u307E\u305B\u3093\u3067\u3057\u305F\u3002"},
 
     { ER_FAILED_PROCESS_STYLESHEET,
-      "\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u3092\u51e6\u7406\u3059\u308b\u3053\u3068\u306b\u5931\u6557\u3057\u307e\u3057\u305f!"},
+      "\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u306E\u51E6\u7406\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002"},
 
-  /** ER_COULDNT_PARSE_DOC          */
-//  public static final int ER_COULDNT_PARSE_DOC = 50;
-
-    { ER_COULDNT_PARSE_DOC,
-     "{0} \u6587\u66f8\u3092\u69cb\u6587\u89e3\u6790\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f!"},
-
-  /** ER_COULDNT_FIND_FRAGMENT          */
-//  public static final int ER_COULDNT_FIND_FRAGMENT = 51;
+    { ER_COULDNT_PARSE_DOC,       
+     "{0}\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u3092\u89E3\u6790\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002"},
 
     { ER_COULDNT_FIND_FRAGMENT,
-     "\u30d5\u30e9\u30b0\u30e1\u30f3\u30c8\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f: {0}"},
-
-  /** ER_NODE_NOT_ELEMENT          */
- // public static final int ER_NODE_NOT_ELEMENT = 52;
+     "\u30D5\u30E9\u30B0\u30E1\u30F3\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F: {0}"},
 
     { ER_NODE_NOT_ELEMENT,
-      "\u30d5\u30e9\u30b0\u30e1\u30f3\u30c8 ID \u306b\u3088\u308a\u6307\u3055\u308c\u3066\u3044\u308b\u30ce\u30fc\u30c9\u304c\u30a8\u30ec\u30e1\u30f3\u30c8\u3067\u3042\u308a\u307e\u305b\u3093\u3067\u3057\u305f: {0}"},
-
-  /** ER_FOREACH_NEED_MATCH_OR_NAME_ATTRIB          */
-//  public static final int ER_FOREACH_NEED_MATCH_OR_NAME_ATTRIB = 53;
+      "\u30D5\u30E9\u30B0\u30E1\u30F3\u30C8\u8B58\u5225\u5B50\u306B\u3088\u3063\u3066\u6307\u793A\u3055\u308C\u305F\u30CE\u30FC\u30C9\u306F\u8981\u7D20\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3067\u3057\u305F: {0}"},
 
     { ER_FOREACH_NEED_MATCH_OR_NAME_ATTRIB,
-      "for-each \u306b\u306f match \u307e\u305f\u306f name \u306e\u3044\u305a\u308c\u304b\u306e\u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
+      "for-each\u306Fmatch\u307E\u305F\u306Fname\u5C5E\u6027\u3092\u6301\u3064\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
-  /** ER_TEMPLATES_NEED_MATCH_OR_NAME_ATTRIB          */
-//  public static final int ER_TEMPLATES_NEED_MATCH_OR_NAME_ATTRIB = 54;
-
-    { ER_TEMPLATES_NEED_MATCH_OR_NAME_ATTRIB,
-      "\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u306b\u306f match \u307e\u305f\u306f name \u306e\u3044\u305a\u308c\u304b\u306e\u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_NO_CLONE_OF_DOCUMENT_FRAG          */
-//  public static final int ER_NO_CLONE_OF_DOCUMENT_FRAG = 55;
+    { ER_TEMPLATES_NEED_MATCH_OR_NAME_ATTRIB, 
+      "\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u306Fmatch\u307E\u305F\u306Fname\u5C5E\u6027\u3092\u6301\u3064\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_NO_CLONE_OF_DOCUMENT_FRAG,
-      "\u6587\u66f8\u30d5\u30e9\u30b0\u30e1\u30f3\u30c8\u306e\u8907\u88fd\u304c\u3042\u308a\u307e\u305b\u3093!"},
-
-  /** ER_CANT_CREATE_ITEM          */
-//  public static final int ER_CANT_CREATE_ITEM = 56;
+      "\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u30FB\u30D5\u30E9\u30B0\u30E1\u30F3\u30C8\u306E\u30AF\u30ED\u30FC\u30F3\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093\u3002"},
 
     { ER_CANT_CREATE_ITEM,
-      "\u9805\u76ee\u3092\u7d50\u679c\u30c4\u30ea\u30fc\u306b\u4f5c\u6210\u3067\u304d\u307e\u305b\u3093: {0}"},
-
-  /** ER_XMLSPACE_ILLEGAL_VALUE          */
-//  public static final int ER_XMLSPACE_ILLEGAL_VALUE = 57;
+      "\u7D50\u679C\u30C4\u30EA\u30FC\u306B\u9805\u76EE\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093: {0}"},
 
     { ER_XMLSPACE_ILLEGAL_VALUE,
-      "\u30bd\u30fc\u30b9 XML \u5185\u306e xml:space \u306b\u306f\u6b63\u3057\u304f\u306a\u3044\u5024\u304c\u3042\u308a\u307e\u3059: {0}"},
-
-  /** ER_NO_XSLKEY_DECLARATION          */
-//  public static final int ER_NO_XSLKEY_DECLARATION = 58;
+      "\u30BD\u30FC\u30B9XML\u306Exml:space\u306E\u5024\u304C\u4E0D\u6B63\u3067\u3059: {0}"},
 
     { ER_NO_XSLKEY_DECLARATION,
-      "{0} \u306e xsl:key \u5ba3\u8a00\u304c\u3042\u308a\u307e\u305b\u3093!"},
+      "{0}\u306Exsl:key\u5BA3\u8A00\u304C\u3042\u308A\u307E\u305B\u3093\u3002"},
 
-  /** ER_CANT_CREATE_URL          */
-//  public static final int ER_CANT_CREATE_URL = 59;
-
-    { ER_CANT_CREATE_URL,
-     "\u30a8\u30e9\u30fc! {0} \u306e URL \u3092\u4f5c\u6210\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** ER_XSLFUNCTIONS_UNSUPPORTED          */
-//  public static final int ER_XSLFUNCTIONS_UNSUPPORTED = 60;
+    { ER_CANT_CREATE_URL, 
+     "\u30A8\u30E9\u30FC\u3002{0}\u306EURL\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_XSLFUNCTIONS_UNSUPPORTED,
-     "xsl:functions \u306f\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
+     "xsl:functions\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093"},
 
-  /** ER_PROCESSOR_ERROR          */
-//  public static final int ER_PROCESSOR_ERROR = 61;
-
-    { ER_PROCESSOR_ERROR,
-     "XSLT TransformerFactory \u30a8\u30e9\u30fc"},
-
-  /** ER_NOT_ALLOWED_INSIDE_STYLESHEET          */
-//  public static final int ER_NOT_ALLOWED_INSIDE_STYLESHEET = 62;
+    { ER_PROCESSOR_ERROR, 
+     "XSLT TransformerFactory\u30A8\u30E9\u30FC"},
 
     { ER_NOT_ALLOWED_INSIDE_STYLESHEET,
-      "(StylesheetHandler) {0} \u306f\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u306e\u5185\u90e8\u3067\u306f\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093!"},
+      "(StylesheetHandler) {0}\u306F\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u5185\u3067\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093\u3002"},
 
-  /** ER_RESULTNS_NOT_SUPPORTED          */
-//  public static final int ER_RESULTNS_NOT_SUPPORTED = 63;
+    { ER_RESULTNS_NOT_SUPPORTED, 
+      "result-ns\u306F\u73FE\u5728\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002\u304B\u308F\u308A\u306Bxsl:output\u3092\u4F7F\u7528\u3057\u3066\u304F\u3060\u3055\u3044\u3002"},
 
-    { ER_RESULTNS_NOT_SUPPORTED,
-      "result-ns \u306f\u3082\u3046\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u3066\u3044\u307e\u305b\u3093!  \u4ee3\u308a\u306b xsl:output \u3092\u4f7f\u7528\u3057\u3066\u304f\u3060\u3055\u3044\u3002"},
-
-  /** ER_DEFAULTSPACE_NOT_SUPPORTED          */
-//  public static final int ER_DEFAULTSPACE_NOT_SUPPORTED = 64;
-
-    { ER_DEFAULTSPACE_NOT_SUPPORTED,
-      "default-space \u306f\u3082\u3046\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u3066\u3044\u307e\u305b\u3093!  \u4ee3\u308a\u306b xsl:strip-space \u307e\u305f\u306f xsl:preserve-space \u3092\u4f7f\u7528\u3057\u3066\u304f\u3060\u3055\u3044\u3002"},
-
-  /** ER_INDENTRESULT_NOT_SUPPORTED          */
-//  public static final int ER_INDENTRESULT_NOT_SUPPORTED = 65;
+    { ER_DEFAULTSPACE_NOT_SUPPORTED, 
+      "default-space\u306F\u73FE\u5728\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002\u304B\u308F\u308A\u306Bxsl:strip-space\u307E\u305F\u306Fxsl:preserve-space\u3092\u4F7F\u7528\u3057\u3066\u304F\u3060\u3055\u3044\u3002"},
 
     { ER_INDENTRESULT_NOT_SUPPORTED,
-      "indent-result \u306f\u3082\u3046\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u3066\u3044\u307e\u305b\u3093!  \u4ee3\u308a\u306b xsl:output \u3092\u4f7f\u7528\u3057\u3066\u304f\u3060\u3055\u3044\u3002"},
-
-  /** ER_ILLEGAL_ATTRIB          */
-//  public static final int ER_ILLEGAL_ATTRIB = 66;
+      "indent-result\u306F\u73FE\u5728\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002\u304B\u308F\u308A\u306Bxsl:output\u3092\u4F7F\u7528\u3057\u3066\u304F\u3060\u3055\u3044\u3002"},
 
     { ER_ILLEGAL_ATTRIB,
-      "(StylesheetHandler) {0} \u306b\u306f\u6b63\u3057\u304f\u306a\u3044\u5c5e\u6027\u304c\u3042\u308a\u307e\u3059: {1}"},
-
-  /** ER_UNKNOWN_XSL_ELEM          */
-//  public static final int ER_UNKNOWN_XSL_ELEM = 67;
+      "(StylesheetHandler) {0}\u306B\u306F\u4E0D\u6B63\u306A\u5C5E\u6027\u304C\u3042\u308A\u307E\u3059: {1}"},
 
     { ER_UNKNOWN_XSL_ELEM,
-     "\u4e0d\u660e\u306e XSL \u30a8\u30ec\u30e1\u30f3\u30c8: {0}"},
-
-  /** ER_BAD_XSLSORT_USE          */
-//  public static final int ER_BAD_XSLSORT_USE = 68;
+     "\u4E0D\u660E\u306AXSL\u8981\u7D20: {0}"},
 
     { ER_BAD_XSLSORT_USE,
-      "(StylesheetHandler) xsl:sort \u306f xsl:apply-templates \u307e\u305f\u306f xsl:for-each \u3068\u3057\u304b\u4f7f\u7528\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** ER_MISPLACED_XSLWHEN          */
-//  public static final int ER_MISPLACED_XSLWHEN = 69;
+      "(StylesheetHandler) xsl:sort\u306F\u3001xsl:apply-templates\u307E\u305F\u306Fxsl:for-each\u3068\u3068\u3082\u306B\u306E\u307F\u4F7F\u7528\u3067\u304D\u307E\u3059\u3002"},
 
     { ER_MISPLACED_XSLWHEN,
-      "(StylesheetHandler) xsl:when \u306e\u5834\u6240\u3092\u8aa4\u3063\u3066\u3044\u307e\u3057\u305f!"},
-
-  /** ER_XSLWHEN_NOT_PARENTED_BY_XSLCHOOSE          */
-//  public static final int ER_XSLWHEN_NOT_PARENTED_BY_XSLCHOOSE = 70;
+      "(StylesheetHandler) xsl:when\u306E\u914D\u7F6E\u304C\u4E0D\u6B63\u3067\u3059\u3002"},
 
     { ER_XSLWHEN_NOT_PARENTED_BY_XSLCHOOSE,
-      "(StylesheetHandler) xsl:when \u304c xsl:choose \u306b\u3088\u308a\u89aa\u306b\u306a\u3063\u3066\u3044\u307e\u305b\u3093\u3067\u3057\u305f!"},
-
-  /** ER_MISPLACED_XSLOTHERWISE          */
-//  public static final int ER_MISPLACED_XSLOTHERWISE = 71;
+      "(StylesheetHandler) xsl:when\u306E\u89AA\u304Cxsl:choose\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002"},
 
     { ER_MISPLACED_XSLOTHERWISE,
-      "(StylesheetHandler) xsl:otherwise \u306e\u5834\u6240\u3092\u8aa4\u3063\u3066\u3044\u307e\u3057\u305f!"},
-
-  /** ER_XSLOTHERWISE_NOT_PARENTED_BY_XSLCHOOSE          */
-//  public static final int ER_XSLOTHERWISE_NOT_PARENTED_BY_XSLCHOOSE = 72;
+      "(StylesheetHandler) xsl:otherwise\u306E\u914D\u7F6E\u304C\u4E0D\u6B63\u3067\u3059\u3002"},
 
     { ER_XSLOTHERWISE_NOT_PARENTED_BY_XSLCHOOSE,
-      "(StylesheetHandler) xsl:otherwise \u304c xsl:choose \u306b\u3088\u308a\u89aa\u306b\u306a\u3063\u3066\u3044\u307e\u305b\u3093\u3067\u3057\u305f!"},
-
-  /** ER_NOT_ALLOWED_INSIDE_TEMPLATE          */
-//  public static final int ER_NOT_ALLOWED_INSIDE_TEMPLATE = 73;
+      "(StylesheetHandler) xsl:otherwise\u306E\u89AA\u304Cxsl:choose\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002"},
 
     { ER_NOT_ALLOWED_INSIDE_TEMPLATE,
-      "(StylesheetHandler) {0} \u306f\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u306e\u5185\u90e8\u3067\u306f\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093!"},
+      "(StylesheetHandler) {0}\u306F\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u5185\u3067\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093\u3002"},
 
-  /** ER_UNKNOWN_EXT_NS_PREFIX          */
-//  public static final int ER_UNKNOWN_EXT_NS_PREFIX = 74;
+    { ER_UNKNOWN_EXT_NS_PREFIX, 
+      "(StylesheetHandler) \u4E0D\u660E\u306A{0}\u62E1\u5F35\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u306E\u63A5\u982D\u8F9E{1}\u3067\u3059"},
 
-    { ER_UNKNOWN_EXT_NS_PREFIX,
-      "(StylesheetHandler) {0} \u62e1\u5f35\u30cd\u30fc\u30e0\u30fb\u30b9\u30da\u30fc\u30b9\u63a5\u982d\u90e8 {1} \u304c\u4e0d\u660e\u3067\u3059\u3002"},
-
-  /** ER_IMPORTS_AS_FIRST_ELEM          */
-//  public static final int ER_IMPORTS_AS_FIRST_ELEM = 75;
-
-    { ER_IMPORTS_AS_FIRST_ELEM,
-      "(StylesheetHandler) \u30a4\u30f3\u30dd\u30fc\u30c8\u306f\u3001\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u5185\u306e\u5148\u982d\u30a8\u30ec\u30e1\u30f3\u30c8\u3068\u3057\u3066\u306e\u307f\u5165\u308c\u308b\u3053\u3068\u304c\u3067\u304d\u307e\u3059!"},
-
-  /** ER_IMPORTING_ITSELF          */
-//  public static final int ER_IMPORTING_ITSELF = 76;
+    { ER_IMPORTS_AS_FIRST_ELEM, 
+      "(StylesheetHandler) \u30A4\u30F3\u30DD\u30FC\u30C8\u306F\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u306E\u6700\u521D\u306E\u8981\u7D20\u3068\u3057\u3066\u306E\u307F\u4F7F\u7528\u3067\u304D\u307E\u3059\u3002"},
 
     { ER_IMPORTING_ITSELF,
-      "(StylesheetHandler) {0} \u304c\u81ea\u5206\u81ea\u8eab\u3092\u76f4\u63a5\u7684\u307e\u305f\u306f\u9593\u63a5\u7684\u306b\u30a4\u30f3\u30dd\u30fc\u30c8\u3057\u3088\u3046\u3068\u3057\u3066\u3044\u307e\u3059!"},
-
-  /** ER_XMLSPACE_ILLEGAL_VAL          */
-//  public static final int ER_XMLSPACE_ILLEGAL_VAL = 77;
+      "(StylesheetHandler) {0}\u306F\u305D\u308C\u81EA\u4F53\u3092\u76F4\u63A5\u307E\u305F\u306F\u9593\u63A5\u7684\u306B\u30A4\u30F3\u30DD\u30FC\u30C8\u3057\u3066\u3044\u307E\u3059\u3002"},
 
     { ER_XMLSPACE_ILLEGAL_VAL,
-      "(StylesheetHandler) xml:space \u306b\u6b63\u3057\u304f\u306a\u3044\u5024\u304c\u3042\u308a\u307e\u3059: {0}"},
-
-  /** ER_PROCESSSTYLESHEET_NOT_SUCCESSFUL          */
-//  public static final int ER_PROCESSSTYLESHEET_NOT_SUCCESSFUL = 78;
+      "(StylesheetHandler) xml:space\u306E\u5024\u304C\u4E0D\u6B63\u3067\u3059: {0}"},
 
     { ER_PROCESSSTYLESHEET_NOT_SUCCESSFUL,
-      "processStylesheet \u306f\u6210\u529f\u3057\u3066\u3044\u307e\u305b\u3093!"},
+      "processStylesheet\u306F\u5931\u6557\u3057\u307E\u3057\u305F\u3002"},
 
-  /** ER_SAX_EXCEPTION          */
-//  public static final int ER_SAX_EXCEPTION = 79;
+    { ER_SAX_EXCEPTION, 
+     "SAX\u4F8B\u5916"},
 
-    { ER_SAX_EXCEPTION,
-     "SAX \u4f8b\u5916"},
-
-  /** ER_FUNCTION_NOT_SUPPORTED          */
-//  public static final int ER_FUNCTION_NOT_SUPPORTED = 80;
-
-    //{ ER_FUNCTION_NOT_SUPPORTED,
-    // "Function not supported!"},
-
-  /** ER_XSLT_ERROR          */
-//  public static final int ER_XSLT_ERROR = 81;
+//  add this message to fix bug 21478
+    { ER_FUNCTION_NOT_SUPPORTED, 
+     "\u95A2\u6570\u304C\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002"},
 
     { ER_XSLT_ERROR,
-     "XSLT \u30a8\u30e9\u30fc"},
-
-  /** ER_CURRENCY_SIGN_ILLEGAL          */
-//  public static final int ER_CURRENCY_SIGN_ILLEGAL = 82;
+     "XSLT\u30A8\u30E9\u30FC"},
 
     { ER_CURRENCY_SIGN_ILLEGAL,
-      "\u901a\u8ca8\u8a18\u53f7\u306f\u66f8\u5f0f\u30d1\u30bf\u30fc\u30f3\u30fb\u30b9\u30c8\u30ea\u30f3\u30b0\u5185\u3067\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-  /** ER_DOCUMENT_FUNCTION_INVALID_IN_STYLESHEET_DOM          */
-//  public static final int ER_DOCUMENT_FUNCTION_INVALID_IN_STYLESHEET_DOM = 83;
+      "\u901A\u8CA8\u8A18\u53F7\u306F\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u30FB\u30D1\u30BF\u30FC\u30F3\u6587\u5B57\u5217\u5185\u3067\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093"},
 
     { ER_DOCUMENT_FUNCTION_INVALID_IN_STYLESHEET_DOM,
-      "\u6587\u66f8\u6a5f\u80fd\u306f\u30b9\u30bf\u30a4\u30eb\u30fb\u30b7\u30fc\u30c8 DOM \u3067\u306f\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u3066\u3044\u307e\u305b\u3093!"},
-
-  /** ER_CANT_RESOLVE_PREFIX_OF_NON_PREFIX_RESOLVER          */
-//  public static final int ER_CANT_RESOLVE_PREFIX_OF_NON_PREFIX_RESOLVER = 84;
+      "\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u95A2\u6570\u306F\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8DOM\u3067\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002"},
 
     { ER_CANT_RESOLVE_PREFIX_OF_NON_PREFIX_RESOLVER,
-      "\u975e\u63a5\u982d\u90e8\u30ea\u30be\u30eb\u30d0\u30fc\u306e\u63a5\u982d\u90e8\u3092\u89e3\u6c7a\u3067\u304d\u307e\u305b\u3093!"},
-
-  /** ER_REDIRECT_COULDNT_GET_FILENAME          */
-//  public static final int ER_REDIRECT_COULDNT_GET_FILENAME = 85;
+      "\u975E\u63A5\u982D\u8F9E\u30EA\u30BE\u30EB\u30D0\u306E\u63A5\u982D\u8F9E\u3092\u89E3\u6C7A\u3067\u304D\u307E\u305B\u3093\u3002"},
 
     { ER_REDIRECT_COULDNT_GET_FILENAME,
-      "\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u62e1\u5f35: \u30d5\u30a1\u30a4\u30eb\u540d\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002file \u307e\u305f\u306f select \u5c5e\u6027\u306f\u6709\u52b9\u306a\u30b9\u30c8\u30ea\u30f3\u30b0\u3092\u623b\u3055\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093\u3002"},
-
-  /** ER_CANNOT_BUILD_FORMATTERLISTENER_IN_REDIRECT          */
-//  public static final int ER_CANNOT_BUILD_FORMATTERLISTENER_IN_REDIRECT = 86;
+      "\u30EA\u30C0\u30A4\u30EC\u30AF\u30C8\u62E1\u5F35: \u30D5\u30A1\u30A4\u30EB\u540D\u3092\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F - file\u307E\u305F\u306Fselect\u5C5E\u6027\u304C\u6709\u52B9\u306A\u6587\u5B57\u5217\u3092\u8FD4\u3059\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"},
 
     { ER_CANNOT_BUILD_FORMATTERLISTENER_IN_REDIRECT,
-      "FormatterListener \u306f\u30ea\u30c0\u30a4\u30ec\u30af\u30c8\u62e1\u5f35\u5185\u306b\u30d3\u30eb\u30c9\u3067\u304d\u307e\u305b\u3093!"},
-
-  /** ER_INVALID_PREFIX_IN_EXCLUDERESULTPREFIX          */
-//  public static final int ER_INVALID_PREFIX_IN_EXCLUDERESULTPREFIX = 87;
+      "\u30EA\u30C0\u30A4\u30EC\u30AF\u30C8\u62E1\u5F35\u3067FormatterListener\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093\u3002"},
 
     { ER_INVALID_PREFIX_IN_EXCLUDERESULTPREFIX,
-      "exclude-result-prefixes \u5185\u306e\u63a5\u982d\u90e8\u304c\u7121\u52b9\u3067\u3059: {0}"},
+      "exclude-result-prefixes\u306E\u63A5\u982D\u8F9E\u304C\u7121\u52B9\u3067\u3059: {0}"},
 
-  /** ER_MISSING_NS_URI          */
-//  public static final int ER_MISSING_NS_URI = 88;
-
-    { ER_MISSING_NS_URI,
-      "\u6307\u5b9a\u3055\u308c\u305f\u63a5\u982d\u90e8\u306e\u30cd\u30fc\u30e0\u30fb\u30b9\u30da\u30fc\u30b9 URI \u304c\u3042\u308a\u307e\u305b\u3093\u3002"},
-
-  /** ER_MISSING_ARG_FOR_OPTION          */
-//  public static final int ER_MISSING_ARG_FOR_OPTION = 89;
+    { ER_MISSING_NS_URI, 
+      "\u6307\u5B9A\u3057\u305F\u63A5\u982D\u8F9E\u306E\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9URI\u304C\u3042\u308A\u307E\u305B\u3093"},
 
     { ER_MISSING_ARG_FOR_OPTION,
-      "\u30aa\u30d7\u30b7\u30e7\u30f3\u306e\u5f15\u304d\u6570\u304c\u3042\u308a\u307e\u305b\u3093: {0}"},
-
-  /** ER_INVALID_OPTION          */
-//  public static final int ER_INVALID_OPTION = 90;
+      "\u30AA\u30D7\u30B7\u30E7\u30F3{0}\u306E\u5F15\u6570\u304C\u3042\u308A\u307E\u305B\u3093"},
 
     { ER_INVALID_OPTION,
-     "\u7121\u52b9\u306a\u30aa\u30d7\u30b7\u30e7\u30f3: {0}"},
-
-  /** ER_MALFORMED_FORMAT_STRING          */
-//  public static final int ER_MALFORMED_FORMAT_STRING = 91;
+     "\u7121\u52B9\u306A\u30AA\u30D7\u30B7\u30E7\u30F3: {0}"},
 
     { ER_MALFORMED_FORMAT_STRING,
-     "\u8aa4\u3063\u305f\u5f62\u5f0f\u306e\u66f8\u5f0f\u30b9\u30c8\u30ea\u30f3\u30b0: {0}"},
-
-  /** ER_STYLESHEET_REQUIRES_VERSION_ATTRIB          */
-//  public static final int ER_STYLESHEET_REQUIRES_VERSION_ATTRIB = 92;
+     "\u4E0D\u6B63\u306A\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u306E\u6587\u5B57\u5217\u3067\u3059: {0}"},
 
     { ER_STYLESHEET_REQUIRES_VERSION_ATTRIB,
-      "xsl:stylesheet \u306b\u306f 'version' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059!"},
-
-  /** ER_ILLEGAL_ATTRIBUTE_VALUE          */
-//  public static final int ER_ILLEGAL_ATTRIBUTE_VALUE = 93;
+      "xsl:stylesheet\u306F'version'\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { ER_ILLEGAL_ATTRIBUTE_VALUE,
-      "\u5c5e\u6027: {0} \u306b\u306f\u6b63\u3057\u304f\u306a\u3044\u5024: {1} \u304c\u3042\u308a\u307e\u3059\u3002"},
-
-  /** ER_CHOOSE_REQUIRES_WHEN          */
-//  public static final int ER_CHOOSE_REQUIRES_WHEN = 94;
+      "\u5C5E\u6027{0}\u306E\u5024\u304C\u4E0D\u6B63\u3067\u3059: {1}"},
 
     { ER_CHOOSE_REQUIRES_WHEN,
-     "xsl:choose \u306b\u306f xsl:when \u304c\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** ER_NO_APPLY_IMPORT_IN_FOR_EACH          */
-//  public static final int ER_NO_APPLY_IMPORT_IN_FOR_EACH = 95;
+     "xsl:choose\u306Fxsl:when\u304C\u5FC5\u8981\u3067\u3059"},
 
     { ER_NO_APPLY_IMPORT_IN_FOR_EACH,
-      "xsl:apply-imports \u306f xsl:for-each \u5185\u3067\u306f\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-  /** ER_CANT_USE_DTM_FOR_OUTPUT          */
-//  public static final int ER_CANT_USE_DTM_FOR_OUTPUT = 96;
+      "xsl:apply-imports\u306Fxsl:for-each\u5185\u3067\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093"},
 
     { ER_CANT_USE_DTM_FOR_OUTPUT,
-      "DTMLiaison \u306f\u51fa\u529b DOM \u30ce\u30fc\u30c9\u306b\u4f7f\u7528\u3067\u304d\u307e\u305b\u3093... \u4ee3\u308a\u306b com.sun.org.apache.xpath.internal.DOM2Helper \u3092\u6e21\u3057\u3066\u304f\u3060\u3055\u3044!"},
-
-  /** ER_CANT_USE_DTM_FOR_INPUT          */
-//  public static final int ER_CANT_USE_DTM_FOR_INPUT = 97;
+      "\u51FA\u529BDOM\u30CE\u30FC\u30C9\u306BDTMLiaison\u3092\u4F7F\u7528\u3067\u304D\u307E\u305B\u3093...\u304B\u308F\u308A\u306Bcom.sun.org.apache.xpath.internal.DOM2Helper\u3092\u6E21\u3057\u3066\u304F\u3060\u3055\u3044\u3002"},
 
     { ER_CANT_USE_DTM_FOR_INPUT,
-      "DTMLiaison \u306f\u5165\u529b DOM \u30ce\u30fc\u30c9\u306b\u4f7f\u7528\u3067\u304d\u307e\u305b\u3093... \u4ee3\u308a\u306b com.sun.org.apache.xpath.internal.DOM2Helper \u3092\u6e21\u3057\u3066\u304f\u3060\u3055\u3044!"},
-
-  /** ER_CALL_TO_EXT_FAILED          */
-//  public static final int ER_CALL_TO_EXT_FAILED = 98;
+      "\u5165\u529BDOM\u30CE\u30FC\u30C9\u306BDTMLiaison\u3092\u4F7F\u7528\u3067\u304D\u307E\u305B\u3093...\u304B\u308F\u308A\u306Bcom.sun.org.apache.xpath.internal.DOM2Helper\u3092\u6E21\u3057\u3066\u304F\u3060\u3055\u3044\u3002"},
 
     { ER_CALL_TO_EXT_FAILED,
-      "\u62e1\u5f35\u30a8\u30ec\u30e1\u30f3\u30c8\u3078\u306e\u547c\u3073\u51fa\u3057\u304c\u5931\u6557\u3057\u307e\u3057\u305f: {0}"},
-
-  /** ER_PREFIX_MUST_RESOLVE          */
-//  public static final int ER_PREFIX_MUST_RESOLVE = 99;
+      "\u62E1\u5F35\u8981\u7D20\u306E\u547C\u51FA\u3057\u306B\u5931\u6557\u3057\u307E\u3057\u305F: {0}"},
 
     { ER_PREFIX_MUST_RESOLVE,
-      "\u63a5\u982d\u90e8\u306f\u30cd\u30fc\u30e0\u30fb\u30b9\u30da\u30fc\u30b9\u306b\u89e3\u6c7a\u3055\u308c\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093: {0}"},
-
-  /** ER_INVALID_UTF16_SURROGATE          */
-//  public static final int ER_INVALID_UTF16_SURROGATE = 100;
+      "\u63A5\u982D\u8F9E\u306F\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u306B\u89E3\u6C7A\u3055\u308C\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059: {0}"},
 
     { ER_INVALID_UTF16_SURROGATE,
-      "\u7121\u52b9\u306a UTF-16 \u30b5\u30ed\u30b2\u30fc\u30c8\u304c\u691c\u51fa\u3055\u308c\u307e\u3057\u305f: {0} ?"},
-
-  /** ER_XSLATTRSET_USED_ITSELF          */
- // public static final int ER_XSLATTRSET_USED_ITSELF = 101;
+      "\u7121\u52B9\u306AUTF-16\u30B5\u30ED\u30B2\u30FC\u30C8\u304C\u691C\u51FA\u3055\u308C\u307E\u3057\u305F: {0}\u3002"},
 
     { ER_XSLATTRSET_USED_ITSELF,
-      "xsl:attribute-set {0} \u304c\u81ea\u8eab\u3092\u4f7f\u7528\u3057\u3066\u3044\u308b\u305f\u3081\u3001\u7121\u9650\u30eb\u30fc\u30d7\u306e\u539f\u56e0\u3068\u306a\u308a\u307e\u3059\u3002"},
-
-  /** ER_CANNOT_MIX_XERCESDOM          */
-//  public static final int ER_CANNOT_MIX_XERCESDOM = 102;
+      "xsl:attribute-set {0}\u304C\u305D\u308C\u81EA\u4F53\u3092\u4F7F\u7528\u3057\u3001\u7121\u9650\u30EB\u30FC\u30D7\u304C\u767A\u751F\u3057\u307E\u3059\u3002"},
 
     { ER_CANNOT_MIX_XERCESDOM,
-      "\u975e Xerces-DOM \u5165\u529b\u3068 Xerces-DOM \u51fa\u529b\u306f\u6df7\u7528\u3067\u304d\u307e\u305b\u3093!"},
-
-  /** ER_TOO_MANY_LISTENERS          */
-//  public static final int ER_TOO_MANY_LISTENERS = 103;
+      "\u975EXerces-DOM\u5165\u529B\u3068Xerces-DOM\u51FA\u529B\u3092\u540C\u6642\u306B\u4F7F\u7528\u3059\u308B\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093\u3002"},
 
     { ER_TOO_MANY_LISTENERS,
       "addTraceListenersToStylesheet - TooManyListenersException"},
 
-  /** ER_IN_ELEMTEMPLATEELEM_READOBJECT          */
-//  public static final int ER_IN_ELEMTEMPLATEELEM_READOBJECT = 104;
-
     { ER_IN_ELEMTEMPLATEELEM_READOBJECT,
-      "ElemTemplateElement.readObject \u5185: {0}"},
-
-  /** ER_DUPLICATE_NAMED_TEMPLATE          */
-//  public static final int ER_DUPLICATE_NAMED_TEMPLATE = 105;
+      "ElemTemplateElement.readObject\u5185: {0}"},
 
     { ER_DUPLICATE_NAMED_TEMPLATE,
-      "\u6b21\u306e\u540d\u524d\u306e\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u304c\u8907\u6570\u898b\u3064\u304b\u308a\u307e\u3057\u305f: {0}"},
-
-  /** ER_INVALID_KEY_CALL          */
-//  public static final int ER_INVALID_KEY_CALL = 106;
+      "\u540D\u524D{0}\u306E\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u304C\u8907\u6570\u898B\u3064\u304B\u308A\u307E\u3057\u305F"},
 
     { ER_INVALID_KEY_CALL,
-      "\u7121\u52b9\u306a\u95a2\u6570\u547c\u3073\u51fa\u3057: \u518d\u5e30\u7684 key() \u547c\u3073\u51fa\u3057\u306f\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-  /** Variable is referencing itself          */
-//  public static final int ER_REFERENCING_ITSELF = 107;
+      "\u7121\u52B9\u306A\u95A2\u6570\u547C\u51FA\u3057: \u518D\u5E30\u7684\u306Akey()\u306E\u547C\u51FA\u3057\u306F\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093"},
 
     { ER_REFERENCING_ITSELF,
-      "\u5909\u6570 {0} \u304c\u76f4\u63a5\u7684\u307e\u305f\u306f\u9593\u63a5\u7684\u306b\u81ea\u5206\u81ea\u8eab\u306b\u53c2\u7167\u3065\u3051\u3066\u3044\u307e\u3059!"},
-
-  /** Illegal DOMSource input          */
-//  public static final int ER_ILLEGAL_DOMSOURCE_INPUT = 108;
+      "\u5909\u6570{0}\u306F\u305D\u308C\u81EA\u4F53\u3092\u76F4\u63A5\u307E\u305F\u306F\u9593\u63A5\u7684\u306B\u53C2\u7167\u3057\u3066\u3044\u307E\u3059\u3002"},
 
     { ER_ILLEGAL_DOMSOURCE_INPUT,
-      "newTemplates \u306e DOMSource \u306e\u5165\u529b\u3092\u30cc\u30eb\u306b\u306f\u3067\u304d\u307e\u305b\u3093!"},
-
-        /** Class not found for option         */
-//  public static final int ER_CLASS_NOT_FOUND_FOR_OPTION = 109;
+      "newTemplates\u306EDOMSource\u306B\u3064\u3044\u3066\u5165\u529B\u30CE\u30FC\u30C9\u3092null\u306B\u3059\u308B\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093\u3002"},
 
     { ER_CLASS_NOT_FOUND_FOR_OPTION,
-        "\u30aa\u30d7\u30b7\u30e7\u30f3 {0} \u306e\u30af\u30e9\u30b9\u30fb\u30d5\u30a1\u30a4\u30eb\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002"},
-
-        /** Required Element not found         */
-//  public static final int ER_REQUIRED_ELEM_NOT_FOUND = 110;
+	"\u30AA\u30D7\u30B7\u30E7\u30F3{0}\u306B\u3064\u3044\u3066\u30AF\u30E9\u30B9\u30FB\u30D5\u30A1\u30A4\u30EB\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093"},
 
     { ER_REQUIRED_ELEM_NOT_FOUND,
-        "\u5fc5\u8981\u306a\u30a8\u30ec\u30e1\u30f3\u30c8\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093: {0}"},
-
-  /** InputStream cannot be null         */
-//  public static final int ER_INPUT_CANNOT_BE_NULL = 111;
+	"\u5FC5\u9808\u8981\u7D20\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093: {0}"},
 
     { ER_INPUT_CANNOT_BE_NULL,
-        "InputStream \u3092\u30cc\u30eb\u306b\u306f\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** URI cannot be null         */
-//  public static final int ER_URI_CANNOT_BE_NULL = 112;
+	"InputStream\u3092null\u306B\u3059\u308B\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_URI_CANNOT_BE_NULL,
-        "URI \u3092\u30cc\u30eb\u306b\u306f\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** File cannot be null         */
-//  public static final int ER_FILE_CANNOT_BE_NULL = 113;
+	"URI\u3092null\u306B\u3059\u308B\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_FILE_CANNOT_BE_NULL,
-        "\u30d5\u30a1\u30a4\u30eb\u3092\u30cc\u30eb\u306b\u306f\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-   /** InputSource cannot be null         */
-//  public static final int ER_SOURCE_CANNOT_BE_NULL = 114;
+	"\u30D5\u30A1\u30A4\u30EB\u3092null\u306B\u3059\u308B\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_SOURCE_CANNOT_BE_NULL,
-                "InputSource \u3092\u30cc\u30eb\u306b\u306f\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** Can't overwrite cause         */
-//  public static final int ER_CANNOT_OVERWRITE_CAUSE = 115;
-
-    //{ ER_CANNOT_OVERWRITE_CAUSE,
-        //      "Cannot overwrite cause"},
-
-  /** Could not initialize BSF Manager        */
-//  public static final int ER_CANNOT_INIT_BSFMGR = 116;
+		"InputSource\u3092null\u306B\u3059\u308B\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_CANNOT_INIT_BSFMGR,
-                "BSF \u30de\u30cd\u30fc\u30b8\u30e3\u30fc\u3092\u521d\u671f\u5316\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** Could not compile extension       */
-//  public static final int ER_CANNOT_CMPL_EXTENSN = 117;
+		"BSF\u30DE\u30CD\u30FC\u30B8\u30E3\u3092\u521D\u671F\u5316\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F"},
 
     { ER_CANNOT_CMPL_EXTENSN,
-                "\u62e1\u5f35\u6a5f\u80fd\u3092\u30b3\u30f3\u30d1\u30a4\u30eb\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** Could not create extension       */
-//  public static final int ER_CANNOT_CREATE_EXTENSN = 118;
+		"\u62E1\u5F35\u3092\u30B3\u30F3\u30D1\u30A4\u30EB\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F"},
 
     { ER_CANNOT_CREATE_EXTENSN,
-      "\u539f\u56e0: {1} \u306e\u305f\u3081\u306b\u62e1\u5f35\u6a5f\u80fd: {0} \u3092\u4f5c\u6210\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** Instance method call to method {0} requires an Object instance as first argument       */
-//  public static final int ER_INSTANCE_MTHD_CALL_REQUIRES = 119;
+      "{1}\u304C\u539F\u56E0\u3067\u62E1\u5F35{0}\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F"},
 
     { ER_INSTANCE_MTHD_CALL_REQUIRES,
-      "\u30e1\u30bd\u30c3\u30c9 {0} \u3078\u306e\u30a4\u30f3\u30b9\u30bf\u30f3\u30b9\u30fb\u30e1\u30bd\u30c3\u30c9\u547c\u3073\u51fa\u3057\u306b\u306f\u30aa\u30d6\u30b8\u30a7\u30af\u30c8\u30fb\u30a4\u30f3\u30b9\u30bf\u30f3\u30b9\u304c\u6700\u521d\u306e\u5f15\u304d\u6570\u3068\u3057\u3066\u5fc5\u8981\u3067\u3059\u3002"},
-
-  /** Invalid element name specified       */
-//  public static final int ER_INVALID_ELEMENT_NAME = 120;
+      "\u30E1\u30BD\u30C3\u30C9{0}\u306E\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u30FB\u30E1\u30BD\u30C3\u30C9\u547C\u51FA\u3057\u3067\u306F\u3001\u6700\u521D\u306E\u5F15\u6570\u3068\u3057\u3066\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u30FB\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u304C\u5FC5\u8981\u3067\u3059"},
 
     { ER_INVALID_ELEMENT_NAME,
-      "\u7121\u52b9\u306a\u30a8\u30ec\u30e1\u30f3\u30c8\u540d\u304c\u6307\u5b9a\u3055\u308c\u307e\u3057\u305f: {0}"},
-
-   /** Element name method must be static      */
-//  public static final int ER_ELEMENT_NAME_METHOD_STATIC = 121;
+      "\u7121\u52B9\u306A\u8981\u7D20\u540D\u304C\u6307\u5B9A\u3055\u308C\u307E\u3057\u305F{0}"},
 
     { ER_ELEMENT_NAME_METHOD_STATIC,
-      "\u30a8\u30ec\u30e1\u30f3\u30c8\u540d\u30e1\u30bd\u30c3\u30c9\u306f\u9759\u7684\u3067\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093: {0}"},
-
-   /** Extension function {0} : {1} is unknown      */
-//  public static final int ER_EXTENSION_FUNC_UNKNOWN = 122;
+      "\u8981\u7D20\u540D\u30E1\u30BD\u30C3\u30C9\u306Fstatic {0}\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_EXTENSION_FUNC_UNKNOWN,
-             "\u62e1\u5f35\u6a5f\u80fd {0} : {1} \u304c\u4e0d\u660e\u3067\u3059\u3002"},
-
-   /** More than one best match for constructor for       */
-//  public static final int ER_MORE_MATCH_CONSTRUCTOR = 123;
+             "\u62E1\u5F35\u95A2\u6570{0} : {1}\u304C\u4E0D\u660E\u3067\u3059"},
 
     { ER_MORE_MATCH_CONSTRUCTOR,
-             "{0} \u306e\u30b3\u30f3\u30b9\u30c8\u30e9\u30af\u30bf\u30fc\u306e\u6700\u9069\u4e00\u81f4\u304c\u8907\u6570\u3042\u308a\u307e\u3059\u3002"},
-
-   /** More than one best match for method      */
-//  public static final int ER_MORE_MATCH_METHOD = 124;
+             "{0}\u306E\u30B3\u30F3\u30B9\u30C8\u30E9\u30AF\u30BF\u306B\u8907\u6570\u306E\u6700\u9069\u4E00\u81F4\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_MORE_MATCH_METHOD,
-             "\u30e1\u30bd\u30c3\u30c9 {0} \u306e\u6700\u9069\u4e00\u81f4\u304c\u8907\u6570\u3042\u308a\u307e\u3059\u3002"},
-
-   /** More than one best match for element method      */
-//  public static final int ER_MORE_MATCH_ELEMENT = 125;
+             "\u30E1\u30BD\u30C3\u30C9{0}\u306B\u8907\u6570\u306E\u6700\u9069\u4E00\u81F4\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_MORE_MATCH_ELEMENT,
-             "\u30a8\u30ec\u30e1\u30f3\u30c8\u30fb\u30e1\u30bd\u30c3\u30c9 {0} \u306e\u6700\u9069\u4e00\u81f4\u304c\u8907\u6570\u3042\u308a\u307e\u3059\u3002"},
-
-   /** Invalid context passed to evaluate       */
-//  public static final int ER_INVALID_CONTEXT_PASSED = 126;
+             "\u8981\u7D20\u30E1\u30BD\u30C3\u30C9{0}\u306B\u8907\u6570\u306E\u6700\u9069\u4E00\u81F4\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_INVALID_CONTEXT_PASSED,
-             "{0} \u3092\u8a55\u4fa1\u3059\u308b\u305f\u3081\u306b\u6e21\u3055\u308c\u305f\u30b3\u30f3\u30c6\u30ad\u30b9\u30c8\u304c\u7121\u52b9\u3067\u3059\u3002"},
-
-   /** Pool already exists       */
-//  public static final int ER_POOL_EXISTS = 127;
+             "{0}\u3092\u8A55\u4FA1\u3059\u308B\u305F\u3081\u306B\u7121\u52B9\u306A\u30B3\u30F3\u30C6\u30AD\u30B9\u30C8\u304C\u6E21\u3055\u308C\u307E\u3057\u305F"},
 
     { ER_POOL_EXISTS,
-             "\u30d7\u30fc\u30eb\u306f\u3059\u3067\u306b\u5b58\u5728\u3057\u3066\u3044\u307e\u3059\u3002"},
-
-   /** No driver Name specified      */
-//  public static final int ER_NO_DRIVER_NAME = 128;
+             "\u30D7\u30FC\u30EB\u306F\u3059\u3067\u306B\u5B58\u5728\u3057\u307E\u3059"},
 
     { ER_NO_DRIVER_NAME,
-             "\u30c9\u30e9\u30a4\u30d0\u30fc\u540d\u304c\u6307\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-   /** No URL specified     */
-//  public static final int ER_NO_URL = 129;
+             "\u30C9\u30E9\u30A4\u30D0\u540D\u304C\u6307\u5B9A\u3055\u308C\u3066\u3044\u307E\u305B\u3093"},
 
     { ER_NO_URL,
-             "URL \u304c\u6307\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-   /** Pool size is less than one    */
-//  public static final int ER_POOL_SIZE_LESSTHAN_ONE = 130;
+             "URL\u304C\u6307\u5B9A\u3055\u308C\u3066\u3044\u307E\u305B\u3093"},
 
     { ER_POOL_SIZE_LESSTHAN_ONE,
-             "\u30d7\u30fc\u30eb\u30fb\u30b5\u30a4\u30ba\u304c 1 \u3088\u308a\u5c0f\u3067\u3059!"},
-
-   /** Invalid driver name specified    */
-//  public static final int ER_INVALID_DRIVER = 131;
+             "\u30D7\u30FC\u30EB\u30FB\u30B5\u30A4\u30BA\u304C1\u3088\u308A\u5C0F\u3055\u3044\u3067\u3059\u3002"},
 
     { ER_INVALID_DRIVER,
-             "\u7121\u52b9\u306a\u30c9\u30e9\u30a4\u30d0\u30fc\u540d\u304c\u6307\u5b9a\u3055\u308c\u307e\u3057\u305f!"},
-
-   /** Did not find the stylesheet root    */
-//  public static final int ER_NO_STYLESHEETROOT = 132;
+             "\u7121\u52B9\u306A\u30C9\u30E9\u30A4\u30D0\u540D\u304C\u6307\u5B9A\u3055\u308C\u307E\u3057\u305F\u3002"},
 
     { ER_NO_STYLESHEETROOT,
-             "\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u306e\u30eb\u30fc\u30c8\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f!"},
-
-   /** Illegal value for xml:space     */
-//  public static final int ER_ILLEGAL_XMLSPACE_VALUE = 133;
+             "\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u30FB\u30EB\u30FC\u30C8\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F\u3002"},
 
     { ER_ILLEGAL_XMLSPACE_VALUE,
-         "xml:space \u306e\u5024\u304c\u6b63\u3057\u304f\u3042\u308a\u307e\u305b\u3093\u3002"},
-
-   /** processFromNode failed     */
-//  public static final int ER_PROCESSFROMNODE_FAILED = 134;
+         "xml:space\u306E\u5024\u304C\u4E0D\u6B63\u3067\u3059"},
 
     { ER_PROCESSFROMNODE_FAILED,
-         "processFromNode \u304c\u5931\u6557\u3057\u307e\u3057\u305f\u3002"},
-
-   /** The resource [] could not load:     */
-//  public static final int ER_RESOURCE_COULD_NOT_LOAD = 135;
+         "processFromNode\u304C\u5931\u6557\u3057\u307E\u3057\u305F"},
 
     { ER_RESOURCE_COULD_NOT_LOAD,
-        "\u30ea\u30bd\u30fc\u30b9 [ {0} ] \u3092\u30ed\u30fc\u30c9\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f: {1} \n {2} \t {3}"},
-
-
-   /** Buffer size <=0     */
-//  public static final int ER_BUFFER_SIZE_LESSTHAN_ZERO = 136;
+        "\u30EA\u30BD\u30FC\u30B9[ {0} ]\u3092\u30ED\u30FC\u30C9\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F: {1} \n {2} \t {3}"},
 
     { ER_BUFFER_SIZE_LESSTHAN_ZERO,
-        "\u30d0\u30c3\u30d5\u30a1\u30fc\u30fb\u30b5\u30a4\u30ba <=0"},
-
-   /** Unknown error when calling extension    */
-//  public static final int ER_UNKNOWN_ERROR_CALLING_EXTENSION = 137;
+        "\u30D0\u30C3\u30D5\u30A1\u30FB\u30B5\u30A4\u30BA<=0"},
 
     { ER_UNKNOWN_ERROR_CALLING_EXTENSION,
-        "\u30a8\u30af\u30b9\u30c6\u30f3\u30b7\u30e7\u30f3\u3092\u547c\u3073\u51fa\u3057\u6642\u306b\u4e0d\u660e\u30a8\u30e9\u30fc"},
-
-   /** Prefix {0} does not have a corresponding namespace declaration    */
-//  public static final int ER_NO_NAMESPACE_DECL = 138;
+        "\u62E1\u5F35\u3092\u547C\u3073\u51FA\u3059\u3068\u304D\u306B\u4E0D\u660E\u306A\u30A8\u30E9\u30FC\u304C\u767A\u751F\u3057\u307E\u3057\u305F"},
 
     { ER_NO_NAMESPACE_DECL,
-        "\u63a5\u982d\u90e8 {0} \u306b\u306f\u5bfe\u5fdc\u3057\u3066\u3044\u308b\u30cd\u30fc\u30e0\u30fb\u30b9\u30da\u30fc\u30b9\u5ba3\u8a00\u304c\u3042\u308a\u307e\u305b\u3093\u3002"},
-
-   /** Element content not allowed for lang=javaclass   */
-//  public static final int ER_ELEM_CONTENT_NOT_ALLOWED = 139;
+        "\u63A5\u982D\u8F9E{0}\u306B\u306F\u3001\u5BFE\u5FDC\u3059\u308B\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u5BA3\u8A00\u304C\u3042\u308A\u307E\u305B\u3093"},
 
     { ER_ELEM_CONTENT_NOT_ALLOWED,
-        "\u30a8\u30ec\u30e1\u30f3\u30c8\u306e\u30b3\u30f3\u30c6\u30f3\u30c4\u306f lang=javaclass {0} \u306e\u5834\u5408\u306f\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-   /** Stylesheet directed termination   */
-//  public static final int ER_STYLESHEET_DIRECTED_TERMINATION = 140;
+        "\u8981\u7D20\u306E\u5185\u5BB9\u306Flang=javaclass {0}\u306B\u3064\u3044\u3066\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093"},
 
     { ER_STYLESHEET_DIRECTED_TERMINATION,
-        "\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u3067\u7d42\u4e86\u304c\u6307\u56f3\u3055\u308c\u307e\u3057\u305f\u3002"},
-
-   /** 1 or 2   */
-//  public static final int ER_ONE_OR_TWO = 141;
+        "\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u306B\u3088\u308A\u7D42\u4E86\u304C\u6307\u793A\u3055\u308C\u307E\u3057\u305F"},
 
     { ER_ONE_OR_TWO,
-        "1 \u307e\u305f\u306f 2"},
-
-   /** 2 or 3   */
-//  public static final int ER_TWO_OR_THREE = 142;
+        "1\u307E\u305F\u306F2"},
 
     { ER_TWO_OR_THREE,
-        "2 \u307e\u305f\u306f 3"},
-
-   /** Could not load {0} (check CLASSPATH), now using just the defaults   */
-//  public static final int ER_COULD_NOT_LOAD_RESOURCE = 143;
+        "2\u307E\u305F\u306F3"},
 
     { ER_COULD_NOT_LOAD_RESOURCE,
-        "{0} \u3092\u30ed\u30fc\u30c9\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f (CLASSPATH \u3092\u8abf\u3079\u3066\u304f\u3060\u3055\u3044)\u3002\u73fe\u5728\u306f\u307e\u3055\u306b\u30c7\u30d5\u30a9\u30eb\u30c8\u3092\u4f7f\u7528\u4e2d\u3067\u3059\u3002"},
-
-   /** Cannot initialize default templates   */
-//  public static final int ER_CANNOT_INIT_DEFAULT_TEMPLATES = 144;
+        "{0}\u3092\u30ED\u30FC\u30C9\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F(CLASSPATH\u3092\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044)\u3002\u73FE\u5728\u306F\u5358\u306B\u30C7\u30D5\u30A9\u30EB\u30C8\u3092\u4F7F\u7528\u3057\u3066\u3044\u307E\u3059"},
 
     { ER_CANNOT_INIT_DEFAULT_TEMPLATES,
-        "\u30c7\u30d5\u30a9\u30eb\u30c8\u30fb\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u3092\u521d\u671f\u5316\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-   /** Result should not be null   */
-//  public static final int ER_RESULT_NULL = 145;
+        "\u30C7\u30D5\u30A9\u30EB\u30C8\u30FB\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u3092\u521D\u671F\u5316\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_RESULT_NULL,
-        "\u7d50\u679c\u306f\u30cc\u30eb\u306b\u306f\u306a\u3089\u306a\u3044\u306f\u305a\u3067\u3059\u3002"},
-
-   /** Result could not be set   */
-//  public static final int ER_RESULT_COULD_NOT_BE_SET = 146;
+        "\u7D50\u679C\u306Fnull\u306B\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_RESULT_COULD_NOT_BE_SET,
-        "\u7d50\u679c\u3092\u8a2d\u5b9a\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-   /** No output specified   */
-//  public static final int ER_NO_OUTPUT_SPECIFIED = 147;
+        "\u7D50\u679C\u3092\u8A2D\u5B9A\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F"},
 
     { ER_NO_OUTPUT_SPECIFIED,
-        "\u51fa\u529b\u304c\u6307\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-   /** Can't transform to a Result of type   */
-//  public static final int ER_CANNOT_TRANSFORM_TO_RESULT_TYPE = 148;
+        "\u51FA\u529B\u304C\u6307\u5B9A\u3055\u308C\u3066\u3044\u307E\u305B\u3093"},
 
     { ER_CANNOT_TRANSFORM_TO_RESULT_TYPE,
-        "\u30bf\u30a4\u30d7 {0} \u306e\u7d50\u679c\u306b\u5909\u63db\u3067\u304d\u307e\u305b\u3093"},
-
-   /** Can't transform to a Source of type   */
-//  public static final int ER_CANNOT_TRANSFORM_SOURCE_TYPE = 149;
+        "\u30BF\u30A4\u30D7{0}\u306E\u7D50\u679C\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_CANNOT_TRANSFORM_SOURCE_TYPE,
-        "\u30bf\u30a4\u30d7 {0} \u306e\u30bd\u30fc\u30b9\u3092\u5909\u63db\u3067\u304d\u307e\u305b\u3093"},
-
-   /** Null content handler  */
-//  public static final int ER_NULL_CONTENT_HANDLER = 150;
+        "\u30BF\u30A4\u30D7{0}\u306E\u30BD\u30FC\u30B9\u306B\u5909\u63DB\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_NULL_CONTENT_HANDLER,
-        "\u30cc\u30eb\u306e\u30b3\u30f3\u30c6\u30f3\u30c4\u30fb\u30cf\u30f3\u30c9\u30e9\u30fc"},
+        "Null\u306E\u30B3\u30F3\u30C6\u30F3\u30C4\u30FB\u30CF\u30F3\u30C9\u30E9"},
 
-   /** Null error handler  */
-//  public static final int ER_NULL_ERROR_HANDLER = 151;
     { ER_NULL_ERROR_HANDLER,
-        "\u30cc\u30eb\u306e\u30a8\u30e9\u30fc\u30fb\u30cf\u30f3\u30c9\u30e9\u30fc"},
-
-   /** parse can not be called if the ContentHandler has not been set */
-//  public static final int ER_CANNOT_CALL_PARSE = 152;
+        "Null\u306E\u30A8\u30E9\u30FC\u30FB\u30CF\u30F3\u30C9\u30E9"},
 
     { ER_CANNOT_CALL_PARSE,
-        "ContentHandler \u304c\u672a\u8a2d\u5b9a\u306e\u5834\u5408\u306f parse \u306e\u547c\u3073\u51fa\u3057\u306f\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-   /**  No parent for filter */
-//  public static final int ER_NO_PARENT_FOR_FILTER = 153;
+        "ContentHandler\u304C\u8A2D\u5B9A\u3055\u308C\u3066\u3044\u306A\u3044\u5834\u5408\u3001\u89E3\u6790\u3092\u547C\u3073\u51FA\u3059\u3053\u3068\u304C\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_NO_PARENT_FOR_FILTER,
-        "\u30d5\u30a3\u30eb\u30bf\u30fc\u306e\u89aa\u304c\u3042\u308a\u307e\u305b\u3093\u3002"},
-
-
-   /**  No stylesheet found in: {0}, media */
-//  public static final int ER_NO_STYLESHEET_IN_MEDIA = 154;
+        "\u30D5\u30A3\u30EB\u30BF\u306E\u89AA\u304C\u3042\u308A\u307E\u305B\u3093"},
 
     { ER_NO_STYLESHEET_IN_MEDIA,
-         "\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u304c {0}\u3001\u30e1\u30c7\u30a3\u30a2= {1} \u306b\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002"},
-
-   /**  No xml-stylesheet PI found in */
-//  public static final int ER_NO_STYLESHEET_PI = 155;
+         "\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u304C{0}\u306B\u3042\u308A\u307E\u305B\u3093\u3002\u30E1\u30C7\u30A3\u30A2= {1}"},
 
     { ER_NO_STYLESHEET_PI,
-         "XML \u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8 PI \u304c {0} \u306b\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002"},
-
-   /**  No default implementation found */
-//  public static final int ER_NO_DEFAULT_IMPL = 156;
-
-    //{ ER_NO_DEFAULT_IMPL,
-     //    "No default implementation found "},
-
-   /**  ChunkedIntArray({0}) not currently supported */
-//  public static final int ER_CHUNKEDINTARRAY_NOT_SUPPORTED = 157;
-
-    //{ ER_CHUNKEDINTARRAY_NOT_SUPPORTED,
-     //  "ChunkedIntArray({0}) not currently supported"},
-
-   /**  Offset bigger than slot */
-//  public static final int ER_OFFSET_BIGGER_THAN_SLOT = 158;
-
-    //{ ER_OFFSET_BIGGER_THAN_SLOT,
-     //  "Offset bigger than slot"},
-
-   /**  Coroutine not available, id= */
-//  public static final int ER_COROUTINE_NOT_AVAIL = 159;
-
-    //{ ER_COROUTINE_NOT_AVAIL,
-    //   "Coroutine not available, id={0}"},
-
-   /**  CoroutineManager recieved co_exit() request */
-//  public static final int ER_COROUTINE_CO_EXIT = 160;
-
-    //{ ER_COROUTINE_CO_EXIT,
-     //  "CoroutineManager received co_exit() request"},
-
-   /**  co_joinCoroutineSet() failed */
-//  public static final int ER_COJOINROUTINESET_FAILED = 161;
-
-    //{ ER_COJOINROUTINESET_FAILED,
-    //   "co_joinCoroutineSet() failed"},
-
-   /**  Coroutine parameter error () */
-//  public static final int ER_COROUTINE_PARAM = 162;
-
-    //{ ER_COROUTINE_PARAM,
-    //   "Coroutine parameter error ({0})"},
-
-   /**  UNEXPECTED: Parser doTerminate answers  */
-//  public static final int ER_PARSER_DOTERMINATE_ANSWERS = 163;
-
-    //{ ER_PARSER_DOTERMINATE_ANSWERS,
-    //   "\nUNEXPECTED: Parser doTerminate answers {0}"},
-
-   /**  parse may not be called while parsing */
-//  public static final int ER_NO_PARSE_CALL_WHILE_PARSING = 164;
-
-    //{ ER_NO_PARSE_CALL_WHILE_PARSING,
-    //   "parse may not be called while parsing"},
-
-   /**  Error: typed iterator for axis  {0} not implemented  */
-//  public static final int ER_TYPED_ITERATOR_AXIS_NOT_IMPLEMENTED = 165;
-
-    //{ ER_TYPED_ITERATOR_AXIS_NOT_IMPLEMENTED,
-     //  "Error: typed iterator for axis  {0} not implemented"},
-
-   /**  Error: iterator for axis {0} not implemented  */
-//  public static final int ER_ITERATOR_AXIS_NOT_IMPLEMENTED = 166;
-
-    //{ ER_ITERATOR_AXIS_NOT_IMPLEMENTED,
-    //   "Error: iterator for axis {0} not implemented "},
-
-   /**  Iterator clone not supported  */
-//  public static final int ER_ITERATOR_CLONE_NOT_SUPPORTED = 167;
-
-    //{ ER_ITERATOR_CLONE_NOT_SUPPORTED,
-     //  "Iterator clone not supported"},
-
-   /**  Unknown axis traversal type  */
-//  public static final int ER_UNKNOWN_AXIS_TYPE = 168;
-
-    //{ ER_UNKNOWN_AXIS_TYPE,
-    //   "Unknown axis traversal type: {0}"},
-
-   /**  Axis traverser not supported  */
-//  public static final int ER_AXIS_NOT_SUPPORTED = 169;
-
-    //{ ER_AXIS_NOT_SUPPORTED,
-    //   "Axis traverser not supported: {0}"},
-
-   /**  No more DTM IDs are available  */
-//  public static final int ER_NO_DTMIDS_AVAIL = 170;
-
-    //{ ER_NO_DTMIDS_AVAIL,
-     //  "No more DTM IDs are available"},
-
-   /**  Not supported  */
-//  public static final int ER_NOT_SUPPORTED = 171;
+         "xml-stylesheet PI\u304C{0}\u306B\u898B\u3064\u304B\u308A\u307E\u305B\u3093"},
 
     { ER_NOT_SUPPORTED,
-       "\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u3066\u3044\u307e\u305b\u3093: {0}"},
-
-   /**  node must be non-null for getDTMHandleFromNode  */
-//  public static final int ER_NODE_NON_NULL = 172;
-
-    //{ ER_NODE_NON_NULL,
-    //   "Node must be non-null for getDTMHandleFromNode"},
-
-   /**  Could not resolve the node to a handle  */
-//  public static final int ER_COULD_NOT_RESOLVE_NODE = 173;
-
-    //{ ER_COULD_NOT_RESOLVE_NODE,
-    //   "Could not resolve the node to a handle"},
-
-   /**  startParse may not be called while parsing */
-//  public static final int ER_STARTPARSE_WHILE_PARSING = 174;
-
-    //{ ER_STARTPARSE_WHILE_PARSING,
-     //  "startParse may not be called while parsing"},
-
-   /**  startParse needs a non-null SAXParser  */
-//  public static final int ER_STARTPARSE_NEEDS_SAXPARSER = 175;
-
-    //{ ER_STARTPARSE_NEEDS_SAXPARSER,
-    //   "startParse needs a non-null SAXParser"},
-
-   /**  could not initialize parser with */
-//  public static final int ER_COULD_NOT_INIT_PARSER = 176;
-    //{ ER_COULD_NOT_INIT_PARSER,
-     //  "could not initialize parser with"},
-
-   /**  Value for property {0} should be a Boolean instance  */
-//  public static final int ER_PROPERTY_VALUE_BOOLEAN = 177;
+       "\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093: {0}"},
 
     { ER_PROPERTY_VALUE_BOOLEAN,
-       "\u30d7\u30ed\u30d1\u30c6\u30a3\u30fc {0} \u306e\u5024\u306f\u30d6\u30fc\u30eb\u30fb\u30a4\u30f3\u30b9\u30bf\u30f3\u30b9\u306b\u3059\u308b\u5fc5\u8981\u304c\u3042\u308a\u307e\u3059\u3002"},
-
-   /**  exception creating new instance for pool  */
-//  public static final int ER_EXCEPTION_CREATING_POOL = 178;
-
-    //{ ER_EXCEPTION_CREATING_POOL,
-    //   "exception creating new instance for pool"},
-
-   /**  Path contains invalid escape sequence  */
-//  public static final int ER_PATH_CONTAINS_INVALID_ESCAPE_SEQUENCE = 179;
-
-    //{ ER_PATH_CONTAINS_INVALID_ESCAPE_SEQUENCE,
-    //   "Path contains invalid escape sequence"},
-
-   /**  Scheme is required!  */
-//  public static final int ER_SCHEME_REQUIRED = 180;
-
-    //{ ER_SCHEME_REQUIRED,
-     //  "Scheme is required!"},
-
-   /**  No scheme found in URI  */
-//  public static final int ER_NO_SCHEME_IN_URI = 181;
-
-    //{ ER_NO_SCHEME_IN_URI,
-    //   "No scheme found in URI: {0}"},
-
-   /**  No scheme found in URI  */
-//  public static final int ER_NO_SCHEME_INURI = 182;
-
-    //{ ER_NO_SCHEME_INURI,
-    //   "No scheme found in URI"},
-
-   /**  Path contains invalid character:   */
-//  public static final int ER_PATH_INVALID_CHAR = 183;
-
-    //{ ER_PATH_INVALID_CHAR,
-    //   "Path contains invalid character: {0}"},
-
-   /**  Cannot set scheme from null string  */
-//  public static final int ER_SCHEME_FROM_NULL_STRING = 184;
-
-    //{ ER_SCHEME_FROM_NULL_STRING,
-    //   "Cannot set scheme from null string"},
-
-   /**  The scheme is not conformant. */
-//  public static final int ER_SCHEME_NOT_CONFORMANT = 185;
-
-    //{ ER_SCHEME_NOT_CONFORMANT,
-    //   "The scheme is not conformant."},
-
-   /**  Host is not a well formed address  */
-//  public static final int ER_HOST_ADDRESS_NOT_WELLFORMED = 186;
-
-    //{ ER_HOST_ADDRESS_NOT_WELLFORMED,
-    //   "Host is not a well formed address"},
-
-   /**  Port cannot be set when host is null  */
-//  public static final int ER_PORT_WHEN_HOST_NULL = 187;
-
-    //{ ER_PORT_WHEN_HOST_NULL,
-    //   "Port cannot be set when host is null"},
-
-   /**  Invalid port number  */
-//  public static final int ER_INVALID_PORT = 188;
-
-    //{ ER_INVALID_PORT,
-    //   "Invalid port number"},
-
-   /**  Fragment can only be set for a generic URI  */
-//  public static final int ER_FRAG_FOR_GENERIC_URI = 189;
-
-    //{ ER_FRAG_FOR_GENERIC_URI,
-    //   "Fragment can only be set for a generic URI"},
-
-   /**  Fragment cannot be set when path is null  */
-//  public static final int ER_FRAG_WHEN_PATH_NULL = 190;
-
-    //{ ER_FRAG_WHEN_PATH_NULL,
-    //   "Fragment cannot be set when path is null"},
-
-   /**  Fragment contains invalid character  */
-//  public static final int ER_FRAG_INVALID_CHAR = 191;
-
-    //{ ER_FRAG_INVALID_CHAR,
-    //   "Fragment contains invalid character"},
-
-
-
-   /** Parser is already in use  */
-//  public static final int ER_PARSER_IN_USE = 192;
-
-    //{ ER_PARSER_IN_USE,
-    //    "Parser is already in use"},
-
-   /** Parser is already in use  */
-//  public static final int ER_CANNOT_CHANGE_WHILE_PARSING = 193;
-
-    //{ ER_CANNOT_CHANGE_WHILE_PARSING,
-    //    "Cannot change {0} {1} while parsing"},
-
-   /** Self-causation not permitted  */
-//  public static final int ER_SELF_CAUSATION_NOT_PERMITTED = 194;
-
-    //{ ER_SELF_CAUSATION_NOT_PERMITTED,
-     //   "Self-causation not permitted"},
-
-   /** src attribute not yet supported for  */
-//  public static final int ER_COULD_NOT_FIND_EXTERN_SCRIPT = 195;
+       "\u30D7\u30ED\u30D1\u30C6\u30A3{0}\u306E\u5024\u306FBoolean\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_COULD_NOT_FIND_EXTERN_SCRIPT,
-         "{0} \u306e\u5916\u90e8\u30b9\u30af\u30ea\u30d7\u30c8\u3078\u5230\u9054\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** The resource [] could not be found     */
-//  public static final int ER_RESOURCE_COULD_NOT_FIND = 196;
+         "{0}\u306E\u5916\u90E8\u30B9\u30AF\u30EA\u30D7\u30C8\u306B\u5230\u9054\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F"},
 
     { ER_RESOURCE_COULD_NOT_FIND,
-        "\u30ea\u30bd\u30fc\u30b9 [ {0} ] \u306f\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002\n {1}"},
-
-   /** output property not recognized:  */
-//  public static final int ER_OUTPUT_PROPERTY_NOT_RECOGNIZED = 197;
+        "\u30EA\u30BD\u30FC\u30B9[ {0} ]\u306F\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F\u3002\n {1}"},
 
     { ER_OUTPUT_PROPERTY_NOT_RECOGNIZED,
-        "\u51fa\u529b\u30d7\u30ed\u30d1\u30c6\u30a3\u30fc\u306f\u8a8d\u8b58\u3055\u308c\u3066\u3044\u307e\u305b\u3093: {0}"},
-
-   /** Userinfo may not be specified if host is not specified   */
-//  public static final int ER_NO_USERINFO_IF_NO_HOST = 198;
-
-    //{ ER_NO_USERINFO_IF_NO_HOST,
-    //    "Userinfo may not be specified if host is not specified"},
-
-   /** Port may not be specified if host is not specified   */
-//  public static final int ER_NO_PORT_IF_NO_HOST = 199;
-
-    //{ ER_NO_PORT_IF_NO_HOST,
-    //    "Port may not be specified if host is not specified"},
-
-   /** Query string cannot be specified in path and query string   */
-//  public static final int ER_NO_QUERY_STRING_IN_PATH = 200;
-
-    //{ ER_NO_QUERY_STRING_IN_PATH,
-    //    "Query string cannot be specified in path and query string"},
-
-   /** Fragment cannot be specified in both the path and fragment   */
-//  public static final int ER_NO_FRAGMENT_STRING_IN_PATH = 201;
-
-    //{ ER_NO_FRAGMENT_STRING_IN_PATH,
-    //    "Fragment cannot be specified in both the path and fragment"},
-
-   /** Cannot initialize URI with empty parameters   */
-//  public static final int ER_CANNOT_INIT_URI_EMPTY_PARMS = 202;
-
-    //{ ER_CANNOT_INIT_URI_EMPTY_PARMS,
-    //    "Cannot initialize URI with empty parameters"},
-
-   /** Failed creating ElemLiteralResult instance   */
-//  public static final int ER_FAILED_CREATING_ELEMLITRSLT = 203;
+        "\u51FA\u529B\u30D7\u30ED\u30D1\u30C6\u30A3\u304C\u8A8D\u8B58\u3055\u308C\u307E\u305B\u3093: {0}"},
 
     { ER_FAILED_CREATING_ELEMLITRSLT,
-        "ElemLiteralResult \u30a4\u30f3\u30b9\u30bf\u30f3\u30b9\u306e\u4f5c\u6210\u304c\u5931\u6557\u3057\u307e\u3057\u305f\u3002"},
+        "ElemLiteralResult\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u306E\u4F5C\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F"},
 
   //Earlier (JDK 1.4 XALAN 2.2-D11) at key code '204' the key name was ER_PRIORITY_NOT_PARSABLE
   // In latest Xalan code base key name is  ER_VALUE_SHOULD_BE_NUMBER. This should also be taken care
   //in locale specific files like XSLTErrorResources_de.java, XSLTErrorResources_fr.java etc.
-  //NOTE: Not only the key name but message has also been changed.
-
-   /** Priority value does not contain a parsable number   */
-//  public static final int ER_VALUE_SHOULD_BE_NUMBER = 204;
-
+  //NOTE: Not only the key name but message has also been changed. 
     { ER_VALUE_SHOULD_BE_NUMBER,
-        "{0} \u306e\u5024\u306b\u306f\u69cb\u6587\u89e3\u6790\u53ef\u80fd\u756a\u53f7\u304c\u542b\u307e\u308c\u3066\u3044\u308b\u306f\u305a\u3067\u3059\u3002"},
-
-   /**  Value for {0} should equal 'yes' or 'no'   */
-//  public static final int ER_VALUE_SHOULD_EQUAL = 205;
+        "{0}\u306E\u5024\u306B\u306F\u89E3\u6790\u53EF\u80FD\u306A\u6570\u5024\u304C\u542B\u307E\u308C\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_VALUE_SHOULD_EQUAL,
-        "{0} \u306e\u5024\u306f yes \u307e\u305f\u306f no \u3068\u7b49\u3057\u304f\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093\u3002"},
-
-   /**  Failed calling {0} method   */
-//  public static final int ER_FAILED_CALLING_METHOD = 206;
+        "{0}\u306E\u5024\u306Fyes\u307E\u305F\u306Fno\u306B\u7B49\u3057\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_FAILED_CALLING_METHOD,
-        "{0} \u30e1\u30bd\u30c3\u30c9\u306e\u547c\u3073\u51fa\u3057\u304c\u5931\u6557\u3057\u307e\u3057\u305f\u3002"},
-
-   /** Failed creating ElemLiteralResult instance   */
-//  public static final int ER_FAILED_CREATING_ELEMTMPL = 207;
+        "{0}\u30E1\u30BD\u30C3\u30C9\u306E\u547C\u51FA\u3057\u306B\u5931\u6557\u3057\u307E\u3057\u305F"},
 
     { ER_FAILED_CREATING_ELEMTMPL,
-        "ElemTemplateElement \u30a4\u30f3\u30b9\u30bf\u30f3\u30b9\u306e\u4f5c\u6210\u304c\u5931\u6557\u3057\u307e\u3057\u305f\u3002"},
-
-   /**  Characters are not allowed at this point in the document   */
-//  public static final int ER_CHARS_NOT_ALLOWED = 208;
+        "ElemTemplateElement\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u306E\u4F5C\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F"},
 
     { ER_CHARS_NOT_ALLOWED,
-        "\u6587\u5b57\u306f\u6587\u66f8\u5185\u306e\u3053\u306e\u30dd\u30a4\u30f3\u30c8\u3067\u306f\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
+        "\u6587\u5B57\u306F\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u3053\u306E\u30DD\u30A4\u30F3\u30C8\u3067\u306F\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093"},
 
-  /**  attribute is not allowed on the element   */
-//  public static final int ER_ATTR_NOT_ALLOWED = 209;
     { ER_ATTR_NOT_ALLOWED,
-        "\"{0}\" \u5c5e\u6027\u306f {1} \u30a8\u30ec\u30e1\u30f3\u30c8\u3067\u306f\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093!"},
-
-  /**  Method not yet supported    */
-//  public static final int ER_METHOD_NOT_SUPPORTED = 210;
-
-    //{ ER_METHOD_NOT_SUPPORTED,
-     //   "Method not yet supported "},
-
-  /**  Bad value    */
-//  public static final int ER_BAD_VALUE = 211;
+        "\"{0}\"\u5C5E\u6027\u306F{1}\u8981\u7D20\u3067\u306F\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093\u3002"},
 
     { ER_BAD_VALUE,
-     "{0} \u306e\u9593\u9055\u3063\u305f\u5024 {1} "},
-
-  /**  attribute value not found   */
-//  public static final int ER_ATTRIB_VALUE_NOT_FOUND = 212;
+     "{0}\u306E\u4E0D\u6B63\u306A\u5024{1} "},
 
     { ER_ATTRIB_VALUE_NOT_FOUND,
-     "{0} \u5c5e\u6027\u5024\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002 "},
-
-  /**  attribute value not recognized    */
-//  public static final int ER_ATTRIB_VALUE_NOT_RECOGNIZED = 213;
+     "{0}\u5C5E\u6027\u5024\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093 "},
 
     { ER_ATTRIB_VALUE_NOT_RECOGNIZED,
-     "{0} \u5c5e\u6027\u5024\u306f\u8a8d\u8b58\u3055\u308c\u307e\u305b\u3093\u3002 "},
-
-  /** IncrementalSAXSource_Filter not currently restartable   */
-//  public static final int ER_INCRSAXSRCFILTER_NOT_RESTARTABLE = 214;
-
-    //{ ER_INCRSAXSRCFILTER_NOT_RESTARTABLE,
-   //  "IncrementalSAXSource_Filter not currently restartable"},
-
-  /** IncrementalSAXSource_Filter not currently restartable   */
-//  public static final int ER_XMLRDR_NOT_BEFORE_STARTPARSE = 215;
-
-    //{ ER_XMLRDR_NOT_BEFORE_STARTPARSE,
-    // "XMLReader not before startParse request"},
-
-  /** Attempting to generate a namespace prefix with a null URI   */
-//  public static final int ER_NULL_URI_NAMESPACE = 216;
+     "{0}\u5C5E\u6027\u5024\u304C\u8A8D\u8B58\u3055\u308C\u307E\u305B\u3093 "},
 
     { ER_NULL_URI_NAMESPACE,
-     "\u30cd\u30fc\u30e0\u30fb\u30b9\u30da\u30fc\u30b9\u63a5\u982d\u90e8\u3092\u30cc\u30eb\u306e URI \u3067\u751f\u6210\u3057\u3088\u3046\u3068\u3057\u3066\u3044\u307e\u3059\u3002"},
-
-  //New ERROR keys added in XALAN code base after Jdk 1.4 (Xalan 2.2-D11)
-
-  /** Attempting to generate a namespace prefix with a null URI   */
-//  public static final int ER_NUMBER_TOO_BIG = 217;
+     "null\u306EURI\u3092\u6301\u3064\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u306E\u63A5\u982D\u8F9E\u3092\u751F\u6210\u3057\u3088\u3046\u3068\u3057\u307E\u3057\u305F"},
 
     { ER_NUMBER_TOO_BIG,
-     "\u6700\u5927 Long \u6574\u6570\u3088\u308a\u5927\u304d\u3044\u6570\u3092\u30d5\u30a9\u30fc\u30de\u30c3\u30c8\u3057\u3088\u3046\u3068\u3057\u3066\u3044\u307e\u3059\u3002"},
-
-//ER_CANNOT_FIND_SAX1_DRIVER
-
-//  public static final int  ER_CANNOT_FIND_SAX1_DRIVER = 218;
+     "\u6700\u5927\u306ELong\u6574\u6570\u3088\u308A\u3082\u5927\u304D\u3044\u6570\u5024\u3092\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8\u3057\u3088\u3046\u3068\u3057\u307E\u3057\u305F"},
 
     { ER_CANNOT_FIND_SAX1_DRIVER,
-     "SAX1 \u30c9\u30e9\u30a4\u30d0\u30fc\u30fb\u30af\u30e9\u30b9 {0} \u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002"},
-
-//ER_SAX1_DRIVER_NOT_LOADED
-//  public static final int  ER_SAX1_DRIVER_NOT_LOADED = 219;
+     "SAX1\u30C9\u30E9\u30A4\u30D0\u30FB\u30AF\u30E9\u30B9{0}\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093"},
 
     { ER_SAX1_DRIVER_NOT_LOADED,
-     "SAX1 \u30c9\u30e9\u30a4\u30d0\u30fc\u30fb\u30af\u30e9\u30b9 {0} \u304c\u898b\u3064\u304b\u308a\u307e\u3057\u305f\u304c\u30ed\u30fc\u30c9\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-//ER_SAX1_DRIVER_NOT_INSTANTIATED
-//  public static final int  ER_SAX1_DRIVER_NOT_INSTANTIATED = 220 ;
+     "SAX1\u30C9\u30E9\u30A4\u30D0\u30FB\u30AF\u30E9\u30B9{0}\u304C\u898B\u3064\u304B\u308A\u307E\u3057\u305F\u304C\u30ED\u30FC\u30C9\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_SAX1_DRIVER_NOT_INSTANTIATED,
-     "SAX1 \u30c9\u30e9\u30a4\u30d0\u30fc\u30fb\u30af\u30e9\u30b9 {0} \u304c\u30ed\u30fc\u30c9\u3055\u308c\u307e\u3057\u305f\u304c\u30a4\u30f3\u30b9\u30bf\u30f3\u30b9\u751f\u6210\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-
-// ER_SAX1_DRIVER_NOT_IMPLEMENT_PARSER
-//  public static final int ER_SAX1_DRIVER_NOT_IMPLEMENT_PARSER = 221;
+     "SAX1\u30C9\u30E9\u30A4\u30D0\u30FB\u30AF\u30E9\u30B9{0}\u304C\u30ED\u30FC\u30C9\u3055\u308C\u307E\u3057\u305F\u304C\u30A4\u30F3\u30B9\u30BF\u30F3\u30B9\u5316\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_SAX1_DRIVER_NOT_IMPLEMENT_PARSER,
-     "SAX1 \u30c9\u30e9\u30a4\u30d0\u30fc\u30fb\u30af\u30e9\u30b9 {0} \u304c org.xml.sax.Parser \u3092\u30a4\u30f3\u30d7\u30ea\u30e1\u30f3\u30c8\u3057\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-// ER_PARSER_PROPERTY_NOT_SPECIFIED
-//  public static final int  ER_PARSER_PROPERTY_NOT_SPECIFIED = 222;
+     "SAX1\u30C9\u30E9\u30A4\u30D0\u30FB\u30AF\u30E9\u30B9{0}\u306Forg.xml.sax.Parser\u3092\u5B9F\u88C5\u3067\u304D\u307E\u305B\u3093"},
 
     { ER_PARSER_PROPERTY_NOT_SPECIFIED,
-     "\u30b7\u30b9\u30c6\u30e0\u30fb\u30d7\u30ed\u30d1\u30c6\u30a3\u30fc org.xml.sax.parser \u306f\u6307\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-//ER_PARSER_ARG_CANNOT_BE_NULL
-//  public static final int  ER_PARSER_ARG_CANNOT_BE_NULL = 223 ;
+     "\u30B7\u30B9\u30C6\u30E0\u30FB\u30D7\u30ED\u30D1\u30C6\u30A3org.xml.sax.parser\u304C\u6307\u5B9A\u3055\u308C\u3066\u3044\u307E\u305B\u3093"},
 
     { ER_PARSER_ARG_CANNOT_BE_NULL,
-     "\u30d1\u30fc\u30b5\u30fc\u306e\u5f15\u304d\u6570\u3092\u30cc\u30eb\u306b\u3057\u3066\u306f\u306a\u308a\u307e\u305b\u3093\u3002"},
-
-
-// ER_FEATURE
-//  public static final int  ER_FEATURE = 224;
+     "\u30D1\u30FC\u30B5\u30FC\u5F15\u6570\u306Fnull\u3067\u306A\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
     { ER_FEATURE,
-     "\u30d5\u30a3\u30fc\u30c1\u30e3\u30fc: {0}"},
-
-
-// ER_PROPERTY
-//  public static final int ER_PROPERTY = 225 ;
+     "\u6A5F\u80FD: {0}"},
 
     { ER_PROPERTY,
-     "\u30d7\u30ed\u30d1\u30c6\u30a3\u30fc: {0}"},
-
-// ER_NULL_ENTITY_RESOLVER
-//  public static final int ER_NULL_ENTITY_RESOLVER  = 226;
+     "\u30D7\u30ED\u30D1\u30C6\u30A3: {0}"},
 
     { ER_NULL_ENTITY_RESOLVER,
-     "\u30cc\u30eb\u30fb\u30a8\u30f3\u30c6\u30a3\u30c6\u30a3\u30fc\u30fb\u30ea\u30be\u30eb\u30d0\u30fc"},
-
-// ER_NULL_DTD_HANDLER
-//  public static final int  ER_NULL_DTD_HANDLER = 227 ;
+     "Null\u30A8\u30F3\u30C6\u30A3\u30C6\u30A3\u30FB\u30EA\u30BE\u30EB\u30D0"},
 
     { ER_NULL_DTD_HANDLER,
-     "\u30cc\u30eb DTD \u30cf\u30f3\u30c9\u30e9\u30fc"},
+     "Null DTD\u30CF\u30F3\u30C9\u30E9"},
 
-// No Driver Name Specified!
-//  public static final int ER_NO_DRIVER_NAME_SPECIFIED = 228;
     { ER_NO_DRIVER_NAME_SPECIFIED,
-     "\u30c9\u30e9\u30a4\u30d0\u30fc\u540d\u304c\u6307\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093!"},
+     "\u30C9\u30E9\u30A4\u30D0\u540D\u304C\u6307\u5B9A\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002"},
 
-
-// No URL Specified!
-//  public static final int ER_NO_URL_SPECIFIED = 229;
     { ER_NO_URL_SPECIFIED,
-     "URL \u304c\u6307\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093!"},
+     "URL\u304C\u6307\u5B9A\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002"},
 
-
-// Pool size is less than 1!
-//  public static final int ER_POOLSIZE_LESS_THAN_ONE = 230;
     { ER_POOLSIZE_LESS_THAN_ONE,
-     "\u30d7\u30fc\u30eb\u30fb\u30b5\u30a4\u30ba\u304c 1 \u3088\u308a\u5c0f\u3067\u3059!"},
+     "\u30D7\u30FC\u30EB\u30FB\u30B5\u30A4\u30BA\u304C1\u3088\u308A\u5C0F\u3055\u3044\u3067\u3059\u3002"},
 
-
-// Invalid Driver Name Specified!
-//  public static final int ER_INVALID_DRIVER_NAME = 231;
     { ER_INVALID_DRIVER_NAME,
-     "\u7121\u52b9\u306a\u30c9\u30e9\u30a4\u30d0\u30fc\u540d\u304c\u6307\u5b9a\u3055\u308c\u307e\u3057\u305f!"},
+     "\u7121\u52B9\u306A\u30C9\u30E9\u30A4\u30D0\u540D\u304C\u6307\u5B9A\u3055\u308C\u307E\u3057\u305F\u3002"},
 
-
-
-// ErrorListener
-//  public static final int ER_ERRORLISTENER = 232;
     { ER_ERRORLISTENER,
      "ErrorListener"},
 
 
-// Programmer's error! expr has no ElemTemplateElement parent!
-//  public static final int ER_ASSERT_NO_TEMPLATE_PARENT = 233;
+// Note to translators:  The following message should not normally be displayed
+//   to users.  It describes a situation in which the processor has detected
+//   an internal consistency problem in itself, and it provides this message
+//   for the developer to help diagnose the problem.  The name
+//   'ElemTemplateElement' is the name of a class, and should not be
+//   translated.
     { ER_ASSERT_NO_TEMPLATE_PARENT,
-     "\u30d7\u30ed\u30b0\u30e9\u30de\u30fc\u306e\u30a8\u30e9\u30fc! expr \u306b\u306f ElemTemplateElement \u89aa\u304c\u3042\u308a\u307e\u305b\u3093!"},
+     "\u30D7\u30ED\u30B0\u30E9\u30DE\u306E\u30A8\u30E9\u30FC\u3002\u5F0F\u306BElemTemplateElement\u306E\u89AA\u304C\u3042\u308A\u307E\u305B\u3093\u3002"},
 
 
-// Programmer''s assertion in RundundentExprEliminator: {0}
-//  public static final int ER_ASSERT_REDUNDENT_EXPR_ELIMINATOR = 234;
+// Note to translators:  The following message should not normally be displayed
+//   to users.  It describes a situation in which the processor has detected
+//   an internal consistency problem in itself, and it provides this message
+//   for the developer to help diagnose the problem.  The substitution text
+//   provides further information in order to diagnose the problem.  The name
+//   'RedundentExprEliminator' is the name of a class, and should not be
+//   translated.
     { ER_ASSERT_REDUNDENT_EXPR_ELIMINATOR,
-     "RedundentExprEliminator \u5185\u306e\u30d7\u30ed\u30b0\u30e9\u30de\u30fc\u306e\u30a2\u30b5\u30fc\u30b7\u30e7\u30f3: {0}"},
+     "RedundentExprEliminator\u3067\u306E\u30D7\u30ED\u30B0\u30E9\u30DE\u306E\u30A2\u30B5\u30FC\u30B7\u30E7\u30F3: {0}"},
 
-// Axis traverser not supported: {0}
-//  public static final int ER_AXIS_TRAVERSER_NOT_SUPPORTED = 235;
-    //{ ER_AXIS_TRAVERSER_NOT_SUPPORTED,
-    // "Axis traverser not supported: {0}"},
-
-// ListingErrorHandler created with null PrintWriter!
-//  public static final int ER_ERRORHANDLER_CREATED_WITH_NULL_PRINTWRITER = 236;
-    //{ ER_ERRORHANDLER_CREATED_WITH_NULL_PRINTWRITER,
-    // "ListingErrorHandler created with null PrintWriter!"},
-
-  // {0}is not allowed in this position in the stylesheet!
-//  public static final int ER_NOT_ALLOWED_IN_POSITION = 237;
     { ER_NOT_ALLOWED_IN_POSITION,
-     "{0} \u306f\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u306e\u3053\u306e\u4f4d\u7f6e\u3067\u306f\u8a31\u53ef\u3055\u308c\u307e\u305b\u3093!"},
+     "{0}\u306F\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u306E\u3053\u306E\u4F4D\u7F6E\u3067\u306F\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093\u3002"},
 
-  // Non-whitespace text is not allowed in this position in the stylesheet!
-//  public static final int ER_NONWHITESPACE_NOT_ALLOWED_IN_POSITION = 238;
     { ER_NONWHITESPACE_NOT_ALLOWED_IN_POSITION,
-     "\u7a7a\u767d\u6587\u5b57\u4ee5\u5916\u306e\u30c6\u30ad\u30b9\u30c8\u306f\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u306e\u3053\u306e\u4f4d\u7f6e\u3067\u306f\u8a31\u53ef\u3055\u308c\u307e\u305b\u3093!"},
+     "\u7A7A\u767D\u4EE5\u5916\u306E\u30C6\u30AD\u30B9\u30C8\u306F\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u306E\u3053\u306E\u4F4D\u7F6E\u3067\u306F\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093\u3002"},
 
   // This code is shared with warning codes.
-  // Illegal value: {1} used for CHAR attribute: {0}.  An attribute of type CHAR must be only 1 character!
-//  public static final int INVALID_TCHAR = 239;
   // SystemId Unknown
     { INVALID_TCHAR,
-     "\u6b63\u3057\u304f\u306a\u3044\u5024: {1} \u304c CHAR \u5c5e\u6027: {0} \u306b\u4f7f\u7528\u3055\u308c\u307e\u3057\u305f\u3002CHAR \u30bf\u30a4\u30d7\u306e\u5c5e\u6027\u306f 1 \u6587\u5b57\u3067\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093!"},
-
-//  public static final int ER_SYSTEMID_UNKNOWN = 240;
-    //{ ER_SYSTEMID_UNKNOWN,
-    // "SystemId Unknown"},
-
-  // Location of error unknown
-//  public static final int ER_LOCATION_UNKNOWN = 241;
-    //{ ER_LOCATION_UNKNOWN,
-    // "Location of error unknown"},
+     "\u4E0D\u6B63\u306A\u5024: {1}\u304CCHAR\u5C5E\u6027{0}\u306B\u4F7F\u7528\u3055\u308C\u307E\u3057\u305F\u3002CHAR\u578B\u306E\u5C5E\u6027\u306F1\u6587\u5B57\u306E\u307F\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"},
 
     // Note to translators:  The following message is used if the value of
     // an attribute in a stylesheet is invalid.  "QNAME" is the XML data-type of
     // the attribute, and should not be translated.  The substitution text {1} is
     // the attribute value and {0} is the attribute name.
-    // INVALID_QNAME
-
   //The following codes are shared with the warning codes...
-  // Illegal value: {1} used for QNAME attribute: {0}
-//  public static final int INVALID_QNAME = 242;
     { INVALID_QNAME,
-     "\u6b63\u3057\u304f\u306a\u3044\u5024: {1} \u304c QNAME \u5c5e\u6027: {0} \u306b\u4f7f\u7528\u3055\u308c\u307e\u3057\u305f\u3002"},
+     "\u4E0D\u6B63\u306A\u5024: {1}\u304CQNAME\u5C5E\u6027{0}\u306B\u4F7F\u7528\u3055\u308C\u307E\u3057\u305F"},
 
     // Note to translators:  The following message is used if the value of
     // an attribute in a stylesheet is invalid.  "ENUM" is the XML data-type of
     // the attribute, and should not be translated.  The substitution text {1} is
     // the attribute value, {0} is the attribute name, and {2} is a list of valid
     // values.
-    // INVALID_ENUM
-
-  // Illegal value: {1} used for ENUM attribute: {0}.  Valid values are: {2}.
-//  public static final int INVALID_ENUM = 243;
     { INVALID_ENUM,
-     "\u6b63\u3057\u304f\u306a\u3044\u5024: {1} \u304c ENUM \u5c5e\u6027: {0} \u306b\u4f7f\u7528\u3055\u308c\u307e\u3057\u305f\u3002  \u6709\u52b9\u5024: {2}\u3002"},
+     "\u4E0D\u6B63\u306A\u5024: {1}\u304CENUM\u5C5E\u6027{0}\u306B\u4F7F\u7528\u3055\u308C\u307E\u3057\u305F\u3002\u6709\u52B9\u306A\u5024\u306F{2}\u3067\u3059\u3002"},
 
 // Note to translators:  The following message is used if the value of
 // an attribute in a stylesheet is invalid.  "NMTOKEN" is the XML data-type
 // of the attribute, and should not be translated.  The substitution text {1} is
 // the attribute value and {0} is the attribute name.
-// INVALID_NMTOKEN
-
-  // Illegal value: {1} used for NMTOKEN attribute: {0}.
-//  public static final int INVALID_NMTOKEN = 244;
     { INVALID_NMTOKEN,
-     "\u6b63\u3057\u304f\u306a\u3044\u5024: {1} \u304c NMTOKEN \u5c5e\u6027: {0} \u306b\u4f7f\u7528\u3055\u308c\u307e\u3057\u305f\u3002 "},
+     "\u4E0D\u6B63\u306A\u5024: {1}\u304CNMTOKEN\u5C5E\u6027{0}\u306B\u4F7F\u7528\u3055\u308C\u307E\u3057\u305F "},
 
 // Note to translators:  The following message is used if the value of
 // an attribute in a stylesheet is invalid.  "NCNAME" is the XML data-type
 // of the attribute, and should not be translated.  The substitution text {1} is
 // the attribute value and {0} is the attribute name.
-// INVALID_NCNAME
-
-  // Illegal value: {1} used for NCNAME attribute: {0}.
-//  public static final int INVALID_NCNAME = 245;
     { INVALID_NCNAME,
-     "\u6b63\u3057\u304f\u306a\u3044\u5024: {1} \u304c NCNAME \u5c5e\u6027: {0} \u306b\u4f7f\u7528\u3055\u308c\u307e\u3057\u305f\u3002 "},
+     "\u4E0D\u6B63\u306A\u5024: {1}\u304CNCNAME\u5C5E\u6027{0}\u306B\u4F7F\u7528\u3055\u308C\u307E\u3057\u305F "},
 
 // Note to translators:  The following message is used if the value of
 // an attribute in a stylesheet is invalid.  "boolean" is the XSLT data-type
 // of the attribute, and should not be translated.  The substitution text {1} is
 // the attribute value and {0} is the attribute name.
-// INVALID_BOOLEAN
-
-  // Illegal value: {1} used for boolean attribute: {0}.
-//  public static final int INVALID_BOOLEAN = 246;
-
     { INVALID_BOOLEAN,
-     "\u6b63\u3057\u304f\u306a\u3044\u5024: {1} \u304c boolean \u5c5e\u6027: {0} \u306b\u4f7f\u7528\u3055\u308c\u307e\u3057\u305f\u3002 "},
+     "\u4E0D\u6B63\u306A\u5024: {1}\u304Cboolean\u5C5E\u6027{0}\u306B\u4F7F\u7528\u3055\u308C\u307E\u3057\u305F "},
 
 // Note to translators:  The following message is used if the value of
 // an attribute in a stylesheet is invalid.  "number" is the XSLT data-type
 // of the attribute, and should not be translated.  The substitution text {1} is
 // the attribute value and {0} is the attribute name.
-// INVALID_NUMBER
-
-  // Illegal value: {1} used for number attribute: {0}.
-//  public static final int INVALID_NUMBER = 247;
      { INVALID_NUMBER,
-     "\u6b63\u3057\u304f\u306a\u3044\u5024: {1} \u304c number \u5c5e\u6027: {0} \u306b\u4f7f\u7528\u3055\u308c\u307e\u3057\u305f\u3002 "},
+     "\u4E0D\u6B63\u306A\u5024: {1}\u304C\u6570\u5024\u5C5E\u6027{0}\u306B\u4F7F\u7528\u3055\u308C\u307E\u3057\u305F "},
 
 
   // End of shared codes...
@@ -2031,354 +1123,304 @@ public class XSLTErrorResources_ja extends ListResourceBundle
 // a function.  The message indicates that when this function is referenced in
 // a match pattern, its argument must be a string literal (or constant.)
 // ER_ARG_LITERAL - new error message for bugzilla //5202
-
-  // Argument to {0} in match pattern must be a literal.
-//  public static final int ER_ARG_LITERAL             = 248;
     { ER_ARG_LITERAL,
-     "\u30de\u30c3\u30c1\u30f3\u30b0\u30fb\u30d1\u30bf\u30fc\u30f3\u306e {0} \u3078\u306e\u5f15\u304d\u6570\u306f\u30ea\u30c6\u30e9\u30eb\u3067\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093\u3002"},
+     "\u4E00\u81F4\u30D1\u30BF\u30FC\u30F3\u306B\u304A\u3051\u308B{0}\u306E\u5F15\u6570\u306F\u30EA\u30C6\u30E9\u30EB\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002"},
 
 // Note to translators:  The following message indicates that two definitions of
 // a variable.  A "global variable" is a variable that is accessible everywher
 // in the stylesheet.
 // ER_DUPLICATE_GLOBAL_VAR - new error message for bugzilla #790
-
-  // Duplicate global variable declaration.
-//  public static final int ER_DUPLICATE_GLOBAL_VAR    = 249;
     { ER_DUPLICATE_GLOBAL_VAR,
-     "\u30b0\u30ed\u30fc\u30d0\u30eb\u5909\u6570\u5ba3\u8a00\u304c\u91cd\u8907\u3057\u3066\u3044\u307e\u3059\u3002"},
+     "\u30B0\u30ED\u30FC\u30D0\u30EB\u5909\u6570\u5BA3\u8A00\u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059\u3002"},
 
 
 // Note to translators:  The following message indicates that two definitions of
 // a variable were encountered.
 // ER_DUPLICATE_VAR - new error message for bugzilla #790
-
-  // Duplicate variable declaration.
-//  public static final int ER_DUPLICATE_VAR           = 250;
     { ER_DUPLICATE_VAR,
-     "\u5909\u6570\u5ba3\u8a00\u304c\u91cd\u8907\u3057\u3066\u3044\u307e\u3059\u3002"},
+     "\u5909\u6570\u5BA3\u8A00\u304C\u91CD\u8907\u3057\u3066\u3044\u307E\u3059\u3002"},
 
     // Note to translators:  "xsl:template, "name" and "match" are XSLT keywords
     // which must not be translated.
     // ER_TEMPLATE_NAME_MATCH - new error message for bugzilla #789
-
-  // xsl:template must have a name or match attribute (or both)
-//  public static final int ER_TEMPLATE_NAME_MATCH     = 251;
     { ER_TEMPLATE_NAME_MATCH,
-     "xsl:template \u306b\u306f name \u307e\u305f\u306f match \u5c5e\u6027 (\u3042\u308b\u3044\u306f\u305d\u306e\u4e21\u65b9) \u304c\u5fc5\u8981\u3067\u3059\u3002"},
+     "xsl:template\u306B\u306Fname\u5C5E\u6027\u307E\u305F\u306Fmatch\u5C5E\u6027(\u3042\u308B\u3044\u306F\u4E21\u65B9)\u304C\u5FC5\u8981\u3067\u3059"},
 
     // Note to translators:  "exclude-result-prefixes" is an XSLT keyword which
     // should not be translated.  The message indicates that a namespace prefix
     // encountered as part of the value of the exclude-result-prefixes attribute
     // was in error.
     // ER_INVALID_PREFIX - new error message for bugzilla #788
-
-  // Prefix in exclude-result-prefixes is not valid: {0}
-//  public static final int ER_INVALID_PREFIX          = 252;
     { ER_INVALID_PREFIX,
-     "exclude-result-prefixes \u5185\u306e\u63a5\u982d\u90e8\u304c\u7121\u52b9\u3067\u3059: {0}"},
+     "exclude-result-prefixes\u306E\u63A5\u982D\u8F9E\u304C\u7121\u52B9\u3067\u3059: {0}"},
 
-    // Note to translators:  An "attribute set" is a set of attributes that can be
-    // added to an element in the output document as a group.  The message indicates
-    // that there was a reference to an attribute set named {0} that was never
-    // defined.
+    // Note to translators:  An "attribute set" is a set of attributes that can
+    // be added to an element in the output document as a group.  The message
+    // indicates that there was a reference to an attribute set named {0} that
+    // was never defined.
     // ER_NO_ATTRIB_SET - new error message for bugzilla #782
-
-  // attribute-set named {0} does not exist
-//  public static final int ER_NO_ATTRIB_SET           = 253;
     { ER_NO_ATTRIB_SET,
-     "{0} \u3068\u3044\u3046\u540d\u524d\u306e attribute-set \u304c\u5b58\u5728\u3057\u3066\u3044\u307e\u305b\u3093\u3002"},
+     "{0}\u3068\u3044\u3046\u540D\u524D\u306Eattribute-set\u306F\u5B58\u5728\u3057\u307E\u305B\u3093"},
+     
+    // Note to translators:  This message indicates that there was a reference
+    // to a function named {0} for which no function definition could be found.
+    { ER_FUNCTION_NOT_FOUND,
+     "{0}\u3068\u3044\u3046\u540D\u524D\u306E\u6A5F\u80FD\u306F\u5B58\u5728\u3057\u307E\u305B\u3093"},
 
+    // Note to translators:  This message indicates that the XSLT instruction
+    // that is named by the substitution text {0} must not contain other XSLT
+    // instructions (content) or a "select" attribute.  The word "select" is
+    // an XSLT keyword in this case and must not be translated.
+    { ER_CANT_HAVE_CONTENT_AND_SELECT,
+     "{0}\u8981\u7D20\u306B\u306F\u30B3\u30F3\u30C6\u30F3\u30C4\u3068select\u5C5E\u6027\u306E\u4E21\u65B9\u3092\u542B\u3081\u306A\u3044\u3067\u304F\u3060\u3055\u3044\u3002"},
 
+    // Note to translators:  This message indicates that the value argument
+    // of setParameter must be a valid Java Object.
+    { ER_INVALID_SET_PARAM_VALUE,
+     "\u30D1\u30E9\u30E1\u30FC\u30BF{0}\u306F\u6709\u52B9\u306AJava\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
+    { ER_INVALID_NAMESPACE_URI_VALUE_FOR_RESULT_PREFIX_FOR_DEFAULT,
+      "xsl:namespace-alias\u8981\u7D20\u306Eresult-prefix\u5C5E\u6027\u306B\u5024'#default'\u304C\u3042\u308A\u307E\u3059\u304C\u3001\u8981\u7D20\u306E\u30B9\u30B3\u30FC\u30D7\u5185\u306B\u30C7\u30D5\u30A9\u30EB\u30C8\u306E\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u306E\u5BA3\u8A00\u304C\u3042\u308A\u307E\u305B\u3093"},
 
+    { ER_INVALID_NAMESPACE_URI_VALUE_FOR_RESULT_PREFIX,
+      "xsl:namespace-alias\u8981\u7D20\u306Eresult-prefix\u5C5E\u6027\u306B\u5024''{0}''\u304C\u3042\u308A\u307E\u3059\u304C\u3001\u8981\u7D20\u306E\u30B9\u30B3\u30FC\u30D7\u5185\u306B\u63A5\u982D\u8F9E''{0}''\u306E\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u5BA3\u8A00\u304C\u3042\u308A\u307E\u305B\u3093\u3002"},
 
+    { ER_SET_FEATURE_NULL_NAME,
+      "\u6A5F\u80FD\u540D\u306FTransformerFactory.setFeature(String name, boolean value)\u5185\u3067null\u306B\u3067\u304D\u307E\u305B\u3093\u3002"},
+    
+    { ER_GET_FEATURE_NULL_NAME,
+      "\u6A5F\u80FD\u540D\u306FTransformerFactory.getFeature(String name)\u5185\u3067null\u306B\u3067\u304D\u307E\u305B\u3093\u3002"},
+    
+    { ER_UNSUPPORTED_FEATURE,
+      "\u6A5F\u80FD''{0}''\u3092\u3053\u306ETransformerFactory\u306B\u8A2D\u5B9A\u3067\u304D\u307E\u305B\u3093\u3002"},
+    
+    { ER_EXTENSION_ELEMENT_NOT_ALLOWED_IN_SECURE_PROCESSING,
+  	  "\u30BB\u30AD\u30E5\u30A2\u51E6\u7406\u6A5F\u80FD\u304Ctrue\u306B\u8A2D\u5B9A\u3055\u308C\u3066\u3044\u308B\u3068\u304D\u3001\u62E1\u5F35\u8981\u7D20''{0}''\u306E\u4F7F\u7528\u306F\u8A31\u53EF\u3055\u308C\u307E\u305B\u3093\u3002"},
+    
+    { ER_NAMESPACE_CONTEXT_NULL_NAMESPACE, 		
+      "null\u306E\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9URI\u306B\u3064\u3044\u3066\u63A5\u982D\u8F9E\u3092\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093\u3002"},
+
+    { ER_NAMESPACE_CONTEXT_NULL_PREFIX, 		
+      "null\u306E\u63A5\u982D\u8F9E\u306B\u3064\u3044\u3066\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9URI\u3092\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093\u3002"},
+
+    { ER_XPATH_RESOLVER_NULL_QNAME, 		
+      "\u6A5F\u80FD\u540D\u3092null\u306B\u3059\u308B\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093\u3002"},
+
+    { ER_XPATH_RESOLVER_NEGATIVE_ARITY, 		
+      "arity\u3092\u8CA0\u306B\u3059\u308B\u3053\u3068\u306F\u3067\u304D\u307E\u305B\u3093\u3002"},
   // Warnings...
 
-  /** WG_FOUND_CURLYBRACE          */
-//  public static final int WG_FOUND_CURLYBRACE = 1;
     { WG_FOUND_CURLYBRACE,
-      "'}' \u304c\u898b\u3064\u304b\u308a\u307e\u3057\u305f\u304c\u3001\u30aa\u30fc\u30d7\u30f3\u3055\u308c\u305f\u5c5e\u6027\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u304c\u3042\u308a\u307e\u305b\u3093!"},
-
-  /** WG_COUNT_ATTRIB_MATCHES_NO_ANCESTOR          */
-//  public static final int WG_COUNT_ATTRIB_MATCHES_NO_ANCESTOR = 2;
+      "'}'\u304C\u898B\u3064\u304B\u308A\u307E\u3057\u305F\u304C\u5C5E\u6027\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u304C\u958B\u3044\u3066\u3044\u307E\u305B\u3093\u3002"},
 
     { WG_COUNT_ATTRIB_MATCHES_NO_ANCESTOR,
-      "\u8b66\u544a: count \u5c5e\u6027\u304c xsl:number \u5185\u306e\u4e0a\u4f4d\u3068\u4e00\u81f4\u3057\u307e\u305b\u3093! \u30bf\u30fc\u30b2\u30c3\u30c8 = {0}"},
-
-  /** WG_EXPR_ATTRIB_CHANGED_TO_SELECT          */
-//  public static final int WG_EXPR_ATTRIB_CHANGED_TO_SELECT = 3;
+      "\u8B66\u544A: count\u5C5E\u6027\u304Cxsl:number\u5185\u306E\u7956\u5148\u3068\u4E00\u81F4\u3057\u307E\u305B\u3093\u3002\u30BF\u30FC\u30B2\u30C3\u30C8= {0}"},
 
     { WG_EXPR_ATTRIB_CHANGED_TO_SELECT,
-      "\u65e7\u69cb\u6587: 'expr' \u5c5e\u6027\u306e\u540d\u524d\u304c 'select' \u306b\u5909\u66f4\u3055\u308c\u3066\u3044\u307e\u3059\u3002"},
-
-  /** WG_NO_LOCALE_IN_FORMATNUMBER          */
-//  public static final int WG_NO_LOCALE_IN_FORMATNUMBER = 4;
+      "\u53E4\u3044\u69CB\u6587: 'expr'\u5C5E\u6027\u306E\u540D\u524D\u304C'select'\u306B\u5909\u66F4\u3055\u308C\u307E\u3057\u305F\u3002"},
 
     { WG_NO_LOCALE_IN_FORMATNUMBER,
-      "Xalan \u306f\u30d5\u30a9\u30fc\u30de\u30c3\u30c8\u756a\u53f7\u95a2\u6570\u5185\u3067\u307e\u3060\u30ed\u30b1\u30fc\u30eb\u540d\u3092\u51e6\u7406\u3057\u307e\u305b\u3093\u3002"},
-
-  /** WG_LOCALE_NOT_FOUND          */
-//  public static final int WG_LOCALE_NOT_FOUND = 5;
+      "Xalan\u306Fformat-number\u95A2\u6570\u5185\u306E\u30ED\u30B1\u30FC\u30EB\u540D\u3092\u307E\u3060\u51E6\u7406\u3067\u304D\u307E\u305B\u3093\u3002"},
 
     { WG_LOCALE_NOT_FOUND,
-      "\u8b66\u544a: xml:lang={0} \u306e\u30ed\u30b1\u30fc\u30eb\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** WG_CANNOT_MAKE_URL_FROM          */
-//  public static final int WG_CANNOT_MAKE_URL_FROM = 6;
+      "\u8B66\u544A: xml:lang={0}\u306E\u30ED\u30B1\u30FC\u30EB\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F"},
 
     { WG_CANNOT_MAKE_URL_FROM,
-      "URL \u3092 {0} \u304b\u3089\u4f5c\u6210\u3067\u304d\u307e\u305b\u3093\u3002"},
-
-  /** WG_CANNOT_LOAD_REQUESTED_DOC          */
-//  public static final int WG_CANNOT_LOAD_REQUESTED_DOC = 7;
+      "{0}\u304B\u3089URL\u3092\u4F5C\u6210\u3067\u304D\u307E\u305B\u3093"},
 
     { WG_CANNOT_LOAD_REQUESTED_DOC,
-      "\u8981\u6c42\u3055\u308c\u305f doc: {0} \u3092\u30ed\u30fc\u30c9\u3067\u304d\u307e\u305b\u3093\u3002"},
+      "\u30EA\u30AF\u30A8\u30B9\u30C8\u3055\u308C\u305F\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8{0}\u3092\u30ED\u30FC\u30C9\u3067\u304D\u307E\u305B\u3093"},
 
-  /** WG_CANNOT_FIND_COLLATOR          */
-//  public static final int WG_CANNOT_FIND_COLLATOR = 8;
     { WG_CANNOT_FIND_COLLATOR,
-      "<sort xml:lang={0} \u306e\u30b3\u30ec\u30fc\u30bf\u30fc\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-
-  /** WG_FUNCTIONS_SHOULD_USE_URL          */
-//  public static final int WG_FUNCTIONS_SHOULD_USE_URL = 9;
+      "<sort xml:lang={0}\u306E\u30B3\u30EC\u30FC\u30BF\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F"},
 
     { WG_FUNCTIONS_SHOULD_USE_URL,
-      "\u65e7\u69cb\u6587: \u95a2\u6570\u547d\u4ee4\u3067\u306f {0} \u306e URL \u3092\u4f7f\u7528\u3059\u308b\u5fc5\u8981\u304c\u3042\u308a\u307e\u3059\u3002"},
-
-  /** WG_ENCODING_NOT_SUPPORTED_USING_UTF8          */
-//  public static final int WG_ENCODING_NOT_SUPPORTED_USING_UTF8 = 10;
+      "\u53E4\u3044\u69CB\u6587: \u95A2\u6570\u547D\u4EE4\u306F{0}\u306EURL\u3092\u4F7F\u7528\u3059\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
     { WG_ENCODING_NOT_SUPPORTED_USING_UTF8,
-      "\u30a8\u30f3\u30b3\u30fc\u30c9\u306f\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u307e\u305b\u3093: {0}\u3001UTF-8 \u3092\u4f7f\u7528\u4e2d\u3002"},
-
-  /** WG_ENCODING_NOT_SUPPORTED_USING_JAVA          */
-//  public static final int WG_ENCODING_NOT_SUPPORTED_USING_JAVA = 11;
+      "\u30A8\u30F3\u30B3\u30FC\u30C7\u30A3\u30F3\u30B0{0}\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002UTF-8\u3092\u4F7F\u7528\u3057\u307E\u3059"},
 
     { WG_ENCODING_NOT_SUPPORTED_USING_JAVA,
-      "\u30a8\u30f3\u30b3\u30fc\u30c9\u306f\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u307e\u305b\u3093: {0}\u3001Java {1} \u3092\u4f7f\u7528\u4e2d\u3002"},
-
-  /** WG_SPECIFICITY_CONFLICTS          */
-//  public static final int WG_SPECIFICITY_CONFLICTS = 12;
+      "\u30A8\u30F3\u30B3\u30FC\u30C7\u30A3\u30F3\u30B0{0}\u306F\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002Java {1}\u3092\u4F7F\u7528\u3057\u307E\u3059"},
 
     { WG_SPECIFICITY_CONFLICTS,
-      "\u9650\u5b9a\u6027\u306e\u77db\u76fe\u304c\u691c\u51fa\u3055\u308c\u307e\u3057\u305f: {0} \u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u5185\u3067\u6700\u5f8c\u306b\u691c\u51fa\u3055\u308c\u305f\u3082\u306e\u304c\u4f7f\u7528\u3055\u308c\u307e\u3059\u3002"},
-
-  /** WG_PARSING_AND_PREPARING          */
-//  public static final int WG_PARSING_AND_PREPARING = 13;
+      "\u7279\u7570\u6027\u306E\u7AF6\u5408\u304C\u898B\u3064\u304B\u308A\u307E\u3057\u305F: {0}\u3002\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u5185\u3067\u6700\u5F8C\u306B\u898B\u3064\u304B\u3063\u305F\u3082\u306E\u304C\u4F7F\u7528\u3055\u308C\u307E\u3059\u3002"},
 
     { WG_PARSING_AND_PREPARING,
-      "========= {0} \u3092\u69cb\u6587\u89e3\u6790\u4e2d\u304a\u3088\u3073\u6e96\u5099\u4e2d =========="},
-
-  /** WG_ATTR_TEMPLATE          */
-//  public static final int WG_ATTR_TEMPLATE = 14;
+      "========= {0}\u306E\u89E3\u6790\u304A\u3088\u3073\u6E96\u5099\u4E2D =========="},
 
     { WG_ATTR_TEMPLATE,
-     "\u5c5e\u6027\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8 {0}"},
-
-  /** WG_CONFLICT_BETWEEN_XSLSTRIPSPACE_AND_XSLPRESERVESPACE          */
-//  public static final int WG_CONFLICT_BETWEEN_XSLSTRIPSPACE_AND_XSLPRESERVESPACE = 15;
+     "\u5C5E\u6027\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u3001{0}"},
 
     { WG_CONFLICT_BETWEEN_XSLSTRIPSPACE_AND_XSLPRESERVESPACE,
-      "xsl:strip-space \u3068 xsl:preserve-space \u306e\u9593\u306e\u30de\u30c3\u30c1\u30f3\u30b0\u306e\u77db\u76fe"},
-
-  /** WG_ATTRIB_NOT_HANDLED          */
-//  public static final int WG_ATTRIB_NOT_HANDLED = 16;
+      "xsl:strip-space\u3068xsl:preserve-space\u306E\u9593\u3067\u4E00\u81F4\u304C\u7AF6\u5408\u3057\u3066\u3044\u307E\u3059"},
 
     { WG_ATTRIB_NOT_HANDLED,
-      "Xalan \u306f\u307e\u3060 {0} \u5c5e\u6027\u3092\u51e6\u7406\u3057\u307e\u305b\u3093!"},
-
-  /** WG_NO_DECIMALFORMAT_DECLARATION          */
-//  public static final int WG_NO_DECIMALFORMAT_DECLARATION = 17;
+      "Xalan\u306F{0}\u5C5E\u6027\u3092\u307E\u3060\u51E6\u7406\u3057\u307E\u305B\u3093\u3002"},
 
     { WG_NO_DECIMALFORMAT_DECLARATION,
-      "10 \u9032\u6570\u5f62\u5f0f\u306e\u5ba3\u8a00\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093: {0}"},
-
-  /** WG_OLD_XSLT_NS          */
-//  public static final int WG_OLD_XSLT_NS = 18;
+      "10\u9032\u6570\u30D5\u30A9\u30FC\u30DE\u30C3\u30C8{0}\u306E\u5BA3\u8A00\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093"},
 
     { WG_OLD_XSLT_NS,
-     "XSLT \u30cd\u30fc\u30e0\u30fb\u30b9\u30da\u30fc\u30b9\u304c\u306a\u3044\u304b\u8aa4\u3063\u3066\u3044\u307e\u3059\u3002"},
-
-  /** WG_ONE_DEFAULT_XSLDECIMALFORMAT_ALLOWED          */
-//  public static final int WG_ONE_DEFAULT_XSLDECIMALFORMAT_ALLOWED = 19;
+     "XSLT\u306E\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u304C\u306A\u3044\u304B\u4E0D\u6B63\u3067\u3059\u3002 "},
 
     { WG_ONE_DEFAULT_XSLDECIMALFORMAT_ALLOWED,
-      "\u30c7\u30d5\u30a9\u30eb\u30c8\u306e xsl:decimal-format \u5ba3\u8a00\u306f 1 \u3064\u3057\u304b\u8a31\u53ef\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-
-  /** WG_XSLDECIMALFORMAT_NAMES_MUST_BE_UNIQUE          */
-//  public static final int WG_XSLDECIMALFORMAT_NAMES_MUST_BE_UNIQUE = 20;
+      "\u30C7\u30D5\u30A9\u30EB\u30C8\u306Exsl:decimal-format\u5BA3\u8A00\u306F1\u3064\u306E\u307F\u8A31\u53EF\u3055\u308C\u307E\u3059\u3002"},
 
     { WG_XSLDECIMALFORMAT_NAMES_MUST_BE_UNIQUE,
-      "xsl:decimal-format \u540d\u306f\u56fa\u6709\u3067\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093\u3002 \u540d\u524d \"{0}\" \u304c\u91cd\u8907\u3057\u3066\u3044\u307e\u3057\u305f\u3002"},
-
-  /** WG_ILLEGAL_ATTRIBUTE          */
-  //public static final int WG_ILLEGAL_ATTRIBUTE = 21;
+      "xsl:decimal-format\u540D\u306F\u56FA\u6709\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002\u540D\u524D\"{0}\"\u306F\u91CD\u8907\u3057\u3066\u3044\u307E\u3059\u3002"},
 
     { WG_ILLEGAL_ATTRIBUTE,
-      "{0} \u306b\u6b63\u3057\u304f\u306a\u3044\u5c5e\u6027\u304c\u3042\u308a\u307e\u3059: {1}"},
-
-  /** WG_COULD_NOT_RESOLVE_PREFIX          */
-//  public static final int WG_COULD_NOT_RESOLVE_PREFIX = 22;
+      "{0}\u306B\u4E0D\u6B63\u306A\u5C5E\u6027\u304C\u3042\u308A\u307E\u3059: {1}"},
 
     { WG_COULD_NOT_RESOLVE_PREFIX,
-      "\u30cd\u30fc\u30e0\u30fb\u30b9\u30da\u30fc\u30b9\u63a5\u982d\u90e8\u3092\u89e3\u6c7a\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f: {0}\u3002 \u30ce\u30fc\u30c9\u306f\u7121\u8996\u3055\u308c\u307e\u3059\u3002"},
+      "\u30CD\u30FC\u30E0\u30B9\u30DA\u30FC\u30B9\u306E\u63A5\u982D\u8F9E{0}\u3092\u89E3\u6C7A\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002\u30CE\u30FC\u30C9\u306F\u7121\u8996\u3055\u308C\u307E\u3059\u3002"},
 
-  /** WG_STYLESHEET_REQUIRES_VERSION_ATTRIB          */
-//  public static final int WG_STYLESHEET_REQUIRES_VERSION_ATTRIB = 23;
     { WG_STYLESHEET_REQUIRES_VERSION_ATTRIB,
-      "xsl:stylesheet \u306b\u306f 'version' \u5c5e\u6027\u304c\u5fc5\u8981\u3067\u3059!"},
-
-  /** WG_ILLEGAL_ATTRIBUTE_NAME          */
-//  public static final int WG_ILLEGAL_ATTRIBUTE_NAME = 24;
+      "xsl:stylesheet\u306F'version'\u5C5E\u6027\u304C\u5FC5\u8981\u3067\u3059\u3002"},
 
     { WG_ILLEGAL_ATTRIBUTE_NAME,
-      "\u6b63\u3057\u304f\u306a\u3044\u5c5e\u6027\u540d: {0}"},
+      "\u4E0D\u6B63\u306A\u5C5E\u6027\u540D: {0}"},
 
-  /** WG_ILLEGAL_ATTRIBUTE_VALUE          */
-//  public static final int WG_ILLEGAL_ATTRIBUTE_VALUE = 25;
     { WG_ILLEGAL_ATTRIBUTE_VALUE,
-      "\u5c5e\u6027 {0}: {1} \u306b\u4f7f\u7528\u3055\u308c\u305f\u5024\u306f\u6b63\u3057\u304f\u3042\u308a\u307e\u305b\u3093\u3002"},
-
-  /** WG_EMPTY_SECOND_ARG          */
-//  public static final int WG_EMPTY_SECOND_ARG = 26;
+      "\u7121\u52B9\u306A\u5024\u304C\u5C5E\u6027{0}\u306B\u4F7F\u7528\u3055\u308C\u307E\u3057\u305F: {1}"},
 
     { WG_EMPTY_SECOND_ARG,
-      "\u6587\u66f8\u6a5f\u80fd\u306e 2 \u756a\u76ee\u306e\u5f15\u304d\u6570\u304b\u3089\u5f97\u3089\u308c\u305f nodeset \u304c\u7a7a\u3067\u3059\u3002\u7a7a\u306e node-set \u3092\u623b\u3057\u307e\u3059\u3002"},
+      "\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u95A2\u6570\u306E2\u756A\u76EE\u306E\u5F15\u6570\u304B\u3089\u306E\u7D50\u679C\u30CE\u30FC\u30C9\u30BB\u30C3\u30C8\u304C\u7A7A\u3067\u3059\u3002\u7A7A\u306E\u30CE\u30FC\u30C9\u30BB\u30C3\u30C8\u3092\u8FD4\u3057\u307E\u3059\u3002"},
 
   //Following are the new WARNING keys added in XALAN code base after Jdk 1.4 (Xalan 2.2-D11)
 
     // Note to translators:  "name" and "xsl:processing-instruction" are keywords
     // and must not be translated.
-    // WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML
-
-
-  /** WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML          */
-//  public static final int WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML = 27;
     { WG_PROCESSINGINSTRUCTION_NAME_CANT_BE_XML,
-      "xsl:processing-instruction \u540d\u306e 'name' \u5c5e\u6027\u306e\u5024\u306f 'xml' \u3067\u3042\u3063\u3066\u306f\u306a\u308a\u307e\u305b\u3093\u3002"},
+      "xsl:processing-instruction\u540D\u306E'name'\u5C5E\u6027\u306E\u5024\u306F'xml'\u3067\u306A\u3044\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059"},
 
     // Note to translators:  "name" and "xsl:processing-instruction" are keywords
     // and must not be translated.  "NCName" is an XML data-type and must not be
     // translated.
-    // WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME
-
-  /** WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME          */
-//  public static final int WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME = 28;
     { WG_PROCESSINGINSTRUCTION_NOTVALID_NCNAME,
-      "xsl:processing-instruction \u306e 'name' \u5c5e\u6027\u306e\u5024\u306f\u6709\u52b9\u306a NCName \u3067\u306a\u3051\u308c\u3070\u306a\u308a\u307e\u305b\u3093: {0}"},
+      "xsl:processing-instruction\u306E''name''\u5C5E\u6027\u306E\u5024\u306F\u6709\u52B9\u306ANCName\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059: {0}"},
 
     // Note to translators:  This message is reported if the stylesheet that is
     // being processed attempted to construct an XML document with an attribute in a
     // place other than on an element.  The substitution text specifies the name of
     // the attribute.
-    // WG_ILLEGAL_ATTRIBUTE_POSITION
-
-  /** WG_ILLEGAL_ATTRIBUTE_POSITION         */
-//  public static final int WG_ILLEGAL_ATTRIBUTE_POSITION = 29;
     { WG_ILLEGAL_ATTRIBUTE_POSITION,
-      "\u4e0b\u4f4d\u30ce\u30fc\u30c9\u306e\u5f8c\u307e\u305f\u306f\u30a8\u30ec\u30e1\u30f3\u30c8\u304c\u751f\u6210\u3055\u308c\u308b\u524d\u306b\u5c5e\u6027 {0} \u3092\u8ffd\u52a0\u3067\u304d\u307e\u305b\u3093\u3002\u5c5e\u6027\u306f\u7121\u8996\u3055\u308c\u307e\u3059\u3002"},
+      "\u5B50\u30CE\u30FC\u30C9\u306E\u5F8C\u307E\u305F\u306F\u8981\u7D20\u304C\u751F\u6210\u3055\u308C\u308B\u524D\u306B\u5C5E\u6027{0}\u3092\u8FFD\u52A0\u3067\u304D\u307E\u305B\u3093\u3002\u5C5E\u6027\u306F\u7121\u8996\u3055\u308C\u307E\u3059\u3002"},
+
+    { NO_MODIFICATION_ALLOWED_ERR,
+      "\u5909\u66F4\u304C\u8A31\u53EF\u3055\u308C\u3066\u3044\u306A\u3044\u30AA\u30D6\u30B8\u30A7\u30AF\u30C8\u3092\u5909\u66F4\u3057\u3088\u3046\u3068\u3057\u307E\u3057\u305F\u3002"
+    },
 
     //Check: WHY THERE IS A GAP B/W NUMBERS in the XSLTErrorResources properties file?
 
   // Other miscellaneous text used inside the code...
-  { "ui_language", "en"},
-  {  "help_language",  "en" },
-  {  "language",  "en" },
-  { "BAD_CODE", "createMessage \u3078\u306e\u30d1\u30e9\u30e1\u30fc\u30bf\u30fc\u304c\u5883\u754c\u5916\u3067\u3057\u305f\u3002"},
-  {  "FORMAT_FAILED", "messageFormat \u547c\u3073\u51fa\u3057\u4e2d\u306b\u4f8b\u5916\u304c\u30b9\u30ed\u30fc\u3055\u308c\u307e\u3057\u305f\u3002"},
-  {  "version", ">>>>>>> Xalan \u30d0\u30fc\u30b8\u30e7\u30f3 "},
+  { "ui_language", "ja"},
+  {  "help_language",  "ja" },
+  {  "language",  "ja" },
+  { "BAD_CODE", "createMessage\u306E\u30D1\u30E9\u30E1\u30FC\u30BF\u304C\u7BC4\u56F2\u5916\u3067\u3059"},
+  {  "FORMAT_FAILED", "messageFormat\u306E\u547C\u51FA\u3057\u4E2D\u306B\u4F8B\u5916\u304C\u30B9\u30ED\u30FC\u3055\u308C\u307E\u3057\u305F"},
+  {  "version", ">>>>>>> Xalan\u30D0\u30FC\u30B8\u30E7\u30F3 "},
   {  "version2",  "<<<<<<<"},
-  {  "yes", "\u306f\u3044"},
-  { "line", "\u884c #"},
-  { "column","\u6841 #"},
-  { "xsldone", "XSLProcessor: \u5b8c\u4e86"},
+  {  "yes", "yes"},
+  { "line", "\u884C\u756A\u53F7"},
+  { "column","\u5217\u756A\u53F7"},
+  { "xsldone", "XSLProcessor: \u5B8C\u4E86\u3057\u307E\u3057\u305F"},
 
 
   // Note to translators:  The following messages provide usage information
   // for the Xalan Process command line.  "Process" is the name of a Java class,
   // and should not be translated.
-  { "xslProc_option", "Xalan-J \u30b3\u30de\u30f3\u30c9\u884c Process \u30af\u30e9\u30b9\u30fb\u30aa\u30d7\u30b7\u30e7\u30f3"},
-  { "xslProc_option", "Xalan-J \u30b3\u30de\u30f3\u30c9\u884c Process \u30af\u30e9\u30b9\u30fb\u30aa\u30d7\u30b7\u30e7\u30f3\u003a"},
-  { "xslProc_invalid_xsltc_option", "\u30aa\u30d7\u30b7\u30e7\u30f3 {0} \u306f XSLTC \u30e2\u30fc\u30c9\u3067\u306f\u30b5\u30dd\u30fc\u30c8\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002"},
-  { "xslProc_invalid_xalan_option", "\u30aa\u30d7\u30b7\u30e7\u30f3 {0} \u306f -XSLTC \u3068\u4e00\u7dd2\u306b\u3057\u304b\u4f7f\u7528\u3067\u304d\u307e\u305b\u3093\u3002"},
-  { "xslProc_no_input", "\u30a8\u30e9\u30fc: \u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u304c\u306a\u3044\u304b\u5165\u529b xml \u304c\u6307\u5b9a\u3055\u308c\u3066\u3044\u307e\u305b\u3093\u3002 \u4f7f\u7528\u6cd5\u306e\u8aac\u660e\u306b\u3064\u3044\u3066\u306f\u3001\u30aa\u30d7\u30b7\u30e7\u30f3\u306a\u3057\u3067\u3053\u306e\u30b3\u30de\u30f3\u30c9\u3092\u5b9f\u884c\u3057\u3066\u304f\u3060\u3055\u3044\u3002"},
-  { "xslProc_common_options", "-\u5171\u901a\u30aa\u30d7\u30b7\u30e7\u30f3-"},
-  { "xslProc_xalan_options", "-Xalan \u7528\u30aa\u30d7\u30b7\u30e7\u30f3-"},
-  { "xslProc_xsltc_options", "-XSLTC \u7528\u30aa\u30d7\u30b7\u30e7\u30f3-"},
-  { "xslProc_return_to_continue", "(\u7d9a\u3051\u308b\u306b\u306f <return> \u3092\u62bc\u3057\u3066\u304f\u3060\u3055\u3044)"},
+  { "xslProc_option", "Xalan-J\u30B3\u30DE\u30F3\u30C9\u30E9\u30A4\u30F3\u30FB\u30D7\u30ED\u30BB\u30B9\u30FB\u30AF\u30E9\u30B9\u306E\u30AA\u30D7\u30B7\u30E7\u30F3:"},
+  { "xslProc_option", "Xalan-J\u30B3\u30DE\u30F3\u30C9\u30E9\u30A4\u30F3\u30FB\u30D7\u30ED\u30BB\u30B9\u30FB\u30AF\u30E9\u30B9\u306E\u30AA\u30D7\u30B7\u30E7\u30F3:"},
+  { "xslProc_invalid_xsltc_option", "\u30AA\u30D7\u30B7\u30E7\u30F3{0}\u306FXSLTC\u30E2\u30FC\u30C9\u3067\u30B5\u30DD\u30FC\u30C8\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002"},
+  { "xslProc_invalid_xalan_option", "\u30AA\u30D7\u30B7\u30E7\u30F3{0}\u306F-XSLTC\u3068\u3068\u3082\u306B\u306E\u307F\u4F7F\u7528\u3067\u304D\u307E\u3059\u3002"},
+  { "xslProc_no_input", "\u30A8\u30E9\u30FC: \u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u307E\u305F\u306F\u5165\u529Bxml\u304C\u6307\u5B9A\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002\u4F7F\u7528\u65B9\u6CD5\u306E\u6307\u793A\u306B\u3064\u3044\u3066\u306F\u30AA\u30D7\u30B7\u30E7\u30F3\u3092\u4ED8\u3051\u305A\u306B\u3053\u306E\u30B3\u30DE\u30F3\u30C9\u3092\u5B9F\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002"},
+  { "xslProc_common_options", "-\u5171\u901A\u30AA\u30D7\u30B7\u30E7\u30F3-"},
+  { "xslProc_xalan_options", "-Xalan\u7528\u30AA\u30D7\u30B7\u30E7\u30F3-"},
+  { "xslProc_xsltc_options", "-XSLTC\u7528\u30AA\u30D7\u30B7\u30E7\u30F3-"},
+  { "xslProc_return_to_continue", "(\u7D9A\u884C\u3059\u308B\u306B\u306F<return>\u3092\u62BC\u3057\u3066\u304F\u3060\u3055\u3044)"},
 
    // Note to translators: The option name and the parameter name do not need to
    // be translated. Only translate the messages in parentheses.  Note also that
    // leading whitespace in the messages is used to indent the usage information
    // for each option in the English messages.
    // Do not translate the keywords: XSLTC, SAX, DOM and DTM.
-  { "optionXSLTC", "   [-XSLTC (\u5909\u63db\u306b XSLTC \u3092\u4f7f\u7528)]"},
+  { "optionXSLTC", "   [-XSLTC (\u5909\u63DB\u306BXSLTC\u3092\u4F7F\u7528)]"},
   { "optionIN", "   [-IN inputXMLURL]"},
   { "optionXSL", "   [-XSL XSLTransformationURL]"},
   { "optionOUT",  "   [-OUT outputFileName]"},
   { "optionLXCIN", "   [-LXCIN compiledStylesheetFileNameIn]"},
   { "optionLXCOUT", "   [-LXCOUT compiledStylesheetFileNameOutOut]"},
-  { "optionPARSER", "   [-PARSER parser liaison \u306e\u5b8c\u5168\u4fee\u98fe\u30af\u30e9\u30b9\u540d]"},
-  {  "optionE", "   [-E (\u30a8\u30f3\u30c6\u30a3\u30c6\u30a3\u30fc ref \u3092\u62e1\u5f35\u3057\u306a\u3044)]"},
-  {  "optionV",  "   [-E (\u30a8\u30f3\u30c6\u30a3\u30c6\u30a3\u30fc ref \u3092\u62e1\u5f35\u3057\u306a\u3044)]"},
-  {  "optionQC", "   [-QC (\u9759\u6b62\u30d1\u30bf\u30fc\u30f3\u77db\u76fe\u8b66\u544a)]"},
-  {  "optionQ", "   [-Q  (\u9759\u6b62\u30e2\u30fc\u30c9)]"},
-  {  "optionLF", "[-LF (LF (\u6539\u884c) \u3092\u51fa\u529b\u6642\u306e\u307f\u306b\u4f7f\u7528  {\u30c7\u30d5\u30a9\u30eb\u30c8\u306f CR/LF})]"},
-  {  "optionCR", "[-CR (CR (\u5fa9\u5e30) \u3092\u51fa\u529b\u6642\u306e\u307f\u306b\u4f7f\u7528 {\u30c7\u30d5\u30a9\u30eb\u30c8\u306f CR/LF})]"},
-  { "optionESCAPE", "[-ESCAPE (\u30a8\u30b9\u30b1\u30fc\u30d7\u3059\u308b\u6587\u5b57 {\u30c7\u30d5\u30a9\u30eb\u30c8\u306f <>&\"\'\\r\\n}]"},
-  { "optionINDENT", "[-INDENT (\u5b57\u4e0b\u3052\u3059\u308b\u30b9\u30da\u30fc\u30b9\u3092\u5236\u5fa1 {\u30c7\u30d5\u30a9\u30eb\u30c8\u306f 0})]"},
-  { "optionTT", "   [-TT (\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u3092\u547c\u3073\u51fa\u3057\u4e2d\u306b\u30c8\u30ec\u30fc\u30b9\u3002)]"},
-  { "optionTG", "   [-TG (\u5404\u751f\u6210\u30a4\u30d9\u30f3\u30c8\u3092\u30c8\u30ec\u30fc\u30b9\u3002)]"},
-  { "optionTS", "   [-TS (\u5404\u9078\u629e\u30a4\u30d9\u30f3\u30c8\u3092\u30c8\u30ec\u30fc\u30b9\u3002)]"},
-  {  "optionTTC", "   [-TTC (\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u306e\u5b50\u3092\u547c\u3073\u51fa\u3057\u4e2d\u306b\u30c8\u30ec\u30fc\u30b9\u3002)]"},
-  { "optionTCLASS", "   [-TCLASS (\u30c8\u30ec\u30fc\u30b9\u62e1\u5f35\u6a5f\u80fd\u306e TraceListener \u30af\u30e9\u30b9\u3002)]"},
-  { "optionVALIDATE", "   [-VALIDATE (\u59a5\u5f53\u6027\u691c\u67fb\u3092\u5b9f\u884c\u3059\u308b\u304b\u3069\u3046\u304b\u3092\u8a2d\u5b9a\u3002  \u30c7\u30d5\u30a9\u30eb\u30c8\u3067\u306f\u3001\u59a5\u5f53\u6027\u691c\u67fb\u306f\u30aa\u30d5\u3067\u3059\u3002)]"},
-  { "optionEDUMP", "[-EDUMP {optional filename} (\u30a8\u30e9\u30fc\u6642\u306b stackdump \u3092\u5b9f\u884c\u3002)]"},
-  {  "optionXML", "   [-XML (XML \u30d5\u30a9\u30fc\u30de\u30c3\u30bf\u30fc\u3092\u4f7f\u7528\u304a\u3088\u3073 XML \u30d8\u30c3\u30c0\u30fc\u3092\u8ffd\u52a0\u3002)]"},
-  {  "optionTEXT", "   [-TEXT (\u30b7\u30f3\u30d7\u30eb\u30fb\u30c6\u30ad\u30b9\u30c8\u30fb\u30d5\u30a9\u30fc\u30de\u30c3\u30bf\u30fc\u3092\u4f7f\u7528\u3002)]"},
-  {  "optionHTML", "   [-HTML (HTML \u30d5\u30a9\u30fc\u30de\u30c3\u30bf\u30fc\u3092\u4f7f\u7528\u3002)]"},
-  {  "optionPARAM", "   [-PARAM \u540d\u524d\u5f0f (stylesheet \u30d1\u30e9\u30e1\u30fc\u30bf\u30fc\u3092\u8a2d\u5b9a\u3002)]"},
-  {  "noParsermsg1", "XSL \u51e6\u7406\u306f\u6210\u529f\u3057\u307e\u305b\u3093\u3067\u3057\u305f\u3002"},
-  {  "noParsermsg2", "** \u30d1\u30fc\u30b5\u30fc\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f **"},
-  { "noParsermsg3",  "\u30af\u30e9\u30b9\u30d1\u30b9\u3092\u8abf\u3079\u3066\u304f\u3060\u3055\u3044\u3002"},
-  { "noParsermsg4", "IBM \u306e XML Parser for Java \u304c\u306a\u3044\u5834\u5408\u306f\u3001\u6b21\u306e\u30b5\u30a4\u30c8\u304b\u3089\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9\u3067\u304d\u307e\u3059:"},
-  { "noParsermsg5", "IBM AlphaWorks: http://www.alphaworks.ibm.com/formula/xml"},
-  { "optionURIRESOLVER", "   [-URIRESOLVER \u7d76\u5bfe\u30af\u30e9\u30b9\u540d (URI \u3092\u89e3\u6c7a\u3059\u308b\u305f\u3081\u306b\u4f7f\u7528\u3059\u308b URIResolver)]"},
-  { "optionENTITYRESOLVER",  "   [-ENTITYRESOLVER \u7d76\u5bfe\u30af\u30e9\u30b9\u540d (\u30a8\u30f3\u30c6\u30a3\u30c6\u30a3\u30fc\u3092\u89e3\u6c7a\u3059\u308b\u305f\u3081\u306b\u4f7f\u7528\u3059\u308b EntityResolver)]"},
-  { "optionCONTENTHANDLER",  "   [-CONTENTHANDLER \u7d76\u5bfe\u30af\u30e9\u30b9\u540d (\u51fa\u529b\u3092\u30b7\u30ea\u30a2\u30e9\u30a4\u30ba\u3059\u308b\u305f\u3081\u306b\u4f7f\u7528\u3059\u308b ContentHandler)]"},
-  {  "optionLINENUMBERS",  "   [-L \u30bd\u30fc\u30b9\u30fb\u30c9\u30ad\u30e5\u30e1\u30f3\u30c8\u306e\u884c\u756a\u53f7\u3092\u4f7f\u7528]"},
+  { "optionPARSER", "   [-PARSER \u30D1\u30FC\u30B5\u30FC\u30FB\u30EA\u30A8\u30BE\u30F3\u306E\u5B8C\u5168\u4FEE\u98FE\u30AF\u30E9\u30B9\u540D]"},
+  {  "optionE", "   [-E (\u5B9F\u4F53\u53C2\u7167\u3092\u62E1\u5F35\u3057\u306A\u3044)]"},
+  {  "optionV",  "   [-E (\u5B9F\u4F53\u53C2\u7167\u3092\u62E1\u5F35\u3057\u306A\u3044)]"},
+  {  "optionQC", "   [-QC (\u6291\u5236\u30D1\u30BF\u30FC\u30F3\u7AF6\u5408\u306E\u8B66\u544A)]"},
+  {  "optionQ", "   [-Q  (\u6291\u5236\u30E2\u30FC\u30C9)]"},
+  {  "optionLF", "   [-LF (\u51FA\u529B\u3067\u306E\u307F\u6539\u884C\u3092\u4F7F\u7528{\u30C7\u30D5\u30A9\u30EB\u30C8\u306FCR/LF})]"},
+  {  "optionCR", "   [-CR (\u51FA\u529B\u3067\u306E\u307F\u6539\u884C\u3092\u4F7F\u7528{\u30C7\u30D5\u30A9\u30EB\u30C8\u306FCR/LF})]"},
+  { "optionESCAPE", "   [-ESCAPE (\u30A8\u30B9\u30B1\u30FC\u30D7\u3059\u308B\u6587\u5B57{\u30C7\u30D5\u30A9\u30EB\u30C8\u306F<>&\"\'\\r\\n}]"},
+  { "optionINDENT", "   [-INDENT (\u30A4\u30F3\u30C7\u30F3\u30C8\u3059\u308B\u7A7A\u767D\u6587\u5B57\u6570\u3092\u5236\u5FA1{\u30C7\u30D5\u30A9\u30EB\u30C8\u306F0})]"},
+  { "optionTT", "   [-TT (\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u304C\u547C\u3073\u51FA\u3055\u308C\u305F\u3068\u304D\u306B\u30C8\u30EC\u30FC\u30B9\u3059\u308B\u3002)]"},
+  { "optionTG", "   [-TG (\u5404\u751F\u6210\u30A4\u30D9\u30F3\u30C8\u3092\u30C8\u30EC\u30FC\u30B9\u3059\u308B\u3002)]"},
+  { "optionTS", "   [-TS (\u5404\u9078\u629E\u30A4\u30D9\u30F3\u30C8\u3092\u30C8\u30EC\u30FC\u30B9\u3059\u308B\u3002)]"},
+  {  "optionTTC", "   [-TTC (\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u306E\u5B50\u304C\u51E6\u7406\u3055\u308C\u308B\u3068\u304D\u306B\u30C8\u30EC\u30FC\u30B9\u3059\u308B\u3002)]"},
+  { "optionTCLASS", "   [-TCLASS (\u30C8\u30EC\u30FC\u30B9\u62E1\u5F35\u7528\u306ETraceListener\u30AF\u30E9\u30B9\u3002)]"},
+  { "optionVALIDATE", "   [-VALIDATE (\u691C\u8A3C\u3092\u5B9F\u884C\u3059\u308B\u304B\u3069\u3046\u304B\u3092\u8A2D\u5B9A\u3059\u308B\u3002\u691C\u8A3C\u306F\u30C7\u30D5\u30A9\u30EB\u30C8\u3067\u306F\u30AA\u30D5\u3002)]"},
+  { "optionEDUMP", "   [-EDUMP {optional filename} (\u30A8\u30E9\u30FC\u6642\u306Bstackdump\u3092\u5B9F\u884C\u3059\u308B\u3002)]"},
+  {  "optionXML", "   [-XML (XML\u30D5\u30A9\u30FC\u30DE\u30C3\u30BF\u3092\u4F7F\u7528\u3057\u3066XML\u30D8\u30C3\u30C0\u30FC\u3092\u8FFD\u52A0\u3059\u308B\u3002)]"},
+  {  "optionTEXT", "   [-TEXT (\u30B7\u30F3\u30D7\u30EB\u30FB\u30C6\u30AD\u30B9\u30C8\u30FB\u30D5\u30A9\u30FC\u30DE\u30C3\u30BF\u3092\u4F7F\u7528\u3059\u308B\u3002)]"},
+  {  "optionHTML", "   [-HTML (HTML\u30D5\u30A9\u30FC\u30DE\u30C3\u30BF\u3092\u4F7F\u7528\u3059\u308B\u3002)]"},
+  {  "optionPARAM", "   [-PARAM name expression (\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u30FB\u30D1\u30E9\u30E1\u30FC\u30BF\u3092\u8A2D\u5B9A\u3059\u308B)]"},
+  {  "noParsermsg1", "XSL\u30D7\u30ED\u30BB\u30B9\u306F\u6210\u529F\u3057\u307E\u305B\u3093\u3067\u3057\u305F\u3002"},
+  {  "noParsermsg2", "** \u30D1\u30FC\u30B5\u30FC\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3067\u3057\u305F **"},
+  { "noParsermsg3",  "\u30AF\u30E9\u30B9\u30D1\u30B9\u3092\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002"},
+  { "noParsermsg4", "IBM\u306EJava\u7528XML\u30D1\u30FC\u30B5\u30FC\u304C\u306A\u3044\u5834\u5408\u3001\u6B21\u306E\u30B5\u30A4\u30C8\u304B\u3089\u30C0\u30A6\u30F3\u30ED\u30FC\u30C9\u3067\u304D\u307E\u3059"},
+  { "noParsermsg5", "IBM\u306EAlphaWorks: http://www.alphaworks.ibm.com/formula/xml"},
+  { "optionURIRESOLVER", "   [-URIRESOLVER full class name (URI\u306E\u89E3\u6C7A\u306B\u4F7F\u7528\u3055\u308C\u308BURIResolver)]"},
+  { "optionENTITYRESOLVER",  "   [-ENTITYRESOLVER full class name (\u30A8\u30F3\u30C6\u30A3\u30C6\u30A3\u306E\u89E3\u6C7A\u306B\u4F7F\u7528\u3055\u308C\u308BEntityResolver)]"},
+  { "optionCONTENTHANDLER",  "   [-CONTENTHANDLER full class name (\u51FA\u529B\u306E\u30B7\u30EA\u30A2\u30E9\u30A4\u30BA\u306B\u4F7F\u7528\u3055\u308C\u308BContentHandler)]"},
+  {  "optionLINENUMBERS",  "   [-L \u30BD\u30FC\u30B9\u30FB\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u884C\u756A\u53F7\u3092\u4F7F\u7528]"},
+  { "optionSECUREPROCESSING", "   [-SECURE (\u30BB\u30AD\u30E5\u30A2\u51E6\u7406\u6A5F\u80FD\u3092true\u306B\u8A2D\u5B9A\u3059\u308B\u3002)]"},
 
     // Following are the new options added in XSLTErrorResources.properties files after Jdk 1.4 (Xalan 2.2-D11)
 
 
-  {  "optionMEDIA",  "   [-MEDIA mediaType (\u6587\u66f8\u3068\u95a2\u9023\u3057\u305f\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u3092\u691c\u7d22\u3059\u308b\u30e1\u30c7\u30a3\u30a2\u5c5e\u6027\u3092\u4f7f\u7528\u3002)]"},
-  {  "optionFLAVOR",  "   [-FLAVOR flavorName (\u5909\u63db\u3092\u5b9f\u884c\u3059\u308b\u305f\u3081\u306b s2s=SAX \u307e\u305f\u306f d2d=DOM \u3092\u660e\u793a\u7684\u306b\u4f7f\u7528\u3002)]"}, // Added by sboag/scurcuru; experimental
-  { "optionDIAG", "   [-DIAG (\u5909\u63db\u306b\u304b\u304b\u3063\u305f\u5168\u30df\u30ea\u79d2\u3092\u5370\u5237\u3002)]"},
-  { "optionINCREMENTAL",  "   [-INCREMENTAL (http://xml.apache.org/xalan/features/incremental \u3092 true \u306b\u8a2d\u5b9a\u3059\u308b\u3053\u3068\u306b\u3088\u308a\u5897\u5206 DTM \u69cb\u9020\u3092\u8981\u6c42\u3002)]"},
-  {  "optionNOOPTIMIMIZE",  "   [-NOOPTIMIMIZE (http://xml.apache.org/xalan/features/optimize \u3092 false \u306b\u8a2d\u5b9a\u3059\u308b\u3053\u3068\u306b\u3088\u308a\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u6700\u9069\u5316\u51e6\u7406\u306a\u3057\u3092\u8981\u6c42\u3002)]"},
-  { "optionRL",  "   [-RL recursionlimit (\u30b9\u30bf\u30a4\u30eb\u30b7\u30fc\u30c8\u306e\u518d\u5e30\u306e\u6df1\u3055\u306b\u3064\u3044\u3066\u306e\u6570\u5024\u9650\u754c\u3092\u4e3b\u5f35\u3002)]"},
-  {   "optionXO",  "   [-XO [transletName] (\u540d\u524d\u3092\u751f\u6210\u5f8c\u306e translet \u306b\u5272\u308a\u5f53\u3066)]"},
-  {  "optionXD", "   [-XD destinationDirectory (\u5b9b\u5148\u30c7\u30a3\u30ec\u30af\u30c8\u30ea\u30fc\u3092 translet \u306b\u6307\u5b9a)]"},
-  {  "optionXJ",  "   [-XJ jarfile (translet \u30af\u30e9\u30b9\u3092\u540d\u524d <jarfile> \u306e jar \u30d5\u30a1\u30a4\u30eb\u306b\u30d1\u30c3\u30b1\u30fc\u30b8\u3057\u307e\u3059)]"},
-  {   "optionXP",  "   [-XP package (\u30d1\u30c3\u30b1\u30fc\u30b8\u540d\u63a5\u982d\u90e8\u3092\u3059\u3079\u3066\u306e\u751f\u6210\u5f8c\u306e translet \u30af\u30e9\u30b9\u306b\u6307\u5b9a\u3057\u307e\u3059)]"},
+  {  "optionMEDIA",  "   [-MEDIA mediaType (\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306B\u95A2\u9023\u4ED8\u3051\u3089\u308C\u305F\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u3092\u898B\u3064\u3051\u308B\u305F\u3081\u306B\u30E1\u30C7\u30A3\u30A2\u5C5E\u6027\u3092\u4F7F\u7528\u3059\u308B\u3002)]"},
+  {  "optionFLAVOR",  "   [-FLAVOR flavorName (\u5909\u63DB\u3092\u884C\u3046\u305F\u3081\u306Bs2s=SAX\u307E\u305F\u306Fd2d=DOM\u3092\u660E\u793A\u7684\u306B\u4F7F\u7528\u3059\u308B\u3002)] "}, // Added by sboag/scurcuru; experimental
+  { "optionDIAG", "   [-DIAG (\u5909\u63DB\u306B\u304B\u304B\u3063\u305F\u5408\u8A08\u30DF\u30EA\u79D2\u6570\u3092\u51FA\u529B\u3059\u308B\u3002)]"},
+  { "optionINCREMENTAL",  "   [-INCREMENTAL (http://xml.apache.org/xalan/features/incremental\u3092true\u306B\u8A2D\u5B9A\u3059\u308B\u3053\u3068\u306B\u3088\u3063\u3066\u5897\u5206DTM\u69CB\u7BC9\u3092\u30EA\u30AF\u30A8\u30B9\u30C8\u3059\u308B\u3002)]"},
+  {  "optionNOOPTIMIMIZE",  "   [-NOOPTIMIMIZE (http://xml.apache.org/xalan/features/optimize\u3092false\u306B\u8A2D\u5B9A\u3059\u308B\u3053\u3068\u306B\u3088\u3063\u3066\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u6700\u9069\u5316\u51E6\u7406\u3092\u30EA\u30AF\u30A8\u30B9\u30C8\u3057\u306A\u3044\u3002)]"},
+  { "optionRL",  "   [-RL recursionlimit (\u30B9\u30BF\u30A4\u30EB\u30B7\u30FC\u30C8\u306E\u518D\u5E30\u306E\u6DF1\u3055\u306B\u3064\u3044\u3066\u6570\u5024\u4E0A\u306E\u5236\u9650\u3092\u30A2\u30B5\u30FC\u30C8\u3059\u308B\u3002)]"},
+  {   "optionXO",  "   [-XO [transletName] (\u751F\u6210\u6E08translet\u306B\u540D\u524D\u3092\u5272\u308A\u5F53\u3066\u308B)]"},
+  {  "optionXD", "   [-XD destinationDirectory (translet\u306E\u5B9B\u5148\u30C7\u30A3\u30EC\u30AF\u30C8\u30EA\u3092\u6307\u5B9A\u3059\u308B)]"},
+  {  "optionXJ",  "   [-XJ jarfile (translet\u30AF\u30E9\u30B9\u3092\u540D\u524D<jarfile>\u306Ejar\u30D5\u30A1\u30A4\u30EB\u306B\u30D1\u30C3\u30B1\u30FC\u30B8\u3059\u308B)]"},
+  {   "optionXP",  "   [-XP package (\u3059\u3079\u3066\u306E\u751F\u6210\u6E08translet\u30AF\u30E9\u30B9\u7528\u306B\u30D1\u30C3\u30B1\u30FC\u30B8\u540D\u63A5\u982D\u8F9E\u3092\u6307\u5B9A\u3059\u308B)]"},
 
   //AddITIONAL  STRINGS that need L10n
   // Note to translators:  The following message describes usage of a particular
   // command-line option that is used to enable the "template inlining"
   // optimization.  The optimization involves making a copy of the code
   // generated for a template in another template that refers to it.
-  { "optionXN",  "   [-XN (\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u3092\u30a4\u30f3\u30e9\u30a4\u30f3\u3067\u4f7f\u7528\u53ef\u80fd\u306b\u3057\u307e\u3059)]" },
-  { "optionXX",  "   [-XX (\u8ffd\u52a0\u306e\u30c7\u30d0\u30c3\u30b0\u30fb\u30e1\u30c3\u30bb\u30fc\u30b8\u51fa\u529b\u3092\u30aa\u30f3\u306b\u3057\u307e\u3059)]"},
-  { "optionXT" , "   [-XT (\u53ef\u80fd\u306a\u5834\u5408\u306f translet \u3092\u4f7f\u7528\u3057\u3066\u5909\u63db)]"},
-  { "diagTiming","--------- {0} \u306e {1} \u306b\u3088\u308b\u5909\u63db\u306b\u306f {2} \u30df\u30ea\u79d2\u304b\u304b\u308a\u307e\u3057\u305f" },
-  { "recursionTooDeep","\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8\u306e\u30cd\u30b9\u30c8\u304c\u6df1\u3059\u304e\u307e\u3059\u3002 \u30cd\u30b9\u30c8 = {0}\u3001\u30c6\u30f3\u30d7\u30ec\u30fc\u30c8 {1} {2}" },
-  { "nameIs", "\u540d\u524d\u306f" },
-  { "matchPatternIs", "\u30de\u30c3\u30c1\u30f3\u30b0\u30fb\u30d1\u30bf\u30fc\u30f3\u306f" }
+  { "optionXN",  "   [-XN (\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u306E\u30A4\u30F3\u30E9\u30A4\u30F3\u5316\u3092\u6709\u52B9\u306B\u3059\u308B)]" },
+  { "optionXX",  "   [-XX (\u8FFD\u52A0\u306E\u30C7\u30D0\u30C3\u30B0\u30FB\u30E1\u30C3\u30BB\u30FC\u30B8\u51FA\u529B\u3092\u30AA\u30F3\u306B\u3059\u308B)]"},
+  { "optionXT" , "   [-XT (\u53EF\u80FD\u306A\u5834\u5408\u306F\u5909\u63DB\u306E\u305F\u3081\u306Btranslet\u3092\u4F7F\u7528\u3059\u308B)]"},
+  { "diagTiming"," --------- {1}\u306B\u3088\u308B{0}\u306E\u5909\u63DB\u306B{2}\u30DF\u30EA\u79D2\u304B\u304B\u308A\u307E\u3057\u305F" },
+  { "recursionTooDeep","\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8\u306E\u30CD\u30B9\u30C8\u304C\u6DF1\u3059\u304E\u307E\u3059\u3002\u30CD\u30B9\u30C8= {0}\u3001\u30C6\u30F3\u30D7\u30EC\u30FC\u30C8{1} {2}" },
+  { "nameIs", "\u540D\u524D:" },
+  { "matchPatternIs", "\u4E00\u81F4\u30D1\u30BF\u30FC\u30F3:" }
 
   };
-  }
 
+  /** Get the lookup table for error messages.
+   *
+   * @return The int to message lookup table.
+   */
+  public Object[][] getContents()
+  {
+      return _contents;
+  }
+  // ================= INFRASTRUCTURE ======================
 
   /** String for use when a bad error code was encountered.    */
   public static final String BAD_CODE = "BAD_CODE";
@@ -2390,10 +1432,10 @@ public class XSLTErrorResources_ja extends ListResourceBundle
   public static final String ERROR_STRING = "#error";
 
   /** String to prepend to error messages.  */
-  public static final String ERROR_HEADER = "\u30a8\u30e9\u30fc: ";
+  public static final String ERROR_HEADER = "Error: ";
 
   /** String to prepend to warning messages.    */
-  public static final String WARNING_HEADER = "\u8b66\u544a: ";
+  public static final String WARNING_HEADER = "Warning: ";
 
   /** String to specify the XSLT module.  */
   public static final String XSL_HEADER = "XSLT ";

@@ -1,10 +1,28 @@
 /*
- * @(#)DSAKey.java	1.18 05/11/17
+ * Copyright (c) 1996, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package java.security.interfaces;
 
 /**
@@ -14,10 +32,9 @@ package java.security.interfaces;
  * @see DSAParams
  * @see java.security.Key
  * @see java.security.Signature
- * 
- * @version 1.18 05/11/17
- * @author Benjamin Renaud 
- * @author Josh Bloch 
+ *
+ * @author Benjamin Renaud
+ * @author Josh Bloch
  */
 public interface DSAKey {
 
@@ -26,7 +43,7 @@ public interface DSAKey {
      * never secret.
      *
      * @return the DSA-specific key parameters.
-     * 
+     *
      * @see DSAParams
      */
     public DSAParams getParams();

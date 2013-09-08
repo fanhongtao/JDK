@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -56,12 +60,11 @@ package com.sun.org.apache.bcel.internal.generic;
 import java.io.IOException;
 import com.sun.org.apache.bcel.internal.util.ByteSequence;
 
-/** 
+/**
  * LDC_W - Push item from constant pool (wide index)
  *
  * <PRE>Stack: ... -&gt; ..., item.word1, item.word2</PRE>
  *
- * @version $Id: LDC_W.java,v 1.1.2.1 2005/07/31 23:45:57 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class LDC_W extends LDC {

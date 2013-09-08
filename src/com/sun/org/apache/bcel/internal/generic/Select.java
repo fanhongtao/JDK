@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -56,10 +60,9 @@ package com.sun.org.apache.bcel.internal.generic;
 import java.io.*;
 import com.sun.org.apache.bcel.internal.util.ByteSequence;
 
-/** 
+/**
  * Select - Abstract super class for LOOKUPSWITCH and TABLESWITCH instructions.
  *
- * @version $Id: Select.java,v 1.1.2.1 2005/07/31 23:45:26 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see LOOKUPSWITCH
  * @see TABLESWITCH
@@ -74,7 +77,7 @@ public abstract class Select extends BranchInstruction
   protected int                 fixed_length; // fixed length defined by subclasses
   protected int                 match_length; // number of cases
   protected int                 padding = 0;  // number of pad bytes for alignment
-  
+
   /**
    * Empty constructor needed for the Class.newInstance() statement in
    * Instruction.readInstruction(). Not to be used otherwise.
@@ -90,7 +93,7 @@ public abstract class Select extends BranchInstruction
    * @param target default instruction target
    */
   Select(short opcode, int[] match, InstructionHandle[] targets,
-	 InstructionHandle target) {
+         InstructionHandle target) {
     super(opcode, target);
 
     this.targets = targets;
@@ -155,7 +158,7 @@ public abstract class Select extends BranchInstruction
     for(int i=0; i < padding; i++) {
       bytes.readByte();
     }
-    
+
     // Default branch target common for both cases (TABLESWITCH, LOOKUPSWITCH)
     index = bytes.readInt();
   }
@@ -168,17 +171,17 @@ public abstract class Select extends BranchInstruction
 
     if(verbose) {
       for(int i=0; i < match_length; i++) {
-	String s = "null";
-	
-	if(targets[i] != null)
-	  s = targets[i].getInstruction().toString();
-	
-	buf.append("(" + match[i] + ", " + s + " = {" + indices[i] + "})");
+        String s = "null";
+
+        if(targets[i] != null)
+          s = targets[i].getInstruction().toString();
+
+        buf.append("(" + match[i] + ", " + s + " = {" + indices[i] + "})");
       }
     }
     else
       buf.append(" ...");
-    
+
     return buf.toString();
   }
 
@@ -204,11 +207,11 @@ public abstract class Select extends BranchInstruction
 
     for(int i=0; i < targets.length; i++) {
       if(targets[i] == old_ih) {
-	targeted = true;
-	setTarget(i, new_ih);
+        targeted = true;
+        setTarget(i, new_ih);
       }
     }
-    
+
     if(!targeted)
       throw new ClassGenException("Not targeting " + old_ih);
   }
@@ -222,7 +225,7 @@ public abstract class Select extends BranchInstruction
 
     for(int i=0; i < targets.length; i++)
       if(targets[i] == ih)
-	return true;
+        return true;
 
     return false;
   }

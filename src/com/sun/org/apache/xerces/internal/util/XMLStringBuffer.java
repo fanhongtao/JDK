@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -78,34 +82,33 @@ import com.sun.org.apache.xerces.internal.xni.XMLString;
  * @author Andy Clark, IBM
  * @author Eric Ye, IBM
  *
- * @version $Id: XMLStringBuffer.java,v 1.1.2.1 2005/08/01 03:35:44 jeffsuttor Exp $
  */
 public class XMLStringBuffer
 extends XMLString {
-    
+
     //
     // Constants
     //
-    
-    
+
+
     /** Default buffer size (32). */
     public static final int DEFAULT_SIZE = 32;
-    
+
     //
     // Data
     //
-    
+
     //
     // Constructors
     //
-    
+
     /**
      *
      */
     public XMLStringBuffer() {
         this(DEFAULT_SIZE);
     } // <init>()
-    
+
     /**
      *
      *
@@ -114,41 +117,41 @@ extends XMLString {
     public XMLStringBuffer(int size) {
         ch = new char[size];
     } // <init>(int)
-    
+
     /** Constructs a string buffer from a char. */
     public XMLStringBuffer(char c) {
         this(1);
         append(c);
     } // <init>(char)
-    
+
     /** Constructs a string buffer from a String. */
     public XMLStringBuffer(String s) {
         this(s.length());
         append(s);
     } // <init>(String)
-    
+
     /** Constructs a string buffer from the specified character array. */
     public XMLStringBuffer(char[] ch, int offset, int length) {
         this(length);
         append(ch, offset, length);
     } // <init>(char[],int,int)
-    
+
     /** Constructs a string buffer from the specified XMLString. */
     public XMLStringBuffer(XMLString s) {
         this(s.length);
         append(s);
     } // <init>(XMLString)
-    
+
     //
     // Public methods
     //
-    
+
     /** Clears the string buffer. */
     public void clear() {
         offset = 0;
         length = 0;
     }
-    
+
     /**
      * append
      *
@@ -167,7 +170,7 @@ extends XMLString {
         this.ch[this.length] = c ;
         this.length++;
     } // append(char)
-    
+
     /**
      * append
      *
@@ -180,7 +183,7 @@ extends XMLString {
             if(newLength < this.ch.length + length + DEFAULT_SIZE){
                 newLength = this.ch.length + length+ DEFAULT_SIZE;
             }
-            
+
             char[] newch = new char[newLength];
             System.arraycopy(this.ch, 0, newch, 0, this.length);
             this.ch = newch;
@@ -188,7 +191,7 @@ extends XMLString {
         s.getChars(0, length, this.ch, this.length);
         this.length += length;
     } // append(String)
-    
+
     /**
      * append
      *
@@ -213,7 +216,7 @@ extends XMLString {
             this.length += length;
         }
     } // append(char[],int,int)
-    
+
     /**
      * append
      *
@@ -222,6 +225,6 @@ extends XMLString {
     public void append(XMLString s) {
         append(s.ch, s.offset, s.length);
     } // append(XMLString)
-    
-    
+
+
 } // class XMLStringBuffer

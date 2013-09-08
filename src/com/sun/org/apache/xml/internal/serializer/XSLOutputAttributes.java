@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +27,10 @@ import java.util.Vector;
 /**
  * This interface has methods associated with the XSLT xsl:output attribues
  * specified in the stylesheet that effect the format of the document output.
- * 
+ *
  * In an XSLT stylesheet these attributes appear for example as:
  * <pre>
- * <xsl:output method="xml" omit-xml-declaration="no" indent="yes"/> 
+ * <xsl:output method="xml" omit-xml-declaration="no" indent="yes"/>
  * </pre>
  * The xsl:output attributes covered in this interface are:
  * <pre>
@@ -40,13 +44,13 @@ import java.util.Vector;
  * indent
  * media-type
  * </pre>
- * 
+ *
  * The one attribute not covered in this interface is <code>method</code> as
  * this value is implicitly chosen by the serializer that is created, for
  * example ToXMLStream vs. ToHTMLStream or another one.
- * 
+ *
  * This interface is only used internally within Xalan.
- * 
+ *
  * @xsl.usage internal
  */
 interface XSLOutputAttributes
@@ -65,18 +69,18 @@ interface XSLOutputAttributes
      * @return the system identifier to be used in the DOCTYPE declaration in
      * the output document.
      *
-     */ 
+     */
     public String getDoctypeSystem();
     /**
      * @return the character encoding to be used in the output document.
-     */    
+     */
     public String getEncoding();
     /**
-	 * @return true if the output document should be indented to visually
-	 * indicate its structure.
-     */    
+         * @return true if the output document should be indented to visually
+         * indicate its structure.
+     */
     public boolean getIndent();
-    
+
     /**
      * @return the number of spaces to indent for each indentation level.
      */
@@ -84,21 +88,21 @@ interface XSLOutputAttributes
     /**
      * @return the mediatype the media-type or MIME type associated with the
      * output document.
-     */    
+     */
     public String getMediaType();
     /**
      * @return true if the XML declaration is to be omitted from the output
      * document.
-     */    
+     */
     public boolean getOmitXMLDeclaration();
     /**
       * @return a value of "yes" if the <code>standalone</code> delaration is to
       * be included in the output document.
-      */    
+      */
     public String getStandalone();
     /**
      * @return the version of the output format.
-     */    
+     */
     public String getVersion();
 
 
@@ -109,7 +113,7 @@ interface XSLOutputAttributes
     /**
      * Sets the value coming from the xsl:output cdata-section-elements
      * stylesheet property.
-     * 
+     *
      * This sets the elements whose text elements are to be output as CDATA
      * sections.
      * @param URI_and_localNames pairs of namespace URI and local names that

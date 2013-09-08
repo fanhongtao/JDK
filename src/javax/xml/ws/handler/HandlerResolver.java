@@ -1,11 +1,31 @@
 /*
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.ws.handler;
 
-/** 
+/**
  *  <code>HandlerResolver</code> is an interface implemented
  *  by an application to get control over the handler chain
  *  set on proxy/dispatch objects at the time of their creation.
@@ -23,7 +43,7 @@ package javax.xml.ws.handler;
 **/
 public interface HandlerResolver {
 
-  /** 
+  /**
    *  Gets the handler chain for the specified port.
    *
    *  @param portInfo Contains information about the port being accessed.

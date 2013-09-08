@@ -1,8 +1,26 @@
 /*
- * @(#)ColorSpace.java	1.43 07/11/26
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /**********************************************************************
@@ -17,7 +35,8 @@
 
 package java.awt.color;
 
-import sun.awt.color.CMM;
+import sun.java2d.cmm.PCMM;
+import sun.java2d.cmm.CMSManager;
 
 
 /**
@@ -56,7 +75,7 @@ import sun.awt.color.CMM;
 &nbsp;     CIEXYZ
 &nbsp;     viewing illuminance: 200 lux
 &nbsp;     viewing white point: CIE D50
-&nbsp;     media white point: "that of a perfectly reflecting diffuser" -- D50 
+&nbsp;     media white point: "that of a perfectly reflecting diffuser" -- D50
 &nbsp;     media black point: 0 lux or 0 Reflectance
 &nbsp;     flare: 1 percent
 &nbsp;     surround: 20percent of the media white point
@@ -72,7 +91,6 @@ import sun.awt.color.CMM;
  *
  * <p>
  * @see ICC_ColorSpace
- * @version 10 Feb 1997
  */
 
 
@@ -91,7 +109,7 @@ public abstract class ColorSpace implements java.io.Serializable {
     private static ColorSpace PYCCspace;
     private static ColorSpace GRAYspace;
     private static ColorSpace LINEAR_RGBspace;
-    
+
     /**
      * Any of the family of XYZ color spaces.
      */
@@ -284,11 +302,11 @@ public abstract class ColorSpace implements java.io.Serializable {
                 theColorSpace = sRGBspace;
             }
             break;
-        
+
         case CS_CIEXYZ:
             synchronized(ColorSpace.class) {
                 if (XYZspace == null) {
-                    ICC_Profile theProfile = 
+                    ICC_Profile theProfile =
                         ICC_Profile.getInstance (CS_CIEXYZ);
                     XYZspace = new ICC_ColorSpace (theProfile);
                 }
@@ -296,7 +314,7 @@ public abstract class ColorSpace implements java.io.Serializable {
                 theColorSpace = XYZspace;
             }
             break;
-        
+
         case CS_PYCC:
             synchronized(ColorSpace.class) {
                 if (PYCCspace == null) {
@@ -307,7 +325,7 @@ public abstract class ColorSpace implements java.io.Serializable {
                 theColorSpace = PYCCspace;
             }
             break;
-        
+
 
         case CS_GRAY:
             synchronized(ColorSpace.class) {
@@ -315,47 +333,47 @@ public abstract class ColorSpace implements java.io.Serializable {
                     ICC_Profile theProfile = ICC_Profile.getInstance (CS_GRAY);
                     GRAYspace = new ICC_ColorSpace (theProfile);
                     /* to allow access from java.awt.ColorModel */
-                    CMM.CSAccessor.GRAYspace = GRAYspace;
+                    CMSManager.GRAYspace = GRAYspace;
                 }
 
                 theColorSpace = GRAYspace;
             }
             break;
-        
+
 
         case CS_LINEAR_RGB:
             synchronized(ColorSpace.class) {
                 if (LINEAR_RGBspace == null) {
-                    ICC_Profile theProfile = 
+                    ICC_Profile theProfile =
                         ICC_Profile.getInstance(CS_LINEAR_RGB);
                     LINEAR_RGBspace = new ICC_ColorSpace (theProfile);
                     /* to allow access from java.awt.ColorModel */
-                    CMM.CSAccessor.LINEAR_RGBspace = LINEAR_RGBspace;
+                    CMSManager.LINEAR_RGBspace = LINEAR_RGBspace;
                 }
 
                 theColorSpace = LINEAR_RGBspace;
             }
             break;
-        
+
 
         default:
             throw new IllegalArgumentException ("Unknown color space");
         }
-        
+
         return theColorSpace;
     }
 
 
     /**
      * Returns true if the ColorSpace is CS_sRGB.
-     * @return <CODE>true</CODE> if this is a <CODE>CS_sRGB</CODE> color 
+     * @return <CODE>true</CODE> if this is a <CODE>CS_sRGB</CODE> color
      *         space, <code>false</code> if it is not
      */
     public boolean isCS_sRGB () {
         /* REMIND - make sure we know sRGBspace exists already */
         return (this == sRGBspace);
     }
-    
+
     /**
      * Transforms a color value assumed to be in this ColorSpace
      * into a value in the default CS_sRGB color space.
@@ -364,10 +382,10 @@ public abstract class ColorSpace implements java.io.Serializable {
      * to produce the best perceptual match between input and output
      * colors.  In order to do colorimetric conversion of color values,
      * you should use the <code>toCIEXYZ</code>
-     * method of this color space to first convert from the input 
-     * color space to the CS_CIEXYZ color space, and then use the 
-     * <code>fromCIEXYZ</code> method of the CS_sRGB color space to 
-     * convert from CS_CIEXYZ to the output color space. 
+     * method of this color space to first convert from the input
+     * color space to the CS_CIEXYZ color space, and then use the
+     * <code>fromCIEXYZ</code> method of the CS_sRGB color space to
+     * convert from CS_CIEXYZ to the output color space.
      * See {@link #toCIEXYZ(float[]) toCIEXYZ} and
      * {@link #fromCIEXYZ(float[]) fromCIEXYZ} for further information.
      * <p>
@@ -467,7 +485,7 @@ public abstract class ColorSpace implements java.io.Serializable {
      * characteristics of the space, e.g. the chromaticities of the
      * primaries.
      *
-     * @return the type constant that represents the type of this 
+     * @return the type constant that represents the type of this
      *         <CODE>ColorSpace</CODE>
      */
     public int getType() {
@@ -524,7 +542,7 @@ public abstract class ColorSpace implements java.io.Serializable {
                     compName = new String[] {"Hue", "Saturation", "Value"};
                     break;
                 case ColorSpace.TYPE_HLS:
-                    compName = new String[] {"Hue", "Lightness", 
+                    compName = new String[] {"Hue", "Lightness",
                                              "Saturation"};
                     break;
                 case ColorSpace.TYPE_CMYK:
@@ -535,7 +553,7 @@ public abstract class ColorSpace implements java.io.Serializable {
                     compName = new String[] {"Cyan", "Magenta", "Yellow"};
                     break;
                 default:
-                    String [] tmp = new String[numComponents]; 
+                    String [] tmp = new String[numComponents];
                     for (int i = 0; i < tmp.length; i++) {
                         tmp[i] = "Unnamed color component(" + i + ")";
                     }

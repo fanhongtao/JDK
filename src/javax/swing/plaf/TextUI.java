@@ -1,8 +1,26 @@
 /*
- * @(#)TextUI.java	1.34 06/02/14
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf;
 
@@ -17,7 +35,6 @@ import javax.swing.text.*;
  * Text editor user interface
  *
  * @author  Timothy Prinzing
- * @version 1.34 02/14/06
  */
 public abstract class TextUI extends ComponentUI
 {
@@ -70,10 +87,10 @@ public abstract class TextUI extends ComponentUI
      *         given point in the view >= 0
      */
     public abstract int viewToModel(JTextComponent t, Point pt,
-				    Position.Bias[] biasReturn);
+                                    Position.Bias[] biasReturn);
 
     /**
-     * Provides a way to determine the next visually represented model 
+     * Provides a way to determine the next visually represented model
      * location that one might place a caret.  Some views may not be visible,
      * they might not be in the same order found in the model, or they just
      * might not allow access to some of the locations in the model.
@@ -92,9 +109,9 @@ public abstract class TextUI extends ComponentUI
      * @exception IllegalArgumentException for an invalid direction
      */
     public abstract int getNextVisualPositionFrom(JTextComponent t,
-			 int pos, Position.Bias b,
-			 int direction, Position.Bias[] biasRet)
-	                 throws BadLocationException;
+                         int pos, Position.Bias b,
+                         int direction, Position.Bias[] biasRet)
+                         throws BadLocationException;
 
     /**
      * Causes the portion of the view responsible for the
@@ -106,15 +123,15 @@ public abstract class TextUI extends ComponentUI
     public abstract void damageRange(JTextComponent t, int p0, int p1);
 
     /**
-     * Causes the portion of the view responsible for the 
+     * Causes the portion of the view responsible for the
      * given part of the model to be repainted.
      *
      * @param p0 the beginning of the range >= 0
      * @param p1 the end of the range >= p0
      */
     public abstract void damageRange(JTextComponent t, int p0, int p1,
-				     Position.Bias firstBias,
-				     Position.Bias secondBias);
+                                     Position.Bias firstBias,
+                                     Position.Bias secondBias);
 
     /**
      * Fetches the binding of services that set a policy

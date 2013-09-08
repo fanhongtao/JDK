@@ -1,7 +1,26 @@
-/* @(#)ORBImpl.java	1.74 09/02/23
+/*
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.orb ;
@@ -15,8 +34,6 @@ import java.lang.reflect.Field ;
 import java.lang.reflect.Modifier ;
 import java.lang.reflect.InvocationTargetException ;
 
-import java.util.Set ;
-import java.util.HashSet ;
 import java.util.ArrayList ;
 import java.util.Iterator ;
 import java.util.Properties ;
@@ -123,7 +140,6 @@ import com.sun.corba.se.impl.corba.AnyImpl;
 import com.sun.corba.se.impl.corba.RequestImpl;
 import com.sun.corba.se.impl.dynamicany.DynAnyFactoryImpl;
 import com.sun.corba.se.impl.encoding.EncapsOutputStream;
-import com.sun.corba.se.impl.encoding.CachedCodeBase;
 import com.sun.corba.se.impl.interceptors.PIHandlerImpl;
 import com.sun.corba.se.impl.interceptors.PINoOpHandlerImpl;
 import com.sun.corba.se.impl.ior.TaggedComponentFactoryFinderImpl;
@@ -147,7 +163,7 @@ import com.sun.corba.se.impl.util.Utility;
 import com.sun.corba.se.impl.logging.ORBUtilSystemException;
 import com.sun.corba.se.impl.copyobject.CopierManagerImpl;
 import com.sun.corba.se.impl.presentation.rmi.PresentationManagerImpl;
-             
+
 /**
  * The JavaIDL ORB implementation.
  */
@@ -156,20 +172,19 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     protected TransportManager transportManager;
     protected LegacyServerSocketManager legacyServerSocketManager;
 
-    private ThreadLocal OAInvocationInfoStack ; 
+    private ThreadLocal OAInvocationInfoStack ;
 
-    private ThreadLocal clientInvocationInfoStack ; 
+    private ThreadLocal clientInvocationInfoStack ;
 
     // pure java orb, caching the servant IOR per ORB
     private static IOR codeBaseIOR ;
 
     // Vector holding deferred Requests
-    private Vector	      dynamicRequests ; 
+    private Vector            dynamicRequests ;
     private SynchVariable     svResponseReceived ;
 
     private java.lang.Object runObj = new java.lang.Object();
     private java.lang.Object shutdownObj = new java.lang.Object();
-    private java.lang.Object waitForCompletionObj = new java.lang.Object();
     private static final byte STATUS_OPERATING = 1;
     private static final byte STATUS_SHUTTING_DOWN = 2;
     private static final byte STATUS_SHUTDOWN = 3;
@@ -178,9 +193,8 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 
     // XXX Should we move invocation tracking to the first level server dispatcher?
     private java.lang.Object invocationObj = new java.lang.Object();
-    private int numInvocations = 0;
 
-    // thread local variable to store a boolean to detect deadlock in 
+    // thread local variable to store a boolean to detect deadlock in
     // ORB.shutdown(true).
     private ThreadLocal isProcessingInvocation = new ThreadLocal () {
         protected java.lang.Object initialValue() {
@@ -198,13 +212,15 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     // thread local variable to store the current ORB version.
     // default ORB version is the version of ORB with correct Rep-id
     // changes
-    private ThreadLocal orbVersionThreadLocal ; 
+    private ThreadLocal orbVersionThreadLocal ;
 
     private RequestDispatcherRegistry requestDispatcherRegistry ;
 
     private CopierManager copierManager ;
 
     private int transientServerId ;
+
+    private ThreadGroup threadGroup ;
 
     private ServiceContextRegistry serviceContextRegistry ;
 
@@ -229,7 +245,14 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     // All access to resolver, localResolver, and urlOperation must be protected using
     // resolverLock.  Do not hold the ORBImpl lock while accessing
     // resolver, or deadlocks may occur.
-    private Object resolverLock ;
+    // Note that we now have separate locks for each resolver type.  This is due
+    // to bug 6980681 and 6238477, which was caused by a deadlock while resolving a
+    // corbaname: URL that contained a reference to the same ORB as the
+    // ORB making the call to string_to_object.  This caused a deadlock between the
+    // client thread holding the single lock for access to the urlOperation,
+    // and the server thread handling the client is_a request waiting on the
+    // same lock to access the localResolver.
+
 
     // Used for resolver_initial_references and list_initial_services
     private Resolver resolver ;
@@ -239,8 +262,14 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 
     // Converts strings to object references for resolvers and string_to_object
     private Operation urlOperation ;
+    private final Object urlOperationLock = new java.lang.Object() ;
 
     private CorbaServerRequestDispatcher insNamingDelegate ;
+    // resolverLock must be used for all access to either resolver or
+    // localResolver, since it is possible for the resolver to indirectly
+    // refer to the localResolver.  Also used to protect access to
+    // insNamingDelegate.
+    private final Object resolverLock = new Object() ;
 
     private TaggedComponentFactoryFinder taggedComponentFactoryFinder ;
 
@@ -249,8 +278,6 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     private IdentifiableFactoryFinder taggedProfileTemplateFactoryFinder ;
 
     private ObjectKeyFactory objectKeyFactory ;
-
-    private boolean orbOwnsThreadPoolManager = false ;
 
     private ThreadPoolManager threadpoolMgr;
 
@@ -272,16 +299,16 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     //
     // checkShutDownState - lock on different object - and normalize usage.
     // starting/FinishDispatch and Shutdown
-    // 
+    //
 
-    public ORBData getORBData() 
+    public ORBData getORBData()
     {
-	return configData ;
+        return configData ;
     }
- 
+
     public PIHandler getPIHandler()
     {
-	return pihandler ;
+        return pihandler ;
     }
 
     /**
@@ -290,22 +317,16 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
      */
     public ORBImpl()
     {
-	// All initialization is done through set_parameters().
+        // All initialization is done through set_parameters().
     }
 
     public ORBVersion getORBVersion()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
         return (ORBVersion)(orbVersionThreadLocal.get()) ;
     }
 
     public void setORBVersion(ORBVersion verObj)
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
         orbVersionThreadLocal.set(verObj);
     }
 
@@ -319,72 +340,111 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     {
         // Before ORBConfiguration we need to set a PINoOpHandlerImpl,
         // because PersisentServer Initialization inside configurator will
-        // invoke orb.resolve_initial_references( ) which will result in a 
+        // invoke orb.resolve_initial_references( ) which will result in a
         // check on piHandler to invoke Interceptors. We do not want any
         // Interceptors to be invoked before the complete ORB initialization.
         // piHandler will be replaced by a real PIHandler implementation at the
         // end of this method.
-	pihandler = new PINoOpHandlerImpl( );
+        pihandler = new PINoOpHandlerImpl( );
 
-	// This is the unique id of this server (JVM). Multiple incarnations
-	// of this server will get different ids.
-	// Compute transientServerId = milliseconds since Jan 1, 1970
-	// Note: transientServerId will wrap in about 2^32 / 86400000 = 49.7 days.
-	// If two ORBS are started at the same time then there is a possibility
-	// of having the same transientServerId. This may result in collision 
-	// and may be a problem in ior.isLocal() check to see if the object 
-	// belongs to the current ORB. This problem is taken care of by checking
-	// to see if the IOR port matches ORB server port in legacyIsLocalServerPort()
-	// method.
-	//
-	// XXX need to move server ID to a string for CORBA 3.0.  At that point,
-	// make this more unique (possibly use java.rmi.server.UID).
-	transientServerId = (int)System.currentTimeMillis();
+        // See bugs 4916766 and 4936203
+        // We intend to create new threads in a reliable thread group.
+        // This avoids problems if the application/applet
+        // creates a thread group, makes JavaIDL calls which create a new
+        // connection and ReaderThread, and then destroys the thread
+        // group. If our ReaderThreads were to be part of such destroyed thread
+        // group then it might get killed and cause other invoking threads
+        // sharing the same connection to get a non-restartable
+        // CommunicationFailure. We'd like to avoid that.
+        //
+        // Our solution is to create all of our threads in the highest thread
+        // group that we have access to, given our own security clearance.
+        //
+        try {
+            // try to get a thread group that's as high in the threadgroup
+            // parent-child hierarchy, as we can get to.
+            // this will prevent an ORB thread created during applet-init from
+            // being killed when an applet dies.
+            threadGroup = (ThreadGroup) AccessController.doPrivileged(
+                new PrivilegedAction() {
+                    public Object run() {
+                        ThreadGroup tg = Thread.currentThread().getThreadGroup() ;
+                        ThreadGroup ptg = tg ;
+                        try {
+                            while (ptg != null) {
+                                tg = ptg;
+                                ptg = tg.getParent();
+                            }
+                        } catch (SecurityException se) {
+                            // Discontinue going higher on a security exception.
+                        }
+                        return new ThreadGroup(tg, "ORB ThreadGroup");
+                    }
+                }
+            );
+        } catch (SecurityException e) {
+            // something wrong, we go back to the original code
+            threadGroup = Thread.currentThread().getThreadGroup();
+        }
 
-	orbVersionThreadLocal  = new ThreadLocal () {
-	    protected java.lang.Object initialValue() {
-		// set default to version of the ORB with correct Rep-ids
-		return ORBVersionFactory.getORBVersion() ;
-	    }
-	};
+        // This is the unique id of this server (JVM). Multiple incarnations
+        // of this server will get different ids.
+        // Compute transientServerId = milliseconds since Jan 1, 1970
+        // Note: transientServerId will wrap in about 2^32 / 86400000 = 49.7 days.
+        // If two ORBS are started at the same time then there is a possibility
+        // of having the same transientServerId. This may result in collision
+        // and may be a problem in ior.isLocal() check to see if the object
+        // belongs to the current ORB. This problem is taken care of by checking
+        // to see if the IOR port matches ORB server port in legacyIsLocalServerPort()
+        // method.
+        //
+        // XXX need to move server ID to a string for CORBA 3.0.  At that point,
+        // make this more unique (possibly use java.rmi.server.UID).
+        transientServerId = (int)System.currentTimeMillis();
 
-	resolverLock = new java.lang.Object() ;
+        orbVersionThreadLocal  = new ThreadLocal () {
+            protected java.lang.Object initialValue() {
+                // set default to version of the ORB with correct Rep-ids
+                return ORBVersionFactory.getORBVersion() ;
+            }
+        };
 
-	requestDispatcherRegistry = new RequestDispatcherRegistryImpl( 
-	    this, ORBConstants.DEFAULT_SCID);
-	copierManager = new CopierManagerImpl( this ) ;
 
-	taggedComponentFactoryFinder = 
-	    new TaggedComponentFactoryFinderImpl(this) ;
-	taggedProfileFactoryFinder = 
-	    new TaggedProfileFactoryFinderImpl(this) ;
-	taggedProfileTemplateFactoryFinder = 
-	    new TaggedProfileTemplateFactoryFinderImpl(this) ;
+        requestDispatcherRegistry = new RequestDispatcherRegistryImpl(
+            this, ORBConstants.DEFAULT_SCID);
+        copierManager = new CopierManagerImpl( this ) ;
 
-	dynamicRequests = new Vector();
-	svResponseReceived = new SynchVariable();
+        taggedComponentFactoryFinder =
+            new TaggedComponentFactoryFinderImpl(this) ;
+        taggedProfileFactoryFinder =
+            new TaggedProfileFactoryFinderImpl(this) ;
+        taggedProfileTemplateFactoryFinder =
+            new TaggedProfileTemplateFactoryFinderImpl(this) ;
 
-	OAInvocationInfoStack = 
-	    new ThreadLocal () {
-		protected java.lang.Object initialValue() 
-		{
-		    return new StackImpl();
-		} 
-	    };
+        dynamicRequests = new Vector();
+        svResponseReceived = new SynchVariable();
 
-	clientInvocationInfoStack = 
-	    new ThreadLocal() {
-		protected java.lang.Object initialValue() {
-		    return new StackImpl();
-		}
-	    };
+        OAInvocationInfoStack =
+            new ThreadLocal () {
+                protected java.lang.Object initialValue()
+                {
+                    return new StackImpl();
+                }
+            };
 
-	serviceContextRegistry = new ServiceContextRegistry( this ) ;
+        clientInvocationInfoStack =
+            new ThreadLocal() {
+                protected java.lang.Object initialValue() {
+                    return new StackImpl();
+                }
+            };
+
+        serviceContextRegistry = new ServiceContextRegistry( this ) ;
     }
 
     protected void setDebugFlags( String[] args )
     {
-	for (int ctr=0; ctr<args.length; ctr++ ) {
+        for (int ctr=0; ctr<args.length; ctr++ ) {
             String token = args[ctr] ;
 
             // If there is a public boolean data member in this class
@@ -404,59 +464,59 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     // Class that defines a parser that gets the name of the
     // ORBConfigurator class.
     private static class ConfigParser extends ParserImplBase {
-	// The default here is the ORBConfiguratorImpl that we define,
-	// but this can be replaced.
-	public Class configurator = ORBConfiguratorImpl.class ;
+        // The default here is the ORBConfiguratorImpl that we define,
+        // but this can be replaced.
+        public Class configurator = ORBConfiguratorImpl.class ;
 
-	public PropertyParser makeParser()
-	{
-	    PropertyParser parser = new PropertyParser() ;
-	    parser.add( ORBConstants.SUN_PREFIX + "ORBConfigurator",
-		OperationFactory.classAction(), "configurator" ) ;
-	    return parser ;
-	}
+        public PropertyParser makeParser()
+        {
+            PropertyParser parser = new PropertyParser() ;
+            parser.add( ORBConstants.SUN_PREFIX + "ORBConfigurator",
+                OperationFactory.classAction(), "configurator" ) ;
+            return parser ;
+        }
     }
 
     private void postInit( String[] params, DataCollector dataCollector )
     {
-	// First, create the standard ORB config data.
-	// This must be initialized before the ORBConfigurator
-	// is executed.
-	configData = new ORBDataParserImpl( this, dataCollector) ;
+        // First, create the standard ORB config data.
+        // This must be initialized before the ORBConfigurator
+        // is executed.
+        configData = new ORBDataParserImpl( this, dataCollector) ;
 
-	// Set the debug flags early so they can be used by other
-	// parts of the initialization.
-	setDebugFlags( configData.getORBDebugFlags() ) ;
+        // Set the debug flags early so they can be used by other
+        // parts of the initialization.
+        setDebugFlags( configData.getORBDebugFlags() ) ;
 
-	// REVISIT: this should go away after more transport init cleanup
-	// and going to ORT based ORBD.  
-	getTransportManager();
-	getLegacyServerSocketManager();
+        // REVISIT: this should go away after more transport init cleanup
+        // and going to ORT based ORBD.
+        getTransportManager();
+        getLegacyServerSocketManager();
 
-	// Create a parser to get the configured ORBConfigurator.
-	ConfigParser parser = new ConfigParser() ;
-	parser.init( dataCollector ) ;
+        // Create a parser to get the configured ORBConfigurator.
+        ConfigParser parser = new ConfigParser() ;
+        parser.init( dataCollector ) ;
 
-	ORBConfigurator configurator =  null ;
-	try {
-	    configurator = 
-		(ORBConfigurator)(parser.configurator.newInstance()) ;
-	} catch (Exception iexc) {
-	    throw wrapper.badOrbConfigurator( iexc, parser.configurator.getName() ) ;
-	}
+        ORBConfigurator configurator =  null ;
+        try {
+            configurator =
+                (ORBConfigurator)(parser.configurator.newInstance()) ;
+        } catch (Exception iexc) {
+            throw wrapper.badOrbConfigurator( iexc, parser.configurator.getName() ) ;
+        }
 
-	// Finally, run the configurator.  Note that the default implementation allows
-	// other configurators with their own parsers to run,
-	// using the same DataCollector.
-	try {
-	    configurator.configure( dataCollector, this ) ;
-	} catch (Exception exc) {
-	    throw wrapper.orbConfiguratorError( exc ) ;
-	}
+        // Finally, run the configurator.  Note that the default implementation allows
+        // other configurators with their own parsers to run,
+        // using the same DataCollector.
+        try {
+            configurator.configure( dataCollector, this ) ;
+        } catch (Exception exc) {
+            throw wrapper.orbConfiguratorError( exc ) ;
+        }
 
-	// Last of all, create the PIHandler and run the ORB initializers.
-	pihandler = new PIHandlerImpl( this, params) ;
-	pihandler.initialize() ;
+        // Last of all, create the PIHandler and run the ORB initializers.
+        pihandler = new PIHandlerImpl( this, params) ;
+        pihandler.initialize() ;
 
         // Initialize the thread manager pool and byte buffer pool
         // so they may be initialized & accessed without synchronization
@@ -465,51 +525,48 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
         super.getByteBufferPool();
     }
 
-    private synchronized POAFactory getPOAFactory() 
+    private synchronized POAFactory getPOAFactory()
     {
-	if (poaFactory == null) {
-	    poaFactory = (POAFactory)requestDispatcherRegistry.getObjectAdapterFactory( 
-		ORBConstants.TRANSIENT_SCID ) ;
-	}
+        if (poaFactory == null) {
+            poaFactory = (POAFactory)requestDispatcherRegistry.getObjectAdapterFactory(
+                ORBConstants.TRANSIENT_SCID ) ;
+        }
 
-	return poaFactory ;
+        return poaFactory ;
     }
 
-    private synchronized TOAFactory getTOAFactory() 
+    private synchronized TOAFactory getTOAFactory()
     {
-	if (toaFactory == null) {
-	    toaFactory = (TOAFactory)requestDispatcherRegistry.getObjectAdapterFactory( 
-		ORBConstants.TOA_SCID ) ;
-	}
+        if (toaFactory == null) {
+            toaFactory = (TOAFactory)requestDispatcherRegistry.getObjectAdapterFactory(
+                ORBConstants.TOA_SCID ) ;
+        }
 
-	return toaFactory ;
+        return toaFactory ;
     }
 
     public void set_parameters( Properties props )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	preInit( null, props ) ;
-	DataCollector dataCollector = 
-	    DataCollectorFactory.create( props, getLocalHostName() ) ;
-	postInit( null, dataCollector ) ;
+        preInit( null, props ) ;
+        DataCollector dataCollector =
+            DataCollectorFactory.create( props, getLocalHostName() ) ;
+        postInit( null, dataCollector ) ;
     }
 
     protected void set_parameters(Applet app, Properties props)
     {
-	preInit( null, props ) ;
-	DataCollector dataCollector = 
-	    DataCollectorFactory.create( app, props, getLocalHostName() ) ;
-	postInit( null, dataCollector ) ;
+        preInit( null, props ) ;
+        DataCollector dataCollector =
+            DataCollectorFactory.create( app, props, getLocalHostName() ) ;
+        postInit( null, dataCollector ) ;
     }
 
     protected void set_parameters (String[] params, Properties props)
     {
-	preInit( params, props ) ;
-	DataCollector dataCollector = 
-	    DataCollectorFactory.create( params, props, getLocalHostName() ) ;
-	postInit( params, dataCollector ) ;
+        preInit( params, props ) ;
+        DataCollector dataCollector =
+            DataCollectorFactory.create( params, props, getLocalHostName() ) ;
+        postInit( params, dataCollector ) ;
     }
 
 /****************************************************************************
@@ -542,18 +599,18 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
            or security ?? Or is it assumed that there is just one
            implementation for both ? If Current is thread-specific,
            then it should not be instantiated; so where does the
-           ORB get a Current ? 
-	   
-	   This should probably be deprecated. */
+           ORB get a Current ?
 
-	throw wrapper.genericNoImpl() ;
+           This should probably be deprecated. */
+
+        throw wrapper.genericNoImpl() ;
     }
 
     /**
      * Create an NVList
      *
-     * @param count	size of list to create
-     * @result		NVList created
+     * @param count     size of list to create
+     * @result          NVList created
      *
      * @see NVList
      */
@@ -566,21 +623,21 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create an NVList corresponding to an OperationDef
      *
-     * @param oper	operation def to use to create list
-     * @result		NVList created
+     * @param oper      operation def to use to create list
+     * @result          NVList created
      *
      * @see NVList
      */
     public synchronized NVList create_operation_list(org.omg.CORBA.Object oper)
     {
         checkShutdownState();
-	throw wrapper.genericNoImpl() ;
+        throw wrapper.genericNoImpl() ;
     }
 
     /**
      * Create a NamedValue
      *
-     * @result		NamedValue created
+     * @result          NamedValue created
      */
     public synchronized NamedValue create_named_value(String s, Any any, int flags)
     {
@@ -591,7 +648,7 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create an ExceptionList
      *
-     * @result		ExceptionList created
+     * @result          ExceptionList created
      */
     public synchronized org.omg.CORBA.ExceptionList create_exception_list()
     {
@@ -602,7 +659,7 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a ContextList
      *
-     * @result		ContextList created
+     * @result          ContextList created
      */
     public synchronized org.omg.CORBA.ContextList create_context_list()
     {
@@ -613,18 +670,18 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Get the default Context object
      *
-     * @result		the default Context object
+     * @result          the default Context object
      */
     public synchronized org.omg.CORBA.Context get_default_context()
     {
         checkShutdownState();
-	throw wrapper.genericNoImpl() ;
+        throw wrapper.genericNoImpl() ;
     }
 
     /**
      * Create an Environment
      *
-     * @result		Environment created
+     * @result          Environment created
      */
     public synchronized org.omg.CORBA.Environment create_environment()
     {
@@ -658,8 +715,8 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 
         // Invoke the send_deferred on each new Request
         for (int i = 0; i < req.length; i++) {
-            AsynchInvoke invokeObject = new AsynchInvoke( this, 
-		(com.sun.corba.se.impl.corba.RequestImpl)req[i], true);
+            AsynchInvoke invokeObject = new AsynchInvoke( this,
+                (com.sun.corba.se.impl.corba.RequestImpl)req[i], true);
             new Thread(invokeObject).start();
         }
     }
@@ -692,9 +749,9 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     public org.omg.CORBA.Request get_next_response()
         throws org.omg.CORBA.WrongTransaction
     {
-	synchronized( this ) {
-	    checkShutdownState();
-	}
+        synchronized( this ) {
+            checkShutdownState();
+        }
 
         while (true) {
             // check if there already is a response
@@ -717,8 +774,8 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
                     try {
                         this.svResponseReceived.wait();
                     } catch(java.lang.InterruptedException ex) {
-			// NO-OP
-		    }
+                        // NO-OP
+                    }
                 }
                 // reinitialize the response flag
                 this.svResponseReceived.reset();
@@ -729,15 +786,12 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Notify response to ORB for get_next_response
      */
-    public void notifyORB() 
+    public void notifyORB()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (this.svResponseReceived) {
-	    this.svResponseReceived.set();
-	    this.svResponseReceived.notify();
-	}
+        synchronized (this.svResponseReceived) {
+            this.svResponseReceived.set();
+            this.svResponseReceived.notify();
+        }
     }
 
     /**
@@ -751,26 +805,26 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 
         // Handle the null objref case
         if (obj == null) {
-	    IOR nullIOR = IORFactories.makeIOR( this ) ;
+            IOR nullIOR = IORFactories.makeIOR( this ) ;
             return nullIOR.stringify();
-	}
+        }
 
-	IOR ior = null ;
+        IOR ior = null ;
 
-	try {
-	    ior = ORBUtility.connectAndGetIOR( this, obj ) ;
-	} catch (BAD_PARAM bp) {
-	    // Throw MARSHAL instead if this is a LOCAL_OBJECT_NOT_ALLOWED error.
-	    if (bp.minor == ORBUtilSystemException.LOCAL_OBJECT_NOT_ALLOWED) {
-		throw omgWrapper.notAnObjectImpl( bp ) ;
-	    } else
-		// Not a local object problem: just rethrow the exception.
-		// Do not wrap and log this, since it was already logged at its
-		// point of origin.
-		throw bp ;
-	}
+        try {
+            ior = ORBUtility.connectAndGetIOR( this, obj ) ;
+        } catch (BAD_PARAM bp) {
+            // Throw MARSHAL instead if this is a LOCAL_OBJECT_NOT_ALLOWED error.
+            if (bp.minor == ORBUtilSystemException.LOCAL_OBJECT_NOT_ALLOWED) {
+                throw omgWrapper.notAnObjectImpl( bp ) ;
+            } else
+                // Not a local object problem: just rethrow the exception.
+                // Do not wrap and log this, since it was already logged at its
+                // point of origin.
+                throw bp ;
+        }
 
-	return ior.stringify() ;
+        return ior.stringify() ;
     }
 
     /**
@@ -780,28 +834,26 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
      */
     public org.omg.CORBA.Object string_to_object(String str)
     {
-	Operation op ;
+        Operation op ;
 
-	synchronized (this) {
-	    checkShutdownState();
-	    op = urlOperation ;
-	}
+        synchronized (this) {
+            checkShutdownState();
+            op = urlOperation ;
+        }
 
-	if (str == null)
-	    throw wrapper.nullParam() ;
+        if (str == null)
+            throw wrapper.nullParam() ;
 
-	synchronized (resolverLock) {
-	    org.omg.CORBA.Object obj = (org.omg.CORBA.Object)op.operate( str ) ;
-	    return obj ;
-	}
+        synchronized (urlOperationLock) {
+            org.omg.CORBA.Object obj = (org.omg.CORBA.Object)op.operate( str ) ;
+            return obj ;
+        }
     }
 
     // pure java orb support, moved this method from FVDCodeBaseImpl.
     // Note that we connect this if we have not already done so.
     public synchronized IOR getFVDCodeBaseIOR()
     {
-	checkShutdownState();
-
         if (codeBaseIOR != null) // i.e. We are already connected to it
             return codeBaseIOR;
 
@@ -811,28 +863,28 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
         ValueHandler vh = ORBUtility.createValueHandler(this);
 
         cb = (CodeBase)vh.getRunTimeCodeBase();
-	return ORBUtility.connectAndGetIOR( this, cb ) ;
+        return ORBUtility.connectAndGetIOR( this, cb ) ;
     }
 
     /**
      * Get the TypeCode for a primitive type.
      *
-     * @param tcKind	the integer kind for the primitive type
-     * @return		the requested TypeCode
+     * @param tcKind    the integer kind for the primitive type
+     * @return          the requested TypeCode
      */
     public synchronized TypeCode get_primitive_tc(TCKind tcKind)
     {
         checkShutdownState();
-	return get_primitive_tc( tcKind.value() ) ; 
+        return get_primitive_tc( tcKind.value() ) ;
     }
 
     /**
      * Create a TypeCode for a structure.
      *
-     * @param id		the logical id for the typecode.
-     * @param name	the name for the typecode.
-     * @param members	an array describing the members of the TypeCode.
-     * @return		the requested TypeCode.
+     * @param id                the logical id for the typecode.
+     * @param name      the name for the typecode.
+     * @param members   an array describing the members of the TypeCode.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_struct_tc(String id,
                                      String name,
@@ -845,12 +897,12 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for a union.
      *
-     * @param id		the logical id for the typecode.
-     * @param name	the name for the typecode.
+     * @param id                the logical id for the typecode.
+     * @param name      the name for the typecode.
      * @param discriminator_type
-     *			the type of the union discriminator.
-     * @param members	an array describing the members of the TypeCode.
-     * @return		the requested TypeCode.
+     *                  the type of the union discriminator.
+     * @param members   an array describing the members of the TypeCode.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_union_tc(String id,
                                     String name,
@@ -869,10 +921,10 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for an enum.
      *
-     * @param id		the logical id for the typecode.
-     * @param name	the name for the typecode.
-     * @param members	an array describing the members of the TypeCode.
-     * @return		the requested TypeCode.
+     * @param id                the logical id for the typecode.
+     * @param name      the name for the typecode.
+     * @param members   an array describing the members of the TypeCode.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_enum_tc(String id,
                                    String name,
@@ -885,11 +937,11 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for an alias.
      *
-     * @param id		the logical id for the typecode.
-     * @param name	the name for the typecode.
+     * @param id                the logical id for the typecode.
+     * @param name      the name for the typecode.
      * @param original_type
-     * 			the type this is an alias for.
-     * @return		the requested TypeCode.
+     *                  the type this is an alias for.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_alias_tc(String id,
                                     String name,
@@ -902,10 +954,10 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for an exception.
      *
-     * @param id		the logical id for the typecode.
-     * @param name	the name for the typecode.
-     * @param members	an array describing the members of the TypeCode.
-     * @return		the requested TypeCode.
+     * @param id                the logical id for the typecode.
+     * @param name      the name for the typecode.
+     * @param members   an array describing the members of the TypeCode.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_exception_tc(String id,
                                         String name,
@@ -918,9 +970,9 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for an interface.
      *
-     * @param id		the logical id for the typecode.
-     * @param name	the name for the typecode.
-     * @return		the requested TypeCode.
+     * @param id                the logical id for the typecode.
+     * @param name      the name for the typecode.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_interface_tc(String id,
                                         String name)
@@ -932,8 +984,8 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for a string.
      *
-     * @param bound	the bound for the string.
-     * @return		the requested TypeCode.
+     * @param bound     the bound for the string.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_string_tc(int bound)
     {
@@ -944,8 +996,8 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for a wide string.
      *
-     * @param bound	the bound for the string.
-     * @return		the requested TypeCode.
+     * @param bound     the bound for the string.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_wstring_tc(int bound)
     {
@@ -956,10 +1008,10 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for a sequence.
      *
-     * @param bound	the bound for the sequence.
+     * @param bound     the bound for the sequence.
      * @param element_type
-     *			the type of elements of the sequence.
-     * @return		the requested TypeCode.
+     *                  the type of elements of the sequence.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_sequence_tc(int bound,
                                        TypeCode element_type)
@@ -972,10 +1024,10 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a recursive TypeCode in a sequence.
      *
-     * @param bound	the bound for the sequence.
-     * @param offset	the index to the enclosing TypeCode that is
-     *			being referenced.
-     * @return		the requested TypeCode.
+     * @param bound     the bound for the sequence.
+     * @param offset    the index to the enclosing TypeCode that is
+     *                  being referenced.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_recursive_sequence_tc(int bound,
                                                  int offset)
@@ -988,10 +1040,10 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     /**
      * Create a TypeCode for an array.
      *
-     * @param length	the length of the array.
+     * @param length    the length of the array.
      * @param element_type
-     *			the type of elements of the array.
-     * @return		the requested TypeCode.
+     *                  the type of elements of the array.
+     * @return          the requested TypeCode.
      */
     public synchronized TypeCode create_array_tc(int length,
                                     TypeCode element_type)
@@ -1043,14 +1095,14 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
                                                       TypeCode boxed_type)
     {
         checkShutdownState();
-        return new TypeCodeImpl(this, TCKind._tk_value_box, id, name, 
-	    boxed_type);
+        return new TypeCodeImpl(this, TCKind._tk_value_box, id, name,
+            boxed_type);
     }
 
     /**
      * Create a new Any
      *
-     * @return		the new Any created.
+     * @return          the new Any created.
      */
     public synchronized Any create_any()
     {
@@ -1064,22 +1116,18 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     // Keeping a cache of TypeCodes associated with the class
     // they got created from in Util.writeAny().
 
-    public synchronized void setTypeCodeForClass(Class c, TypeCodeImpl tci) 
+    public synchronized void setTypeCodeForClass(Class c, TypeCodeImpl tci)
     {
-	checkShutdownState();
-
         if (typeCodeForClassMap == null)
             typeCodeForClassMap = Collections.synchronizedMap(
-		new WeakHashMap(64));
+                new WeakHashMap(64));
         // Store only one TypeCode per class.
         if ( ! typeCodeForClassMap.containsKey(c))
             typeCodeForClassMap.put(c, tci);
     }
 
-    public synchronized TypeCodeImpl getTypeCodeForClass(Class c) 
+    public synchronized TypeCodeImpl getTypeCodeForClass(Class c)
     {
-	checkShutdownState();
-
         if (typeCodeForClassMap == null)
             return null;
         return (TypeCodeImpl)typeCodeForClassMap.get(c);
@@ -1092,8 +1140,8 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 
     /**
      * Get a list of the initially available CORBA services.
-     * This does not work unless an ORBInitialHost is specified during 
-     * initialization (or unless there is an ORB running on the AppletHost) 
+     * This does not work unless an ORBInitialHost is specified during
+     * initialization (or unless there is an ORB running on the AppletHost)
      * since the localhostname
      * is inaccessible to applets. If a service properties URL was specified,
      * then it is used, otherwise the bootstrapping protocol is used.
@@ -1101,17 +1149,17 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
      */
     public String[] list_initial_services()
     {
-	Resolver res ;
+        Resolver res ;
 
-	synchronized( this ) {
-	    checkShutdownState();
-	    res = resolver ;
-	}
+        synchronized( this ) {
+            checkShutdownState();
+            res = resolver ;
+        }
 
-	synchronized (resolverLock) {
-	    java.util.Set keys = res.list() ;
-	    return (String[])keys.toArray( new String[keys.size()] ) ;
-	}
+        synchronized (resolverLock) {
+            java.util.Set keys = res.list() ;
+            return (String[])keys.toArray( new String[keys.size()] ) ;
+        }
     }
 
     /**
@@ -1127,21 +1175,21 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     public org.omg.CORBA.Object resolve_initial_references(
         String identifier) throws InvalidName
     {
-	Resolver res ;
+        Resolver res ;
 
-	synchronized( this ) {
-	    checkShutdownState();
-	    res = resolver ;
-	}
+        synchronized( this ) {
+            checkShutdownState();
+            res = resolver ;
+        }
 
-	synchronized (resolverLock) {
-	    org.omg.CORBA.Object result = res.resolve( identifier ) ;
+        synchronized (resolverLock) {
+            org.omg.CORBA.Object result = res.resolve( identifier ) ;
 
-	    if (result == null)
-		throw new InvalidName() ;
-	    else
-		return result ;
-	}
+            if (result == null)
+                throw new InvalidName() ;
+            else
+                return result ;
+        }
     }
 
     /**
@@ -1160,35 +1208,31 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     public void register_initial_reference(
         String id, org.omg.CORBA.Object obj ) throws InvalidName
     {
-	CorbaServerRequestDispatcher insnd ;
-
-	synchronized (this) {
-	    checkShutdownState();
-	}
+        CorbaServerRequestDispatcher insnd ;
 
         if ((id == null) || (id.length() == 0))
             throw new InvalidName() ;
 
-	synchronized (this) {
-	    checkShutdownState();
-	}
+        synchronized (this) {
+            checkShutdownState();
+        }
 
-	synchronized (resolverLock) {
-	    insnd = insNamingDelegate ;
+        synchronized (resolverLock) {
+            insnd = insNamingDelegate ;
 
-	    java.lang.Object obj2 = localResolver.resolve( id ) ;
-	    if (obj2 != null)
-		throw new InvalidName(id + " already registered") ;
+            java.lang.Object obj2 = localResolver.resolve( id ) ;
+            if (obj2 != null)
+                throw new InvalidName(id + " already registered") ;
 
-	    localResolver.register( id, ClosureFactory.makeConstant( obj )) ;
-	}
-      
-	synchronized (this) {
-	    if (StubAdapter.isStub(obj))
-		// Make all remote object references available for INS.
-		requestDispatcherRegistry.registerServerRequestDispatcher( 
-		    insnd, id ) ;
-	}
+            localResolver.register( id, ClosureFactory.makeConstant( obj )) ;
+        }
+
+        synchronized (this) {
+            if (StubAdapter.isStub(obj))
+                // Make all remote object references available for INS.
+                requestDispatcherRegistry.registerServerRequestDispatcher(
+                    insnd, id ) ;
+        }
     }
 
 /****************************************************************************
@@ -1196,11 +1240,11 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
  * shutdown / single threading.
  ****************************************************************************/
 
-    public void run() 
+    public void run()
     {
-	synchronized (this) {
-	    checkShutdownState();
-	}
+        synchronized (this) {
+            checkShutdownState();
+        }
 
         synchronized (runObj) {
             try {
@@ -1209,232 +1253,123 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
         }
     }
 
-    public void shutdown(boolean wait_for_completion) {
-	boolean wait = false ;
+    public void shutdown(boolean wait_for_completion)
+    {
+        // to wait for completion, we would deadlock, so throw a standard
+        // OMG exception.
+        if (wait_for_completion && ((Boolean)isProcessingInvocation.get()).booleanValue()) {
+            throw omgWrapper.shutdownWaitForCompletionDeadlock() ;
+        }
 
-	synchronized (this) {
-	    checkShutdownState();
-	    
-            // This is to avoid deadlock: don't allow a thread that is 
-	    // processing a request to call shutdown( true ), because
-	    // the shutdown would block waiting for the request to complete,
-	    // while the request would block waiting for shutdown to complete.
-            if (wait_for_completion &&
-		isProcessingInvocation.get() == Boolean.TRUE) {
-		throw omgWrapper.shutdownWaitForCompletionDeadlock() ;
-	    }
+        boolean doShutdown = false ;
 
-	    if (status == STATUS_SHUTTING_DOWN) {
-		if (wait_for_completion) {
-		    wait = true ;
-		} else {
-		    return ;
-		}
-	    }
+        synchronized (this) {
+            checkShutdownState() ;
 
-	    status = STATUS_SHUTTING_DOWN ;
-	} 
+            if (status == STATUS_SHUTTING_DOWN) {
+                if (!wait_for_completion)
+                // If we are already shutting down and don't want
+                // to wait, nothing to do: return.
+                return ;
+            } else {
+                // The ORB status was STATUS_OPERATING, so start the shutdown.
+                status = STATUS_SHUTTING_DOWN ;
+                doShutdown = true ;
+            }
+        }
 
-        // Avoid more than one thread performing shutdown at a time.
+        // At this point, status is SHUTTING_DOWN.
+        // All shutdown calls with wait_for_completion == true must synchronize
+        // here.  Only the first call will be made with doShutdown == true.
         synchronized (shutdownObj) {
-	    // At this point, the ORB status is certainly STATUS_SHUTTING_DOWN.
-	    // If wait is true, another thread already called shutdown( true ),
-	    // and so we wait for completion
-	    if (wait) {
-                while (true) {
-                    synchronized (this) {
-                        if (status == STATUS_SHUTDOWN)
-                            break ;
-                    }
+            if (doShutdown) {
+                // shutdownServants will set all POAManagers into the
+                // INACTIVE state, causing request to be rejected.
+                // If wait_for_completion is true, this will not return until
+                // all invocations have completed.
+                shutdownServants(wait_for_completion);
 
-		    try {
-			shutdownObj.wait() ;
-		    } catch (InterruptedException exc) {
-			// NOP: just loop and wait until state is changed
-		    }
+                synchronized (runObj) {
+                    runObj.notifyAll();
                 }
-	    } else {
-                // perform the actual shutdown
-		shutdownServants(wait_for_completion);
 
-		if (wait_for_completion) {
-		    synchronized ( waitForCompletionObj ) {
-			while (numInvocations > 0) {
-			    try {
-				waitForCompletionObj.wait();
-			    } catch (InterruptedException ex) {}
-			}
-		    }
-		}
-
-		synchronized ( runObj ) {
-		    runObj.notifyAll();
-		}
-
-		status = STATUS_SHUTDOWN;
-
-		shutdownObj.notifyAll() ;
-	    }
+                synchronized (this) {
+                    status = STATUS_SHUTDOWN;
+                }
+            }
         }
     }
 
-    // Cause all ObjectAdapaterFactories to clean up all of their internal state, which 
-    // may include activated objects that have associated state and callbacks that must
-    // complete in order to shutdown.  This will cause new request to be rejected.
+    /** This method shuts down the ORB and causes orb.run() to return.
+     *  It will cause all POAManagers to be deactivated, which in turn
+     *  will cause all POAs to be deactivated.
+     */
     protected void shutdownServants(boolean wait_for_completion) {
-        Set<ObjectAdapterFactory> oaset ;
-        synchronized(this) {
-            oaset = new HashSet<ObjectAdapterFactory>( 
-                requestDispatcherRegistry.getObjectAdapterFactories() ) ;
-        }
-
-        for (ObjectAdapterFactory oaf : oaset) 
+        Iterator iter = requestDispatcherRegistry.getObjectAdapterFactories().iterator() ;
+        while (iter.hasNext()) {
+            ObjectAdapterFactory oaf = (ObjectAdapterFactory)iter.next() ;
             oaf.shutdown( wait_for_completion ) ;
-
+        }
     }
 
+    // REVISIT: was protected - made public for framework
     // Note that the caller must hold the ORBImpl lock.
-    public void checkShutdownState() 
+    public void checkShutdownState()
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.orbDestroyed() ;
+            throw wrapper.orbDestroyed() ;
         }
 
         if (status == STATUS_SHUTDOWN) {
-	    throw omgWrapper.badOperationAfterShutdown() ;
+            throw omgWrapper.badOperationAfterShutdown() ;
         }
     }
 
-    public boolean isDuringDispatch() 
+    public boolean isDuringDispatch()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	Boolean value = (Boolean)(isProcessingInvocation.get()) ;
-	return value.booleanValue() ;
+        Boolean value = (Boolean)(isProcessingInvocation.get()) ;
+        return value.booleanValue() ;
     }
 
-    public void startingDispatch() 
+    public void startingDispatch()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
         synchronized (invocationObj) {
             isProcessingInvocation.set(Boolean.TRUE);
-	    numInvocations++;
         }
     }
 
-    public void finishedDispatch() 
+    public void finishedDispatch()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
         synchronized (invocationObj) {
-            numInvocations--;
-            isProcessingInvocation.set(false);
-            if (numInvocations == 0) {
-                synchronized (waitForCompletionObj) {
-                    waitForCompletionObj.notifyAll();
-                }
-            } else if (numInvocations < 0) {
-                throw wrapper.numInvocationsAlreadyZero(
-                    CompletionStatus.COMPLETED_YES ) ;
-            }
+            isProcessingInvocation.set(Boolean.FALSE);
         }
     }
 
     /**
-     *	formal/99-10-07 p 159: "If destroy is called on an ORB that has
-     *	not been shut down, it will start the shutdown process and block until
-     *	the ORB has shut down before it destroys the ORB."
+     *  formal/99-10-07 p 159: "If destroy is called on an ORB that has
+     *  not been shut down, it will start the shutdown process and block until
+     *  the ORB has shut down before it destroys the ORB."
      */
-    public void destroy() 
+    public synchronized void destroy()
     {
-	boolean shutdownFirst = false ;
+        boolean shutdownFirst = false ;
 
-	synchronized (this) {
-	    shutdownFirst = (status == STATUS_OPERATING) ;
-	}
+        synchronized (this) {
+            shutdownFirst = (status == STATUS_OPERATING) ;
+        }
 
-	if (shutdownFirst) {
+        if (shutdownFirst) {
             shutdown(true);
         }
 
         synchronized (this) {
-	    if (status < STATUS_DESTROYED) {
-		getCorbaTransportManager().close();
-		getPIHandler().destroyInterceptors() ;
-		status = STATUS_DESTROYED;
-	    }
-	}
-        synchronized (threadPoolManagerAccessLock) {
-            if (orbOwnsThreadPoolManager) {
-                try {
-                    threadpoolMgr.close() ;
-                    threadpoolMgr = null ;
-                } catch (IOException exc) {
-                    wrapper.ioExceptionOnClose( exc ) ;
-                }
+            if (status < STATUS_DESTROYED) {
+                getCorbaTransportManager().close();
+                getPIHandler().destroyInterceptors() ;
+                status = STATUS_DESTROYED;
             }
         }
 
-        try {
-            monitoringManager.close() ;
-            monitoringManager = null ;
-        } catch (IOException exc) {
-            wrapper.ioExceptionOnClose( exc ) ;
-        }
-
-        CachedCodeBase.cleanCache( this ) ;
-        try {
-            pihandler.close() ;
-        } catch (IOException exc) {
-            wrapper.ioExceptionOnClose( exc ) ;
-        }
-
-        super.destroy() ;
-
-        badServerIdHandlerAccessLock = null ;
-        clientDelegateFactoryAccessorLock = null ;
-        corbaContactInfoListFactoryAccessLock = null ; 
-
-        objectKeyFactoryAccessLock = null ;
-        legacyServerSocketManagerAccessLock = null ;
-        threadPoolManagerAccessLock = null ;
-        transportManager = null ;
-        legacyServerSocketManager = null ;
-        OAInvocationInfoStack  = null ; 
-        clientInvocationInfoStack  = null ; 
-        codeBaseIOR = null ;
-        dynamicRequests  = null ; 
-        svResponseReceived  = null ;
-        runObj = null ;
-        shutdownObj = null ;
-        waitForCompletionObj = null ;
-        invocationObj = null ;
-        isProcessingInvocation = null ;
-        typeCodeForClassMap  = null ;
-        valueFactoryCache = null ;
-        orbVersionThreadLocal = null ; 
-        requestDispatcherRegistry = null ;
-        copierManager = null ;
-        toaFactory = null ;
-        poaFactory = null ;
-        pihandler = null ;
-        configData = null ;
-        badServerIdHandler = null ;
-        clientDelegateFactory = null ;
-        corbaContactInfoListFactory = null ;
-        resolver = null ;
-        localResolver = null ;
-        insNamingDelegate = null ;
-        resolverLock = null ;
-        urlOperation = null ;
-        taggedComponentFactoryFinder = null ;
-        taggedProfileFactoryFinder = null ;
-        taggedProfileTemplateFactoryFinder = null ;
-        objectKeyFactory = null ;
     }
 
     /**
@@ -1442,17 +1377,17 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
      *
      * @param repositoryID the repository ID.
      * @param factory the factory.
-     * @return the previously registered factory for the given repository ID, 
+     * @return the previously registered factory for the given repository ID,
      * or null if no such factory was previously registered.
      * @exception org.omg.CORBA.BAD_PARAM if the registration fails.
      **/
-    public synchronized ValueFactory register_value_factory(String repositoryID, 
-	ValueFactory factory) 
+    public synchronized ValueFactory register_value_factory(String repositoryID,
+        ValueFactory factory)
     {
         checkShutdownState();
 
         if ((repositoryID == null) || (factory == null))
-	    throw omgWrapper.unableRegisterValueFactory() ;
+            throw omgWrapper.unableRegisterValueFactory() ;
 
         return (ValueFactory)valueFactoryCache.put(repositoryID, factory);
     }
@@ -1462,12 +1397,12 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
      *
      * @param repositoryID the repository ID.
      **/
-    public synchronized void unregister_value_factory(String repositoryID) 
+    public synchronized void unregister_value_factory(String repositoryID)
     {
         checkShutdownState();
 
         if (valueFactoryCache.remove(repositoryID) == null)
-	    throw wrapper.nullParam() ;
+            throw wrapper.nullParam() ;
     }
 
     /**
@@ -1479,49 +1414,40 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
      * @return the value factory.
      * @exception org.omg.CORBA.BAD_PARAM if unable to locate a factory.
      **/
-    public synchronized ValueFactory lookup_value_factory(String repositoryID) 
+    public synchronized ValueFactory lookup_value_factory(String repositoryID)
     {
         checkShutdownState();
 
-        ValueFactory factory = 
-	    (ValueFactory)valueFactoryCache.get(repositoryID);
+        ValueFactory factory =
+            (ValueFactory)valueFactoryCache.get(repositoryID);
 
         if (factory == null) {
             try {
                 factory = Utility.getFactory(null, null, null, repositoryID);
             } catch(org.omg.CORBA.MARSHAL ex) {
-		throw wrapper.unableFindValueFactory( ex ) ;
+                throw wrapper.unableFindValueFactory( ex ) ;
             }
         }
 
-	return factory ;
+        return factory ;
     }
 
-    public OAInvocationInfo peekInvocationInfo() 
+    public OAInvocationInfo peekInvocationInfo()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	StackImpl stack = (StackImpl)(OAInvocationInfoStack.get()) ;
-	return (OAInvocationInfo)(stack.peek()) ;
+        StackImpl stack = (StackImpl)(OAInvocationInfoStack.get()) ;
+        return (OAInvocationInfo)(stack.peek()) ;
     }
 
-    public void pushInvocationInfo( OAInvocationInfo info ) 
+    public void pushInvocationInfo( OAInvocationInfo info )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	StackImpl stack = (StackImpl)(OAInvocationInfoStack.get()) ;
-	stack.push( info ) ;
+        StackImpl stack = (StackImpl)(OAInvocationInfoStack.get()) ;
+        stack.push( info ) ;
     }
 
-    public OAInvocationInfo popInvocationInfo() 
+    public OAInvocationInfo popInvocationInfo()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	StackImpl stack = (StackImpl)(OAInvocationInfoStack.get()) ;
-	return (OAInvocationInfo)(stack.pop()) ;
+        StackImpl stack = (StackImpl)(OAInvocationInfoStack.get()) ;
+        return (OAInvocationInfo)(stack.pop()) ;
     }
 
     /**
@@ -1531,56 +1457,47 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 
     private Object badServerIdHandlerAccessLock = new Object();
 
-    public void initBadServerIdHandler() 
+    public void initBadServerIdHandler()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (badServerIdHandlerAccessLock) {
-	    Class cls = configData.getBadServerIdHandler() ;
-	    if (cls != null) {
-		try {
-		    Class[] params = new Class[] { org.omg.CORBA.ORB.class };
-		    java.lang.Object[] args = new java.lang.Object[]{this};
-		    Constructor cons = cls.getConstructor(params);
-		    badServerIdHandler = 
-			(BadServerIdHandler) cons.newInstance(args);
-		} catch (Exception e) {
-		    throw wrapper.errorInitBadserveridhandler( e ) ;
-		}
-	    }
-	}
+        synchronized (badServerIdHandlerAccessLock) {
+            Class cls = configData.getBadServerIdHandler() ;
+            if (cls != null) {
+                try {
+                    Class[] params = new Class[] { org.omg.CORBA.ORB.class };
+                    java.lang.Object[] args = new java.lang.Object[]{this};
+                    Constructor cons = cls.getConstructor(params);
+                    badServerIdHandler =
+                        (BadServerIdHandler) cons.newInstance(args);
+                } catch (Exception e) {
+                    throw wrapper.errorInitBadserveridhandler( e ) ;
+                }
+            }
+        }
     }
 
-    public void setBadServerIdHandler( BadServerIdHandler handler ) 
+    public void setBadServerIdHandler( BadServerIdHandler handler )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (badServerIdHandlerAccessLock) {
-	    badServerIdHandler = handler;
-	}
+        synchronized (badServerIdHandlerAccessLock) {
+            badServerIdHandler = handler;
+        }
     }
 
-    public void handleBadServerId( ObjectKey okey ) 
+    public void handleBadServerId( ObjectKey okey )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (badServerIdHandlerAccessLock) {
-	    if (badServerIdHandler == null)
-		throw wrapper.badServerId() ;
-	    else 
-		badServerIdHandler.handle( okey ) ;
-	}
+        synchronized (badServerIdHandlerAccessLock) {
+            if (badServerIdHandler == null)
+                throw wrapper.badServerId() ;
+            else
+                badServerIdHandler.handle( okey ) ;
+        }
     }
 
-    public synchronized org.omg.CORBA.Policy create_policy( int type, 
-	org.omg.CORBA.Any val ) throws org.omg.CORBA.PolicyError
+    public synchronized org.omg.CORBA.Policy create_policy( int type,
+        org.omg.CORBA.Any val ) throws org.omg.CORBA.PolicyError
     {
-	checkShutdownState() ;
+        checkShutdownState() ;
 
-	return pihandler.create_policy( type, val ) ;
+        return pihandler.create_policy( type, val ) ;
     }
 
     /** This is the implementation of the public API used to connect
@@ -1589,35 +1506,32 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     public synchronized void connect(org.omg.CORBA.Object servant)
     {
         checkShutdownState();
-	if (getTOAFactory() == null)
-	    throw wrapper.noToa() ;
+        if (getTOAFactory() == null)
+            throw wrapper.noToa() ;
 
         try {
-	    String codebase = javax.rmi.CORBA.Util.getCodebase( servant.getClass() ) ;
-	    getTOAFactory().getTOA( codebase ).connect( servant ) ;
+            String codebase = javax.rmi.CORBA.Util.getCodebase( servant.getClass() ) ;
+            getTOAFactory().getTOA( codebase ).connect( servant ) ;
         } catch ( Exception ex ) {
-	    throw wrapper.orbConnectError( ex ) ;
+            throw wrapper.orbConnectError( ex ) ;
         }
     }
 
     public synchronized void disconnect(org.omg.CORBA.Object obj)
     {
         checkShutdownState();
-	if (getTOAFactory() == null)
-	    throw wrapper.noToa() ;
+        if (getTOAFactory() == null)
+            throw wrapper.noToa() ;
 
         try {
-	    getTOAFactory().getTOA().disconnect( obj ) ;
+            getTOAFactory().getTOA().disconnect( obj ) ;
         } catch ( Exception ex ) {
-	    throw wrapper.orbConnectError( ex ) ;
+            throw wrapper.orbConnectError( ex ) ;
         }
     }
 
     public int getTransientServerId()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
         if( configData.getORBServerIdPropertySpecified( ) ) {
             // ORBServerId is specified then use that value
             return configData.getPersistentServerId( );
@@ -1627,19 +1541,13 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 
     public RequestDispatcherRegistry getRequestDispatcherRegistry()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
         return requestDispatcherRegistry;
     }
 
     public ServiceContextRegistry getServiceContextRegistry()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	return serviceContextRegistry ;
-    } 
+        return serviceContextRegistry ;
+    }
 
     // XXX All of the isLocalXXX checking needs to be revisited.
     // First of all, all three of these methods are called from
@@ -1649,76 +1557,70 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     // to determine this more abstractly at the ContactInfo level.
     // This level should probably just get the CorbaContactInfoList from
     // the IOR, then iterator over ContactInfo.  If any ContactInfo is
-    // local, the IOR is local, and we can pick one to create the 
+    // local, the IOR is local, and we can pick one to create the
     // LocalClientRequestDispatcher as well.  Bottom line: this code needs to move.
 
     // XXX What about multi-homed host?
-    public boolean isLocalHost( String hostName ) 
+    public boolean isLocalHost( String hostName )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	return hostName.equals( configData.getORBServerHost() ) ||
-	    hostName.equals( getLocalHostName() ) ;
+        return hostName.equals( configData.getORBServerHost() ) ||
+            hostName.equals( getLocalHostName() ) ;
     }
 
     public boolean isLocalServerId( int subcontractId, int serverId )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	if ((subcontractId < ORBConstants.FIRST_POA_SCID) || 
-	    (subcontractId > ORBConstants.MAX_POA_SCID))
-	    return serverId == getTransientServerId( ) ;
-		
-	// XXX isTransient info should be stored in subcontract registry
-	if (ORBConstants.isTransient( subcontractId ))
-	    return (serverId == getTransientServerId()) ;
-	else if (configData.getPersistentServerIdInitialized())
-	    return (serverId == configData.getPersistentServerId()) ;
-	else
-	    return false ;
+        if ((subcontractId < ORBConstants.FIRST_POA_SCID) ||
+            (subcontractId > ORBConstants.MAX_POA_SCID))
+            return serverId == getTransientServerId( ) ;
+
+        // XXX isTransient info should be stored in subcontract registry
+        if (ORBConstants.isTransient( subcontractId ))
+            return (serverId == getTransientServerId()) ;
+        else if (configData.getPersistentServerIdInitialized())
+            return (serverId == configData.getPersistentServerId()) ;
+        else
+            return false ;
     }
 
     /*************************************************************************
      *  The following public methods are for ORB shutdown.
      *************************************************************************/
 
-    private String getHostName(String host) 
-	throws java.net.UnknownHostException 
+    private String getHostName(String host)
+        throws java.net.UnknownHostException
     {
         return InetAddress.getByName( host ).getHostAddress();
     }
 
-    /* keeping a copy of the getLocalHostName so that it can only be called 
+    /* keeping a copy of the getLocalHostName so that it can only be called
      * internally and the unauthorized clients cannot have access to the
-     * localHost information, originally, the above code was calling 
-     * getLocalHostName from Connection.java.  If the hostname is cached in 
+     * localHost information, originally, the above code was calling
+     * getLocalHostName from Connection.java.  If the hostname is cached in
      * Connection.java, then
      * it is a security hole, since any unauthorized client has access to
      * the host information.  With this change it is used internally so the
-     * security problem is resolved.  Also in Connection.java, the 
-     * getLocalHost() implementation has changed to always call the 
+     * security problem is resolved.  Also in Connection.java, the
+     * getLocalHost() implementation has changed to always call the
      * InetAddress.getLocalHost().getHostAddress()
      * The above mentioned method has been removed from the connection class
      */
 
     private static String localHostString = null;
 
-    private synchronized String getLocalHostName() 
+    private synchronized String getLocalHostName()
     {
         if (localHostString == null) {
             try {
-		localHostString = InetAddress.getLocalHost().getHostAddress();
+                localHostString = InetAddress.getLocalHost().getHostAddress();
             } catch (Exception ex) {
-		throw wrapper.getLocalHostFailed( ex ) ;
+                throw wrapper.getLocalHostFailed( ex ) ;
             }
-	}
-	return localHostString ;
+        }
+        return localHostString ;
     }
 
  /******************************************************************************
- *  The following public methods are for ORB shutdown. 
+ *  The following public methods are for ORB shutdown.
  *
  ******************************************************************************/
 
@@ -1728,26 +1630,26 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     public synchronized boolean work_pending()
     {
         checkShutdownState();
-	throw wrapper.genericNoImpl() ;
+        throw wrapper.genericNoImpl() ;
     }
-  
+
     /** This method does nothing. It is not required by the spec to do anything!
      */
     public synchronized void perform_work()
     {
         checkShutdownState();
-	throw wrapper.genericNoImpl() ;
+        throw wrapper.genericNoImpl() ;
     }
 
     public synchronized void set_delegate(java.lang.Object servant){
         checkShutdownState();
 
-	POAFactory poaFactory = getPOAFactory() ;
-	if (poaFactory != null)
-	    ((org.omg.PortableServer.Servant)servant)
-		._set_delegate( poaFactory.getDelegateImpl() ) ;
-	else
-	    throw wrapper.noPoa() ;
+        POAFactory poaFactory = getPOAFactory() ;
+        if (poaFactory != null)
+            ((org.omg.PortableServer.Servant)servant)
+                ._set_delegate( poaFactory.getDelegateImpl() ) ;
+        else
+            throw wrapper.noPoa() ;
     }
 
     ////////////////////////////////////////////////////
@@ -1755,61 +1657,57 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
     // pept.broker.Broker
     //
 
-    public ClientInvocationInfo createOrIncrementInvocationInfo() 
+    public ClientInvocationInfo createOrIncrementInvocationInfo()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	StackImpl invocationInfoStack =
-	    (StackImpl) clientInvocationInfoStack.get();
-	ClientInvocationInfo clientInvocationInfo = null;
-	if (!invocationInfoStack.empty()) {
-	    clientInvocationInfo =
-		(ClientInvocationInfo) invocationInfoStack.peek();
-	}
-	if ((clientInvocationInfo == null) || 
-	    (!clientInvocationInfo.isRetryInvocation()))
-	{
-	    // This is a new call - not a retry.
-	    clientInvocationInfo = new CorbaInvocationInfo(this);
-	    startingDispatch();
-	    invocationInfoStack.push(clientInvocationInfo);
-	}
-	// Reset retry so recursive calls will get a new info object.
-	clientInvocationInfo.setIsRetryInvocation(false);
-	clientInvocationInfo.incrementEntryCount();
-	return clientInvocationInfo;
+        StackImpl invocationInfoStack =
+            (StackImpl) clientInvocationInfoStack.get();
+        ClientInvocationInfo clientInvocationInfo = null;
+        if (!invocationInfoStack.empty()) {
+            clientInvocationInfo =
+                (ClientInvocationInfo) invocationInfoStack.peek();
+        }
+        if ((clientInvocationInfo == null) ||
+            (!clientInvocationInfo.isRetryInvocation()))
+        {
+            // This is a new call - not a retry.
+            clientInvocationInfo = new CorbaInvocationInfo(this);
+            startingDispatch();
+            invocationInfoStack.push(clientInvocationInfo);
+        }
+        // Reset retry so recursive calls will get a new info object.
+        clientInvocationInfo.setIsRetryInvocation(false);
+        clientInvocationInfo.incrementEntryCount();
+        return clientInvocationInfo;
     }
-    
-    public void releaseOrDecrementInvocationInfo() 
+
+    public void releaseOrDecrementInvocationInfo()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	StackImpl invocationInfoStack =
-	    (StackImpl)clientInvocationInfoStack.get();
-	ClientInvocationInfo clientInvocationInfo = null;
-	if (!invocationInfoStack.empty()) {
-	    clientInvocationInfo =
-		(ClientInvocationInfo)invocationInfoStack.peek();
-	} else {
-	    throw wrapper.invocationInfoStackEmpty() ;
-	}
-	clientInvocationInfo.decrementEntryCount();
-	if (clientInvocationInfo.getEntryCount() == 0) {
-	    invocationInfoStack.pop();
-	    finishedDispatch();
-	}
+        StackImpl invocationInfoStack =
+            (StackImpl)clientInvocationInfoStack.get();
+        int entryCount = -1;
+        ClientInvocationInfo clientInvocationInfo = null;
+        if (!invocationInfoStack.empty()) {
+            clientInvocationInfo =
+                (ClientInvocationInfo)invocationInfoStack.peek();
+        } else {
+            throw wrapper.invocationInfoStackEmpty() ;
+        }
+        clientInvocationInfo.decrementEntryCount();
+        entryCount = clientInvocationInfo.getEntryCount();
+        if (clientInvocationInfo.getEntryCount() == 0) {
+            // 6763340: don't pop if this is a retry!
+            if (!clientInvocationInfo.isRetryInvocation()) {
+                invocationInfoStack.pop();
+            }
+            finishedDispatch();
+        }
     }
-    
-    public ClientInvocationInfo getInvocationInfo() 
+
+    public ClientInvocationInfo getInvocationInfo()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	StackImpl invocationInfoStack =
-	    (StackImpl) clientInvocationInfoStack.get();
-	return (ClientInvocationInfo) invocationInfoStack.peek();
+        StackImpl invocationInfoStack =
+            (StackImpl) clientInvocationInfoStack.get();
+        return (ClientInvocationInfo) invocationInfoStack.peek();
     }
 
     ////////////////////////////////////////////////////
@@ -1819,242 +1717,183 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 
     private Object clientDelegateFactoryAccessorLock = new Object();
 
-    public void setClientDelegateFactory( ClientDelegateFactory factory ) 
+    public void setClientDelegateFactory( ClientDelegateFactory factory )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (clientDelegateFactoryAccessorLock) {
-	    clientDelegateFactory = factory ;
-	}
+        synchronized (clientDelegateFactoryAccessorLock) {
+            clientDelegateFactory = factory ;
+        }
     }
 
-    public ClientDelegateFactory getClientDelegateFactory() 
+    public ClientDelegateFactory getClientDelegateFactory()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (clientDelegateFactoryAccessorLock) {
-	    return clientDelegateFactory ;
-	}
+        synchronized (clientDelegateFactoryAccessorLock) {
+            return clientDelegateFactory ;
+        }
     }
 
     private Object corbaContactInfoListFactoryAccessLock = new Object();
 
-    public void setCorbaContactInfoListFactory( CorbaContactInfoListFactory factory ) 
+    public void setCorbaContactInfoListFactory( CorbaContactInfoListFactory factory )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (corbaContactInfoListFactoryAccessLock) {
-	    corbaContactInfoListFactory = factory ;
-	}
+        synchronized (corbaContactInfoListFactoryAccessLock) {
+            corbaContactInfoListFactory = factory ;
+        }
     }
 
-    public synchronized CorbaContactInfoListFactory getCorbaContactInfoListFactory() 
+    public synchronized CorbaContactInfoListFactory getCorbaContactInfoListFactory()
     {
-	checkShutdownState();
-	return corbaContactInfoListFactory ;
+        return corbaContactInfoListFactory ;
     }
 
     /** Set the resolver used in this ORB.  This resolver will be used for list_initial_services
      * and resolve_initial_references.
      */
-    public void setResolver( Resolver resolver ) 
+    public void setResolver( Resolver resolver )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (resolverLock) {
-	    this.resolver = resolver ;
-	}
+        synchronized (resolverLock) {
+            this.resolver = resolver ;
+        }
     }
 
     /** Get the resolver used in this ORB.  This resolver will be used for list_initial_services
      * and resolve_initial_references.
      */
-    public Resolver getResolver() 
+    public Resolver getResolver()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (resolverLock) {
-	    return resolver ;
-	}
+        synchronized (resolverLock) {
+            return resolver ;
+        }
     }
 
-    /** Set the LocalResolver used in this ORB.  This LocalResolver is used for 
+    /** Set the LocalResolver used in this ORB.  This LocalResolver is used for
      * register_initial_reference only.
      */
-    public void setLocalResolver( LocalResolver resolver ) 
+    public void setLocalResolver( LocalResolver resolver )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (resolverLock) {
-	    this.localResolver = resolver ;
-	}
+        synchronized (resolverLock) {
+            this.localResolver = resolver ;
+        }
     }
 
-    /** Get the LocalResolver used in this ORB.  This LocalResolver is used for 
+    /** Get the LocalResolver used in this ORB.  This LocalResolver is used for
      * register_initial_reference only.
      */
-    public LocalResolver getLocalResolver() 
+    public LocalResolver getLocalResolver()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (resolverLock) {
-	    return localResolver ;
-	}
+        synchronized (resolverLock) {
+            return localResolver ;
+        }
     }
 
     /** Set the operation used in string_to_object calls.  The Operation must expect a
      * String and return an org.omg.CORBA.Object.
      */
-    public void setURLOperation( Operation stringToObject ) 
+    public void setURLOperation( Operation stringToObject )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (resolverLock) {
-	    urlOperation = stringToObject ;
-	}
+        synchronized (urlOperationLock) {
+            urlOperation = stringToObject ;
+        }
     }
 
     /** Get the operation used in string_to_object calls.  The Operation must expect a
      * String and return an org.omg.CORBA.Object.
      */
-    public Operation getURLOperation() 
+    public Operation getURLOperation()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (resolverLock) {
-	    return urlOperation ;
-	}
+        synchronized (urlOperationLock) {
+            return urlOperation ;
+        }
     }
 
     public void setINSDelegate( CorbaServerRequestDispatcher sdel )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (resolverLock) {
-	    insNamingDelegate = sdel ;
-	}
+        synchronized (resolverLock) {
+            insNamingDelegate = sdel ;
+        }
     }
 
-    public TaggedComponentFactoryFinder getTaggedComponentFactoryFinder() 
+    public TaggedComponentFactoryFinder getTaggedComponentFactoryFinder()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	return taggedComponentFactoryFinder ;
+        return taggedComponentFactoryFinder ;
     }
 
-    public IdentifiableFactoryFinder getTaggedProfileFactoryFinder() 
+    public IdentifiableFactoryFinder getTaggedProfileFactoryFinder()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	return taggedProfileFactoryFinder ;
+        return taggedProfileFactoryFinder ;
     }
 
-    public IdentifiableFactoryFinder getTaggedProfileTemplateFactoryFinder() 
+    public IdentifiableFactoryFinder getTaggedProfileTemplateFactoryFinder()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	return taggedProfileTemplateFactoryFinder ;
+        return taggedProfileTemplateFactoryFinder ;
     }
 
     private Object objectKeyFactoryAccessLock = new Object();
 
-    public ObjectKeyFactory getObjectKeyFactory() 
+    public ObjectKeyFactory getObjectKeyFactory()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (objectKeyFactoryAccessLock) {
-	    return objectKeyFactory ;
-	}
+        synchronized (objectKeyFactoryAccessLock) {
+            return objectKeyFactory ;
+        }
     }
 
-    public void setObjectKeyFactory( ObjectKeyFactory factory ) 
+    public void setObjectKeyFactory( ObjectKeyFactory factory )
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (objectKeyFactoryAccessLock) {
-	    objectKeyFactory = factory ;
-	}
+        synchronized (objectKeyFactoryAccessLock) {
+            objectKeyFactory = factory ;
+        }
     }
 
     private Object transportManagerAccessorLock = new Object();
 
     public TransportManager getTransportManager()
     {
-	synchronized (transportManagerAccessorLock) {
-	    if (transportManager == null) {
-		transportManager = new CorbaTransportManagerImpl(this);
-	    }
-	    return transportManager;
-	}
+        synchronized (transportManagerAccessorLock) {
+            if (transportManager == null) {
+                transportManager = new CorbaTransportManagerImpl(this);
+            }
+            return transportManager;
+        }
     }
 
     public CorbaTransportManager getCorbaTransportManager()
     {
-	return (CorbaTransportManager) getTransportManager();
+        return (CorbaTransportManager) getTransportManager();
     }
 
     private Object legacyServerSocketManagerAccessLock = new Object();
 
     public LegacyServerSocketManager getLegacyServerSocketManager()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (legacyServerSocketManagerAccessLock) {
-	    if (legacyServerSocketManager == null) {
-		legacyServerSocketManager = new LegacyServerSocketManagerImpl(this);
-	    }
-	    return legacyServerSocketManager;
-	}
+        synchronized (legacyServerSocketManagerAccessLock) {
+            if (legacyServerSocketManager == null) {
+                legacyServerSocketManager = new LegacyServerSocketManagerImpl(this);
+            }
+            return legacyServerSocketManager;
+        }
     }
 
     private Object threadPoolManagerAccessLock = new Object();
 
-    public void setThreadPoolManager(ThreadPoolManager mgr) 
+    public void setThreadPoolManager(ThreadPoolManager mgr)
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (threadPoolManagerAccessLock) {
-	    threadpoolMgr = mgr;
-	}
+        synchronized (threadPoolManagerAccessLock) {
+            threadpoolMgr = mgr;
+        }
     }
 
-    public ThreadPoolManager getThreadPoolManager() 
+    public ThreadPoolManager getThreadPoolManager()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	synchronized (threadPoolManagerAccessLock) {
-	    if (threadpoolMgr == null) {
-		threadpoolMgr = new ThreadPoolManagerImpl();
-	        orbOwnsThreadPoolManager = true;
-	    }
-	    return threadpoolMgr;
-	}
+        synchronized (threadPoolManagerAccessLock) {
+            if (threadpoolMgr == null) {
+                threadpoolMgr = new ThreadPoolManagerImpl( threadGroup );
+            }
+            return threadpoolMgr;
+        }
     }
 
     public CopierManager getCopierManager()
     {
-	synchronized (this) {
-		checkShutdownState();
-	}
-	return copierManager ;
+        return copierManager ;
     }
 } // Class ORBImpl
 
@@ -2062,36 +1901,34 @@ public class ORBImpl extends com.sun.corba.se.spi.orb.ORB
 /// Helper class for a Synchronization Variable
 ////////////////////////////////////////////////////////////////////////
 
-class SynchVariable 
+class SynchVariable
 {
     // Synchronization Variable
     public boolean _flag;
 
     // Constructor
-    SynchVariable() 
+    SynchVariable()
     {
         _flag = false;
     }
 
     // set Flag to true
-    public void set() 
+    public void set()
     {
         _flag = true;
     }
 
         // get value
-    public boolean value() 
+    public boolean value()
     {
         return _flag;
     }
 
     // reset Flag to true
-    public void reset() 
+    public void reset()
     {
         _flag = false;
     }
 }
 
 // End of file.
-
-

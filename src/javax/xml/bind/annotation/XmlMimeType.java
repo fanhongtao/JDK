@@ -1,6 +1,26 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.bind.annotation;
@@ -25,7 +45,7 @@ import javax.xml.transform.Source;
  * <p>
  * If a property that has this annotation has a sibling property bound to
  * the xmime:contentType attribute, and if in the instance the property has a value,
- * the value of the attribute takes precedence and that will control the marshalling. 
+ * the value of the attribute takes precedence and that will control the marshalling.
  *
  * @author Kohsuke Kawaguchi
  * @since JAXB2.0

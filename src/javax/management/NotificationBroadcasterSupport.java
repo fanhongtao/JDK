@@ -1,8 +1,26 @@
 /*
- * @(#)NotificationBroadcasterSupport.java	1.65 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -40,7 +58,7 @@ import com.sun.jmx.remote.util.ClassLogger;
  *
  * @since 1.5
  */
-public class NotificationBroadcasterSupport implements NotificationEmitter { 
+public class NotificationBroadcasterSupport implements NotificationEmitter {
     /**
      * Constructs a NotificationBroadcasterSupport where each listener is invoked by the
      * thread sending the notification. This constructor is equivalent to
@@ -48,7 +66,7 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      * MBeanNotificationInfo[] info) NotificationBroadcasterSupport(null, null)}.
      */
     public NotificationBroadcasterSupport() {
-	this(null, (MBeanNotificationInfo[]) null);
+        this(null, (MBeanNotificationInfo[]) null);
     }
 
     /**
@@ -61,7 +79,7 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      * that called <code>sendNotification</code>. Then, for each selected listener,
      * {@link Executor#execute executor.execute} is called with a command
      * that calls the <code>handleNotification</code> method.
-     * This constructor is equivalent to 
+     * This constructor is equivalent to
      * {@link NotificationBroadcasterSupport#NotificationBroadcasterSupport(Executor,
      * MBeanNotificationInfo[] info) NotificationBroadcasterSupport(executor, null)}.
      * @param executor an executor used by the method <code>sendNotification</code> to
@@ -70,7 +88,7 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      * @since 1.6
      */
     public NotificationBroadcasterSupport(Executor executor) {
-	this(executor, (MBeanNotificationInfo[]) null);
+        this(executor, (MBeanNotificationInfo[]) null);
     }
 
     /**
@@ -95,7 +113,7 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      * @since 1.6
      */
     public NotificationBroadcasterSupport(MBeanNotificationInfo... info) {
-	this(null, info);
+        this(null, info);
     }
 
     /**
@@ -132,10 +150,10 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      * @since 1.6
      */
     public NotificationBroadcasterSupport(Executor executor,
-					  MBeanNotificationInfo... info) {
-	this.executor = (executor != null) ? executor : defaultExecutor;
+                                          MBeanNotificationInfo... info) {
+        this.executor = (executor != null) ? executor : defaultExecutor;
 
-	notifInfo = info == null ? NO_NOTIFICATION_INFO : info.clone();
+        notifInfo = info == null ? NO_NOTIFICATION_INFO : info.clone();
     }
 
     /**
@@ -154,52 +172,52 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      * @see #removeNotificationListener
      */
     public void addNotificationListener(NotificationListener listener,
-					NotificationFilter filter,
-					Object handback) {
+                                        NotificationFilter filter,
+                                        Object handback) {
 
         if (listener == null) {
             throw new IllegalArgumentException ("Listener can't be null") ;
         }
 
-	listenerList.add(new ListenerInfo(listener, filter, handback));
+        listenerList.add(new ListenerInfo(listener, filter, handback));
     }
 
     public void removeNotificationListener(NotificationListener listener)
-	    throws ListenerNotFoundException {
+            throws ListenerNotFoundException {
 
-	ListenerInfo wildcard = new WildcardListenerInfo(listener);
-	boolean removed =
-	    listenerList.removeAll(Collections.singleton(wildcard));
-	if (!removed)
-	    throw new ListenerNotFoundException("Listener not registered");
+        ListenerInfo wildcard = new WildcardListenerInfo(listener);
+        boolean removed =
+            listenerList.removeAll(Collections.singleton(wildcard));
+        if (!removed)
+            throw new ListenerNotFoundException("Listener not registered");
     }
 
     public void removeNotificationListener(NotificationListener listener,
-					   NotificationFilter filter,
-					   Object handback)
-	    throws ListenerNotFoundException {
+                                           NotificationFilter filter,
+                                           Object handback)
+            throws ListenerNotFoundException {
 
-	ListenerInfo li = new ListenerInfo(listener, filter, handback);
-	boolean removed = listenerList.remove(li);
-	if (!removed) {
-	    throw new ListenerNotFoundException("Listener not registered " +
-						"(with this filter and " +
-						"handback)");
-	    // or perhaps not registered at all
-	}
+        ListenerInfo li = new ListenerInfo(listener, filter, handback);
+        boolean removed = listenerList.remove(li);
+        if (!removed) {
+            throw new ListenerNotFoundException("Listener not registered " +
+                                                "(with this filter and " +
+                                                "handback)");
+            // or perhaps not registered at all
+        }
     }
 
     public MBeanNotificationInfo[] getNotificationInfo() {
-	if (notifInfo.length == 0)
-	    return notifInfo;
-	else
-	    return notifInfo.clone();
+        if (notifInfo.length == 0)
+            return notifInfo;
+        else
+            return notifInfo.clone();
     }
 
 
     /**
      * Sends a notification.
-     * 
+     *
      * If an {@code Executor} was specified in the constructor, it will be given one
      * task per selected listener to deliver the notification to that listener.
      *
@@ -207,28 +225,28 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      */
     public void sendNotification(Notification notification) {
 
-	if (notification == null) {
-	    return;
-	}
-        
-	boolean enabled;
+        if (notification == null) {
+            return;
+        }
 
-	for (ListenerInfo li : listenerList) {
-	    try {
-		enabled = li.filter == null ||
-		    li.filter.isNotificationEnabled(notification);
-	    } catch (Exception e) {
-		if (logger.debugOn()) {
-		    logger.debug("sendNotification", e);
-		}
+        boolean enabled;
 
-		continue;
-	    }
+        for (ListenerInfo li : listenerList) {
+            try {
+                enabled = li.filter == null ||
+                    li.filter.isNotificationEnabled(notification);
+            } catch (Exception e) {
+                if (logger.debugOn()) {
+                    logger.debug("sendNotification", e);
+                }
 
-	    if (enabled) {
-		executor.execute(new SendNotifJob(notification, li));
-	    }
-	}
+                continue;
+            }
+
+            if (enabled) {
+                executor.execute(new SendNotifJob(notification, li));
+            }
+        }
     }
 
     /**
@@ -250,88 +268,87 @@ public class NotificationBroadcasterSupport implements NotificationEmitter {
      * @param handback the handback object that was supplied when the
      * listener was added.
      *
-     * @since.unbundled JMX 1.2
      */
     protected void handleNotification(NotificationListener listener,
-				      Notification notif, Object handback) {
-	listener.handleNotification(notif, handback);
+                                      Notification notif, Object handback) {
+        listener.handleNotification(notif, handback);
     }
 
     // private stuff
     private static class ListenerInfo {
-	NotificationListener listener;
-	NotificationFilter filter;
-	Object handback;
+        NotificationListener listener;
+        NotificationFilter filter;
+        Object handback;
 
-	ListenerInfo(NotificationListener listener,
-		     NotificationFilter filter,
-		     Object handback) {
-	    this.listener = listener;
-	    this.filter = filter;
-	    this.handback = handback;
-	}
+        ListenerInfo(NotificationListener listener,
+                     NotificationFilter filter,
+                     Object handback) {
+            this.listener = listener;
+            this.filter = filter;
+            this.handback = handback;
+        }
 
-	public boolean equals(Object o) {
-	    if (!(o instanceof ListenerInfo))
-		return false;
-	    ListenerInfo li = (ListenerInfo) o;
-	    if (li instanceof WildcardListenerInfo)
-		return (li.listener == listener);
-	    else
-		return (li.listener == listener && li.filter == filter
-			&& li.handback == handback);
-	}
+        public boolean equals(Object o) {
+            if (!(o instanceof ListenerInfo))
+                return false;
+            ListenerInfo li = (ListenerInfo) o;
+            if (li instanceof WildcardListenerInfo)
+                return (li.listener == listener);
+            else
+                return (li.listener == listener && li.filter == filter
+                        && li.handback == handback);
+        }
     }
 
     private static class WildcardListenerInfo extends ListenerInfo {
-	WildcardListenerInfo(NotificationListener listener) {
-	    super(listener, null, null);
-	}
+        WildcardListenerInfo(NotificationListener listener) {
+            super(listener, null, null);
+        }
 
-	public boolean equals(Object o) {
-	    assert (!(o instanceof WildcardListenerInfo));
-	    return o.equals(this);
-	}
+        public boolean equals(Object o) {
+            assert (!(o instanceof WildcardListenerInfo));
+            return o.equals(this);
+        }
     }
 
     private List<ListenerInfo> listenerList =
-	new CopyOnWriteArrayList<ListenerInfo>();
+        new CopyOnWriteArrayList<ListenerInfo>();
 
     // since 1.6
     private final Executor executor;
     private final MBeanNotificationInfo[] notifInfo;
 
     private final static Executor defaultExecutor = new Executor() {
-	    // DirectExecutor using caller thread
-	    public void execute(Runnable r) {
-		r.run();
-	    }
-	}; 
+            // DirectExecutor using caller thread
+            public void execute(Runnable r) {
+                r.run();
+            }
+        };
 
     private static final MBeanNotificationInfo[] NO_NOTIFICATION_INFO =
-	new MBeanNotificationInfo[0];
+        new MBeanNotificationInfo[0];
 
     private class SendNotifJob implements Runnable {
-	public SendNotifJob(Notification notif, ListenerInfo listenerInfo) {
-	    this.notif = notif;
-	    this.listenerInfo = listenerInfo;
-	}
+        public SendNotifJob(Notification notif, ListenerInfo listenerInfo) {
+            this.notif = notif;
+            this.listenerInfo = listenerInfo;
+        }
 
-	public void run() {
-	    try {
-		handleNotification(listenerInfo.listener,
-				   notif, listenerInfo.handback);
-	    } catch (Exception e) {
-		if (logger.debugOn()) {
-		    logger.debug("SendNotifJob-run", e);
-		}
-	    }
-	}
+        public void run() {
+            try {
+                handleNotification(listenerInfo.listener,
+                                   notif, listenerInfo.handback);
+            } catch (Exception e) {
+                if (logger.debugOn()) {
+                    logger.debug("SendNotifJob-run", e);
+                }
+            }
+        }
 
-	private final Notification notif;
-	private final ListenerInfo listenerInfo;
+        private final Notification notif;
+        private final ListenerInfo listenerInfo;
     }
 
     private static final ClassLogger logger =
-	new ClassLogger("javax.management", "NotificationBroadcasterSupport");
+        new ClassLogger("javax.management", "NotificationBroadcasterSupport");
 }

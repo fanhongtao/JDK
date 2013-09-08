@@ -1,35 +1,38 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package com.sun.org.apache.xerces.internal.util;
 
 import com.sun.org.apache.xerces.internal.impl.XMLEntityDescription;
 
 /**
- * <p>This class is an implementation of the XMLEntityDescription 
+ * <p>This class is an implementation of the XMLEntityDescription
  * interface which describes the properties of an entity.</p>
  *
  * @author Michael Glavassevich, IBM
- * 
- * @version $Id: XMLEntityDescriptionImpl.java,v 1.2.6.1 2005/09/05 08:56:27 neerajbj Exp $
+ *
  */
-public class XMLEntityDescriptionImpl 
+public class XMLEntityDescriptionImpl
     extends XMLResourceIdentifierImpl
     implements XMLEntityDescription {
-    	
+
     //
     // Constructors
     //
@@ -46,7 +49,7 @@ public class XMLEntityDescriptionImpl
      * @param baseSystemId The base system identifier.
      * @param expandedSystemId The expanded system identifier.
      */
-    public XMLEntityDescriptionImpl(String entityName, String publicId, String literalSystemId, 
+    public XMLEntityDescriptionImpl(String entityName, String publicId, String literalSystemId,
                                     String baseSystemId, String expandedSystemId) {
         setDescription(entityName, publicId, literalSystemId, baseSystemId, expandedSystemId);
     } // <init>(String,String,String,String,String)
@@ -69,35 +72,35 @@ public class XMLEntityDescriptionImpl
     //
     // Data
     //
-    
+
     /** The name of the entity. */
     protected String fEntityName;
 
     //
     // Public methods
     //
-    
-    /** 
+
+    /**
      * Sets the name of the entity.
-     * 
+     *
      * @param name the name of the entity
      */
     public void setEntityName(String name) {
         fEntityName = name;
     } // setEntityName(String)
 
-    /** 
-     * Returns the name of the entity. 
+    /**
+     * Returns the name of the entity.
      *
-     * @return the name of the entity 
+     * @return the name of the entity
      */
     public String getEntityName() {
         return fEntityName;
     } // getEntityName():String
-    
-    /** 
+
+    /**
      * <p>Sets the values of this entity description.</p>
-     * 
+     *
      * @param entityName The name of the entity.
      * @param publicId The public identifier.
      * @param literalSystemId The literal system identifier.
@@ -109,9 +112,9 @@ public class XMLEntityDescriptionImpl
         setDescription(entityName, publicId, literalSystemId, baseSystemId, expandedSystemId, null);
     } // setDescription(String,String,String,String,String)
 
-    /** 
+    /**
      * <p>Sets the values of this entity description.</p>
-     * 
+     *
      * @param entityName The name of the entity.
      * @param publicId The public identifier.
      * @param literalSystemId The literal system identifier.
@@ -125,18 +128,18 @@ public class XMLEntityDescriptionImpl
         setValues(publicId, literalSystemId, baseSystemId, expandedSystemId, namespace);
     } // setDescription(String,String,String,String,String,String)
 
-    /** 
+    /**
      * <p>Clears the values.</p>
      */
     public void clear() {
         super.clear();
         fEntityName = null;
     } // clear()
-    
+
     //
     // Object methods
     //
-    
+
     /** Returns a hash code for this object. */
     public int hashCode() {
         int code = super.hashCode();
@@ -145,7 +148,7 @@ public class XMLEntityDescriptionImpl
         }
         return code;
     } // hashCode():int
-    
+
     /** Returns a string representation of this object. */
     public String toString() {
         StringBuffer str = new StringBuffer();

@@ -1,8 +1,26 @@
 /*
- * @(#)InputStreamAdapter.java	1.12 05/11/17
+ * Copyright (c) 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.common;
@@ -11,11 +29,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.imageio.stream.ImageInputStream;
 
-/**
- * @version 0.5
- */
 public class InputStreamAdapter extends InputStream {
-    
+
     ImageInputStream stream;
 
     public InputStreamAdapter(ImageInputStream stream) {

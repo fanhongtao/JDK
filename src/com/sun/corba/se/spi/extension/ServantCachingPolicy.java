@@ -1,8 +1,26 @@
 /*
- * @(#)ServantCachingPolicy.java	1.6 05/11/17
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.extension ;
@@ -12,7 +30,7 @@ import org.omg.CORBA.LocalObject ;
 import com.sun.corba.se.impl.orbutil.ORBConstants ;
 
 /** Policy used to implement servant caching optimization in the POA.
-* Creating a POA with an instance pol of this policy where 
+* Creating a POA with an instance pol of this policy where
 * pol.getType() &gt; NO_SERVANT_CACHING will cause the servant to be
 * looked up in the POA and cached in the LocalClientRequestDispatcher when
 * the ClientRequestDispatcher is colocated with the implementation of the
@@ -21,7 +39,7 @@ import com.sun.corba.se.impl.orbutil.ORBConstants ;
 * must be handled by the same servant.  Note that this is typically the
 * case for EJB implementations.
 * <p>
-* If servant caching is used, there are two different additional 
+* If servant caching is used, there are two different additional
 * features of the POA that are expensive:
 * <ol>
 * <li>POA current semantics
@@ -30,14 +48,14 @@ import com.sun.corba.se.impl.orbutil.ORBConstants ;
 * POA current semantics requires maintaining a ThreadLocal stack of
 * invocation information that is always available for POACurrent operations.
 * Maintaining this stack is expensive on the timescale of optimized co-located
-* calls, so the option is provided to turn it off.  Similarly, causing 
+* calls, so the option is provided to turn it off.  Similarly, causing
 * POA.destroy() calls to wait for all active calls in the POA to complete
 * requires careful tracking of the entry and exit of invocations in the POA.
 * Again, tracking this is somewhat expensive.
 */
 public class ServantCachingPolicy extends LocalObject implements Policy
 {
-    /** Do not cache servants in the ClientRequestDispatcher.  This will 
+    /** Do not cache servants in the ClientRequestDispatcher.  This will
      * always support the full POA semantics, including changing the
      * servant that handles requests on a particular objref.
      */
@@ -51,7 +69,7 @@ public class ServantCachingPolicy extends LocalObject implements Policy
 
     /** Perform servant caching, preservent only POA current semantics.
     * At least this level is required in order to support selection of ObjectCopiers
-    * for co-located RMI-IIOP calls, as the current copier is stored in 
+    * for co-located RMI-IIOP calls, as the current copier is stored in
     * OAInvocationInfo, which must be present on the stack inside the call.
     */
     public static final int INFO_ONLY_SEMANTICS =  2 ;
@@ -65,79 +83,79 @@ public class ServantCachingPolicy extends LocalObject implements Policy
     private static ServantCachingPolicy minimalPolicy = null ;
 
     private int type ;
-    
+
     public String typeToName()
     {
-	switch (type) {
-	    case FULL_SEMANTICS: 
-		return "FULL" ;
-	    case INFO_ONLY_SEMANTICS: 
-		return "INFO_ONLY" ;
-	    case MINIMAL_SEMANTICS: 
-		return "MINIMAL" ;
-	    default: 
-		return "UNKNOWN(" + type + ")" ;
-	}
+        switch (type) {
+            case FULL_SEMANTICS:
+                return "FULL" ;
+            case INFO_ONLY_SEMANTICS:
+                return "INFO_ONLY" ;
+            case MINIMAL_SEMANTICS:
+                return "MINIMAL" ;
+            default:
+                return "UNKNOWN(" + type + ")" ;
+        }
     }
 
-    public String toString() 
+    public String toString()
     {
-	return "ServantCachingPolicy[" + typeToName() + "]" ;
+        return "ServantCachingPolicy[" + typeToName() + "]" ;
     }
 
-    private ServantCachingPolicy( int type ) 
+    private ServantCachingPolicy( int type )
     {
-	this.type = type ;
+        this.type = type ;
     }
 
     public int getType()
     {
-	return type ;
+        return type ;
     }
 
     /** Return the default servant caching policy.
     */
     public synchronized static ServantCachingPolicy getPolicy()
     {
-	return getFullPolicy() ;
+        return getFullPolicy() ;
     }
 
     public synchronized static ServantCachingPolicy getFullPolicy()
     {
-	if (policy == null)
-	    policy = new ServantCachingPolicy( FULL_SEMANTICS ) ;
+        if (policy == null)
+            policy = new ServantCachingPolicy( FULL_SEMANTICS ) ;
 
-	return policy ;
+        return policy ;
     }
 
     public synchronized static ServantCachingPolicy getInfoOnlyPolicy()
     {
-	if (infoOnlyPolicy == null)
-	    infoOnlyPolicy = new ServantCachingPolicy( INFO_ONLY_SEMANTICS ) ;
+        if (infoOnlyPolicy == null)
+            infoOnlyPolicy = new ServantCachingPolicy( INFO_ONLY_SEMANTICS ) ;
 
-	return infoOnlyPolicy ;
+        return infoOnlyPolicy ;
     }
 
     public synchronized static ServantCachingPolicy getMinimalPolicy()
     {
-	if (minimalPolicy == null)
-	    minimalPolicy = new ServantCachingPolicy( MINIMAL_SEMANTICS ) ;
+        if (minimalPolicy == null)
+            minimalPolicy = new ServantCachingPolicy( MINIMAL_SEMANTICS ) ;
 
-	return minimalPolicy ;
+        return minimalPolicy ;
     }
 
     public int policy_type ()
     {
-	return ORBConstants.SERVANT_CACHING_POLICY ;
+        return ORBConstants.SERVANT_CACHING_POLICY ;
     }
 
     public org.omg.CORBA.Policy copy ()
     {
-	return this ;
+        return this ;
     }
 
     public void destroy ()
     {
-	// NO-OP
+        // NO-OP
     }
 }

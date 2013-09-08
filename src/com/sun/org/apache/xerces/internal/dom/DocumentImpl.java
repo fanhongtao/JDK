@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001,2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -72,7 +76,7 @@ import org.w3c.dom.traversal.TreeWalker;
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM
  * @author Ralf Pfeiffer, IBM
- * @version $Id: DocumentImpl.java,v 1.2.6.1 2005/08/31 10:49:17 sunithareddy Exp $
+ * @version $Id: DocumentImpl.java,v 1.6 2010/07/20 20:25:24 joehw Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public class DocumentImpl
@@ -480,7 +484,7 @@ public class DocumentImpl
      */
     class LEntry implements Serializable {
 
-        private static final long serialVersionUID = 3258416144514626360L;
+        private static final long serialVersionUID = -8426757059492421631L;
         String type;
         EventListener listener;
         boolean useCapture;
@@ -864,7 +868,7 @@ public class DocumentImpl
      * string value. Simple struct, no methods.
      */
     class EnclosingAttr implements Serializable {
-        private static final long serialVersionUID = 3257001077260759859L;
+        private static final long serialVersionUID = 5208387723391647216L;
         AttrImpl node;
         String oldvalue;
     }

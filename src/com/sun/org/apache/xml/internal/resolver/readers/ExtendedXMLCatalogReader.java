@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // ExtendedXMLCatalogReader.java - Read XML Catalog files
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +33,7 @@ import org.xml.sax.*;
 import org.w3c.dom.*;
 
 /**
- * Parse Extended OASIS Entity Resolution Technical Committee 
+ * Parse Extended OASIS Entity Resolution Technical Committee
  * XML Catalog files.
  *
  * @see Catalog
@@ -37,7 +41,6 @@ import org.w3c.dom.*;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class ExtendedXMLCatalogReader extends OASISXMLCatalogReader {
   /** The namespace name of extended catalog elements */
@@ -56,9 +59,9 @@ public class ExtendedXMLCatalogReader extends OASISXMLCatalogReader {
    * @see CatalogEntry
    */
   public void startElement (String namespaceURI,
-			    String localName,
-			    String qName,
-			    Attributes atts)
+                            String localName,
+                            String qName,
+                            Attributes atts)
     throws SAXException {
 
     // Check before calling the super because super will report our
@@ -72,78 +75,78 @@ public class ExtendedXMLCatalogReader extends OASISXMLCatalogReader {
     Vector entryArgs = new Vector();
 
     if (namespaceURI != null && extendedNamespaceName.equals(namespaceURI)
-	&& !inExtension) {
+        && !inExtension) {
       // This is an Extended XML Catalog entry
 
       if (atts.getValue("xml:base") != null) {
-	String baseURI = atts.getValue("xml:base");
-	entryType = Catalog.BASE;
-	entryArgs.add(baseURI);
-	baseURIStack.push(baseURI);
+        String baseURI = atts.getValue("xml:base");
+        entryType = Catalog.BASE;
+        entryArgs.add(baseURI);
+        baseURIStack.push(baseURI);
 
-	debug.message(4, "xml:base", baseURI);
+        debug.message(4, "xml:base", baseURI);
 
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry (base)", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry (base)", localName);
+          }
+        }
 
-	entryType = -1;
-	entryArgs = new Vector();
+        entryType = -1;
+        entryArgs = new Vector();
       } else {
-	baseURIStack.push(baseURIStack.peek());
+        baseURIStack.push(baseURIStack.peek());
       }
 
       if (localName.equals("uriSuffix")) {
-	if (checkAttributes(atts, "suffix", "uri")) {
-	  entryType = Resolver.URISUFFIX;
-	  entryArgs.add(atts.getValue("suffix"));
-	  entryArgs.add(atts.getValue("uri"));
+        if (checkAttributes(atts, "suffix", "uri")) {
+          entryType = Resolver.URISUFFIX;
+          entryArgs.add(atts.getValue("suffix"));
+          entryArgs.add(atts.getValue("uri"));
 
-	  debug.message(4, "uriSuffix",
-			atts.getValue("suffix"),
-			atts.getValue("uri"));
-	}
+          debug.message(4, "uriSuffix",
+                        atts.getValue("suffix"),
+                        atts.getValue("uri"));
+        }
       } else if (localName.equals("systemSuffix")) {
-	if (checkAttributes(atts, "suffix", "uri")) {
-	  entryType = Resolver.SYSTEMSUFFIX;
-	  entryArgs.add(atts.getValue("suffix"));
-	  entryArgs.add(atts.getValue("uri"));
+        if (checkAttributes(atts, "suffix", "uri")) {
+          entryType = Resolver.SYSTEMSUFFIX;
+          entryArgs.add(atts.getValue("suffix"));
+          entryArgs.add(atts.getValue("uri"));
 
-	  debug.message(4, "systemSuffix",
-			atts.getValue("suffix"),
-			atts.getValue("uri"));
-	}
+          debug.message(4, "systemSuffix",
+                        atts.getValue("suffix"),
+                        atts.getValue("uri"));
+        }
       } else {
-	// This is equivalent to an invalid catalog entry type
-	debug.message(1, "Invalid catalog entry type", localName);
+        // This is equivalent to an invalid catalog entry type
+        debug.message(1, "Invalid catalog entry type", localName);
       }
 
       if (entryType >= 0) {
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry", localName);
+          }
+        }
       }
     }
   }
 
   /** The SAX <code>endElement</code> method does nothing. */
   public void endElement (String namespaceURI,
-			  String localName,
-			  String qName)
+                          String localName,
+                          String qName)
     throws SAXException {
 
     super.endElement(namespaceURI, localName, qName);
@@ -156,28 +159,28 @@ public class ExtendedXMLCatalogReader extends OASISXMLCatalogReader {
     Vector entryArgs = new Vector();
 
     if (namespaceURI != null
-	&& (extendedNamespaceName.equals(namespaceURI))
-	&& !inExtension) {
+        && (extendedNamespaceName.equals(namespaceURI))
+        && !inExtension) {
 
       String popURI = (String) baseURIStack.pop();
       String baseURI = (String) baseURIStack.peek();
 
       if (!baseURI.equals(popURI)) {
-	entryType = catalog.BASE;
-	entryArgs.add(baseURI);
+        entryType = catalog.BASE;
+        entryArgs.add(baseURI);
 
-	debug.message(4, "(reset) xml:base", baseURI);
+        debug.message(4, "(reset) xml:base", baseURI);
 
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry (rbase)", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry (rbase)", localName);
+          }
+        }
       }
     }
   }

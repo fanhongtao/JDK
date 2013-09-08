@@ -1,8 +1,26 @@
 /*
- * @(#)AbstractSelectionKey.java	1.13 06/06/07
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.channels.spi;
@@ -17,7 +35,6 @@ import java.nio.channels.*;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.13, 06/06/07
  * @since 1.4
  */
 
@@ -33,11 +50,11 @@ public abstract class AbstractSelectionKey
     private volatile boolean valid = true;
 
     public final boolean isValid() {
-	return valid;
+        return valid;
     }
 
-    void invalidate() {					// package-private
-	valid = false;
+    void invalidate() {                                 // package-private
+        valid = false;
     }
 
     /**
@@ -51,10 +68,10 @@ public abstract class AbstractSelectionKey
         // multiple times by different threads, which might cause race
         // condition between selector's select() and channel's close().
         synchronized (this) {
-	    if (valid) {
+            if (valid) {
                 valid = false;
                 ((AbstractSelector)selector()).cancel(this);
-	    }
-	}
+            }
+        }
     }
 }

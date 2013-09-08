@@ -1,8 +1,26 @@
 /*
- * @(#)JPEGImageReadParam.java	1.12 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.plugins.jpeg;
@@ -59,7 +77,6 @@ import javax.imageio.ImageReadParam;
  * see the <A HREF="../../metadata/doc-files/jpeg_metadata.html">JPEG
  * metadata format specification and usage notes</A>.
  *
- * @version 0.5
  */
 public class JPEGImageReadParam extends ImageReadParam {
 
@@ -73,7 +90,7 @@ public class JPEGImageReadParam extends ImageReadParam {
     public JPEGImageReadParam() {
         super();
     }
-    
+
     /**
      * Returns <code>true</code> if tables are currently set.
      *
@@ -104,7 +121,7 @@ public class JPEGImageReadParam extends ImageReadParam {
      *
      * @see #unsetDecodeTables
      */
-    public void setDecodeTables(JPEGQTable[] qTables, 
+    public void setDecodeTables(JPEGQTable[] qTables,
                                 JPEGHuffmanTable[] DCHuffmanTables,
                                 JPEGHuffmanTable[] ACHuffmanTables) {
         if ((qTables == null) ||
@@ -147,7 +164,7 @@ public class JPEGImageReadParam extends ImageReadParam {
     public JPEGQTable[] getQTables() {
         return (qTables != null) ? (JPEGQTable[])qTables.clone() : null;
     }
-    
+
     /**
      * Returns a copy of the array of DC Huffman tables set on the
      * most recent call to <code>setDecodeTables</code>, or
@@ -160,7 +177,7 @@ public class JPEGImageReadParam extends ImageReadParam {
      */
     public JPEGHuffmanTable[] getDCHuffmanTables() {
         return (DCHuffmanTables != null)
-            ? (JPEGHuffmanTable[])DCHuffmanTables.clone() 
+            ? (JPEGHuffmanTable[])DCHuffmanTables.clone()
             : null;
     }
 
@@ -175,8 +192,8 @@ public class JPEGImageReadParam extends ImageReadParam {
      * @see #setDecodeTables
      */
     public JPEGHuffmanTable[] getACHuffmanTables() {
-        return (ACHuffmanTables != null) 
-            ? (JPEGHuffmanTable[])ACHuffmanTables.clone() 
+        return (ACHuffmanTables != null)
+            ? (JPEGHuffmanTable[])ACHuffmanTables.clone()
             : null;
     }
 }

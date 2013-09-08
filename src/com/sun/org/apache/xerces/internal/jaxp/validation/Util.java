@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,10 +32,9 @@ import org.xml.sax.SAXParseException;
  * <p>Static utility methods for the Validation API implementation.</p>
  *
  * @author Kohsuke Kawaguchi (kohsuke.kawaguchi@sun.com)
- * @version $Id: Util.java,v 1.2.6.1 2005/09/01 14:16:37 sunithareddy Exp $
  */
 final class Util {
-    
+
     /**
      * Creates a proper {@link XMLInputSource} from a {@link StreamSource}.
      *
@@ -46,11 +49,11 @@ final class Util {
             return new XMLInputSource(
             in.getPublicId(), in.getSystemId(), in.getSystemId(),
             in.getInputStream(), null );
-        
+
         return new XMLInputSource(
         in.getPublicId(), in.getSystemId(), in.getSystemId() );
     }
-    
+
     /**
      * Reconstructs {@link SAXException} from XNIException.
      */
@@ -61,7 +64,7 @@ final class Util {
             return (SAXException)e.getException();
         return new SAXException(e.getMessage(),e.getException());
     }
-    
+
     public static SAXParseException toSAXParseException( XMLParseException e ) {
         if( e.getException() instanceof SAXParseException )
             return (SAXParseException)e.getException();
@@ -70,5 +73,5 @@ final class Util {
         e.getLineNumber(), e.getColumnNumber(),
         e.getException() );
     }
-    
+
 } // Util

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  2003-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,12 +66,12 @@ public interface CipherReference {
      */
     String getURI();
 
-	/**
-	 * Gets the URI as an Attribute node.  Used to meld the CipherREference
-	 * with the XMLSignature ResourceResolvers
+        /**
+         * Gets the URI as an Attribute node.  Used to meld the CipherREference
+         * with the XMLSignature ResourceResolvers
      * @return
-	 */
-	public Attr getURIAsAttr();
+         */
+        public Attr getURIAsAttr();
 
     /**
      * Returns the <code>Transforms</code> that specifies how to transform the
@@ -87,4 +91,3 @@ public interface CipherReference {
      */
     void setTransforms(Transforms transforms);
 }
-

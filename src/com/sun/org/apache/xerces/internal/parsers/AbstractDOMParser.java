@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -55,9 +59,9 @@ import com.sun.org.apache.xerces.internal.xs.XSTypeDefinition;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
+import org.w3c.dom.DOMError;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
-import org.w3c.dom.DOMError;
 import org.w3c.dom.Element;
 import org.w3c.dom.EntityReference;
 import org.w3c.dom.NamedNodeMap;
@@ -80,7 +84,7 @@ import org.xml.sax.SAXException;
  * @author Andy Clark, IBM
  * @author Elena Litani, IBM
  *
- * @version $Id: AbstractDOMParser.java,v 1.2.6.1 2005/09/06 11:47:01 sunithareddy Exp $
+ * @version $Id: AbstractDOMParser.java,v 1.10 2010-11-01 04:40:09 joehw Exp $
  */
 public class AbstractDOMParser extends AbstractXMLDocumentParser {
 
@@ -158,7 +162,14 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
     /**
      * If the user stops the process, this exception will be thrown.
      */
-    public static final RuntimeException abort = new RuntimeException();
+    static final class Abort extends RuntimeException {
+        private static final long serialVersionUID = 1687848994976808490L;
+        static final Abort INSTANCE = new Abort();
+        private Abort() {}
+        public Throwable fillInStackTrace() {
+            return this;
+        }
+    }
 
     // debugging
 
@@ -213,12 +224,12 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
     protected int fDeferredEntityDecl;
 
     /** Character buffer */
-    protected final StringBuffer fStringBuffer = new StringBuffer (50);
+    protected final StringBuilder fStringBuilder = new StringBuilder (50);
 
     // internal subset
 
     /** Internal subset buffer. */
-    protected StringBuffer fInternalSubset;
+    protected StringBuilder fInternalSubset;
 
     // deferred expansion data
 
@@ -235,8 +246,8 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
     /** True if inside DTD external subset. */
     protected boolean fInDTDExternalSubset;
 
-    /** Root element name */
-    protected QName fRoot = new QName();
+    /** Root element node. */
+    protected Node fRoot;
 
     /** True if inside CDATA section. */
     protected boolean fInCDATASection;
@@ -252,20 +263,22 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
     // data
 
     /** Base uri stack*/
-    protected Stack fBaseURIStack = new Stack ();
+    protected final Stack fBaseURIStack = new Stack ();
 
+    /** LSParserFilter: tracks the element depth within a rejected subtree. */
+    protected int fRejectedElementDepth = 0;
 
-    /** LSParserFilter: the QNAME of rejected element*/
-    protected final QName fRejectedElement = new QName ();
-
-    /** LSParserFilter: store qnames of skipped elements*/
+    /** LSParserFilter: store depth of skipped elements */
     protected Stack fSkippedElemStack = null;
 
     /** LSParserFilter: true if inside entity reference */
     protected boolean fInEntityRef = false;
 
     /** Attribute QName. */
-    private QName fAttrQName = new QName ();
+    private final QName fAttrQName = new QName();
+
+    /** Document locator. */
+    private XMLLocator fLocator;
 
     // handlers
 
@@ -367,6 +380,20 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
         return fDocument;
     } // getDocument():Document
 
+    /**
+     * Drops all references to the last DOM which was built by this parser.
+     */
+    public final void dropDocumentReferences() {
+        fDocument = null;
+        fDocumentImpl = null;
+        fDeferredDocumentImpl = null;
+        fDocumentType = null;
+        fCurrentNode = null;
+        fCurrentCDATASection = null;
+        fCurrentEntityDecl = null;
+        fRoot = null;
+    } // dropDocumentReferences()
+
     //
     // XMLDocumentParser methods
     //
@@ -410,10 +437,10 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
         fCurrentNode = null;
 
         // reset string buffer
-        fStringBuffer.setLength (0);
+        fStringBuilder.setLength (0);
 
         // reset state information
-        fRoot.clear();
+        fRoot = null;
         fInDTD = false;
         fInDTDExternalSubset = false;
         fInCDATASection = false;
@@ -577,9 +604,11 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
     public void comment (XMLString text, Augmentations augs) throws XNIException {
         if (fInDTD) {
             if (fInternalSubset != null && !fInDTDExternalSubset) {
-                fInternalSubset.append ("<!-- ");
-                fInternalSubset.append (text.toString ());
-                fInternalSubset.append (" -->");
+                fInternalSubset.append ("<!--");
+                if (text.length > 0) {
+                    fInternalSubset.append (text.ch, text.offset, text.length);
+                }
+                fInternalSubset.append ("-->");
             }
             return;
         }
@@ -596,7 +625,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                 short code = fDOMFilter.acceptNode (comment);
                 switch (code) {
                     case LSParserFilter.FILTER_INTERRUPT:{
-                        throw abort;
+                        throw Abort.INSTANCE;
                     }
                     case LSParserFilter.FILTER_REJECT:{
                         // REVISIT: the constant FILTER_REJECT should be changed when new
@@ -652,10 +681,10 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
             if (fInternalSubset != null && !fInDTDExternalSubset) {
                 fInternalSubset.append ("<?");
                 fInternalSubset.append (target);
-                fInternalSubset.append (' ');
-                fInternalSubset.append (data.toString ());
+                if (data.length > 0) {
+                    fInternalSubset.append (' ').append (data.ch, data.offset, data.length);
+                }
                 fInternalSubset.append ("?>");
-
             }
             return;
         }
@@ -678,7 +707,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                 short code = fDOMFilter.acceptNode (pi);
                 switch (code) {
                     case LSParserFilter.FILTER_INTERRUPT:{
-                        throw abort;
+                        throw Abort.INSTANCE;
                     }
                     case LSParserFilter.FILTER_REJECT:{
                         // fall through to SKIP since PI has no children.
@@ -730,6 +759,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
     NamespaceContext namespaceContext, Augmentations augs)
     throws XNIException {
 
+        fLocator = locator;
         if (!fDeferNodeExpansion) {
             if (fDocumentClassName.equals (DEFAULT_DOCUMENT_CLASS_NAME)) {
                 fDocument = new DocumentImpl ();
@@ -902,10 +932,12 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
         }
         if (!fDeferNodeExpansion) {
             if (fFilterReject) {
+                ++fRejectedElementDepth;
                 return;
             }
             Element el = createElementNode (element);
             int attrCount = attributes.getLength ();
+            boolean seenSchemaDefault = false;
             for (int i = 0; i < attrCount; i++) {
                 attributes.getName (i, fAttrQName);
                 Attr attr = createAttrNode (fAttrQName);
@@ -917,9 +949,19 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                     ((PSVIAttrNSImpl) attr).setPSVI (attrPSVI);
                 }
 
-
                 attr.setValue (attrValue);
-                el.setAttributeNode (attr);
+                boolean specified = attributes.isSpecified(i);
+                // Take special care of schema defaulted attributes. Calling the
+                // non-namespace aware setAttributeNode() method could overwrite
+                // another attribute with the same local name.
+                if (!specified && (seenSchemaDefault || (fAttrQName.uri != null &&
+                    fAttrQName.uri != NamespaceContext.XMLNS_URI && fAttrQName.prefix == null))) {
+                    el.setAttributeNodeNS(attr);
+                    seenSchemaDefault = true;
+                }
+                else {
+                    el.setAttributeNode(attr);
+                }
                 // NOTE: The specified value MUST be set after you set
                 //       the node value because that turns the "specified"
                 //       flag to "true" which may overwrite a "false"
@@ -966,7 +1008,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                         ((ElementImpl) el).setIdAttributeNode (attr, true);
                     }
 
-                    attrImpl.setSpecified (attributes.isSpecified (i));
+                    attrImpl.setSpecified (specified);
                     // REVISIT: Handle entities in attribute value.
                 }
             }
@@ -986,28 +1028,39 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
 
             // filter nodes
             if (fDOMFilter != null && !fInEntityRef) {
-                if (fRoot.rawname == null) {
+                if (fRoot == null) {
                     // fill value of the root element
-                    fRoot.setValues(element);
+                    fRoot = el;
                 } else {
                     short code = fDOMFilter.startElement(el);
                     switch (code) {
                         case LSParserFilter.FILTER_INTERRUPT :
                             {
-                                throw abort;
+                                throw Abort.INSTANCE;
                             }
                         case LSParserFilter.FILTER_REJECT :
                             {
                                 fFilterReject = true;
-                                fRejectedElement.setValues(element);
+                                fRejectedElementDepth = 0;
                                 return;
                             }
                         case LSParserFilter.FILTER_SKIP :
                             {
-                                fSkippedElemStack.push(element.clone());
+                                // make sure that if any char data is available
+                                // the fFirstChunk is true, so that if the next event
+                                // is characters(), and the last node is text, we will copy
+                                // the value already in the text node to fStringBuffer
+                                // (not to lose it).
+                                fFirstChunk = true;
+                                fSkippedElemStack.push(Boolean.TRUE);
                                 return;
                             }
-                        default : {}
+                        default :
+                            {
+                                if (!fSkippedElemStack.isEmpty()) {
+                                    fSkippedElemStack.push(Boolean.FALSE);
+                                }
+                            }
                     }
                 }
             }
@@ -1015,24 +1068,14 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
             fCurrentNode = el;
         }
         else {
+            int el = fDeferredDocumentImpl.createDeferredElement (fNamespaceAware ?
+                    element.uri : null, element.rawname);
             Object type = null;
-            if (augs != null) {
-                ElementPSVI elementPSVI = (ElementPSVI)augs.getItem (Constants.ELEMENT_PSVI);
-                if (elementPSVI != null) {
-                    type = elementPSVI.getMemberTypeDefinition ();
-                    if (type == null) {
-                        type = elementPSVI.getTypeDefinition ();
-                    }
-                }
-            }
-
-            int el =
-            fDeferredDocumentImpl.createDeferredElement (fNamespaceAware ?
-            element.uri : null,
-            element.rawname,
-            type);
             int attrCount = attributes.getLength ();
-            for (int i = 0; i < attrCount; i++) {
+            // Need to loop in reverse order so that the attributes
+            // are processed in document order when the DOM is expanded.
+            for (int i = attrCount - 1; i >= 0; --i) {
+
                 // set type information
                 AttributePSVI attrPSVI = (AttributePSVI)attributes.getAugmentations (i).getItem (Constants.ATTRIBUTE_PSVI);
                 boolean id = false;
@@ -1138,24 +1181,25 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                     return;
                 }
 
-                String value = text.toString ();
                 Node child = fCurrentNode.getLastChild ();
                 if (child != null && child.getNodeType () == Node.TEXT_NODE) {
                     // collect all the data into the string buffer.
                     if (fFirstChunk) {
                         if (fDocumentImpl != null) {
-                            fStringBuffer.append (((TextImpl)child).removeData ());
+                            fStringBuilder.append (((TextImpl)child).removeData ());
                         } else {
-                            fStringBuffer.append (((Text)child).getData ());
+                            fStringBuilder.append (((Text)child).getData ());
                             ((Text)child).setNodeValue (null);
                         }
                         fFirstChunk = false;
                     }
-                    fStringBuffer.append (value);
+                    if (text.length > 0) {
+                        fStringBuilder.append (text.ch, text.offset, text.length);
+                    }
                 }
                 else {
                     fFirstChunk = true;
-                    Text textNode = fDocument.createTextNode (value);
+                    Text textNode = fDocument.createTextNode (text.toString());
                     fCurrentNode.appendChild (textNode);
                 }
 
@@ -1273,23 +1317,22 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
 
             if (fDOMFilter != null) {
                 if (fFilterReject) {
-                    if (element.equals (fRejectedElement)) {
+                    if (fRejectedElementDepth-- == 0) {
                         fFilterReject = false;
                     }
                     return;
                 }
-                if (!fSkippedElemStack.isEmpty ()) {
-                    if (fSkippedElemStack.peek ().equals (element)) {
-                        fSkippedElemStack.pop ();
+                if (!fSkippedElemStack.isEmpty()) {
+                    if (fSkippedElemStack.pop() == Boolean.TRUE) {
                         return;
                     }
                 }
                 setCharacterData (false);
-                if (!fRoot.equals(element) && !fInEntityRef && (fDOMFilter.getWhatToShow () & NodeFilter.SHOW_ELEMENT)!=0) {
+                if ((fCurrentNode != fRoot) && !fInEntityRef && (fDOMFilter.getWhatToShow () & NodeFilter.SHOW_ELEMENT)!=0) {
                     short code = fDOMFilter.acceptNode (fCurrentNode);
                     switch (code) {
                         case LSParserFilter.FILTER_INTERRUPT:{
-                            throw abort;
+                            throw Abort.INSTANCE;
                         }
                         case LSParserFilter.FILTER_REJECT:{
                             Node parent = fCurrentNode.getParentNode ();
@@ -1302,7 +1345,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                             // the fFirstChunk is true, so that if the next event
                             // is characters(), and the last node is text, we will copy
                             // the value already in the text node to fStringBuffer
-                            // (not to loose it).
+                            // (not to lose it).
                             fFirstChunk = true;
 
                             // replace children
@@ -1332,8 +1375,21 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
 
         }
         else {
+            if (augs != null) {
+                ElementPSVI elementPSVI = (ElementPSVI) augs.getItem(Constants.ELEMENT_PSVI);
+                if (elementPSVI != null) {
+                    // Setting TypeInfo. If the declared type is a union the
+                    // [member type definition] will only be available at the
+                    // end of an element.
+                    XSTypeDefinition type = elementPSVI.getMemberTypeDefinition();
+                    if (type == null) {
+                        type = elementPSVI.getTypeDefinition();
+                    }
+                    fDeferredDocumentImpl.setTypeInfo(fCurrentNodeIndex, type);
+                }
+            }
             fCurrentNodeIndex =
-            fDeferredDocumentImpl.getParentNode (fCurrentNodeIndex, false);
+                fDeferredDocumentImpl.getParentNode (fCurrentNodeIndex, false);
         }
 
 
@@ -1381,7 +1437,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                     short code = fDOMFilter.acceptNode (fCurrentCDATASection);
                     switch (code) {
                         case LSParserFilter.FILTER_INTERRUPT:{
-                            throw abort;
+                            throw Abort.INSTANCE;
                         }
                         case LSParserFilter.FILTER_REJECT:{
                             // fall through to SKIP since CDATA section has no children.
@@ -1424,13 +1480,22 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
         if (!fDeferNodeExpansion) {
             // REVISIT: when DOM Level 3 is REC rely on Document.support
             //          instead of specific class
-            // set DOM error checking back on
+            // set the actual encoding and set DOM error checking back on
             if (fDocumentImpl != null) {
+                if (fLocator != null) {
+                    if (fLocator.getEncoding() != null)
+                        fDocumentImpl.setInputEncoding (fLocator.getEncoding());
+                }
                 fDocumentImpl.setStrictErrorChecking (true);
             }
             fCurrentNode = null;
         }
         else {
+            // set the actual encoding
+            if (fLocator != null) {
+                if (fLocator.getEncoding() != null)
+                    fDeferredDocumentImpl.setInputEncoding (fLocator.getEncoding());
+            }
             fCurrentNodeIndex = -1;
         }
 
@@ -1493,7 +1558,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                     short code = fDOMFilter.acceptNode (fCurrentNode);
                     switch (code) {
                         case LSParserFilter.FILTER_INTERRUPT:{
-                            throw abort;
+                            throw Abort.INSTANCE;
                         }
                         case LSParserFilter.FILTER_REJECT:{
                             Node parent = fCurrentNode.getParentNode ();
@@ -1648,7 +1713,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                 baseURI = ((EntityReferenceImpl)fCurrentNode).getBaseURI ();
                 if (baseURI !=null && !baseURI.equals (fDocumentImpl.getDocumentURI ())) {
                     if (fNamespaceAware) {
-                        ((Element)node).setAttributeNS ("http://www.w3.org/XML/1998/namespace","base", baseURI);
+                        ((Element)node).setAttributeNS ("http://www.w3.org/XML/1998/namespace", "xml:base", baseURI);
                     } else {
                         ((Element)node).setAttribute ("xml:base", baseURI);
                     }
@@ -1746,7 +1811,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
             fBaseURIStack.push (locator.getBaseSystemId ());
         }
         if (fDeferNodeExpansion || fDocumentImpl != null) {
-            fInternalSubset = new StringBuffer (1024);
+            fInternalSubset = new StringBuilder (1024);
         }
     } // startDTD(XMLLocator)
 
@@ -2049,6 +2114,11 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                 System.out.println ("   expandedSystemId: "+identifier.getExpandedSystemId ());
                 System.out.println ("   baseURI:"+ identifier.getBaseSystemId ());
             }
+        }
+        if (augs != null && fInternalSubset != null &&
+            !fInDTDExternalSubset &&
+            Boolean.TRUE.equals(augs.getItem(Constants.ENTITY_SKIPPED))) {
+            fInternalSubset.append(name).append(";\n");
         }
         fBaseURIStack.push (identifier.getExpandedSystemId ());
     }
@@ -2360,8 +2430,23 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                     fDeferredDocumentImpl.appendChild (fDocumentTypeIndex, elementDefIndex);
                 }
                 // add default attribute
+                boolean nsEnabled = fNamespaceAware;
+                String namespaceURI = null;
+                if (nsEnabled) {
+                    // DOM Level 2 wants all namespace declaration attributes
+                    // to be bound to "http://www.w3.org/2000/xmlns/"
+                    // So as long as the XML parser doesn't do it, it needs to
+                    // done here.
+                    if (attributeName.startsWith("xmlns:") ||
+                        attributeName.equals("xmlns")) {
+                        namespaceURI = NamespaceContext.XMLNS_URI;
+                    }
+                    else if (attributeName.startsWith("xml:")) {
+                        namespaceURI = NamespaceContext.XML_URI;
+                    }
+                }
                 int attrIndex = fDeferredDocumentImpl.createDeferredAttribute (
-                attributeName, defaultValue.toString (), false);
+                        attributeName, namespaceURI, defaultValue.toString(), false);
                 if ("ID".equals (type)) {
                     fDeferredDocumentImpl.setIdAttribute (attrIndex);
                 }
@@ -2396,9 +2481,12 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                     // to be bound to "http://www.w3.org/2000/xmlns/"
                     // So as long as the XML parser doesn't do it, it needs to
                     // done here.
-                    if (attributeName.startsWith ("xmlns:") ||
-                    attributeName.equals ("xmlns")) {
+                    if (attributeName.startsWith("xmlns:") ||
+                        attributeName.equals("xmlns")) {
                         namespaceURI = NamespaceContext.XMLNS_URI;
+                    }
+                    else if (attributeName.startsWith("xml:")) {
+                        namespaceURI = NamespaceContext.XML_URI;
                     }
                     attr = (AttrImpl)fDocumentImpl.createAttributeNS (namespaceURI,
                     attributeName);
@@ -2522,18 +2610,18 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
 
         Node child = fCurrentNode.getLastChild ();
         if (child != null) {
-            if (fStringBuffer.length () > 0) {
+            if (fStringBuilder.length () > 0) {
                 // REVISIT: should this check be performed?
                 if (child.getNodeType () == Node.TEXT_NODE) {
                     if (fDocumentImpl != null) {
-                        ((TextImpl)child).replaceData (fStringBuffer.toString ());
+                        ((TextImpl)child).replaceData (fStringBuilder.toString ());
                     }
                     else {
-                        ((Text)child).setData (fStringBuffer.toString ());
+                        ((Text)child).setData (fStringBuilder.toString ());
                     }
                 }
                 // reset string buffer
-                fStringBuffer.setLength (0);
+                fStringBuilder.setLength (0);
             }
 
             if (fDOMFilter !=null && !fInEntityRef) {
@@ -2542,7 +2630,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
                     short code = fDOMFilter.acceptNode (child);
                     switch (code) {
                         case LSParserFilter.FILTER_INTERRUPT:{
-                            throw abort;
+                            throw Abort.INSTANCE;
                         }
                         case LSParserFilter.FILTER_REJECT:{
                             // fall through to SKIP since Comment has no children.
@@ -2566,7 +2654,7 @@ public class AbstractDOMParser extends AbstractXMLDocumentParser {
      * @see org.w3c.dom.ls.LSParser#abort()
      */
     public void abort () {
-        throw abort;
+        throw Abort.INSTANCE;
     }
 
 

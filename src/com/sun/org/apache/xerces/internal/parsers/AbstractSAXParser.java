@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +24,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.xs.PSVIProvider;
 import com.sun.org.apache.xerces.internal.util.EntityResolverWrapper;
 import com.sun.org.apache.xerces.internal.util.EntityResolver2Wrapper;
@@ -73,7 +78,7 @@ import org.xml.sax.helpers.LocatorImpl;
  * @author Arnaud Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: AbstractSAXParser.java,v 1.2.6.1 2005/09/06 12:51:15 sunithareddy Exp $
+ * @version $Id: AbstractSAXParser.java,v 1.6 2010-11-01 04:40:09 joehw Exp $
  */
 public abstract class AbstractSAXParser
     extends AbstractXMLDocumentParser
@@ -1662,7 +1667,7 @@ public abstract class AbstractSAXParser
         }
         catch (XMLConfigurationException e) {
             String identifier = e.getIdentifier();
-            if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+            if (e.getType() == Status.NOT_RECOGNIZED) {
                 throw new SAXNotRecognizedException(
                     SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
                     "feature-not-recognized", new Object [] {identifier}));
@@ -1819,7 +1824,7 @@ public abstract class AbstractSAXParser
         }
         catch (XMLConfigurationException e) {
             String identifier = e.getIdentifier();
-            if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+            if (e.getType() == Status.NOT_RECOGNIZED) {
                 throw new SAXNotRecognizedException(
                     SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
                     "feature-not-recognized", new Object [] {identifier}));
@@ -1942,7 +1947,7 @@ public abstract class AbstractSAXParser
         }
         catch (XMLConfigurationException e) {
             String identifier = e.getIdentifier();
-            if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+            if (e.getType() == Status.NOT_RECOGNIZED) {
                 throw new SAXNotRecognizedException(
                     SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
                     "property-not-recognized", new Object [] {identifier}));
@@ -2056,7 +2061,7 @@ public abstract class AbstractSAXParser
         }
         catch (XMLConfigurationException e) {
             String identifier = e.getIdentifier();
-            if (e.getType() == XMLConfigurationException.NOT_RECOGNIZED) {
+            if (e.getType() == Status.NOT_RECOGNIZED) {
                 throw new SAXNotRecognizedException(
                     SAXMessageFormatter.formatMessage(fConfiguration.getLocale(), 
                     "property-not-recognized", new Object [] {identifier}));

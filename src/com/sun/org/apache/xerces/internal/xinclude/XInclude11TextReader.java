@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,12 +27,11 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
 /**
  * This class is used for reading resources requested in &lt;include&gt; elements in
  * XML 1.1 entities, when the parse attribute of the &lt;include&gt; element is "text".
- * Using this class will open the location, detect the encoding, and discard the 
+ * Using this class will open the location, detect the encoding, and discard the
  * byte order mark, if applicable.
- * 
+ *
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XInclude11TextReader.java,v 1.2.6.1 2005/09/05 13:39:23 sunithareddy Exp $
  *
  * @see XIncludeHandler
  */
@@ -46,7 +49,7 @@ public class XInclude11TextReader
         throws IOException {
         super(source, handler, bufferSize);
     }
-    
+
     /**
      * Returns true if the specified character is a valid XML character
      * as per the rules of XML 1.1.

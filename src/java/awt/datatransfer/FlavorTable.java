@@ -1,8 +1,26 @@
 /*
- * @(#)FlavorTable.java	1.6 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.datatransfer;
@@ -17,7 +35,6 @@ import java.util.List;
  * symmetric, but typically are.
  *
  * @author David Mendenhall
- * @version 1.6, 11/17/05
  *
  * @since 1.4
  */
@@ -54,7 +71,7 @@ public interface FlavorTable extends FlavorMap {
      *
      * @param nat the native whose corresponding <code>DataFlavor</code>s
      *        should be returned. If <code>null</code> is specified, all
-     *        <code>DataFlavor</code>s currently known to this 
+     *        <code>DataFlavor</code>s currently known to this
      *        <code>FlavorTable</code> are returned in a non-deterministic
      *        order.
      * @return a <code>java.util.List</code> of <code>DataFlavor</code>

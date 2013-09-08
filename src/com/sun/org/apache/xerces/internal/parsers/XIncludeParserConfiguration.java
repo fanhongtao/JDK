@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +35,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
  * no schema validator.  Using this pipeline will enable processing according to the
  * XML Inclusions specification, to the conformance level described in
  * <code>XIncludeHandler</code>.
- * 
+ *
  * @author Peter McCracken, IBM
  * @see com.sun.org.apache.xerces.internal.xinclude.XIncludeHandler
  */
@@ -42,11 +46,11 @@ public class XIncludeParserConfiguration extends XML11Configuration {
     /** Feature identifier: allow notation and unparsed entity events to be sent out of order. */
     protected static final String ALLOW_UE_AND_NOTATION_EVENTS =
         Constants.SAX_FEATURE_PREFIX + Constants.ALLOW_DTD_EVENTS_AFTER_ENDDTD_FEATURE;
-    
+
     /** Feature identifier: fixup base URIs. */
     protected static final String XINCLUDE_FIXUP_BASE_URIS =
         Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FIXUP_BASE_URIS_FEATURE;
-    
+
     /** Feature identifier: fixup language. */
     protected static final String XINCLUDE_FIXUP_LANGUAGE =
         Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FIXUP_LANGUAGE_FEATURE;
@@ -64,8 +68,8 @@ public class XIncludeParserConfiguration extends XML11Configuration {
         this(null, null, null);
     } // <init>()
 
-    /** 
-     * Constructs a parser configuration using the specified symbol table. 
+    /**
+     * Constructs a parser configuration using the specified symbol table.
      *
      * @param symbolTable The symbol table to use.
      */
@@ -104,7 +108,7 @@ public class XIncludeParserConfiguration extends XML11Configuration {
 
         fXIncludeHandler = new XIncludeHandler();
         addCommonComponent(fXIncludeHandler);
-        
+
         final String[] recognizedFeatures = {
             ALLOW_UE_AND_NOTATION_EVENTS,
             XINCLUDE_FIXUP_BASE_URIS,
@@ -116,17 +120,17 @@ public class XIncludeParserConfiguration extends XML11Configuration {
         final String[] recognizedProperties =
             { XINCLUDE_HANDLER, NAMESPACE_CONTEXT };
         addRecognizedProperties(recognizedProperties);
-        
+
         setFeature(ALLOW_UE_AND_NOTATION_EVENTS, true);
         setFeature(XINCLUDE_FIXUP_BASE_URIS, true);
         setFeature(XINCLUDE_FIXUP_LANGUAGE, true);
-        
+
         setProperty(XINCLUDE_HANDLER, fXIncludeHandler);
         setProperty(NAMESPACE_CONTEXT, new XIncludeNamespaceSupport());
     } // <init>(SymbolTable,XMLGrammarPool)}
-    
-    
-	/** Configures the pipeline. */
+
+
+        /** Configures the pipeline. */
     protected void configurePipeline() {
         super.configurePipeline();
 
@@ -135,12 +139,12 @@ public class XIncludeParserConfiguration extends XML11Configuration {
         fDTDProcessor.setDTDSource(fDTDScanner);
         fDTDProcessor.setDTDHandler(fXIncludeHandler);
         fXIncludeHandler.setDTDSource(fDTDProcessor);
-		fXIncludeHandler.setDTDHandler(fDTDHandler);
+                fXIncludeHandler.setDTDHandler(fDTDHandler);
         if (fDTDHandler != null) {
             fDTDHandler.setDTDSource(fXIncludeHandler);
         }
 
-        // configure XML document pipeline: insert after DTDValidator and 
+        // configure XML document pipeline: insert after DTDValidator and
         // before XML Schema validator
         XMLDocumentSource prev = null;
         if (fFeatures.get(XMLSCHEMA_VALIDATION) == Boolean.TRUE) {
@@ -153,7 +157,7 @@ public class XIncludeParserConfiguration extends XML11Configuration {
             prev = fLastComponent;
             fLastComponent = fXIncludeHandler;
         }
-        
+
          if (prev != null) {
             XMLDocumentHandler next = prev.getDocumentHandler();
             prev.setDocumentHandler(fXIncludeHandler);
@@ -169,43 +173,43 @@ public class XIncludeParserConfiguration extends XML11Configuration {
 
     } // configurePipeline()
 
-	protected void configureXML11Pipeline() {
-		super.configureXML11Pipeline();
-		
+        protected void configureXML11Pipeline() {
+                super.configureXML11Pipeline();
+
         // configure XML 1.1. DTD pipeline
-		fXML11DTDScanner.setDTDHandler(fXML11DTDProcessor);
-		fXML11DTDProcessor.setDTDSource(fXML11DTDScanner);
-		fXML11DTDProcessor.setDTDHandler(fXIncludeHandler);
-		fXIncludeHandler.setDTDSource(fXML11DTDProcessor);
-		fXIncludeHandler.setDTDHandler(fDTDHandler);
-		if (fDTDHandler != null) {
-			fDTDHandler.setDTDSource(fXIncludeHandler);
-		}
-		
-		// configure XML document pipeline: insert after DTDValidator and 
-		// before XML Schema validator
-		XMLDocumentSource prev = null;
-		if (fFeatures.get(XMLSCHEMA_VALIDATION) == Boolean.TRUE) {
-			// we don't have to worry about fSchemaValidator being null, since
-			// super.configurePipeline() instantiated it if the feature was set
-			prev = fSchemaValidator.getDocumentSource();
-		}
-		// Otherwise, insert after the last component in the pipeline
-		else {
-			prev = fLastComponent;
-			fLastComponent = fXIncludeHandler;
-		}
+                fXML11DTDScanner.setDTDHandler(fXML11DTDProcessor);
+                fXML11DTDProcessor.setDTDSource(fXML11DTDScanner);
+                fXML11DTDProcessor.setDTDHandler(fXIncludeHandler);
+                fXIncludeHandler.setDTDSource(fXML11DTDProcessor);
+                fXIncludeHandler.setDTDHandler(fDTDHandler);
+                if (fDTDHandler != null) {
+                        fDTDHandler.setDTDSource(fXIncludeHandler);
+                }
 
-		XMLDocumentHandler next = prev.getDocumentHandler();
-		prev.setDocumentHandler(fXIncludeHandler);
-		fXIncludeHandler.setDocumentSource(prev);
-		if (next != null) {
-			fXIncludeHandler.setDocumentHandler(next);
-			next.setDocumentSource(fXIncludeHandler);
-		}
+                // configure XML document pipeline: insert after DTDValidator and
+                // before XML Schema validator
+                XMLDocumentSource prev = null;
+                if (fFeatures.get(XMLSCHEMA_VALIDATION) == Boolean.TRUE) {
+                        // we don't have to worry about fSchemaValidator being null, since
+                        // super.configurePipeline() instantiated it if the feature was set
+                        prev = fSchemaValidator.getDocumentSource();
+                }
+                // Otherwise, insert after the last component in the pipeline
+                else {
+                        prev = fLastComponent;
+                        fLastComponent = fXIncludeHandler;
+                }
 
-	} // configureXML11Pipeline()
-    
+                XMLDocumentHandler next = prev.getDocumentHandler();
+                prev.setDocumentHandler(fXIncludeHandler);
+                fXIncludeHandler.setDocumentSource(prev);
+                if (next != null) {
+                        fXIncludeHandler.setDocumentHandler(next);
+                        next.setDocumentSource(fXIncludeHandler);
+                }
+
+        } // configureXML11Pipeline()
+
     public void setProperty(String propertyId, Object value)
         throws XMLConfigurationException {
 

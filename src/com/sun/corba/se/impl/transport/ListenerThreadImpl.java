@@ -1,8 +1,26 @@
 /*
- * @(#)ListenerThreadImpl.java	1.15 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.transport;
@@ -21,8 +39,8 @@ import com.sun.corba.se.impl.orbutil.ORBUtility;
 
 public class ListenerThreadImpl
     implements
-	ListenerThread,
-	Work
+        ListenerThread,
+        Work
 {
     private ORB orb;
     private Acceptor acceptor;
@@ -32,29 +50,29 @@ public class ListenerThreadImpl
 
     public ListenerThreadImpl(ORB orb, Acceptor acceptor, Selector selector)
     {
-	this.orb = orb;
-	this.acceptor = acceptor;
-	this.selector = selector;
-	keepRunning = true;
+        this.orb = orb;
+        this.acceptor = acceptor;
+        this.selector = selector;
+        keepRunning = true;
     }
 
     ////////////////////////////////////////////////////
-    // 
+    //
     // ListenerThread methods.
     //
 
     public Acceptor getAcceptor()
     {
-	return acceptor;
+        return acceptor;
     }
 
     public void close()
     {
-	if (orb.transportDebugFlag) {
-	    dprint(".close: " + acceptor);
-	}
+        if (orb.transportDebugFlag) {
+            dprint(".close: " + acceptor);
+        }
 
-	keepRunning = false;
+        keepRunning = false;
     }
 
     ////////////////////////////////////////////////////
@@ -66,45 +84,45 @@ public class ListenerThreadImpl
 
     public void doWork()
     {
-	try {
-	    if (orb.transportDebugFlag) {
-		dprint(".doWork: Start ListenerThread: " + acceptor);
-	    }
-	    while (keepRunning) {
-		try {
-		    if (orb.transportDebugFlag) {
-			dprint(".doWork: BEFORE ACCEPT CYCLE: " + acceptor);
-		    }
+        try {
+            if (orb.transportDebugFlag) {
+                dprint(".doWork: Start ListenerThread: " + acceptor);
+            }
+            while (keepRunning) {
+                try {
+                    if (orb.transportDebugFlag) {
+                        dprint(".doWork: BEFORE ACCEPT CYCLE: " + acceptor);
+                    }
 
-		    acceptor.accept();
+                    acceptor.accept();
 
-		    if (orb.transportDebugFlag) {
-			dprint(".doWork: AFTER ACCEPT CYCLE: " + acceptor);
-		    }
-		} catch (Throwable t) {
-		    if (orb.transportDebugFlag) {
-			dprint(".doWork: Exception in accept: " + acceptor,t);
-		    }
-		    orb.getTransportManager().getSelector(0)
-			.unregisterForEvent(getAcceptor().getEventHandler());
-		    getAcceptor().close();
-		}
-	    }
-	} finally {
-	    if (orb.transportDebugFlag) {
-		dprint(".doWork: Terminated ListenerThread: " + acceptor);
-	    }
-	}
+                    if (orb.transportDebugFlag) {
+                        dprint(".doWork: AFTER ACCEPT CYCLE: " + acceptor);
+                    }
+                } catch (Throwable t) {
+                    if (orb.transportDebugFlag) {
+                        dprint(".doWork: Exception in accept: " + acceptor,t);
+                    }
+                    orb.getTransportManager().getSelector(0)
+                        .unregisterForEvent(getAcceptor().getEventHandler());
+                    getAcceptor().close();
+                }
+            }
+        } finally {
+            if (orb.transportDebugFlag) {
+                dprint(".doWork: Terminated ListenerThread: " + acceptor);
+            }
+        }
     }
 
-    public void setEnqueueTime(long timeInMillis) 
+    public void setEnqueueTime(long timeInMillis)
     {
-	enqueueTime = timeInMillis;
+        enqueueTime = timeInMillis;
     }
 
-    public long getEnqueueTime() 
+    public long getEnqueueTime()
     {
-	return enqueueTime;
+        return enqueueTime;
     }
 
     public String getName() { return "ListenerThread"; }
@@ -116,13 +134,13 @@ public class ListenerThreadImpl
 
     private void dprint(String msg)
     {
-	ORBUtility.dprint("ListenerThreadImpl", msg);
+        ORBUtility.dprint("ListenerThreadImpl", msg);
     }
 
     private void dprint(String msg, Throwable t)
     {
-	dprint(msg);
-	t.printStackTrace(System.out);
+        dprint(msg);
+        t.printStackTrace(System.out);
     }
 }
 

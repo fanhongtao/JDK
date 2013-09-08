@@ -1,19 +1,37 @@
 /*
- * @(#)Ref.java	1.31 06/05/28
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.sql;
- 
+
 /**
  * The mapping in the Java programming language of an SQL <code>REF</code>
  * value, which is a reference to an SQL structured type value in the database.
  * <P>
  * SQL <code>REF</code> values are stored in a table that contains
  * instances of a referenceable SQL structured type, and each <code>REF</code>
- * value is a unique identifier for one instance in that table. 
+ * value is a unique identifier for one instance in that table.
  * An SQL <code>REF</code> value may be used in place of the
  * SQL structured type it references, either as a column value in a
  * table or an attribute value in a structured type.
@@ -24,12 +42,12 @@ package java.sql;
  * a <code>Ref</code> object does not materialize
  * the attributes of the structured type on the client.
  * <P>
- * A <code>Ref</code> object can be stored in the database using the 
+ * A <code>Ref</code> object can be stored in the database using the
  * <code>PreparedStatement.setRef</code> method.
   * <p>
- * All methods on the <code>Ref</code> interface must be fully implemented if the 
+ * All methods on the <code>Ref</code> interface must be fully implemented if the
  * JDBC driver supports the data type.
- * 
+ *
  * @see Struct
  * @since 1.2
  */
@@ -38,8 +56,8 @@ public interface Ref {
     /**
      * Retrieves the fully-qualified SQL name of the SQL structured type that
      * this <code>Ref</code> object references.
-     * 
-     * @return the fully-qualified SQL name of the referenced SQL structured type 
+     *
+     * @return the fully-qualified SQL name of the referenced SQL structured type
      * @exception SQLException if a database access error occurs
      * @exception SQLFeatureNotSupportedException if the JDBC driver does not support
      * this method
@@ -51,12 +69,12 @@ public interface Ref {
      * Retrieves the referenced object and maps it to a Java type
      * using the given type map.
      *
-     * @param map a <code>java.util.Map</code> object that contains 
+     * @param map a <code>java.util.Map</code> object that contains
      *        the mapping to use (the fully-qualified name of the SQL
      *        structured type being referenced and the class object for
      *        <code>SQLData</code> implementation to which the SQL
      *        structured type will be mapped)
-     * @return  a Java <code>Object</code> that is the custom mapping for 
+     * @return  a Java <code>Object</code> that is the custom mapping for
      *          the SQL structured type to which this <code>Ref</code>
      *          object refers
      * @exception SQLException if a database access error occurs
@@ -75,7 +93,7 @@ public interface Ref {
      * the Java class indicated in the type map.  Otherwise, the
      * structured type instance will be mapped to a <code>Struct</code> object.
      *
-     * @return  a Java <code>Object</code> that is the mapping for 
+     * @return  a Java <code>Object</code> that is the mapping for
      *          the SQL structured type to which this <code>Ref</code>
      *          object refers
      * @exception SQLException if a database access error occurs
@@ -83,7 +101,7 @@ public interface Ref {
      * this method
      * @since 1.4
      * @see #setObject
-     */   
+     */
     Object getObject() throws SQLException;
 
     /**
@@ -92,7 +110,7 @@ public interface Ref {
      * The driver converts this to an SQL structured type when it
      * sends it to the database.
      *
-     * @param value an <code>Object</code> representing the SQL 
+     * @param value an <code>Object</code> representing the SQL
      *        structured type instance that this
      *        <code>Ref</code> object will reference
      * @exception SQLException if a database access error occurs
@@ -107,5 +125,3 @@ public interface Ref {
     void setObject(Object value) throws SQLException;
 
 }
-
-

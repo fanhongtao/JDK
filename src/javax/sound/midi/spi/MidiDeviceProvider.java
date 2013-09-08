@@ -1,23 +1,40 @@
 /*
- * @(#)MidiDeviceProvider.java	1.20 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
-package javax.sound.midi.spi;		  	 
+package javax.sound.midi.spi;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiUnavailableException;
 
 /**
- * A <code>MidiDeviceProvider</code> is a factory or provider for a particular 
+ * A <code>MidiDeviceProvider</code> is a factory or provider for a particular
  * type of MIDI device.
  * This mechanism allows the implementation to determine
  * how resources are managed in the creation and management of
  * a device.
  *
- * @version 1.20 05/11/17
  * @author Kara Kytle
  */
 public abstract class MidiDeviceProvider {
@@ -27,19 +44,19 @@ public abstract class MidiDeviceProvider {
      * Indicates whether the device provider supports the device represented by
      * the specified device info object.
      * @param info an info object that describes the device for which support is queried
-     * @return <code>true</code> if the specified device is supported, 
+     * @return <code>true</code> if the specified device is supported,
      * otherwise <code>false</code>
      */
     public boolean isDeviceSupported(MidiDevice.Info info) {
 
-	MidiDevice.Info infos[] = getDeviceInfo();
+        MidiDevice.Info infos[] = getDeviceInfo();
 
-	for(int i=0; i<infos.length; i++) {
-	    if( info.equals( infos[i] ) ) {
-		return true;
-	    }
-	}
-	return false;
+        for(int i=0; i<infos.length; i++) {
+            if( info.equals( infos[i] ) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

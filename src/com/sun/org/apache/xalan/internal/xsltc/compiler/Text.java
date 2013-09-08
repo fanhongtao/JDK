@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +48,7 @@ final class Text extends Instruction {
      * Create a blank Text syntax tree node.
      */
     public Text() {
-	_textElement = true;
+        _textElement = true;
     }
 
     /**
@@ -52,7 +56,7 @@ final class Text extends Instruction {
      * @param text is the text to put in the node.
      */
     public Text(String text) {
-	_text = text;
+        _text = text;
     }
 
     /**
@@ -60,7 +64,7 @@ final class Text extends Instruction {
      * @return The text wrapped inside this node
      */
     protected String getText() {
-	return _text;
+        return _text;
     }
 
     /**
@@ -69,40 +73,40 @@ final class Text extends Instruction {
      * @param text is the text to wrap inside this node.
      */
     protected void setText(String text) {
-	if (_text == null)
-	    _text = text;
-	else
-	    _text = _text + text;
+        if (_text == null)
+            _text = text;
+        else
+            _text = _text + text;
     }
 
     public void display(int indent) {
-	indent(indent);
-	Util.println("Text");
-	indent(indent + IndentIncrement);
-	Util.println(_text);
+        indent(indent);
+        Util.println("Text");
+        indent(indent + IndentIncrement);
+        Util.println(_text);
     }
-		
+
     public void parseContents(Parser parser) {
         final String str = getAttribute("disable-output-escaping");
-	if ((str != null) && (str.equals("yes"))) _escaping = false;
+        if ((str != null) && (str.equals("yes"))) _escaping = false;
 
-	parseChildren(parser);
+        parseChildren(parser);
 
-	if (_text == null) {
-	    if (_textElement) {
-		_text = EMPTYSTRING;
-	    }
-	    else {
-		_ignore = true;
-	    }
-	}
-	else if (_textElement) {
-	    if (_text.length() == 0) _ignore = true;
-	}
-	else if (getParent() instanceof LiteralElement) {
-	    LiteralElement element = (LiteralElement)getParent();
-	    String space = element.getAttribute("xml:space");
-	    if ((space == null) || (!space.equals("preserve")))
+        if (_text == null) {
+            if (_textElement) {
+                _text = EMPTYSTRING;
+            }
+            else {
+                _ignore = true;
+            }
+        }
+        else if (_textElement) {
+            if (_text.length() == 0) _ignore = true;
+        }
+        else if (getParent() instanceof LiteralElement) {
+            LiteralElement element = (LiteralElement)getParent();
+            String space = element.getAttribute("xml:space");
+            if ((space == null) || (!space.equals("preserve")))
         {
             int i;
             final int textLength = _text.length();
@@ -114,11 +118,11 @@ final class Text extends Instruction {
             if (i == textLength)
                 _ignore = true;
         }
-	}
-	else {
+        }
+        else {
         int i;
         final int textLength = _text.length();
-        for (i = 0; i < textLength; i++) 
+        for (i = 0; i < textLength; i++)
         {
             char c = _text.charAt(i);
             if (!isWhitespace(c))
@@ -126,43 +130,43 @@ final class Text extends Instruction {
         }
         if (i == textLength)
             _ignore = true;
-	}
+        }
     }
 
     public void ignore() {
-	_ignore = true;
+        _ignore = true;
     }
 
     public boolean isIgnore() {
-    	return _ignore;
+        return _ignore;
     }
-    
+
     public boolean isTextElement() {
-	return _textElement;
+        return _textElement;
     }
 
     protected boolean contextDependent() {
-	return false;
+        return false;
     }
- 
+
     private static boolean isWhitespace(char c)
     {
-    	return (c == 0x20 || c == 0x09 || c == 0x0A || c == 0x0D);
+        return (c == 0x20 || c == 0x09 || c == 0x0A || c == 0x0D);
     }
- 
-    public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
 
-	if (!_ignore) {
-	    // Turn off character escaping if so is wanted.
-	    final int esc = cpg.addInterfaceMethodref(OUTPUT_HANDLER,
-						      "setEscaping", "(Z)Z");
-	    if (!_escaping) {
-		il.append(methodGen.loadHandler());
-		il.append(new PUSH(cpg, false));
-		il.append(new INVOKEINTERFACE(esc, 2));
-	    }
+    public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
+
+        if (!_ignore) {
+            // Turn off character escaping if so is wanted.
+            final int esc = cpg.addInterfaceMethodref(OUTPUT_HANDLER,
+                                                      "setEscaping", "(Z)Z");
+            if (!_escaping) {
+                il.append(methodGen.loadHandler());
+                il.append(new PUSH(cpg, false));
+                il.append(new INVOKEINTERFACE(esc, 2));
+            }
 
             il.append(methodGen.loadHandler());
 
@@ -179,19 +183,19 @@ final class Text extends Instruction {
                                                                  "characters",
                                                                  "([CII)V");
                 loadAsArrayOffsetLength(classGen, methodGen);
-	        il.append(new INVOKEINTERFACE(characters, 4));
+                il.append(new INVOKEINTERFACE(characters, 4));
             }
 
-	    // Restore character escaping setting to whatever it was.
-	    // Note: setEscaping(bool) returns the original (old) value
-	    if (!_escaping) {
-		il.append(methodGen.loadHandler());
-		il.append(SWAP);
-		il.append(new INVOKEINTERFACE(esc, 2));
-		il.append(POP);
-	    }
-	}
-	translateContents(classGen, methodGen);
+            // Restore character escaping setting to whatever it was.
+            // Note: setEscaping(bool) returns the original (old) value
+            if (!_escaping) {
+                il.append(methodGen.loadHandler());
+                il.append(SWAP);
+                il.append(new INVOKEINTERFACE(esc, 2));
+                il.append(POP);
+            }
+        }
+        translateContents(classGen, methodGen);
     }
 
     /**

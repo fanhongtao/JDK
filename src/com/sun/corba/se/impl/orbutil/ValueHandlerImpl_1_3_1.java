@@ -1,8 +1,26 @@
 /*
- * @(#)ValueHandlerImpl_1_3_1.java	1.7 05/11/17
+ * Copyright (c) 2001, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.orbutil;
 
@@ -12,13 +30,13 @@ import org.omg.CORBA.TCKind;
  * This class overrides behavior of our current ValueHandlerImpl to
  * provide backwards compatibility with JDK 1.3.1.
  */
-public class ValueHandlerImpl_1_3_1 
-    extends com.sun.corba.se.impl.io.ValueHandlerImpl 
+public class ValueHandlerImpl_1_3_1
+    extends com.sun.corba.se.impl.io.ValueHandlerImpl
 {
     public ValueHandlerImpl_1_3_1() {}
 
     public ValueHandlerImpl_1_3_1(boolean isInputStream) {
-	super(isInputStream);
+        super(isInputStream);
     }
 
     /**
@@ -35,12 +53,12 @@ public class ValueHandlerImpl_1_3_1
      * when using serialPersistentFields and one of the fields no longer
      * exists on the class itself.
      */
-    public boolean useFullValueDescription(Class clazz, String repositoryID) 
-	throws java.io.IOException
-    {        
+    public boolean useFullValueDescription(Class clazz, String repositoryID)
+        throws java.io.IOException
+    {
         return RepositoryId_1_3_1.useFullValueDescription(clazz, repositoryID);
     }
-    
+
     /**
      * Installs the legacy IIOPOutputStream_1_3_1 which does
      * PutFields/GetFields incorrectly.  Bug 4407244.

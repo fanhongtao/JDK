@@ -1,8 +1,26 @@
 /*
- * @(#)MonitoredAttributeInfo.java	1.3 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.monitoring;
 
@@ -10,7 +28,7 @@ import java.util.*;
 
 /**
  * <p>
- * 
+ *
  * @author Hemanth Puttaswamy
  * </p>
  * <p>
@@ -29,7 +47,7 @@ public interface MonitoredAttributeInfo {
  * true.
  * </p>
  * <p>
- * 
+ *
  * @return a boolean with true or false
  * </p>
  */
@@ -39,7 +57,7 @@ public interface MonitoredAttributeInfo {
  * isStatistic() is true if the attribute is presented as a Statistic.
  * </p>
  * <p>
- * 
+ *
  * @return a boolean with true or false
  * </p>
  */
@@ -47,10 +65,10 @@ public interface MonitoredAttributeInfo {
 /**
  * <p>
  * Class Type: We will allow only basic class types: 1)Boolean 2)Integer
- * 3)Byte 4)Long 5)Float 6)Double 7)String 8)Character 
+ * 3)Byte 4)Long 5)Float 6)Double 7)String 8)Character
  * </p>
  * <p>
- * 
+ *
  * @return a Class Type
  * </p>
  */
@@ -60,7 +78,7 @@ public interface MonitoredAttributeInfo {
  * Get's the description for the Monitored Attribute.
  * </p>
  * <p>
- * 
+ *
  * @return a String with description
  * </p>
  */

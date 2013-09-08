@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +26,7 @@ package com.sun.org.apache.xalan.internal.xsltc.runtime;
 import com.sun.org.apache.xml.internal.dtm.DTM;
 
 /**
- * This class defines constants used by both the compiler and the 
+ * This class defines constants used by both the compiler and the
  * runtime system.
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
@@ -39,7 +43,7 @@ public interface Constants {
 
     public static final String XSLT_URI = "http://www.w3.org/1999/XSL/Transform";
     public static final String NAMESPACE_FEATURE =
-	"http://xml.org/sax/features/namespaces";
+        "http://xml.org/sax/features/namespaces";
 
     public static final String EMPTYSTRING = "";
     public static final String XML_PREFIX = "xml";

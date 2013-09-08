@@ -1,8 +1,26 @@
 /*
- * @(#)BasicPanelUI.java	1.13 05/11/17
+ * Copyright (c) 1998, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.basic;
@@ -18,7 +36,6 @@ import java.awt.event.*;
 /**
  * BasicPanel implementation
  *
- * @version 1.13 11/17/05
  * @author Steve Wilson
  */
 public class BasicPanelUI extends PanelUI {
@@ -27,9 +44,9 @@ public class BasicPanelUI extends PanelUI {
     private static PanelUI panelUI;
 
     public static ComponentUI createUI(JComponent c) {
-	if(panelUI == null) {
+        if(panelUI == null) {
             panelUI = new BasicPanelUI();
-	}
+        }
         return panelUI;
     }
 
@@ -47,9 +64,9 @@ public class BasicPanelUI extends PanelUI {
 
     protected void installDefaults(JPanel p) {
         LookAndFeel.installColorsAndFont(p,
-					 "Panel.background",
-					 "Panel.foreground",
-					 "Panel.font");
+                                         "Panel.background",
+                                         "Panel.foreground",
+                                         "Panel.font");
         LookAndFeel.installBorder(p,"Panel.border");
         LookAndFeel.installProperty(p, "opaque", Boolean.TRUE);
     }

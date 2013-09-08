@@ -1,8 +1,26 @@
 /*
- * @(#)TransientNameService.java	1.49 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.naming.cosnaming;
@@ -80,20 +98,20 @@ public class TransientNameService
     }
 
 
-    /** 
-     * This method initializes Transient Name Service by associating Root 
+    /**
+     * This method initializes Transient Name Service by associating Root
      * context with POA and registering the root context with INS Object Keymap.
-     */ 
+     */
     private void initialize( com.sun.corba.se.spi.orb.ORB orb,
         String nameServiceName )
         throws org.omg.CORBA.INITIALIZE
     {
-	NamingSystemException wrapper = NamingSystemException.get( orb,
-	    CORBALogDomains.NAMING ) ;
+        NamingSystemException wrapper = NamingSystemException.get( orb,
+            CORBALogDomains.NAMING ) ;
 
         try {
-            POA rootPOA = (POA) orb.resolve_initial_references( 
-		ORBConstants.ROOT_POA_NAME );
+            POA rootPOA = (POA) orb.resolve_initial_references(
+                ORBConstants.ROOT_POA_NAME );
             rootPOA.the_POAManager().activate();
 
             int i = 0;
@@ -115,13 +133,13 @@ public class TransientNameService
             initialContext.localRoot =
                 nsPOA.id_to_reference( rootContextId );
             theInitialNamingContext = initialContext.localRoot;
-            orb.register_initial_reference( nameServiceName, 
+            orb.register_initial_reference( nameServiceName,
                 theInitialNamingContext );
         } catch (org.omg.CORBA.SystemException e) {
-	    throw wrapper.transNsCannotCreateInitialNcSys( e ) ;
+            throw wrapper.transNsCannotCreateInitialNcSys( e ) ;
         } catch (Exception e) {
-	    throw wrapper.transNsCannotCreateInitialNc( e ) ;
-        } 
+            throw wrapper.transNsCannotCreateInitialNc( e ) ;
+        }
     }
 
 
@@ -131,7 +149,7 @@ public class TransientNameService
      */
     public org.omg.CORBA.Object initialNamingContext()
     {
-	return theInitialNamingContext;
+        return theInitialNamingContext;
     }
 
 

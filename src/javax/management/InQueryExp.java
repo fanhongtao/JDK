@@ -1,8 +1,26 @@
 /*
- * @(#)InQueryExp.java	4.20 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -15,18 +33,18 @@ package javax.management;
  *
  * @since 1.5
  */
-class InQueryExp extends QueryEval implements QueryExp { 
+class InQueryExp extends QueryEval implements QueryExp {
 
     /* Serial version */
     private static final long serialVersionUID = -5801329450358952434L;
 
-    /** 
-     * @serial The {@link ValueExp} to be found 
+    /**
+     * @serial The {@link ValueExp} to be found
      */
     private ValueExp val;
 
-    /** 
-     * @serial The array of {@link ValueExp} to be searched 
+    /**
+     * @serial The array of {@link ValueExp} to be searched
      */
     private ValueExp[]  valueList;
 
@@ -34,32 +52,32 @@ class InQueryExp extends QueryEval implements QueryExp {
     /**
      * Basic Constructor.
      */
-    public InQueryExp() { 
-    } 
-    
+    public InQueryExp() {
+    }
+
     /**
      * Creates a new InQueryExp with the specified ValueExp to be found in
      * a specified array of ValueExp.
      */
-    public InQueryExp(ValueExp v1, ValueExp items[]) { 
-	val	  = v1;
-	valueList = items;
-    } 
-    
+    public InQueryExp(ValueExp v1, ValueExp items[]) {
+        val       = v1;
+        valueList = items;
+    }
+
 
     /**
      * Returns the checked value of the query.
-     */       
-    public ValueExp getCheckedValue()  { 
-	return val;
-    } 
-    
+     */
+    public ValueExp getCheckedValue()  {
+        return val;
+    }
+
     /**
      * Returns the array of values of the query.
      */
-    public ValueExp[] getExplicitValues()  { 
-	return valueList;
-    } 
+    public ValueExp[] getExplicitValues()  {
+        return valueList;
+    }
 
     /**
      * Applies the InQueryExp on a MBean.
@@ -70,53 +88,56 @@ class InQueryExp extends QueryEval implements QueryExp {
      *
      * @exception BadStringOperationException
      * @exception BadBinaryOpValueExpException
-     * @exception BadAttributeValueExpException 
+     * @exception BadAttributeValueExpException
      * @exception InvalidApplicationException
      */
-    public boolean apply(ObjectName name) throws BadStringOperationException, BadBinaryOpValueExpException,
-	BadAttributeValueExpException, InvalidApplicationException  { 
-	if (valueList != null) {
-	    ValueExp v	    = val.apply(name);
-	    boolean numeric = v instanceof NumericValueExp;
-	    
-	    for (int i = 0; i < valueList.length; i++) {
-		if (numeric) {
-		    if (((NumericValueExp)valueList[i]).doubleValue() ==
-			((NumericValueExp)v).doubleValue()) {
-			return true;
-		    }
-		} else {
-		    if (((StringValueExp)valueList[i]).getValue().equals(
-			((StringValueExp)v).getValue())) {
-			return true;
-		    }
-		}
-	    }
-	}	
-	return false;
-    } 
+    public boolean apply(ObjectName name)
+    throws BadStringOperationException, BadBinaryOpValueExpException,
+        BadAttributeValueExpException, InvalidApplicationException  {
+        if (valueList != null) {
+            ValueExp v      = val.apply(name);
+            boolean numeric = v instanceof NumericValueExp;
+
+            for (ValueExp element : valueList) {
+                element = element.apply(name);
+                if (numeric) {
+                    if (((NumericValueExp) element).doubleValue() ==
+                        ((NumericValueExp) v).doubleValue()) {
+                        return true;
+                    }
+                } else {
+                    if (((StringValueExp) element).getValue().equals(
+                        ((StringValueExp) v).getValue())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     /**
      * Returns the string representing the object.
      */
-    public String toString()  { 
-	return val + " in (" + generateValueList() + ")";
-    } 
+    public String toString()  {
+        return val + " in (" + generateValueList() + ")";
+    }
 
 
     private String generateValueList() {
-	if (valueList == null || valueList.length == 0) {
-	    return "";
-	}
-	
-	StringBuffer result = new StringBuffer(valueList[0].toString());
-	
-	for (int i = 1; i < valueList.length; i++) {
-	    result.append(", ");
-	    result.append(valueList[i]);
-	}
-	
-	return result.toString();
+        if (valueList == null || valueList.length == 0) {
+            return "";
+        }
+
+        final StringBuilder result =
+                new StringBuilder(valueList[0].toString());
+
+        for (int i = 1; i < valueList.length; i++) {
+            result.append(", ");
+            result.append(valueList[i]);
+        }
+
+        return result.toString();
     }
- 
+
  }

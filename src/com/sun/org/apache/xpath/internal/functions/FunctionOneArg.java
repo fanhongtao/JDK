@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,16 +42,16 @@ public class FunctionOneArg extends Function implements ExpressionOwner
   /**
    * Return the first argument passed to the function (at index 0).
    *
-   * @return An expression that represents the first argument passed to the 
+   * @return An expression that represents the first argument passed to the
    *         function.
    */
   public Expression getArg0()
   {
     return m_arg0;
   }
-  
+
   /**
-   * Set an argument expression for a function.  This method is called by the 
+   * Set an argument expression for a function.  This method is called by the
    * XPath compiler.
    *
    * @param arg non-null expression that represents the argument.
@@ -69,7 +73,7 @@ public class FunctionOneArg extends Function implements ExpressionOwner
   }
 
   /**
-   * Check that the number of arguments passed to this function is correct. 
+   * Check that the number of arguments passed to this function is correct.
    *
    *
    * @param argNum The number of arguments that is being passed to the function.
@@ -91,26 +95,26 @@ public class FunctionOneArg extends Function implements ExpressionOwner
   protected void reportWrongNumberArgs() throws WrongNumberArgsException {
       throw new WrongNumberArgsException(XSLMessages.createXPATHMessage("one", null));
   }
-  
+
   /**
-   * Tell if this expression or it's subexpressions can traverse outside 
+   * Tell if this expression or it's subexpressions can traverse outside
    * the current subtree.
-   * 
+   *
    * @return true if traversal outside the context node's subtree can occur.
    */
    public boolean canTraverseOutsideSubtree()
    {
     return m_arg0.canTraverseOutsideSubtree();
    }
-   
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -118,14 +122,14 @@ public class FunctionOneArg extends Function implements ExpressionOwner
     if(null != m_arg0)
       m_arg0.fixupVariables(vars, globalsSize);
   }
-  
+
   /**
    * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callArgVisitors(XPathVisitor visitor)
   {
-  	if(null != m_arg0)
-  		m_arg0.callVisitors(this, visitor);
+        if(null != m_arg0)
+                m_arg0.callVisitors(this, visitor);
   }
 
 
@@ -142,30 +146,30 @@ public class FunctionOneArg extends Function implements ExpressionOwner
    */
   public void setExpression(Expression exp)
   {
-  	exp.exprSetParent(this);
-  	m_arg0 = exp;
+        exp.exprSetParent(this);
+        m_arg0 = exp;
   }
-  
+
   /**
    * @see Expression#deepEquals(Expression)
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!super.deepEquals(expr))
-  		return false;
-  		
-  	if(null != m_arg0)
-  	{
-  		if(null == ((FunctionOneArg)expr).m_arg0)
-  			return false;
-  			
-  		if(!m_arg0.deepEquals(((FunctionOneArg)expr).m_arg0))
-  			return false;
-  	}
-  	else if(null != ((FunctionOneArg)expr).m_arg0)
-  		return false;
+        if(!super.deepEquals(expr))
+                return false;
 
-  	return true;
+        if(null != m_arg0)
+        {
+                if(null == ((FunctionOneArg)expr).m_arg0)
+                        return false;
+
+                if(!m_arg0.deepEquals(((FunctionOneArg)expr).m_arg0))
+                        return false;
+        }
+        else if(null != ((FunctionOneArg)expr).m_arg0)
+                return false;
+
+        return true;
   }
 
 

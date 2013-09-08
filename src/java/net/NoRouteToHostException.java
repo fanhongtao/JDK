@@ -1,8 +1,26 @@
 /*
- * @(#)NoRouteToHostException.java	1.14 05/11/17
+ * Copyright (c) 1996, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -16,15 +34,17 @@ package java.net;
  * @since   JDK1.1
  */
 public class NoRouteToHostException extends SocketException {
+    private static final long serialVersionUID = -1897550894873493790L;
+
     /**
-     * Constructs a new NoRouteToHostException with the specified detail 
+     * Constructs a new NoRouteToHostException with the specified detail
      * message as to why the remote host cannot be reached.
-     * A detail message is a String that gives a specific 
+     * A detail message is a String that gives a specific
      * description of this error.
      * @param msg the detail message
      */
     public NoRouteToHostException(String msg) {
-	super(msg);
+        super(msg);
     }
 
     /**

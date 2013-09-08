@@ -1,8 +1,26 @@
 /*
- * @(#)UnsupportedCallbackException.java	1.12 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.security.auth.callback;
@@ -11,7 +29,6 @@ package javax.security.auth.callback;
  * Signals that a <code>CallbackHandler</code> does not
  * recognize a particular <code>Callback</code>.
  *
- * @version 1.12, 11/17/05
  */
 public class UnsupportedCallbackException extends Exception {
 
@@ -31,8 +48,8 @@ public class UnsupportedCallbackException extends Exception {
      * @param callback the unrecognized <code>Callback</code>.
      */
     public UnsupportedCallbackException(Callback callback) {
-	super();
-	this.callback = callback;
+        super();
+        this.callback = callback;
     }
 
     /**
@@ -47,8 +64,8 @@ public class UnsupportedCallbackException extends Exception {
      * @param msg the detail message.
      */
     public UnsupportedCallbackException(Callback callback, String msg) {
-	super(msg);
-	this.callback = callback;
+        super(msg);
+        this.callback = callback;
     }
 
     /**
@@ -59,6 +76,6 @@ public class UnsupportedCallbackException extends Exception {
      * @return the unrecognized <code>Callback</code>.
      */
     public Callback getCallback() {
-	return callback;
+        return callback;
     }
 }

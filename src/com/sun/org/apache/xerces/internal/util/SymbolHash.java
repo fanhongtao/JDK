@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,7 +28,7 @@ package com.sun.org.apache.xerces.internal.util;
  * The hash code uses the same algorithm as SymbolTable class.
  * 
  * @author Elena Litani
- * @version $Id: SymbolHash.java,v 1.2.6.1 2005/09/01 09:28:40 neerajbj Exp $
+ * @version $Id: SymbolHash.java,v 1.7 2010-11-01 04:40:14 joehw Exp $
  */
 public class SymbolHash {
 
@@ -40,7 +44,7 @@ public class SymbolHash {
     //
 
     /** Buckets. */
-    protected Entry[] fBuckets; 
+    protected Entry[] fBuckets;
 
     /** Number of elements. */
     protected int fNum = 0;
@@ -56,7 +60,7 @@ public class SymbolHash {
 
     /**
      * Constructs a key table with a given size.
-     * 
+     *
      * @param size  the size of the key table.
      */
     public SymbolHash(int size) {
@@ -69,12 +73,12 @@ public class SymbolHash {
     //
 
     /**
-     * Adds the key/value mapping to the key table. If the key already exists, 
+     * Adds the key/value mapping to the key table. If the key already exists,
      * the previous value associated with this key is overwritten by the new
      * value.
-     * 
+     *
      * @param key
-     * @param value 
+     * @param value
      */
     public void put(Object key, Object value) {
         int bucket = (key.hashCode() & 0x7FFFFFFF) % fTableSize;
@@ -94,7 +98,7 @@ public class SymbolHash {
 
     /**
      * Get the value associated with the given key.
-     * 
+     *
      * @param key
      * @return the value associated with the given key.
      */
@@ -109,16 +113,16 @@ public class SymbolHash {
 
     /**
      * Get the number of key/value pairs stored in this table.
-     * 
+     *
      * @return the number of key/value pairs stored in this table.
      */
     public int getLength() {
         return fNum;
     }
-    
+
     /**
      * Add all values to the given array. The array must have enough entry.
-     * 
+     *
      * @param elements  the array to store the elements
      * @param from      where to start store element in the array
      * @return          number of elements copied to the array
@@ -132,7 +136,22 @@ public class SymbolHash {
         }
         return fNum;
     }
-    
+
+    /**
+     * Return key/value pairs of all entries in the map
+     */
+    public Object[] getEntries() {
+        Object[] entries = new Object[fNum << 1];
+        for (int i=0, j=0; i<fTableSize && j<fNum << 1; i++) {
+            for (Entry entry = fBuckets[i]; entry != null; entry = entry.next) {
+                entries[j] = entry.key;
+                entries[++j] = entry.value;
+                j++;
+            }
+        }
+        return entries;
+    }
+
     /**
      * Make a clone of this object.
      */
@@ -145,7 +164,7 @@ public class SymbolHash {
         }
         return newTable;
     }
-    
+
     /**
      * Remove all key/value assocaition. This tries to save a bit of GC'ing
      * by at least keeping the fBuckets array around.
@@ -165,7 +184,7 @@ public class SymbolHash {
         }
         return null;
     }
-    
+
     //
     // Classes
     //
@@ -192,7 +211,7 @@ public class SymbolHash {
             this.value = value;
             this.next = next;
         }
-        
+
         public Entry makeClone() {
             Entry entry = new Entry();
             entry.key = key;

@@ -1,8 +1,26 @@
 /*
- * @(#)DebugGraphicsFilter.java	1.12 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing;
@@ -11,8 +29,7 @@ import java.awt.*;
 import java.awt.image.*;
 
 /** Color filter for DebugGraphics, used for images only.
-  * 
-  * @version 1.12 11/17/05
+  *
   * @author Dave Karlton
   */
 class DebugGraphicsFilter extends RGBImageFilter {

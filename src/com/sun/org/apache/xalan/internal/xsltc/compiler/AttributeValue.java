@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,20 +31,20 @@ package com.sun.org.apache.xalan.internal.xsltc.compiler;
 abstract class AttributeValue extends Expression {
 
     public static final AttributeValue create(SyntaxTreeNode parent,
-					      String text, Parser parser) {
+                                              String text, Parser parser) {
 
-	AttributeValue result;
-	if (text.indexOf('{') != -1) {
-	    result = new AttributeValueTemplate(text, parser, parent);
-	}
-	else if (text.indexOf('}') != -1) {
-	    result = new AttributeValueTemplate(text, parser, parent);
-	}
-	else {
-	    result = new SimpleAttributeValue(text);
-	    result.setParser(parser);
-	    result.setParent(parent);
-	}
-	return result;
+        AttributeValue result;
+        if (text.indexOf('{') != -1) {
+            result = new AttributeValueTemplate(text, parser, parent);
+        }
+        else if (text.indexOf('}') != -1) {
+            result = new AttributeValueTemplate(text, parser, parent);
+        }
+        else {
+            result = new SimpleAttributeValue(text);
+            result.setParser(parser);
+            result.setParent(parent);
+        }
+        return result;
     }
 }

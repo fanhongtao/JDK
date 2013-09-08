@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +68,7 @@ public class OpMap
    * Amount to grow token queue when it becomes full
    */
   static final int BLOCKTOKENQUEUESIZE = 500;
-  
+
   /**
    *  TokenStack is the queue of used tokens. The current token is the token at the
    * end of the m_tokenQueue. The idea is that the queue can be marked and a sequence
@@ -107,7 +111,7 @@ public class OpMap
   public int getTokenQueueSize()
   {
     return m_tokenQueue.size();
-    
+
   }
 
   /**
@@ -184,12 +188,12 @@ public class OpMap
   {
      m_opMap.setElementAt(value,opPos);
   }
-  
+
   /**
    * Given an operation position, return the end position, i.e. the
    * beginning of the next operation.
    *
-   * @param opPos An op position of an operation for which there is a size 
+   * @param opPos An op position of an operation for which there is a size
    *              entry following.
    * @return position of next operation in m_opMap.
    */
@@ -238,7 +242,7 @@ public class OpMap
     else
     {
       throw new RuntimeException(
-        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_UNKNOWN_STEP, new Object[]{new Integer(stepType).toString()})); 
+        XSLMessages.createXPATHMessage(XPATHErrorResources.ER_UNKNOWN_STEP, new Object[]{new Integer(stepType).toString()}));
       //"Programmer's assertion in getNextStepPos: unknown stepType: " + stepType);
     }
   }
@@ -265,7 +269,7 @@ public class OpMap
    *  boolean hasPredicates =
    *            OpCodes.OP_PREDICATE == xpath.getOp(posOfPredicate);
    *
-   * @param opPos position of FROM_stepType op. 
+   * @param opPos position of FROM_stepType op.
    * @return position of predicate in FROM_stepType structure.
    */
   public int getFirstPredicateOpPos(int opPos)
@@ -295,25 +299,25 @@ public class OpMap
       return -1;
     }
   }
-  
+
   /**
    * Tell the user of an error, and probably throw an
    * exception.
    *
-   * @param msg An error msgkey that corresponds to one of the constants found 
-   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is 
+   * @param msg An error msgkey that corresponds to one of the constants found
+   *            in {@link com.sun.org.apache.xpath.internal.res.XPATHErrorResources}, which is
    *            a key for a format string.
-   * @param args An array of arguments represented in the format string, which 
+   * @param args An array of arguments represented in the format string, which
    *             may be null.
    *
-   * @throws TransformerException if the current ErrorListoner determines to 
+   * @throws TransformerException if the current ErrorListoner determines to
    *                              throw an exception.
    */
   public void error(String msg, Object[] args) throws javax.xml.transform.TransformerException
   {
 
     java.lang.String fmsg = com.sun.org.apache.xalan.internal.res.XSLMessages.createXPATHMessage(msg, args);
-    
+
 
     throw new javax.xml.transform.TransformerException(fmsg);
   }
@@ -369,7 +373,7 @@ public class OpMap
 
   /**
    * Get the test type of the step, i.e. NODETYPE_XXX value.
-   * 
+   *
    * @param opPosOfStep The position of the FROM_XXX step.
    *
    * @return NODETYPE_XXX value.
@@ -381,7 +385,7 @@ public class OpMap
 
   /**
    * Get the namespace of the step.
-   * 
+   *
    * @param opPosOfStep The position of the FROM_XXX step.
    *
    * @return The step's namespace, NodeTest.WILD, or null for null namespace.
@@ -440,7 +444,7 @@ public class OpMap
       break;  // Should assert error
     }
 
-    // int index = (argLenOfStep == 3) ? m_opMap[opPosOfStep+5] 
+    // int index = (argLenOfStep == 3) ? m_opMap[opPosOfStep+5]
     //                                  : ((argLenOfStep == 1) ? -3 : -2);
     if (index >= 0)
       return (String) m_tokenQueue.elementAt(index).toString();
@@ -449,5 +453,5 @@ public class OpMap
     else
       return null;
   }
-  
+
 }

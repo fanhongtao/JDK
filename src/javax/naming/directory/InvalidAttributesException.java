@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidAttributesException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.directory;
@@ -12,8 +30,8 @@ import javax.naming.NamingException;
 /**
   * This exception is thrown when an attempt is
   * made to add or modify an attribute set that has been specified
-  * incompletely or incorrectly. This could happen, for example, 
-  * when attempting to add or modify a binding, or to create a new 
+  * incompletely or incorrectly. This could happen, for example,
+  * when attempting to add or modify a binding, or to create a new
   * subcontext without specifying all the mandatory attributes
   * required for creation of the object.  Another situation in
   * which this exception is thrown is by specification of incompatible
@@ -25,7 +43,6 @@ import javax.naming.NamingException;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
 
@@ -33,11 +50,11 @@ public class InvalidAttributesException extends NamingException {
     /**
      * Constructs a new instance of InvalidAttributesException using an
      * explanation. All other fields are set to null.
-     * @param	explanation	Additional detail about this exception. Can be null.
+     * @param   explanation     Additional detail about this exception. Can be null.
      * @see java.lang.Throwable#getMessage
      */
     public InvalidAttributesException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -45,7 +62,7 @@ public class InvalidAttributesException extends NamingException {
       * All fields are set to null.
       */
     public InvalidAttributesException() {
-	super();
+        super();
     }
 
     /**

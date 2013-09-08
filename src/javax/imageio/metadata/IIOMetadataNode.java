@@ -1,8 +1,26 @@
 /*
- * @(#)IIOMetadataNode.java	1.36 02/03/21
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.metadata;
@@ -91,7 +109,7 @@ class IIONamedNodeMap implements NamedNodeMap {
 }
 
 class IIONodeList implements NodeList {
-    
+
     List nodes;
 
     public IIONodeList(List nodes) {
@@ -101,7 +119,7 @@ class IIONodeList implements NodeList {
     public int getLength() {
         return nodes.size();
     }
-    
+
     public Node item(int index) {
         if (index < 0 || index > nodes.size()) {
             return null;
@@ -111,8 +129,6 @@ class IIONodeList implements NodeList {
 }
 
 class IIOAttr extends IIOMetadataNode implements Attr {
-
-    boolean specified = true;
 
     Element owner;
     String name;
@@ -131,13 +147,13 @@ class IIOAttr extends IIOMetadataNode implements Attr {
     public String getNodeName() {
         return name;
     }
-    
+
     public short getNodeType() {
         return ATTRIBUTE_NODE;
     }
 
     public boolean getSpecified() {
-        return specified;
+        return true;
     }
 
     public String getValue() {
@@ -164,62 +180,17 @@ class IIOAttr extends IIOMetadataNode implements Attr {
         this.owner = owner;
     }
 
-    // Start of dummy methods for DOM L3. PENDING: Please revisit
-    public boolean isId( ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    /** This method is new in the DOM L3 for Attr interface.
+     * Could throw DOMException here, but its probably OK
+     * to always return false. One reason for this, is we have no good
+     * way to document this exception, since this class, IIOAttr,
+     * is not a public class. The rest of the methods that throw
+     * DOMException are publically documented as such on IIOMetadataNode.
+     * @return false
+     */
+    public boolean isId() {
+        return false;
     }
-    public TypeInfo getSchemaTypeInfo() {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-    public Object setUserData(String key,
-                              Object data,
-                              UserDataHandler handler) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-
-
-    public Object getUserData ( String key ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-
-    public Object getFeature ( String feature, String version ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-    public boolean isEqualNode( Node node ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-    public boolean isSameNode( Node node ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-
-    public String lookupNamespaceURI( String prefix ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-    public boolean isDefaultNamespace(String namespaceURI) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-
-    public String lookupPrefix(String namespaceURI) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-
-
-    String textContent;
-    public String getTextContent() throws DOMException {
-        return textContent;
-    }
-    public void setTextContent(String textContent) throws DOMException{
-        this.textContent = textContent; //PENDING
-    }
-    public short compareDocumentPosition(Node other)
-                                         throws DOMException {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-
-    public String getBaseURI() {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-    // End of dummy methods for DOM L3. PENDING: Please revisit
 
 
 }
@@ -242,11 +213,19 @@ class IIOAttr extends IIOMetadataNode implements Attr {
  * <p> Namespaces are ignored in this implementation.  The terms "tag
  * name" and "node name" are always considered to be synonymous.
  *
+ * <em>Note:</em>
+ * The DOM Level 3 specification added a number of new methods to the
+ * {@code Node}, {@code Element} and {@code Attr} interfaces that are not
+ * of value to the {@code IIOMetadataNode} implementation or specification.
+ *
+ * Calling such methods on an {@code IIOMetadataNode}, or an {@code Attr}
+ * instance returned from an {@code IIOMetadataNode} will result in a
+ * {@code DOMException} being thrown.
+ *
  * @see IIOMetadata#getAsTree
  * @see IIOMetadata#setFromTree
  * @see IIOMetadata#mergeTree
  *
- * @version 0.5
  */
 public class IIOMetadataNode implements Element, NodeList {
 
@@ -288,7 +267,7 @@ public class IIOMetadataNode implements Element, NodeList {
      * <code>null</code> if this node is a leaf node.
      */
     private IIOMetadataNode lastChild = null;
-    
+
     /**
      * The next (right) sibling node of this node, or
      * <code>null</code> if this node is its parent's last child node.
@@ -347,11 +326,19 @@ public class IIOMetadataNode implements Element, NodeList {
         return nodeName;
     }
 
-    public String getNodeValue() throws DOMException {
+    /**
+     * Returns the value associated with this node.
+     *
+     * @return the node value, as a <code>String</code>.
+     */
+    public String getNodeValue(){
         return nodeValue;
     }
 
-    public void setNodeValue(String nodeValue) throws DOMException {
+    /**
+     * Sets the <code>String</code> value associated with this node.
+     */
+    public void setNodeValue(String nodeValue) {
         this.nodeValue = nodeValue;
     }
 
@@ -364,14 +351,14 @@ public class IIOMetadataNode implements Element, NodeList {
     public short getNodeType() {
         return ELEMENT_NODE;
     }
-    
+
     /**
      * Returns the parent of this node.  A <code>null</code> value
      * indicates that the node is the root of its own tree.  To add a
      * node to an existing tree, use one of the
      * <code>insertBefore</code>, <code>replaceChild</code>, or
      * <code>appendChild</code> methods.
-     * 
+     *
      * @return the parent, as a <code>Node</code>.
      *
      * @see #insertBefore
@@ -382,6 +369,13 @@ public class IIOMetadataNode implements Element, NodeList {
         return parent;
     }
 
+    /**
+     * Returns a <code>NodeList</code> that contains all children of this node.
+     * If there are no children, this is a <code>NodeList</code> containing
+     * no nodes.
+     *
+     * @return the children as a <code>NodeList</code>
+     */
     public NodeList getChildNodes() {
         return this;
     }
@@ -430,6 +424,13 @@ public class IIOMetadataNode implements Element, NodeList {
         return nextSibling;
     }
 
+    /**
+     * Returns a <code>NamedNodeMap</code> containing the attributes of
+     * this node.
+     *
+     * @return a <code>NamedNodeMap</code> containing the attributes of
+     * this node.
+     */
     public NamedNodeMap getAttributes() {
         return new IIONamedNodeMap(attributes);
     }
@@ -458,7 +459,7 @@ public class IIOMetadataNode implements Element, NodeList {
      * @exception IllegalArgumentException if <code>newChild</code> is
      * <code>null</code>.
      */
-    public Node insertBefore(Node newChild, 
+    public Node insertBefore(Node newChild,
                              Node refChild) {
         if (newChild == null) {
             throw new IllegalArgumentException("newChild == null!");
@@ -493,7 +494,7 @@ public class IIOMetadataNode implements Element, NodeList {
         newChildNode.parent = this;
         newChildNode.previousSibling = previous;
         newChildNode.nextSibling = next;
-        
+
         // N.B.: O.K. if refChild == null
         if (this.firstChild == refChildNode) {
             this.firstChild = newChildNode;
@@ -516,12 +517,12 @@ public class IIOMetadataNode implements Element, NodeList {
      * @exception IllegalArgumentException if <code>newChild</code> is
      * <code>null</code>.
      */
-    public Node replaceChild(Node newChild, 
+    public Node replaceChild(Node newChild,
                              Node oldChild) {
         if (newChild == null) {
             throw new IllegalArgumentException("newChild == null!");
         }
-        
+
         checkNode(newChild);
         checkNode(oldChild);
 
@@ -656,7 +657,7 @@ public class IIOMetadataNode implements Element, NodeList {
                 newNode.appendChild(child.cloneNode(true));
             }
         }
-        
+
         return newNode;
     }
 
@@ -698,7 +699,7 @@ public class IIOMetadataNode implements Element, NodeList {
         return null;
     }
 
-    /** 
+    /**
      * Does nothing, since namespaces are not supported.
      *
      * @param prefix a <code>String</code>, which is ignored.
@@ -719,10 +720,22 @@ public class IIOMetadataNode implements Element, NodeList {
 
     // Methods from Element
 
+
+    /**
+     * Equivalent to <code>getNodeName</code>.
+     *
+     * @return the node name, as a <code>String</code>
+     */
     public String getTagName() {
         return nodeName;
     }
-    
+
+    /**
+     * Retrieves an attribute value by name.
+     * @param name The name of the attribute to retrieve.
+     * @return The <code>Attr</code> value as a string, or the empty string
+     * if that attribute does not have a specified or default value.
+     */
     public String getAttribute(String name) {
         Attr attr = getAttributeNode(name);
         if (attr == null) {
@@ -741,9 +754,16 @@ public class IIOMetadataNode implements Element, NodeList {
     }
 
     public void setAttribute(String name, String value) {
-        // Note minor dependency on Crimson package
-        // Steal the code if Crimson ever goes away
-        if (!com.sun.imageio.metadata.XmlNames.isName(name)) {
+        // Name must be valid unicode chars
+        boolean valid = true;
+        char[] chs = name.toCharArray();
+        for (int i=0;i<chs.length;i++) {
+            if (chs[i] >= 0xfffe) {
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) {
             throw new IIODOMException(DOMException.INVALID_CHARACTER_ERR,
                                       "Attribute name is illegal!");
         }
@@ -782,7 +802,7 @@ public class IIOMetadataNode implements Element, NodeList {
                                       "No such attribute!");
         }
     }
-    
+
     /**
      * Equivalent to <code>removeAttribute(localName)</code>.
      */
@@ -800,7 +820,7 @@ public class IIOMetadataNode implements Element, NodeList {
      * Equivalent to <code>getAttributeNode(localName)</code>.
      *
      * @see #setAttributeNodeNS
-     */ 
+     */
    public Attr getAttributeNodeNS(String namespaceURI,
                                    String localName) {
         return getAttributeNode(localName);
@@ -836,7 +856,7 @@ public class IIOMetadataNode implements Element, NodeList {
 
         return oldAttr;
     }
-    
+
     /**
      * Equivalent to <code>setAttributeNode(newAttr)</code>.
      *
@@ -850,7 +870,7 @@ public class IIOMetadataNode implements Element, NodeList {
         removeAttribute(oldAttr.getName());
         return oldAttr;
     }
-     
+
     public NodeList getElementsByTagName(String name) {
         List l = new ArrayList();
         getElementsByTagName(name, l);
@@ -868,7 +888,7 @@ public class IIOMetadataNode implements Element, NodeList {
             child = child.getNextSibling();
         }
     }
-    
+
     /**
      * Equivalent to <code>getElementsByTagName(localName)</code>.
      */
@@ -878,7 +898,7 @@ public class IIOMetadataNode implements Element, NodeList {
     }
 
     public boolean hasAttributes() {
-	return attributes.size() > 0;
+        return attributes.size() > 0;
     }
 
     public boolean hasAttribute(String name) {
@@ -933,78 +953,180 @@ public class IIOMetadataNode implements Element, NodeList {
         this.userObject = userObject;
     }
 
-    // Start of dummy methods for DOM L3. PENDING: Please revisit
+    // Start of dummy methods for DOM L3.
+
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
     public void setIdAttribute(String name,
                                boolean isId)
                                throws DOMException {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
 
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
     public void setIdAttributeNS(String namespaceURI,
                                  String localName,
                                  boolean isId)
                                  throws DOMException {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
 
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
     public void setIdAttributeNode(Attr idAttr,
                                    boolean isId)
                                    throws DOMException {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
 
-    public TypeInfo getSchemaTypeInfo() {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public TypeInfo getSchemaTypeInfo() throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
 
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
     public Object setUserData(String key,
                               Object data,
-                              UserDataHandler handler) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+                              UserDataHandler handler) throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
 
-
-    public Object getUserData ( String key ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-    public Object getFeature ( String feature, String version ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-
-    public boolean isSameNode( Node node ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public Object getUserData(String key) throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
 
-    public boolean isEqualNode( Node node ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-    public String lookupNamespaceURI( String prefix ) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
-    }
-    public boolean isDefaultNamespace(String namespaceURI) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public Object getFeature(String feature, String version)
+                              throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
 
-    public String lookupPrefix(String namespaceURI) {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public boolean isSameNode(Node node) throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
-    String textContent;
+
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public boolean isEqualNode(Node node) throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
+    }
+
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public String lookupNamespaceURI(String prefix) throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
+    }
+
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public boolean isDefaultNamespace(String namespaceURI)
+                                               throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
+    }
+
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public String lookupPrefix(String namespaceURI) throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
+    }
+
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
     public String getTextContent() throws DOMException {
-        return textContent;
-    }
-    public void setTextContent(String textContent) throws DOMException{
-        this.textContent = textContent; //PENDING
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
 
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public void setTextContent(String textContent) throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
+    }
 
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
     public short compareDocumentPosition(Node other)
                                          throws DOMException {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
-    public String getBaseURI() {
-        throw new DOMException(DOMException.NOT_SUPPORTED_ERR, "Method not supported");
+
+    /**
+     * This DOM Level 3 method is not supported for {@code IIOMetadataNode}
+     * and will throw a {@code DOMException}.
+     * @throws DOMException - always.
+     */
+    public String getBaseURI() throws DOMException {
+        throw new DOMException(DOMException.NOT_SUPPORTED_ERR,
+                               "Method not supported");
     }
-    //End of dummy methods for DOM L3. Please revisit
+    //End of dummy methods for DOM L3.
 
 
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)WrapperInputStream.java	1.8 05/11/17
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.encoding;
@@ -61,7 +79,7 @@ public class WrapperInputStream extends org.omg.CORBA_2_3.portable.InputStream i
     public int read() throws IOException { return stream.read(); }
     public int read(byte b[]) throws IOException { return stream.read(b); }
     public int read(byte b[], int off, int len) throws IOException {
-	return stream.read(b, off, len);
+        return stream.read(b, off, len);
     }
     public long skip(long n) throws IOException { return stream.skip(n); }
     public int available() throws IOException { return stream.available(); }
@@ -87,40 +105,40 @@ public class WrapperInputStream extends org.omg.CORBA_2_3.portable.InputStream i
     public String read_wstring() { return stream.read_wstring(); }
 
     public void read_boolean_array(boolean[] value, int offset, int length) {
-	stream.read_boolean_array(value, offset, length);
+        stream.read_boolean_array(value, offset, length);
     }
     public void read_char_array(char[] value, int offset, int length) {
-	stream.read_char_array(value, offset, length);
+        stream.read_char_array(value, offset, length);
     }
     public void read_wchar_array(char[] value, int offset, int length) {
-	stream.read_wchar_array(value, offset, length);
+        stream.read_wchar_array(value, offset, length);
     }
     public void read_octet_array(byte[] value, int offset, int length) {
-	stream.read_octet_array(value, offset, length);
+        stream.read_octet_array(value, offset, length);
     }
     public void read_short_array(short[] value, int offset, int length) {
-	stream.read_short_array(value, offset, length);
+        stream.read_short_array(value, offset, length);
     }
     public void read_ushort_array(short[] value, int offset, int length) {
-	stream.read_ushort_array(value, offset, length);
+        stream.read_ushort_array(value, offset, length);
     }
     public void read_long_array(int[] value, int offset, int length) {
-	stream.read_long_array(value, offset, length);
+        stream.read_long_array(value, offset, length);
     }
     public void read_ulong_array(int[] value, int offset, int length) {
-	stream.read_ulong_array(value, offset, length);
+        stream.read_ulong_array(value, offset, length);
     }
     public void read_longlong_array(long[] value, int offset, int length) {
-	stream.read_longlong_array(value, offset, length);
+        stream.read_longlong_array(value, offset, length);
     }
     public void read_ulonglong_array(long[] value, int offset, int length) {
-	stream.read_ulonglong_array(value, offset, length);
+        stream.read_ulonglong_array(value, offset, length);
     }
     public void read_float_array(float[] value, int offset, int length) {
-	stream.read_float_array(value, offset, length);
+        stream.read_float_array(value, offset, length);
     }
     public void read_double_array(double[] value, int offset, int length) {
-	stream.read_double_array(value, offset, length);
+        stream.read_double_array(value, offset, length);
     }
 
     public org.omg.CORBA.Object read_Object() { return stream.read_Object(); }
@@ -144,7 +162,7 @@ public class WrapperInputStream extends org.omg.CORBA_2_3.portable.InputStream i
 
     public TypeCodeImpl getTypeCodeAtPosition(int position) {
         if (typeMap == null)
-	    return null;
+            return null;
         //if (TypeCodeImpl.debug) System.out.println("Getting tc " + (TypeCodeImpl)typeMap.get(new Integer(position)) +
             //" at position " + position);
         return (TypeCodeImpl)typeMap.get(new Integer(position));

@@ -1,8 +1,26 @@
 /*
- * @(#)Name.java	1.2 06/07/31
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
@@ -29,7 +47,6 @@ package javax.lang.model.element;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.2 06/07/31
  * @see javax.lang.model.util.Elements#getName
  * @since 1.6
  */
@@ -44,9 +61,9 @@ public interface Name extends CharSequence {
      *
      * @param obj  the object to be compared with this element
      * @return {@code true} if the specified object represents the same
-     *		name as this
+     *          name as this
      * @see Element#equals
-     */ 
+     */
     boolean equals(Object obj);
 
     /**
@@ -65,7 +82,7 @@ public interface Name extends CharSequence {
      * of {@code char} values as the specified sequence, {@code false}
      * otherwise
      *
-     * @param cs The sequence to compare this name against 
+     * @param cs The sequence to compare this name against
      * @see String#contentEquals(CharSequence)
      */
     boolean contentEquals(CharSequence cs);

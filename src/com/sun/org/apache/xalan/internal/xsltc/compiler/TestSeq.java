@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,8 +41,8 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
  *      (element sequence only) or matching "@*" (attribute
  *      sequence only).
  *
- * A test sequence may have a default template, which will be 
- * instantiated if none of the other patterns match. 
+ * A test sequence may have a default template, which will be
+ * instantiated if none of the other patterns match.
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
  * @author Erwin Bolwidt <ejb@klomp.org>
@@ -81,13 +85,13 @@ final class TestSeq {
      * Creates a new test sequence given a set of patterns and a mode.
      */
     public TestSeq(Vector patterns, Mode mode) {
-	this(patterns, -2, mode);
+        this(patterns, -2, mode);
     }
 
     public TestSeq(Vector patterns, int kernelType, Mode mode) {
-	_patterns = patterns;
-	_kernelType = kernelType;
-	_mode = mode;
+        _patterns = patterns;
+        _kernelType = kernelType;
+        _mode = mode;
     }
 
     /**
@@ -96,29 +100,29 @@ final class TestSeq {
      * method is different before and after calling reduce().
      */
     public String toString() {
-	final int count = _patterns.size();
-	final StringBuffer result = new StringBuffer();
+        final int count = _patterns.size();
+        final StringBuffer result = new StringBuffer();
 
-	for (int i = 0; i < count; i++) {
-	    final LocationPathPattern pattern =
-		(LocationPathPattern) _patterns.elementAt(i);
+        for (int i = 0; i < count; i++) {
+            final LocationPathPattern pattern =
+                (LocationPathPattern) _patterns.elementAt(i);
 
-	    if (i == 0) {
-		result.append("Testseq for kernel " + _kernelType)
-		      .append('\n');
-	    }
-	    result.append("   pattern " + i + ": ")
-	          .append(pattern.toString())
-		  .append('\n');
-	}
-	return result.toString();
+            if (i == 0) {
+                result.append("Testseq for kernel " + _kernelType)
+                      .append('\n');
+            }
+            result.append("   pattern " + i + ": ")
+                  .append(pattern.toString())
+                  .append('\n');
+        }
+        return result.toString();
     }
 
     /**
      * Returns the instruction list for this test sequence
      */
     public InstructionList getInstructionList() {
-	return _instructionList;
+        return _instructionList;
     }
 
     /**
@@ -127,19 +131,19 @@ final class TestSeq {
      * of the default pattern.
      */
     public double getPriority() {
-	final Template template = (_patterns.size() == 0) ? _default 
-	    : ((Pattern) _patterns.elementAt(0)).getTemplate();
-	return template.getPriority();
+        final Template template = (_patterns.size() == 0) ? _default
+            : ((Pattern) _patterns.elementAt(0)).getTemplate();
+        return template.getPriority();
     }
 
     /**
-     * Returns the position of the highest priority pattern in 
+     * Returns the position of the highest priority pattern in
      * this test sequence.
      */
     public int getPosition() {
-	final Template template = (_patterns.size() == 0) ? _default 
-	    : ((Pattern) _patterns.elementAt(0)).getTemplate();
-	return template.getPosition();
+        final Template template = (_patterns.size() == 0) ? _default
+            : ((Pattern) _patterns.elementAt(0)).getTemplate();
+        return template.getPosition();
     }
 
     /**
@@ -148,138 +152,138 @@ final class TestSeq {
      * finds a patterns that is fully reduced.
      */
     public void reduce() {
-	final Vector newPatterns = new Vector();
+        final Vector newPatterns = new Vector();
 
-	final int count = _patterns.size();
-	for (int i = 0; i < count; i++) {
-	    final LocationPathPattern pattern =
-		(LocationPathPattern)_patterns.elementAt(i);
-		
-	    // Reduce this pattern
-	    pattern.reduceKernelPattern();
-			
-	    // Is this pattern fully reduced?
-	    if (pattern.isWildcard()) {
-		_default = pattern.getTemplate();
-		break; 		// Ignore following patterns 
-	    }
-	    else {
-		newPatterns.addElement(pattern);
-	    }
-	}
-	_patterns = newPatterns;
+        final int count = _patterns.size();
+        for (int i = 0; i < count; i++) {
+            final LocationPathPattern pattern =
+                (LocationPathPattern)_patterns.elementAt(i);
+
+            // Reduce this pattern
+            pattern.reduceKernelPattern();
+
+            // Is this pattern fully reduced?
+            if (pattern.isWildcard()) {
+                _default = pattern.getTemplate();
+                break;          // Ignore following patterns
+            }
+            else {
+                newPatterns.addElement(pattern);
+            }
+        }
+        _patterns = newPatterns;
     }
 
     /**
-     * Returns, by reference, the templates that are included in 
-     * this test sequence. Note that a single template can occur 
+     * Returns, by reference, the templates that are included in
+     * this test sequence. Note that a single template can occur
      * in several test sequences if its pattern is a union.
      */
     public void findTemplates(Dictionary templates) {
-	if (_default != null) {
-	    templates.put(_default, this);
-	}
-	for (int i = 0; i < _patterns.size(); i++) {
-	    final LocationPathPattern pattern =
-		(LocationPathPattern)_patterns.elementAt(i);
-	    templates.put(pattern.getTemplate(), this);
-	}
+        if (_default != null) {
+            templates.put(_default, this);
+        }
+        for (int i = 0; i < _patterns.size(); i++) {
+            final LocationPathPattern pattern =
+                (LocationPathPattern)_patterns.elementAt(i);
+            templates.put(pattern.getTemplate(), this);
+        }
     }
 
     /**
-     * Get the instruction handle to a template's code. This is 
-     * used when a single template occurs in several test 
-     * sequences; that is, if its pattern is a union of patterns 
+     * Get the instruction handle to a template's code. This is
+     * used when a single template occurs in several test
+     * sequences; that is, if its pattern is a union of patterns
      * (e.g. match="A/B | A/C").
      */
     private InstructionHandle getTemplateHandle(Template template) {
-	return (InstructionHandle)_mode.getTemplateInstructionHandle(template);
+        return (InstructionHandle)_mode.getTemplateInstructionHandle(template);
     }
 
     /**
      * Returns pattern n in this test sequence
      */
     private LocationPathPattern getPattern(int n) {
-	return (LocationPathPattern)_patterns.elementAt(n);
+        return (LocationPathPattern)_patterns.elementAt(n);
     }
 
     /**
-     * Compile the code for this test sequence. Compile patterns 
-     * from highest to lowest priority. Note that since patterns 
-     * can be share by multiple test sequences, instruction lists 
+     * Compile the code for this test sequence. Compile patterns
+     * from highest to lowest priority. Note that since patterns
+     * can be share by multiple test sequences, instruction lists
      * must be copied before backpatching.
      */
     public InstructionHandle compile(ClassGenerator classGen,
-				     MethodGenerator methodGen,
-				     InstructionHandle continuation) 
+                                     MethodGenerator methodGen,
+                                     InstructionHandle continuation)
     {
-	// Returned cached value if already compiled
-	if (_start != null) {
-	    return _start;
-	}
+        // Returned cached value if already compiled
+        if (_start != null) {
+            return _start;
+        }
 
-	// If not patterns, then return handle for default template
-	final int count = _patterns.size();
-	if (count == 0) {
-	    return (_start = getTemplateHandle(_default));
-	}
+        // If not patterns, then return handle for default template
+        final int count = _patterns.size();
+        if (count == 0) {
+            return (_start = getTemplateHandle(_default));
+        }
 
-	// Init handle to jump when all patterns failed
-	InstructionHandle fail = (_default == null) ? continuation
-	    : getTemplateHandle(_default);
-	
-	// Compile all patterns in reverse order
-	for (int n = count - 1; n >= 0; n--) {
-	    final LocationPathPattern pattern = getPattern(n);
-	    final Template template = pattern.getTemplate();
-	    final InstructionList il = new InstructionList();
+        // Init handle to jump when all patterns failed
+        InstructionHandle fail = (_default == null) ? continuation
+            : getTemplateHandle(_default);
 
-	    // Patterns expect current node on top of stack
-	    il.append(methodGen.loadCurrentNode());
+        // Compile all patterns in reverse order
+        for (int n = count - 1; n >= 0; n--) {
+            final LocationPathPattern pattern = getPattern(n);
+            final Template template = pattern.getTemplate();
+            final InstructionList il = new InstructionList();
 
-	    // Apply the test-code compiled for the pattern
-	    InstructionList ilist = methodGen.getInstructionList(pattern);
-	    if (ilist == null) {
-		ilist = pattern.compile(classGen, methodGen);
-		methodGen.addInstructionList(pattern, ilist);
-	    }
+            // Patterns expect current node on top of stack
+            il.append(methodGen.loadCurrentNode());
 
-	    // Make a copy of the instruction list for backpatching
-	    InstructionList copyOfilist = ilist.copy();
+            // Apply the test-code compiled for the pattern
+            InstructionList ilist = methodGen.getInstructionList(pattern);
+            if (ilist == null) {
+                ilist = pattern.compile(classGen, methodGen);
+                methodGen.addInstructionList(pattern, ilist);
+            }
 
-	    FlowList trueList = pattern.getTrueList();
-	    if (trueList != null) {
-		trueList = trueList.copyAndRedirect(ilist, copyOfilist);
-	    }
-	    FlowList falseList = pattern.getFalseList();
-	    if (falseList != null) {
-		falseList = falseList.copyAndRedirect(ilist, copyOfilist);
-	    }
+            // Make a copy of the instruction list for backpatching
+            InstructionList copyOfilist = ilist.copy();
 
-	    il.append(copyOfilist);
+            FlowList trueList = pattern.getTrueList();
+            if (trueList != null) {
+                trueList = trueList.copyAndRedirect(ilist, copyOfilist);
+            }
+            FlowList falseList = pattern.getFalseList();
+            if (falseList != null) {
+                falseList = falseList.copyAndRedirect(ilist, copyOfilist);
+            }
 
-	    // On success branch to the template code
-	    final InstructionHandle gtmpl = getTemplateHandle(template);
-	    final InstructionHandle success = il.append(new GOTO_W(gtmpl));
+            il.append(copyOfilist);
 
-	    if (trueList != null) {
-		trueList.backPatch(success);
-	    }
-	    if (falseList != null) {
-		falseList.backPatch(fail);
-	    } 
+            // On success branch to the template code
+            final InstructionHandle gtmpl = getTemplateHandle(template);
+            final InstructionHandle success = il.append(new GOTO_W(gtmpl));
 
-	    // Next pattern's 'fail' target is this pattern's first instruction
-	    fail = il.getStart();
+            if (trueList != null) {
+                trueList.backPatch(success);
+            }
+            if (falseList != null) {
+                falseList.backPatch(fail);
+            }
 
-	    // Append existing instruction list to the end of this one
-	    if (_instructionList != null) {
-		il.append(_instructionList);
-	    }
+            // Next pattern's 'fail' target is this pattern's first instruction
+            fail = il.getStart();
 
-	    // Set current instruction list to be this one
-	    _instructionList = il;
-	}
-	return (_start = fail);
+            // Append existing instruction list to the end of this one
+            if (_instructionList != null) {
+                il.append(_instructionList);
+            }
+
+            // Set current instruction list to be this one
+            _instructionList = il;
+        }
+        return (_start = fail);
     }
 }

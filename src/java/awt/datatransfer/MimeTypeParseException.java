@@ -1,8 +1,26 @@
 /*
- * @(#)MimeTypeParseException.java	1.14 06/04/07
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.datatransfer;
@@ -20,14 +38,14 @@ public class MimeTypeParseException extends Exception {
     private static final long serialVersionUID = -5604407764691570741L;
 
     /**
-     * Constructs a MimeTypeParseException with no specified detail message. 
+     * Constructs a MimeTypeParseException with no specified detail message.
      */
     public MimeTypeParseException() {
-     	super();
+        super();
     }
 
     /**
-     * Constructs a MimeTypeParseException with the specified detail message. 
+     * Constructs a MimeTypeParseException with the specified detail message.
      *
      * @param   s   the detail message.
      */

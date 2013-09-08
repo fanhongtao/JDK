@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,12 +59,12 @@ public class OneStepIterator extends ChildTestIterator
   {
     super(compiler, opPos, analysis);
     int firstStepPos = compiler.getFirstChildPos(opPos);
-    
+
     m_axis = WalkerFactory.getAxisFromStep(compiler, firstStepPos);
-    
+
   }
-  
-  
+
+
   /**
    * Create a OneStepIterator object.
    *
@@ -73,13 +77,13 @@ public class OneStepIterator extends ChildTestIterator
           throws javax.xml.transform.TransformerException
   {
     super(null);
-    
+
     m_iterator = iterator;
     m_axis = axis;
     int whatToShow = DTMFilter.SHOW_ALL;
     initNodeTest(whatToShow);
   }
-  
+
   /**
    * Initialize the context values for this expression
    * after it is cloned.
@@ -103,17 +107,17 @@ public class OneStepIterator extends ChildTestIterator
    * exception INVALID_STATE_ERR.
    */
   public void detach()
-  {    
+  {
     if(m_allowDetach)
     {
       if(m_axis > -1)
         m_iterator = null;
-      
+
       // Always call the superclass detach last!
       super.detach();
     }
   }
-  
+
   /**
    * Get the next node via getFirstAttribute && getNextAttribute.
    */
@@ -121,7 +125,7 @@ public class OneStepIterator extends ChildTestIterator
   {
     return m_lastFetched = m_iterator.next();
   }
-  
+
   /**
    * Get a cloned iterator.
    *
@@ -132,7 +136,7 @@ public class OneStepIterator extends ChildTestIterator
   public Object clone() throws CloneNotSupportedException
   {
     // Do not access the location path itterator during this operation!
-    
+
     OneStepIterator clone = (OneStepIterator) super.clone();
 
     if(m_iterator != null)
@@ -141,13 +145,13 @@ public class OneStepIterator extends ChildTestIterator
     }
     return clone;
   }
-  
+
   /**
    *  Get a cloned Iterator that is reset to the beginning
    *  of the query.
-   * 
+   *
    *  @return A cloned NodeIterator set of the start of the query.
-   * 
+   *
    *  @throws CloneNotSupportedException
    */
   public DTMIterator cloneWithReset() throws CloneNotSupportedException
@@ -186,20 +190,20 @@ public class OneStepIterator extends ChildTestIterator
   {
     if(!isReverseAxes())
       return super.getProximityPosition(predicateIndex);
-      
+
     // A negative predicate index seems to occur with
     // (preceding-sibling::*|following-sibling::*)/ancestor::*[position()]/*[position()]
     // -sb
     if(predicateIndex < 0)
       return -1;
-      
+
     if (m_proximityPositions[predicateIndex] <= 0)
     {
       XPathContext xctxt = getXPathContext();
       try
       {
         OneStepIterator clone = (OneStepIterator) this.clone();
-        
+
         int root = getRoot();
         xctxt.pushCurrentNode(root);
         clone.setRoot(root, xctxt);
@@ -242,30 +246,30 @@ public class OneStepIterator extends ChildTestIterator
   {
     if(!isReverseAxes())
       return super.getLength();
-      
+
     // Tell if this is being called from within a predicate.
     boolean isPredicateTest = (this == m_execContext.getSubContextList());
 
     // And get how many total predicates are part of this step.
     int predCount = getPredicateCount();
-   
-    // If we have already calculated the length, and the current predicate 
-    // is the first predicate, then return the length.  We don't cache 
+
+    // If we have already calculated the length, and the current predicate
+    // is the first predicate, then return the length.  We don't cache
     // the anything but the length of the list to the first predicate.
     if (-1 != m_length && isPredicateTest && m_predicateIndex < 1)
-       return m_length;      
+       return m_length;
 
     int count = 0;
-    
+
     XPathContext xctxt = getXPathContext();
     try
     {
       OneStepIterator clone = (OneStepIterator) this.cloneWithReset();
-      
+
       int root = getRoot();
       xctxt.pushCurrentNode(root);
       clone.setRoot(root, xctxt);
- 
+
       clone.m_predCount = m_predicateIndex;
 
       int next;
@@ -284,8 +288,8 @@ public class OneStepIterator extends ChildTestIterator
       xctxt.popCurrentNode();
     }
     if (isPredicateTest && m_predicateIndex < 1)
-      m_length = count;    
-      
+      m_length = count;
+
     return count;
   }
 
@@ -301,7 +305,7 @@ public class OneStepIterator extends ChildTestIterator
     else if (i < m_proximityPositions.length)
       m_proximityPositions[i]--;
   }
-  
+
   /**
    * Reset the iterator.
    */
@@ -312,31 +316,31 @@ public class OneStepIterator extends ChildTestIterator
     if(null != m_iterator)
       m_iterator.reset();
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()
   {
     return m_axis;
   }
-  
+
   /**
    * @see Expression#deepEquals(Expression)
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!super.deepEquals(expr))
-  		return false;
-  		
-  	if(m_axis != ((OneStepIterator)expr).m_axis)
-  		return false;
-  		
-  	return true;
+        if(!super.deepEquals(expr))
+                return false;
+
+        if(m_axis != ((OneStepIterator)expr).m_axis)
+                return false;
+
+        return true;
   }
 
-  
+
 }

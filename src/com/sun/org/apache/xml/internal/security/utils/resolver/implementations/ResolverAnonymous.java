@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,14 +32,10 @@ import org.w3c.dom.Attr;
 
 /**
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 
 public class ResolverAnonymous extends ResourceResolverSpi {
-   /** {@link java.util.logging} logging facility */
-    static java.util.logging.Logger log = 
-        java.util.logging.Logger.getLogger(
-                        ResolverAnonymous.class.getName());
 
    private XMLSignatureInput _input = null;
 
@@ -60,7 +60,7 @@ public class ResolverAnonymous extends ResourceResolverSpi {
       return this._input;
    }
 
-   /**    
+   /**
     * @inheritDoc
     */
    public boolean engineCanResolve(Attr uri, String BaseURI) {
@@ -75,4 +75,3 @@ public class ResolverAnonymous extends ResourceResolverSpi {
       return new String[0];
    }
 }
-

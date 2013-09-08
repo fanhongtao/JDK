@@ -1,8 +1,26 @@
 /*
- * @(#)ZipException.java	1.17 05/11/17
+ * Copyright (c) 1995, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.zip;
@@ -13,29 +31,30 @@ import java.io.IOException;
  * Signals that a Zip exception of some sort has occurred.
  *
  * @author  unascribed
- * @version 1.17 11/17/05
  * @see     java.io.IOException
  * @since   JDK1.0
  */
 
 public
 class ZipException extends IOException {
+    private static final long serialVersionUID = 8000196834066748623L;
+
     /**
-     * Constructs an <code>ZipException</code> with <code>null</code> 
-     * as its error detail message. 
+     * Constructs a <code>ZipException</code> with <code>null</code>
+     * as its error detail message.
      */
     public ZipException() {
-	super();
+        super();
     }
 
     /**
-     * Constructs an <code>ZipException</code> with the specified detail 
+     * Constructs a <code>ZipException</code> with the specified detail
      * message.
      *
      * @param   s   the detail message.
      */
 
     public ZipException(String s) {
-	super(s);
+        super(s);
     }
 }

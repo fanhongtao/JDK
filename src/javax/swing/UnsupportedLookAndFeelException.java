@@ -1,8 +1,26 @@
 /*
- * @(#)UnsupportedLookAndFeelException.java	1.18 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -20,7 +38,6 @@ package javax.swing;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @author unattributed
- * @version 1.18 11/17/05
  */
 public class UnsupportedLookAndFeelException extends Exception
 {
@@ -29,6 +46,6 @@ public class UnsupportedLookAndFeelException extends Exception
      * @param s a message String
      */
     public UnsupportedLookAndFeelException(String s) {
-	super(s);
+        super(s);
     }
 }

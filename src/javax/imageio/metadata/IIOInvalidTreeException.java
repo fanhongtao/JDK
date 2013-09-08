@@ -1,8 +1,26 @@
 /*
- * @(#)IIOInvalidTreeException.java	1.17 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.metadata;
@@ -24,10 +42,9 @@ import org.w3c.dom.Node;
  * @see IIOMetadata#mergeTree
  * @see IIOMetadataNode
  *
- * @version 0.5
  */
 public class IIOInvalidTreeException extends IIOException {
-    
+
     /**
      * The <code>Node</code> that led to the parsing error, or
      * <code>null</code>.
@@ -71,7 +88,7 @@ public class IIOInvalidTreeException extends IIOException {
 
     /**
      * Returns the <code>Node</code> that caused the error in parsing.
-     * 
+     *
      * @return the offending <code>Node</code>.
      */
     public Node getOffendingNode() {

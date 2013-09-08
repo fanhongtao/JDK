@@ -1,8 +1,26 @@
 /*
- * @(#)DefinitionKind.java	1.32 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -40,165 +58,165 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
  * The constant that indicates that the type of an Interface Repository object
  * may be any type.
  */
-	_dk_all = 1,
+        _dk_all = 1,
 
 /**
  * The constant that indicates that an Interface Repository object is an
  * attribute.
  */
-	_dk_Attribute = 2,
+        _dk_Attribute = 2,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * constant.
  */
-	_dk_Constant = 3,
+        _dk_Constant = 3,
 
 /**
  * The constant that indicates that an Interface Repository object is an
  * exception.
  */
 
-	_dk_Exception = 4,
+        _dk_Exception = 4,
 
 /**
  * The constant that indicates that an Interface Repository object is an
  * interface.
  */
 
-	_dk_Interface = 5,
+        _dk_Interface = 5,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * module.
  */
 
-	_dk_Module = 6,
+        _dk_Module = 6,
 
 /**
  * The constant that indicates that an Interface Repository object is an
  * operation.
  */
 
-	_dk_Operation = 7,
+        _dk_Operation = 7,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * Typedef.
  */
 
-	_dk_Typedef = 8,
+        _dk_Typedef = 8,
 
 /**
  * The constant that indicates that an Interface Repository object is an
  * Alias.
  */
 
-	_dk_Alias = 9,
+        _dk_Alias = 9,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * Struct.
  */
 
-	_dk_Struct = 10,
+        _dk_Struct = 10,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * Union.
  */
 
-	_dk_Union = 11,
+        _dk_Union = 11,
 
 /**
  * The constant that indicates that an Interface Repository object is an
  * Enum.
  */
 
-	_dk_Enum = 12,
+        _dk_Enum = 12,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * Primitive.
  */
 
-	_dk_Primitive = 13,
+        _dk_Primitive = 13,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * String.
  */
 
-	_dk_String = 14,
+        _dk_String = 14,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * Sequence.
  */
 
-	_dk_Sequence = 15,
+        _dk_Sequence = 15,
 
 /**
  * The constant that indicates that an Interface Repository object is an
  * Array.
  */
 
-	_dk_Array = 16,
+        _dk_Array = 16,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * Repository.
  */
 
-	_dk_Repository = 17,
+        _dk_Repository = 17,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * Wstring.
  */
 
-	_dk_Wstring = 18,
+        _dk_Wstring = 18,
 
 /**
  * The constant that indicates that an Interface Repository object is of type
  * Fixed.
  */
 
-	_dk_Fixed = 19,
+        _dk_Fixed = 19,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * Value.
  */
 
-	_dk_Value = 20,
+        _dk_Value = 20,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * ValueBox.
  */
 
-	_dk_ValueBox = 21,
+        _dk_ValueBox = 21,
 
 /**
  * The constant that indicates that an Interface Repository object is a
  * ValueMember.
  */
 
-	_dk_ValueMember = 22,
+        _dk_ValueMember = 22,
 
 /**
  * The constant that indicates that an Interface Repository object is of type
  * Native.
  */
 
-	_dk_Native = 23,
+        _dk_Native = 23,
 
 /**
  * The constant that indicates that an Interface Repository object
  * is representing an abstract interface.
  */
-	_dk_AbstractInterface = 24;
+        _dk_AbstractInterface = 24;
 
 /**
  * The static instance of <code>DefinitionKind</code> indicating that an
@@ -391,7 +409,7 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
      */
 
     public int value() {
-	return _value;
+        return _value;
     }
 
 
@@ -409,58 +427,58 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
      */
 
     public static DefinitionKind from_int(int i) {
-	switch (i) {
-	case _dk_none:
-	    return dk_none;
-	case _dk_all:
-	    return dk_all;
-	case _dk_Attribute:
-	    return dk_Attribute;
-	case _dk_Constant:
-	    return dk_Constant;
-	case _dk_Exception:
-	    return dk_Exception;
-	case _dk_Interface:
-	    return dk_Interface;
-	case _dk_Module:
-	    return dk_Module;
-	case _dk_Operation:
-	    return dk_Operation;
-	case _dk_Typedef:
-	    return dk_Typedef;
-	case _dk_Alias:
-	    return dk_Alias;
-	case _dk_Struct:
-	    return dk_Struct;
-	case _dk_Union:
-	    return dk_Union;
-	case _dk_Enum:
-	    return dk_Enum;
-	case _dk_Primitive:
-	    return dk_Primitive;
-	case _dk_String:
-	    return dk_String;
-	case _dk_Sequence:
-	    return dk_Sequence;
-	case _dk_Array:
-	    return dk_Array;
-	case _dk_Repository:
-	    return dk_Repository;
-	case _dk_Wstring:
-	    return dk_Wstring;
-	case _dk_Fixed:
-	    return dk_Fixed;
-	case _dk_Value:
-	    return dk_Value;
-	case _dk_ValueBox:
-	    return dk_ValueBox;
-	case _dk_ValueMember:
-	    return dk_ValueMember;
-	case _dk_Native:
-	    return dk_Native;
-	default:
-	    throw new org.omg.CORBA.BAD_PARAM();
-	}
+        switch (i) {
+        case _dk_none:
+            return dk_none;
+        case _dk_all:
+            return dk_all;
+        case _dk_Attribute:
+            return dk_Attribute;
+        case _dk_Constant:
+            return dk_Constant;
+        case _dk_Exception:
+            return dk_Exception;
+        case _dk_Interface:
+            return dk_Interface;
+        case _dk_Module:
+            return dk_Module;
+        case _dk_Operation:
+            return dk_Operation;
+        case _dk_Typedef:
+            return dk_Typedef;
+        case _dk_Alias:
+            return dk_Alias;
+        case _dk_Struct:
+            return dk_Struct;
+        case _dk_Union:
+            return dk_Union;
+        case _dk_Enum:
+            return dk_Enum;
+        case _dk_Primitive:
+            return dk_Primitive;
+        case _dk_String:
+            return dk_String;
+        case _dk_Sequence:
+            return dk_Sequence;
+        case _dk_Array:
+            return dk_Array;
+        case _dk_Repository:
+            return dk_Repository;
+        case _dk_Wstring:
+            return dk_Wstring;
+        case _dk_Fixed:
+            return dk_Fixed;
+        case _dk_Value:
+            return dk_Value;
+        case _dk_ValueBox:
+            return dk_ValueBox;
+        case _dk_ValueMember:
+            return dk_ValueMember;
+        case _dk_Native:
+            return dk_Native;
+        default:
+            throw new org.omg.CORBA.BAD_PARAM();
+        }
     }
 
    /**
@@ -471,7 +489,7 @@ public class DefinitionKind implements org.omg.CORBA.portable.IDLEntity {
     */
 
     protected DefinitionKind(int _value){
-	this._value = _value;
+        this._value = _value;
     }
 
      /**

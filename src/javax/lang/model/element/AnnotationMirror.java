@@ -1,8 +1,26 @@
 /*
- * @(#)AnnotationMirror.java	1.4 06/07/11
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
@@ -21,7 +39,6 @@ import javax.lang.model.type.DeclaredType;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/07/11
  * @since 1.6
  */
 public interface AnnotationMirror {
@@ -51,7 +68,7 @@ public interface AnnotationMirror {
      * getElementValuesWithDefaults}.
      *
      * @return the values of this annotation's elements,
-     *		or an empty map if there are none
+     *          or an empty map if there are none
      */
     Map<? extends ExecutableElement, ? extends AnnotationValue> getElementValues();
 }

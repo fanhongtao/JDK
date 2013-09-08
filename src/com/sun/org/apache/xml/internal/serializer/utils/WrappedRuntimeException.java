@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,10 +26,10 @@ package com.sun.org.apache.xml.internal.serializer.utils;
  * This class is for throwing important checked exceptions
  * over non-checked methods.  It should be used with care,
  * and in limited circumstances.
- * 
- * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+ *
+ * This class is a copy of the one in com.sun.org.apache.xml.internal.utils.
  * It exists to cut the serializers dependancy on that package.
- * 
+ *
  * This class is not a public API, it is only public because it is
  * used by com.sun.org.apache.xml.internal.serializer.
  * @xsl.usage internal
@@ -66,7 +70,7 @@ public final class WrappedRuntimeException extends RuntimeException
 
     m_exception = e;
   }
-  
+
   /**
    * Get the checked exception that this runtime exception wraps.
    *

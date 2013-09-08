@@ -1,8 +1,26 @@
 /*
- * @(#)Style.java	1.22 05/11/17
+ * Copyright (c) 1997, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -26,13 +44,12 @@ import java.util.Hashtable;
  * implementations that are more efficient.
  *
  * @author  Timothy Prinzing
- * @version 1.22 11/17/05
  */
 public interface Style extends MutableAttributeSet {
 
     /**
      * Fetches the name of the style.   A style is not required to be named,
-     * so <code>null</code> is returned if there is no name 
+     * so <code>null</code> is returned if there is no name
      * associated with the style.
      *
      * @return the name

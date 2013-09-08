@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,18 +41,18 @@ import org.xml.sax.ext.LexicalHandler;
  * This class accepts SAX-like calls, then sends true SAX calls to a
  * wrapped SAX handler.  There is optimization done knowing that the ultimate
  * output is HTML.
- * 
+ *
  * This class is not a public API.
- * 
+ *
  * @xsl.usage internal
  */
 public final class ToHTMLSAXHandler extends ToSAXHandler
 {
-	/**
-	 *  Handle document type declaration (for first element only)
-	 */
-	private boolean m_dtdHandled = false;
-	
+        /**
+         *  Handle document type declaration (for first element only)
+         */
+        private boolean m_dtdHandled = false;
+
     /**
      * Keeps track of whether output escaping is currently enabled
      */
@@ -173,7 +177,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
      * @param valueDefault this parameter is ignored
      * @param value this parameter is ignored
      * @see org.xml.sax.ext.DeclHandler#attributeDecl(String, String, String,String,String)
-     */    
+     */
     public void attributeDecl(
         String eName,
         String aName,
@@ -188,7 +192,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
     /**
      * Does nothing.
      * @see org.xml.sax.ext.DeclHandler#elementDecl(String, String)
-     */    
+     */
     public void elementDecl(String name, String model) throws SAXException
     {
         return;
@@ -241,7 +245,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
     {
         flushPending();
         m_saxHandler.endElement(uri, localName, qName);
-        
+
         // time to fire off endElement event
         if (m_tracer != null)
             super.fireEndElem(qName);
@@ -262,7 +266,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
         throws SAXException
     {
     }
-    
+
     /**
      * Receive notification of a processing instruction.
      *
@@ -289,14 +293,14 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
         flushPending();
         m_saxHandler.processingInstruction(target,data);
 
-		// time to fire off processing instruction event
-		
-        if (m_tracer != null)		
-		    super.fireEscapingEvent(target,data);        
+                // time to fire off processing instruction event
+
+        if (m_tracer != null)
+                    super.fireEscapingEvent(target,data);
     }
 
     /**
-     * Does nothing.  
+     * Does nothing.
      * @see org.xml.sax.ContentHandler#setDocumentLocator(Locator)
      */
     public void setDocumentLocator(Locator arg0)
@@ -428,7 +432,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
         m_saxHandler.endDocument();
 
         if (m_tracer != null)
-            super.fireEndDoc();        
+            super.fireEndDoc();
     }
 
     /**
@@ -446,7 +450,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
             m_elemContext.m_elementName,
             m_elemContext.m_elementName,
             m_attributes);
-        m_attributes.clear();       
+        m_attributes.clear();
 
     }
 
@@ -475,7 +479,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
         {
             m_charsBuff = new char[length * 2 + 1];
         }
-        chars.getChars(0, length, m_charsBuff, 0);        
+        chars.getChars(0, length, m_charsBuff, 0);
         this.characters(m_charsBuff, 0, length);
     }
 
@@ -536,7 +540,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
                         doctypePublic,
                         doctypeSystem);
             }
-			m_dtdHandled = true;
+                        m_dtdHandled = true;
         }
         m_elemContext = m_elemContext.push(elementNamespaceURI, elementLocalName, elementName);
     }
@@ -551,7 +555,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
     {
         this.startElement(null,null, elementName);
     }
-    
+
     /**
      * Receive notification of the end of an element.
      * @param elementName The element type name
@@ -566,8 +570,8 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
         m_saxHandler.endElement(EMPTYSTRING, elementName, elementName);
 
         // time to fire off endElement event
-		if (m_tracer != null)
-            super.fireEndElem(elementName);        
+                if (m_tracer != null)
+            super.fireEndElem(elementName);
     }
 
     /**
@@ -606,8 +610,8 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
         m_saxHandler.characters(ch, off, len);
 
         // time to fire off characters event
-		if (m_tracer != null)
-            super.fireCharEvent(ch, off, len);        
+                if (m_tracer != null)
+            super.fireCharEvent(ch, off, len);
     }
 
     /**
@@ -616,11 +620,11 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
      */
     public void flushPending() throws SAXException
     {
-		if (m_needToCallStartDocument)
-		{
-			startDocumentInternal();
-			m_needToCallStartDocument = false;
-		}       	
+                if (m_needToCallStartDocument)
+                {
+                        startDocumentInternal();
+                        m_needToCallStartDocument = false;
+                }
         // Close any open element
         if (m_elemContext.m_startTagOpen)
         {
@@ -646,7 +650,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
      *
      * @throws org.xml.sax.SAXException The client may throw
      *            an exception during processing.
-     */    
+     */
     public boolean startPrefixMapping(
         String prefix,
         String uri,
@@ -654,8 +658,8 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
         throws SAXException
     {
         // no namespace support for HTML
-        if (shouldFlush) 
-            flushPending();   
+        if (shouldFlush)
+            flushPending();
         m_saxHandler.startPrefixMapping(prefix,uri);
         return false;
     }
@@ -678,7 +682,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
     public void startPrefixMapping(String prefix, String uri)
         throws org.xml.sax.SAXException
     {
-        startPrefixMapping(prefix,uri,true);        
+        startPrefixMapping(prefix,uri,true);
     }
 
     /**
@@ -709,15 +713,15 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
                 // the uri for the element... lets remember it
                 m_elemContext.m_elementURI = uri;
             }
-        }       
+        }
         startPrefixMapping(prefix,uri,false);
     }
-    
+
     /**
-     * Try's to reset the super class and reset this class for 
-     * re-use, so that you don't need to create a new serializer 
+     * Try's to reset the super class and reset this class for
+     * re-use, so that you don't need to create a new serializer
      * (mostly for performance reasons).
-     * 
+     *
      * @return true if the class was successfuly reset.
      * @see Serializer#reset()
      */
@@ -731,7 +735,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
         }
         return wasReset;
     }
-    
+
     /**
      * Reset all of the fields owned by ToHTMLSAXHandler class
      *
@@ -739,5 +743,5 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
     private void resetToHTMLSAXHandler()
     {
         this.m_escapeSetting = false;
-    }  
+    }
 }

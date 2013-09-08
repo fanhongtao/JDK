@@ -1,37 +1,56 @@
 /*
- * @(#)ClassFormatError.java	1.21 05/11/17
+ * Copyright (c) 1994, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
 
 /**
- * Thrown when the Java Virtual Machine attempts to read a class 
- * file and determines that the file is malformed or otherwise cannot 
- * be interpreted as a class file. 
+ * Thrown when the Java Virtual Machine attempts to read a class
+ * file and determines that the file is malformed or otherwise cannot
+ * be interpreted as a class file.
  *
  * @author  unascribed
- * @version 1.21, 11/17/05
  * @since   JDK1.0
  */
 public
 class ClassFormatError extends LinkageError {
+    private static final long serialVersionUID = -8420114879011949195L;
+
     /**
-     * Constructs a <code>ClassFormatError</code> with no detail message. 
+     * Constructs a <code>ClassFormatError</code> with no detail message.
      */
     public ClassFormatError() {
-	super();
+        super();
     }
 
     /**
-     * Constructs a <code>ClassFormatError</code> with the specified 
-     * detail message. 
+     * Constructs a <code>ClassFormatError</code> with the specified
+     * detail message.
      *
      * @param   s   the detail message.
      */
     public ClassFormatError(String s) {
-	super(s);
+        super(s);
     }
 }

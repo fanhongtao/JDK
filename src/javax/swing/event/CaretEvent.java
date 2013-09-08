@@ -1,8 +1,26 @@
 /*
- * @(#)CaretEvent.java	1.14 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.event;
 
@@ -10,7 +28,7 @@ import java.util.EventObject;
 
 
 /**
- * CaretEvent is used to notify interested parties that 
+ * CaretEvent is used to notify interested parties that
  * the text caret has changed in the event source.
  * <p>
  * <strong>Warning:</strong>
@@ -22,7 +40,6 @@ import java.util.EventObject;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.14 11/17/05
  * @author  Timothy Prinzing
  */
 public abstract class CaretEvent extends EventObject {
@@ -52,4 +69,3 @@ public abstract class CaretEvent extends EventObject {
      */
     public abstract int getMark();
 }
-

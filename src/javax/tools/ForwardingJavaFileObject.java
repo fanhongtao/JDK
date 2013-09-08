@@ -1,18 +1,30 @@
 /*
- * @(#)ForwardingJavaFileObject.java	1.8 06/06/25
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.tools;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
-import java.net.URI;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 
@@ -35,7 +47,7 @@ public class ForwardingJavaFileObject<F extends JavaFileObject>
      * @param fileObject delegate to this file object
      */
     protected ForwardingJavaFileObject(F fileObject) {
-	super(fileObject);
+        super(fileObject);
     }
 
     public Kind getKind() {

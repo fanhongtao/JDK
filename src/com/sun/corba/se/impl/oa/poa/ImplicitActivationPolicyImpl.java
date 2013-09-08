@@ -1,8 +1,26 @@
 /*
- * @(#)ImplicitActivationPolicyImpl.java	1.16 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.oa.poa;
@@ -14,34 +32,34 @@ final class ImplicitActivationPolicyImpl
     extends org.omg.CORBA.LocalObject implements ImplicitActivationPolicy {
 
     public
-	ImplicitActivationPolicyImpl(ImplicitActivationPolicyValue
-				     value) {
-	this.value = value;
+        ImplicitActivationPolicyImpl(ImplicitActivationPolicyValue
+                                     value) {
+        this.value = value;
     }
 
     public ImplicitActivationPolicyValue value() {
-	return value;
+        return value;
     }
 
     public int policy_type()
     {
-	return IMPLICIT_ACTIVATION_POLICY_ID.value ;
+        return IMPLICIT_ACTIVATION_POLICY_ID.value ;
     }
 
     public Policy copy() {
-	return new ImplicitActivationPolicyImpl(value);
+        return new ImplicitActivationPolicyImpl(value);
     }
 
     public void destroy() {
-	value = null;
+        value = null;
     }
 
     private ImplicitActivationPolicyValue value;
 
     public String toString()
     {
-	return "ImplicitActivationPolicy[" +
-	    ((value.value() == ImplicitActivationPolicyValue._IMPLICIT_ACTIVATION) ?
-		"IMPLICIT_ACTIVATION" : "NO_IMPLICIT_ACTIVATION" + "]") ;
+        return "ImplicitActivationPolicy[" +
+            ((value.value() == ImplicitActivationPolicyValue._IMPLICIT_ACTIVATION) ?
+                "IMPLICIT_ACTIVATION" : "NO_IMPLICIT_ACTIVATION" + "]") ;
     }
 }

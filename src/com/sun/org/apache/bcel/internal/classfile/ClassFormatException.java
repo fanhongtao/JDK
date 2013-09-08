@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -54,16 +58,14 @@ package com.sun.org.apache.bcel.internal.classfile;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * Thrown when the BCEL attempts to read a class file and determines
  * that the file is malformed or otherwise cannot be interpreted as a
  * class file.
  *
- * @version $Id: ClassFormatException.java,v 1.1.2.1 2005/07/31 23:46:20 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ClassFormatException extends RuntimeException {
   public ClassFormatException() { super(); }
   public ClassFormatException(String s) { super(s); }
 }
-

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,19 +24,19 @@ package com.sun.org.apache.xml.internal.security.c14n.implementations;
 import com.sun.org.apache.xml.internal.security.c14n.Canonicalizer;
 
 /**
- *  
+ *
  *
  */
 public class Canonicalizer20010315ExclOmitComments
         extends Canonicalizer20010315Excl {
 
    /**
-    * 
+    *
     */
-	public Canonicalizer20010315ExclOmitComments() {
+        public Canonicalizer20010315ExclOmitComments() {
       super(false);
    }
- 
+
    /** @inheritDoc */
    public final String engineGetURI() {
       return Canonicalizer.ALGO_ID_C14N_EXCL_OMIT_COMMENTS;

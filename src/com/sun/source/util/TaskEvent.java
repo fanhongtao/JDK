@@ -1,11 +1,26 @@
 /*
- * @(#)TaskEvent.java	1.4 06/03/30
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Use and Distribution is subject to the Java Research License available
- * at <http://wwws.sun.com/software/communitysource/jrl.html>.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.source.util;
@@ -15,7 +30,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 
 /**
- * Provides details about work that has been done by the Sun Java Compiler, javac.
+ * Provides details about work that has been done by the JDK Java Compiler, javac.
  *
  * @author Jonathan Gibbons
  * @since 1.6
@@ -30,19 +45,19 @@ public final class TaskEvent
         /**
          * For events related to the parsing of a file.
          */
-	PARSE,
+        PARSE,
         /**
          * For events relating to elements being entered.
          **/
-	ENTER,
+        ENTER,
         /**
          * For events relating to elements being analyzed for errors.
          **/
-	ANALYZE,
+        ANALYZE,
         /**
          * For events relating to class files being generated.
          **/
-	GENERATE,
+        GENERATE,
         /**
          * For events relating to overall annotaion processing.
          **/
@@ -54,50 +69,50 @@ public final class TaskEvent
     };
 
     public TaskEvent(Kind kind) {
-	this(kind, null, null, null);
+        this(kind, null, null, null);
     }
 
     public TaskEvent(Kind kind, JavaFileObject sourceFile) {
-	this(kind, sourceFile, null, null);
+        this(kind, sourceFile, null, null);
     }
 
     public TaskEvent(Kind kind, CompilationUnitTree unit) {
-	this(kind, unit.getSourceFile(), unit, null);
+        this(kind, unit.getSourceFile(), unit, null);
     }
 
     public TaskEvent(Kind kind, CompilationUnitTree unit, TypeElement clazz) {
-	this(kind, unit.getSourceFile(), unit, clazz);
+        this(kind, unit.getSourceFile(), unit, clazz);
     }
 
     private TaskEvent(Kind kind, JavaFileObject file, CompilationUnitTree unit, TypeElement clazz) {
-	this.kind = kind;
-	this.file = file;
-	this.unit = unit;
-	this.clazz = clazz;
+        this.kind = kind;
+        this.file = file;
+        this.unit = unit;
+        this.clazz = clazz;
     }
 
     public Kind getKind() {
-	return kind;
+        return kind;
     }
 
     public JavaFileObject getSourceFile() {
-	return file;
+        return file;
     }
 
     public CompilationUnitTree getCompilationUnit() {
-	return unit;
+        return unit;
     }
 
     public TypeElement getTypeElement() {
-	return clazz;
+        return clazz;
     }
-    
+
     public String toString() {
-	return "TaskEvent[" 
-	    + kind + "," 
-	    + file + ","
-	    // the compilation unit is identified by the file
-	    + clazz + "]";
+        return "TaskEvent["
+            + kind + ","
+            + file + ","
+            // the compilation unit is identified by the file
+            + clazz + "]";
     }
 
     private Kind kind;

@@ -1,8 +1,26 @@
 /*
- * @(#)DomainManager.java	1.12 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -19,8 +37,7 @@ package org.omg.CORBA;
  *  creating and accessing policies.
  */
 
-public interface DomainManager extends DomainManagerOperations, 
+public interface DomainManager extends DomainManagerOperations,
     org.omg.CORBA.Object, org.omg.CORBA.portable.IDLEntity
 {
 }
-

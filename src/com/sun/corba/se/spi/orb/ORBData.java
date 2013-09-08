@@ -1,8 +1,26 @@
 /*
- * @(#)ORBData.java	1.32 05/11/17
+ * Copyright (c) 2002, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.orb ;
@@ -91,11 +109,11 @@ public interface ORBData {
 
     /** Return the persistent-server-id of this server. This id is the same
      *  across multiple activations of this server. This is in contrast to
-     *  com.sun.corba.se.impl.iiop.ORB.getTransientServerId() which 
-     *  returns a transient id that is guaranteed to be different 
+     *  com.sun.corba.se.impl.iiop.ORB.getTransientServerId() which
+     *  returns a transient id that is guaranteed to be different
      *  across multiple activations of
-     *  this server. The user/environment is required to supply the 
-     *  persistent-server-id every time this server is started, in 
+     *  this server. The user/environment is required to supply the
+     *  persistent-server-id every time this server is started, in
      *  the ORBServerId parameter, System properties, or other means.
      *  The user is also required to ensure that no two persistent servers
      *  on the same host have the same server-id.
@@ -107,7 +125,7 @@ public interface ORBData {
     public Class getBadServerIdHandler();
 
     /**
-    * Get the prefered code sets for connections. Should the client send the 
+    * Get the prefered code sets for connections. Should the client send the
     * code set service context on every request?
     */
     public CodeSetComponentInfo getCodeSetComponentInfo() ;

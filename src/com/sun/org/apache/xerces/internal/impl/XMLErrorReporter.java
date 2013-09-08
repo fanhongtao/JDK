@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2004 The Apache Software Foundation.  
+ * Copyright (c) 1999-2004 The Apache Software Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -56,7 +60,6 @@
  */
 
 package com.sun.org.apache.xerces.internal.impl;
-
 import java.util.Hashtable;
 import java.util.Locale;
 
@@ -84,7 +87,7 @@ import org.xml.sax.ErrorHandler;
  * Errors are separated into domains that categorize a class of errors.
  * In a parser configuration, the parser would register a
  * <code>MessageFormatter</code> for each domain that is capable of
- * localizing error messages and formatting them based on information 
+ * localizing error messages and formatting them based on information
  * about the error. Any parser component can invent new error domains
  * and register additional message formatters to localize messages in
  * those domains.
@@ -100,7 +103,7 @@ import org.xml.sax.ErrorHandler;
  * <ul>
  *  <li>http://apache.org/xml/features/continue-after-fatal-error</li>
  * </ul>
- * 
+ *
  * @xerces.internal
  *
  * @see MessageFormatter
@@ -108,7 +111,7 @@ import org.xml.sax.ErrorHandler;
  * @author Eric Ye, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLErrorReporter.java,v 1.1.2.1 2005/08/01 03:34:09 jeffsuttor Exp $
+ * @version $Id: XMLErrorReporter.java,v 1.5 2010-11-01 04:39:41 joehw Exp $
  */
 public class XMLErrorReporter
     implements XMLComponent {
@@ -119,9 +122,9 @@ public class XMLErrorReporter
 
     // severity
 
-    /** 
+    /**
      * Severity: warning. Warnings represent informational messages only
-     * that should not be considered serious enough to stop parsing or 
+     * that should not be considered serious enough to stop parsing or
      * indicate an error in the document's validity.
      */
     public static final short SEVERITY_WARNING = 0;
@@ -133,7 +136,7 @@ public class XMLErrorReporter
      */
     public static final short SEVERITY_ERROR = 1;
 
-    /** 
+    /**
      * Severity: fatal error. Fatal errors are errors in the syntax of the
      * XML document or invalid byte sequences for a given encoding. The
      * XML 1.0 Specification mandates that errors of this type are not
@@ -143,7 +146,7 @@ public class XMLErrorReporter
      * error" feature but it should be used with extreme caution and care.
      */
     public static final short SEVERITY_FATAL_ERROR = 2;
-    
+
     // feature identifiers
 
     /** Feature identifier: continue after fatal error. */
@@ -197,13 +200,16 @@ public class XMLErrorReporter
     /** Continue after fatal error feature. */
     protected boolean fContinueAfterFatalError;
 
-    /** 
+    /**
      * Default error handler. This error handler is only used in the
      * absence of a registered error handler so that errors are not
      * "swallowed" silently. This is one of the most common "problems"
      * reported by users of the parser.
      */
     protected XMLErrorHandler fDefaultErrorHandler;
+
+    /** A SAX proxy to the error handler contained in this error reporter. */
+    private ErrorHandler fSaxProxy = null;
 
     //
     // Constructors
@@ -215,7 +221,7 @@ public class XMLErrorReporter
         // REVISIT: [Q] Should the locator be passed to the reportError
         //              method? Otherwise, there is no way for a parser
         //              component to store information about where an
-        //              error occurred so as to report it later. 
+        //              error occurred so as to report it later.
         //
         //              An example would be to record the location of
         //              IDREFs so that, at the end of the document, if
@@ -237,7 +243,7 @@ public class XMLErrorReporter
 
     /**
      * Sets the current locale.
-     * 
+     *
      * @param locale The new locale.
      */
     public void setLocale(Locale locale) {
@@ -246,7 +252,7 @@ public class XMLErrorReporter
 
     /**
      * Gets the current locale.
-     * 
+     *
      * @return the current Locale
      */
     public Locale getLocale() {
@@ -269,11 +275,11 @@ public class XMLErrorReporter
      * when there is already a formatter registered will cause the previous
      * formatter to be lost. This method replaces any previously registered
      * message formatter for the specified domain.
-     * 
-     * @param domain 
-     * @param messageFormatter 
+     *
+     * @param domain
+     * @param messageFormatter
      */
-    public void putMessageFormatter(String domain, 
+    public void putMessageFormatter(String domain,
                                     MessageFormatter messageFormatter) {
         fMessageFormatters.put(domain, messageFormatter);
     } // putMessageFormatter(String,MessageFormatter)
@@ -281,7 +287,7 @@ public class XMLErrorReporter
     /**
      * Returns the message formatter associated with the specified domain,
      * or null if no message formatter is registered for that domain.
-     * 
+     *
      * @param domain The domain of the message formatter.
      */
     public MessageFormatter getMessageFormatter(String domain) {
@@ -291,7 +297,7 @@ public class XMLErrorReporter
     /**
      * Removes the message formatter for the specified domain and
      * returns the removed message formatter.
-     * 
+     *
      * @param domain The domain of the message formatter.
      */
     public MessageFormatter removeMessageFormatter(String domain) {
@@ -302,43 +308,89 @@ public class XMLErrorReporter
      * Reports an error. The error message passed to the error handler
      * is formatted for the locale by the message formatter installed
      * for the specified error domain.
-     * 
+     *
      * @param domain    The error domain.
      * @param key       The key of the error message.
      * @param arguments The replacement arguments for the error message,
      *                  if needed.
      * @param severity  The severity of the error.
+     * @return          The formatted error message.
      *
      * @see #SEVERITY_WARNING
      * @see #SEVERITY_ERROR
      * @see #SEVERITY_FATAL_ERROR
      */
-    public void reportError(String domain, String key, Object[] arguments, 
+    public String reportError(String domain, String key, Object[] arguments,
                             short severity) throws XNIException {
-        reportError(fLocator, domain, key, arguments, severity);
-    } // reportError(String,String,Object[],short)
+        return reportError(fLocator, domain, key, arguments, severity);
+    } // reportError(String,String,Object[],short):String
+
+    /**
+     * Reports an error. The error message passed to the error handler
+     * is formatted for the locale by the message formatter installed
+     * for the specified error domain.
+     *
+     * @param domain    The error domain.
+     * @param key       The key of the error message.
+     * @param arguments The replacement arguments for the error message,
+     *                  if needed.
+     * @param severity  The severity of the error.
+     * @param exception The exception to wrap.
+     * @return          The formatted error message.
+     *
+     * @see #SEVERITY_WARNING
+     * @see #SEVERITY_ERROR
+     * @see #SEVERITY_FATAL_ERROR
+     */
+    public String reportError(String domain, String key, Object[] arguments,
+            short severity, Exception exception) throws XNIException {
+        return reportError(fLocator, domain, key, arguments, severity, exception);
+    } // reportError(String,String,Object[],short,Exception):String
 
     /**
      * Reports an error at a specific location.
-     * 
+     *
      * @param location  The error location.
      * @param domain    The error domain.
      * @param key       The key of the error message.
      * @param arguments The replacement arguments for the error message,
      *                  if needed.
      * @param severity  The severity of the error.
+     * @return          The formatted error message.
      *
      * @see #SEVERITY_WARNING
      * @see #SEVERITY_ERROR
      * @see #SEVERITY_FATAL_ERROR
      */
-    public void reportError(XMLLocator location,
-                            String domain, String key, Object[] arguments, 
-                            short severity) throws XNIException {
+    public String reportError(XMLLocator location,
+            String domain, String key, Object[] arguments,
+            short severity) throws XNIException {
+        return reportError(location, domain, key, arguments, severity, null);
+    } // reportError(XMLLocator,String,String,Object[],short):String
+
+    /**
+     * Reports an error at a specific location.
+     *
+     * @param location  The error location.
+     * @param domain    The error domain.
+     * @param key       The key of the error message.
+     * @param arguments The replacement arguments for the error message,
+     *                  if needed.
+     * @param severity  The severity of the error.
+     * @param exception The exception to wrap.
+     * @return          The formatted error message.
+     *
+     * @see #SEVERITY_WARNING
+     * @see #SEVERITY_ERROR
+     * @see #SEVERITY_FATAL_ERROR
+     */
+    public String reportError(XMLLocator location,
+                            String domain, String key, Object[] arguments,
+                            short severity, Exception exception) throws XNIException {
 
         // REVISIT: [Q] Should we do anything about invalid severity
         //              parameter? -Ac
-        
+
         // format error message and create parse exception
         MessageFormatter messageFormatter = getMessageFormatter(domain);
         String message;
@@ -362,7 +414,8 @@ public class XMLErrorReporter
             }
             message = str.toString();
         }
-        XMLParseException parseException = 
+        XMLParseException parseException = (exception != null) ?
+            new XMLParseException(location, message, exception) :
             new XMLParseException(location, message);
 
         // get error handler
@@ -392,8 +445,9 @@ public class XMLErrorReporter
                 break;
             }
         }
+        return message;
 
-    } // reportError(XMLLocator,String,String,Object[],short)
+    } // reportError(XMLLocator,String,String,Object[],short,Exception):String
 
     //
     // XMLComponent methods
@@ -403,13 +457,13 @@ public class XMLErrorReporter
      * Resets the component. The component can query the component manager
      * about any features and properties that affect the operation of the
      * component.
-     * 
+     *
      * @param componentManager The component manager.
      *
      * @throws SAXException Thrown by component on initialization error.
      *                      For example, if a feature or property is
      *                      required for the operation of the component, the
-     *                      component manager may throw a 
+     *                      component manager may throw a
      *                      SAXNotRecognizedException or a
      *                      SAXNotSupportedException.
      */
@@ -417,12 +471,7 @@ public class XMLErrorReporter
         throws XNIException {
 
         // features
-        try {
-            fContinueAfterFatalError = componentManager.getFeature(CONTINUE_AFTER_FATAL_ERROR);
-        }
-        catch (XNIException e) {
-            fContinueAfterFatalError = false;
-        }
+        fContinueAfterFatalError = componentManager.getFeature(CONTINUE_AFTER_FATAL_ERROR, false);
 
         // properties
         fErrorHandler = (XMLErrorHandler)componentManager.getProperty(ERROR_HANDLER);
@@ -440,11 +489,11 @@ public class XMLErrorReporter
 
     /**
      * Sets the state of a feature. This method is called by the component
-     * manager any time after reset when a feature changes state. 
+     * manager any time after reset when a feature changes state.
      * <p>
      * <strong>Note:</strong> Components should silently ignore features
      * that do not affect the operation of the component.
-     * 
+     *
      * @param featureId The feature identifier.
      * @param state     The state of the feature.
      *
@@ -462,13 +511,13 @@ public class XMLErrorReporter
 
         if (featureId.startsWith(Constants.XERCES_FEATURE_PREFIX)) {
             final int suffixLength = featureId.length() - Constants.XERCES_FEATURE_PREFIX.length();
-            
+
             //
             // http://apache.org/xml/features/continue-after-fatal-error
             //   Allows the parser to continue after a fatal error.
             //   Normally, a fatal error would stop the parse.
             //
-            if (suffixLength == Constants.CONTINUE_AFTER_FATAL_ERROR_FEATURE.length() && 
+            if (suffixLength == Constants.CONTINUE_AFTER_FATAL_ERROR_FEATURE.length() &&
                 featureId.endsWith(Constants.CONTINUE_AFTER_FATAL_ERROR_FEATURE)) {
                 fContinueAfterFatalError = state;
             }
@@ -486,13 +535,13 @@ public class XMLErrorReporter
 
         if (featureId.startsWith(Constants.XERCES_FEATURE_PREFIX)) {
         	final int suffixLength = featureId.length() - Constants.XERCES_FEATURE_PREFIX.length();
-        	
+
             //
             // http://apache.org/xml/features/continue-after-fatal-error
             //   Allows the parser to continue after a fatal error.
             //   Normally, a fatal error would stop the parse.
             //
-            if (suffixLength == Constants.CONTINUE_AFTER_FATAL_ERROR_FEATURE.length() && 
+            if (suffixLength == Constants.CONTINUE_AFTER_FATAL_ERROR_FEATURE.length() &&
                 featureId.endsWith(Constants.CONTINUE_AFTER_FATAL_ERROR_FEATURE)) {
                 return fContinueAfterFatalError ;
             }
@@ -512,11 +561,11 @@ public class XMLErrorReporter
 
     /**
      * Sets the value of a property. This method is called by the component
-     * manager any time after reset when a property changes value. 
+     * manager any time after reset when a property changes value.
      * <p>
      * <strong>Note:</strong> Components should silently ignore properties
      * that do not affect the operation of the component.
-     * 
+     *
      * @param propertyId The property identifier.
      * @param value      The value of the property.
      *
@@ -535,15 +584,15 @@ public class XMLErrorReporter
         if (propertyId.startsWith(Constants.XERCES_PROPERTY_PREFIX)) {
             final int suffixLength = propertyId.length() - Constants.XERCES_PROPERTY_PREFIX.length();
 
-            if (suffixLength == Constants.ERROR_HANDLER_PROPERTY.length() && 
+            if (suffixLength == Constants.ERROR_HANDLER_PROPERTY.length() &&
                 propertyId.endsWith(Constants.ERROR_HANDLER_PROPERTY)) {
                 fErrorHandler = (XMLErrorHandler)value;
             }
         }
 
     } // setProperty(String,Object)
-    
-    /** 
+
+    /**
      * Returns the default state for a feature, or null if this
      * component does not want to report a default value for this
      * feature.
@@ -561,10 +610,10 @@ public class XMLErrorReporter
         return null;
     } // getFeatureDefault(String):Boolean
 
-    /** 
+    /**
      * Returns the default state for a property, or null if this
      * component does not want to report a default value for this
-     * property. 
+     * property.
      *
      * @param propertyId The property identifier.
      *
@@ -585,21 +634,20 @@ public class XMLErrorReporter
     public XMLErrorHandler getErrorHandler() {
         return fErrorHandler;
     }
-    
-    
-    private ErrorHandler fSaxProxy = null;
-    
+
     /**
      * Gets the internal XMLErrorHandler
      * as SAX ErrorHandler.
      */
     public ErrorHandler getSAXErrorHandler() {
-        if( fSaxProxy==null )
+        if (fSaxProxy == null) {
             fSaxProxy = new ErrorHandlerProxy() {
                 protected XMLErrorHandler getErrorHandler() {
                     return fErrorHandler;
                 }
             };
+        }
         return fSaxProxy;
     }
+
 } // class XMLErrorReporter

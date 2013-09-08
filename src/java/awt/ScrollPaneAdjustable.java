@@ -1,8 +1,26 @@
 /*
- * @(#)ScrollPaneAdjustable.java	1.11 06/07/11
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt;
 
@@ -17,8 +35,7 @@ import java.io.Serializable;
  * scrollbar of a <code>ScrollPane</code>.  Objects of this class are
  * returned by <code>ScrollPane</code> methods.
  *
- * @version     1.11 07/11/06
- * @since	1.4
+ * @since       1.4
  */
 public class ScrollPaneAdjustable implements Adjustable, Serializable {
 
@@ -30,7 +47,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
 
     /**
      * Orientation of this scrollbar.
-     * 
+     *
      * @serial
      * @see #getOrientation
      * @see java.awt.Adjustable#HORIZONTAL
@@ -42,7 +59,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * The value of this scrollbar.
      * <code>value</code> should be greater than <code>minimum</code>
      * and less than <code>maximum</code>
-     * 
+     *
      * @serial
      * @see #getValue
      * @see #setValue
@@ -59,7 +76,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * <code>ScrollPane</code> always calls that method with
      * <code>0</code> for the minimum.  <code>getMinimum</code> method
      * always returns <code>0</code> without checking this field.
-     * 
+     *
      * @serial
      * @see #getMinimum
      * @see #setSpan(int, int, int)
@@ -69,7 +86,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
     /**
      * The maximum value of this scrollbar.
      * This value can only be set by the <code>ScrollPane</code>.
-     * 
+     *
      * @serial
      * @see #getMaximum
      * @see #setSpan(int, int, int)
@@ -79,7 +96,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
     /**
      * The size of the visible portion of this scrollbar.
      * This value can only be set by the <code>ScrollPane</code>.
-     * 
+     *
      * @serial
      * @see #getVisibleAmount
      * @see #setSpan(int, int, int)
@@ -160,7 +177,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
     ScrollPaneAdjustable(ScrollPane sp, AdjustmentListener l, int orientation) {
         this.sp = sp;
         this.orientation = orientation;
-	addAdjustmentListener(l);
+        addAdjustmentListener(l);
     }
 
     /**
@@ -171,13 +188,13 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * values.
      */
     void setSpan(int min, int max, int visible) {
-	// adjust the values to be reasonable
-	minimum = min;
-	maximum = Math.max(max, minimum + 1);
-	visibleAmount = Math.min(visible, maximum - minimum);
-	visibleAmount = Math.max(visibleAmount, 1);
+        // adjust the values to be reasonable
+        minimum = min;
+        maximum = Math.max(max, minimum + 1);
+        visibleAmount = Math.min(visible, maximum - minimum);
+        visibleAmount = Math.max(visibleAmount, 1);
         blockIncrement = Math.max((int)(visible * .90), 1);
-	setValue(value);
+        setValue(value);
     }
 
     /**
@@ -198,12 +215,12 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * @throws <code>AWTError</code>  Always throws an error when called.
      */
     public void setMinimum(int min) {
-	throw new AWTError(SCROLLPANE_ONLY);
+        throw new AWTError(SCROLLPANE_ONLY);
     }
 
     public int getMinimum() {
-	// XXX: This relies on setSpan always being called with 0 for
-	// the minimum (which is currently true).
+        // XXX: This relies on setSpan always being called with 0 for
+        // the minimum (which is currently true).
         return 0;
     }
 
@@ -215,7 +232,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * @throws <code>AWTError</code>  Always throws an error when called.
      */
     public void setMaximum(int max) {
-	throw new AWTError(SCROLLPANE_ONLY);
+        throw new AWTError(SCROLLPANE_ONLY);
     }
 
     public int getMaximum() {
@@ -223,13 +240,13 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
     }
 
     public synchronized void setUnitIncrement(int u) {
-	if (u != unitIncrement) {
-	    unitIncrement = u;
-	    if (sp.peer != null) {
-		ScrollPanePeer peer = (ScrollPanePeer) sp.peer;
-		peer.setUnitIncrement(this, u);
-	    }
-	}
+        if (u != unitIncrement) {
+            unitIncrement = u;
+            if (sp.peer != null) {
+                ScrollPanePeer peer = (ScrollPanePeer) sp.peer;
+                peer.setUnitIncrement(this, u);
+            }
+        }
     }
 
     public int getUnitIncrement() {
@@ -252,7 +269,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * @throws <code>AWTError</code>  Always throws an error when called.
      */
     public void setVisibleAmount(int v) {
-	throw new AWTError(SCROLLPANE_ONLY);
+        throw new AWTError(SCROLLPANE_ONLY);
     }
 
     public int getVisibleAmount() {
@@ -262,20 +279,20 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
 
     /**
      * Sets the <code>valueIsAdjusting</code> property.
-     * 
+     *
      * @param b new adjustment-in-progress status
      * @see #getValueIsAdjusting
      * @since 1.4
      */
     public void setValueIsAdjusting(boolean b) {
-	if (isAdjusting != b) {
-	    isAdjusting = b;
-	    AdjustmentEvent e =
-		new AdjustmentEvent(this,
-		        AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED,
-			AdjustmentEvent.TRACK, value, b);
-	    adjustmentListener.adjustmentValueChanged(e);
-	}
+        if (isAdjusting != b) {
+            isAdjusting = b;
+            AdjustmentEvent e =
+                new AdjustmentEvent(this,
+                        AdjustmentEvent.ADJUSTMENT_VALUE_CHANGED,
+                        AdjustmentEvent.TRACK, value, b);
+            adjustmentListener.adjustmentValueChanged(e);
+        }
     }
 
     /**
@@ -286,7 +303,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * @see #setValueIsAdjusting
      */
     public boolean getValueIsAdjusting() {
-	return isAdjusting;
+        return isAdjusting;
     }
 
     /**
@@ -349,10 +366,10 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * @see      java.awt.event.AdjustmentEvent
      */
     public synchronized void addAdjustmentListener(AdjustmentListener l) {
-	if (l == null) {
-	    return;
-	}
-	adjustmentListener = AWTEventMulticaster.add(adjustmentListener, l);
+        if (l == null) {
+            return;
+        }
+        adjustmentListener = AWTEventMulticaster.add(adjustmentListener, l);
     }
 
     /**
@@ -371,10 +388,10 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * @since         JDK1.1
      */
     public synchronized void removeAdjustmentListener(AdjustmentListener l){
-	if (l == null) {
-	    return;
-	}
-	adjustmentListener = AWTEventMulticaster.remove(adjustmentListener, l);
+        if (l == null) {
+            return;
+        }
+        adjustmentListener = AWTEventMulticaster.remove(adjustmentListener, l);
     }
 
     /**
@@ -403,7 +420,7 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      * @return    a string representation of this scrollbar.
      */
     public String toString() {
-	return getClass().getName() + "[" + paramString() + "]";
+        return getClass().getName() + "[" + paramString() + "]";
     }
 
     /**
@@ -417,12 +434,12 @@ public class ScrollPaneAdjustable implements Adjustable, Serializable {
      */
     public String paramString() {
         return ((orientation == Adjustable.VERTICAL ? "vertical,"
-		                                    :"horizontal,")
-		+ "[0.."+maximum+"]"
-		+ ",val=" + value
-		+ ",vis=" + visibleAmount
-		+ ",unit=" + unitIncrement
-		+ ",block=" + blockIncrement
-		+ ",isAdjusting=" + isAdjusting);
+                                                    :"horizontal,")
+                + "[0.."+maximum+"]"
+                + ",val=" + value
+                + ",vis=" + visibleAmount
+                + ",unit=" + unitIncrement
+                + ",block=" + blockIncrement
+                + ",isAdjusting=" + isAdjusting);
     }
 }

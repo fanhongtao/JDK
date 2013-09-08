@@ -1,8 +1,26 @@
 /*
- * @(#)RequestMessage_1_1.java	1.15 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -20,7 +38,6 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
  * This implements the GIOP 1.1 Request header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public final class RequestMessage_1_1 extends Message_1_1
@@ -43,8 +60,8 @@ public final class RequestMessage_1_1 extends Message_1_1
 
     RequestMessage_1_1(ORB orb) {
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
     }
 
     RequestMessage_1_1(ORB orb, ServiceContexts _service_contexts,
@@ -54,8 +71,8 @@ public final class RequestMessage_1_1 extends Message_1_1
         super(Message.GIOPBigMagic, GIOPVersion.V1_1, FLAG_NO_FRAG_BIG_ENDIAN,
             Message.GIOPRequest, 0);
         this.orb = orb;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
         service_contexts = _service_contexts;
         request_id = _request_id;
         response_expected = _response_expected;
@@ -85,11 +102,11 @@ public final class RequestMessage_1_1 extends Message_1_1
 
     public ObjectKey getObjectKey() {
         if (this.objectKey == null) {
-	    // this will raise a MARSHAL exception upon errors.
-	    this.objectKey = MessageBase.extractObjectKey(object_key, orb);
+            // this will raise a MARSHAL exception upon errors.
+            this.objectKey = MessageBase.extractObjectKey(object_key, orb);
         }
 
-	return this.objectKey;
+        return this.objectKey;
     }
 
     public String getOperation() {
@@ -104,7 +121,7 @@ public final class RequestMessage_1_1 extends Message_1_1
 
     public void read(org.omg.CORBA.portable.InputStream istream) {
         super.read(istream);
-        this.service_contexts 
+        this.service_contexts
             = new ServiceContexts((org.omg.CORBA_2_3.portable.InputStream) istream);
         this.request_id = istream.read_ulong();
         this.response_expected = istream.read_boolean();
@@ -122,19 +139,19 @@ public final class RequestMessage_1_1 extends Message_1_1
     public void write(org.omg.CORBA.portable.OutputStream ostream) {
         super.write(ostream);
         if (this.service_contexts != null) {
-	        service_contexts.write(
+                service_contexts.write(
                 (org.omg.CORBA_2_3.portable.OutputStream) ostream,
                 GIOPVersion.V1_1);
-	    } else {
-	        ServiceContexts.writeNullServiceContext(
+            } else {
+                ServiceContexts.writeNullServiceContext(
                 (org.omg.CORBA_2_3.portable.OutputStream) ostream);
         }
         ostream.write_ulong(this.request_id);
         ostream.write_boolean(this.response_expected);
         nullCheck(this.reserved);
         if (this.reserved.length != (3)) {
-	    throw wrapper.badReservedLength( 
-		org.omg.CORBA.CompletionStatus.COMPLETED_MAYBE);
+            throw wrapper.badReservedLength(
+                org.omg.CORBA.CompletionStatus.COMPLETED_MAYBE);
         }
         for (int _i0 = 0;_i0 < (3); ++_i0) {
             ostream.write_octet(this.reserved[_i0]);

@@ -1,6 +1,26 @@
 /*
- * Copyright 2004 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.ws.handler;
@@ -10,7 +30,7 @@ import javax.xml.ws.handler.MessageContext;
 
 /** The <code>Handler</code> interface
  *  is the base interface for JAX-WS handlers.
- * 
+ *
  *  @since JAX-WS 2.0
 **/
 public interface Handler<C extends MessageContext> {
@@ -23,9 +43,9 @@ public interface Handler<C extends MessageContext> {
    *  @return An indication of whether handler processing should continue for
    *  the current message
    *                 <ul>
-   *                 <li>Return <code>true</code> to continue 
+   *                 <li>Return <code>true</code> to continue
    *                     processing.</li>
-   *                 <li>Return <code>false</code> to block 
+   *                 <li>Return <code>false</code> to block
    *                     processing.</li>
    *                  </ul>
    *  @throws RuntimeException Causes the JAX-WS runtime to cease
@@ -35,17 +55,17 @@ public interface Handler<C extends MessageContext> {
   **/
   public boolean handleMessage(C context);
 
-  /** The <code>handleFault</code> method is invoked for fault message 
+  /** The <code>handleFault</code> method is invoked for fault message
    *  processing.  Refer to the description of the handler
    *  framework in the JAX-WS specification for full details.
    *
    *  @param context the message context
-   *  @return An indication of whether handler fault processing should continue 
+   *  @return An indication of whether handler fault processing should continue
    *  for the current message
    *                 <ul>
-   *                 <li>Return <code>true</code> to continue 
+   *                 <li>Return <code>true</code> to continue
    *                     processing.</li>
-   *                 <li>Return <code>false</code> to block 
+   *                 <li>Return <code>false</code> to block
    *                     processing.</li>
    *                  </ul>
    *  @throws RuntimeException Causes the JAX-WS runtime to cease

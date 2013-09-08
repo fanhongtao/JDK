@@ -1,8 +1,26 @@
 /*
- * @(#)BadAttributeValueExpException.java	4.18 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -16,7 +34,7 @@ package javax.management;
  *
  * @since 1.5
  */
-public class BadAttributeValueExpException extends Exception   { 
+public class BadAttributeValueExpException extends Exception   {
 
 
     /* Serial version */
@@ -32,16 +50,16 @@ public class BadAttributeValueExpException extends Exception   {
      *
      * @param val the inappropriate value.
      */
-    public BadAttributeValueExpException (Object val) { 
-	this.val = val;
-    } 
-   
- 
+    public BadAttributeValueExpException (Object val) {
+        this.val = val;
+    }
+
+
     /**
      * Returns the string representing the object.
      */
-    public String toString()  { 
-	return "BadAttributeValueException: " + val;
-    } 
+    public String toString()  {
+        return "BadAttributeValueException: " + val;
+    }
 
  }

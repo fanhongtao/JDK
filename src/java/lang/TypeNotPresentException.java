@@ -1,8 +1,26 @@
 /*
- * @(#)TypeNotPresentException.java	1.5 05/11/17
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
@@ -17,11 +35,17 @@ package java.lang;
  * <p>Note that this exception may be used when undefined type variables
  * are accessed as well as when types (e.g., classes, interfaces or
  * annotation types) are loaded.
+ * In particular, this exception can be thrown by the {@linkplain
+ * java.lang.reflect.AnnotatedElement API used to read annotations
+ * reflectively}.
  *
  * @author  Josh Bloch
+ * @see     java.lang.reflect.AnnotatedElement
  * @since 1.5
  */
 public class TypeNotPresentException extends RuntimeException {
+    private static final long serialVersionUID = -5101214195716534496L;
+
     private String typeName;
 
     /**
@@ -34,7 +58,7 @@ public class TypeNotPresentException extends RuntimeException {
      */
     public TypeNotPresentException(String typeName, Throwable cause) {
         super("Type " + typeName + " not present", cause);
-	this.typeName = typeName;
+        this.typeName = typeName;
     }
 
     /**

@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004, 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +22,7 @@ package com.sun.org.apache.xerces.internal.dom;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.io.StringReader;
 import java.util.Vector;
 
@@ -89,7 +94,7 @@ import org.w3c.dom.Text;
  * 
  * @author Elena Litani, IBM
  * @author Neeraj Bajaj, Sun Microsystems, inc.
- * @version $Id: DOMNormalizer.java,v 1.2.6.3 2005/09/12 05:16:40 sunithareddy Exp $
+ * @version $Id: DOMNormalizer.java,v 1.9 2010-11-01 04:39:38 joehw Exp $
  */
 public class DOMNormalizer implements XMLDocumentHandler {
 
@@ -141,8 +146,7 @@ public class DOMNormalizer implements XMLDocumentHandler {
     protected final NamespaceContext fLocalNSBinder = new NamespaceSupport();
 
     /** list of attributes */
-    protected final Vector fAttributeList = new Vector(5,10);
-
+    protected final ArrayList fAttributeList = new ArrayList(5);
 
     /** DOM Locator -  for namespace fixup algorithm */
     protected final DOMLocatorImpl fLocator = new DOMLocatorImpl();
@@ -760,6 +764,12 @@ public class DOMNormalizer implements XMLDocumentHandler {
                 uri = attr.getNamespaceURI();
                 if (uri != null && uri.equals(NamespaceContext.XMLNS_URI)) {
                     // namespace attribute
+                    
+                    // "namespace-declarations" == false; Discard all namespace declaration attributes
+                    if ((fConfiguration.features & DOMConfigurationImpl.NSDECL) == 0) {
+                        continue;
+                    }
+
                     value = attr.getNodeValue();
                     if (value == null) {
                         value=XMLSymbols.EMPTY_STRING;
@@ -822,7 +832,12 @@ public class DOMNormalizer implements XMLDocumentHandler {
 
         uri = element.getNamespaceURI();
         prefix = element.getPrefix();
-        if (uri != null) {  // Element has a namespace
+        
+        // "namespace-declarations" == false? Discard all namespace declaration attributes
+        if ((fConfiguration.features & DOMConfigurationImpl.NSDECL) == 0) {
+            // no namespace declaration == no namespace URI, semantics are to keep prefix
+            uri = null;
+        } else if (uri != null) {  // Element has a namespace
             uri = fSymbolTable.addSymbol(uri);
             prefix = (prefix == null || 
                       prefix.length() == 0) ? XMLSymbols.EMPTY_STRING :fSymbolTable.addSymbol(prefix);
@@ -876,7 +891,7 @@ public class DOMNormalizer implements XMLDocumentHandler {
             // clone content of the attributes
             attributes.cloneMap(fAttributeList);
             for (int i = 0; i < fAttributeList.size(); i++) {
-                Attr attr = (Attr) fAttributeList.elementAt(i);
+                Attr attr = (Attr) fAttributeList.get(i);
                 fLocator.fRelatedNode = attr;
 
                 if (DEBUG) {
@@ -1477,9 +1492,9 @@ public class DOMNormalizer implements XMLDocumentHandler {
 						qname.rawname,
 						qname.localpart);
                 // REVISIT: the following should also update ID table
-				index = fElement.setXercesAttributeNode(attr);
-				attr.setNodeValue(attrValue);
-				fAugmentations.insertElementAt(new AugmentationsImpl(), index);
+		attr.setNodeValue(attrValue);
+                index = fElement.setXercesAttributeNode(attr);
+		fAugmentations.insertElementAt(new AugmentationsImpl(), index);
                 attr.setSpecified(false);
 			}            
 			else {

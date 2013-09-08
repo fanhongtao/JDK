@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +54,7 @@ public abstract class NodeIteratorBase implements NodeIterator {
      */
     protected int _startNode = NodeIterator.END;
 
-    /** 
+    /**
      * Flag indicating if "self" should be returned.
      */
     protected boolean _includeSelf = false;
@@ -61,10 +65,10 @@ public abstract class NodeIteratorBase implements NodeIterator {
     protected boolean _isRestartable = true;
 
     /**
-     * Setter for _isRestartable flag. 
+     * Setter for _isRestartable flag.
      */
     public void setRestartable(boolean isRestartable) {
-	_isRestartable = isRestartable;
+        _isRestartable = isRestartable;
     }
 
     /**
@@ -79,20 +83,20 @@ public abstract class NodeIteratorBase implements NodeIterator {
      * setStartNode().
      */
     public NodeIterator reset() {
-	final boolean temp = _isRestartable;
-	_isRestartable = true;
-	// Must adjust _startNode if self is included
-	setStartNode(_includeSelf ? _startNode + 1 : _startNode);
-	_isRestartable = temp;
-	return this;
+        final boolean temp = _isRestartable;
+        _isRestartable = true;
+        // Must adjust _startNode if self is included
+        setStartNode(_includeSelf ? _startNode + 1 : _startNode);
+        _isRestartable = temp;
+        return this;
     }
 
     /**
      * Setter for _includeSelf flag.
      */
     public NodeIterator includeSelf() {
-	_includeSelf = true;
-	return this;
+        _includeSelf = true;
+        return this;
     }
 
     /**
@@ -101,24 +105,24 @@ public abstract class NodeIteratorBase implements NodeIterator {
      * restores iterator to original state.
      */
     public int getLast() {
-	if (_last == -1) {
-	    final int temp = _position;
-	    setMark();
-	    reset();
-	    do {
-		_last++;
-	    } while (next() != END);
-	    gotoMark();
-	    _position = temp;
-	}
-	return _last;
+        if (_last == -1) {
+            final int temp = _position;
+            setMark();
+            reset();
+            do {
+                _last++;
+            } while (next() != END);
+            gotoMark();
+            _position = temp;
+        }
+        return _last;
     }
 
     /**
      * Returns the position() in this iterator.
      */
     public int getPosition() {
-	return _position == 0 ? 1 : _position;
+        return _position == 0 ? 1 : _position;
     }
 
     /**
@@ -127,42 +131,42 @@ public abstract class NodeIteratorBase implements NodeIterator {
      * order.
      */
     public boolean isReverse() {
-	return false;
+        return false;
     }
-    
+
     /**
-     * Clones and resets this iterator. Note that the cloned iterator is 
-     * not restartable. This is because cloning is needed for variable 
-     * references, and the context node of the original variable 
+     * Clones and resets this iterator. Note that the cloned iterator is
+     * not restartable. This is because cloning is needed for variable
+     * references, and the context node of the original variable
      * declaration must be preserved.
      */
     public NodeIterator cloneIterator() {
-	try {
-	    final NodeIteratorBase clone = (NodeIteratorBase)super.clone();
-	    clone._isRestartable = false;
-	    return clone.reset();
-	}
-	catch (CloneNotSupportedException e) {
-	    BasisLibrary.runTimeError(BasisLibrary.ITERATOR_CLONE_ERR,
-				      e.toString());
-	    return null;
-	}
+        try {
+            final NodeIteratorBase clone = (NodeIteratorBase)super.clone();
+            clone._isRestartable = false;
+            return clone.reset();
+        }
+        catch (CloneNotSupportedException e) {
+            BasisLibrary.runTimeError(BasisLibrary.ITERATOR_CLONE_ERR,
+                                      e.toString());
+            return null;
+        }
     }
-    
+
     /**
      * Utility method that increments position and returns its
      * argument.
      */
     protected final int returnNode(final int node) {
-	_position++;
-	return node;
+        _position++;
+        return node;
     }
-    
+
     /**
      * Reset the position in this iterator.
      */
     protected final NodeIterator resetPosition() {
-	_position = 0;
-	return this;
+        _position = 0;
+        return this;
     }
 }

@@ -1,4 +1,7 @@
-
+/*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 /*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
@@ -21,6 +24,7 @@ package com.sun.org.apache.xml.internal.security.transforms.implementations;
 
 
 import com.sun.org.apache.xml.internal.security.signature.XMLSignatureInput;
+import com.sun.org.apache.xml.internal.security.transforms.Transform;
 import com.sun.org.apache.xml.internal.security.transforms.TransformSpi;
 import com.sun.org.apache.xml.internal.security.transforms.TransformationException;
 import com.sun.org.apache.xml.internal.security.transforms.Transforms;
@@ -52,7 +56,7 @@ public class TransformXPointer extends TransformSpi {
     * @throws TransformationException
     *
     */
-   protected XMLSignatureInput enginePerformTransform(XMLSignatureInput input)
+   protected XMLSignatureInput enginePerformTransform(XMLSignatureInput input, Transform _transformObject)
            throws  TransformationException {
 
       Object exArgs[] = { implementedTransformURI };

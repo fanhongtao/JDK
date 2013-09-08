@@ -1,33 +1,46 @@
 /*
- * @(#)QueryEval.java	4.26 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
 
-
 // java import
 import java.io.Serializable;
-
-// RI import
-import javax.management.MBeanServer;
-
 
 /**
  * Allows a query to be performed in the context of a specific MBean server.
  *
  * @since 1.5
  */
-public abstract class QueryEval implements Serializable   { 
-    
+public abstract class QueryEval implements Serializable {
+
     /* Serial version */
     private static final long serialVersionUID = 2675899265640874796L;
 
     private static ThreadLocal<MBeanServer> server =
-	new InheritableThreadLocal<MBeanServer>();
-    
+        new InheritableThreadLocal<MBeanServer>();
+
     /**
      * <p>Sets the MBean server on which the query is to be performed.
      * The setting is valid for the thread performing the set.
@@ -43,7 +56,7 @@ public abstract class QueryEval implements Serializable   {
      * @see #getMBeanServer
      */
     public void setMBeanServer(MBeanServer s) {
-	server.set(s);
+        server.set(s);
     }
 
     /**
@@ -58,9 +71,8 @@ public abstract class QueryEval implements Serializable   {
      *
      * @see #setMBeanServer
      *
-     * @since.unbundled JMX 1.2
      */
     public static MBeanServer getMBeanServer() {
-	return server.get();
+        return server.get();
     }
 }

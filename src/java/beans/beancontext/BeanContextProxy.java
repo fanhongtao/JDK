@@ -1,35 +1,53 @@
 /*
- * @(#)BeanContextProxy.java	1.12 05/11/17
+ * Copyright (c) 1998, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans.beancontext;
 
 /**
  * <p>
- * This interface is implemented by a JavaBean that does 
- * not directly have a BeanContext(Child) associated with 
- * it (via implementing that interface or a subinterface thereof), 
+ * This interface is implemented by a JavaBean that does
+ * not directly have a BeanContext(Child) associated with
+ * it (via implementing that interface or a subinterface thereof),
  * but has a public BeanContext(Child) delegated from it.
- * For example, a subclass of java.awt.Container may have a BeanContext 
+ * For example, a subclass of java.awt.Container may have a BeanContext
  * associated with it that all Component children of that Container shall
  * be contained within.
  * </p>
  * <p>
- * An Object may not implement this interface and the 
+ * An Object may not implement this interface and the
  * BeanContextChild interface
  * (or any subinterfaces thereof) they are mutually exclusive.
  * </p>
  * <p>
- * Callers of this interface shall examine the return type in order to 
+ * Callers of this interface shall examine the return type in order to
  * obtain a particular subinterface of BeanContextChild as follows:
  * <code>
  * BeanContextChild bcc = o.getBeanContextProxy();
  *
  * if (bcc instanceof BeanContext) {
- * 	// ...
+ *      // ...
  * }
  * </code>
  * or
@@ -38,9 +56,9 @@ package java.beans.beancontext;
  * BeanContext      bc  = null;
  *
  * try {
- *     bc = (BeanContext)bcc; 
+ *     bc = (BeanContext)bcc;
  * } catch (ClassCastException cce) {
- *     // cast failed, bcc is not an instanceof BeanContext 
+ *     // cast failed, bcc is not an instanceof BeanContext
  * }
  * </code>
  * </p>
@@ -49,7 +67,6 @@ package java.beans.beancontext;
  * instance
  * </p>
  * @author Laurence P. G. Cable
- * @version 1.12, 11/17/05
  * @since 1.2
  *
  * @see java.beans.beancontext.BeanContextChild
@@ -59,9 +76,9 @@ package java.beans.beancontext;
 public interface BeanContextProxy {
 
     /**
-     * Gets the <code>BeanContextChild</code> (or subinterface) 
-     * associated with this object. 
-     * @return the <code>BeanContextChild</code> (or subinterface) 
+     * Gets the <code>BeanContextChild</code> (or subinterface)
+     * associated with this object.
+     * @return the <code>BeanContextChild</code> (or subinterface)
      * associated with this object
      */
     BeanContextChild getBeanContextProxy();

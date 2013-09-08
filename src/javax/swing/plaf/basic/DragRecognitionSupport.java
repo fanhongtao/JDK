@@ -1,8 +1,26 @@
 /*
- * @(#)DragRecognitionSupport.java	1.2 05/11/17
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.plaf.basic;
 
@@ -19,9 +37,8 @@ import sun.awt.AppContext;
  * press followed by movement by <code>DragSource.getDragThreshold()</code>
  * pixels. An instance of this class is maintained per AppContext, and the
  * public static methods call into the appropriate instance.
- * 
+ *
  * @author Shannon Hickey
- * @version 1.2 11/17/05
  */
 class DragRecognitionSupport {
     private int motionThreshold;
@@ -56,8 +73,7 @@ class DragRecognitionSupport {
      * Returns whether or not the event is potentially part of a drag sequence.
      */
     public static boolean mousePressed(MouseEvent me) {
-        return ((DragRecognitionSupport)getDragRecognitionSupport()).
-            mousePressedImpl(me);
+        return getDragRecognitionSupport().mousePressedImpl(me);
     }
 
     /**
@@ -65,16 +81,14 @@ class DragRecognitionSupport {
      * that started the recognition. Otherwise, return null.
      */
     public static MouseEvent mouseReleased(MouseEvent me) {
-        return ((DragRecognitionSupport)getDragRecognitionSupport()).
-            mouseReleasedImpl(me);
+        return getDragRecognitionSupport().mouseReleasedImpl(me);
     }
 
     /**
      * Returns whether or not a drag gesture recognition is ongoing.
      */
     public static boolean mouseDragged(MouseEvent me, BeforeDrag bd) {
-        return ((DragRecognitionSupport)getDragRecognitionSupport()).
-            mouseDraggedImpl(me, bd);
+        return getDragRecognitionSupport().mouseDraggedImpl(me, bd);
     }
 
     private void clearState() {

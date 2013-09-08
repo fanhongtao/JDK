@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +40,7 @@ import org.xml.sax.ext.LexicalHandler;
  * This class receives notification of SAX-like events, and with gathered
  * information over these calls it will invoke the equivalent SAX methods
  * on a handler, the ultimate xsl:output method is known to be "xml".
- * 
+ *
  * This class is not a public API, it is only public because it is used by Xalan.
  * @xsl.usage internal
  */
@@ -215,7 +219,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
      * unlike the this.endCDATA() method (from the LexicalHandler) interface,
      * this "internal" method will send the endCDATA() call to the wrapped
      * handler.
-     * 
+     *
      */
     public void closeCDATA() throws SAXException
     {
@@ -224,13 +228,13 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         if (m_lexHandler != null && m_cdataTagOpen) {
             m_lexHandler.endCDATA();
         }
-        
 
-        // There are no longer any calls made to 
+
+        // There are no longer any calls made to
         // m_lexHandler.startCDATA() without a balancing call to
         // m_lexHandler.endCDATA()
         // so we set m_cdataTagOpen to false to remember this.
-        m_cdataTagOpen = false;        
+        m_cdataTagOpen = false;
     }
 
     /**
@@ -241,7 +245,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
     {
         // Close any open elements etc.
         flushPending();
-        
+
         if (namespaceURI == null)
         {
             if (m_elemContext.m_elementURI != null)
@@ -249,7 +253,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
             else
                 namespaceURI = getNamespaceURI(qName, true);
         }
-        
+
         if (localName == null)
         {
             if (m_elemContext.m_elementLocalName != null)
@@ -261,7 +265,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         m_saxHandler.endElement(namespaceURI, localName, qName);
 
         if (m_tracer != null)
-            super.fireEndElem(qName);       
+            super.fireEndElem(qName);
 
         /* Pop all namespaces at the current element depth.
          * We are not waiting for official endPrefixMapping() calls.
@@ -360,39 +364,39 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         if (pushed)
         {
             m_saxHandler.startPrefixMapping(prefix,uri);
-            
-            if (getShouldOutputNSAttr()) 
+
+            if (getShouldOutputNSAttr())
             {
 
-	              /* Brian M.: don't know if we really needto do this. The
-	               * callers of this object should have injected both
-	               * startPrefixMapping and the attributes.  We are
-	               * just covering our butt here.
-	               */
-	              String name;
-  	            if (EMPTYSTRING.equals(prefix))
-  	            {
-  	                name = "xmlns";
-  	                addAttributeAlways(XMLNS_URI, name, name,"CDATA",uri, false);
-  	            }
-  	            else 
+                      /* Brian M.: don't know if we really needto do this. The
+                       * callers of this object should have injected both
+                       * startPrefixMapping and the attributes.  We are
+                       * just covering our butt here.
+                       */
+                      String name;
+                    if (EMPTYSTRING.equals(prefix))
+                    {
+                        name = "xmlns";
+                        addAttributeAlways(XMLNS_URI, name, name,"CDATA",uri, false);
+                    }
+                    else
                 {
-  	                if (!EMPTYSTRING.equals(uri)) // hack for XSLTC attribset16 test
-  	                {                             // that maps ns1 prefix to "" URI 
-  	                    name = "xmlns:" + prefix;
-  	
-  	                    /* for something like xmlns:abc="w3.pretend.org"
-  	             	 	     *  the uri is the value, that is why we pass it in the
-  	             	 	     * value, or 5th slot of addAttributeAlways()
-  	                 	   */
-  	                    addAttributeAlways(XMLNS_URI, prefix, name,"CDATA",uri, false );
-  	                }
-  	            }
+                        if (!EMPTYSTRING.equals(uri)) // hack for XSLTC attribset16 test
+                        {                             // that maps ns1 prefix to "" URI
+                            name = "xmlns:" + prefix;
+
+                            /* for something like xmlns:abc="w3.pretend.org"
+                                     *  the uri is the value, that is why we pass it in the
+                                     * value, or 5th slot of addAttributeAlways()
+                                   */
+                            addAttributeAlways(XMLNS_URI, prefix, name,"CDATA",uri, false );
+                        }
+                    }
             }
         }
         return pushed;
     }
-        
+
 
     /**
      * @see org.xml.sax.ext.LexicalHandler#comment(char[], int, int)
@@ -402,8 +406,8 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         flushPending();
         if (m_lexHandler != null)
             m_lexHandler.comment(arg0, arg1, arg2);
-            
-        if (m_tracer != null)            
+
+        if (m_tracer != null)
             super.fireCommentEvent(arg0, arg1, arg2);
     }
 
@@ -415,7 +419,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         /* Normally we would do somthing with this but we ignore it.
          * The neccessary call to m_lexHandler.endCDATA() will be made
          * in flushPending().
-         * 
+         *
          * This is so that if we get calls like these:
          *   this.startCDATA();
          *   this.characters(chars1, off1, len1);
@@ -423,16 +427,16 @@ public final class ToXMLSAXHandler extends ToSAXHandler
          *   this.startCDATA();
          *   this.characters(chars2, off2, len2);
          *   this.endCDATA();
-         * 
+         *
          * that we will only make these calls to the wrapped handlers:
-         * 
+         *
          *   m_lexHandler.startCDATA();
          *   m_saxHandler.characters(chars1, off1, len1);
          *   m_saxHandler.characters(chars1, off2, len2);
          *   m_lexHandler.endCDATA();
-         * 
+         *
          * We will merge adjacent CDATA blocks.
-         */ 
+         */
     }
 
     /**
@@ -464,7 +468,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
             m_charsBuff = new char[length*2 + 1];
         }
         chars.getChars(0, length, m_charsBuff, 0);
-        this.characters(m_charsBuff, 0, length); 
+        this.characters(m_charsBuff, 0, length);
     }
 
     /////////////////// from XSLTC //////////////
@@ -512,7 +516,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
     public void characters(char[] ch, int off, int len) throws SAXException
     {
         // We do the first two things in flushPending() but we don't
-        // close any open CDATA calls.        
+        // close any open CDATA calls.
         if (m_needToCallStartDocument)
         {
             startDocumentInternal();
@@ -526,7 +530,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         }
 
         if (m_elemContext.m_isCdataSection && !m_cdataTagOpen
-        && m_lexHandler != null) 
+        && m_lexHandler != null)
         {
             m_lexHandler.startCDATA();
             // We have made a call to m_lexHandler.startCDATA() with
@@ -534,18 +538,18 @@ public final class ToXMLSAXHandler extends ToSAXHandler
             // so we set m_cdataTagOpen true to remember this.
             m_cdataTagOpen = true;
         }
-        
+
         /* If there are any occurances of "]]>" in the character data
          * let m_saxHandler worry about it, we've already warned them with
          * the previous call of m_lexHandler.startCDATA();
-         */ 
+         */
         m_saxHandler.characters(ch, off, len);
 
         // time to generate characters event
         if (m_tracer != null)
             fireCharEvent(ch, off, len);
     }
-    
+
 
     /**
      * @see ExtendedContentHandler#endElement(String)
@@ -553,7 +557,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
     public void endElement(String elemName) throws SAXException
     {
         endElement(null, null, elemName);
-    }    
+    }
 
 
     /**
@@ -612,14 +616,14 @@ public final class ToXMLSAXHandler extends ToSAXHandler
     public void startCDATA() throws SAXException
     {
         /* m_cdataTagOpen can only be true here if we have ignored the
-         * previous call to this.endCDATA() and the previous call 
+         * previous call to this.endCDATA() and the previous call
          * this.startCDATA() before that is still "open". In this way
-         * we merge adjacent CDATA. If anything else happened after the 
-         * ignored call to this.endCDATA() and this call then a call to 
+         * we merge adjacent CDATA. If anything else happened after the
+         * ignored call to this.endCDATA() and this call then a call to
          * flushPending() would have been made which would have
          * closed the CDATA and set m_cdataTagOpen to false.
          */
-        if (!m_cdataTagOpen ) 
+        if (!m_cdataTagOpen )
         {
             flushPending();
             if (m_lexHandler != null) {
@@ -627,10 +631,10 @@ public final class ToXMLSAXHandler extends ToSAXHandler
 
                 // We have made a call to m_lexHandler.startCDATA() with
                 // no balancing call to m_lexHandler.endCDATA()
-                // so we set m_cdataTagOpen true to remember this.                
-                m_cdataTagOpen = true;     
-            }              
-        }        
+                // so we set m_cdataTagOpen true to remember this.
+                m_cdataTagOpen = true;
+            }
+        }
     }
 
     /**
@@ -672,12 +676,12 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         if (atts != null)
             addAttributes(atts);
 
-         
+
         // do we really need this CDATA section state?
         m_elemContext.m_isCdataSection = isCdataSection();
-   
+
     }
- 
+
     private void ensurePrefixIsDeclared(String ns, String rawName)
         throws org.xml.sax.SAXException
     {
@@ -717,7 +721,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
      * Adds the given attribute to the set of attributes, and also makes sure
      * that the needed prefix/uri mapping is declared, but only if there is a
      * currently open element.
-     * 
+     *
      * @param uri the URI of the attribute
      * @param localName the local name of the attribute
      * @param rawName    the qualified name of the attribute
@@ -734,20 +738,20 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         String value,
         boolean XSLAttribute)
         throws SAXException
-    {      
+    {
         if (m_elemContext.m_startTagOpen)
         {
             ensurePrefixIsDeclared(uri, rawName);
             addAttributeAlways(uri, localName, rawName, type, value, false);
         }
 
-    } 
-       
+    }
+
     /**
-     * Try's to reset the super class and reset this class for 
-     * re-use, so that you don't need to create a new serializer 
+     * Try's to reset the super class and reset this class for
+     * re-use, so that you don't need to create a new serializer
      * (mostly for performance reasons).
-     * 
+     *
      * @return true if the class was successfuly reset.
      * @see Serializer#reset()
      */
@@ -761,7 +765,7 @@ public final class ToXMLSAXHandler extends ToSAXHandler
         }
         return wasReset;
     }
-    
+
     /**
      * Reset all of the fields owned by ToXMLSAXHandler class
      *
@@ -769,6 +773,6 @@ public final class ToXMLSAXHandler extends ToSAXHandler
     private void resetToXMLSAXHandler()
     {
         this.m_escapeSetting = false;
-    }  
+    }
 
 }

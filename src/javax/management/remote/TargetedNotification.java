@@ -1,8 +1,26 @@
 /*
- * @(#)TargetedNotification.java	1.11 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -13,11 +31,10 @@ import javax.management.Notification;
 
 /**
  * <p>A (Notification, Listener ID) pair.</p>
- * <p>This class is used to associate an emitted notification 
+ * <p>This class is used to associate an emitted notification
  *    with the listener ID to which it is targeted.</p>
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public class TargetedNotification implements Serializable {
 
@@ -35,10 +52,10 @@ public class TargetedNotification implements Serializable {
 //      * @param listenerID   The ID of the listener to which this
 //      *        notification is targeted.
 //      */
-//     public TargetedNotification(Notification notification, 
-// 				int listenerID) {
-// 	this.notif = notification;
-// 	this.id = listenerID;
+//     public TargetedNotification(Notification notification,
+//                              int listenerID) {
+//      this.notif = notification;
+//      this.id = listenerID;
 //     }
 
     /**
@@ -51,19 +68,19 @@ public class TargetedNotification implements Serializable {
      * @param notification Notification emitted from the MBean server.
      * @param listenerID   The ID of the listener to which this
      *        notification is targeted.
-     * @exception IllegalArgumentException if the <var>listenerID</var> 
+     * @exception IllegalArgumentException if the <var>listenerID</var>
      *        or <var>notification</var> is null.
      */
-    public TargetedNotification(Notification notification, 
-				Integer listenerID) {
-	// If we replace integer with int...
-	// this(notification,intValue(listenerID));
- 	if (notification == null) throw new 
- 	    IllegalArgumentException("Invalid notification: null");
- 	if (listenerID == null) throw new 
- 	    IllegalArgumentException("Invalid listener ID: null");
- 	this.notif = notification;
- 	this.id = listenerID;
+    public TargetedNotification(Notification notification,
+                                Integer listenerID) {
+        // If we replace integer with int...
+        // this(notification,intValue(listenerID));
+        if (notification == null) throw new
+            IllegalArgumentException("Invalid notification: null");
+        if (listenerID == null) throw new
+            IllegalArgumentException("Invalid listener ID: null");
+        this.notif = notification;
+        this.id = listenerID;
     }
 
     /**
@@ -72,26 +89,26 @@ public class TargetedNotification implements Serializable {
      * @return The notification.
      */
     public Notification getNotification() {
-	return notif;
+        return notif;
     }
 
     /**
-     * <p>The ID of the listener to which the notification is 
+     * <p>The ID of the listener to which the notification is
      *    targeted.</p>
      *
      * @return The listener ID.
      */
     public Integer getListenerID() {
-	return id;
+        return id;
     }
 
     /**
-     * Returns a textual representation of this Targeted Notification. 
-     * 
+     * Returns a textual representation of this Targeted Notification.
+     *
      * @return a String representation of this Targeted Notification.
      **/
     public String toString() {
-	return "{" + notif + ", " + id + "}";
+        return "{" + notif + ", " + id + "}";
     }
 
     /**
@@ -100,7 +117,7 @@ public class TargetedNotification implements Serializable {
      **/
     private final Notification notif;
     /**
-     * @serial The ID of the listener to which the notification is 
+     * @serial The ID of the listener to which the notification is
      *         targeted.
      * @see #getListenerID()
      **/
@@ -109,8 +126,8 @@ public class TargetedNotification implements Serializable {
 
 // Needed if we use int instead of Integer...
 //     private static int intValue(Integer id) {
-// 	if (id == null) throw new 
-// 	    IllegalArgumentException("Invalid listener ID: null");
-// 	return id.intValue();
+//      if (id == null) throw new
+//          IllegalArgumentException("Invalid listener ID: null");
+//      return id.intValue();
 //     }
 }

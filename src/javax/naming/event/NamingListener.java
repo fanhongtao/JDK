@@ -1,8 +1,26 @@
 /*
- * @(#)NamingListener.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.event;
@@ -21,15 +39,14 @@ package javax.naming.event;
   * When this method is invoked, the listener has been automatically deregistered
   * from the <tt>EventContext</tt> with which it has registered.
   *<p>
-  * For example, suppose a listener implements <tt>ObjectChangeListener</tt> and 
+  * For example, suppose a listener implements <tt>ObjectChangeListener</tt> and
   * registers with a <tt>EventContext</tt>.
   * Then, if the connection to the server is subsequently broken,
   * the listener will receive a <tt>NamingExceptionEvent</tt> and may
   * take some corrective action, such as notifying the user of the application.
-  * 
+  *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   *
   * @see NamingEvent
   * @see NamingExceptionEvent

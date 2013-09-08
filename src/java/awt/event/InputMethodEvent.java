@@ -1,8 +1,26 @@
 /*
- * @(#)InputMethodEvent.java	1.23 05/11/17
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -13,7 +31,6 @@ import java.awt.EventQueue;
 import java.awt.font.TextHitInfo;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.Integer;
 import java.text.AttributedCharacterIterator;
 import java.text.CharacterIterator;
 
@@ -36,7 +53,6 @@ import java.text.CharacterIterator;
  * always precedes composed text.
  *
  * @author JavaSoft Asia/Pacific
- * @version 1.23 11/17/05
  * @since 1.2
  */
 
@@ -140,7 +156,7 @@ public class InputMethodEvent extends AWTEvent {
             throw new IllegalArgumentException("text must be null for CARET_POSITION_CHANGED");
         }
 
-	this.when = when;
+        this.when = when;
         this.text = text;
         int textLength = 0;
         if (text != null) {
@@ -202,7 +218,7 @@ public class InputMethodEvent extends AWTEvent {
             AttributedCharacterIterator text, int committedCharacterCount,
             TextHitInfo caret, TextHitInfo visiblePosition) {
         this(source, id, EventQueue.getMostRecentEventTime(), text,
-	     committedCharacterCount, caret, visiblePosition);
+             committedCharacterCount, caret, visiblePosition);
     }
 
     /**
@@ -243,7 +259,7 @@ public class InputMethodEvent extends AWTEvent {
     public InputMethodEvent(Component source, int id, TextHitInfo caret,
             TextHitInfo visiblePosition) {
         this(source, id, EventQueue.getMostRecentEventTime(), null,
-	     0, caret, visiblePosition);
+             0, caret, visiblePosition);
     }
 
     /**
@@ -313,7 +329,7 @@ public class InputMethodEvent extends AWTEvent {
     public boolean isConsumed() {
         return consumed;
     }
-    
+
     /**
      * Returns the time stamp of when this event occurred.
      *
@@ -351,7 +367,7 @@ public class InputMethodEvent extends AWTEvent {
         if (text == null) {
             textString = "no text";
         } else {
-            StringBuffer textBuffer = new StringBuffer("\"");
+            StringBuilder textBuffer = new StringBuilder("\"");
             int committedCharacterCount = this.committedCharacterCount;
             char c = text.first();
             while (committedCharacterCount-- > 0) {
@@ -366,23 +382,23 @@ public class InputMethodEvent extends AWTEvent {
             textBuffer.append("\"");
             textString = textBuffer.toString();
         }
-        
+
         String countString = committedCharacterCount + " characters committed";
-        
+
         String caretString;
         if (caret == null) {
             caretString = "no caret";
         } else {
             caretString = "caret: " + caret.toString();
         }
-        
+
         String visiblePositionString;
         if (visiblePosition == null) {
             visiblePositionString = "no visible position";
         } else {
             visiblePositionString = "visible position: " + visiblePosition.toString();
         }
-        
+
         return typeStr + ", " + textString + ", " + countString + ", " + caretString + ", " + visiblePositionString;
     }
 
@@ -392,9 +408,9 @@ public class InputMethodEvent extends AWTEvent {
      * invoking {@link java.awt.EventQueue#getMostRecentEventTime()}.
      */
     private void readObject(ObjectInputStream s) throws ClassNotFoundException, IOException {
-	s.defaultReadObject();
-	if (when == 0) {
-	    when = EventQueue.getMostRecentEventTime();
-	}
+        s.defaultReadObject();
+        if (when == 0) {
+            when = EventQueue.getMostRecentEventTime();
+        }
     }
 }

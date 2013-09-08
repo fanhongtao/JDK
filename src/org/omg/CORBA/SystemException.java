@@ -1,8 +1,26 @@
 /*
- * @(#)SystemException.java	1.61 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -53,9 +71,9 @@ public abstract class SystemException extends java.lang.RuntimeException {
      * @param completed the completion status
      */
     protected SystemException(String reason, int minor, CompletionStatus completed) {
-	super(reason);
-	this.minor = minor;
-	this.completed = completed;
+        super(reason);
+        this.minor = minor;
+        this.completed = completed;
     }
 
     /**
@@ -63,7 +81,7 @@ public abstract class SystemException extends java.lang.RuntimeException {
      */
     public String toString() {
         // The fully qualified exception class name
-	String result = super.toString();
+        String result = super.toString();
 
         // The vmcid part
         int vmcid = minor & 0xFFFFF000;
@@ -84,7 +102,7 @@ public abstract class SystemException extends java.lang.RuntimeException {
         result += "  minor code: " + mc;
 
         // The completion status part
-	switch (completed.value()) {
+        switch (completed.value()) {
             case CompletionStatus._COMPLETED_YES:
                 result += "  completed: Yes";
                 break;
@@ -95,7 +113,7 @@ public abstract class SystemException extends java.lang.RuntimeException {
             default:
                 result += " completed: Maybe";
                 break;
-	}
+        }
         return result;
     }
 }

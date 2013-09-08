@@ -1,8 +1,26 @@
 /*
- * @(#)CopyObjectPolicy.java	1.5 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.extension ;
@@ -17,33 +35,33 @@ public class CopyObjectPolicy extends LocalObject implements Policy
 {
     private final int value ;
 
-    public CopyObjectPolicy( int value ) 
+    public CopyObjectPolicy( int value )
     {
-	this.value = value ;
+        this.value = value ;
     }
 
     public int getValue()
     {
-	return value ;
+        return value ;
     }
 
     public int policy_type ()
     {
-	return ORBConstants.COPY_OBJECT_POLICY ;
+        return ORBConstants.COPY_OBJECT_POLICY ;
     }
 
     public org.omg.CORBA.Policy copy ()
     {
-	return this ;
+        return this ;
     }
 
     public void destroy ()
     {
-	// NO-OP
+        // NO-OP
     }
 
-    public String toString() 
+    public String toString()
     {
-	return "CopyObjectPolicy[" + value + "]" ;
+        return "CopyObjectPolicy[" + value + "]" ;
     }
 }

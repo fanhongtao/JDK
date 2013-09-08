@@ -1,8 +1,26 @@
 /*
- * @(#)DynamicStub.java	1.6 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.presentation.rmi ;
@@ -15,7 +33,7 @@ import org.omg.CORBA.portable.OutputStream ;
 import org.omg.CORBA.ORB ;
 
 /** Interface used to support dynamically generated stubs.
- * This supplies some methods that are found in 
+ * This supplies some methods that are found in
  * org.omg.CORBA.portable.ObjectImpl that are not available
  * in org.omg.CORBA.Object.
  */
@@ -35,12 +53,12 @@ public interface DynamicStub extends org.omg.CORBA.Object
 
     /** Similar to ObjectImpl._ids
      */
-    String[] getTypeIds() ; 
+    String[] getTypeIds() ;
 
     /** Connect this dynamic stub to an ORB.
      * Just as in standard RMI-IIOP, this is required after
      * a dynamic stub is deserialized from an ObjectInputStream.
-     * It is not needed when unmarshalling from a 
+     * It is not needed when unmarshalling from a
      * org.omg.CORBA.portable.InputStream.
      */
     void connect( ORB orb ) throws RemoteException ;
@@ -49,4 +67,3 @@ public interface DynamicStub extends org.omg.CORBA.Object
 
     OutputStream request( String operation, boolean responseExpected ) ;
 }
-

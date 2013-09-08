@@ -1,11 +1,29 @@
 /*
- * @(#)StringMonitorMBean.java	4.25 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
-package javax.management.monitor; 
+package javax.management.monitor;
 
 // jmx imports
 //
@@ -14,16 +32,14 @@ import javax.management.ObjectName;
 /**
  * Exposes the remote management interface of the string monitor MBean.
  *
- * @version     4.25     11/17/05
- * @author      Sun Microsystems, Inc
  *
  * @since 1.5
  */
-public interface StringMonitorMBean extends MonitorMBean { 
-    
+public interface StringMonitorMBean extends MonitorMBean {
+
     // GETTERS AND SETTERS
-    //--------------------    
-        
+    //--------------------
+
     /**
      * Gets the derived gauge.
      *
@@ -32,7 +48,7 @@ public interface StringMonitorMBean extends MonitorMBean {
      */
     @Deprecated
     public String getDerivedGauge();
-    
+
     /**
      * Gets the derived gauge timestamp.
      *
@@ -40,8 +56,8 @@ public interface StringMonitorMBean extends MonitorMBean {
      * @deprecated As of JMX 1.2, replaced by {@link #getDerivedGaugeTimeStamp(ObjectName)}
      */
     @Deprecated
-    public long getDerivedGaugeTimeStamp();  
-    
+    public long getDerivedGaugeTimeStamp();
+
     /**
      * Gets the derived gauge for the specified MBean.
      *
@@ -49,10 +65,9 @@ public interface StringMonitorMBean extends MonitorMBean {
      * @return The derived gauge for the specified MBean if this MBean is in the
      *         set of observed MBeans, or <code>null</code> otherwise.
      *
-     * @since.unbundled JMX 1.2
      */
     public String getDerivedGauge(ObjectName object);
-    
+
     /**
      * Gets the derived gauge timestamp for the specified MBean.
      *
@@ -60,10 +75,9 @@ public interface StringMonitorMBean extends MonitorMBean {
      * @return The derived gauge timestamp for the specified MBean if this MBean
      *         is in the set of observed MBeans, or <code>null</code> otherwise.
      *
-     * @since.unbundled JMX 1.2
      */
     public long getDerivedGaugeTimeStamp(ObjectName object);
-    
+
     /**
      * Gets the string to compare with the observed attribute.
      *
@@ -71,7 +85,7 @@ public interface StringMonitorMBean extends MonitorMBean {
      *
      * @see #setStringToCompare
      */
-    public String getStringToCompare(); 
+    public String getStringToCompare();
 
     /**
      * Sets the string to compare with the observed attribute.
@@ -82,8 +96,8 @@ public interface StringMonitorMBean extends MonitorMBean {
      *
      * @see #getStringToCompare
      */
-    public void setStringToCompare(String value) throws java.lang.IllegalArgumentException; 
-    
+    public void setStringToCompare(String value) throws java.lang.IllegalArgumentException;
+
     /**
      * Gets the matching notification's on/off switch value.
      *
@@ -92,7 +106,7 @@ public interface StringMonitorMBean extends MonitorMBean {
      *
      * @see #setNotifyMatch
      */
-    public boolean getNotifyMatch(); 
+    public boolean getNotifyMatch();
 
     /**
      * Sets the matching notification's on/off switch value.
@@ -101,7 +115,7 @@ public interface StringMonitorMBean extends MonitorMBean {
      *
      * @see #getNotifyMatch
      */
-    public void setNotifyMatch(boolean value); 
+    public void setNotifyMatch(boolean value);
 
     /**
      * Gets the differing notification's on/off switch value.
@@ -111,7 +125,7 @@ public interface StringMonitorMBean extends MonitorMBean {
      *
      * @see #setNotifyDiffer
      */
-    public boolean getNotifyDiffer(); 
+    public boolean getNotifyDiffer();
 
     /**
      * Sets the differing notification's on/off switch value.
@@ -120,5 +134,5 @@ public interface StringMonitorMBean extends MonitorMBean {
      *
      * @see #getNotifyDiffer
      */
-    public void setNotifyDiffer(boolean value); 
+    public void setNotifyDiffer(boolean value);
 }

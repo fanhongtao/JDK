@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -79,7 +83,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
  * @author Jeffrey Rodriguez IBM
  * @author Neil Graham, IBM
  *
- * @version $Id: XMLDTDValidator.java,v 1.3 2005/09/26 13:02:18 sunithareddy Exp $
+ * @version $Id: XMLDTDValidator.java,v 1.8 2010-11-01 04:39:42 joehw Exp $
  */
 public class XMLDTDValidator
         implements XMLComponent, XMLDocumentFilter, XMLDTDValidatorFilter, RevalidationHandler {
@@ -97,22 +101,26 @@ public class XMLDTDValidator
 
     /** Feature identifier: namespaces. */
     protected static final String NAMESPACES =
-    Constants.SAX_FEATURE_PREFIX + Constants.NAMESPACES_FEATURE;
+        Constants.SAX_FEATURE_PREFIX + Constants.NAMESPACES_FEATURE;
 
     /** Feature identifier: validation. */
     protected static final String VALIDATION =
-    Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
+        Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
 
     /** Feature identifier: dynamic validation. */
-    protected static final String DYNAMIC_VALIDATION = 
-    Constants.XERCES_FEATURE_PREFIX + Constants.DYNAMIC_VALIDATION_FEATURE;
+    protected static final String DYNAMIC_VALIDATION =
+        Constants.XERCES_FEATURE_PREFIX + Constants.DYNAMIC_VALIDATION_FEATURE;
+
+    /** Feature identifier: balance syntax trees. */
+    protected static final String BALANCE_SYNTAX_TREES =
+        Constants.XERCES_FEATURE_PREFIX + Constants.BALANCE_SYNTAX_TREES;
 
     /** Feature identifier: warn on duplicate attdef */
-    protected static final String WARN_ON_DUPLICATE_ATTDEF = 
-    Constants.XERCES_FEATURE_PREFIX +Constants.WARN_ON_DUPLICATE_ATTDEF_FEATURE; 
-    
-	protected static final String PARSER_SETTINGS = 
-		Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;	
+    protected static final String WARN_ON_DUPLICATE_ATTDEF =
+        Constants.XERCES_FEATURE_PREFIX + Constants.WARN_ON_DUPLICATE_ATTDEF_FEATURE;
+
+	protected static final String PARSER_SETTINGS =
+		Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
 
 
 
@@ -144,7 +152,8 @@ public class XMLDTDValidator
     private static final String[] RECOGNIZED_FEATURES = {
         NAMESPACES,
         VALIDATION,
-        DYNAMIC_VALIDATION
+        DYNAMIC_VALIDATION,
+        BALANCE_SYNTAX_TREES
     };
 
     /** Feature defaults. */
@@ -152,11 +161,12 @@ public class XMLDTDValidator
         null,
         null,
         Boolean.FALSE,
+        Boolean.FALSE,
     };
 
     /** Recognized properties. */
     private static final String[] RECOGNIZED_PROPERTIES = {
-        SYMBOL_TABLE,       
+        SYMBOL_TABLE,
         ERROR_REPORTER,
         GRAMMAR_POOL,
         DATATYPE_VALIDATOR_FACTORY,
@@ -180,15 +190,15 @@ public class XMLDTDValidator
     /** Compile to true to debug element children. */
     private static final boolean DEBUG_ELEMENT_CHILDREN = false;
 
-    //        
+    //
     // Data
     //
 
     // updated during reset
     protected ValidationManager fValidationManager = null;
-    
+
     // validation state
-    protected ValidationState   fValidationState   = new ValidationState();
+    protected final ValidationState fValidationState = new ValidationState();
 
     // features
 
@@ -201,15 +211,18 @@ public class XMLDTDValidator
     /** Validation against only DTD */
     protected boolean fDTDValidation;
 
-    /** 
+    /**
      * Dynamic validation. This state of this feature is only useful when
      * the validation feature is set to <code>true</code>.
      */
     protected boolean fDynamicValidation;
 
+    /** Controls whether the DTD grammar produces balanced syntax trees. */
+    protected boolean fBalanceSyntaxTrees;
+
     /** warn on duplicate attribute definition, this feature works only when validation is true */
     protected boolean fWarnDuplicateAttdef;
-        
+
     // properties
 
     /** Symbol table. */
@@ -251,7 +264,7 @@ public class XMLDTDValidator
 
     /** Perform validation. */
     private boolean fPerformValidation;
-    
+
     /** Schema type: None, DTD, Schema */
     private String fSchemaType;
 
@@ -283,7 +296,7 @@ public class XMLDTDValidator
 
     // children list and offset stack
 
-    /** 
+    /**
      * Element children. This data structure is a growing stack that
      * holds the children of elements from the root to the current
      * element depth. This structure never gets "deeper" than the
@@ -301,7 +314,7 @@ public class XMLDTDValidator
     /** Element children count. */
     private int fElementChildrenLength = 0;
 
-    /** 
+    /**
      * Element children offset stack. This stack refers to offsets
      * into the <code>fElementChildren</code> array.
      * @see #fElementChildren
@@ -325,16 +338,16 @@ public class XMLDTDValidator
     private XMLElementDecl fTempElementDecl = new XMLElementDecl();
 
     /** Temporary atribute declaration. */
-    private XMLAttributeDecl fTempAttDecl = new XMLAttributeDecl();
+    private final XMLAttributeDecl fTempAttDecl = new XMLAttributeDecl();
 
     /** Temporary entity declaration. */
-    private XMLEntityDecl fEntityDecl = new XMLEntityDecl();
+    private final XMLEntityDecl fEntityDecl = new XMLEntityDecl();
 
     /** Temporary qualified name. */
-    private QName fTempQName = new QName();
+    private final QName fTempQName = new QName();
 
     /** Temporary string buffers. */
-    private StringBuffer fBuffer = new StringBuffer();
+    private final StringBuffer fBuffer = new StringBuffer();
 
     // symbols: general
 
@@ -394,13 +407,13 @@ public class XMLDTDValidator
      * Resets the component. The component can query the component manager
      * about any features and properties that affect the operation of the
      * component.
-     * 
+     *
      * @param componentManager The component manager.
      *
      * @throws SAXException Thrown by component on finitialization error.
      *                      For example, if a feature or property is
      *                      required for the operation of the component, the
-     *                      component manager may throw a 
+     *                      component manager may throw a
      *                      SAXNotRecognizedException or a
      *                      SAXNotSupportedException.
      */
@@ -420,19 +433,13 @@ public class XMLDTDValidator
         fRootElement.clear();
 
 		fValidationState.resetIDTables();
-		
+
 		fGrammarBucket.clear();
-		fElementDepth = -1;                      
+		fElementDepth = -1;
 		fElementChildrenLength = 0;
-        
-        boolean parser_settings;
-        try {
-        	parser_settings = componentManager.getFeature(PARSER_SETTINGS);  	
-        }
-        catch (XMLConfigurationException e){
-        	parser_settings = true;
-        }
-        
+
+        boolean parser_settings = componentManager.getFeature(PARSER_SETTINGS, true);
+
         if (!parser_settings){
         	// parser settings have not been changed
 			fValidationManager.addValidationState(fValidationState);
@@ -440,61 +447,26 @@ public class XMLDTDValidator
         }
 
         // sax features
-        try {
-            fNamespaces = componentManager.getFeature(NAMESPACES);
-        }
-        catch (XMLConfigurationException e) {
-            fNamespaces = true;
-        }
-        try {
-            fValidation = componentManager.getFeature(VALIDATION);
-        }
-        catch (XMLConfigurationException e) {
-            fValidation = false;
-        }
-        try {
-            fDTDValidation = !(componentManager.getFeature(Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_VALIDATION_FEATURE));
-        }
-        catch (XMLConfigurationException e) {
-            // must be in a schema-less configuration!
-            fDTDValidation = true;
-        }
+        fNamespaces = componentManager.getFeature(NAMESPACES, true);
+        fValidation = componentManager.getFeature(VALIDATION, false);
+        fDTDValidation = !(componentManager.getFeature(Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_VALIDATION_FEATURE, false));
 
         // Xerces features
-        try {
-            fDynamicValidation = componentManager.getFeature(DYNAMIC_VALIDATION);
-        }
-        catch (XMLConfigurationException e) {
-            fDynamicValidation = false;
-        }
-        
-        try {
-            fWarnDuplicateAttdef = componentManager.getFeature(WARN_ON_DUPLICATE_ATTDEF);
-        }
-        catch (XMLConfigurationException e) {
-            fWarnDuplicateAttdef = false;
-        }
-        
-        try {
-            fSchemaType = (String)componentManager.getProperty (Constants.JAXP_PROPERTY_PREFIX 
-            + Constants.SCHEMA_LANGUAGE);           
-        }
-        catch (XMLConfigurationException e){
-            fSchemaType = null;
-        }
+        fDynamicValidation = componentManager.getFeature(DYNAMIC_VALIDATION, false);
+        fBalanceSyntaxTrees = componentManager.getFeature(BALANCE_SYNTAX_TREES, false);
+        fWarnDuplicateAttdef = componentManager.getFeature(WARN_ON_DUPLICATE_ATTDEF, false);
+
+        fSchemaType = (String)componentManager.getProperty (Constants.JAXP_PROPERTY_PREFIX
+            + Constants.SCHEMA_LANGUAGE, null);
 
         fValidationManager= (ValidationManager)componentManager.getProperty(VALIDATION_MANAGER);
-        fValidationManager.addValidationState(fValidationState);      
+        fValidationManager.addValidationState(fValidationState);
         fValidationState.setUsingNamespaces(fNamespaces);
-        
+
         // get needed components
         fErrorReporter = (XMLErrorReporter)componentManager.getProperty(Constants.XERCES_PROPERTY_PREFIX+Constants.ERROR_REPORTER_PROPERTY);
         fSymbolTable = (SymbolTable)componentManager.getProperty(Constants.XERCES_PROPERTY_PREFIX+Constants.SYMBOL_TABLE_PROPERTY);
-        try {
-            fGrammarPool= (XMLGrammarPool)componentManager.getProperty(GRAMMAR_POOL);
-        } catch (XMLConfigurationException e) {
-            fGrammarPool = null;
-        }
+        fGrammarPool= (XMLGrammarPool)componentManager.getProperty(GRAMMAR_POOL, null);
 
         fDatatypeValidatorFactory = (DTDDVFactory)componentManager.getProperty(Constants.XERCES_PROPERTY_PREFIX + Constants.DATATYPE_VALIDATOR_FACTORY_PROPERTY);
 		init();
@@ -512,11 +484,11 @@ public class XMLDTDValidator
 
     /**
      * Sets the state of a feature. This method is called by the component
-     * manager any time after reset when a feature changes state. 
+     * manager any time after reset when a feature changes state.
      * <p>
      * <strong>Note:</strong> Components should silently ignore features
      * that do not affect the operation of the component.
-     * 
+     *
      * @param featureId The feature identifier.
      * @param state     The state of the feature.
      *
@@ -540,11 +512,11 @@ public class XMLDTDValidator
 
     /**
      * Sets the value of a property. This method is called by the component
-     * manager any time after reset when a property changes value. 
+     * manager any time after reset when a property changes value.
      * <p>
      * <strong>Note:</strong> Components should silently ignore properties
      * that do not affect the operation of the component.
-     * 
+     *
      * @param propertyId The property identifier.
      * @param value      The value of the property.
      *
@@ -557,7 +529,7 @@ public class XMLDTDValidator
     throws XMLConfigurationException {
     } // setProperty(String,Object)
 
-    /** 
+    /**
      * Returns the default state for a feature, or null if this
      * component does not want to report a default value for this
      * feature.
@@ -575,10 +547,10 @@ public class XMLDTDValidator
         return null;
     } // getFeatureDefault(String):Boolean
 
-    /** 
+    /**
      * Returns the default state for a property, or null if this
      * component does not want to report a default value for this
-     * property. 
+     * property.
      *
      * @param propertyId The property identifier.
      *
@@ -644,21 +616,22 @@ public class XMLDTDValidator
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void startDocument(XMLLocator locator, String encoding, 
-                              NamespaceContext namespaceContext, Augmentations augs) 
+    public void startDocument(XMLLocator locator, String encoding,
+                              NamespaceContext namespaceContext, Augmentations augs)
     throws XNIException {
 
         // call handlers
         // get initial grammars
-        if(fGrammarPool != null) {
+        if (fGrammarPool != null) {
             Grammar [] grammars = fGrammarPool.retrieveInitialGrammarSet(XMLGrammarDescription.XML_DTD);
-            for(int i = 0; i<grammars.length; i++) {
+            final int length = (grammars != null) ? grammars.length : 0;
+            for (int i = 0; i < length; ++i) {
                 fGrammarBucket.putGrammar((DTDGrammar)grammars[i]);
             }
         }
         fDocLocation = locator;
         fNamespaceContext = namespaceContext;
-   
+
         if (fDocumentHandler != null) {
             fDocumentHandler.startDocument(locator, encoding, namespaceContext, augs);
         }
@@ -669,11 +642,11 @@ public class XMLDTDValidator
      * Notifies of the presence of an XMLDecl line in the document. If
      * present, this method will be called immediately following the
      * startDocument call.
-     * 
+     *
      * @param version    The XML version.
      * @param encoding   The IANA encoding name of the document, or null if
      *                   not specified.
-     * @param standalone The standalone value, or null if not specified.     
+     * @param standalone The standalone value, or null if not specified.
      * @param augs   Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
@@ -693,17 +666,17 @@ public class XMLDTDValidator
 
     /**
      * Notifies of the presence of the DOCTYPE line in the document.
-     * 
+     *
      * @param rootElement The name of the root element.
      * @param publicId    The public identifier if an external DTD or null
      *                    if the external DTD is specified using SYSTEM.
      * @param systemId    The system identifier if an external DTD, null
-     *                    otherwise.     
+     *                    otherwise.
      * @param augs   Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void doctypeDecl(String rootElement, String publicId, String systemId, 
+    public void doctypeDecl(String rootElement, String publicId, String systemId,
                             Augmentations augs)
     throws XNIException {
 
@@ -721,8 +694,8 @@ public class XMLDTDValidator
         if(fDTDGrammar == null) {
             // give grammar pool a chance...
             //
-            // Do not bother checking the pool if no public or system identifier was provided. 
-            // Since so many different DTDs have roots in common, using only a root name as the 
+            // Do not bother checking the pool if no public or system identifier was provided.
+            // Since so many different DTDs have roots in common, using only a root name as the
             // key may cause an unexpected grammar to be retrieved from the grammar pool. This scenario
             // would occur when an ExternalSubsetResolver has been queried and the
             // XMLInputSource returned contains an input stream but no external identifier.
@@ -733,7 +706,12 @@ public class XMLDTDValidator
         }
         if(fDTDGrammar == null) {
             // we'll have to create it...
-            fDTDGrammar = new DTDGrammar(fSymbolTable, grammarDesc);
+            if (!fBalanceSyntaxTrees) {
+                fDTDGrammar = new DTDGrammar(fSymbolTable, grammarDesc);
+            }
+            else {
+                fDTDGrammar = new BalancedDTDGrammar(fSymbolTable, grammarDesc);
+            }
         } else {
             // we've found a cached one;so let's make sure not to read
             // any external subset!
@@ -751,9 +729,9 @@ public class XMLDTDValidator
 
     /**
      * The start of an element.
-     * 
+     *
      * @param element    The name of the element.
-     * @param attributes The element attributes.     
+     * @param attributes The element attributes.
      * @param augs   Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
@@ -772,9 +750,9 @@ public class XMLDTDValidator
 
     /**
      * An empty element.
-     * 
+     *
      * @param element    The name of the element.
-     * @param attributes The element attributes.     
+     * @param attributes The element attributes.
      * @param augs   Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
@@ -790,13 +768,13 @@ public class XMLDTDValidator
         if (!removed) {
             handleEndElement(element, augs, true);
         }
-        
+
 
     } // emptyElement(QName,XMLAttributes)
 
     /**
      * Character content.
-     * 
+     *
      * @param text The content.
      *
      * @param augs   Additional information that may include infoset augmentations
@@ -840,15 +818,15 @@ public class XMLDTDValidator
                 if (!allWhiteSpace) {
                     charDataInContent();
                 }
-                
+
                 // For E15.2
                 if (augs != null && augs.getItem(Constants.CHAR_REF_PROBABLE_WS) == Boolean.TRUE) {
-                    fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                    fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "MSG_CONTENT_INVALID_SPECIFIED",
-                                               new Object[]{ fCurrentElement.rawname, 
+                                               new Object[]{ fCurrentElement.rawname,
                                                    fDTDGrammar.getContentSpecAsString(fElementDepth),
                                                    "character reference"},
-                                               XMLErrorReporter.SEVERITY_ERROR);                
+                                               XMLErrorReporter.SEVERITY_ERROR);
                 }
             }
 
@@ -873,7 +851,7 @@ public class XMLDTDValidator
      * example, the validator can determine if a length of whitespace
      * characters in the document are ignorable based on the element
      * content model.
-     * 
+     *
      * @param text The ignorable whitespace.
      * @param augs   Additional information that may include infoset augmentations
      *
@@ -890,7 +868,7 @@ public class XMLDTDValidator
 
     /**
      * The end of an element.
-     * 
+     *
      * @param element The name of the element.
      * @param augs   Additional information that may include infoset augmentations
      *
@@ -902,8 +880,8 @@ public class XMLDTDValidator
 
     } // endElement(QName)
 
-    /** 
-     * The start of a CDATA section. 
+    /**
+     * The start of a CDATA section.
      * @param augs   Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
@@ -922,7 +900,7 @@ public class XMLDTDValidator
     } // startCDATA()
 
     /**
-     * The end of a CDATA section. 
+     * The end of a CDATA section.
      * @param augs   Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
@@ -954,7 +932,7 @@ public class XMLDTDValidator
 
     /**
      * A comment.
-     * 
+     *
      * @param text The text in the comment.
      * @param augs   Additional information that may include infoset augmentations
      *
@@ -965,12 +943,12 @@ public class XMLDTDValidator
         if (fPerformValidation && fElementDepth >= 0 && fDTDGrammar != null) {
             fDTDGrammar.getElementDecl(fCurrentElementIndex, fTempElementDecl);
             if (fTempElementDecl.type == XMLElementDecl.TYPE_EMPTY) {
-                    fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                    fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "MSG_CONTENT_INVALID_SPECIFIED",
                                                new Object[]{ fCurrentElement.rawname,
                                                              "EMPTY",
                                                              "comment"},
-                                               XMLErrorReporter.SEVERITY_ERROR);                
+                                               XMLErrorReporter.SEVERITY_ERROR);
             }
         }
         // call handlers
@@ -991,9 +969,9 @@ public class XMLDTDValidator
      * element attributes but are <strong>not</strong> parsed or presented
      * to the application as anything other than text. The application is
      * responsible for parsing the data.
-     * 
+     *
      * @param target The target.
-     * @param data   The data or null if none specified.     
+     * @param data   The data or null if none specified.
      * @param augs   Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
@@ -1005,12 +983,12 @@ public class XMLDTDValidator
         if (fPerformValidation && fElementDepth >= 0 && fDTDGrammar != null) {
             fDTDGrammar.getElementDecl(fCurrentElementIndex, fTempElementDecl);
             if (fTempElementDecl.type == XMLElementDecl.TYPE_EMPTY) {
-                    fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                    fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "MSG_CONTENT_INVALID_SPECIFIED",
                                                new Object[]{ fCurrentElement.rawname,
                                                              "EMPTY",
                                                              "processing instruction"},
-                                               XMLErrorReporter.SEVERITY_ERROR);                
+                                               XMLErrorReporter.SEVERITY_ERROR);
             }
         }
         // call handlers
@@ -1024,7 +1002,7 @@ public class XMLDTDValidator
      * <p>
      * <strong>Note:</strong> This method is not called for entity references
      * appearing as part of attribute values.
-     * 
+     *
      * @param name     The name of the general entity.
      * @param identifier The resource identifier.
      * @param encoding The auto-detected IANA encoding name of the entity
@@ -1033,22 +1011,22 @@ public class XMLDTDValidator
      *                 internal entities or a document entity that is
      *                 parsed from a java.io.Reader).
      * @param augs     Additional information that may include infoset augmentations
-     *                 
+     *
      * @exception XNIException Thrown by handler to signal an error.
      */
-    public void startGeneralEntity(String name, 
+    public void startGeneralEntity(String name,
                                    XMLResourceIdentifier identifier,
-                                   String encoding, 
+                                   String encoding,
                                    Augmentations augs) throws XNIException {
         if (fPerformValidation && fElementDepth >= 0 && fDTDGrammar != null) {
             fDTDGrammar.getElementDecl(fCurrentElementIndex, fTempElementDecl);
             // fixes E15.1
             if (fTempElementDecl.type == XMLElementDecl.TYPE_EMPTY) {
-                fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                            "MSG_CONTENT_INVALID_SPECIFIED",
                                            new Object[]{ fCurrentElement.rawname,
                                                          "EMPTY", "ENTITY"},
-                                           XMLErrorReporter.SEVERITY_ERROR);                
+                                           XMLErrorReporter.SEVERITY_ERROR);
             }
             if (fGrammarBucket.getStandalone()) {
                 XMLDTDLoader.checkStandaloneEntityRef(name, fDTDGrammar, fEntityDecl, fErrorReporter);
@@ -1064,10 +1042,10 @@ public class XMLDTDValidator
      * <p>
      * <strong>Note:</strong> This method is not called for entity references
      * appearing as part of attribute values.
-     * 
+     *
      * @param name   The name of the entity.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -1084,7 +1062,7 @@ public class XMLDTDValidator
      * <p>
      * <strong>Note:</strong> This method is only called for external
      * parameter entities referenced in the DTD.
-     * 
+     *
      * @param version  The XML version, or null if not specified.
      * @param encoding The IANA encoding name of the entity.
      * @param augs Additional information that may include infoset
@@ -1102,10 +1080,10 @@ public class XMLDTDValidator
 
 
     public final boolean hasGrammar(){
-        
+
         return (fDTDGrammar != null);
     }
-    
+
     public final boolean validate(){
         // Do validation if all of the following are true:
         // 1. The JAXP Schema Language property is not XML Schema
@@ -1118,17 +1096,17 @@ public class XMLDTDValidator
         // 2.1 Dynamic validation is off, and validation is on
         // 2.2 Dynamic validation is on, and DOCTYPE was seen
         // 3 Xerces schema validation feature is off, or DOCTYPE was seen.
-        return (fSchemaType != Constants.NS_XMLSCHEMA) && 
+        return (fSchemaType != Constants.NS_XMLSCHEMA) &&
                (!fDynamicValidation && fValidation ||
                 fDynamicValidation && fSeenDoctypeDecl) &&
                (fDTDValidation || fSeenDoctypeDecl);
     }
-    
+
             //REVISIT:we can convert into functions.. adding default attribute values.. and one validating.
 
     /** Add default attributes and validate. */
-    protected void addDTDDefaultAttrsAndValidate(QName elementName, int elementIndex, 
-                                               XMLAttributes attributes) 
+    protected void addDTDDefaultAttrsAndValidate(QName elementName, int elementIndex,
+                                               XMLAttributes attributes)
     throws XNIException {
 
         // is there anything to do?
@@ -1167,11 +1145,11 @@ public class XMLDTDValidator
             String attType = getAttributeTypeName(fTempAttDecl);
             int attDefaultType =fTempAttDecl.simpleType.defaultType;
             String attValue = null;
-                            
+
             if (fTempAttDecl.simpleType.defaultValue != null) {
                 attValue = fTempAttDecl.simpleType.defaultValue;
             }
-            
+
             boolean specified = false;
             boolean required = attDefaultType == XMLSimpleType.DEFAULT_TYPE_REQUIRED;
             boolean cdata = attType == XMLSymbols.fCDATASymbol;
@@ -1259,7 +1237,7 @@ public class XMLDTDValidator
             while (position != -1) {
                 fDTDGrammar.getAttributeDecl(position, fTempAttDecl);
                 if (fTempAttDecl.name.rawname == attrRawName) {
-                    // found the match att decl, 
+                    // found the match att decl,
                     attDefIndex = position;
                     declared = true;
                     break;
@@ -1274,7 +1252,7 @@ public class XMLDTDValidator
 
                     fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "MSG_ATTRIBUTE_NOT_DECLARED",
-                                               args,XMLErrorReporter.SEVERITY_ERROR);   
+                                               args,XMLErrorReporter.SEVERITY_ERROR);
                 }
                 continue;
             }
@@ -1295,7 +1273,7 @@ public class XMLDTDValidator
                 changedByNormalization = normalizeAttrValue(attributes, i);
                 attrValue = attributes.getValue(i);
                 if (fPerformValidation && fGrammarBucket.getStandalone()
-                    && changedByNormalization 
+                    && changedByNormalization
                     && fDTDGrammar.getAttributeDeclIsExternal(position)
                    ) {
                     // check VC: Standalone Document Declaration
@@ -1349,7 +1327,7 @@ public class XMLDTDValidator
                 int entIndex = fDTDGrammar.getEntityDeclIndex(entityName);
                 if (entIndex > -1) {
                     fDTDGrammar.getEntityDecl(entIndex, fEntityDecl);
-                    if (fEntityDecl.inExternal || 
+                    if (fEntityDecl.inExternal ||
                         (entityName = getExternalEntityRefInAttrValue(fEntityDecl.value)) != null) {
                         return entityName;
                     }
@@ -1364,11 +1342,11 @@ public class XMLDTDValidator
      * Validate attributes in DTD fashion.
      */
     protected void validateDTDattribute(QName element, String attValue,
-                                      XMLAttributeDecl attributeDecl) 
+                                      XMLAttributeDecl attributeDecl)
     throws XNIException {
 
         switch (attributeDecl.simpleType.type) {
-        case XMLSimpleType.TYPE_ENTITY: {                            
+        case XMLSimpleType.TYPE_ENTITY: {
                 // NOTE: Save this information because invalidStandaloneAttDef
                 boolean isAlistAttribute = attributeDecl.simpleType.list;
 
@@ -1411,7 +1389,7 @@ public class XMLDTDValidator
                         for (int i = 0; i < enumVals.length; i++) {
                             enumValueString.append(enumVals[i]+" ");
                         }
-                    fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                    fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                "MSG_ATTRIBUTE_VALUE_NOT_IN_LIST",
                                                new Object[]{attributeDecl.name.rawname, attValue, enumValueString},
                                                XMLErrorReporter.SEVERITY_ERROR);
@@ -1564,7 +1542,7 @@ public class XMLDTDValidator
                                     if (length > 0)
                                         length--;
                                 }
-                            } 
+                            }
                             else {
                                 if (offset > 0)
                                     offset--;
@@ -1598,7 +1576,7 @@ public class XMLDTDValidator
                     if (offset+length == count) {
                         length--;
                     }
-                } 
+                }
                 else {
                     offset--;
                 }
@@ -1618,9 +1596,9 @@ public class XMLDTDValidator
             String root1 = fRootElement.rawname;
             String root2 = rootElement.rawname;
             if (root1 == null || !root1.equals(root2)) {
-                fErrorReporter.reportError( XMLMessageFormatter.XML_DOMAIN, 
-                                            "RootElementTypeMustMatchDoctypedecl", 
-                                            new Object[]{root1, root2}, 
+                fErrorReporter.reportError( XMLMessageFormatter.XML_DOMAIN,
+                                            "RootElementTypeMustMatchDoctypedecl",
+                                            new Object[]{root1, root2},
                                             XMLErrorReporter.SEVERITY_ERROR);
             }
         }
@@ -1650,7 +1628,7 @@ public class XMLDTDValidator
      * @param elementIndex The index within the <code>ElementDeclPool</code> of this
      *                     element.
      * @param childCount The number of entries in the <code>children</code> array.
-     * @param children The children of this element.  
+     * @param children The children of this element.
      *
      * @return The value -1 if fully valid, else the 0 based index of the child
      *         that first failed. If the value returned is equal to the number
@@ -1659,9 +1637,9 @@ public class XMLDTDValidator
      *
      * @exception Exception Thrown on error.
      */
-    private int checkContent(int elementIndex, 
+    private int checkContent(int elementIndex,
                              QName[] children,
-                             int childOffset, 
+                             int childOffset,
                              int childCount) throws XNIException {
 
         fDTDGrammar.getElementDecl(elementIndex, fTempElementDecl);
@@ -1693,7 +1671,7 @@ public class XMLDTDValidator
             //  at all. Its assumed to fine since it can hold anything.
             //
         }
-        else if (contentType == XMLElementDecl.TYPE_MIXED ||  
+        else if (contentType == XMLElementDecl.TYPE_MIXED ||
                  contentType == XMLElementDecl.TYPE_CHILDREN) {
             // Get the content model for this element, faulting it in if needed
             ContentModelValidator cmElem = null;
@@ -1779,7 +1757,7 @@ public class XMLDTDValidator
                 buffer.append('(');
                 for (int i=0; i<attrDecl.simpleType.enumeration.length ; i++) {
                     if (i > 0) {
-                        buffer.append("|");
+                        buffer.append('|');
                     }
                     buffer.append(attrDecl.simpleType.enumeration[i]);
                 }
@@ -1809,7 +1787,7 @@ public class XMLDTDValidator
         // datatype validators
         if (fValidation || fDynamicValidation) {
             try {
-                //REVISIT: datatypeRegistry + initialization of datatype 
+                //REVISIT: datatypeRegistry + initialization of datatype
                 //         why do we cast to ListDatatypeValidator?
                 fValID       = fDatatypeValidatorFactory.getBuiltInDV(XMLSymbols.fIDSymbol);
                 fValIDRef    = fDatatypeValidatorFactory.getBuiltInDV(XMLSymbols.fIDREFSymbol);
@@ -1831,13 +1809,12 @@ public class XMLDTDValidator
     } // init()
 
     /** ensure element stack capacity */
-    private void ensureStackCapacity ( int newElementDepth) {
+    private void ensureStackCapacity (int newElementDepth) {
         if (newElementDepth == fElementQNamePartsStack.length) {
-            int[] newStack = new int[newElementDepth * 2];
 
             QName[] newStackOfQueue = new QName[newElementDepth * 2];
             System.arraycopy(this.fElementQNamePartsStack, 0, newStackOfQueue, 0, newElementDepth );
-            fElementQNamePartsStack      = newStackOfQueue;
+            fElementQNamePartsStack = newStackOfQueue;
 
             QName qname = fElementQNamePartsStack[newElementDepth];
             if (qname == null) {
@@ -1846,7 +1823,7 @@ public class XMLDTDValidator
                 }
             }
 
-            newStack = new int[newElementDepth * 2];
+            int[] newStack = new int[newElementDepth * 2];
             System.arraycopy(fElementIndexStack, 0, newStack, 0, newElementDepth);
             fElementIndexStack = newStack;
 
@@ -1856,8 +1833,8 @@ public class XMLDTDValidator
 
         }
     } // ensureStackCapacity
-    
-    
+
+
     //
     // Protected methods
     //
@@ -1865,12 +1842,12 @@ public class XMLDTDValidator
     /** Handle element
      * @return true if validator is removed from the pipeline
      */
-    protected boolean handleStartElement(QName element, XMLAttributes attributes, Augmentations augs) 
+    protected boolean handleStartElement(QName element, XMLAttributes attributes, Augmentations augs)
                         throws XNIException {
 
 
         // VC: Root Element Type
-        // see if the root element's name matches the one in DoctypeDecl 
+        // see if the root element's name matches the one in DoctypeDecl
         if (!fSeenRootElement) {
             // REVISIT: Here are current assumptions about validation features
             //          given that XMLSchema validator is in the pipeline
@@ -1878,7 +1855,7 @@ public class XMLDTDValidator
             // http://xml.org/sax/features/validation = true
             // http://apache.org/xml/features/validation/schema = true
             //
-            // [1] XML instance document only has reference to a DTD 
+            // [1] XML instance document only has reference to a DTD
             //  Outcome: report validation errors only against dtd.
             //
             // [2] XML instance document has only XML Schema grammars:
@@ -1887,12 +1864,12 @@ public class XMLDTDValidator
             // [3] XML instance document has DTD and XML schemas:
             // [a] if schema language is not set outcome - validation errors reported against both grammars: DTD and schemas.
             // [b] if schema language is set to XML Schema - do not report validation errors
-            //         
+            //
             // if dynamic validation is on
             //            validate only against grammar we've found (depending on settings
             //            for schema feature)
-            // 
-            // 
+            //
+            //
             fPerformValidation = validate();
             fSeenRootElement = true;
             fValidationManager.setEntityState(fDTDGrammar);
@@ -1907,7 +1884,7 @@ public class XMLDTDValidator
                 fInElementContent = false;
             }
             if (fPerformValidation) {
-                fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                            "MSG_GRAMMAR_NOT_FOUND",
                                            new Object[]{ element.rawname},
                                            XMLErrorReporter.SEVERITY_ERROR);
@@ -1926,16 +1903,16 @@ public class XMLDTDValidator
             //changed here.. new function for getContentSpecType
             fCurrentContentSpecType = fDTDGrammar.getContentSpecType(fCurrentElementIndex);
             if (fCurrentContentSpecType == -1 && fPerformValidation) {
-                fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                            "MSG_ELEMENT_NOT_DECLARED",
                                            new Object[]{ element.rawname},
                                            XMLErrorReporter.SEVERITY_ERROR);
             }
-            
+
             //  0. insert default attributes
             //  1. normalize the attributes
             //  2. validate the attrivute list.
-            // TO DO: 
+            // TO DO:
             //changed here.. also pass element name,
             addDTDDefaultAttrsAndValidate(element, fCurrentElementIndex, attributes);
         }
@@ -1943,7 +1920,7 @@ public class XMLDTDValidator
         // set element content state
         fInElementContent = fCurrentContentSpecType == XMLElementDecl.TYPE_CHILDREN;
 
-        // increment the element depth, add this element's 
+        // increment the element depth, add this element's
         // QName to its enclosing element 's children list
         fElementDepth++;
         if (fPerformValidation) {
@@ -1975,7 +1952,7 @@ public class XMLDTDValidator
         // save current element information
         fCurrentElement.setValues(element);
         ensureStackCapacity(fElementDepth);
-        fElementQNamePartsStack[fElementDepth].setValues(fCurrentElement); 
+        fElementQNamePartsStack[fElementDepth].setValues(fCurrentElement);
         fElementIndexStack[fElementDepth] = fCurrentElementIndex;
         fContentSpecTypeStack[fElementDepth] = fCurrentContentSpecType;
         startNamespaceScope(element, attributes, augs);
@@ -2000,23 +1977,23 @@ public class XMLDTDValidator
                 QName children[] = fElementChildren;
                 int childrenOffset = fElementChildrenOffsetStack[fElementDepth + 1] + 1;
                 int childrenLength = fElementChildrenLength - childrenOffset;
-                int result = checkContent(elementIndex, 
+                int result = checkContent(elementIndex,
                                           children, childrenOffset, childrenLength);
 
                 if (result != -1) {
                     fDTDGrammar.getElementDecl(elementIndex, fTempElementDecl);
                     if (fTempElementDecl.type == XMLElementDecl.TYPE_EMPTY) {
-                        fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                        fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                    "MSG_CONTENT_INVALID",
                                                    new Object[]{ element.rawname, "EMPTY"},
                                                    XMLErrorReporter.SEVERITY_ERROR);
                     }
                     else {
-                        String messageKey = result != childrenLength ? 
+                        String messageKey = result != childrenLength ?
                                             "MSG_CONTENT_INVALID" : "MSG_CONTENT_INCOMPLETE";
-                        fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN, 
+                        fErrorReporter.reportError(XMLMessageFormatter.XML_DOMAIN,
                                                    messageKey,
-                                                   new Object[]{ element.rawname, 
+                                                   new Object[]{ element.rawname,
                                                        fDTDGrammar.getContentSpecAsString(elementIndex)},
                                                    XMLErrorReporter.SEVERITY_ERROR);
                     }
@@ -2024,9 +2001,9 @@ public class XMLDTDValidator
             }
             fElementChildrenLength = fElementChildrenOffsetStack[fElementDepth + 1] + 1;
         }
-        
+
         endNamespaceScope(fCurrentElement, augs, isEmpty);
-        
+
         // now pop this element off the top of the element stack
         if (fElementDepth < -1) {
             throw new RuntimeException("FWK008 Element stack underflow");
@@ -2084,7 +2061,7 @@ public class XMLDTDValidator
         return XMLChar.isSpace(c);
     } // isSpace(int):  boolean
 
-    public boolean characterData(String data, Augmentations augs) {       
+    public boolean characterData(String data, Augmentations augs) {
         characters(new XMLString(data.toCharArray(), 0, data.length()), augs);
         return true;
     }

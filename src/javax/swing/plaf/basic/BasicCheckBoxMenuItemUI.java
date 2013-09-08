@@ -1,10 +1,28 @@
 /*
- * @(#)BasicCheckBoxMenuItemUI.java	1.54 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package javax.swing.plaf.basic;
 
 import java.awt.*;
@@ -18,7 +36,6 @@ import java.io.Serializable;
 /**
  * BasicCheckboxMenuItem implementation
  *
- * @version 1.54 11/17/05
  * @author Georges Saab
  * @author David Karlton
  * @author Arnaud Weber
@@ -30,7 +47,7 @@ public class BasicCheckBoxMenuItemUI extends BasicMenuItemUI {
     }
 
     protected String getPropertyPrefix() {
-	return "CheckBoxMenuItem";
+        return "CheckBoxMenuItem";
     }
 
     public void processMouseEvent(JMenuItem item,MouseEvent e,MenuElement path[],MenuSelectionManager manager) {
@@ -51,11 +68,3 @@ public class BasicCheckBoxMenuItemUI extends BasicMenuItemUI {
         }
     }
 }
-
-
-
-
-
-
-
-

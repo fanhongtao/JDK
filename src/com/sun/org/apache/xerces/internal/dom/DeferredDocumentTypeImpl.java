@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,10 +38,9 @@ import org.w3c.dom.Node;
  * Most notably, absolutely no provision was made for storing
  * and using Element and Attribute information. Nor was the linkage
  * between Entities and Entity References nailed down solidly.
- * 
- * @xerces.internal 
  *
- * @version $Id: DeferredDocumentTypeImpl.java,v 1.2.6.1 2005/08/31 10:31:27 sunithareddy Exp $
+ * @xerces.internal
+ *
  * @since  PR-DOM-Level-1-19980818.
  */
 public class DeferredDocumentTypeImpl
@@ -108,7 +111,7 @@ public class DeferredDocumentTypeImpl
 
     /** Synchronizes the entities, notations, and elements. */
     protected void synchronizeChildren() {
-        
+
         // we don't want to generate any event for this so turn them off
         boolean orig = ownerDocument().getMutationEvents();
         ownerDocument().setMutationEvents(false);

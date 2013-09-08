@@ -1,8 +1,26 @@
 /*
- * @(#)RenderableImage.java	1.16 05/11/17
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ********************************************************************
@@ -29,20 +47,20 @@ import java.awt.image.*;
  * resolution-independent terms.  Then, it can be rendered for various
  * specific contexts, such as a draft preview, a high-quality screen
  * display, or a printer, each in an optimal fashion.
- * 
+ *
  * <p> A RenderedImage is returned from a RenderableImage via the
  * createRendering() method, which takes a RenderContext.  The
  * RenderContext specifies how the RenderedImage should be
  * constructed.  Note that it is not possible to extract pixels
  * directly from a RenderableImage.
- * 
+ *
  * <p> The createDefaultRendering() and createScaledRendering() methods are
  * convenience methods that construct an appropriate RenderContext
  * internally.  All of the rendering methods may return a reference to a
  * previously produced rendering.
  */
 public interface RenderableImage {
-  
+
     /**
      * String constant that can be used to identify a property on
      * a RenderedImage obtained via the createRendering or
@@ -52,7 +70,7 @@ public interface RenderableImage {
      */
      static final String HINTS_OBSERVED = "HINTS_OBSERVED";
 
-    /** 
+    /**
      * Returns a vector of RenderableImages that are the sources of
      * image data for this RenderableImage. Note that this method may
      * return an empty vector, to indicate that the image has no sources,
@@ -61,7 +79,7 @@ public interface RenderableImage {
      * @return a (possibly empty) Vector of RenderableImages, or null.
      */
     Vector<RenderableImage> getSources();
-    
+
     /**
      * Gets a property from the property set of this image.
      * If the property name is not recognized, java.awt.Image.UndefinedProperty
@@ -73,12 +91,12 @@ public interface RenderableImage {
      */
     Object getProperty(String name);
 
-    /** 
-     * Returns a list of names recognized by getProperty. 
+    /**
+     * Returns a list of names recognized by getProperty.
      * @return a list of property names.
      */
     String[] getPropertyNames();
-    
+
     /**
      * Returns true if successive renderings (that is, calls to
      * createRendering() or createScaledRendering()) with the same arguments
@@ -91,7 +109,7 @@ public interface RenderableImage {
      */
     boolean isDynamic();
 
-    /** 
+    /**
      * Gets the width in user coordinate space.  By convention, the
      * usual width of a RenderableImage is equal to the image's aspect
      * ratio (width divided by height).
@@ -99,7 +117,7 @@ public interface RenderableImage {
      * @return the width of the image in user coordinates.
      */
     float getWidth();
-  
+
     /**
      * Gets the height in user coordinate space.  By convention, the
      * usual height of a RenderedImage is equal to 1.0F.
@@ -107,15 +125,15 @@ public interface RenderableImage {
      * @return the height of the image in user coordinates.
      */
     float getHeight();
-    
-    /** 
+
+    /**
      * Gets the minimum X coordinate of the rendering-independent image data.
      * @return the minimum X coordinate of the rendering-independent image
      * data.
      */
     float getMinX();
-  
-    /** 
+
+    /**
      * Gets the minimum Y coordinate of the rendering-independent image data.
      * @return the minimum Y coordinate of the rendering-independent image
      * data.
@@ -133,7 +151,7 @@ public interface RenderableImage {
      * Math.round(h*(getWidth()/getHeight())).
      * Similarly, if h == 0, it will be taken to equal
      * Math.round(w*(getHeight()/getWidth())).  One of
-     * w or h must be non-zero or else an IllegalArgumentException 
+     * w or h must be non-zero or else an IllegalArgumentException
      * will be thrown.
      *
      * <p> The created RenderedImage may have a property identified
@@ -148,8 +166,8 @@ public interface RenderableImage {
      * @return a RenderedImage containing the rendered data.
      */
     RenderedImage createScaledRendering(int w, int h, RenderingHints hints);
-  
-    /** 
+
+    /**
      * Returnd a RenderedImage instance of this image with a default
      * width and height in pixels.  The RenderContext is built
      * automatically with an appropriate usr2dev transform and an area
@@ -160,8 +178,8 @@ public interface RenderableImage {
      * @return a RenderedImage containing the rendered data.
      */
     RenderedImage createDefaultRendering();
-  
-    /** 
+
+    /**
      * Creates a RenderedImage that represented a rendering of this image
      * using a given RenderContext.  This is the most general way to obtain a
      * rendering of a RenderableImage.

@@ -1,8 +1,26 @@
 /*
- * @(#)AudioFormat.java	1.36 05/11/17
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sound.sampled;
@@ -97,7 +115,6 @@ import java.util.Map;
  *
  * @author Kara Kytle
  * @author Florian Bomers
- * @version 1.36 05/11/17
  * @see DataLine#getFormat
  * @see AudioInputStream#getFormat
  * @see AudioFileFormat
@@ -154,27 +171,27 @@ public class AudioFormat {
      * The encoding specifies the convention used to represent the data.
      * The other parameters are further explained in the {@link AudioFormat
      * class description}.
-     * @param encoding			the audio encoding technique
-     * @param sampleRate		the number of samples per second
-     * @param sampleSizeInBits	the number of bits in each sample
-     * @param channels			the number of channels (1 for mono, 2 for stereo, and so on)
-     * @param frameSize			the number of bytes in each frame
-     * @param frameRate			the number of frames per second
-     * @param bigEndian			indicates whether the data for a single sample
-     *							is stored in big-endian byte order (<code>false</code>
-     *							means little-endian)
+     * @param encoding                  the audio encoding technique
+     * @param sampleRate                the number of samples per second
+     * @param sampleSizeInBits  the number of bits in each sample
+     * @param channels                  the number of channels (1 for mono, 2 for stereo, and so on)
+     * @param frameSize                 the number of bytes in each frame
+     * @param frameRate                 the number of frames per second
+     * @param bigEndian                 indicates whether the data for a single sample
+     *                                                  is stored in big-endian byte order (<code>false</code>
+     *                                                  means little-endian)
      */
     public AudioFormat(Encoding encoding, float sampleRate, int sampleSizeInBits,
-		       int channels, int frameSize, float frameRate, boolean bigEndian) {
+                       int channels, int frameSize, float frameRate, boolean bigEndian) {
 
-	this.encoding = encoding;
-	this.sampleRate = sampleRate;
-	this.sampleSizeInBits = sampleSizeInBits;
-	this.channels = channels;
-	this.frameSize = frameSize;
-	this.frameRate = frameRate;
-	this.bigEndian = bigEndian;
-	this.properties = null;
+        this.encoding = encoding;
+        this.sampleRate = sampleRate;
+        this.sampleSizeInBits = sampleSizeInBits;
+        this.channels = channels;
+        this.frameSize = frameSize;
+        this.frameRate = frameRate;
+        this.bigEndian = bigEndian;
+        this.properties = null;
     }
 
 
@@ -199,12 +216,12 @@ public class AudioFormat {
      * @since 1.5
      */
     public AudioFormat(Encoding encoding, float sampleRate,
-		       int sampleSizeInBits, int channels,
-		       int frameSize, float frameRate,
-		       boolean bigEndian, Map<String, Object> properties) {
-	this(encoding, sampleRate, sampleSizeInBits, channels,
-	     frameSize, frameRate, bigEndian);
-	this.properties = new HashMap<String, Object>(properties);
+                       int sampleSizeInBits, int channels,
+                       int frameSize, float frameRate,
+                       boolean bigEndian, Map<String, Object> properties) {
+        this(encoding, sampleRate, sampleSizeInBits, channels,
+             frameSize, frameRate, bigEndian);
+        this.properties = new HashMap<String, Object>(properties);
     }
 
 
@@ -214,26 +231,26 @@ public class AudioFormat {
      * required to contain one sample from each channel, and the frame rate
      * is set to the sample rate.
      *
-     * @param sampleRate		the number of samples per second
-     * @param sampleSizeInBits	the number of bits in each sample
-     * @param channels			the number of channels (1 for mono, 2 for stereo, and so on)
-     * @param signed			indicates whether the data is signed or unsigned
-     * @param bigEndian			indicates whether the data for a single sample
-     *							is stored in big-endian byte order (<code>false</code>
-     *							means little-endian)
+     * @param sampleRate                the number of samples per second
+     * @param sampleSizeInBits  the number of bits in each sample
+     * @param channels                  the number of channels (1 for mono, 2 for stereo, and so on)
+     * @param signed                    indicates whether the data is signed or unsigned
+     * @param bigEndian                 indicates whether the data for a single sample
+     *                                                  is stored in big-endian byte order (<code>false</code>
+     *                                                  means little-endian)
      */
     public AudioFormat(float sampleRate, int sampleSizeInBits,
-		       int channels, boolean signed, boolean bigEndian) {
+                       int channels, boolean signed, boolean bigEndian) {
 
-	this((signed == true ? Encoding.PCM_SIGNED : Encoding.PCM_UNSIGNED),
-	     sampleRate,
-	     sampleSizeInBits,
-	     channels,
-	     (channels == AudioSystem.NOT_SPECIFIED || sampleSizeInBits == AudioSystem.NOT_SPECIFIED)?
-	     AudioSystem.NOT_SPECIFIED:
-	     ((sampleSizeInBits + 7) / 8) * channels,
-	     sampleRate,
-	     bigEndian);
+        this((signed == true ? Encoding.PCM_SIGNED : Encoding.PCM_UNSIGNED),
+             sampleRate,
+             sampleSizeInBits,
+             channels,
+             (channels == AudioSystem.NOT_SPECIFIED || sampleSizeInBits == AudioSystem.NOT_SPECIFIED)?
+             AudioSystem.NOT_SPECIFIED:
+             ((sampleSizeInBits + 7) / 8) * channels,
+             sampleRate,
+             bigEndian);
     }
 
     /**
@@ -247,7 +264,7 @@ public class AudioFormat {
      */
     public Encoding getEncoding() {
 
-	return encoding;
+        return encoding;
     }
 
     /**
@@ -269,7 +286,7 @@ public class AudioFormat {
      */
     public float getSampleRate() {
 
-	return sampleRate;
+        return sampleRate;
     }
 
     /**
@@ -291,7 +308,7 @@ public class AudioFormat {
      */
     public int getSampleSizeInBits() {
 
-	return sampleSizeInBits;
+        return sampleSizeInBits;
     }
 
     /**
@@ -309,7 +326,7 @@ public class AudioFormat {
      */
     public int getChannels() {
 
-	return channels;
+        return channels;
     }
 
     /**
@@ -329,7 +346,7 @@ public class AudioFormat {
      */
     public int getFrameSize() {
 
-	return frameSize;
+        return frameSize;
     }
 
     /**
@@ -349,7 +366,7 @@ public class AudioFormat {
      */
     public float getFrameRate() {
 
-	return frameRate;
+        return frameRate;
     }
 
 
@@ -362,7 +379,7 @@ public class AudioFormat {
      */
     public boolean isBigEndian() {
 
-	return bigEndian;
+        return bigEndian;
     }
 
 
@@ -379,13 +396,13 @@ public class AudioFormat {
      * @since 1.5
      */
     public Map<String,Object> properties() {
-	Map<String,Object> ret;
-	if (properties == null) {
-	    ret = new HashMap<String,Object>(0);
-	} else {
-	    ret = (Map<String,Object>) (properties.clone());
-	}
-	return (Map<String,Object>) Collections.unmodifiableMap(ret);
+        Map<String,Object> ret;
+        if (properties == null) {
+            ret = new HashMap<String,Object>(0);
+        } else {
+            ret = (Map<String,Object>) (properties.clone());
+        }
+        return (Map<String,Object>) Collections.unmodifiableMap(ret);
     }
 
 
@@ -402,47 +419,49 @@ public class AudioFormat {
      * @return the value of the property with the specified key,
      *         or <code>null</code> if the property does not exist.
      *
-     * @see #properties
+     * @see #properties()
      * @since 1.5
      */
     public Object getProperty(String key) {
-	if (properties == null) {
-	    return null;
-	}
-	return properties.get(key);
+        if (properties == null) {
+            return null;
+        }
+        return properties.get(key);
     }
 
 
     /**
-     * Indicates whether this format matches the one specified.  To match,
-     * two formats must have the same encoding, the same number of channels,
-     * and the same number of bits per sample and bytes per frame.
-     * The two formats must also have the same sample rate,
-     * unless the specified format has the sample rate value <code>AudioSystem.NOT_SPECIFIED</code>,
-     * which any sample rate will match.  The frame rates must
-     * similarly be equal, unless the specified format has the frame rate
-     * value <code>AudioSystem.NOT_SPECIFIED</code>.  The byte order (big-endian or little-endian)
-     * must match if the sample size is greater than one byte.
+     * Indicates whether this format matches the one specified.
+     * To match, two formats must have the same encoding,
+     * and consistent values of the number of channels, sample rate, sample size,
+     * frame rate, and frame size.
+     * The values of the property are consistent if they are equal
+     * or the specified format has the property value
+     * {@code AudioSystem.NOT_SPECIFIED}.
+     * The byte order (big-endian or little-endian) must be the same
+     * if the sample size is greater than one byte.
      *
      * @param format format to test for match
-     * @return <code>true</code> if this format matches the one specified,
-     * <code>false</code> otherwise.
-     */
-    /*
-     * $$kk: 04.20.99: i changed the semantics of this.
+     * @return {@code true} if this format matches the one specified,
+     *         {@code false} otherwise.
      */
     public boolean matches(AudioFormat format) {
-
-	if (format.getEncoding().equals(getEncoding()) &&
-	    ( (format.getSampleRate() == (float)AudioSystem.NOT_SPECIFIED) || (format.getSampleRate() == getSampleRate()) ) &&
-	    (format.getSampleSizeInBits() == getSampleSizeInBits()) &&
-	    (format.getChannels() == getChannels() &&
-	     (format.getFrameSize() == getFrameSize()) &&
-	     ( (format.getFrameRate() == (float)AudioSystem.NOT_SPECIFIED) || (format.getFrameRate() == getFrameRate()) ) &&
-	     ( (format.getSampleSizeInBits() <= 8)  || (format.isBigEndian() == isBigEndian()) ) ) )
-	    return true;
-
-	return false;
+        if (format.getEncoding().equals(getEncoding())
+                && (format.getChannels() == AudioSystem.NOT_SPECIFIED
+                    || format.getChannels() == getChannels())
+                && (format.getSampleRate() == (float)AudioSystem.NOT_SPECIFIED
+                    || format.getSampleRate() == getSampleRate())
+                && (format.getSampleSizeInBits() == AudioSystem.NOT_SPECIFIED
+                    || format.getSampleSizeInBits() == getSampleSizeInBits())
+                && (format.getFrameRate() == (float)AudioSystem.NOT_SPECIFIED
+                    || format.getFrameRate() == getFrameRate())
+                && (format.getFrameSize() == AudioSystem.NOT_SPECIFIED
+                    || format.getFrameSize() == getFrameSize())
+                && (getSampleSizeInBits() <= 8
+                    || format.isBigEndian() == isBigEndian())) {
+            return true;
+        }
+        return false;
     }
 
 
@@ -454,74 +473,74 @@ public class AudioFormat {
      * @return a string that describes the format parameters
      */
     public String toString() {
-	String sEncoding = "";
-	if (getEncoding() != null) {
-	    sEncoding = getEncoding().toString() + " ";
-	}
+        String sEncoding = "";
+        if (getEncoding() != null) {
+            sEncoding = getEncoding().toString() + " ";
+        }
 
-	String sSampleRate;
-	if (getSampleRate() == (float) AudioSystem.NOT_SPECIFIED) {
-	    sSampleRate = "unknown sample rate, ";
-	} else {
-	    sSampleRate = "" + getSampleRate() + " Hz, ";
-	}
+        String sSampleRate;
+        if (getSampleRate() == (float) AudioSystem.NOT_SPECIFIED) {
+            sSampleRate = "unknown sample rate, ";
+        } else {
+            sSampleRate = "" + getSampleRate() + " Hz, ";
+        }
 
-	String sSampleSizeInBits;
-	if (getSampleSizeInBits() == (float) AudioSystem.NOT_SPECIFIED) {
-	    sSampleSizeInBits = "unknown bits per sample, ";
-	} else {
-	    sSampleSizeInBits = "" + getSampleSizeInBits() + " bit, ";
-	}
+        String sSampleSizeInBits;
+        if (getSampleSizeInBits() == (float) AudioSystem.NOT_SPECIFIED) {
+            sSampleSizeInBits = "unknown bits per sample, ";
+        } else {
+            sSampleSizeInBits = "" + getSampleSizeInBits() + " bit, ";
+        }
 
-	String sChannels;
-	if (getChannels() == 1) {
-	    sChannels = "mono, ";
-	} else
-	    if (getChannels() == 2) {
-		sChannels = "stereo, ";
-	    } else {
-		if (getChannels() == AudioSystem.NOT_SPECIFIED) {
-		    sChannels = " unknown number of channels, ";
-		} else {
-		    sChannels = ""+getChannels()+" channels, ";
-		}
-	    }
+        String sChannels;
+        if (getChannels() == 1) {
+            sChannels = "mono, ";
+        } else
+            if (getChannels() == 2) {
+                sChannels = "stereo, ";
+            } else {
+                if (getChannels() == AudioSystem.NOT_SPECIFIED) {
+                    sChannels = " unknown number of channels, ";
+                } else {
+                    sChannels = ""+getChannels()+" channels, ";
+                }
+            }
 
-	String sFrameSize;
-	if (getFrameSize() == (float) AudioSystem.NOT_SPECIFIED) {
-	    sFrameSize = "unknown frame size, ";
-	} else {
-	    sFrameSize = "" + getFrameSize()+ " bytes/frame, ";
-	}
+        String sFrameSize;
+        if (getFrameSize() == (float) AudioSystem.NOT_SPECIFIED) {
+            sFrameSize = "unknown frame size, ";
+        } else {
+            sFrameSize = "" + getFrameSize()+ " bytes/frame, ";
+        }
 
         String sFrameRate = "";
         if (Math.abs(getSampleRate() - getFrameRate()) > 0.00001) {
-	    if (getFrameRate() == (float) AudioSystem.NOT_SPECIFIED) {
-		sFrameRate = "unknown frame rate, ";
-	    } else {
-		sFrameRate = getFrameRate() + " frames/second, ";
-	    }
-	}
+            if (getFrameRate() == (float) AudioSystem.NOT_SPECIFIED) {
+                sFrameRate = "unknown frame rate, ";
+            } else {
+                sFrameRate = getFrameRate() + " frames/second, ";
+            }
+        }
 
-	String sEndian = "";
-	if ((getEncoding().equals(Encoding.PCM_SIGNED)
-	     || getEncoding().equals(Encoding.PCM_UNSIGNED))
-	    && ((getSampleSizeInBits() > 8)
-	        || (getSampleSizeInBits() == AudioSystem.NOT_SPECIFIED))) {
-	    if (isBigEndian()) {
-		sEndian = "big-endian";
-	    } else {
-		sEndian = "little-endian";
-	    }
-	}
+        String sEndian = "";
+        if ((getEncoding().equals(Encoding.PCM_SIGNED)
+             || getEncoding().equals(Encoding.PCM_UNSIGNED))
+            && ((getSampleSizeInBits() > 8)
+                || (getSampleSizeInBits() == AudioSystem.NOT_SPECIFIED))) {
+            if (isBigEndian()) {
+                sEndian = "big-endian";
+            } else {
+                sEndian = "little-endian";
+            }
+        }
 
-	return sEncoding
-	    + sSampleRate
-	    + sSampleSizeInBits
-	    + sChannels
-	    + sFrameSize
-	    + sFrameRate
-	    + sEndian;
+        return sEncoding
+            + sSampleRate
+            + sSampleSizeInBits
+            + sChannels
+            + sFrameSize
+            + sFrameRate
+            + sEndian;
 
     }
 
@@ -535,14 +554,14 @@ public class AudioFormat {
      * which is simply a linear (proportional) representation of the sound
      * waveform.  With PCM, the number stored in each sample is proportional
      * to the instantaneous amplitude of the sound pressure at that point in
-     * time.  The numbers are frequently signed or unsigned integers.
+     * time.  The numbers may be signed or unsigned integers or floats.
      * Besides PCM, other encodings include mu-law and a-law, which are nonlinear
      * mappings of the sound amplitude that are often used for recording speech.
      * <p>
      * You can use a predefined encoding by referring to one of the static
      * objects created by this class, such as PCM_SIGNED or
      * PCM_UNSIGNED.  Service providers can create new encodings, such as
-     * compressed audio formats or floating-point PCM samples, and make
+     * compressed audio formats, and make
      * these available through the <code>{@link AudioSystem}</code> class.
      * <p>
      * The <code>Encoding</code> class is static, so that all
@@ -555,91 +574,96 @@ public class AudioFormat {
      * @see javax.sound.sampled.spi.FormatConversionProvider
      *
      * @author Kara Kytle
-     * @version 1.36 05/11/17
      * @since 1.3
      */
     public static class Encoding {
 
 
-	// ENCODING DEFINES
+        // ENCODING DEFINES
 
-	/**
-	 * Specifies signed, linear PCM data.
-	 */
-	public static final Encoding PCM_SIGNED = new Encoding("PCM_SIGNED");
+        /**
+         * Specifies signed, linear PCM data.
+         */
+        public static final Encoding PCM_SIGNED = new Encoding("PCM_SIGNED");
 
-	/**
-	 * Specifies unsigned, linear PCM data.
-	 */
-	public static final Encoding PCM_UNSIGNED = new Encoding("PCM_UNSIGNED");
+        /**
+         * Specifies unsigned, linear PCM data.
+         */
+        public static final Encoding PCM_UNSIGNED = new Encoding("PCM_UNSIGNED");
 
-	/**
-	 * Specifies u-law encoded data.
-	 */
-	public static final Encoding ULAW = new Encoding("ULAW");
+        /**
+         * Specifies floating-point PCM data.
+         *
+         * @since 1.7
+         */
+        public static final Encoding PCM_FLOAT = new Encoding("PCM_FLOAT");
 
-	/**
-	 * Specifies a-law encoded data.
-	 */
-	public static final Encoding ALAW = new Encoding("ALAW");
+        /**
+         * Specifies u-law encoded data.
+         */
+        public static final Encoding ULAW = new Encoding("ULAW");
 
-
-	// INSTANCE VARIABLES
-
-	/**
-	 * Encoding name.
-	 */
-	private String name;
-
-
-	// CONSTRUCTOR
-
-	/**
-	 * Constructs a new encoding.
-	 * @param name	the name of the new type of encoding
-	 */
-	public Encoding(String name) {
-	    this.name = name;
-	}
+        /**
+         * Specifies a-law encoded data.
+         */
+        public static final Encoding ALAW = new Encoding("ALAW");
 
 
-	// METHODS
+        // INSTANCE VARIABLES
 
-	/**
-	 * Finalizes the equals method
-	 */
-	public final boolean equals(Object obj) {
-	    if (toString() == null) {
-		return (obj != null) && (obj.toString() == null);
-	    }
-	    if (obj instanceof Encoding) {
-		return toString().equals(obj.toString());
-	    }
-	    return false;
-	}
+        /**
+         * Encoding name.
+         */
+        private String name;
 
-	/**
-	 * Finalizes the hashCode method
-	 */
-	public final int hashCode() {
-	    if (toString() == null) {
-		return 0;
-	    }
-	    return toString().hashCode();
-	}
 
-	/**
-	 * Provides the <code>String</code> representation of the encoding.  This <code>String</code> is
-	 * the same name that was passed to the constructor.  For the predefined encodings, the name
-	 * is similar to the encoding's variable (field) name.  For example, <code>PCM_SIGNED.toString()</code> returns
-	 * the name "pcm_signed".
-	 *
-	 * @return the encoding name
-	 */
-	public final String toString() {
-	    return name;
-	}
+        // CONSTRUCTOR
+
+        /**
+         * Constructs a new encoding.
+         * @param name  the name of the new type of encoding
+         */
+        public Encoding(String name) {
+            this.name = name;
+        }
+
+
+        // METHODS
+
+        /**
+         * Finalizes the equals method
+         */
+        public final boolean equals(Object obj) {
+            if (toString() == null) {
+                return (obj != null) && (obj.toString() == null);
+            }
+            if (obj instanceof Encoding) {
+                return toString().equals(obj.toString());
+            }
+            return false;
+        }
+
+        /**
+         * Finalizes the hashCode method
+         */
+        public final int hashCode() {
+            if (toString() == null) {
+                return 0;
+            }
+            return toString().hashCode();
+        }
+
+        /**
+         * Provides the <code>String</code> representation of the encoding.  This <code>String</code> is
+         * the same name that was passed to the constructor.  For the predefined encodings, the name
+         * is similar to the encoding's variable (field) name.  For example, <code>PCM_SIGNED.toString()</code> returns
+         * the name "pcm_signed".
+         *
+         * @return the encoding name
+         */
+        public final String toString() {
+            return name;
+        }
 
     } // class Encoding
 }
-

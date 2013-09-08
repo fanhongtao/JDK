@@ -1,6 +1,26 @@
 /*
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.ws;
@@ -26,7 +46,7 @@ import org.w3c.dom.Element;
  *  @see javax.annotation.Resource
  **/
 public interface WebServiceContext {
-    
+
     /**
      * Returns the <code>MessageContext</code> for the request being served
      * at the time this method is called. Only properties with
@@ -43,7 +63,7 @@ public interface WebServiceContext {
      * @see java.lang.IllegalStateException
      **/
     public MessageContext getMessageContext();
-    
+
     /**
      * Returns the Principal that identifies the sender
      * of the request currently being serviced. If the
@@ -60,12 +80,12 @@ public interface WebServiceContext {
      * @see java.lang.IllegalStateException
      **/
     public Principal getUserPrincipal();
-    
+
     /**
      * Returns a boolean indicating whether the
      * authenticated user is included in the specified
      * logical role. If the user has not been
-     * authenticated, the method returns </code>false</code>.
+     * authenticated, the method returns <code>false</code>.
      *
      * @param role  A <code>String</code> specifying the name of the role
      *
@@ -77,7 +97,7 @@ public interface WebServiceContext {
      *         being serviced.
      **/
     public boolean isUserInRole(String role);
-    
+
     /**
      * Returns the <code>EndpointReference</code> for this
      * endpoint.
@@ -89,7 +109,7 @@ public interface WebServiceContext {
      * @param referenceParameters Reference parameters to be associated with the
      * returned <code>EndpointReference</code> instance.
      * @return EndpointReference of the endpoint associated with this
-     * <code>WebServiceContext</code>.   
+     * <code>WebServiceContext</code>.
      * If the returned <code>EndpointReference</code> is of type
      * <code>W3CEndpointReference</code> then it MUST contain the
      * the specified <code>referenceParameters</code>.
@@ -120,7 +140,7 @@ public interface WebServiceContext {
      *
      * @throws IllegalStateException This exception is thrown
      *         if the method is called while no request is
-     *         being serviced.     
+     *         being serviced.
      * @throws WebServiceException If the <code>clazz</code> type of
      * <code>EndpointReference</code> is not supported.
      *

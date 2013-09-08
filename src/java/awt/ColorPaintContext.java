@@ -1,8 +1,26 @@
 /*
- * @(#)ColorPaintContext.java	1.23 05/11/17
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -26,21 +44,38 @@ class ColorPaintContext implements PaintContext {
     public void dispose() {
     }
 
+    /*
+     * Returns the RGB value representing the color in the default sRGB
+     * {@link ColorModel}.
+     * (Bits 24-31 are alpha, 16-23 are red, 8-15 are green, 0-7 are
+     * blue).
+     * @return the RGB value of the color in the default sRGB
+     *         <code>ColorModel</code>.
+     * @see java.awt.image.ColorModel#getRGBdefault
+     * @see #getRed
+     * @see #getGreen
+     * @see #getBlue
+     */
+    int getRGB() {
+        return color;
+    }
+
     public ColorModel getColorModel() {
-	return ColorModel.getRGBdefault();
+        return ColorModel.getRGBdefault();
     }
 
     public synchronized Raster getRaster(int x, int y, int w, int h) {
-	WritableRaster t = savedTile;
+        WritableRaster t = savedTile;
 
         if (t == null || w > t.getWidth() || h > t.getHeight()) {
             t = getColorModel().createCompatibleWritableRaster(w, h);
-	    IntegerComponentRaster icr = (IntegerComponentRaster) t;
-	    int[] array = icr.getDataStorage();
-	    Arrays.fill(icr.getDataStorage(), color);
-		    if (w <= 64 && h <= 64) {
-		savedTile = t;
-	    }
+            IntegerComponentRaster icr = (IntegerComponentRaster) t;
+            Arrays.fill(icr.getDataStorage(), color);
+            // Note - markDirty is probably unnecessary since icr is brand new
+            icr.markDirty();
+            if (w <= 64 && h <= 64) {
+                savedTile = t;
+            }
         }
 
         return t;

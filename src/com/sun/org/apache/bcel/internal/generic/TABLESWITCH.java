@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -56,10 +60,9 @@ package com.sun.org.apache.bcel.internal.generic;
 import java.io.*;
 import com.sun.org.apache.bcel.internal.util.ByteSequence;
 
-/** 
+/**
  * TABLESWITCH - Switch within given range of values, i.e., low..high
  *
- * @version $Id: TABLESWITCH.java,v 1.1.2.1 2005/07/31 23:45:42 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see SWITCH
  */
@@ -71,17 +74,17 @@ public class TABLESWITCH extends Select {
   TABLESWITCH() {}
 
   /**
-   * @param match sorted array of match values, match[0] must be low value, 
+   * @param match sorted array of match values, match[0] must be low value,
    * match[match_length - 1] high value
    * @param targets where to branch for matched values
    * @param target default branch
    */
   public TABLESWITCH(int[] match, InstructionHandle[] targets,
-		     InstructionHandle target) {
+                     InstructionHandle target) {
     super(com.sun.org.apache.bcel.internal.Constants.TABLESWITCH, match, targets, target);
-    
+
     length = (short)(13 + match_length * 4); /* Alignment remainder assumed
-					      * 0 here, until dump time */
+                                              * 0 here, until dump time */
     fixed_length = length;
   }
 

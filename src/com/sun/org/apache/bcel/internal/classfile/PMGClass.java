@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -62,7 +66,6 @@ import  java.io.*;
  * to a <a href="http://www.inf.fu-berlin.de/~bokowski/pmgjava/index.html">PMG</a>
  * attribute.
  *
- * @version $Id: PMGClass.java,v 1.1.2.1 2005/07/31 23:46:37 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Attribute
  */
@@ -75,7 +78,7 @@ public final class PMGClass extends Attribute {
    */
   public PMGClass(PMGClass c) {
     this(c.getNameIndex(), c.getLength(), c.getPMGIndex(), c.getPMGClassIndex(),
-	 c.getConstantPool());
+         c.getConstantPool());
   }
 
   /**
@@ -87,10 +90,10 @@ public final class PMGClass extends Attribute {
    * @throws IOException
    */
   PMGClass(int name_index, int length, DataInputStream file,
-	   ConstantPool constant_pool) throws IOException
+           ConstantPool constant_pool) throws IOException
   {
     this(name_index, length, file.readUnsignedShort(), file.readUnsignedShort(),
-	 constant_pool);
+         constant_pool);
   }
 
   /**
@@ -100,7 +103,7 @@ public final class PMGClass extends Attribute {
    * @param PMGClass_index Index in constant pool to CONSTANT_Utf8
    */
   public PMGClass(int name_index, int length, int pmg_index, int pmg_class_index,
-		  ConstantPool constant_pool)
+                  ConstantPool constant_pool)
   {
     super(Constants.ATTR_PMG, name_index, length, constant_pool);
     this.pmg_index       = pmg_index;
@@ -117,68 +120,68 @@ public final class PMGClass extends Attribute {
    public void accept(Visitor v) {
      System.err.println("Visiting non-standard PMGClass object");
    }
-   
+
   /**
    * Dump source file attribute to file stream in binary format.
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     super.dump(file);
     file.writeShort(pmg_index);
     file.writeShort(pmg_class_index);
-  }    
+  }
 
   /**
    * @return Index in constant pool of source file name.
-   */  
-  public final int getPMGClassIndex() { return pmg_class_index; }    
+   */
+  public final int getPMGClassIndex() { return pmg_class_index; }
 
   /**
    * @param PMGClass_index.
    */
   public final void setPMGClassIndex(int pmg_class_index) {
     this.pmg_class_index = pmg_class_index;
-  }    
+  }
 
   /**
    * @return Index in constant pool of source file name.
-   */  
-  public final int getPMGIndex() { return pmg_index; }    
+   */
+  public final int getPMGIndex() { return pmg_index; }
 
   /**
    * @param PMGClass_index.
    */
   public final void setPMGIndex(int pmg_index) {
     this.pmg_index = pmg_index;
-  }    
+  }
 
   /**
    * @return PMG name.
-   */ 
+   */
   public final String getPMGName() {
-    ConstantUtf8 c = (ConstantUtf8)constant_pool.getConstant(pmg_index, 
-							     Constants.CONSTANT_Utf8);
+    ConstantUtf8 c = (ConstantUtf8)constant_pool.getConstant(pmg_index,
+                                                             Constants.CONSTANT_Utf8);
     return c.getBytes();
   }
 
   /**
    * @return PMG class name.
-   */ 
+   */
   public final String getPMGClassName() {
-    ConstantUtf8 c = (ConstantUtf8)constant_pool.getConstant(pmg_class_index, 
-							     Constants.CONSTANT_Utf8);
+    ConstantUtf8 c = (ConstantUtf8)constant_pool.getConstant(pmg_class_index,
+                                                             Constants.CONSTANT_Utf8);
     return c.getBytes();
   }
 
   /**
    * @return String representation
-   */ 
+   */
   public final String toString() {
     return "PMGClass(" + getPMGName() + ", " + getPMGClassName() + ")";
-  }    
+  }
 
   /**
    * @return deep copy of this attribute

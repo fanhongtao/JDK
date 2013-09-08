@@ -1,8 +1,26 @@
 /*
- * @(#)IIOPInputStream_1_3.java	1.7 05/11/17
+ * Copyright (c) 2000, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.orbutil;
 
@@ -17,7 +35,7 @@ public class IIOPInputStream_1_3 extends com.sun.corba.se.impl.io.IIOPInputStrea
 {
     // The newer version in the io package correctly reads a wstring instead.
     // This concerns bug 4379597.
-    protected String internalReadUTF(org.omg.CORBA.portable.InputStream stream) 
+    protected String internalReadUTF(org.omg.CORBA.portable.InputStream stream)
     {
         return stream.read_string();
     }
@@ -27,13 +45,13 @@ public class IIOPInputStream_1_3 extends com.sun.corba.se.impl.io.IIOPInputStrea
      * actually sent a Hashtable.
      */
     public ObjectInputStream.GetField readFields()
-    	throws IOException, ClassNotFoundException, NotActiveException {
-	Hashtable fields = (Hashtable)readObject();
-	return new LegacyHookGetFields(fields);
+        throws IOException, ClassNotFoundException, NotActiveException {
+        Hashtable fields = (Hashtable)readObject();
+        return new LegacyHookGetFields(fields);
     }
 
     public IIOPInputStream_1_3()
-    	throws java.io.IOException {
+        throws java.io.IOException {
         super();
     }
 }

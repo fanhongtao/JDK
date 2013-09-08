@@ -1,8 +1,26 @@
 /*
- * @(#)CorbaConnectionCacheBase.java	1.29 09/04/01
- * 
- * Copyright 2009 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2001, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.transport;
@@ -27,8 +45,8 @@ import com.sun.corba.se.impl.orbutil.ORBUtility;
  */
 public abstract class CorbaConnectionCacheBase
     implements
-	ConnectionCache,
-	CorbaConnectionCache
+        ConnectionCache,
+        CorbaConnectionCache
 {
     protected ORB orb;
     protected long timestamp = 0;
@@ -37,73 +55,73 @@ public abstract class CorbaConnectionCacheBase
     protected ORBUtilSystemException wrapper;
 
     protected CorbaConnectionCacheBase(ORB orb, String cacheType,
-				       String monitoringName)
+                                       String monitoringName)
     {
-	this.orb = orb;
-	this.cacheType = cacheType;
-	this.monitoringName = monitoringName;
-	wrapper =ORBUtilSystemException.get(orb,CORBALogDomains.RPC_TRANSPORT);
-	registerWithMonitoring();
-	dprintCreation();
+        this.orb = orb;
+        this.cacheType = cacheType;
+        this.monitoringName = monitoringName;
+        wrapper =ORBUtilSystemException.get(orb,CORBALogDomains.RPC_TRANSPORT);
+        registerWithMonitoring();
+        dprintCreation();
     }
-    
+
     ////////////////////////////////////////////////////
     //
     // pept.transport.ConnectionCache
     //
-    
+
     public String getCacheType()
     {
-	return cacheType;
+        return cacheType;
     }
 
     public synchronized void stampTime(Connection c)
     {
-	// _REVISIT_ Need to worry about wrap around some day
+        // _REVISIT_ Need to worry about wrap around some day
         c.setTimeStamp(timestamp++);
     }
 
     public long numberOfConnections()
     {
-	synchronized (backingStore()) {
-	    return values().size();
-	}
+        synchronized (backingStore()) {
+            return values().size();
+        }
     }
 
     public void close() {
-         synchronized (backingStore()) {
-             for (Object obj : values()) {
-                 ((CorbaConnection)obj).closeConnectionResources() ;
-             }
-       }
+        synchronized (backingStore()) {
+            for (Object obj : values()) {
+                ((CorbaConnection)obj).closeConnectionResources() ;
+            }
+        }
     }
 
     public long numberOfIdleConnections()
     {
-	long count = 0;
-	synchronized (backingStore()) {
-	    Iterator connections = values().iterator();
-	    while (connections.hasNext()) {
-		if (! ((Connection)connections.next()).isBusy()) {
-		    count++;
-		}
-	    }
-	}
-	return count;
+        long count = 0;
+        synchronized (backingStore()) {
+            Iterator connections = values().iterator();
+            while (connections.hasNext()) {
+                if (! ((Connection)connections.next()).isBusy()) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     public long numberOfBusyConnections()
     {
-	long count = 0;
-	synchronized (backingStore()) {
-	    Iterator connections = values().iterator();
-	    while (connections.hasNext()) {
-		if (((Connection)connections.next()).isBusy()) {
-		    count++;
-		}
-	    }
-	}
-	return count;
+        long count = 0;
+        synchronized (backingStore()) {
+            Iterator connections = values().iterator();
+            while (connections.hasNext()) {
+                if (((Connection)connections.next()).isBusy()) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     /**
@@ -125,75 +143,75 @@ public abstract class CorbaConnectionCacheBase
      */
     synchronized public boolean reclaim()
     {
-	try {
-	    long numberOfConnections = numberOfConnections();
+        try {
+            long numberOfConnections = numberOfConnections();
 
-	    if (orb.transportDebugFlag) {
-		dprint(".reclaim->: " + numberOfConnections
-			+ " ("
-			+ orb.getORBData().getHighWaterMark()
-			+ "/"
-			+ orb.getORBData().getLowWaterMark()
-			+ "/"
-			+ orb.getORBData().getNumberToReclaim()
-			+ ")");
-	    }
+            if (orb.transportDebugFlag) {
+                dprint(".reclaim->: " + numberOfConnections
+                        + " ("
+                        + orb.getORBData().getHighWaterMark()
+                        + "/"
+                        + orb.getORBData().getLowWaterMark()
+                        + "/"
+                        + orb.getORBData().getNumberToReclaim()
+                        + ")");
+            }
 
-	    if (numberOfConnections <= orb.getORBData().getHighWaterMark() ||
-		numberOfConnections < orb.getORBData().getLowWaterMark()) {
-		return false;
-	    }
-	    
-	    Object backingStore = backingStore();
-	    synchronized (backingStore) {
+            if (numberOfConnections <= orb.getORBData().getHighWaterMark() ||
+                numberOfConnections < orb.getORBData().getLowWaterMark()) {
+                return false;
+            }
 
-	         // REVISIT - A less expensive alternative connection reclaiming 
-	         //           algorithm could be investigated.
+            Object backingStore = backingStore();
+            synchronized (backingStore) {
 
-		for (int i=0; i < orb.getORBData().getNumberToReclaim(); i++) {
-		    Connection toClose = null;
-		    long lru = java.lang.Long.MAX_VALUE;
-		    Iterator iterator = values().iterator();
-		    
-		    // Find least recently used and not busy connection in cache
-		    while ( iterator.hasNext() ) {
-			Connection c = (Connection) iterator.next();
-			if ( !c.isBusy() && c.getTimeStamp() < lru ) {
-			    toClose = c; 
-			    lru = c.getTimeStamp();
-			}
-		    }
-		    
-		    if ( toClose == null ) {
-			return false;
-		    }
-		    
-		    try {
-			if (orb.transportDebugFlag) {
-			    dprint(".reclaim: closing: " + toClose);
-			}
-			toClose.close();
-		    } catch (Exception ex) {
-			// REVISIT - log
-		    }
-		}
+                 // REVISIT - A less expensive alternative connection reclaiming
+                 //           algorithm could be investigated.
 
-		if (orb.transportDebugFlag) {
-		    dprint(".reclaim: connections reclaimed (" 
-			    + (numberOfConnections - numberOfConnections()) + ")");
-		}
-	    }
+                for (int i=0; i < orb.getORBData().getNumberToReclaim(); i++) {
+                    Connection toClose = null;
+                    long lru = java.lang.Long.MAX_VALUE;
+                    Iterator iterator = values().iterator();
 
-	    // XXX is necessary to do a GC to reclaim
-	    // closed network connections ??
-	    // java.lang.System.gc();
+                    // Find least recently used and not busy connection in cache
+                    while ( iterator.hasNext() ) {
+                        Connection c = (Connection) iterator.next();
+                        if ( !c.isBusy() && c.getTimeStamp() < lru ) {
+                            toClose = c;
+                            lru = c.getTimeStamp();
+                        }
+                    }
 
-	    return true;
-	} finally {
-	    if (orb.transportDebugFlag) {
-		dprint(".reclaim<-: " + numberOfConnections());
-	    }
-	}
+                    if ( toClose == null ) {
+                        return false;
+                    }
+
+                    try {
+                        if (orb.transportDebugFlag) {
+                            dprint(".reclaim: closing: " + toClose);
+                        }
+                        toClose.close();
+                    } catch (Exception ex) {
+                        // REVISIT - log
+                    }
+                }
+
+                if (orb.transportDebugFlag) {
+                    dprint(".reclaim: connections reclaimed ("
+                            + (numberOfConnections - numberOfConnections()) + ")");
+                }
+            }
+
+            // XXX is necessary to do a GC to reclaim
+            // closed network connections ??
+            // java.lang.System.gc();
+
+            return true;
+        } finally {
+            if (orb.transportDebugFlag) {
+                dprint(".reclaim<-: " + numberOfConnections());
+            }
+        }
     }
 
     ////////////////////////////////////////////////////
@@ -203,7 +221,7 @@ public abstract class CorbaConnectionCacheBase
 
     public String getMonitoringName()
     {
-	return monitoringName;
+        return monitoringName;
     }
 
     ////////////////////////////////////////////////////
@@ -220,30 +238,30 @@ public abstract class CorbaConnectionCacheBase
 
     protected void dprintCreation()
     {
-	if (orb.transportDebugFlag) {
-	    dprint(".constructor: cacheType: " + getCacheType()
-		   + " monitoringName: " + getMonitoringName());
-	}
+        if (orb.transportDebugFlag) {
+            dprint(".constructor: cacheType: " + getCacheType()
+                   + " monitoringName: " + getMonitoringName());
+        }
     }
 
     protected void dprintStatistics()
     {
-	if (orb.transportDebugFlag) {
-	    dprint(".stats: "
-		   + numberOfConnections() + "/total "
-		   + numberOfBusyConnections() + "/busy "
-		   + numberOfIdleConnections() + "/idle"
-		   + " (" 
-		   + orb.getORBData().getHighWaterMark() + "/"
-		   + orb.getORBData().getLowWaterMark() + "/"
-		   + orb.getORBData().getNumberToReclaim() 
-		   + ")");
-	}
+        if (orb.transportDebugFlag) {
+            dprint(".stats: "
+                   + numberOfConnections() + "/total "
+                   + numberOfBusyConnections() + "/busy "
+                   + numberOfIdleConnections() + "/idle"
+                   + " ("
+                   + orb.getORBData().getHighWaterMark() + "/"
+                   + orb.getORBData().getLowWaterMark() + "/"
+                   + orb.getORBData().getNumberToReclaim()
+                   + ")");
+        }
     }
 
     protected void dprint(String msg)
     {
-	ORBUtility.dprint("CorbaConnectionCacheBase", msg);
+        ORBUtility.dprint("CorbaConnectionCacheBase", msg);
     }
 }
 

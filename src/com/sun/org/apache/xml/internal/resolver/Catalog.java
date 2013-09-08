@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // Catalog.java - Represents OASIS Open Catalog files.
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -2126,7 +2130,7 @@ public class Catalog {
       return uriref;
     }
 
-    StringBuffer newRef = new StringBuffer(bytes.length);
+    StringBuilder newRef = new StringBuilder(bytes.length);
     for (int count = 0; count < bytes.length; count++) {
       int ch = bytes[count] & 0xFF;
 
@@ -2144,7 +2148,7 @@ public class Catalog {
 	  || (ch == 0x7F)) {
 	newRef.append(encodedByte(ch));
       } else {
-	newRef.append((char) bytes[count]);
+        newRef.append((char) bytes[count]);
       }
     }
 

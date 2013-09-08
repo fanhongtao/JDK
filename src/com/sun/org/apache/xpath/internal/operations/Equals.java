@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +49,7 @@ public class Equals extends Operation
   {
     return left.equals(right) ? XBoolean.S_TRUE : XBoolean.S_FALSE;
   }
-  
+
   /**
    * Execute a binary operation by calling execute on each of the operands,
    * and then calling the operate method on the derived class.
@@ -64,8 +68,8 @@ public class Equals extends Operation
     XObject right = m_right.execute(xctxt, true);
 
     boolean result = left.equals(right) ? true : false;
-	left.detach();
-	right.detach();
+        left.detach();
+        right.detach();
     return result;
   }
 

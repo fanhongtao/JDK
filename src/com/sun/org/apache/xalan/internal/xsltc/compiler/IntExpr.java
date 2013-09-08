@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,16 +43,16 @@ final class IntExpr extends Expression {
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	return _type = Type.Int;
+        return _type = Type.Int;
     }
 
     public String toString() {
-	return "int-expr(" + _value + ')';
+        return "int-expr(" + _value + ')';
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	ConstantPoolGen cpg = classGen.getConstantPool();
-	InstructionList il = methodGen.getInstructionList();
-	il.append(new PUSH(cpg, _value));
+        ConstantPoolGen cpg = classGen.getConstantPool();
+        InstructionList il = methodGen.getInstructionList();
+        il.append(new PUSH(cpg, _value));
     }
 }

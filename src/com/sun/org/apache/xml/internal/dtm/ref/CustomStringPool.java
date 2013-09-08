@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +52,7 @@ public class CustomStringPool extends DTMStringPool {
         {
                 super();
                 /*m_intToString=new Vector();
-                System.out.println("In constructor m_intToString is " + 
+                System.out.println("In constructor m_intToString is " +
                                                                                          ((null == m_intToString) ? "null" : "not null"));*/
                 //m_stringToInt=new Hashtable();
                 //removeAllElements();
@@ -57,7 +61,7 @@ public class CustomStringPool extends DTMStringPool {
         public void removeAllElements()
         {
                 m_intToString.removeAllElements();
-                if (m_stringToInt != null) 
+                if (m_stringToInt != null)
                         m_stringToInt.clear();
         }
 

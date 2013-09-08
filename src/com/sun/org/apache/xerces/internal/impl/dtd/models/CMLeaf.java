@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights 
+ * Copyright (c) 1999-2002 The Apache Software Foundation.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -62,12 +66,11 @@ import com.sun.org.apache.xerces.internal.xni.QName;
 
 /**
  * Content model leaf node.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: CMLeaf.java,v 1.1.2.1 2005/08/01 03:34:26 jeffsuttor Exp $
  */
-public class CMLeaf 
+public class CMLeaf
     extends CMNode {
 
     //
@@ -130,7 +133,7 @@ public class CMLeaf
 
     // package
 
-    public boolean isNullable() 
+    public boolean isNullable()
     {
         // Leaf nodes are never nullable unless its an epsilon node
         return (fPosition == -1);
@@ -158,7 +161,7 @@ public class CMLeaf
 
     // protected
 
-    protected void calcFirstPos(CMStateSet toSet) 
+    protected void calcFirstPos(CMStateSet toSet)
     {
         // If we are an epsilon node, then the first pos is an empty set
         if (fPosition == -1)
@@ -169,7 +172,7 @@ public class CMLeaf
             toSet.setBit(fPosition);
     }
 
-    protected void calcLastPos(CMStateSet toSet) 
+    protected void calcLastPos(CMStateSet toSet)
     {
         // If we are an epsilon node, then the last pos is an empty set
         if (fPosition == -1)
@@ -181,5 +184,3 @@ public class CMLeaf
     }
 
 } // class CMLeaf
-
-

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +51,7 @@ public class XBooleanStatic extends XBoolean
   /**
    * Tell if two objects are functionally equal.
    *
-   * @param obj2 Object to compare to this 
+   * @param obj2 Object to compare to this
    *
    * @return True if the two objects are equal
    *

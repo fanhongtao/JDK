@@ -1,8 +1,26 @@
 /*
- * @(#)ObjectAdapter.java	1.28 05/11/17
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.oa ;
@@ -75,7 +93,7 @@ import com.sun.corba.se.spi.ior.IORTemplate ;
 * </ol>
 * <p>
 * Each of these 3 cases is handled a bit differently.  On each request, assume as known
-* ObjectId and ObjectAdapterId, which can be obtained from the object key.  
+* ObjectId and ObjectAdapterId, which can be obtained from the object key.
 * The ObjectAdaptorFactory is available in the subcontract registry, where it is
 * registered under the subcontract ID.  The Subcontract ID is also available in the
 * object key.
@@ -84,7 +102,7 @@ import com.sun.corba.se.spi.ior.IORTemplate ;
 *   <ol>
 *   <li>oa = oaf.find( oaid )</li>
 *   <li>oa.enter()</li>
-*   <li>info = oa.makeInvocationInfo( oid )</li> 
+*   <li>info = oa.makeInvocationInfo( oid )</li>
 *   <li>info.setOperation( operation )</li>
 *   <li>push info</li>
 *   <li>oa.getInvocationServant( info )</li>
@@ -98,11 +116,11 @@ import com.sun.corba.se.spi.ior.IORTemplate ;
 * REVISIT: Is this the required order for exit/pop?  Cna they be nested instead?
 * Note that getInvocationServant and returnServant may throw exceptions.  In such cases,
 * returnServant, exit, and pop must be called in the correct order.
-* <li>The local pattern:  
+* <li>The local pattern:
 *   <ol>
 *   <li>oa = oaf.find( oaid )</li>
 *   <li>oa.enter()</li>
-*   <li>info = oa.makeInvocationInfo( oid )</li> 
+*   <li>info = oa.makeInvocationInfo( oid )</li>
 *   <li>info.setOperation( operation )</li>
 *   <li>push info</li>
 *   <li>oa.getInvocationServant( info )</li>
@@ -114,12 +132,12 @@ import com.sun.corba.se.spi.ior.IORTemplate ;
 * </li>
 * This is the same as the remote case, except that setExecuteReturnServantInResponseConstructor
 * is not needed (or possible, since there is no server request).
-* <li>The fast local pattern: When delegate is constructed, 
+* <li>The fast local pattern: When delegate is constructed,
 *    first extract ObjectKey from IOR in delegate,
 *    then get ObjectId, ObjectAdapterId, and ObjectAdapterFactory (oaf). Then:
 *    <ol>
 *    <li>oa = oaf.find( oaid )</li>
-*    <li>info = oa.makeInvocationInfo( oid ) (note: no operation!)</li> 
+*    <li>info = oa.makeInvocationInfo( oid ) (note: no operation!)</li>
 *    <li>push info (needed for the correct functioning of getInvocationServant)</li>
 *    <li>oa.getInvocationServant( info )</li>
 *    <li>pop info
@@ -140,7 +158,7 @@ import com.sun.corba.se.spi.ior.IORTemplate ;
 * </ol>
 * XXX fast local should not call returnServant: what is correct here?
 */
-public interface ObjectAdapter 
+public interface ObjectAdapter
 {
     ////////////////////////////////////////////////////////////////////////////
     // Basic methods for supporting interceptors
@@ -168,7 +186,7 @@ public interface ObjectAdapter
     */
     int getManagerId() ;
 
-    /** Return the current state of this object adapter (see 
+    /** Return the current state of this object adapter (see
     * org.omg.PortableInterceptors for states.
     */
     short getState() ;
@@ -188,24 +206,24 @@ public interface ObjectAdapter
 
     /** Get the servant corresponding to the given objectId, if this is supported.
      * This method is only used for models where the servant is an ObjectImpl,
-     * which allows the servant to be used directly as the stub.  This allows an object 
-     * reference to be replaced by its servant when it is unmarshalled locally.  
+     * which allows the servant to be used directly as the stub.  This allows an object
+     * reference to be replaced by its servant when it is unmarshalled locally.
      * Such objects are not ORB mediated.
      */
     org.omg.CORBA.Object getLocalServant( byte[] objectId ) ;
 
     /** Get the servant for the request given by the parameters.
     * info must contain a valid objectId in this call.
-    * The servant is set in the InvocationInfo argument that is passed into 
-    * this call.  
+    * The servant is set in the InvocationInfo argument that is passed into
+    * this call.
     * @param info is the InvocationInfo object for the object reference
-    * @exception ForwardException (a runtime exception) is thrown if the request 
+    * @exception ForwardException (a runtime exception) is thrown if the request
     * is to be handled by a different object reference.
     */
     void getInvocationServant( OAInvocationInfo info ) ;
 
     /** enter must be called before each request is invoked on a servant.
-      * @exception OADestroyed is thrown when an OA has been destroyed, which 
+      * @exception OADestroyed is thrown when an OA has been destroyed, which
       * requires a retry in the case where an AdapterActivator is present.
       */
     void enter( ) throws OADestroyed ;
@@ -220,7 +238,7 @@ public interface ObjectAdapter
      */
     public void returnServant() ;
 
-    /** Create an instance of InvocationInfo that is appropriate for this 
+    /** Create an instance of InvocationInfo that is appropriate for this
     * Object adapter.
     */
     OAInvocationInfo makeInvocationInfo( byte[] objectId ) ;
@@ -228,4 +246,4 @@ public interface ObjectAdapter
     /** Return the most derived interface for the given servant and objectId.
     */
     String[] getInterfaces( Object servant, byte[] objectId ) ;
-} 
+}

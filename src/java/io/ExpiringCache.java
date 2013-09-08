@@ -1,10 +1,29 @@
 /*
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * @(#)ExpiringCache.java	1.6 05/11/17
  */
 
 package java.io;
@@ -25,7 +44,7 @@ class ExpiringCache {
     static class Entry {
         private long   timestamp;
         private String val;
-        
+
         Entry(long timestamp, String val) {
             this.timestamp = timestamp;
             this.val = val;

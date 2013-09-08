@@ -1,8 +1,26 @@
 /*
- * @(#)ByteBufferAs-X-Buffer.java	1.18 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -10,7 +28,7 @@
 package java.nio;
 
 
-class ByteBufferAsFloatBufferRB			// package-private
+class ByteBufferAsFloatBufferRB                  // package-private
     extends ByteBufferAsFloatBufferB
 {
 
@@ -21,7 +39,7 @@ class ByteBufferAsFloatBufferRB			// package-private
 
 
 
-    ByteBufferAsFloatBufferRB(ByteBuffer bb) {	// package-private
+    ByteBufferAsFloatBufferRB(ByteBuffer bb) {   // package-private
 
 
 
@@ -34,40 +52,40 @@ class ByteBufferAsFloatBufferRB			// package-private
 
 
 
-	super(bb);
+        super(bb);
 
     }
 
     ByteBufferAsFloatBufferRB(ByteBuffer bb,
-				     int mark, int pos, int lim, int cap,
-				     int off)
+                                     int mark, int pos, int lim, int cap,
+                                     int off)
     {
 
 
 
 
 
-	super(bb, mark, pos, lim, cap, off);
+        super(bb, mark, pos, lim, cap, off);
 
     }
 
     public FloatBuffer slice() {
-	int pos = this.position();
-	int lim = this.limit();
-	assert (pos <= lim);
-	int rem = (pos <= lim ? lim - pos : 0);
-	int off = (pos << 2) + offset;
+        int pos = this.position();
+        int lim = this.limit();
+        assert (pos <= lim);
+        int rem = (pos <= lim ? lim - pos : 0);
+        int off = (pos << 2) + offset;
         assert (off >= 0);
-	return new ByteBufferAsFloatBufferRB(bb, -1, 0, rem, rem, off);
+        return new ByteBufferAsFloatBufferRB(bb, -1, 0, rem, rem, off);
     }
 
     public FloatBuffer duplicate() {
-	return new ByteBufferAsFloatBufferRB(bb,
-						    this.markValue(),
-						    this.position(),
-						    this.limit(),
-						    this.capacity(),
-						    offset);
+        return new ByteBufferAsFloatBufferRB(bb,
+                                                    this.markValue(),
+                                                    this.position(),
+                                                    this.limit(),
+                                                    this.capacity(),
+                                                    offset);
     }
 
     public FloatBuffer asReadOnlyBuffer() {
@@ -79,7 +97,7 @@ class ByteBufferAsFloatBufferRB			// package-private
 
 
 
-	return duplicate();
+        return duplicate();
 
     }
 
@@ -104,7 +122,7 @@ class ByteBufferAsFloatBufferRB			// package-private
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -113,7 +131,7 @@ class ByteBufferAsFloatBufferRB			// package-private
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -134,17 +152,20 @@ class ByteBufferAsFloatBufferRB			// package-private
 
 
 
-	throw new ReadOnlyBufferException();
+
+        throw new ReadOnlyBufferException();
 
     }
 
     public boolean isDirect() {
-	return bb.isDirect();
+        return bb.isDirect();
     }
 
     public boolean isReadOnly() {
-	return true;
+        return true;
     }
+
+
 
 
 
@@ -188,7 +209,7 @@ class ByteBufferAsFloatBufferRB			// package-private
 
     public ByteOrder order() {
 
-	return ByteOrder.BIG_ENDIAN;
+        return ByteOrder.BIG_ENDIAN;
 
 
 

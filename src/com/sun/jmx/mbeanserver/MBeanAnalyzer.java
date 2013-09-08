@@ -1,8 +1,26 @@
 /*
- * @(#)MBeanAnalyzer.java	1.17 07/01/29
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2007 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.mbeanserver;
@@ -11,14 +29,10 @@ import static com.sun.jmx.mbeanserver.Util.*;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.management.NotCompliantMBeanException;
 
 /**
@@ -64,7 +78,7 @@ class MBeanAnalyzer<M> {
     private Map<String, List<M>> opMap = newInsertionOrderMap();
     /* Map attr name to getter and/or setter */
     private Map<String, AttrMethods<M>> attrMap = newInsertionOrderMap();
-    
+
     private static class AttrMethods<M> {
         M getter;
         M setter;
@@ -81,39 +95,39 @@ class MBeanAnalyzer<M> {
     // cached PerInterface object for an MBean interface means that
     // an analyzer will not be recreated for a second MBean using the
     // same interface.
-    static <M> MBeanAnalyzer<M> analyzer(Class<?> mbeanInterface,
+    static <M> MBeanAnalyzer<M> analyzer(Class<?> mbeanType,
             MBeanIntrospector<M> introspector)
             throws NotCompliantMBeanException {
-        return new MBeanAnalyzer<M>(mbeanInterface, introspector);
+        return new MBeanAnalyzer<M>(mbeanType, introspector);
     }
 
-    private MBeanAnalyzer(Class<?> mbeanInterface,
+    private MBeanAnalyzer(Class<?> mbeanType,
             MBeanIntrospector<M> introspector)
             throws NotCompliantMBeanException {
-        if (!mbeanInterface.isInterface()) {
+        if (!mbeanType.isInterface()) {
             throw new NotCompliantMBeanException("Not an interface: " +
-                    mbeanInterface.getName());
+                    mbeanType.getName());
         }
 
         try {
-            initMaps(mbeanInterface, introspector);
+            initMaps(mbeanType, introspector);
         } catch (Exception x) {
-            throw Introspector.throwException(mbeanInterface,x);
+            throw Introspector.throwException(mbeanType,x);
         }
     }
 
     // Introspect the mbeanInterface and initialize this object's maps.
     //
-    private void initMaps(Class<?> mbeanInterface,
+    private void initMaps(Class<?> mbeanType,
             MBeanIntrospector<M> introspector) throws Exception {
-        final Method[] methodArray = mbeanInterface.getMethods();
+        final List<Method> methods1 = introspector.getMethods(mbeanType);
+        final List<Method> methods = eliminateCovariantMethods(methods1);
 
-        final List<Method> methods = eliminateCovariantMethods(methodArray);
-        
         /* Run through the methods to detect inconsistencies and to enable
            us to give getter and setter together to visitAttribute. */
         for (Method m : methods) {
-            String name = m.getName();
+            final String name = m.getName();
+            final int nParams = m.getParameterTypes().length;
 
             final M cm = introspector.mFrom(m);
 
@@ -124,7 +138,7 @@ class MBeanAnalyzer<M> {
             && m.getReturnType() == boolean.class)
                 attrName = name.substring(2);
 
-            if (attrName.length() != 0 && m.getParameterTypes().length == 0
+            if (attrName.length() != 0 && nParams == 0
                     && m.getReturnType() != void.class) {
                 // It's a getter
                 // Check we don't have both isX and getX
@@ -141,7 +155,7 @@ class MBeanAnalyzer<M> {
                 am.getter = cm;
                 attrMap.put(attrName, am);
             } else if (name.startsWith("set") && name.length() > 3
-                    && m.getParameterTypes().length == 1 &&
+                    && nParams == 1 &&
                     m.getReturnType() == void.class) {
                 // It's a setter
                 attrName = name.substring(3);
@@ -174,13 +188,13 @@ class MBeanAnalyzer<M> {
             }
         }
     }
-    
+
     /**
-     * A comparator that defines a total order so that methods have the 
+     * A comparator that defines a total order so that methods have the
      * same name and identical signatures appear next to each others.
-     * The methods are sorted in such a way that methods which 
-     * override each other will sit next to each other, with the 
-     * overridden method first - e.g. Object getFoo() is placed before 
+     * The methods are sorted in such a way that methods which
+     * override each other will sit next to each other, with the
+     * overridden method first - e.g. Object getFoo() is placed before
      * Integer getFoo(). This makes it possible to determine whether
      * a method overrides another one simply by looking at the method(s)
      * that precedes it in the list. (see eliminateCovariantMethods).
@@ -200,13 +214,13 @@ class MBeanAnalyzer<M> {
             final Class<?> aret = a.getReturnType();
             final Class<?> bret = b.getReturnType();
             if (aret == bret) return 0;
-            
+
             // Super type comes first: Object, Number, Integer
             if (aret.isAssignableFrom(bret))
                 return -1;
             return +1;      // could assert bret.isAssignableFrom(aret)
         }
-        public final static MethodOrder instance = new MethodOrder(); 
+        public final static MethodOrder instance = new MethodOrder();
     }
 
 
@@ -215,37 +229,42 @@ class MBeanAnalyzer<M> {
        but only the overriding one is of interest.  We return the methods
        in the same order they arrived in.  This isn't required by the spec
        but existing code may depend on it and users may be used to seeing
-       operations or attributes appear in a particular order.  */
+       operations or attributes appear in a particular order.
+
+       Because of the way this method works, if the same Method appears
+       more than once in the given List then it will be completely deleted!
+       So don't do that.  */
     static List<Method>
-            eliminateCovariantMethods(Method[] methodArray) {
+            eliminateCovariantMethods(List<Method> startMethods) {
         // We are assuming that you never have very many methods with the
         // same name, so it is OK to use algorithms that are quadratic
         // in the number of methods with the same name.
 
-        final int len = methodArray.length;
-        final Method[] sorted = methodArray.clone();
+        final int len = startMethods.size();
+        final Method[] sorted = startMethods.toArray(new Method[len]);
         Arrays.sort(sorted,MethodOrder.instance);
         final Set<Method> overridden = newSet();
         for (int i=1;i<len;i++) {
             final Method m0 = sorted[i-1];
             final Method m1 = sorted[i];
-            
-            // Methods that don't have the same name can't override each others
+
+            // Methods that don't have the same name can't override each other
             if (!m0.getName().equals(m1.getName())) continue;
-            
+
             // Methods that have the same name and same signature override
             // each other. In that case, the second method overrides the first,
             // due to the way we have sorted them in MethodOrder.
             if (Arrays.equals(m0.getParameterTypes(),
                     m1.getParameterTypes())) {
-                overridden.add(m0);
+                if (!overridden.add(m0))
+                    throw new RuntimeException("Internal error: duplicate Method");
             }
         }
-        
-        final List<Method> methods = newList(Arrays.asList(methodArray));
+
+        final List<Method> methods = newList(startMethods);
         methods.removeAll(overridden);
         return methods;
     }
-    
-    
+
+
 }

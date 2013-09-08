@@ -1,8 +1,26 @@
 /*
- * @(#)POALocalCRDImpl.java	1.25 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol;
@@ -40,34 +58,34 @@ public class POALocalCRDImpl extends LocalClientRequestDispatcherBase
 
     public POALocalCRDImpl( ORB orb, int scid, IOR ior)
     {
-	super( (com.sun.corba.se.spi.orb.ORB)orb, scid, ior );
-	wrapper = ORBUtilSystemException.get( orb, 
-	    CORBALogDomains.RPC_PROTOCOL ) ;
-	poaWrapper = POASystemException.get( orb, 
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        super( (com.sun.corba.se.spi.orb.ORB)orb, scid, ior );
+        wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
+        poaWrapper = POASystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
     }
 
     private OAInvocationInfo servantEnter( ObjectAdapter oa ) throws OADestroyed
     {
-	oa.enter() ;
+        oa.enter() ;
 
-	OAInvocationInfo info = oa.makeInvocationInfo( objectId ) ;
-	orb.pushInvocationInfo( info ) ;
+        OAInvocationInfo info = oa.makeInvocationInfo( objectId ) ;
+        orb.pushInvocationInfo( info ) ;
 
-	return info ;
+        return info ;
     }
 
-    private void servantExit( ObjectAdapter oa ) 
+    private void servantExit( ObjectAdapter oa )
     {
-	try {
-	    oa.returnServant();
-	} finally {
-	    oa.exit() ;
-	    orb.popInvocationInfo() ; 
-	}
+        try {
+            oa.returnServant();
+        } finally {
+            oa.exit() ;
+            orb.popInvocationInfo() ;
+        }
     }
 
-    // Look up the servant for this request and return it in a 
+    // Look up the servant for this request and return it in a
     // ServantObject.  Note that servant_postinvoke is always called
     // by the stub UNLESS this method returns null.  However, in all
     // cases we must be sure that ObjectAdapter.getServant and
@@ -76,69 +94,69 @@ public class POALocalCRDImpl extends LocalClientRequestDispatcherBase
     // Thus, this method must call returnServant if it returns null.
     public ServantObject servant_preinvoke(org.omg.CORBA.Object self,
                                            String operation,
-                                           Class expectedType) 
+                                           Class expectedType)
     {
-	ObjectAdapter oa = oaf.find( oaid ) ;
-	OAInvocationInfo info = null ;
+        ObjectAdapter oa = oaf.find( oaid ) ;
+        OAInvocationInfo info = null ;
 
-	try {
-	    info = servantEnter( oa ) ;
-	    info.setOperation( operation ) ;
+        try {
+            info = servantEnter( oa ) ;
+            info.setOperation( operation ) ;
         } catch ( OADestroyed ex ) {
             // Destroyed POAs can be recreated by normal adapter activation.
             // So just reinvoke this method.
             return servant_preinvoke(self, operation, expectedType);
-	}
+        }
 
         try {
-	    try {
-		oa.getInvocationServant( info );
-		if (!checkForCompatibleServant( info, expectedType ))
-		    return null ;
-	    } catch (Throwable thr) {
-		// Cleanup after this call, then throw to allow
-		// outer try to handle the exception appropriately.
-		servantExit( oa ) ;
-		throw thr ;
-	    }
+            try {
+                oa.getInvocationServant( info );
+                if (!checkForCompatibleServant( info, expectedType ))
+                    return null ;
+            } catch (Throwable thr) {
+                // Cleanup after this call, then throw to allow
+                // outer try to handle the exception appropriately.
+                servantExit( oa ) ;
+                throw thr ;
+            }
         } catch ( ForwardException ex ) {
-	    /* REVISIT
-	    ClientRequestDispatcher csub = (ClientRequestDispatcher)
-		StubAdapter.getDelegate( ex.forward_reference ) ;
-	    IOR ior = csub.getIOR() ;
-	    setLocatedIOR( ior ) ;
-	    */
-	    RuntimeException runexc = new RuntimeException("deal with this.");
-	    runexc.initCause( ex ) ;
-	    throw runexc ;
+            /* REVISIT
+            ClientRequestDispatcher csub = (ClientRequestDispatcher)
+                StubAdapter.getDelegate( ex.forward_reference ) ;
+            IOR ior = csub.getIOR() ;
+            setLocatedIOR( ior ) ;
+            */
+            RuntimeException runexc = new RuntimeException("deal with this.");
+            runexc.initCause( ex ) ;
+            throw runexc ;
         } catch ( ThreadDeath ex ) {
-	    // ThreadDeath on the server side should not cause a client
-	    // side thread death in the local case.  We want to preserve
-	    // this behavior for location transparency, so that a ThreadDeath
-	    // has the same affect in either the local or remote case.
-	    // The non-colocated case is handled in iiop.ORB.process, which
-	    // throws the same exception.
-	    throw wrapper.runtimeexception( ex ) ;
+            // ThreadDeath on the server side should not cause a client
+            // side thread death in the local case.  We want to preserve
+            // this behavior for location transparency, so that a ThreadDeath
+            // has the same affect in either the local or remote case.
+            // The non-colocated case is handled in iiop.ORB.process, which
+            // throws the same exception.
+            throw wrapper.runtimeexception( ex ) ;
         } catch ( Throwable t ) {
             if (t instanceof SystemException)
-		throw (SystemException)t ;
+                throw (SystemException)t ;
 
-	    throw poaWrapper.localServantLookup( t ) ;
-        } 
+            throw poaWrapper.localServantLookup( t ) ;
+        }
 
-	if (!checkForCompatibleServant( info, expectedType )) {
-	    servantExit( oa ) ;
-	    return null ;
-	}
+        if (!checkForCompatibleServant( info, expectedType )) {
+            servantExit( oa ) ;
+            return null ;
+        }
 
         return info;
     }
 
     public void servant_postinvoke(org.omg.CORBA.Object self,
-                                   ServantObject servantobj) 
+                                   ServantObject servantobj)
     {
-        ObjectAdapter oa = orb.peekInvocationInfo().oa() ; 
-	servantExit( oa ) ;	
+        ObjectAdapter oa = orb.peekInvocationInfo().oa() ;
+        servantExit( oa ) ;
     }
 }
 

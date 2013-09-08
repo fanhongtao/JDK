@@ -1,11 +1,25 @@
 /*
- * @(#)file      Host.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.15
- * @(#)date      06/11/29
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -20,21 +34,18 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Hashtable;
+import java.util.logging.Level;
 import java.util.Vector;
 import java.security.acl.NotOwnerException;
 
-// SNMP Runtime import
-//
-import com.sun.jmx.trace.Trace;
-  
+import static com.sun.jmx.defaults.JmxProperties.SNMP_LOGGER;
+
 /**
  * The class defines an abstract representation of a host.
  *
- * @version	4.15	11/17/05
- * @author	Sun Microsystems, Inc.
  */
 abstract class Host extends SimpleNode implements Serializable {
-  
+
     public Host(int id) {
         super(id);
     }
@@ -42,10 +53,10 @@ abstract class Host extends SimpleNode implements Serializable {
     public Host(Parser p, int id) {
         super(p, id);
     }
-  
+
     protected abstract PrincipalImpl createAssociatedPrincipal()
         throws UnknownHostException;
-  
+
     protected abstract String getHname();
 
     public void buildAclEntries(PrincipalImpl owner, AclImpl acl) {
@@ -55,10 +66,12 @@ abstract class Host extends SimpleNode implements Serializable {
         try {
             p = createAssociatedPrincipal();
         } catch(UnknownHostException e) {
-            if (isDebugOn()) {
-                debug("buildAclEntries", "Cannot create ACL entry for " + e.getMessage());
+            if (SNMP_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_LOGGER.logp(Level.FINEST, Host.class.getName(),
+                        "buildAclEntries",
+                        "Cannot create ACL entry; got exception", e);
             }
-	    throw new IllegalArgumentException("Cannot create ACL entry for " + e.getMessage());
+            throw new IllegalArgumentException("Cannot create ACL entry for " + e.getMessage());
         }
 
         // Create an AclEntry
@@ -71,116 +84,98 @@ abstract class Host extends SimpleNode implements Serializable {
             registerPermission(entry);
             acl.addEntry(owner, entry);
         } catch(UnknownHostException e) {
-            if (isDebugOn()) {
-                debug("buildAclEntries", "Cannot create ACL entry for " + e.getMessage());
+            if (SNMP_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_LOGGER.logp(Level.FINEST, Host.class.getName(),
+                        "buildAclEntries",
+                        "Cannot create ACL entry; got exception", e);
             }
             return;
         } catch(NotOwnerException a) {
-            if (isDebugOn()) {
-                debug("buildAclEntries", "Not owner of ACL " + a.getMessage());
+            if (SNMP_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_LOGGER.logp(Level.FINEST, Host.class.getName(),
+                        "buildAclEntries",
+                        "Cannot create ACL entry; got exception", a);
             }
             return;
         }
     }
-    
+
     private void registerPermission(AclEntryImpl entry) {
-        JDMHost host= (JDMHost) jjtGetParent(); 
+        JDMHost host= (JDMHost) jjtGetParent();
         JDMManagers manager= (JDMManagers) host.jjtGetParent();
         JDMAclItem acl= (JDMAclItem) manager.jjtGetParent();
-        JDMAccess access= (JDMAccess) acl.getAccess();
+        JDMAccess access= acl.getAccess();
         access.putPermission(entry);
-        JDMCommunities comm= (JDMCommunities) acl.getCommunities();
+        JDMCommunities comm= acl.getCommunities();
         comm.buildCommunities(entry);
-    } 
+    }
 
-    public void buildTrapEntries(Hashtable dest) {
-        
-        JDMHostTrap host= (JDMHostTrap) jjtGetParent(); 
+    public void buildTrapEntries(Hashtable<InetAddress, Vector<String>> dest) {
+
+        JDMHostTrap host= (JDMHostTrap) jjtGetParent();
         JDMTrapInterestedHost hosts= (JDMTrapInterestedHost) host.jjtGetParent();
         JDMTrapItem trap = (JDMTrapItem) hosts.jjtGetParent();
-        JDMTrapCommunity community = (JDMTrapCommunity) trap.getCommunity();
+        JDMTrapCommunity community = trap.getCommunity();
         String comm = community.getCommunity();
-	
+
         InetAddress add = null;
         try {
             add = java.net.InetAddress.getByName(getHname());
         } catch(UnknownHostException e) {
-            if (isDebugOn()) {
-                debug("buildTrapEntries", "Cannot create TRAP entry for " + e.getMessage());
+            if (SNMP_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_LOGGER.logp(Level.FINEST, Host.class.getName(),
+                        "buildTrapEntries",
+                        "Cannot create TRAP entry; got exception", e);
             }
             return;
         }
-	
-        Vector list = null;
+
+        Vector<String> list = null;
         if (dest.containsKey(add)){
-            list = (Vector) dest.get(add);
+            list = dest.get(add);
             if (!list.contains(comm)){
                 list.addElement(comm);
             }
         } else {
-            list = new Vector();
+            list = new Vector<String>();
             list.addElement(comm);
             dest.put(add,list);
         }
     }
-    
-    public void buildInformEntries(Hashtable dest) {
-    
-        JDMHostInform host= (JDMHostInform) jjtGetParent(); 
+
+    public void buildInformEntries(Hashtable<InetAddress, Vector<String>> dest) {
+
+        JDMHostInform host= (JDMHostInform) jjtGetParent();
         JDMInformInterestedHost hosts= (JDMInformInterestedHost) host.jjtGetParent();
         JDMInformItem inform = (JDMInformItem) hosts.jjtGetParent();
-        JDMInformCommunity community = (JDMInformCommunity) inform.getCommunity();
+        JDMInformCommunity community = inform.getCommunity();
         String comm = community.getCommunity();
-	
+
         InetAddress add = null;
         try {
             add = java.net.InetAddress.getByName(getHname());
         } catch(UnknownHostException e) {
-            if (isDebugOn()) {
-                debug("buildInformEntries", "Cannot create INFORM entry for " + e.getMessage());
+            if (SNMP_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_LOGGER.logp(Level.FINEST, Host.class.getName(),
+                        "buildTrapEntries",
+                        "Cannot create INFORM entry; got exception", e);
             }
             return;
         }
-	
-        Vector list = null;
+
+        Vector<String> list = null;
         if (dest.containsKey(add)){
-            list = (Vector) dest.get(add);
+            list = dest.get(add);
             if (!list.contains(comm)){
                 list.addElement(comm);
             }
         } else {
-            list = new Vector();
+            list = new Vector<String>();
             list.addElement(comm);
             dest.put(add,list);
         }
     }
-    
-    // TRACES & DEBUG
-    //---------------
-    
-    boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_SNMP);
-    }
 
-    void trace(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_SNMP, clz, func, info);
-    }
 
-    void trace(String func, String info) {
-        trace(dbgTag, func, info);
-    }
-    
-    boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_SNMP);
-    }
 
-    void debug(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_SNMP, clz, func, info);
-    }
-
-    void debug(String func, String info) {
-        debug(dbgTag, func, info);
-    }
-    
-    String dbgTag = "Host";
 }

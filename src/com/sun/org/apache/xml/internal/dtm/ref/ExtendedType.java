@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +36,7 @@ public final class ExtendedType
     /**
      * Create an ExtendedType object from node type, namespace and local name.
      * The hash code is calculated from the node type, namespace and local name.
-     * 
+     *
      * @param nodetype Type of the node
      * @param namespace Namespace of the node
      * @param localName Local name of the node
@@ -48,7 +52,7 @@ public final class ExtendedType
     /**
      * Create an ExtendedType object from node type, namespace, local name
      * and a given hash code.
-     * 
+     *
      * @param nodetype Type of the node
      * @param namespace Namespace of the node
      * @param localName Local name of the node
@@ -62,7 +66,7 @@ public final class ExtendedType
       this.hash = hash;
     }
 
-    /** 
+    /**
      * Redefine this ExtendedType object to represent a different extended type.
      * This is intended to be used ONLY on the hashET object. Using it elsewhere
      * will mess up existing hashtable entries!
@@ -75,7 +79,7 @@ public final class ExtendedType
       this.hash = nodetype + namespace.hashCode() + localName.hashCode();
     }
 
-    /** 
+    /**
      * Redefine this ExtendedType object to represent a different extended type.
      * This is intended to be used ONLY on the hashET object. Using it elsewhere
      * will mess up existing hashtable entries!
@@ -98,7 +102,7 @@ public final class ExtendedType
 
     /**
      * Test if this ExtendedType object is equal to the given ExtendedType.
-     * 
+     *
      * @param other The other ExtendedType object to test for equality
      * @return true if the two ExtendedType objects are equal.
      */
@@ -115,7 +119,7 @@ public final class ExtendedType
         return false;
       }
     }
-    
+
     /**
      * Return the node type
      */
@@ -123,7 +127,7 @@ public final class ExtendedType
     {
       return nodetype;
     }
-    
+
     /**
      * Return the local name
      */
@@ -131,7 +135,7 @@ public final class ExtendedType
     {
       return localName;
     }
-    
+
     /**
      * Return the namespace
      */

@@ -1,8 +1,26 @@
 /*
- * @(#)LinkLoopException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -17,7 +35,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   *
   * @see LinkRef
   * @since 1.3
@@ -27,12 +44,12 @@ public class LinkLoopException extends LinkException {
     /**
       * Constructs a new instance of LinkLoopException with an explanation
       * All the other fields are initialized to null.
-      * @param	explanation	A possibly null string containing additional
-      *				detail about this exception.
+      * @param  explanation     A possibly null string containing additional
+      *                         detail about this exception.
       * @see java.lang.Throwable#getMessage
       */
     public LinkLoopException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -40,7 +57,7 @@ public class LinkLoopException extends LinkException {
       * All the non-link-related and link-related fields are initialized to null.
       */
     public LinkLoopException() {
-	super();
+        super();
     }
 
     /**

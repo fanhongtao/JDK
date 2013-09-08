@@ -1,8 +1,26 @@
 /*
- * @(#)SocketSecurityException.java	1.14 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.server;
@@ -10,7 +28,6 @@ package java.rmi.server;
 /**
  * An obsolete subclass of {@link ExportException}.
  *
- * @version 1.14, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  **/
@@ -27,7 +44,7 @@ public class SocketSecurityException extends ExportException {
      * @since JDK1.1
      */
     public SocketSecurityException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -39,7 +56,7 @@ public class SocketSecurityException extends ExportException {
      * @since JDK1.1
      */
     public SocketSecurityException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 
 }

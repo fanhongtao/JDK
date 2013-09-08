@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +38,7 @@ import org.xml.sax.InputSource;
 
 /**
  * @deprecated Since the introduction of the DTM, this class will be removed.
- * This class provides a DOM level 2 "helper", which provides services currently 
+ * This class provides a DOM level 2 "helper", which provides services currently
  * not provided be the DOM standard.
  */
 public class DOM2Helper extends DOMHelper
@@ -86,7 +90,7 @@ public class DOM2Helper extends DOMHelper
 
   /**
    * Specify which document this helper is currently operating on.
-   * 	
+   *
    * @param doc The DOM Document node for this document.
    * @see #getDocument
    */
@@ -97,7 +101,7 @@ public class DOM2Helper extends DOMHelper
 
   /**
    * Query which document this helper is currently operating on.
-   * 	
+   *
    * @return The DOM Document node for this document.
    * @see #setDocument
    */
@@ -135,7 +139,7 @@ public class DOM2Helper extends DOMHelper
     {
 
       // I guess I should use JAXP factory here... when it's legal.
-      // com.sun.org.apache.xerces.internal.parsers.DOMParser parser 
+      // com.sun.org.apache.xerces.internal.parsers.DOMParser parser
       //  = new com.sun.org.apache.xerces.internal.parsers.DOMParser();
       DocumentBuilderFactory builderFactory =
         DocumentBuilderFactory.newInstance();
@@ -188,7 +192,7 @@ public class DOM2Helper extends DOMHelper
 
   /**
    * Given an XML ID, return the element. This requires assistance from the
-   * DOM and parser, and is meaningful only in the context of a DTD 
+   * DOM and parser, and is meaningful only in the context of a DTD
    * or schema which declares attributes as being of type ID. This
    * information may or may not be available in all parsers, may or
    * may not be available for specific documents, and may or may not
@@ -219,15 +223,15 @@ public class DOM2Helper extends DOMHelper
    *
    * @param node1 DOM Node to perform position comparison on.
    * @param node2 DOM Node to perform position comparison on .
-   * 
+   *
    * @return false if node2 comes before node1, otherwise return true.
-   * You can think of this as 
+   * You can think of this as
    * <code>(node1.documentOrderPosition &lt;= node2.documentOrderPosition)</code>.
    */
   public static boolean isNodeAfter(Node node1, Node node2)
   {
 
-    // Assume first that the nodes are DTM nodes, since discovering node 
+    // Assume first that the nodes are DTM nodes, since discovering node
     // order is massivly faster for the DTM.
     if(node1 instanceof DOMOrder && node2 instanceof DOMOrder)
     {
@@ -239,7 +243,7 @@ public class DOM2Helper extends DOMHelper
     else
     {
 
-      // isNodeAfter will return true if node is after countedNode 
+      // isNodeAfter will return true if node is after countedNode
       // in document order. The base isNodeAfter is sloooow (relatively).
       return DOMHelper.isNodeAfter(node1, node2);
     }
@@ -305,7 +309,7 @@ public class DOM2Helper extends DOMHelper
   }
 
   /** Field m_useDOM2getNamespaceURI is a compile-time flag which
-   *  gates some of the parser options used to build a DOM -- but 
+   *  gates some of the parser options used to build a DOM -- but
    * that code is commented out at this time and nobody else
    * references it, so I've commented this out as well. */
   //private boolean m_useDOM2getNamespaceURI = false;

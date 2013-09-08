@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,7 +47,10 @@ import com.sun.org.apache.xerces.internal.impl.msg.XMLMessageFormatter;
 import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
 import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaValidator;
 import com.sun.org.apache.xerces.internal.impl.xs.XSMessageFormatter;
+import com.sun.org.apache.xerces.internal.util.FeatureState;
 import com.sun.org.apache.xerces.internal.util.ParserConfigurationSettings;
+import com.sun.org.apache.xerces.internal.util.PropertyState;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.xni.XMLDTDContentModelHandler;
 import com.sun.org.apache.xerces.internal.xni.XMLDTDHandler;
@@ -69,7 +76,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLPullParserConfiguration;
  * @author Neil Graham, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XML11Configuration.java,v 1.2.6.1 2005/09/07 07:40:18 sunithareddy Exp $
+ * @version $Id: XML11Configuration.java,v 1.9 2010-11-01 04:40:10 joehw Exp $
  */
 public class XML11Configuration extends ParserConfigurationSettings
     implements XMLPullParserConfiguration, XML11Configurable {
@@ -145,7 +152,15 @@ public class XML11Configuration extends ParserConfigurationSettings
     /** Feature identifier: honour all schemaLocations */
     protected static final String HONOUR_ALL_SCHEMALOCATIONS = 
         Constants.XERCES_FEATURE_PREFIX + Constants.HONOUR_ALL_SCHEMALOCATIONS_FEATURE;
-    
+
+    /** Feature identifier: namespace growth */
+    protected static final String NAMESPACE_GROWTH =
+        Constants.XERCES_FEATURE_PREFIX + Constants.NAMESPACE_GROWTH_FEATURE;
+
+    /** Feature identifier: tolerate duplicates */
+    protected static final String TOLERATE_DUPLICATES =
+        Constants.XERCES_FEATURE_PREFIX + Constants.TOLERATE_DUPLICATES_FEATURE;
+
     /** Feature identifier: use grammar pool only */
     protected static final String USE_GRAMMAR_POOL_ONLY =
         Constants.XERCES_FEATURE_PREFIX + Constants.USE_GRAMMAR_POOL_ONLY_FEATURE;
@@ -250,6 +265,14 @@ public class XML11Configuration extends ParserConfigurationSettings
     /** Property identifier: JAXP schema source/ DOM schema-location. */
     protected static final String JAXP_SCHEMA_SOURCE =
         Constants.JAXP_PROPERTY_PREFIX + Constants.SCHEMA_SOURCE;
+
+    /** Property identifier: locale. */
+    protected static final String LOCALE =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.LOCALE_PROPERTY;
+
+    /** Property identifier: Schema DV Factory */
+    protected static final String SCHEMA_DV_FACTORY =
+        Constants.XERCES_PROPERTY_PREFIX + Constants.SCHEMA_DV_FACTORY_PROPERTY;
 
     // debugging
 
@@ -430,10 +453,6 @@ public class XML11Configuration extends ParserConfigurationSettings
 		// Common components for XML 1.1. and XML 1.0
 		fCommonComponents = new ArrayList();
 
-		// create storage for recognized features and properties
-		fRecognizedFeatures = new ArrayList();
-		fRecognizedProperties = new ArrayList();
-
 		// create table for features and properties
 		fFeatures = new HashMap();
 		fProperties = new HashMap();
@@ -446,7 +465,9 @@ public class XML11Configuration extends ParserConfigurationSettings
 				NAMESPACES,
                 NORMALIZE_DATA, SCHEMA_ELEMENT_DEFAULT, SCHEMA_AUGMENT_PSVI,
                 GENERATE_SYNTHETIC_ANNOTATIONS, VALIDATE_ANNOTATIONS,
-                HONOUR_ALL_SCHEMALOCATIONS, USE_GRAMMAR_POOL_ONLY,
+                HONOUR_ALL_SCHEMALOCATIONS, NAMESPACE_GROWTH,
+                TOLERATE_DUPLICATES,
+                USE_GRAMMAR_POOL_ONLY,
             	// NOTE: These shouldn't really be here but since the XML Schema
             	//       validator is constructed dynamically, its recognized
             	//       features might not have been set and it would cause a
@@ -470,6 +491,8 @@ public class XML11Configuration extends ParserConfigurationSettings
         fFeatures.put(GENERATE_SYNTHETIC_ANNOTATIONS, Boolean.FALSE);
         fFeatures.put(VALIDATE_ANNOTATIONS, Boolean.FALSE);
         fFeatures.put(HONOUR_ALL_SCHEMALOCATIONS, Boolean.FALSE);
+        fFeatures.put(NAMESPACE_GROWTH, Boolean.FALSE);
+        fFeatures.put(TOLERATE_DUPLICATES, Boolean.FALSE);
         fFeatures.put(USE_GRAMMAR_POOL_ONLY, Boolean.FALSE);
 		fFeatures.put(PARSER_SETTINGS, Boolean.TRUE);
 
@@ -496,7 +519,11 @@ public class XML11Configuration extends ParserConfigurationSettings
             	//       validator is constructed dynamically, its recognized
             	//       properties might not have been set and it would cause a
             	//       not-recognized exception to be thrown. -Ac
-            	SCHEMA_LOCATION, SCHEMA_NONS_LOCATION, };
+            	SCHEMA_LOCATION,
+                SCHEMA_NONS_LOCATION,
+                LOCALE,
+                SCHEMA_DV_FACTORY,
+        };
         addRecognizedProperties(recognizedProperties);
 		
 		if (symbolTable == null) {
@@ -764,8 +791,9 @@ public class XML11Configuration extends ParserConfigurationSettings
         // reset and configure pipeline and set InputSource.
         if (fInputSource != null) {
             try {
-				fValidationManager.reset();
+		fValidationManager.reset();
                 fVersionDetector.reset(this);
+                fConfigUpdated = true;
                 resetCommon();
 
                 short version = fVersionDetector.determineDocVersion(fInputSource);
@@ -829,7 +857,7 @@ public class XML11Configuration extends ParserConfigurationSettings
 	 * Returns the state of a feature.
 	 * 
 	 * @param featureId The feature identifier.
-		 * @return true if the feature is supported
+	 * @return true if the feature is supported
 	 * 
 	 * @throws XMLConfigurationException Thrown for configuration error.
 	 *                                   In general, components should
@@ -837,13 +865,13 @@ public class XML11Configuration extends ParserConfigurationSettings
 	 *                                   it is <strong>really</strong>
 	 *                                   a critical error.
 	 */
-	public boolean getFeature(String featureId)
+	public FeatureState getFeatureState(String featureId)
 		throws XMLConfigurationException {
 			// make this feature special
         if (featureId.equals(PARSER_SETTINGS)){
-        	return fConfigUpdated;
+        	return FeatureState.is(fConfigUpdated);
         }
-        return super.getFeature(featureId);
+        return super.getFeatureState(featureId);
 
 	} // getFeature(String):boolean
     
@@ -891,7 +919,27 @@ public class XML11Configuration extends ParserConfigurationSettings
 		super.setFeature(featureId, state);
 
 	} // setFeature(String,boolean)
-	
+
+    /**
+     * Returns the value of a property.
+     *
+     * @param propertyId The property identifier.
+     * @return the value of the property
+     *
+     * @throws XMLConfigurationException Thrown for configuration error.
+     *                                   In general, components should
+     *                                   only throw this exception if
+     *                                   it is <strong>really</strong>
+     *                                   a critical error.
+     */
+    public PropertyState getPropertyState(String propertyId)
+        throws XMLConfigurationException {
+        if (LOCALE.equals(propertyId)) {
+            return PropertyState.is(getLocale());
+        }
+        return super.getPropertyState(propertyId);
+    }
+
 	/**
 	 * setProperty
 	 * 
@@ -901,6 +949,9 @@ public class XML11Configuration extends ParserConfigurationSettings
 	public void setProperty(String propertyId, Object value)
 		throws XMLConfigurationException {
 		fConfigUpdated = true;
+		if (LOCALE.equals(propertyId)) {
+		    setLocale((Locale) value);
+		}
 		// forward to every XML 1.0 component
 		int count = fComponents.size();
 		for (int i = 0; i < count; i++) {
@@ -1182,7 +1233,7 @@ public class XML11Configuration extends ParserConfigurationSettings
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkFeature(String featureId) throws XMLConfigurationException {
+    protected FeatureState checkFeature(String featureId) throws XMLConfigurationException {
 
         //
         // Xerces Features
@@ -1199,7 +1250,7 @@ public class XML11Configuration extends ParserConfigurationSettings
             //
             if (suffixLength == Constants.DYNAMIC_VALIDATION_FEATURE.length() && 
                 featureId.endsWith(Constants.DYNAMIC_VALIDATION_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
 
             //
@@ -1208,8 +1259,7 @@ public class XML11Configuration extends ParserConfigurationSettings
             if (suffixLength == Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE.length() &&
                 featureId.endsWith(Constants.DEFAULT_ATTRIBUTE_VALUES_FEATURE)) {
                 // REVISIT
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
             //
             // http://apache.org/xml/features/validation/default-attribute-values
@@ -1217,22 +1267,21 @@ public class XML11Configuration extends ParserConfigurationSettings
             if (suffixLength == Constants.VALIDATE_CONTENT_MODELS_FEATURE.length() && 
                 featureId.endsWith(Constants.VALIDATE_CONTENT_MODELS_FEATURE)) {
                 // REVISIT
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
             //
             // http://apache.org/xml/features/validation/nonvalidating/load-dtd-grammar
             //
             if (suffixLength == Constants.LOAD_DTD_GRAMMAR_FEATURE.length() && 
                 featureId.endsWith(Constants.LOAD_DTD_GRAMMAR_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
             //
             // http://apache.org/xml/features/validation/nonvalidating/load-external-dtd
             //
             if (suffixLength == Constants.LOAD_EXTERNAL_DTD_FEATURE.length() && 
                 featureId.endsWith(Constants.LOAD_EXTERNAL_DTD_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
 
             //
@@ -1240,8 +1289,7 @@ public class XML11Configuration extends ParserConfigurationSettings
             //
             if (suffixLength == Constants.VALIDATE_DATATYPES_FEATURE.length() && 
                 featureId.endsWith(Constants.VALIDATE_DATATYPES_FEATURE)) {
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
             
             //
@@ -1250,31 +1298,30 @@ public class XML11Configuration extends ParserConfigurationSettings
             //
             if (suffixLength == Constants.SCHEMA_VALIDATION_FEATURE.length() && 
                 featureId.endsWith(Constants.SCHEMA_VALIDATION_FEATURE)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
             // activate full schema checking
             if (suffixLength == Constants.SCHEMA_FULL_CHECKING.length() && 
                 featureId.endsWith(Constants.SCHEMA_FULL_CHECKING)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
             // Feature identifier: expose schema normalized value 
             //  http://apache.org/xml/features/validation/schema/normalized-value
             if (suffixLength == Constants.SCHEMA_NORMALIZED_VALUE.length() && 
                 featureId.endsWith(Constants.SCHEMA_NORMALIZED_VALUE)) {
-                return;
-            } 
+                return FeatureState.RECOGNIZED;
+            }
             // Feature identifier: send element default value via characters() 
             // http://apache.org/xml/features/validation/schema/element-default
             if (suffixLength == Constants.SCHEMA_ELEMENT_DEFAULT.length() && 
                 featureId.endsWith(Constants.SCHEMA_ELEMENT_DEFAULT)) {
-                return;
+                return FeatureState.RECOGNIZED;
             }
 			 
             // special performance feature: only component manager is allowed to set it.			 
             if (suffixLength == Constants.PARSER_SETTINGS.length() && 
                 featureId.endsWith(Constants.PARSER_SETTINGS)) {
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
 
         }
@@ -1283,7 +1330,7 @@ public class XML11Configuration extends ParserConfigurationSettings
         // Not recognized
         //
 
-        super.checkFeature(featureId);
+        return super.checkFeature(featureId);
 
     } // checkFeature(String)
 
@@ -1300,7 +1347,7 @@ public class XML11Configuration extends ParserConfigurationSettings
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkProperty(String propertyId) throws XMLConfigurationException {
+    protected PropertyState checkProperty(String propertyId) throws XMLConfigurationException {
 
         //
         // Xerces Properties
@@ -1311,15 +1358,15 @@ public class XML11Configuration extends ParserConfigurationSettings
 
             if (suffixLength == Constants.DTD_SCANNER_PROPERTY.length() && 
                 propertyId.endsWith(Constants.DTD_SCANNER_PROPERTY)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
             if (suffixLength == Constants.SCHEMA_LOCATION.length() && 
                 propertyId.endsWith(Constants.SCHEMA_LOCATION)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
             if (suffixLength == Constants.SCHEMA_NONS_LOCATION.length() && 
                 propertyId.endsWith(Constants.SCHEMA_NONS_LOCATION)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
         }
         
@@ -1328,7 +1375,7 @@ public class XML11Configuration extends ParserConfigurationSettings
 
             if (suffixLength == Constants.SCHEMA_SOURCE.length() && 
                 propertyId.endsWith(Constants.SCHEMA_SOURCE)) {
-                return;
+                return PropertyState.RECOGNIZED;
             }
         }
 		
@@ -1351,8 +1398,7 @@ public class XML11Configuration extends ParserConfigurationSettings
                 // REVISIT - we should probably ask xml-dev for a precise
                 // definition of what this is actually supposed to return, and
                 // in exactly which circumstances.
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, propertyId);
+                return PropertyState.NOT_SUPPORTED;
             }
         }
 
@@ -1360,7 +1406,7 @@ public class XML11Configuration extends ParserConfigurationSettings
         // Not recognized
         //
 
-        super.checkProperty(propertyId);
+        return super.checkProperty(propertyId);
 
     } // checkProperty(String)
 
@@ -1502,9 +1548,9 @@ public class XML11Configuration extends ParserConfigurationSettings
      * on ParserConfigurationSettings, bypassing getFeature() on this
      * class.
      */
-    boolean getFeature0(String featureId)
+    FeatureState getFeatureState0(String featureId)
         throws XMLConfigurationException {
-        return super.getFeature(featureId);
+        return super.getFeatureState(featureId);
     }
 
 } // class XML11Configuration

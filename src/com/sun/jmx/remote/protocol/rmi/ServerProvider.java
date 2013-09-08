@@ -1,8 +1,26 @@
 /*
- * @(#)ServerProvider.java	1.4 04/02/13
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.remote.protocol.rmi;
@@ -20,14 +38,14 @@ import javax.management.remote.rmi.RMIConnectorServer;
 public class ServerProvider implements JMXConnectorServerProvider {
 
     public JMXConnectorServer newJMXConnectorServer(JMXServiceURL serviceURL,
-						    Map<String,?> environment,
-						    MBeanServer mbeanServer)
-	    throws IOException {
-	if (!serviceURL.getProtocol().equals("rmi")) {
-	    throw new MalformedURLException("Protocol not rmi: " +
-					    serviceURL.getProtocol());
-	}
-	return new RMIConnectorServer(serviceURL, environment, mbeanServer);
+                                                    Map<String,?> environment,
+                                                    MBeanServer mbeanServer)
+            throws IOException {
+        if (!serviceURL.getProtocol().equals("rmi")) {
+            throw new MalformedURLException("Protocol not rmi: " +
+                                            serviceURL.getProtocol());
+        }
+        return new RMIConnectorServer(serviceURL, environment, mbeanServer);
     }
 
 }

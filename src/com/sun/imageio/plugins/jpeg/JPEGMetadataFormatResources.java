@@ -1,15 +1,33 @@
 /*
- * @(#)JPEGMetadataFormatResources.java	1.7 05/11/17
+ * Copyright (c) 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.jpeg;
 
 import java.util.ListResourceBundle;
 
-abstract class JPEGMetadataFormatResources 
+abstract class JPEGMetadataFormatResources
         extends ListResourceBundle {
 
     static final Object[][] commonContents = {
@@ -25,11 +43,11 @@ abstract class JPEGMetadataFormatResources
           + "contains the data not including length." },
 
         // Node name + "/" + AttributeName, followed by description
-        { "dqtable/elementPrecision", 
+        { "dqtable/elementPrecision",
           "The number of bits in each table element (0 = 8, 1 = 16)" },
         { "dgtable/qtableId",
           "The table id" },
-        { "dhtable/class", 
+        { "dhtable/class",
           "Indicates whether this is a DC (0) or an AC (1) table" },
         { "dhtable/htableId",
           "The table id" },

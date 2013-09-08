@@ -1,8 +1,26 @@
 /*
- * @(#)ReferenceQueue.java	1.26 09/02/26
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.ref;
@@ -11,7 +29,6 @@ package java.lang.ref;
  * Reference queues, to which registered reference objects are appended by the
  * garbage collector after the appropriate reachability changes are detected.
  *
- * @version  1.26, 02/26/09
  * @author   Mark Reinhold
  * @since    1.2
  */
@@ -24,9 +41,9 @@ public class ReferenceQueue<T> {
     public ReferenceQueue() { }
 
     private static class Null extends ReferenceQueue {
-	boolean enqueue(Reference r) {
-	    return false;
-	}
+        boolean enqueue(Reference r) {
+            return false;
+        }
     }
 
     static ReferenceQueue NULL = new Null();
@@ -37,36 +54,36 @@ public class ReferenceQueue<T> {
     private volatile Reference<? extends T> head = null;
     private long queueLength = 0;
 
-    boolean enqueue(Reference<? extends T> r) {	/* Called only by Reference class */
-	synchronized (r) {
-	    if (r.queue == ENQUEUED) return false;
-	    synchronized (lock) {
-		r.queue = ENQUEUED;
-		r.next = (head == null) ? r : head;
-		head = r;
-		queueLength++;
+    boolean enqueue(Reference<? extends T> r) { /* Called only by Reference class */
+        synchronized (r) {
+            if (r.queue == ENQUEUED) return false;
+            synchronized (lock) {
+                r.queue = ENQUEUED;
+                r.next = (head == null) ? r : head;
+                head = r;
+                queueLength++;
                 if (r instanceof FinalReference) {
                     sun.misc.VM.addFinalRefCount(1);
                 }
-		lock.notifyAll();
-		return true;
-	    }
-	}
+                lock.notifyAll();
+                return true;
+            }
+        }
     }
 
-    private Reference<? extends T> reallyPoll() {	/* Must hold lock */
-	if (head != null) {
-	    Reference<? extends T> r = head;
-	    head = (r.next == r) ? null : r.next;
-	    r.queue = NULL;
-	    r.next = r;
-	    queueLength--;
+    private Reference<? extends T> reallyPoll() {       /* Must hold lock */
+        if (head != null) {
+            Reference<? extends T> r = head;
+            head = (r.next == r) ? null : r.next;
+            r.queue = NULL;
+            r.next = r;
+            queueLength--;
             if (r instanceof FinalReference) {
                 sun.misc.VM.addFinalRefCount(-1);
             }
-	    return r;
-	}
-	return null;
+            return r;
+        }
+        return null;
     }
 
     /**
@@ -80,9 +97,9 @@ public class ReferenceQueue<T> {
     public Reference<? extends T> poll() {
         if (head == null)
             return null;
-	synchronized (lock) {
-	    return reallyPoll();
-	}
+        synchronized (lock) {
+            return reallyPoll();
+        }
     }
 
     /**
@@ -106,21 +123,21 @@ public class ReferenceQueue<T> {
      *          If the timeout wait is interrupted
      */
     public Reference<? extends T> remove(long timeout)
-	throws IllegalArgumentException, InterruptedException
+        throws IllegalArgumentException, InterruptedException
     {
-	if (timeout < 0) {
-	    throw new IllegalArgumentException("Negative timeout value");
-	}
-	synchronized (lock) {
-	    Reference<? extends T> r = reallyPoll();
-	    if (r != null) return r;
-	    for (;;) {
-		lock.wait(timeout);
-		r = reallyPoll();
-		if (r != null) return r;
-		if (timeout != 0) return null;
-	    }
-	}
+        if (timeout < 0) {
+            throw new IllegalArgumentException("Negative timeout value");
+        }
+        synchronized (lock) {
+            Reference<? extends T> r = reallyPoll();
+            if (r != null) return r;
+            for (;;) {
+                lock.wait(timeout);
+                r = reallyPoll();
+                if (r != null) return r;
+                if (timeout != 0) return null;
+            }
+        }
     }
 
     /**
@@ -131,7 +148,7 @@ public class ReferenceQueue<T> {
      * @throws  InterruptedException  If the wait is interrupted
      */
     public Reference<? extends T> remove() throws InterruptedException {
-	return remove(0);
+        return remove(0);
     }
 
 }

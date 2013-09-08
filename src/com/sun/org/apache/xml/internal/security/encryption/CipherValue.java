@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  2003-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,15 +33,15 @@ public interface CipherValue {
      *
      * @return cipher value.
      */
-	String getValue();
-	// byte[] getValue();
-    
+        String getValue();
+        // byte[] getValue();
+
     /**
      * Sets the Base 64 encoded, encrypted octets that is the
      * <code>CihperValue</code>.
      *
      * @param value the cipher value.
      */
-	void setValue(String value);
-	// void setValue(byte[] value);
+        void setValue(String value);
+        // void setValue(byte[] value);
 }

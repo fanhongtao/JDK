@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,6 +45,7 @@ import org.w3c.dom.DOMErrorHandler;
 import org.w3c.dom.DOMStringList;
 import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.XMLEntityManager;
+import com.sun.org.apache.xerces.internal.util.DOMUtil;
 import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.util.XML11Char;
@@ -72,7 +77,7 @@ import org.w3c.dom.ls.LSSerializerFilter;
  * @author Gopal Sharma, Sun Microsystems
  * @author Arun Yadav, Sun Microsystems
  * @author Sunitha Reddy, Sun Microsystems
- * @version $Id: DOMSerializerImpl.java,v 1.5 2006/01/23 06:47:25 sunithareddy Exp $
+ * @version $Id: DOMSerializerImpl.java,v 1.11 2010-11-01 04:40:36 joehw Exp $
  */
 public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
 
@@ -539,7 +544,7 @@ public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
                 // stopped at user request
                 return null;
             }
-            throw new LSException(LSException.SERIALIZE_ERR, e.toString());            
+            throw (LSException) new LSException(LSException.SERIALIZE_ERR, e.toString()).initCause(e);
         } catch (IOException ioe) {
             // REVISIT: A generic IOException doesn't provide enough information
             // to determine that the serialized document is too large to fit
@@ -548,7 +553,7 @@ public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
                 DOMMessageFormatter.DOM_DOMAIN,
                 "STRING_TOO_LONG",
                 new Object[] { ioe.getMessage()});
-            throw new DOMException(DOMException.DOMSTRING_SIZE_ERR,msg);
+            throw (DOMException) new DOMException(DOMException.DOMSTRING_SIZE_ERR, msg).initCause(ioe);
         }
         
         return destination.toString();
@@ -836,7 +841,7 @@ public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
                 // stopped at user request
                 return false;
             }
-            throw new LSException(LSException.SERIALIZE_ERR, e.toString());            
+            throw (LSException) DOMUtil.createLSException(LSException.SERIALIZE_ERR, e).fillInStackTrace();
         } catch (Exception e) {
             if (ser.fDOMErrorHandler != null) {
                 DOMErrorImpl error = new DOMErrorImpl();
@@ -847,7 +852,7 @@ public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
 
             }   
             e.printStackTrace();       
-            throw new LSException(LSException.SERIALIZE_ERR, e.toString());
+            throw (LSException) DOMUtil.createLSException(LSException.SERIALIZE_ERR, e).fillInStackTrace();
         }
         return true;
 
@@ -993,7 +998,7 @@ public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
                 // stopped at user request
                 return false;
             }
-            throw new LSException(LSException.SERIALIZE_ERR, e.toString());            
+            throw (LSException) DOMUtil.createLSException(LSException.SERIALIZE_ERR, e).fillInStackTrace();
         } catch (Exception e) {
             if (ser.fDOMErrorHandler != null) {
                 DOMErrorImpl error = new DOMErrorImpl();
@@ -1002,7 +1007,7 @@ public class DOMSerializerImpl implements LSSerializer, DOMConfiguration {
                 error.fSeverity = DOMError.SEVERITY_ERROR;
                 ser.fDOMErrorHandler.handleError(error);
             }
-            throw new LSException(LSException.SERIALIZE_ERR, e.toString());
+            throw (LSException) DOMUtil.createLSException(LSException.SERIALIZE_ERR, e).fillInStackTrace();
         }
         return true;
     } //writeURI

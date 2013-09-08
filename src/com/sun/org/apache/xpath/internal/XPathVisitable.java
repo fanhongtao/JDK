@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,22 +23,21 @@
 package com.sun.org.apache.xpath.internal;
 
 /**
- * A class that implements this interface will call a XPathVisitor 
- * for itself and members within it's heararchy.  If the XPathVisitor's 
- * method returns false, the sub-member heararchy will not be 
+ * A class that implements this interface will call a XPathVisitor
+ * for itself and members within it's heararchy.  If the XPathVisitor's
+ * method returns false, the sub-member heararchy will not be
  * traversed.
  */
 public interface XPathVisitable
 {
-	/**
-	 * This will traverse the heararchy, calling the visitor for 
-	 * each member.  If the called visitor method returns 
-	 * false, the subtree should not be called.
-	 * 
-	 * @param owner The owner of the visitor, where that path may be 
-	 *              rewritten if needed.
-	 * @param visitor The visitor whose appropriate method will be called.
-	 */
-	public void callVisitors(ExpressionOwner owner, XPathVisitor visitor);
+        /**
+         * This will traverse the heararchy, calling the visitor for
+         * each member.  If the called visitor method returns
+         * false, the subtree should not be called.
+         *
+         * @param owner The owner of the visitor, where that path may be
+         *              rewritten if needed.
+         * @param visitor The visitor whose appropriate method will be called.
+         */
+        public void callVisitors(ExpressionOwner owner, XPathVisitor visitor);
 }
-

@@ -1,8 +1,26 @@
 /*
- * @(#)Inet4AddressImpl.java	1.6 05/11/17
+ * Copyright (c) 2002, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.net;
 import java.io.IOException;
@@ -38,20 +56,19 @@ class Inet4AddressImpl implements InetAddressImpl {
   public boolean isReachable(InetAddress addr, int timeout, NetworkInterface netif, int ttl) throws IOException {
       byte[] ifaddr = null;
       if (netif != null) {
-	  /*
-	   * Let's make sure we use an address of the proper family
-	   */
-	  java.util.Enumeration it = netif.getInetAddresses();
-	  InetAddress inetaddr = null;
-	  while (!(inetaddr instanceof Inet4Address) &&
-		 it.hasMoreElements())
-	      inetaddr = (InetAddress) it.nextElement();
-	  if (inetaddr instanceof Inet4Address)
-	      ifaddr = inetaddr.getAddress();
+          /*
+           * Let's make sure we use an address of the proper family
+           */
+          java.util.Enumeration it = netif.getInetAddresses();
+          InetAddress inetaddr = null;
+          while (!(inetaddr instanceof Inet4Address) &&
+                 it.hasMoreElements())
+              inetaddr = (InetAddress) it.nextElement();
+          if (inetaddr instanceof Inet4Address)
+              ifaddr = inetaddr.getAddress();
       }
       return isReachable0(addr.getAddress(), timeout, ifaddr, ttl);
   }
     private InetAddress      anyLocalAddress;
     private InetAddress      loopbackAddress;
 }
-

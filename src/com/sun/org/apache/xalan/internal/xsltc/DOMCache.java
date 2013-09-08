@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +48,7 @@ public interface DOMCache {
      * (3) setting the document URI:
      *
      *      _dom.setDocumentURI(uri);
-     * 
+     *
      * @param baseURI The base URI used by the document call.
      * @param href The href argument passed to the document function.
      * @param translet A reference to the translet requesting the document

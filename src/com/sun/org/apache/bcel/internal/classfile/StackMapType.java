@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -61,7 +65,6 @@ import  java.io.*;
  * This class represents the type of a local variable or item on stack
  * used in the StackMap entries.
  *
- * @version $Id: StackMapType.java,v 1.1.2.1 2005/07/31 23:46:33 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     StackMapEntry
  * @see     StackMap
@@ -110,25 +113,25 @@ public final class StackMapType implements Cloneable {
    * in byte code, if type == ITEM_NewObject, and -1 otherwise
    */
   public int  getIndex()      { return index; }
-  
+
   /**
    * Dump type entries to file.
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     file.writeByte(type);
     if(hasIndex())
       file.writeShort(getIndex());
-  }    
+  }
 
   /** @return true, if type is either ITEM_Object or ITEM_NewObject
    */
   public final boolean hasIndex() {
     return ((type == Constants.ITEM_Object) ||
-	    (type == Constants.ITEM_NewObject));
+            (type == Constants.ITEM_NewObject));
   }
 
   private String printIndex() {
@@ -142,10 +145,10 @@ public final class StackMapType implements Cloneable {
 
   /**
    * @return String representation
-   */ 
+   */
   public final String toString() {
     return "(type=" + Constants.ITEM_NAMES[type] + printIndex() + ")";
-  }    
+  }
 
   /**
    * @return deep copy of this object
@@ -160,12 +163,12 @@ public final class StackMapType implements Cloneable {
 
   /**
    * @return Constant pool used by this object.
-   */   
+   */
   public final ConstantPool getConstantPool() { return constant_pool; }
 
   /**
    * @param constant_pool Constant pool to be used for this object.
-   */   
+   */
   public final void setConstantPool(ConstantPool constant_pool) {
     this.constant_pool = constant_pool;
   }

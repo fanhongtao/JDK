@@ -1,8 +1,26 @@
 /*
- * @(#)ServiceContext.java	1.32 05/11/17
+ * Copyright (c) 1998, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.servicecontext;
@@ -22,13 +40,13 @@ import com.sun.corba.se.impl.orbutil.ORBUtility ;
 * There is a derived ServiceContext class for each service context that
 * the ORB supports.  Each subclass encapsulates the representation of
 * the service context and provides any needed methods for manipulating
-* the service context.  Each subclass must provide the following 
+* the service context.  Each subclass must provide the following
 * members:
 * <p>
 * <ul>
 * </li>a public static final int SERVICE_CONTEXT_ID that gives the OMG
 * (or other) defined id for the service context.  This is needed for the
-* registration mechanism defined in ServiceContexts. OMG defined 
+* registration mechanism defined in ServiceContexts. OMG defined
 * service context ids are taken from section 13.6.7 of ptc/98-12-04.</li>
 * <li>a public constructor that takes an InputStream as its argument.</li>
 * <li>Appropriate definitions of getId() and writeData().  getId() must
@@ -42,16 +60,16 @@ import com.sun.corba.se.impl.orbutil.ORBUtility ;
 * received request or reply.
 */
 public abstract class ServiceContext {
-    /** Simple default constructor used when subclass is constructed 
+    /** Simple default constructor used when subclass is constructed
      * from its representation.
      */
     protected ServiceContext() { }
 
-    private void dprint( String msg ) 
+    private void dprint( String msg )
     {
-	ORBUtility.dprint( this, msg ) ;
+        ORBUtility.dprint( this, msg ) ;
     }
-    
+
     /** Stream constructor used when subclass is constructed from an
      * InputStream.  This constructor must be called by super( stream )
      * in the subclass.  After this constructor completes, the service
@@ -68,7 +86,7 @@ public abstract class ServiceContext {
      */
     public abstract int getId() ;
 
-    /** Write the service context to an output stream.  This method 
+    /** Write the service context to an output stream.  This method
      * must be used for writing the service context to a request or reply
      * header.
      */
@@ -95,8 +113,8 @@ public abstract class ServiceContext {
      */
     protected InputStream in = null ;
 
-    public String toString() 
+    public String toString()
     {
-	return "ServiceContext[ id=" + getId() + " ]" ;
-    } 
+        return "ServiceContext[ id=" + getId() + " ]" ;
+    }
 }

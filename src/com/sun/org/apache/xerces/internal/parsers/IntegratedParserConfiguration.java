@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,15 +36,15 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentScanner;
  * This is configuration uses a scanner that integrates both scanning of the document
  * and binding namespaces.
  *
- * If namespace feature is turned on, the pipeline is constructured with the 
+ * If namespace feature is turned on, the pipeline is constructured with the
  * following components:
  * XMLNSDocumentScannerImpl -> XMLNSDTDValidator -> (optional) XMLSchemaValidator
- * 
+ *
  * If the namespace feature is turned off the default document scanner implementation
  * is used (XMLDocumentScannerImpl).
  * <p>
  * In addition to the features and properties recognized by the base
- * parser configuration, this class recognizes these additional 
+ * parser configuration, this class recognizes these additional
  * features and properties:
  * <ul>
  * <li>Features
@@ -64,12 +68,11 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentScanner;
  *
  * @author Elena Litani, IBM
  *
- * @version $Id: IntegratedParserConfiguration.java,v 1.2.6.1 2005/09/06 13:39:28 sunithareddy Exp $
  */
 public class IntegratedParserConfiguration
 extends StandardParserConfiguration {
 
- 
+
     //
     // REVISIT: should this configuration depend on the others
     //          like DTD/Standard one?
@@ -83,7 +86,7 @@ extends StandardParserConfiguration {
 
     /** DTD Validator that does not bind namespaces */
     protected XMLDTDValidator fNonNSDTDValidator;
-    
+
     //
     // Constructors
     //
@@ -93,8 +96,8 @@ extends StandardParserConfiguration {
         this(null, null, null);
     } // <init>()
 
-    /** 
-     * Constructs a parser configuration using the specified symbol table. 
+    /**
+     * Constructs a parser configuration using the specified symbol table.
      *
      * @param symbolTable The symbol table to use.
      */
@@ -106,7 +109,7 @@ extends StandardParserConfiguration {
      * Constructs a parser configuration using the specified symbol table and
      * grammar pool.
      * <p>
-     * <strong>REVISIT:</strong> 
+     * <strong>REVISIT:</strong>
      * Grammar pool will be updated when the new validation engine is
      * implemented.
      *
@@ -122,7 +125,7 @@ extends StandardParserConfiguration {
      * Constructs a parser configuration using the specified symbol table,
      * grammar pool, and parent settings.
      * <p>
-     * <strong>REVISIT:</strong> 
+     * <strong>REVISIT:</strong>
      * Grammar pool will be updated when the new validation engine is
      * implemented.
      *
@@ -134,7 +137,7 @@ extends StandardParserConfiguration {
                                          XMLGrammarPool grammarPool,
                                          XMLComponentManager parentSettings) {
         super(symbolTable, grammarPool, parentSettings);
-        
+
         // create components
         fNonNSScanner = new XMLDocumentScannerImpl();
         fNonNSDTDValidator = new XMLDTDValidator();
@@ -145,93 +148,93 @@ extends StandardParserConfiguration {
 
     } // <init>(SymbolTable,XMLGrammarPool)
 
-    
+
     /** Configures the pipeline. */
-	protected void configurePipeline() {
+        protected void configurePipeline() {
 
-		// use XML 1.0 datatype library
-		setProperty(DATATYPE_VALIDATOR_FACTORY, fDatatypeValidatorFactory);
+                // use XML 1.0 datatype library
+                setProperty(DATATYPE_VALIDATOR_FACTORY, fDatatypeValidatorFactory);
 
-		// setup DTD pipeline
-		configureDTDPipeline();
+                // setup DTD pipeline
+                configureDTDPipeline();
 
-		// setup document pipeline
-		if (fFeatures.get(NAMESPACES) == Boolean.TRUE) {
+                // setup document pipeline
+                if (fFeatures.get(NAMESPACES) == Boolean.TRUE) {
             fProperties.put(NAMESPACE_BINDER, fNamespaceBinder);
-			fScanner = fNamespaceScanner;
-			fProperties.put(DOCUMENT_SCANNER, fNamespaceScanner);
-			if (fDTDValidator != null) {
-				fProperties.put(DTD_VALIDATOR, fDTDValidator);
-				fNamespaceScanner.setDTDValidator(fDTDValidator);
-				fNamespaceScanner.setDocumentHandler(fDTDValidator);
-				fDTDValidator.setDocumentSource(fNamespaceScanner);
-				fDTDValidator.setDocumentHandler(fDocumentHandler);
-				if (fDocumentHandler != null) {
-					fDocumentHandler.setDocumentSource(fDTDValidator);
-				}
-				fLastComponent = fDTDValidator;
-			}
-			else {
-				fNamespaceScanner.setDocumentHandler(fDocumentHandler);
+                        fScanner = fNamespaceScanner;
+                        fProperties.put(DOCUMENT_SCANNER, fNamespaceScanner);
+                        if (fDTDValidator != null) {
+                                fProperties.put(DTD_VALIDATOR, fDTDValidator);
+                                fNamespaceScanner.setDTDValidator(fDTDValidator);
+                                fNamespaceScanner.setDocumentHandler(fDTDValidator);
+                                fDTDValidator.setDocumentSource(fNamespaceScanner);
+                                fDTDValidator.setDocumentHandler(fDocumentHandler);
+                                if (fDocumentHandler != null) {
+                                        fDocumentHandler.setDocumentSource(fDTDValidator);
+                                }
+                                fLastComponent = fDTDValidator;
+                        }
+                        else {
+                                fNamespaceScanner.setDocumentHandler(fDocumentHandler);
                 fNamespaceScanner.setDTDValidator(null);
-				if (fDocumentHandler != null) {
-					fDocumentHandler.setDocumentSource(fNamespaceScanner);
-				}
-				fLastComponent = fNamespaceScanner;
-			}
-		}
-		else {
-			fScanner = fNonNSScanner;
-			fProperties.put(DOCUMENT_SCANNER, fNonNSScanner);
-			if (fNonNSDTDValidator != null) {
-				fProperties.put(DTD_VALIDATOR, fNonNSDTDValidator);
-				fNonNSScanner.setDocumentHandler(fNonNSDTDValidator);
-				fNonNSDTDValidator.setDocumentSource(fNonNSScanner);
-				fNonNSDTDValidator.setDocumentHandler(fDocumentHandler);
-				if (fDocumentHandler != null) {
-					fDocumentHandler.setDocumentSource(fNonNSDTDValidator);
-				}
-				fLastComponent = fNonNSDTDValidator;
-			}
-			else {
-				fScanner.setDocumentHandler(fDocumentHandler);
-				if (fDocumentHandler != null) {
-					fDocumentHandler.setDocumentSource(fScanner);
-				}
-				fLastComponent = fScanner;
-			}
-		}
+                                if (fDocumentHandler != null) {
+                                        fDocumentHandler.setDocumentSource(fNamespaceScanner);
+                                }
+                                fLastComponent = fNamespaceScanner;
+                        }
+                }
+                else {
+                        fScanner = fNonNSScanner;
+                        fProperties.put(DOCUMENT_SCANNER, fNonNSScanner);
+                        if (fNonNSDTDValidator != null) {
+                                fProperties.put(DTD_VALIDATOR, fNonNSDTDValidator);
+                                fNonNSScanner.setDocumentHandler(fNonNSDTDValidator);
+                                fNonNSDTDValidator.setDocumentSource(fNonNSScanner);
+                                fNonNSDTDValidator.setDocumentHandler(fDocumentHandler);
+                                if (fDocumentHandler != null) {
+                                        fDocumentHandler.setDocumentSource(fNonNSDTDValidator);
+                                }
+                                fLastComponent = fNonNSDTDValidator;
+                        }
+                        else {
+                                fScanner.setDocumentHandler(fDocumentHandler);
+                                if (fDocumentHandler != null) {
+                                        fDocumentHandler.setDocumentSource(fScanner);
+                                }
+                                fLastComponent = fScanner;
+                        }
+                }
 
-		// setup document pipeline
-		if (fFeatures.get(XMLSCHEMA_VALIDATION) == Boolean.TRUE) {
-			// If schema validator was not in the pipeline insert it.
-			if (fSchemaValidator == null) {
-				fSchemaValidator = new XMLSchemaValidator();
+                // setup document pipeline
+                if (fFeatures.get(XMLSCHEMA_VALIDATION) == Boolean.TRUE) {
+                        // If schema validator was not in the pipeline insert it.
+                        if (fSchemaValidator == null) {
+                                fSchemaValidator = new XMLSchemaValidator();
 
-				// add schema component
-				fProperties.put(SCHEMA_VALIDATOR, fSchemaValidator);
-				addComponent(fSchemaValidator);
-				// add schema message formatter
-				if (fErrorReporter.getMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN) == null) {
-					XSMessageFormatter xmft = new XSMessageFormatter();
-					fErrorReporter.putMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN, xmft);
-				}
+                                // add schema component
+                                fProperties.put(SCHEMA_VALIDATOR, fSchemaValidator);
+                                addComponent(fSchemaValidator);
+                                // add schema message formatter
+                                if (fErrorReporter.getMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN) == null) {
+                                        XSMessageFormatter xmft = new XSMessageFormatter();
+                                        fErrorReporter.putMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN, xmft);
+                                }
 
-			}
+                        }
 
-			fLastComponent.setDocumentHandler(fSchemaValidator);
-			fSchemaValidator.setDocumentSource(fLastComponent);
-			fSchemaValidator.setDocumentHandler(fDocumentHandler);
-			if (fDocumentHandler != null) {
-				fDocumentHandler.setDocumentSource(fSchemaValidator);
-			}
-			fLastComponent = fSchemaValidator;
-		}
-	} // configurePipeline()
+                        fLastComponent.setDocumentHandler(fSchemaValidator);
+                        fSchemaValidator.setDocumentSource(fLastComponent);
+                        fSchemaValidator.setDocumentHandler(fDocumentHandler);
+                        if (fDocumentHandler != null) {
+                                fDocumentHandler.setDocumentSource(fSchemaValidator);
+                        }
+                        fLastComponent = fSchemaValidator;
+                }
+        } // configurePipeline()
 
 
 
-    /** Create a document scanner: this scanner performs namespace binding 
+    /** Create a document scanner: this scanner performs namespace binding
       */
     protected XMLDocumentScanner createDocumentScanner() {
         fNamespaceScanner = new XMLNSDocumentScannerImpl();
@@ -246,4 +249,3 @@ extends StandardParserConfiguration {
     } // createDTDValidator():XMLDTDValidator
 
 } // class IntegratedParserConfiguration
-

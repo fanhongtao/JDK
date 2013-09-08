@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,14 +43,14 @@ import org.w3c.dom.traversal.NodeIterator;
  * as they are fetched.  Derived classes that implement iterators
  * must override runTo(int index), in order that they may
  * run the iteration to the given index. </p>
- * 
+ *
  * <p>Note that we directly implement the DOM's NodeIterator
  * interface. We do not emulate all the behavior of the
  * standard NodeIterator. In particular, we do not guarantee
  * to present a "live view" of the document ... but in XSLT,
  * the source document should never be mutated, so this should
  * never be an issue.</p>
- * 
+ *
  * <p>Thought: Should NodeSet really implement NodeList and NodeIterator,
  * or should there be specific subclasses of it which do so? The
  * advantage of doing it all here is that all NodeSets will respond
@@ -70,7 +74,7 @@ public class NodeSet
   /**
    * Create an empty, using the given block size.
    *
-   * @param blocksize Size of blocks to allocate 
+   * @param blocksize Size of blocks to allocate
    */
   public NodeSet(int blocksize)
   {
@@ -178,7 +182,7 @@ public class NodeSet
    * no equivalent in the XPath data model.
    *
    * @return integer used as a bit-array, containing flags defined in
-   * the DOM's NodeFilter class. The value will be 
+   * the DOM's NodeFilter class. The value will be
    * <code>SHOW_ALL & ~SHOW_ENTITY_REFERENCE</code>, meaning that
    * only entity references are suppressed.
    */
@@ -191,7 +195,7 @@ public class NodeSet
    * The filter object used to screen nodes. Filters are applied to
    * further reduce (and restructure) the NodeIterator's view of the
    * document. In our case, we will be using hardcoded filters built
-   * into our iterators... but getFilter() is part of the DOM's 
+   * into our iterators... but getFilter() is part of the DOM's
    * NodeIterator interface, so we have to support it.
    *
    * @return null, which is slightly misleading. True, there is no
@@ -259,7 +263,7 @@ public class NodeSet
    * @throws DOMException
    *    INVALID_STATE_ERR: Raised if this method is called after the
    *   <code>detach</code> method was invoked.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a cached type, and hence doesn't know what the previous node was.
    */
   public Node previousNode() throws DOMException
@@ -286,7 +290,7 @@ public class NodeSet
    * <code>nextNode</code> or<code>previousNode</code> will raise the
    * exception INVALID_STATE_ERR.
    * <p>
-   * This operation is a no-op in NodeSet, and will not cause 
+   * This operation is a no-op in NodeSet, and will not cause
    * INVALID_STATE_ERR to be raised by later operations.
    * </p>
    */
@@ -334,9 +338,9 @@ public class NodeSet
    * Returns the <code>index</code>th item in the collection. If
    * <code>index</code> is greater than or equal to the number of nodes in
    * the list, this returns <code>null</code>.
-   * 
+   *
    * TODO: What happens if index is out of range?
-   * 
+   *
    * @param index Index into the collection.
    * @return The node at the <code>index</code>th position in the
    *   <code>NodeList</code>, or <code>null</code> if that is not a valid
@@ -371,7 +375,7 @@ public class NodeSet
    * operation
    *
    * @param n Node to be added
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public void addNode(Node n)
@@ -389,7 +393,7 @@ public class NodeSet
    * @param n Node to be added
    * @param pos Offset at which the node is to be inserted,
    * with 0 being the first position.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public void insertNode(Node n, int pos)
@@ -405,7 +409,7 @@ public class NodeSet
    * Remove a node.
    *
    * @param n Node to be added
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public void removeNode(Node n)
@@ -423,7 +427,7 @@ public class NodeSet
    *
    * @param nodelist List of nodes which should now be referenced by
    * this NodeSet.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public void addNodes(NodeList nodelist)
@@ -455,7 +459,7 @@ public class NodeSet
    * document order.  Only genuine node references will be copied;
    * nulls appearing in the source NodeSet will
    * not be added to this one. </p>
-   * 
+   *
    * <p> In case you're wondering why this function is needed: NodeSet
    * implements both NodeIterator and NodeList. If this method isn't
    * provided, Java can't decide which of those to use when addNodes()
@@ -463,7 +467,7 @@ public class NodeSet
    * ambiguity.)</p>
    *
    * @param ns NodeSet whose members should be merged into this NodeSet.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public void addNodes(NodeSet ns)
@@ -480,7 +484,7 @@ public class NodeSet
    * document order.  Null references are not added.
    *
    * @param iterator NodeIterator which yields the nodes to be added.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public void addNodes(NodeIterator iterator)
@@ -508,7 +512,7 @@ public class NodeSet
    *
    * @param nodelist List of nodes to be added
    * @param support The XPath runtime context.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public void addNodesInDocOrder(NodeList nodelist, XPathContext support)
@@ -536,7 +540,7 @@ public class NodeSet
    *
    * @param iterator NodeIterator which yields the nodes to be added.
    * @param support The XPath runtime context.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public void addNodesInDocOrder(NodeIterator iterator, XPathContext support)
@@ -563,7 +567,7 @@ public class NodeSet
    * @param support The XPath runtime context.
    *
    * @return false always.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   private boolean addNodesInDocOrder(int start, int end, int testIndex,
@@ -624,7 +628,7 @@ public class NodeSet
    * @param test true if we should test for doc order
    * @param support The XPath runtime context.
    * @return insertIndex.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public int addNodeInDocOrder(Node node, boolean test, XPathContext support)
@@ -638,8 +642,8 @@ public class NodeSet
     if (test)
     {
 
-      // This needs to do a binary search, but a binary search 
-      // is somewhat tough because the sequence test involves 
+      // This needs to do a binary search, but a binary search
+      // is somewhat tough because the sequence test involves
       // two nodes.
       int size = size(), i;
 
@@ -698,7 +702,7 @@ public class NodeSet
    * @param support The XPath runtime context.
    *
    * @return The index where it was inserted.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a mutable type.
    */
   public int addNodeInDocOrder(Node node, XPathContext support)
@@ -731,7 +735,7 @@ public class NodeSet
   /**
    * Set the current position in the node set.
    * @param i Must be a valid index.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a cached type, and thus doesn't permit indexed access.
    */
   public void setCurrentPos(int i)
@@ -748,7 +752,7 @@ public class NodeSet
    * Return the last fetched node.  Needed to support the UnionPathIterator.
    *
    * @return the last fetched node.
-   * @throws RuntimeException thrown if this NodeSet is not of 
+   * @throws RuntimeException thrown if this NodeSet is not of
    * a cached type, and thus doesn't permit indexed access.
    */
   public Node getCurrentNode()
@@ -803,20 +807,20 @@ public class NodeSet
     m_cacheNodes = b;
     m_mutable = true;
   }
-  
-  
+
+
   transient private int m_last = 0;
-  
+
   public int getLast()
   {
     return m_last;
   }
-  
+
   public void setLast(int last)
   {
     m_last = last;
   }
-  
+
   /** Size of blocks to allocate.
    *  @serial          */
   private int m_blocksize;
@@ -956,7 +960,7 @@ public class NodeSet
    * Pop a node from the tail of the vector and return the
    * top of the stack after the pop.
    *
-   * @return The top of the stack after it's been popped 
+   * @return The top of the stack after it's been popped
    */
   public final Node popAndTop()
   {
@@ -984,7 +988,7 @@ public class NodeSet
    * Special purpose method for TransformerImpl, pushElemTemplateElement.
    * Performance critical.
    *
-   * @return Node at the top of the stack or null if stack is empty.  
+   * @return Node at the top of the stack or null if stack is empty.
    */
   public final Node peepOrNull()
   {
@@ -993,7 +997,7 @@ public class NodeSet
   }
 
   /**
-   * Push a pair of nodes into the stack.  
+   * Push a pair of nodes into the stack.
    * Special purpose method for TransformerImpl, pushElemTemplateElement.
    * Performance critical.
    *
@@ -1028,7 +1032,7 @@ public class NodeSet
   }
 
   /**
-   * Pop a pair of nodes from the tail of the stack. 
+   * Pop a pair of nodes from the tail of the stack.
    * Special purpose method for TransformerImpl, pushElemTemplateElement.
    * Performance critical.
    */
@@ -1230,7 +1234,7 @@ public class NodeSet
 
     if (null == m_map)
       return;
-      
+
     if (i >= m_firstFree)
       throw new ArrayIndexOutOfBoundsException(i + " >= " + m_firstFree);
     else if (i < 0)
@@ -1342,7 +1346,7 @@ public class NodeSet
    * beginning the search at index, and testing for equality
    * using the equals method.
    *
-   * @param elem Node to look for 
+   * @param elem Node to look for
    * @return the index of the first occurrence of the object
    * argument in this vector at position index or later in the
    * vector; returns -1 if the object is not found.

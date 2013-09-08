@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +26,10 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import com.sun.org.apache.xerces.internal.impl.Constants;
+import com.sun.org.apache.xerces.internal.util.FeatureState;
 import com.sun.org.apache.xerces.internal.util.ParserConfigurationSettings;
+import com.sun.org.apache.xerces.internal.util.PropertyState;
+import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.xni.XMLDTDContentModelHandler;
 import com.sun.org.apache.xerces.internal.xni.XMLDTDHandler;
@@ -87,7 +94,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: BasicParserConfiguration.java,v 1.2.6.1 2005/09/06 12:53:19 sunithareddy Exp $
+ * @version $Id: BasicParserConfiguration.java,v 1.6 2010-11-01 04:40:09 joehw Exp $
  */
 public abstract class BasicParserConfiguration
     extends ParserConfigurationSettings
@@ -196,10 +203,6 @@ public abstract class BasicParserConfiguration
 
         // create a vector to hold all the components in use
         fComponents = new ArrayList();
-
-        // create storage for recognized features and properties
-        fRecognizedFeatures = new ArrayList();
-        fRecognizedProperties = new ArrayList();
 
         // create table for features and properties
         fFeatures = new HashMap();
@@ -514,7 +517,7 @@ public abstract class BasicParserConfiguration
      * @exception com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException If the
      *            requested feature is not known or supported.
      */
-    protected void checkProperty(String propertyId)
+    protected PropertyState checkProperty(String propertyId)
         throws XMLConfigurationException {
 
         // special cases
@@ -536,13 +539,12 @@ public abstract class BasicParserConfiguration
                 // REVISIT - we should probably ask xml-dev for a precise
                 // definition of what this is actually supposed to return, and
                 // in exactly which circumstances.
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, propertyId);
+                return PropertyState.NOT_SUPPORTED;
             }
         }
 
         // check property
-        super.checkProperty(propertyId);
+        return super.checkProperty(propertyId);
 
     } // checkProperty(String)
     
@@ -559,7 +561,7 @@ public abstract class BasicParserConfiguration
      *                                   it is <strong>really</strong>
      *                                   a critical error.
      */
-    protected void checkFeature(String featureId)
+    protected FeatureState checkFeature(String featureId)
         throws XMLConfigurationException {
 
         //
@@ -573,13 +575,11 @@ public abstract class BasicParserConfiguration
             //
             if (suffixLength == Constants.PARSER_SETTINGS.length() && 
                 featureId.endsWith(Constants.PARSER_SETTINGS)) {
-                short type = XMLConfigurationException.NOT_SUPPORTED;
-                throw new XMLConfigurationException(type, featureId);
+                return FeatureState.NOT_SUPPORTED;
             }
         }
 
-        super.checkFeature(featureId);
-
+        return super.checkFeature(featureId);
      } // checkFeature(String)
 
 

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +23,7 @@
 package com.sun.org.apache.xpath.internal.functions;
 
 /**
- * An exception that is thrown if the wrong number of arguments to an exception 
+ * An exception that is thrown if the wrong number of arguments to an exception
  * are specified by the stylesheet.
  * @xsl.usage advanced
  */
@@ -30,7 +34,7 @@ public class WrongNumberArgsException extends Exception
   /**
    * Constructor WrongNumberArgsException
    *
-   * @param argsExpected Error message that tells the number of arguments that 
+   * @param argsExpected Error message that tells the number of arguments that
    * were expected.
    */
   public WrongNumberArgsException(String argsExpected)

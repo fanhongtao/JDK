@@ -1,13 +1,30 @@
 /*
- * @(#)FileImageInputStream.java	1.23 05/12/01
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.stream;
 
-import java.io.DataInput;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -22,7 +39,6 @@ import sun.java2d.Disposer;
  * The file contents are assumed to be stable during the lifetime of
  * the object.
  *
- * @version 0.5
  */
 public class FileImageInputStream extends ImageInputStreamImpl {
 
@@ -48,7 +64,7 @@ public class FileImageInputStream extends ImageInputStreamImpl {
      * <code>null</code>.
      * @exception SecurityException if a security manager exists
      * and does not allow read access to the file.
-     * @exception FileNotFoundException if <code>f</code> is a 
+     * @exception FileNotFoundException if <code>f</code> is a
      * directory or cannot be opened for reading for any other reason.
      * @exception IOException if an I/O error occurs.
      */

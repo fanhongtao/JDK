@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,11 +134,11 @@ public class VariableStack implements Cloneable
     _frameTop = 0;
     _linksTop = 0;
 
-    // Adding one here to the stack of frame positions will allow us always 
+    // Adding one here to the stack of frame positions will allow us always
     // to look one under without having to check if we're at zero.
     // (As long as the caller doesn't screw up link/unlink.)
     _links[_linksTop++] = 0;
-    _stackFrames = new XObject[_stackFrames.length]; 
+    _stackFrames = new XObject[_stackFrames.length];
   }
 
   /**
@@ -212,17 +216,17 @@ public class VariableStack implements Cloneable
     _frameTop = _links[--_linksTop];
     _currentFrameBottom = _links[_linksTop - 1];
   }
-  
+
   /**
    * Free up the stack frame that was last allocated with
    * {@link #link(int size)}.
-   * @param currentFrame The current frame to set to 
+   * @param currentFrame The current frame to set to
    * after the unlink.
    */
   public  void unlink(int currentFrame)
   {
     _frameTop = _links[--_linksTop];
-    _currentFrameBottom = currentFrame; 
+    _currentFrameBottom = currentFrame;
   }
 
   /**
@@ -275,7 +279,7 @@ public class VariableStack implements Cloneable
     index += _currentFrameBottom;
 
     XObject val = _stackFrames[index];
-    
+
     if(null == val)
       throw new TransformerException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_VARIABLE_ACCESSED_BEFORE_BIND, null),
                      xctxt.getSAXLocator());
@@ -310,7 +314,7 @@ public class VariableStack implements Cloneable
 
     return val;
   }
-  
+
   /**
    * Get a local variable or parameter in the current stack frame.
    *
@@ -332,7 +336,7 @@ public class VariableStack implements Cloneable
     index += _currentFrameBottom;
 
     XObject val = _stackFrames[index];
-    
+
     if(null == val)
       throw new TransformerException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_VARIABLE_ACCESSED_BEFORE_BIND, null),
                      xctxt.getSAXLocator());
@@ -420,7 +424,7 @@ public class VariableStack implements Cloneable
 
     return val;
   }
-  
+
   /**
    * Get a global variable or parameter from the global stack frame.
    *
@@ -454,7 +458,7 @@ public class VariableStack implements Cloneable
    *
    * @param xctxt The XPath context, which must be passed in order to
    * lazy evaluate variables.
-   * 
+   *
    * @param qname The qualified name of the variable.
    *
    * @return The evaluated value of the variable.
@@ -467,19 +471,19 @@ public class VariableStack implements Cloneable
   {
 
     // J2SE does not support Xalan interpretive
-  	/*    
+        /*
     com.sun.org.apache.xml.internal.utils.PrefixResolver prefixResolver =
       xctxt.getNamespaceContext();
 
-    // Get the current ElemTemplateElement, which must be pushed in as the 
-    // prefix resolver, and then walk backwards in document order, searching 
-    // for an xsl:param element or xsl:variable element that matches our 
+    // Get the current ElemTemplateElement, which must be pushed in as the
+    // prefix resolver, and then walk backwards in document order, searching
+    // for an xsl:param element or xsl:variable element that matches our
     // qname.  If we reach the top level, use the StylesheetRoot's composed
     // list of top level variables and parameters.
 
     if (prefixResolver instanceof com.sun.org.apache.xalan.internal.templates.ElemTemplateElement)
     {
-      
+
       com.sun.org.apache.xalan.internal.templates.ElemVariable vvar;
 
       com.sun.org.apache.xalan.internal.templates.ElemTemplateElement prev =
@@ -510,7 +514,7 @@ public class VariableStack implements Cloneable
         return getGlobalVariable(xctxt, vvar.getIndex());
     }
     */
-    
+
     throw new javax.xml.transform.TransformerException(XSLMessages.createXPATHMessage(XPATHErrorResources.ER_VAR_NOT_RESOLVABLE, new Object[]{qname.toString()})); //"Variable not resolvable: " + qname);
   }
 }  // end VariableStack

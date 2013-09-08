@@ -1,8 +1,26 @@
 /*
- * @(#)OpenMBeanInfoSupport.java	3.29 06/03/15
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -13,14 +31,13 @@ package javax.management.openmbean;
 //
 import java.util.Arrays;
 import java.util.HashSet;
+
 import javax.management.Descriptor;
-import javax.management.MBeanInfo;
 import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanOperationInfo;
 import javax.management.MBeanConstructorInfo;
+import javax.management.MBeanInfo;
 import javax.management.MBeanNotificationInfo;
-
-
+import javax.management.MBeanOperationInfo;
 
 /**
  * The {@code OpenMBeanInfoSupport} class describes the management
@@ -31,11 +48,8 @@ import javax.management.MBeanNotificationInfo;
  * instance of a class which implements the OpenMBeanInfo interface,
  * typically {@code OpenMBeanInfoSupport}.
  *
- * @version     3.29  06/03/15
- * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
- * @since.unbundled JMX 1.1
  */
 public class OpenMBeanInfoSupport
     extends MBeanInfo
@@ -57,9 +71,9 @@ public class OpenMBeanInfoSupport
      * openConstructors} , {@code openOperations} and {@code
      * notifications}.</p>
      *
-     * <p>The {@code openAttributes}, {@code openConstructors},  
+     * <p>The {@code openAttributes}, {@code openConstructors},
      * {@code openOperations} and {@code notifications}
-     * array parameters are internally copied, so that subsequent changes 
+     * array parameters are internally copied, so that subsequent changes
      * to the arrays referenced by these parameters have no effect on this
      * instance.</p>
      *
@@ -95,17 +109,17 @@ public class OpenMBeanInfoSupport
      * MBeanConstructorInfo} or {@code MBeanOperationInfo}
      * respectively.
      */
-    public OpenMBeanInfoSupport(String className, 
-				String description,
-				OpenMBeanAttributeInfo[] openAttributes, 
-				OpenMBeanConstructorInfo[] openConstructors,
-				OpenMBeanOperationInfo[] openOperations, 
-				MBeanNotificationInfo[] notifications) {
-	this(className, description,
-	     openAttributes, openConstructors, openOperations, notifications,
-	     (Descriptor) null);
+    public OpenMBeanInfoSupport(String className,
+                                String description,
+                                OpenMBeanAttributeInfo[] openAttributes,
+                                OpenMBeanConstructorInfo[] openConstructors,
+                                OpenMBeanOperationInfo[] openOperations,
+                                MBeanNotificationInfo[] notifications) {
+        this(className, description,
+             openAttributes, openConstructors, openOperations, notifications,
+             (Descriptor) null);
     }
-	
+
     /**
      * <p>Constructs an {@code OpenMBeanInfoSupport} instance, which
      * describes a class of open MBeans with the specified {@code
@@ -156,50 +170,50 @@ public class OpenMBeanInfoSupport
      *
      * @since 1.6
      */
-    public OpenMBeanInfoSupport(String className, 
-				String description,
-				OpenMBeanAttributeInfo[] openAttributes, 
-				OpenMBeanConstructorInfo[] openConstructors,
-				OpenMBeanOperationInfo[] openOperations, 
-				MBeanNotificationInfo[] notifications,
-				Descriptor descriptor) {
-	super(className, 
-	      description, 
-	      attributeArray(openAttributes),
-	      constructorArray(openConstructors),
-	      operationArray(openOperations),
-	      (notifications == null) ? null : notifications.clone(),
-	      descriptor);
+    public OpenMBeanInfoSupport(String className,
+                                String description,
+                                OpenMBeanAttributeInfo[] openAttributes,
+                                OpenMBeanConstructorInfo[] openConstructors,
+                                OpenMBeanOperationInfo[] openOperations,
+                                MBeanNotificationInfo[] notifications,
+                                Descriptor descriptor) {
+        super(className,
+              description,
+              attributeArray(openAttributes),
+              constructorArray(openConstructors),
+              operationArray(openOperations),
+              (notifications == null) ? null : notifications.clone(),
+              descriptor);
     }
 
 
     private static MBeanAttributeInfo[]
-	    attributeArray(OpenMBeanAttributeInfo[] src) {
-	if (src == null)
-	    return null;
-	MBeanAttributeInfo[] dst = new MBeanAttributeInfo[src.length];
-	System.arraycopy(src, 0, dst, 0, src.length);
-	// may throw an ArrayStoreException
-	return dst;
+            attributeArray(OpenMBeanAttributeInfo[] src) {
+        if (src == null)
+            return null;
+        MBeanAttributeInfo[] dst = new MBeanAttributeInfo[src.length];
+        System.arraycopy(src, 0, dst, 0, src.length);
+        // may throw an ArrayStoreException
+        return dst;
     }
 
     private static MBeanConstructorInfo[]
-	    constructorArray(OpenMBeanConstructorInfo[] src) {
-	if (src == null)
-	    return null;
-	MBeanConstructorInfo[] dst = new MBeanConstructorInfo[src.length];
-	System.arraycopy(src, 0, dst, 0, src.length);
-	// may throw an ArrayStoreException
-	return dst;
+            constructorArray(OpenMBeanConstructorInfo[] src) {
+        if (src == null)
+            return null;
+        MBeanConstructorInfo[] dst = new MBeanConstructorInfo[src.length];
+        System.arraycopy(src, 0, dst, 0, src.length);
+        // may throw an ArrayStoreException
+        return dst;
     }
 
     private static MBeanOperationInfo[]
-	    operationArray(OpenMBeanOperationInfo[] src) {
-	if (src == null)
-	    return null;
-	MBeanOperationInfo[] dst = new MBeanOperationInfo[src.length];
-	System.arraycopy(src, 0, dst, 0, src.length);
-	return dst;
+            operationArray(OpenMBeanOperationInfo[] src) {
+        if (src == null)
+            return null;
+        MBeanOperationInfo[] dst = new MBeanOperationInfo[src.length];
+        System.arraycopy(src, 0, dst, 0, src.length);
+        return dst;
     }
 
 
@@ -229,64 +243,64 @@ public class OpenMBeanInfoSupport
      *
      * @param obj the object to be compared for equality with this
      * {@code OpenMBeanInfoSupport} instance;
-     * 
+     *
      * @return {@code true} if the specified object is equal to this
      * {@code OpenMBeanInfoSupport} instance.
      */
-    public boolean equals(Object obj) { 
+    public boolean equals(Object obj) {
 
-	// if obj is null, return false
-	//
-	if (obj == null) {
-	    return false;
-	}
+        // if obj is null, return false
+        //
+        if (obj == null) {
+            return false;
+        }
 
-	// if obj is not a OpenMBeanInfo, return false
-	//
-	OpenMBeanInfo other;
-	try {
-	    other = (OpenMBeanInfo) obj;
-	} catch (ClassCastException e) {
-	    return false;
-	}
+        // if obj is not a OpenMBeanInfo, return false
+        //
+        OpenMBeanInfo other;
+        try {
+            other = (OpenMBeanInfo) obj;
+        } catch (ClassCastException e) {
+            return false;
+        }
 
-	// Now, really test for equality between this OpenMBeanInfo
-	// implementation and the other:
-	//
-	
-	// their MBean className should be equal
-	if ( ! this.getClassName().equals(other.getClassName()) )
-	    return false;
+        // Now, really test for equality between this OpenMBeanInfo
+        // implementation and the other:
+        //
 
-	// their infos on attributes should be equal (order not
-	// significant => equality between sets, not arrays or lists)
-	if (!sameArrayContents(this.getAttributes(), other.getAttributes()))
-	    return false;
-       
-	// their infos on constructors should be equal (order not
-	// significant => equality between sets, not arrays or lists)
-	if (!sameArrayContents(this.getConstructors(), other.getConstructors()))
-	    return false;
-       
-	// their infos on operations should be equal (order not
-	// significant => equality between sets, not arrays or lists)
-	if (!sameArrayContents(this.getOperations(), other.getOperations()))
+        // their MBean className should be equal
+        if ( ! this.getClassName().equals(other.getClassName()) )
+            return false;
 
-	    return false;
-       
-	// their infos on notifications should be equal (order not
-	// significant => equality between sets, not arrays or lists)
-	if (!sameArrayContents(this.getNotifications(), other.getNotifications()))
-	    return false;
-       
-	// All tests for equality were successful
-	//
-	return true;
+        // their infos on attributes should be equal (order not
+        // significant => equality between sets, not arrays or lists)
+        if (!sameArrayContents(this.getAttributes(), other.getAttributes()))
+            return false;
+
+        // their infos on constructors should be equal (order not
+        // significant => equality between sets, not arrays or lists)
+        if (!sameArrayContents(this.getConstructors(), other.getConstructors()))
+            return false;
+
+        // their infos on operations should be equal (order not
+        // significant => equality between sets, not arrays or lists)
+        if (!sameArrayContents(this.getOperations(), other.getOperations()))
+
+            return false;
+
+        // their infos on notifications should be equal (order not
+        // significant => equality between sets, not arrays or lists)
+        if (!sameArrayContents(this.getNotifications(), other.getNotifications()))
+            return false;
+
+        // All tests for equality were successful
+        //
+        return true;
     }
 
     private static <T> boolean sameArrayContents(T[] a1, T[] a2) {
-	return (new HashSet<T>(Arrays.asList(a1))
-		.equals(new HashSet<T>(Arrays.asList(a2))));
+        return (new HashSet<T>(Arrays.asList(a1))
+                .equals(new HashSet<T>(Arrays.asList(a2))));
     }
 
     /**
@@ -323,26 +337,26 @@ public class OpenMBeanInfoSupport
      */
     public int hashCode() {
 
-	// Calculate the hash code value if it has not yet been done
-	// (ie 1st call to hashCode())
-	//
-	if (myHashCode == null) {
-	    int value = 0;
-	    value += this.getClassName().hashCode();
-	    value += arraySetHash(this.getAttributes());
-	    value += arraySetHash(this.getConstructors());
-	    value += arraySetHash(this.getOperations());
-	    value += arraySetHash(this.getNotifications());
-	    myHashCode = new Integer(value);
-	}
-	
-	// return always the same hash code for this instance (immutable)
-	//
-	return myHashCode.intValue();
+        // Calculate the hash code value if it has not yet been done
+        // (ie 1st call to hashCode())
+        //
+        if (myHashCode == null) {
+            int value = 0;
+            value += this.getClassName().hashCode();
+            value += arraySetHash(this.getAttributes());
+            value += arraySetHash(this.getConstructors());
+            value += arraySetHash(this.getOperations());
+            value += arraySetHash(this.getNotifications());
+            myHashCode = Integer.valueOf(value);
+        }
+
+        // return always the same hash code for this instance (immutable)
+        //
+        return myHashCode.intValue();
     }
 
     private static <T> int arraySetHash(T[] a) {
-	return new HashSet<T>(Arrays.asList(a)).hashCode();
+        return new HashSet<T>(Arrays.asList(a)).hashCode();
     }
 
 
@@ -361,38 +375,38 @@ public class OpenMBeanInfoSupport
      * string representation for this instance is calculated once, on
      * the first call to {@code toString}, and then the same value is
      * returned for subsequent calls.</p>
-     * 
+     *
      * @return a string representation of this {@code
      * OpenMBeanInfoSupport} instance
      */
-    public String toString() { 
+    public String toString() {
 
-	// Calculate the string value if it has not yet been done (ie
-	// 1st call to toString())
-	//
-	if (myToString == null) {
-	    myToString = new StringBuffer()
-		.append(this.getClass().getName())
-		.append("(mbean_class_name=")
-		.append(this.getClassName())
-		.append(",attributes=")
-		.append(Arrays.asList(this.getAttributes()).toString())
-		.append(",constructors=")
-		.append(Arrays.asList(this.getConstructors()).toString())
-		.append(",operations=")
-		.append(Arrays.asList(this.getOperations()).toString())
-		.append(",notifications=")
-		.append(Arrays.asList(this.getNotifications()).toString())
-		.append(",descriptor=")
-		.append(this.getDescriptor())
-		.append(")")
-		.toString();
-	}
+        // Calculate the string value if it has not yet been done (ie
+        // 1st call to toString())
+        //
+        if (myToString == null) {
+            myToString = new StringBuilder()
+                .append(this.getClass().getName())
+                .append("(mbean_class_name=")
+                .append(this.getClassName())
+                .append(",attributes=")
+                .append(Arrays.asList(this.getAttributes()).toString())
+                .append(",constructors=")
+                .append(Arrays.asList(this.getConstructors()).toString())
+                .append(",operations=")
+                .append(Arrays.asList(this.getOperations()).toString())
+                .append(",notifications=")
+                .append(Arrays.asList(this.getNotifications()).toString())
+                .append(",descriptor=")
+                .append(this.getDescriptor())
+                .append(")")
+                .toString();
+        }
 
-	// return always the same string representation for this
-	// instance (immutable)
-	//
-	return myToString;
+        // return always the same string representation for this
+        // instance (immutable)
+        //
+        return myToString;
     }
 
 }

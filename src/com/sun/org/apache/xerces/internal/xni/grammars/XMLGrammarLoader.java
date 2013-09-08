@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,9 +35,8 @@ import java.util.Locale;
  * documents.  Implementations of this interface will know how to load
  * specific types of grammars (e.g., DTD's or schemas); a wrapper
  * will be provided for user applications to interact with these implementations.
- * 
+ *
  * @author Neil Graham, IBM
- * @version $Id: XMLGrammarLoader.java,v 1.2.6.1 2005/09/06 08:56:55 neerajbj Exp $
  */
 
 public interface XMLGrammarLoader {
@@ -47,16 +50,16 @@ public interface XMLGrammarLoader {
 
     /**
      * Returns the state of a feature.
-     * 
+     *
      * @param featureId The feature identifier.
-     * 
+     *
      * @throws XMLConfigurationException Thrown on configuration error.
      */
-    public boolean getFeature(String featureId) 
+    public boolean getFeature(String featureId)
             throws XMLConfigurationException;
 
     /**
-     * Sets the state of a feature. 
+     * Sets the state of a feature.
      *
      * @param featureId The feature identifier.
      * @param state     The state of the feature.
@@ -76,17 +79,17 @@ public interface XMLGrammarLoader {
 
     /**
      * Returns the state of a property.
-     * 
+     *
      * @param propertyId The property identifier.
-     * 
+     *
      * @throws XMLConfigurationException Thrown on configuration error.
      */
-    public Object getProperty(String propertyId) 
+    public Object getProperty(String propertyId)
             throws XMLConfigurationException;
 
     /**
-     * Sets the state of a property. 
-     * 
+     * Sets the state of a property.
+     *
      * @param propertyId The property identifier.
      * @param state     The state of the property.
      *
@@ -104,7 +107,7 @@ public interface XMLGrammarLoader {
      * @exception XNIException Thrown if the parser does not support the
      *                         specified locale.
      */
-    public void setLocale(Locale locale); 
+    public void setLocale(Locale locale);
 
     /** Return the Locale the XMLGrammarLoader is using. */
     public Locale getLocale();
@@ -142,4 +145,3 @@ public interface XMLGrammarLoader {
     public Grammar loadGrammar(XMLInputSource source)
         throws IOException, XNIException;
 } // XMLGrammarLoader
-

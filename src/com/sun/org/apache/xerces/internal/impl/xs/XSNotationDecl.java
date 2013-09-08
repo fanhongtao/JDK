@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +20,12 @@
 
 package com.sun.org.apache.xerces.internal.impl.xs;
 
+import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
 import com.sun.org.apache.xerces.internal.xs.XSAnnotation;
 import com.sun.org.apache.xerces.internal.xs.XSConstants;
 import com.sun.org.apache.xerces.internal.xs.XSNamespaceItem;
 import com.sun.org.apache.xerces.internal.xs.XSNotationDeclaration;
+import com.sun.org.apache.xerces.internal.xs.XSObjectList;
 
 /**
  * The XML representation for a NOTATION declaration
@@ -28,7 +34,7 @@ import com.sun.org.apache.xerces.internal.xs.XSNotationDeclaration;
  * @xerces.internal 
  *
  * @author Rahul Srivastava, Sun Microsystems Inc.
- * @version $Id: XSNotationDecl.java,v 1.2.6.1 2005/09/09 07:30:58 sunithareddy Exp $
+ * @version $Id: XSNotationDecl.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */
 public class XSNotationDecl implements XSNotationDeclaration {
 
@@ -42,7 +48,11 @@ public class XSNotationDecl implements XSNotationDeclaration {
     public String fSystemId = null;
 
     // optional annotation
-    public XSAnnotationImpl fAnnotation = null;
+    public XSObjectList fAnnotations = null;
+
+    // The namespace schema information item corresponding to the target namespace
+    // of the notation declaration, if it is globally declared; or null otherwise.
+    private XSNamespaceItem fNamespaceItem = null;
 
     /**
      * Get the type of the object, i.e ELEMENT_DECLARATION.
@@ -77,7 +87,7 @@ public class XSNotationDecl implements XSNotationDeclaration {
 
     /**
      * Optional if {system identifier} is present. A public identifier,
-     * as defined in [XML 1.0 (Second Edition)]. 
+     * as defined in [XML 1.0 (Second Edition)].
      */
     public String getPublicId() {
         return fPublicId;
@@ -87,14 +97,25 @@ public class XSNotationDecl implements XSNotationDeclaration {
      * Optional. Annotation.
      */
     public XSAnnotation getAnnotation() {
-        return fAnnotation;
+        return (fAnnotations != null) ? (XSAnnotation) fAnnotations.item(0) : null;
     }
 
-	/**
-	 * @see com.sun.org.apache.xerces.internal.xs.XSObject#getNamespaceItem()
-	 */
-	public XSNamespaceItem getNamespaceItem() {
-		return null;
-	}
+    /**
+     * Optional. Annotations.
+     */
+    public XSObjectList getAnnotations() {
+        return (fAnnotations != null) ? fAnnotations : XSObjectListImpl.EMPTY_LIST;
+    }
+
+    /**
+     * @see org.apache.xerces.xs.XSObject#getNamespaceItem()
+     */
+    public XSNamespaceItem getNamespaceItem() {
+        return fNamespaceItem;
+    }
+
+    void setNamespaceItem(XSNamespaceItem namespaceItem) {
+        fNamespaceItem = namespaceItem;
+    }
 
 } // class XSNotationDecl

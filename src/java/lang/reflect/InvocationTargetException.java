@@ -1,8 +1,26 @@
 /*
- * @(#)InvocationTargetException.java	1.20 05/11/17
+ * Copyright (c) 1996, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.reflect;
@@ -21,37 +39,37 @@ package java.lang.reflect;
  * @see Method
  * @see Constructor
  */
-public class InvocationTargetException extends Exception {
+public class InvocationTargetException extends ReflectiveOperationException {
     /**
      * Use serialVersionUID from JDK 1.1.X for interoperability
      */
     private static final long serialVersionUID = 4085088731926701167L;
 
      /**
-     * This field holds the target if the 
+     * This field holds the target if the
      * InvocationTargetException(Throwable target) constructor was
      * used to instantiate the object
-     * 
-     * @serial 
-     * 
+     *
+     * @serial
+     *
      */
     private Throwable target;
 
     /**
-     * Constructs an <code>InvocationTargetException</code> with 
-     * <code>null</code> as the target exception.
+     * Constructs an {@code InvocationTargetException} with
+     * {@code null} as the target exception.
      */
     protected InvocationTargetException() {
-	super((Throwable)null);  // Disallow initCause
+        super((Throwable)null);  // Disallow initCause
     }
 
     /**
      * Constructs a InvocationTargetException with a target exception.
-     * 
+     *
      * @param target the target exception
      */
     public InvocationTargetException(Throwable target) {
-	super((Throwable)null);  // Disallow initCause
+        super((Throwable)null);  // Disallow initCause
         this.target = target;
     }
 
@@ -63,7 +81,7 @@ public class InvocationTargetException extends Exception {
      * @param s      the detail message
      */
     public InvocationTargetException(Throwable target, String s) {
-	super(s, null);  // Disallow initCause
+        super(s, null);  // Disallow initCause
         this.target = target;
     }
 
@@ -77,12 +95,12 @@ public class InvocationTargetException extends Exception {
      * @return the thrown target exception (cause of this exception).
      */
     public Throwable getTargetException() {
-	return target;
+        return target;
     }
 
     /**
      * Returns the cause of this exception (the thrown target exception,
-     * which may be <tt>null</tt>).
+     * which may be {@code null}).
      *
      * @return  the cause of this exception.
      * @since   1.4

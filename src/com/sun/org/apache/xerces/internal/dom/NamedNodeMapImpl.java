@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +20,12 @@
 
 package com.sun.org.apache.xerces.internal.dom;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.w3c.dom.DOMException;
@@ -47,7 +56,7 @@ import org.w3c.dom.Node;
  *
  * @xerces.internal
  *
- * @version $Id: NamedNodeMapImpl.java,v 1.3 2005/09/02 05:52:22 neerajbj Exp $
+ * @version $Id: NamedNodeMapImpl.java,v 1.8 2010-11-01 04:39:39 joehw Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public class NamedNodeMapImpl
@@ -71,7 +80,7 @@ public class NamedNodeMapImpl
     protected final static short HASDEFAULTS  = 0x1<<2;
 
     /** Nodes. */
-    protected Vector nodes;
+    protected List nodes;
 
     protected NodeImpl ownerNode; // the node this map belongs to
 
@@ -114,7 +123,7 @@ public class NamedNodeMapImpl
      */
     public Node item(int index) {
     	return (nodes != null && index < nodes.size()) ?
-                    (Node)(nodes.elementAt(index)) : null;
+                    (Node)(nodes.get(index)) : null;
     }
 
     /**
@@ -127,7 +136,7 @@ public class NamedNodeMapImpl
     public Node getNamedItem(String name) {
 
     	int i = findNamePoint(name,0);
-        return (i < 0) ? null : (Node)(nodes.elementAt(i));
+        return (i < 0) ? null : (Node)(nodes.get(i));
 
     } // getNamedItem(String):Node
 
@@ -145,7 +154,7 @@ public class NamedNodeMapImpl
     public Node getNamedItemNS(String namespaceURI, String localName) {
 
     	int i = findNamePoint(namespaceURI, localName);
-        return (i < 0) ? null : (Node)(nodes.elementAt(i));
+        return (i < 0) ? null : (Node)(nodes.get(i));
 
     } // getNamedItemNS(String,String):Node
 
@@ -157,8 +166,8 @@ public class NamedNodeMapImpl
      * allowing nodes to be aliased.
      * @see org.w3c.dom.NamedNodeMap#setNamedItem
      * @return If the new Node replaces an existing node the replaced Node is returned,
-     *      otherwise null is returned. 
-     * @param arg 
+     *      otherwise null is returned.
+     * @param arg
      *      A node to store in a named node map. The node will later be
      *      accessible using the value of the namespaceURI and localName
      *      attribute of the node. If a node with those namespace URI and
@@ -168,7 +177,7 @@ public class NamedNodeMapImpl
      */
     public Node setNamedItem(Node arg)
     throws DOMException {
-        
+
         CoreDocumentImpl ownerDocument = ownerNode.ownerDocument();
         if (ownerDocument.errorChecking) {
             if (isReadOnly()) {
@@ -180,28 +189,28 @@ public class NamedNodeMapImpl
                 throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, msg);
             }
         }
-        
+
         int i = findNamePoint(arg.getNodeName(),0);
         NodeImpl previous = null;
         if (i >= 0) {
-            previous = (NodeImpl) nodes.elementAt(i);
-            nodes.setElementAt(arg,i);
+            previous = (NodeImpl) nodes.get(i);
+            nodes.set(i, arg);
         } else {
             i = -1 - i; // Insert point (may be end of list)
             if (null == nodes) {
-                nodes = new Vector(5, 10);
+                nodes = new ArrayList(5);
             }
-            nodes.insertElementAt(arg, i);
+            nodes.add(i, arg);
         }
         return previous;
-        
+
     } // setNamedItem(Node):Node
 
     /**
      * Adds a node using its namespaceURI and localName.
      * @see org.w3c.dom.NamedNodeMap#setNamedItem
      * @return If the new Node replaces an existing node the replaced Node is returned,
-     *      otherwise null is returned. 
+     *      otherwise null is returned.
      * @param arg A node to store in a named node map. The node will later be
      *      accessible using the value of the namespaceURI and localName
      *      attribute of the node. If a node with those namespace URI and
@@ -210,44 +219,44 @@ public class NamedNodeMapImpl
      */
     public Node setNamedItemNS(Node arg)
     throws DOMException {
-        
+
         CoreDocumentImpl ownerDocument = ownerNode.ownerDocument();
         if (ownerDocument.errorChecking) {
             if (isReadOnly()) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
                 throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
             }
-            
+
             if(arg.getOwnerDocument() != ownerDocument) {
                 String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null);
                 throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, msg);
             }
         }
-        
+
         int i = findNamePoint(arg.getNamespaceURI(), arg.getLocalName());
         NodeImpl previous = null;
         if (i >= 0) {
-            previous = (NodeImpl) nodes.elementAt(i);
-            nodes.setElementAt(arg,i);
+            previous = (NodeImpl) nodes.get(i);
+            nodes.set(i, arg);
         } else {
             // If we can't find by namespaceURI, localName, then we find by
             // nodeName so we know where to insert.
             i = findNamePoint(arg.getNodeName(),0);
             if (i >= 0) {
-                previous = (NodeImpl) nodes.elementAt(i);
-                nodes.insertElementAt(arg,i);
+                previous = (NodeImpl) nodes.get(i);
+                nodes.add(i, arg);
             } else {
                 i = -1 - i; // Insert point (may be end of list)
                 if (null == nodes) {
-                    nodes = new Vector(5, 10);
+                    nodes = new ArrayList(5);
                 }
-                nodes.insertElementAt(arg, i);
+                nodes.add(i, arg);
             }
         }
         return previous;
-        
+
     } // setNamedItemNS(Node):Node
-   
+
     /**
      * Removes a node specified by name.
      * @param name The name of a node to remove.
@@ -269,13 +278,13 @@ public class NamedNodeMapImpl
             throw new DOMException(DOMException.NOT_FOUND_ERR, msg);
         }
 
-        NodeImpl n = (NodeImpl)nodes.elementAt(i);
-        nodes.removeElementAt(i);
+        NodeImpl n = (NodeImpl)nodes.get(i);
+        nodes.remove(i);
 
         return n;
 
     } // removeNamedItem(String):Node
-    
+
     /**
      * Introduced in DOM Level 2. <p>
      * Removes a node specified by local name and namespace URI.
@@ -283,7 +292,7 @@ public class NamedNodeMapImpl
      *                      The namespace URI of the node to remove.
      *                      When it is null or an empty string, this
      *                      method behaves like removeNamedItem.
-     * @param               The local name of the node to remove.
+     * @param name          The local name of the node to remove.
      * @return Node         The node removed from the map if a node with such
      *                      a local name and namespace URI exists.
      * @throws              NOT_FOUND_ERR: Raised if there is no node named
@@ -305,8 +314,8 @@ public class NamedNodeMapImpl
             throw new DOMException(DOMException.NOT_FOUND_ERR, msg);
         }
 
-        NodeImpl n = (NodeImpl)nodes.elementAt(i);
-        nodes.removeElementAt(i);
+        NodeImpl n = (NodeImpl)nodes.get(i);
+        nodes.remove(i);
 
         return n;
 
@@ -320,7 +329,7 @@ public class NamedNodeMapImpl
      * Cloning a NamedNodeMap is a DEEP OPERATION; it always clones
      * all the nodes contained in the map.
      */
-     
+
     public NamedNodeMapImpl cloneMap(NodeImpl ownerNode) {
     	NamedNodeMapImpl newmap = new NamedNodeMapImpl(ownerNode);
         newmap.cloneContent(this);
@@ -328,19 +337,21 @@ public class NamedNodeMapImpl
     }
 
     protected void cloneContent(NamedNodeMapImpl srcmap) {
-        Vector srcnodes = srcmap.nodes;
+        List srcnodes = srcmap.nodes;
         if (srcnodes != null) {
             int size = srcnodes.size();
             if (size != 0) {
                 if (nodes == null) {
-                    nodes = new Vector(size);
+                    nodes = new ArrayList(size);
                 }
-                nodes.setSize(size);
+                else {
+                    nodes.clear();
+                }
                 for (int i = 0; i < size; ++i) {
-                    NodeImpl n = (NodeImpl) srcmap.nodes.elementAt(i);
+                    NodeImpl n = (NodeImpl) srcmap.nodes.get(i);
                     NodeImpl clone = (NodeImpl) n.cloneNode(true);
                     clone.isSpecified(n.isSpecified());
-                    nodes.setElementAt(clone, i);
+                    nodes.add(clone);
                 }
             }
         }
@@ -365,11 +376,11 @@ public class NamedNodeMapImpl
         isReadOnly(readOnly);
     	if (deep && nodes != null) {
             for (int i = nodes.size() - 1; i >= 0; i--) {
-                ((NodeImpl) nodes.elementAt(i)).setReadOnly(readOnly,deep);
+                ((NodeImpl) nodes.get(i)).setReadOnly(readOnly,deep);
             }
     	}
     } // setReadOnly(boolean,boolean)
-    
+
     /**
      * Internal subroutine returns this NodeNameMap's (shallow) readOnly value.
      *
@@ -377,7 +388,7 @@ public class NamedNodeMapImpl
     boolean getReadOnly() {
     	return isReadOnly();
     } // getReadOnly()
-    
+
 
     //
     // Protected methods
@@ -387,9 +398,10 @@ public class NamedNodeMapImpl
      * NON-DOM
      * set the ownerDocument of this node, and the attributes it contains
      */
-    void setOwnerDocument(CoreDocumentImpl doc) {
+    protected void setOwnerDocument(CoreDocumentImpl doc) {
         if (nodes != null) {
-            for (int i = 0; i < nodes.size(); i++) {
+            final int size = nodes.size();
+            for (int i = 0; i < size; ++i) {
                 ((NodeImpl)item(i)).setOwnerDocument(doc);
             }
         }
@@ -425,7 +437,7 @@ public class NamedNodeMapImpl
 
     /**
      * Subroutine: Locate the named item, or the point at which said item
-     * should be added. 
+     * should be added.
      *
      * @param name Name of a node to look up.
      *
@@ -445,7 +457,7 @@ public class NamedNodeMapImpl
 
             while (first <= last) {
                 i = (first + last) / 2;
-                int test = name.compareTo(((Node)(nodes.elementAt(i))).getNodeName());
+                int test = name.compareTo(((Node)(nodes.get(i))).getNodeName());
                 if (test == 0) {
                     return i; // Name found
                 }
@@ -466,27 +478,24 @@ public class NamedNodeMapImpl
 
     } // findNamePoint(String):int
 
-    
+
     /** This findNamePoint is for DOM Level 2 Namespaces.
      */
     protected int findNamePoint(String namespaceURI, String name) {
-        
+
         if (nodes == null) return -1;
         if (name == null) return -1;
-        //if namespace uri is empty string, set it to 'null'
-        if (namespaceURI != null) {
-            namespaceURI = (namespaceURI.length() == 0)? null : namespaceURI;            
-        }
-        
-        // This is a linear search through the same nodes Vector.
-        // The Vector is sorted on the DOM Level 1 nodename.
-        // The DOM Level 2 NS keys are namespaceURI and Localname, 
+
+        // This is a linear search through the same nodes ArrayList.
+        // The ArrayList is sorted on the DOM Level 1 nodename.
+        // The DOM Level 2 NS keys are namespaceURI and Localname,
         // so we must linear search thru it.
         // In addition, to get this to work with nodes without any namespace
         // (namespaceURI and localNames are both null) we then use the nodeName
-        // as a seconday key.
-        for (int i = 0; i < nodes.size(); i++) {
-            NodeImpl a = (NodeImpl)nodes.elementAt(i);
+        // as a secondary key.
+        final int size = nodes.size();
+        for (int i = 0; i < size; ++i) {
+            NodeImpl a = (NodeImpl)nodes.get(i);
             String aNamespaceURI = a.getNamespaceURI();
             String aLocalName = a.getLocalName();
             if (namespaceURI == null) {
@@ -506,19 +515,19 @@ public class NamedNodeMapImpl
         return -1;
     }
 
-    // compare 2 nodes in the map.  If a precedes b, return true, otherwise 
+    // compare 2 nodes in the map.  If a precedes b, return true, otherwise
     // return false
     protected boolean precedes(Node a, Node b) {
 
-       if (nodes != null) {
-          for (int i = 0; i < nodes.size(); i++) {
-              Node n = (Node)nodes.elementAt(i);
-              if (n==a) return true;
-              if (n==b) return false;
-          }
-       }
-
-       return false;
+        if (nodes != null) {
+            final int size = nodes.size();
+            for (int i = 0; i < size; ++i) {
+                Node n = (Node)nodes.get(i);
+                if (n==a) return true;
+                if (n==b) return false;
+            }
+        }
+        return false;
     }
 
 
@@ -527,14 +536,14 @@ public class NamedNodeMapImpl
       */
     protected void removeItem(int index) {
        if (nodes != null && index < nodes.size()){
-           nodes.removeElementAt(index);
+           nodes.remove(index);
        }
     }
 
 
     protected Object getItem (int index){
-        if (nodes !=null) {
-            return nodes.elementAt(index);
+        if (nodes != null) {
+            return nodes.get(index);
         }
         return null;
     }
@@ -542,46 +551,46 @@ public class NamedNodeMapImpl
     protected int addItem (Node arg) {
     	int i = findNamePoint(arg.getNamespaceURI(), arg.getLocalName());
     	if (i >= 0) {
-            nodes.setElementAt(arg,i);
-    	} 
+            nodes.set(i, arg);
+    	}
         else {
     	    // If we can't find by namespaceURI, localName, then we find by
     	    // nodeName so we know where to insert.
     	    i = findNamePoint(arg.getNodeName(),0);
             if (i >= 0) {
-                nodes.insertElementAt(arg,i);
-            } 
+                nodes.add(i, arg);
+            }
             else {
                 i = -1 - i; // Insert point (may be end of list)
                 if (null == nodes) {
-                    nodes = new Vector(5, 10);
+                    nodes = new ArrayList(5);
                 }
-                nodes.insertElementAt(arg, i);
+                nodes.add(i, arg);
             }
         }
-        return i;        
+        return i;
     }
 
     /**
-     * NON-DOM: copy content of this map into the specified vector
-     * 
-     * @param list   Vector to copy information into.
+     * NON-DOM: copy content of this map into the specified ArrayList
+     *
+     * @param list   ArrayList to copy information into.
      * @return A copy of this node named map
      */
-    protected Vector cloneMap(Vector list){
+    protected ArrayList cloneMap(ArrayList list) {
         if (list == null) {
-            list = new Vector(5, 10);
+            list = new ArrayList(5);
         }
-        list.setSize(0);
+        list.clear();
         if (nodes != null) {
-            for (int i=0; i<nodes.size(); i++) {
-                list.insertElementAt(nodes.elementAt(i), i);
+            final int size = nodes.size();
+            for (int i = 0; i < size; ++i) {
+                list.add(nodes.get(i));
             }
         }
-        
         return list;
     }
-    
+
      protected int getNamedItemIndex(String namespaceURI, String localName) {
         return findNamePoint(namespaceURI, localName);
      }
@@ -591,9 +600,31 @@ public class NamedNodeMapImpl
       */
     public void removeAll (){
         if (nodes != null) {
-            nodes.removeAllElements();
+            nodes.clear();
         }
     }
-    
+
+    private void readObject(ObjectInputStream in)
+        throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (nodes != null) {
+            nodes = new ArrayList(nodes);
+        }
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        List oldNodes = this.nodes;
+        try {
+            if (oldNodes != null) {
+                this.nodes = new Vector(oldNodes);
+            }
+            out.defaultWriteObject();
+        }
+        // If the write fails for some reason ensure
+        // that we restore the original object.
+        finally {
+            this.nodes = oldNodes;
+        }
+    }
 
 } // class NamedNodeMapImpl

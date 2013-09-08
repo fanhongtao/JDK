@@ -1,8 +1,26 @@
 /*
- * @(#)DefaultRowSorter.java	1.20 06/06/23
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -86,7 +104,6 @@ import javax.swing.SortOrder;
  *
  * @param <M> the type of the model
  * @param <I> the type of the identifier passed to the <code>RowFilter</code>
- * @version 1.20 06/23/06
  * @see javax.swing.table.TableRowSorter
  * @see javax.swing.table.DefaultTableModel
  * @see java.text.Collator
@@ -268,8 +285,8 @@ public abstract class DefaultRowSorter<M, I> extends RowSorter<M> {
     /**
      * Sets the sort keys. This creates a copy of the supplied
      * {@code List}; subsequent changes to the supplied
-     * {@code List} do not effect this {@code DefaultRowSorter}. 
-     * If the sort keys have changed this triggers a sort. 
+     * {@code List} do not effect this {@code DefaultRowSorter}.
+     * If the sort keys have changed this triggers a sort.
      *
      * @param sortKeys the new <code>SortKeys</code>; <code>null</code>
      *        is a shorthand for specifying an empty list,
@@ -609,7 +626,7 @@ public abstract class DefaultRowSorter<M, I> extends RowSorter<M> {
     }
 
     /**
-     * Resets the viewToModel and modelToView mappings based on 
+     * Resets the viewToModel and modelToView mappings based on
      * the current Filter.
      */
     private void initializeFilteredMapping() {
@@ -749,7 +766,7 @@ public abstract class DefaultRowSorter<M, I> extends RowSorter<M> {
     }
 
     /**
-     * Returns the <code>Comparator</code> for the specified 
+     * Returns the <code>Comparator</code> for the specified
      * column.  This will return <code>null</code> if a <code>Comparator</code>
      * has not been specified for the column.
      *
@@ -923,7 +940,7 @@ public abstract class DefaultRowSorter<M, I> extends RowSorter<M> {
         SortOrder sortOrder;
         Object v1, v2;
         int result;
-            
+
         for (int counter = 0; counter < cachedSortKeys.length; counter++) {
             column = cachedSortKeys[counter].getColumn();
             sortOrder = cachedSortKeys[counter].getSortOrder();
@@ -1208,7 +1225,7 @@ public abstract class DefaultRowSorter<M, I> extends RowSorter<M> {
     /**
      * <code>DefaultRowSorter.ModelWrapper</code> is responsible for providing
      * the data that gets sorted by <code>DefaultRowSorter</code>.  You
-     * normally do not interact directly with <code>ModelWrapper</code>. 
+     * normally do not interact directly with <code>ModelWrapper</code>.
      * Subclasses of <code>DefaultRowSorter</code> provide an
      * implementation of <code>ModelWrapper</code> wrapping another model.
      * For example,

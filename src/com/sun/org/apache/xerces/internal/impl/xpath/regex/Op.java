@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,8 +24,7 @@ import java.util.Vector;
 
 /**
  * @xerces.internal
- * 
- * @version $Id: Op.java,v 1.2.6.1 2005/09/06 11:46:32 neerajbj Exp $
+ *
  */
 class Op {
     static final int DOT = 0;
@@ -29,7 +32,7 @@ class Op {
     static final int RANGE = 3;                 // [a-zA-Z]
     static final int NRANGE = 4;                // [^a-zA-Z]
     static final int ANCHOR = 5;                // ^ $ ...
-    static final int STRING = 6;                // literal String 
+    static final int STRING = 6;                // literal String
     static final int CLOSURE = 7;               // X*
     static final int NONGREEDYCLOSURE = 8;      // X*?
     static final int QUESTION = 9;              // X?
@@ -140,7 +143,7 @@ class Op {
         throw new RuntimeException("Internal Error: type="+this.type);
     }
                                                 // ModifierOp
-    int getData() {                             // CharOp  for CHAR, BACKREFERENCE, CAPTURE, ANCHOR, 
+    int getData() {                             // CharOp  for CHAR, BACKREFERENCE, CAPTURE, ANCHOR,
         throw new RuntimeException("Internal Error: type="+this.type);
     }
     int getData2() {                            // ModifierOp

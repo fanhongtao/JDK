@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -60,12 +64,11 @@ import  com.sun.org.apache.bcel.internal.Constants;
  * Super class for all objects that have modifiers like private, final, ...
  * I.e. classes, fields, and methods.
  *
- * @version $Id: AccessFlags.java,v 1.1.2.1 2005/07/31 23:46:40 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class AccessFlags implements java.io.Serializable {
   protected int access_flags;
-  
+
   public AccessFlags() {}
 
   /**
@@ -75,25 +78,25 @@ public abstract class AccessFlags implements java.io.Serializable {
     access_flags = a;
   }
 
-  /** 
+  /**
    * @return Access flags of the object aka. "modifiers".
-   */ 
+   */
   public final int getAccessFlags() { return access_flags; }
 
-  /** 
+  /**
    * @return Access flags of the object aka. "modifiers".
-   */ 
+   */
   public final int getModifiers() { return access_flags; }
 
   /** Set access flags aka "modifiers".
-   * @param access_flags Access flags of the object. 
+   * @param access_flags Access flags of the object.
    */
   public final void setAccessFlags(int access_flags) {
     this.access_flags = access_flags;
   }
 
   /** Set access flags aka "modifiers".
-   * @param access_flags Access flags of the object. 
+   * @param access_flags Access flags of the object.
    */
   public final void setModifiers(int access_flags) {
     setAccessFlags(access_flags);
@@ -102,10 +105,10 @@ public abstract class AccessFlags implements java.io.Serializable {
   private final void setFlag(int flag, boolean set) {
     if((access_flags & flag) != 0) { // Flag is set already
       if(!set) // Delete flag ?
-	access_flags ^= flag;
+        access_flags ^= flag;
     } else {   // Flag not set
       if(set)  // Set flag ?
-	access_flags |= flag;
+        access_flags |= flag;
     }
   }
 

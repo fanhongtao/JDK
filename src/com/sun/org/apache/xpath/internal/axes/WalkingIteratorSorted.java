@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,8 +36,8 @@ public class WalkingIteratorSorted extends WalkingIterator
 
 //  /** True if the nodes will be found in document order */
 //  protected boolean m_inNaturalOrder = false;
-  
-  /** True if the nodes will be found in document order, and this can 
+
+  /** True if the nodes will be found in document order, and this can
    * be determined statically. */
   protected boolean m_inNaturalOrderStatic = false;
 
@@ -69,11 +73,11 @@ public class WalkingIteratorSorted extends WalkingIterator
   {
     super(compiler, opPos, analysis, shouldLoadWalkers);
   }
-  
+
   /**
-   * Returns true if all the nodes in the iteration well be returned in document 
+   * Returns true if all the nodes in the iteration well be returned in document
    * order.
-   * 
+   *
    * @return true as a default.
    */
   public boolean isDocOrdered()
@@ -81,9 +85,9 @@ public class WalkingIteratorSorted extends WalkingIterator
     return m_inNaturalOrderStatic;
   }
 
-    
+
   /**
-   * Tell if the nodeset can be walked in doc order, via static analysis. 
+   * Tell if the nodeset can be walked in doc order, via static analysis.
    *
    *
    * @return true if the nodeset can be walked in doc order, without sorting.
@@ -100,7 +104,7 @@ public class WalkingIteratorSorted extends WalkingIterator
       for(int i = 0; null != walker; i++)
       {
         int axis = walker.getAxis();
-        
+
         if(walker.isDocOrdered())
         {
           boolean isSimpleDownAxis = ((axis == Axis.CHILD)
@@ -115,7 +119,7 @@ public class WalkingIteratorSorted extends WalkingIterator
             boolean isLastWalker = (null == walker.getNextWalker());
             if(isLastWalker)
             {
-              if(walker.isDocOrdered() && (axis == Axis.DESCENDANT || 
+              if(walker.isDocOrdered() && (axis == Axis.DESCENDANT ||
                  axis == Axis.DESCENDANTORSELF || axis == Axis.DESCENDANTSFROMROOT
                  || axis == Axis.DESCENDANTSORSELFFROMROOT) || (axis == Axis.ATTRIBUTE))
                 return true;
@@ -133,7 +137,7 @@ public class WalkingIteratorSorted extends WalkingIterator
 
 
 //  /**
-//   * NEEDSDOC Method canBeWalkedInNaturalDocOrder 
+//   * NEEDSDOC Method canBeWalkedInNaturalDocOrder
 //   *
 //   *
 //   * NEEDSDOC (canBeWalkedInNaturalDocOrder) @return
@@ -150,7 +154,7 @@ public class WalkingIteratorSorted extends WalkingIterator
 //      for(int i = 0; null != walker; i++)
 //      {
 //        int axis = walker.getAxis();
-//        
+//
 //        if(walker.isDocOrdered())
 //        {
 //          boolean isSimpleDownAxis = ((axis == Axis.CHILD)
@@ -165,7 +169,7 @@ public class WalkingIteratorSorted extends WalkingIterator
 //            boolean isLastWalker = (null == walker.getNextWalker());
 //            if(isLastWalker)
 //            {
-//              if(walker.isDocOrdered() && (axis == Axis.DESCENDANT || 
+//              if(walker.isDocOrdered() && (axis == Axis.DESCENDANT ||
 //                 axis == Axis.DESCENDANTORSELF || axis == Axis.DESCENDANTSFROMROOT
 //                 || axis == Axis.DESCENDANTSORSELFFROMROOT) || (axis == Axis.ATTRIBUTE))
 //                return true;
@@ -180,15 +184,15 @@ public class WalkingIteratorSorted extends WalkingIterator
 //    }
 //    return false;
 //  }
-  
+
   /**
    * This function is used to perform some extra analysis of the iterator.
-   * 
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   *
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -198,15 +202,15 @@ public class WalkingIteratorSorted extends WalkingIterator
     int analysis = getAnalysisBits();
     if(WalkerFactory.isNaturalDocOrder(analysis))
     {
-    	m_inNaturalOrderStatic = true;
+        m_inNaturalOrderStatic = true;
     }
     else
     {
-    	m_inNaturalOrderStatic = false;
-    	// System.out.println("Setting natural doc order to false: "+
-    	//    WalkerFactory.getAnalysisString(analysis));
+        m_inNaturalOrderStatic = false;
+        // System.out.println("Setting natural doc order to false: "+
+        //    WalkerFactory.getAnalysisString(analysis));
     }
-    
+
   }
 
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)DataOutput.java	1.23 06/05/23
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -24,7 +42,6 @@ package java.io;
  * an <code>IOException</code> is thrown.
  *
  * @author  Frank Yellin
- * @version 1.23, 05/23/06
  * @see     java.io.DataInput
  * @see     java.io.DataOutputStream
  * @since   JDK1.0

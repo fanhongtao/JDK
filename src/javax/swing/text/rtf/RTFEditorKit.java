@@ -1,8 +1,26 @@
 /*
- * @(#)RTFEditorKit.java	1.14 05/11/17
+ * Copyright (c) 1997, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text.rtf;
 
@@ -16,12 +34,11 @@ import javax.swing.*;
 
 /**
  * This is the default implementation of RTF editing
- * functionality.  The RTF support was not written by the 
+ * functionality.  The RTF support was not written by the
  * Swing team.  In the future we hope to improve the support
  * provided.
  *
  * @author  Timothy Prinzing (of this class, not the package!)
- * @version 1.14 11/17/05
  */
 public class RTFEditorKit extends StyledEditorKit {
 
@@ -29,7 +46,7 @@ public class RTFEditorKit extends StyledEditorKit {
      * Constructs an RTFEditorKit.
      */
     public RTFEditorKit() {
-	super();
+        super();
     }
 
     /**
@@ -40,7 +57,7 @@ public class RTFEditorKit extends StyledEditorKit {
      * @return the type
      */
     public String getContentType() {
-	return "text/rtf";
+        return "text/rtf";
     }
 
     /**
@@ -58,16 +75,16 @@ public class RTFEditorKit extends StyledEditorKit {
      */
     public void read(InputStream in, Document doc, int pos) throws IOException, BadLocationException {
 
-	if (doc instanceof StyledDocument) {
-	    // PENDING(prinz) this needs to be fixed to
-	    // insert to the given position.
-	    RTFReader rdr = new RTFReader((StyledDocument) doc);
-	    rdr.readFromStream(in);
-	    rdr.close();
-	} else {
-	    // treat as text/plain
-	    super.read(in, doc, pos);
-	}
+        if (doc instanceof StyledDocument) {
+            // PENDING(prinz) this needs to be fixed to
+            // insert to the given position.
+            RTFReader rdr = new RTFReader((StyledDocument) doc);
+            rdr.readFromStream(in);
+            rdr.close();
+        } else {
+            // treat as text/plain
+            super.read(in, doc, pos);
+        }
     }
 
     /**
@@ -84,11 +101,11 @@ public class RTFEditorKit extends StyledEditorKit {
      *   location within the document.
      */
     public void write(OutputStream out, Document doc, int pos, int len)
-	throws IOException, BadLocationException {
+        throws IOException, BadLocationException {
 
-	    // PENDING(prinz) this needs to be fixed to
-	    // use the given document range.
-	    RTFGenerator.writeDocument(doc, out);
+            // PENDING(prinz) this needs to be fixed to
+            // use the given document range.
+            RTFGenerator.writeDocument(doc, out);
     }
 
     /**
@@ -104,16 +121,16 @@ public class RTFEditorKit extends StyledEditorKit {
      *   location within the document.
      */
     public void read(Reader in, Document doc, int pos)
-	throws IOException, BadLocationException {
+        throws IOException, BadLocationException {
 
-	if (doc instanceof StyledDocument) {
-	    RTFReader rdr = new RTFReader((StyledDocument) doc);
-	    rdr.readFromReader(in);
-	    rdr.close();
-	} else {
-	    // treat as text/plain
-	    super.read(in, doc, pos);
-	}
+        if (doc instanceof StyledDocument) {
+            RTFReader rdr = new RTFReader((StyledDocument) doc);
+            rdr.readFromReader(in);
+            rdr.close();
+        } else {
+            // treat as text/plain
+            super.read(in, doc, pos);
+        }
     }
 
     /**
@@ -130,9 +147,9 @@ public class RTFEditorKit extends StyledEditorKit {
      *   location within the document.
      */
     public void write(Writer out, Document doc, int pos, int len)
-	throws IOException, BadLocationException {
+        throws IOException, BadLocationException {
 
-	throw new IOException("RTF is an 8-bit format");
+        throw new IOException("RTF is an 8-bit format");
     }
 
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -55,10 +59,9 @@ package com.sun.org.apache.bcel.internal.generic;
  */
 
 /**
- * Denotes that an instruction may start the process of loading and resolving 
+ * Denotes that an instruction may start the process of loading and resolving
  * the referenced class in the Virtual Machine.
  *
- * @version $Id: LoadClass.java,v 1.1.2.1 2005/07/31 23:44:59 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public interface LoadClass {
@@ -69,7 +72,7 @@ public interface LoadClass {
    * referenced
    */
   public ObjectType getLoadClassType(ConstantPoolGen cpg);
-	
+
   /**
    * Returns the type associated with this instruction.
    * LoadClass instances are always typed, but this type

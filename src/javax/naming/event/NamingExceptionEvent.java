@@ -1,8 +1,26 @@
 /*
- * @(#)NamingExceptionEvent.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.event;
@@ -15,10 +33,9 @@ import javax.naming.NamingException;
   * <tt>NamingEvent</tt>s threw a <tt>NamingException</tt>.
   * This can happen, for example, if the server which the listener is using
   * aborts subsequent to the <tt>addNamingListener()</tt> call.
-  * 
+  *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   *
   * @see NamingListener#namingExceptionThrown
   * @see EventContext
@@ -42,8 +59,8 @@ public class NamingExceptionEvent extends java.util.EventObject {
      *
      */
     public NamingExceptionEvent(EventContext source, NamingException exc) {
-	super(source);
-	exception = exc;
+        super(source);
+        exception = exc;
     }
 
     /**
@@ -51,7 +68,7 @@ public class NamingExceptionEvent extends java.util.EventObject {
      * @return The exception that was thrown.
      */
     public NamingException getException() {
-	return exception;
+        return exception;
     }
 
     /**
@@ -60,7 +77,7 @@ public class NamingExceptionEvent extends java.util.EventObject {
      * @return The non-null <tt>EventContext</tt> that fired this event.
      */
     public EventContext getEventContext() {
-	return (EventContext)getSource();
+        return (EventContext)getSource();
     }
 
     /**
@@ -70,7 +87,7 @@ public class NamingExceptionEvent extends java.util.EventObject {
      * the method.
      */
     public void dispatch(NamingListener listener) {
-	listener.namingExceptionThrown(this);
+        listener.namingExceptionThrown(this);
     }
 
     private static final long serialVersionUID = -4877678086134736336L;

@@ -1,8 +1,26 @@
 /*
- * @(#)Filer.java	1.2 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.apt;
@@ -33,12 +51,17 @@ import java.io.*;
  * be deleted.  Any subsequent attempt to create the same file during
  * a run will fail.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  The replacement for the
+ * functionality of this interface is {@link
+ * javax.annotation.processing.Filer}.
+ *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.2 05/11/17
  * @since 1.5
  */
-
+@Deprecated
+@SuppressWarnings("deprecation")
 public interface Filer {
 
     /**
@@ -55,7 +78,7 @@ public interface Filer {
      * the platform's default encoding if none is specified.
      *
      * @param name  canonical (fully qualified) name of the principal type
-     *		being declared in this file
+     *          being declared in this file
      * @return a writer for the new file
      * @throws IOException if the file cannot be created
      */
@@ -88,17 +111,17 @@ public interface Filer {
      *
      * @param loc location of the new file
      * @param pkg package relative to which the file should be named,
-     *		or the empty string if none
+     *          or the empty string if none
      * @param relPath final pathname components of the file
      * @param charsetName the name of the charset to use, or null if none
-     *		is being explicitly specified
+     *          is being explicitly specified
      * @return a writer for the new file
      * @throws IOException if the file cannot be created
      */
     PrintWriter createTextFile(Location loc,
-			       String pkg,
-			       File relPath,
-			       String charsetName) throws IOException;
+                               String pkg,
+                               File relPath,
+                               String charsetName) throws IOException;
 
     /**
      * Creates a new binary file, and returns a stream for writing to it.
@@ -111,23 +134,29 @@ public interface Filer {
      *
      * @param loc location of the new file
      * @param pkg package relative to which the file should be named,
-     *		or the empty string if none
+     *          or the empty string if none
      * @param relPath final pathname components of the file
      * @return a stream for writing to the new file
      * @throws IOException if the file cannot be created
      */
     OutputStream createBinaryFile(Location loc,
-				  String pkg,
-				  File relPath) throws IOException;
+                                  String pkg,
+                                  File relPath) throws IOException;
 
 
     /**
      * Locations (subtrees within the file system) where new files are created.
+     *
+     * @deprecated All components of this API have been superseded by
+     * the standardized annotation processing API.  The replacement
+     * for the functionality of this enum is {@link
+     * javax.tools.StandardLocation}.
      */
+    @Deprecated
     enum Location {
-	/** The location of new source files. */
-	SOURCE_TREE,
-	/** The location of new class files. */
-	CLASS_TREE
+        /** The location of new source files. */
+        SOURCE_TREE,
+        /** The location of new class files. */
+        CLASS_TREE
     }
 }

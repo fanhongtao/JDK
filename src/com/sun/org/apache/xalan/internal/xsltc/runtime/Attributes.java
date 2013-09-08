@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,31 +35,31 @@ public final class Attributes implements AttributeList {
     private DOM _document;
 
     public Attributes(DOM document, int element) {
-	_element = element;
-	_document = document;
+        _element = element;
+        _document = document;
     }
 
     public int getLength() {
-	return 0;
+        return 0;
     }
 
     public String getName(int i) {
-	return null;
+        return null;
     }
 
     public String getType(int i) {
-	return null;
+        return null;
     }
 
     public String getType(String name) {
-	return null;
+        return null;
     }
 
     public String getValue(int i) {
-	return null;
+        return null;
     }
 
     public String getValue(String name) {
-	return null;
+        return null;
     }
 }

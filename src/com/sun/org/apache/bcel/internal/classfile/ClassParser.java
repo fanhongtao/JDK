@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -70,8 +74,7 @@ import  java.util.zip.*;
  * JVM specification 1.0</a>. See this paper for
  * further details about the structure of a bytecode file.
  *
- * @version $Id: ClassParser.java,v 1.1.2.1 2005/07/31 23:46:27 jeffsuttor Exp $
- * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class ClassParser {
   private DataInputStream file;
@@ -113,11 +116,11 @@ public final class ClassParser {
    * @throws IOException
    */
   public ClassParser(String file_name) throws IOException
-  {    
+  {
     is_zip = false;
     this.file_name = file_name;
     file = new DataInputStream(new BufferedInputStream
-			       (new FileInputStream(file_name), BUFSIZE));
+                               (new FileInputStream(file_name), BUFSIZE));
   }
 
   /** Parse class from given .class file in a ZIP-archive
@@ -126,15 +129,15 @@ public final class ClassParser {
    * @throws IOException
    */
   public ClassParser(String zip_file, String file_name) throws IOException
-  {    
+  {
     is_zip = true;
     zip = new ZipFile(zip_file);
     ZipEntry entry = zip.getEntry(file_name);
-  		   
+
     this.file_name = file_name;
 
     file = new DataInputStream(new BufferedInputStream(zip.getInputStream(entry),
-						       BUFSIZE));
+                                                       BUFSIZE));
   }
 
   /**
@@ -147,7 +150,7 @@ public final class ClassParser {
    * @return Class object representing the parsed class file
    * @throws  IOException
    * @throws  ClassFormatException
-   */  
+   */
   public JavaClass parse() throws IOException, ClassFormatException
   {
     /****************** Read headers ********************************/
@@ -160,14 +163,14 @@ public final class ClassParser {
     /****************** Read constant pool and related **************/
     // Read constant pool entries
     readConstantPool();
-	
+
     // Get class information
     readClassInfo();
 
     // Get interface information, i.e., implemented interfaces
     readInterfaces();
 
-    /****************** Read class fields and methods ***************/ 
+    /****************** Read class fields and methods ***************/
     // Read class fields, i.e., the variables of the class
     readFields();
 
@@ -187,10 +190,10 @@ public final class ClassParser {
     //        int bytes = file.available();
     //        byte[] buf = new byte[bytes];
     //        file.read(buf);
-    
+
     //        if(!(is_zip && (buf.length == 1))) {
-    //  	System.err.println("WARNING: Trailing garbage at end of " + file_name);
-    //  	System.err.println(bytes + " extra bytes: " + Utility.toHexString(buf));
+    //          System.err.println("WARNING: Trailing garbage at end of " + file_name);
+    //          System.err.println(bytes + " extra bytes: " + Utility.toHexString(buf));
     //        }
     //      }
 
@@ -200,10 +203,10 @@ public final class ClassParser {
       zip.close();
 
     // Return the information we have gathered in a new object
-    return new JavaClass(class_name_index, superclass_name_index, 
-			 file_name, major, minor, access_flags,
-			 constant_pool, interfaces, fields,
-			 methods, attributes, is_zip? JavaClass.ZIP : JavaClass.FILE);
+    return new JavaClass(class_name_index, superclass_name_index,
+                         file_name, major, minor, access_flags,
+                         constant_pool, interfaces, fields,
+                         methods, attributes, is_zip? JavaClass.ZIP : JavaClass.FILE);
   }
 
   /**
@@ -237,13 +240,13 @@ public final class ClassParser {
     if((access_flags & Constants.ACC_INTERFACE) != 0)
       access_flags |= Constants.ACC_ABSTRACT;
 
-    if(((access_flags & Constants.ACC_ABSTRACT) != 0) && 
+    if(((access_flags & Constants.ACC_ABSTRACT) != 0) &&
        ((access_flags & Constants.ACC_FINAL)    != 0 ))
       throw new ClassFormatException("Class can't be both final and abstract");
 
     class_name_index      = file.readUnsignedShort();
     superclass_name_index = file.readUnsignedShort();
-  }    
+  }
   /**
    * Read constant pool entries.
    * @throws  IOException
@@ -252,7 +255,7 @@ public final class ClassParser {
   private final void readConstantPool() throws IOException, ClassFormatException
   {
     constant_pool = new ConstantPool(file);
-  }    
+  }
 
   /**
    * Read information about the fields of the class, i.e., its variables.
@@ -268,7 +271,7 @@ public final class ClassParser {
 
     for(int i=0; i < fields_count; i++)
       fields[i] = new Field(file, constant_pool);
-  }    
+  }
 
   /******************** Private utility methods **********************/
 
@@ -284,7 +287,7 @@ public final class ClassParser {
 
     if(file.readInt() != magic)
       throw new ClassFormatException(file_name + " is not a Java .class file");
-  }    
+  }
   /**
    * Read information about the interfaces implemented by this class.
    * @throws  IOException
@@ -299,7 +302,7 @@ public final class ClassParser {
 
     for(int i=0; i < interfaces_count; i++)
       interfaces[i] = file.readUnsignedShort();
-  }     
+  }
   /**
    * Read information about the methods of the class.
    * @throws  IOException
@@ -314,7 +317,7 @@ public final class ClassParser {
 
     for(int i=0; i < methods_count; i++)
       methods[i] = new Method(file, constant_pool);
-  }      
+  }
   /**
    * Read major and minor version of compiler which created the file.
    * @throws  IOException
@@ -324,5 +327,5 @@ public final class ClassParser {
   {
     minor = file.readUnsignedShort();
     major = file.readUnsignedShort();
-  }    
+  }
 }

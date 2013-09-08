@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +20,7 @@
 
 package com.sun.org.apache.xerces.internal.impl.xs;
 
+import com.sun.org.apache.xerces.internal.impl.dv.xs.SchemaDVFactoryImpl;
 import com.sun.org.apache.xerces.internal.impl.dv.xs.XSSimpleTypeDecl;
 
 /**
@@ -28,7 +33,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.xs.XSSimpleTypeDecl;
  * @xerces.internal 
  * 
  * @author Elena Litani, IBM
- * @version $Id: XSDeclarationPool.java,v 1.2.6.1 2005/09/09 07:30:55 sunithareddy Exp $
+ * @version $Id: XSDeclarationPool.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */
 public final class XSDeclarationPool {
     /** Chunk shift (8). */
@@ -71,6 +76,11 @@ public final class XSDeclarationPool {
     private XSAttributeUseImpl fAttributeUse[][] = new XSAttributeUseImpl[INITIAL_CHUNK_COUNT][];
     private int fAttributeUseIndex = 0;
 
+    private SchemaDVFactoryImpl dvFactory;
+    public void setDVFactory(SchemaDVFactoryImpl dvFactory) {
+        this.dvFactory = dvFactory;
+    }
+
     public final  XSElementDecl getElementDecl(){
         int     chunk       = fElementDeclIndex >> CHUNK_SHIFT;
         int     index       = fElementDeclIndex &  CHUNK_MASK;
@@ -111,7 +121,7 @@ public final class XSDeclarationPool {
         return fAttributeUse[chunk][index];
 
     }
-    
+
     public final XSComplexTypeDecl getComplexTypeDecl(){
         int     chunk       = fCTDeclIndex >> CHUNK_SHIFT;
         int     index       = fCTDeclIndex &  CHUNK_MASK;
@@ -131,14 +141,14 @@ public final class XSDeclarationPool {
         int     index       = fSTDeclIndex &  CHUNK_MASK;
         ensureSTDeclCapacity(chunk);
         if (fSTDecl[chunk][index] == null) {
-            fSTDecl[chunk][index] = new XSSimpleTypeDecl();
+            fSTDecl[chunk][index] = dvFactory.newXSSimpleTypeDecl();
         } else {
             fSTDecl[chunk][index].reset();
         }
         fSTDeclIndex++;
         return fSTDecl[chunk][index];
 
-    } 
+    }
 
     public final XSParticleDecl getParticleDecl(){
         int     chunk       = fParticleDeclIndex >> CHUNK_SHIFT;
@@ -226,7 +236,7 @@ public final class XSDeclarationPool {
     private boolean ensureAttrDeclCapacity(int chunk) {
         if (chunk >= fAttrDecl.length) {
             fAttrDecl = resize(fAttrDecl, fAttrDecl.length * 2);
-        } else if (fAttrDecl[chunk] != null) {            
+        } else if (fAttrDecl[chunk] != null) {
             return false;
         }
 

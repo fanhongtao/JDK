@@ -1,6 +1,26 @@
 /*
- * Copyright (C) 2006 Sun Microsystems, Inc. All rights reserved. Use is
- * subject to license terms.
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -25,7 +45,7 @@ import sun.security.util.SecurityConstants;
  * be supported, in this case {@link SystemTray#getSystemTray()}
  * throws {@link UnsupportedOperationException}.  To detect whether the
  * system tray is supported, use {@link SystemTray#isSupported}.
- * 
+ *
  * <p>The <code>SystemTray</code> may contain one or more {@link
  * TrayIcon TrayIcons}, which are added to the tray using the {@link
  * #add} method, and removed when no longer needed, using the
@@ -39,7 +59,7 @@ import sun.security.util.SecurityConstants;
  * instance can be obtained from the {@link #getSystemTray} method.
  * An application may not create its own instance of
  * <code>SystemTray</code>.
- * 
+ *
  * <p>The following code snippet demonstrates how to access
  * and customize the system tray:
  * <code>
@@ -49,7 +69,7 @@ import sun.security.util.SecurityConstants;
  *         // get the SystemTray instance
  *         SystemTray tray = SystemTray.{@link #getSystemTray};
  *         // load an image
- *         {@link java.awt.Image} image = {@link java.awt.Toolkit#getImage(String) Toolkit.getDefaultToolkit.getImage}(...);
+ *         {@link java.awt.Image} image = {@link java.awt.Toolkit#getImage(String) Toolkit.getDefaultToolkit().getImage}(...);
  *         // create a action listener to listen for default action executed on the tray icon
  *         {@link java.awt.event.ActionListener} listener = new {@link java.awt.event.ActionListener ActionListener}() {
  *             public void {@link java.awt.event.ActionListener#actionPerformed actionPerformed}({@link java.awt.event.ActionEvent} e) {
@@ -104,6 +124,8 @@ public class SystemTray {
     private int currentIconID = 0; // each TrayIcon added gets a unique ID
 
     transient private SystemTrayPeer peer;
+
+    private static final TrayIcon[] EMPTY_TRAY_ARRAY = new TrayIcon[0];
 
     /**
      * Private <code>SystemTray</code> constructor.
@@ -167,28 +189,32 @@ public class SystemTray {
      * default action is always accessible, add the default action to
      * both the action listener and the popup menu.  See the {@link
      * SystemTray example} for an example of how to do this.
-     * 
+     *
      * <p><b>Note</b>: When implementing <code>SystemTray</code> and
      * <code>TrayIcon</code> it is <em>strongly recommended</em> that
      * you assign different gestures to the popup menu and an action
      * event.  Overloading a gesture for both purposes is confusing
      * and may prevent the user from accessing one or the other.
      *
-     * @see #getSystemTray         
+     * @see #getSystemTray
      * @return <code>false</code> if no system tray access is supported; this
      * method returns <code>true</code> if the minimal system tray access is
      * supported but does not guarantee that all system tray
      * functionality is supported for the current platform
      */
     public static boolean isSupported() {
-        if (Toolkit.getDefaultToolkit() instanceof HeadlessToolkit) {
-
-            return ((HeadlessToolkit)Toolkit.getDefaultToolkit()).isTraySupported();
-        } else if (Toolkit.getDefaultToolkit() instanceof SunToolkit) {
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        if (toolkit instanceof SunToolkit) {
+            // connecting tray to native resource
             initializeSystemTrayIfNeeded();
-            return ((SunToolkit)Toolkit.getDefaultToolkit()).isTraySupported();
+            return ((SunToolkit)toolkit).isTraySupported();
+        } else if (toolkit instanceof HeadlessToolkit) {
+            // skip initialization as the init routine
+            // throws HeadlessException
+            return ((HeadlessToolkit)toolkit).isTraySupported();
+        } else {
+            return false;
         }
-        return false;
     }
 
     /**
@@ -224,7 +250,7 @@ public class SystemTray {
             if (icons == null) {
                 icons = new Vector<TrayIcon>(3);
                 AppContext.getAppContext().put(TrayIcon.class, icons);
-                
+
             } else if (icons.contains(trayIcon)) {
                 throw new IllegalArgumentException("adding TrayIcon that is already added");
             }
@@ -300,7 +326,7 @@ public class SystemTray {
         if (icons != null) {
             return (TrayIcon[])icons.toArray(new TrayIcon[icons.size()]);
         }
-        return new TrayIcon[0];
+        return EMPTY_TRAY_ARRAY;
     }
 
     /**
@@ -320,19 +346,32 @@ public class SystemTray {
     }
 
     /**
-     * Adds a {@code PropertyChangeListener} to the listener list for a 
-     * specific property. Currently supported property:
-     * <ul>
-     *    <li>{@code trayIcons}<p>
-     *        <p>
-     *        This {@code SystemTray}'s array of {@code TrayIcon}s.
-     *        The array is accessed via {@link SystemTray#getTrayIcons}.<br>
-     *        This property is changed when a {@code TrayIcon} is added to
-     *        (or removed from) the {@code SystemTray}.<br> For example, this property
-     *        is changed when the native {@code SystemTray} becomes unavailable on the
-     *        desktop<br> and the {@code TrayIcon}s are automatically removed.</li>
-     * </ul>
-     * <p>
+     * Adds a {@code PropertyChangeListener} to the list of listeners for the
+     * specific property. The following properties are currently supported:
+     * <p> </p>
+     * <table border=1 summary="SystemTray properties">
+     * <tr>
+     *    <th>Property</th>
+     *    <th>Description</th>
+     * </tr>
+     * <tr>
+     *    <td>{@code trayIcons}</td>
+     *    <td>The {@code SystemTray}'s array of {@code TrayIcon} objects.
+     *        The array is accessed via the {@link #getTrayIcons} method.<br>
+     *        This property is changed when a tray icon is added to (or removed
+     *        from) the system tray.<br> For example, this property is changed
+     *        when the system tray becomes unavailable on the desktop<br>
+     *        and the tray icons are automatically removed.</td>
+     * </tr>
+     * <tr>
+     *    <td>{@code systemTray}</td>
+     *    <td>This property contains {@code SystemTray} instance when the system tray
+     *        is available or <code>null</code> otherwise.<br> This property is changed
+     *        when the system tray becomes available or unavailable on the desktop.<br>
+     *        The property is accessed by the {@link #getSystemTray} method.</td>
+     * </tr>
+     * </table>
+     * <p> </p>
      * The {@code listener} listens to property changes only in this context.
      * <p>
      * If {@code listener} is {@code null}, no exception is thrown
@@ -344,7 +383,7 @@ public class SystemTray {
      * @see #removePropertyChangeListener
      * @see #getPropertyChangeListeners
      */
-    public synchronized void addPropertyChangeListener(String propertyName, 
+    public synchronized void addPropertyChangeListener(String propertyName,
                                                        PropertyChangeListener listener)
     {
         if (listener == null) {
@@ -378,10 +417,10 @@ public class SystemTray {
     }
 
     /**
-     * Returns an array of all the listeners that have been associated 
+     * Returns an array of all the listeners that have been associated
      * with the named property.
      * <p>
-     * Only the listeners in this context are returned. 
+     * Only the listeners in this context are returned.
      *
      * @param propertyName the specified property
      * @return all of the {@code PropertyChangeListener}s associated with
@@ -402,7 +441,7 @@ public class SystemTray {
 
 
     /**
-     * Support for reporting bound property changes for Object properties. 
+     * Support for reporting bound property changes for Object properties.
      * This method can be called when a bound property has changed and it will
      * send the appropriate PropertyChangeEvent to any registered
      * PropertyChangeListeners.
@@ -439,14 +478,19 @@ public class SystemTray {
 
     synchronized void addNotify() {
         if (peer == null) {
-            peer = ((SunToolkit)Toolkit.getDefaultToolkit()).createSystemTray(this);
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            if (toolkit instanceof SunToolkit) {
+                peer = ((SunToolkit)Toolkit.getDefaultToolkit()).createSystemTray(this);
+            } else if (toolkit instanceof HeadlessToolkit) {
+                peer = ((HeadlessToolkit)Toolkit.getDefaultToolkit()).createSystemTray(this);
+            }
         }
     }
 
     static void checkSystemTrayAllowed() {
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
-            security.checkPermission(SecurityConstants.ACCESS_SYSTEM_TRAY_PERMISSION);
+            security.checkPermission(SecurityConstants.AWT.ACCESS_SYSTEM_TRAY_PERMISSION);
         }
     }
 

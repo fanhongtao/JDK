@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: XMLEntityReader.java,v 1.3 2005/11/03 17:02:21 jeffsuttor Exp $
- * @(#)Validator.java	1.17 05/11/17
  *
- * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.validation;
@@ -40,7 +38,7 @@ import org.xml.sax.SAXNotSupportedException;
 
 /**
  * <p>A processor that checks an XML document against {@link Schema}.</p>
- * 
+ *
  * <p>
  * A validator object is not thread-safe and not reentrant.
  * In other words, it is the application's responsibility to make
@@ -49,10 +47,9 @@ import org.xml.sax.SAXNotSupportedException;
  * method is invoked, applications may not recursively call
  * the <code>validate</code> method.
  * <p>
- * 
+ *
  *
  * @author  <a href="mailto:Kohsuke.Kawaguchi@Sun.com">Kohsuke Kawaguchi</a>
- * @version $Revision: 1.4 $, $Date: 2005/10/13 17:00:48 $
  * @since 1.5
  */
 public abstract class Validator {
@@ -69,20 +66,20 @@ public abstract class Validator {
      */
     protected Validator() {
     }
-    
-	/**
-	 * <p>Reset this <code>Validator</code> to its original configuration.</p>
-	 * 
-	 * <p><code>Validator</code> is reset to the same state as when it was created with
-	 * {@link Schema#newValidator()}.
-	 * <code>reset()</code> is designed to allow the reuse of existing <code>Validator</code>s
-	 * thus saving resources associated with the creation of new <code>Validator</code>s.</p>
-	 * 
-	 * <p>The reset <code>Validator</code> is not guaranteed to have the same {@link LSResourceResolver} or {@link ErrorHandler}
-	 * <code>Object</code>s, e.g. {@link Object#equals(Object obj)}.  It is guaranteed to have a functionally equal
-	 * <code>LSResourceResolver</code> and <code>ErrorHandler</code>.</p>
-	 */
-	public abstract void reset();
+
+        /**
+         * <p>Reset this <code>Validator</code> to its original configuration.</p>
+         *
+         * <p><code>Validator</code> is reset to the same state as when it was created with
+         * {@link Schema#newValidator()}.
+         * <code>reset()</code> is designed to allow the reuse of existing <code>Validator</code>s
+         * thus saving resources associated with the creation of new <code>Validator</code>s.</p>
+         *
+         * <p>The reset <code>Validator</code> is not guaranteed to have the same {@link LSResourceResolver} or {@link ErrorHandler}
+         * <code>Object</code>s, e.g. {@link Object#equals(Object obj)}.  It is guaranteed to have a functionally equal
+         * <code>LSResourceResolver</code> and <code>ErrorHandler</code>.</p>
+         */
+        public abstract void reset();
 
     /**
      * Validates the specified input.
@@ -239,33 +236,33 @@ public abstract class Validator {
      */
     public abstract void validate(Source source, Result result)
         throws SAXException, IOException;
-    
+
     /**
      * Sets the {@link ErrorHandler} to receive errors encountered
      * during the <code>validate</code> method invocation.
-     * 
+     *
      * <p>
      * Error handler can be used to customize the error handling process
      * during a validation. When an {@link ErrorHandler} is set,
      * errors found during the validation will be first sent
      * to the {@link ErrorHandler}.
-     * 
+     *
      * <p>
      * The error handler can abort further validation immediately
      * by throwing {@link SAXException} from the handler. Or for example
      * it can print an error to the screen and try to continue the
-     * validation by returning normally from the {@link ErrorHandler} 
-     * 
+     * validation by returning normally from the {@link ErrorHandler}
+     *
      * <p>
      * If any {@link Throwable} is thrown from an {@link ErrorHandler},
      * the caller of the <code>validate</code> method will be thrown
      * the same {@link Throwable} object.
-     * 
+     *
      * <p>
      * {@link Validator} is not allowed to
      * throw {@link SAXException} without first reporting it to
      * {@link ErrorHandler}.
-     * 
+     *
      * <p>
      * When the {@link ErrorHandler} is null, the implementation will
      * behave as if the following {@link ErrorHandler} is set:
@@ -282,39 +279,39 @@ public abstract class Validator {
      *     }
      * }
      * </pre>
-     * 
+     *
      * <p>
      * When a new {@link Validator} object is created, initially
      * this field is set to null.
-     * 
+     *
      * @param   errorHandler
      *      A new error handler to be set. This parameter can be null.
      */
     public abstract void setErrorHandler(ErrorHandler errorHandler);
-    
+
     /**
      * Gets the current {@link ErrorHandler} set to this {@link Validator}.
-     * 
+     *
      * @return
      *      This method returns the object that was last set through
      *      the {@link #setErrorHandler(ErrorHandler)} method, or null
      *      if that method has never been called since this {@link Validator}
      *      has created.
-     * 
+     *
      * @see #setErrorHandler(ErrorHandler)
      */
     public abstract ErrorHandler getErrorHandler();
-    
+
     /**
      * Sets the {@link LSResourceResolver} to customize
      * resource resolution while in a validation episode.
-     * 
+     *
      * <p>
      * {@link Validator} uses a {@link LSResourceResolver}
      * when it needs to locate external resources while a validation,
      * although exactly what constitutes "locating external resources" is
      * up to each schema language.
-     * 
+     *
      * <p>
      * When the {@link LSResourceResolver} is null, the implementation will
      * behave as if the following {@link LSResourceResolver} is set:
@@ -322,43 +319,43 @@ public abstract class Validator {
      * class DumbLSResourceResolver implements {@link LSResourceResolver} {
      *     public {@link org.w3c.dom.ls.LSInput} resolveResource(
      *         String publicId, String systemId, String baseURI) {
-     *         
+     *
      *         return null; // always return null
      *     }
      * }
      * </pre>
-     * 
+     *
      * <p>
      * If a {@link LSResourceResolver} throws a {@link RuntimeException}
      *  (or instances of its derived classes),
-     * then the {@link Validator} will abort the parsing and  
+     * then the {@link Validator} will abort the parsing and
      * the caller of the <code>validate</code> method will receive
-     * the same {@link RuntimeException}. 
-     * 
+     * the same {@link RuntimeException}.
+     *
      * <p>
      * When a new {@link Validator} object is created, initially
      * this field is set to null.
-     * 
+     *
      * @param   resourceResolver
      *      A new resource resolver to be set. This parameter can be null.
      */
     public abstract void setResourceResolver(LSResourceResolver resourceResolver);
-    
+
     /**
      * Gets the current {@link LSResourceResolver} set to this {@link Validator}.
-     * 
+     *
      * @return
      *      This method returns the object that was last set through
      *      the {@link #setResourceResolver(LSResourceResolver)} method, or null
      *      if that method has never been called since this {@link Validator}
      *      has created.
-     * 
+     *
      * @see #setErrorHandler(ErrorHandler)
      */
     public abstract LSResourceResolver getResourceResolver();
-    
-    
-    
+
+
+
     /**
      * Look up the value of a feature flag.
      *
@@ -412,7 +409,7 @@ public abstract class Validator {
      *
      * @param name The feature name, which is a non-null fully-qualified URI.
      * @param value The requested value of the feature (true or false).
-     * 
+     *
      * @throws SAXNotRecognizedException If the feature
      *   value can't be assigned or retrieved.
      * @throws SAXNotSupportedException When the

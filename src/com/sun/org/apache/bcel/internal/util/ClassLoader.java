@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -77,7 +81,6 @@ import com.sun.org.apache.bcel.internal.classfile.*;
  * where to use the system class loader in the constructor. The default value contains
  * "java.", "sun.", "javax."</p>
  *
- * @version $Id: ClassLoader.java,v 1.1.2.1 2005/07/31 23:47:03 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see JavaWrapper
  * @see ClassPath
@@ -114,16 +117,16 @@ public class ClassLoader extends java.lang.ClassLoader {
 
   private void addIgnoredPkgs(String[] ignored_packages) {
     String[] new_p = new String[ignored_packages.length + this.ignored_packages.length];
-	
+
     System.arraycopy(this.ignored_packages, 0, new_p, 0, this.ignored_packages.length);
     System.arraycopy(ignored_packages, 0, new_p, this.ignored_packages.length,
-		     ignored_packages.length);
+                     ignored_packages.length);
 
     this.ignored_packages = new_p;
   }
-  
-  protected Class loadClass(String class_name, boolean resolve) 
-    throws ClassNotFoundException 
+
+  protected Class loadClass(String class_name, boolean resolve)
+    throws ClassNotFoundException
   {
     Class cl = null;
 
@@ -134,36 +137,36 @@ public class ClassLoader extends java.lang.ClassLoader {
        * don't mess around with them.
        */
       for(int i=0; i < ignored_packages.length; i++) {
-	if(class_name.startsWith(ignored_packages[i])) {
-	  cl = deferTo.loadClass(class_name);
-	  break;
-	}
+        if(class_name.startsWith(ignored_packages[i])) {
+          cl = deferTo.loadClass(class_name);
+          break;
+        }
       }
 
       if(cl == null) {
-	JavaClass clazz = null;
+        JavaClass clazz = null;
 
-	/* Third try: Special request?
-	 */
-	if(class_name.indexOf("$$BCEL$$") >= 0)
-	  clazz = createClass(class_name);
-	else { // Fourth try: Load classes via repository
-	  if ((clazz = repository.loadClass(class_name)) != null) {
-	    clazz = modifyClass(clazz);
-	  }
-	  else
-	    throw new ClassNotFoundException(class_name);
-	}
+        /* Third try: Special request?
+         */
+        if(class_name.indexOf("$$BCEL$$") >= 0)
+          clazz = createClass(class_name);
+        else { // Fourth try: Load classes via repository
+          if ((clazz = repository.loadClass(class_name)) != null) {
+            clazz = modifyClass(clazz);
+          }
+          else
+            throw new ClassNotFoundException(class_name);
+        }
 
-	if(clazz != null) {
-	  byte[] bytes  = clazz.getBytes();
-	  cl = defineClass(class_name, bytes, 0, bytes.length);
-	} else // Fourth try: Use default class loader
-	  cl = Class.forName(class_name);
+        if(clazz != null) {
+          byte[] bytes  = clazz.getBytes();
+          cl = defineClass(class_name, bytes, 0, bytes.length);
+        } else // Fourth try: Use default class loader
+          cl = Class.forName(class_name);
       }
-      
+
       if(resolve)
-	resolveClass(cl);
+        resolveClass(cl);
     }
 
     classes.put(class_name, cl);
@@ -177,8 +180,8 @@ public class ClassLoader extends java.lang.ClassLoader {
   protected JavaClass modifyClass(JavaClass clazz) {
     return clazz;
   }
-  
-  /** 
+
+  /**
    * Override this method to create you own classes on the fly. The
    * name contains the special token $$BCEL$$. Everything before that
    * token is consddered to be a package name. You can encode you own
@@ -211,9 +214,9 @@ public class ClassLoader extends java.lang.ClassLoader {
     ConstantPool cp = clazz.getConstantPool();
 
     ConstantClass cl = (ConstantClass)cp.getConstant(clazz.getClassNameIndex(),
-						     Constants.CONSTANT_Class);
+                                                     Constants.CONSTANT_Class);
     ConstantUtf8 name = (ConstantUtf8)cp.getConstant(cl.getNameIndex(),
-						     Constants.CONSTANT_Utf8);
+                                                     Constants.CONSTANT_Utf8);
     name.setBytes(class_name.replace('.', '/'));
 
     return clazz;

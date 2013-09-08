@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,13 +90,7 @@ public class ErrorMessages_ca extends ListResourceBundle {
  */
 
     // These message should be read from a locale-specific resource bundle
-    /** Get the lookup table for error messages.   
-     *
-     * @return The message lookup table.
-     */
-    public Object[][] getContents()
-    {
-      return new Object[][] {
+    private static final Object[][] _contents = new Object[][] {
         {ErrorMsg.MULTIPLE_STYLESHEET_ERR,
         "S'ha definit m\u00e9s d'un full d'estils en el mateix fitxer."},
 
@@ -843,7 +841,18 @@ public class ErrorMessages_ca extends ListResourceBundle {
          * stylesheet (see above).
          */
         {ErrorMsg.RUNTIME_ERROR_KEY,
-        "Errors de translet:"}
+        "Errors de translet:"},
+
+        {ErrorMsg.JAXP_SECUREPROCESSING_FEATURE,
+        "FEATURE_SECURE_PROCESSING: Cannot set the feature to false when security manager is present."}
     };
+
+    /** Get the lookup table for error messages.   
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+      return _contents;
     }
 }

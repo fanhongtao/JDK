@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -60,12 +64,12 @@ import java.util.Stack;
 import com.sun.org.apache.xerces.internal.xinclude.XPointerSchema;
 
 public class XPointerFramework{
-    
+
         /*
                 Todo's by next integration.
                 While constructing schema names and uris use a dynamic datastructure.
          */
-    
+
     XPointerSchema [] fXPointerSchema;
     String [] fSchemaPointerName;
     String [] fSchemaPointerURI;
@@ -75,16 +79,16 @@ public class XPointerFramework{
     int fCountSchemaName = 0;
     int schemaLength = 0;
     XPointerSchema fDefaultXPointerSchema;
-    
+
     public XPointerFramework(){
         this(null);
     }
-    
+
     public XPointerFramework(XPointerSchema [] xpointerschema){
         fXPointerSchema = xpointerschema;
         fSchemaNotAvailable = new Stack();
     }
-    
+
     public void reset(){
         fXPointerSchema = null;
         fXPointerSchema = null;
@@ -95,15 +99,15 @@ public class XPointerFramework{
         fDefaultXPointerSchema = null;
         fCurrentSchemaPointer = null;
     }
-    
+
     public void setXPointerSchema(XPointerSchema [] xpointerschema){
         fXPointerSchema = xpointerschema;
     }
-    
+
     public void setSchemaPointer(String schemaPointer){
         fSchemaPointer = schemaPointer;
     }
-    
+
     public XPointerSchema getNextXPointerSchema(){
         int  i=fCountSchemaName;
         if(fSchemaPointerName == null){
@@ -122,9 +126,9 @@ public class XPointerFramework{
             fCountSchemaName = ++i;
             return null;
         }
-        
+
         int fschemalength = fXPointerSchema.length;
-        
+
         for(;fSchemaPointerName[i] != null; i++){
             for(int j=0; j<fschemalength; j++ ){
                 if(fSchemaPointerName[i].equalsIgnoreCase(fXPointerSchema[j].getXpointerSchemaName())){
@@ -133,21 +137,21 @@ public class XPointerFramework{
                     return fXPointerSchema[j];
                 }
             }
-            
+
             if(fSchemaNotAvailable == null)
             fSchemaNotAvailable = new Stack();
-            
+
             fSchemaNotAvailable.push(fSchemaPointerName[i]);
         }
         return null;
     }
-    
+
     public XPointerSchema getDefaultSchema(){
         if(fDefaultXPointerSchema == null)
             fDefaultXPointerSchema = new XPointerElementHandler();
         return fDefaultXPointerSchema;
     }
-    
+
     public void getSchemaNames(){
         int count =0;
         int index =0, lastindex =0;
@@ -156,16 +160,16 @@ public class XPointerFramework{
         int length = fSchemaPointer.length();
         fSchemaPointerName = new String [5];
         fSchemaPointerURI = new String [5];
-        
+
         index = fSchemaPointer.indexOf('(');
         if( index <= 0)
             return;
-        
+
         fSchemaPointerName[schemapointerindex++] = fSchemaPointer.substring(0, index++).trim();
         lastindex = index;
         String tempURI = null;
         count++;
-        
+
         while(index < length){
             c = fSchemaPointer.charAt(index);
             if(c == '(')
@@ -189,17 +193,17 @@ public class XPointerFramework{
         }
         schemaLength = schemapointerURIindex -1;
     }
-    
+
     public String   getEscapedURI(String URI){
         return URI;
     }
-    
+
     public int getSchemaCount(){
         return schemaLength;
     }
-    
+
     public int getCurrentPointer(){
         return fCountSchemaName;
     }
-    
+
 }//XPointerFramwork

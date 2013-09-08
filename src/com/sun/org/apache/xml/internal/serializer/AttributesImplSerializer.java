@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +33,9 @@ import org.xml.sax.helpers.AttributesImpl;
  * xml.sax.Attributes. But for optimization this class adds a Hashtable for
  * faster lookup of an index by qName, which is commonly done in the stream
  * serializer.
- * 
+ *
  * @see org.xml.sax.Attributes
- * 
+ *
  * @xsl.usage internal
  */
 public final class AttributesImplSerializer extends AttributesImpl
@@ -40,20 +44,20 @@ public final class AttributesImplSerializer extends AttributesImpl
      * Hash table of qName/index values to quickly lookup the index
      * of an attributes qName.  qNames are in uppercase in the hash table
      * to make the search case insensitive.
-     * 
+     *
      * The keys to the hashtable to find the index are either
      * "prefix:localName"  or "{uri}localName".
      */
     private final Hashtable m_indexFromQName = new Hashtable();
-    
+
     private final StringBuffer m_buff = new StringBuffer();
-    
+
     /**
      * This is the number of attributes before switching to the hash table,
      * and can be tuned, but 12 seems good for now - Brian M.
      */
     private static final int MAX = 12;
-    
+
     /**
      * One less than the number of attributes before switching to
      * the Hashtable.
@@ -124,7 +128,7 @@ public final class AttributesImplSerializer extends AttributesImpl
             /* we have just added the attibute, its index is the old length */
             Integer i = new Integer(index);
             m_indexFromQName.put(qname, i);
-            
+
             /* now add with key of the format "{uri}localName" */
             m_buff.setLength(0);
             m_buff.append('{').append(uri).append('}').append(local);
@@ -149,7 +153,7 @@ public final class AttributesImplSerializer extends AttributesImpl
             String qName = super.getQName(index);
             Integer i = new Integer(index);
             m_indexFromQName.put(qName, i);
-            
+
             // Add quick look-up to find with uri/local name pair
             String uri = super.getURI(index);
             String local = super.getLocalName(index);
@@ -194,13 +198,13 @@ public final class AttributesImplSerializer extends AttributesImpl
 
         // we've let the super class add the attributes, but
         // we need to keep the hash table up to date ourselves for the
-        // potentially new qName/index pairs for quick lookup. 
+        // potentially new qName/index pairs for quick lookup.
         int numAtts = atts.getLength();
         if (MAX <= numAtts)
             switchOverToHash(numAtts);
 
     }
-    
+
     /**
      * This method gets the index of an attribute given its uri and locanName.
      * @param uri the URI of the attribute name.

@@ -1,21 +1,38 @@
 /*
- * @(#)MatteBorder.java	1.24 06/04/07
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.border;
 
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.Component;
 import java.awt.Color;
 
 import javax.swing.Icon;
 
 /**
- * A class which provides a matte-like border of either a solid color 
+ * A class which provides a matte-like border of either a solid color
  * or a tiled icon.
  * <p>
  * <strong>Warning:</strong>
@@ -27,7 +44,6 @@ import javax.swing.Icon;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.24 04/07/06
  * @author Amy Fowler
  */
 public class MatteBorder extends EmptyBorder
@@ -116,74 +132,31 @@ public class MatteBorder extends EmptyBorder
             g.fillRect(width - insets.right, 0, insets.right, height - insets.bottom);
 
         } else if (tileIcon != null) {
-
             int tileW = tileIcon.getIconWidth();
             int tileH = tileIcon.getIconHeight();
-            int xpos, ypos, startx, starty;
-            Graphics cg;
-
-            // Paint top matte edge
-            cg = g.create();
-            cg.setClip(0, 0, width, insets.top);
-            for (ypos = 0; insets.top - ypos > 0; ypos += tileH) {
-                for (xpos = 0; width - xpos > 0; xpos += tileW) {
-                    tileIcon.paintIcon(c, cg, xpos, ypos);
-                }
-            }
-            cg.dispose();
-
-            // Paint left matte edge
-            cg = g.create();
-            cg.setClip(0, insets.top, insets.left, height - insets.top);
-            starty = insets.top - (insets.top%tileH);
-            startx = 0;
-            for (ypos = starty; height - ypos > 0; ypos += tileH) {
-                for (xpos = startx; insets.left - xpos > 0; xpos += tileW) {
-                    tileIcon.paintIcon(c, cg, xpos, ypos);
-                }
-            }
-            cg.dispose();
-
-            // Paint bottom matte edge
-            cg = g.create();
-            cg.setClip(insets.left, height - insets.bottom, width - insets.left, insets.bottom);
-            starty = (height - insets.bottom) - ((height - insets.bottom)%tileH);
-            startx = insets.left - (insets.left%tileW);
-            for (ypos = starty; height - ypos > 0; ypos += tileH) {
-                for (xpos = startx; width - xpos > 0; xpos += tileW) {
-                    tileIcon.paintIcon(c, cg, xpos, ypos);
-                }
-            }
-            cg.dispose();
-
-            // Paint right matte edge
-            cg = g.create();
-            cg.setClip(width - insets.right, insets.top, insets.right, height - insets.top - insets.bottom);
-            starty = insets.top - (insets.top%tileH);
-            startx = width - insets.right - ((width - insets.right)%tileW);
-            for (ypos = starty; height - ypos > 0; ypos += tileH) {
-                for (xpos = startx; width - xpos > 0; xpos += tileW) {
-                    tileIcon.paintIcon(c, cg, xpos, ypos);
-                }
-            }
-            cg.dispose();
+            paintEdge(c, g, 0, 0, width - insets.right, insets.top, tileW, tileH);
+            paintEdge(c, g, 0, insets.top, insets.left, height - insets.top, tileW, tileH);
+            paintEdge(c, g, insets.left, height - insets.bottom, width - insets.left, insets.bottom, tileW, tileH);
+            paintEdge(c, g, width - insets.right, 0, insets.right, height - insets.bottom, tileW, tileH);
         }
         g.translate(-x, -y);
         g.setColor(oldColor);
 
     }
 
-    /**
-     * Returns the insets of the border.
-     * @param c the component for which this border insets value applies
-     * @since 1.3
-     */
-    public Insets getBorderInsets(Component c) {
-        return getBorderInsets();
+    private void paintEdge(Component c, Graphics g, int x, int y, int width, int height, int tileW, int tileH) {
+        g = g.create(x, y, width, height);
+        int sY = -(y % tileH);
+        for (x = -(x % tileW); x < width; x += tileW) {
+            for (y = sY; y < height; y += tileH) {
+                this.tileIcon.paintIcon(c, g, x, y);
+            }
+        }
+        g.dispose();
     }
 
-    /** 
-     * Reinitialize the insets parameter with this Border's current Insets. 
+    /**
+     * Reinitialize the insets parameter with this Border's current Insets.
      * @param c the component for which this border insets value applies
      * @param insets the object to be reinitialized
      * @since 1.3
@@ -202,7 +175,7 @@ public class MatteBorder extends EmptyBorder
 
     /* should be protected once api changes area allowed */
     private Insets computeInsets(Insets insets) {
-        if (tileIcon != null && top == -1 && bottom == -1 && 
+        if (tileIcon != null && top == -1 && bottom == -1 &&
             left == -1 && right == -1) {
             int w = tileIcon.getIconWidth();
             int h = tileIcon.getIconHeight();
@@ -240,9 +213,9 @@ public class MatteBorder extends EmptyBorder
     /**
      * Returns whether or not the border is opaque.
      */
-    public boolean isBorderOpaque() { 
+    public boolean isBorderOpaque() {
         // If a tileIcon is set, then it may contain transparent bits
-        return color != null; 
+        return color != null;
     }
 
 }

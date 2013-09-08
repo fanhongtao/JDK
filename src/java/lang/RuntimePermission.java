@@ -1,8 +1,26 @@
 /*
- * @(#)RuntimePermission.java	1.57 06/04/21
+ * Copyright (c) 1997, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang;
@@ -31,7 +49,7 @@ import java.util.StringTokenizer;
  * and a discussion of the risks of granting code the permission.
  * <P>
  *
- * <table border=1 cellpadding=5 summary="permission target name, 
+ * <table border=1 cellpadding=5 summary="permission target name,
  *  what the target allows,and associated risks">
  * <tr>
  * <th>Permission Target Name</th>
@@ -82,10 +100,17 @@ import java.util.StringTokenizer;
  * </tr>
  *
  * <tr>
+ *   <td>closeClassLoader</td>
+ *   <td>Closing of a ClassLoader</td>
+ *   <td>Granting this permission allows code to close any URLClassLoader
+ * that it has a reference to.</td>
+ * </tr>
+ *
+ * <tr>
  *   <td>setSecurityManager</td>
  *   <td>Setting of the security manager (possibly replacing an existing one)
  * </td>
- *   <td>The security manager is a class that allows 
+ *   <td>The security manager is a class that allows
  * applications to implement a security policy. Granting the setSecurityManager
  * permission would allow code to change which security manager is used by
  * installing a different, possibly less restrictive security manager,
@@ -115,7 +140,7 @@ import java.util.StringTokenizer;
  * by automatically forcing the virtual machine to halt.
  * Note: The "exitVM.*" permission is automatically granted to all code
  * loaded from the application class path, thus enabling applications
- * to terminate themselves. Also, the "exitVM" permission is equivalent to 
+ * to terminate themselves. Also, the "exitVM" permission is equivalent to
  * "exitVM.*".</td>
  * </tr>
  *
@@ -151,7 +176,7 @@ import java.util.StringTokenizer;
  * <tt>interrupt</tt>, <tt>stop</tt>, <tt>suspend</tt>,
  * <tt>resume</tt>, <tt>setDaemon</tt>, <tt>setPriority</tt>,
  * <tt>setName</tt> and <tt>setUncaughtExceptionHandler</tt>
- * methods</td> 
+ * methods</td>
  * <td>This allows an attacker to modify the behaviour of
  * any thread in the system.</td>
  * </tr>
@@ -169,8 +194,8 @@ import java.util.StringTokenizer;
  * <tr>
  *   <td>modifyThreadGroup</td>
  *   <td>modification of thread groups, e.g., via calls to ThreadGroup
- * <code>destroy</code>, <code>getParent</code>, <code>resume</code>, 
- * <code>setDaemon</code>, <code>setMaxPriority</code>, <code>stop</code>, 
+ * <code>destroy</code>, <code>getParent</code>, <code>resume</code>,
+ * <code>setDaemon</code>, <code>setMaxPriority</code>, <code>stop</code>,
  * and <code>suspend</code> methods</td>
  *   <td>This allows an attacker to create thread groups and
  * set their run priority.</td>
@@ -191,7 +216,7 @@ import java.util.StringTokenizer;
  *   <td>Retrieval of file system attributes</td>
  *   <td>This allows code to obtain file system information such as disk usage
  *       or disk space available to the caller.  This is potentially dangerous
- *       because it discloses information about the system hardware  
+ *       because it discloses information about the system hardware
  *       configuration and some information about the caller's privilege to
  *       write files.</td>
  * </tr>
@@ -272,8 +297,8 @@ import java.util.StringTokenizer;
  * <tr>
  *   <td>getStackTrace</td>
  *   <td>Retrieval of the stack trace information of another thread.</td>
- *   <td>This allows retrieval of the stack trace information of 
- * another thread.  This might allow malicious code to monitor the 
+ *   <td>This allows retrieval of the stack trace information of
+ * another thread.  This might allow malicious code to monitor the
  * execution of threads and discover vulnerabilities in applications.</td>
  * </tr>
  *
@@ -293,12 +318,22 @@ import java.util.StringTokenizer;
  *   which in turn allows retrieval or update operations within the
  *   Preferences persistent backing store.) </td>
  *   <td>This permission allows the user to read from or write to the
- *   preferences backing store if the user running the code has 
+ *   preferences backing store if the user running the code has
  *   sufficient OS privileges to read/write to that backing store.
  *   The actual backing store may reside within a traditional filesystem
  *   directory or within a registry depending on the platform OS</td>
  * </tr>
-
+ *
+ * <tr>
+ *   <td>usePolicy</td>
+ *   <td>Granting this permission disables the Java Plug-In's default
+ *   security prompting behavior.</td>
+ *   <td>For more information, refer to Java Plug-In's guides, <a href=
+ *   "../../../technotes/guides/plugin/developer_guide/security.html">
+ *   Applet Security Basics</a> and <a href=
+ *   "../../../technotes/guides/plugin/developer_guide/rsa_how.html#use">
+ *   usePolicy Permission</a>.</td>
+ * </tr>
  * </table>
  *
  * @see java.security.BasicPermission
@@ -307,7 +342,6 @@ import java.util.StringTokenizer;
  * @see java.security.PermissionCollection
  * @see java.lang.SecurityManager
  *
- * @version 1.57 06/04/21
  *
  * @author Marianne Mueller
  * @author Roland Schemers
@@ -332,7 +366,7 @@ public final class RuntimePermission extends BasicPermission {
 
     public RuntimePermission(String name)
     {
-	super(name);
+        super(name);
     }
 
     /**
@@ -349,6 +383,6 @@ public final class RuntimePermission extends BasicPermission {
 
     public RuntimePermission(String name, String actions)
     {
-	super(name, actions);
+        super(name, actions);
     }
 }

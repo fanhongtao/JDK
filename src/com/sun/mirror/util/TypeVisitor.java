@@ -1,8 +1,26 @@
 /*
- * @(#)TypeVisitor.java	1.5 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.util;
@@ -20,12 +38,17 @@ import com.sun.mirror.type.*;
  * the most specific <tt>visit<i>Xxx</i></tt> method applicable to
  * that type is invoked.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  The replacement for the
+ * functionality of this interface is {@link
+ * javax.lang.model.element.TypeVisitor}.
+ *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.5 05/11/17
  * @since 1.5
  */
-
+@Deprecated
+@SuppressWarnings("deprecation")
 public interface TypeVisitor {
 
     /**
@@ -65,49 +88,49 @@ public interface TypeVisitor {
 
     /**
      * Visits a class type.
-     * 
+     *
      * @param t the type to visit
      */
     public void visitClassType(ClassType t);
 
     /**
      * Visits an enum type.
-     * 
+     *
      * @param t the type to visit
      */
     public void visitEnumType(EnumType t);
 
     /**
      * Visits an interface type.
-     * 
+     *
      * @param t the type to visit
      */
     public void visitInterfaceType(InterfaceType t);
 
     /**
      * Visits an annotation type.
-     * 
+     *
      * @param t the type to visit
      */
     public void visitAnnotationType(AnnotationType t);
 
     /**
      * Visits an array type.
-     * 
+     *
      * @param t the type to visit
      */
     public void visitArrayType(ArrayType t);
 
     /**
      * Visits a type variable.
-     * 
+     *
      * @param t the type to visit
      */
     public void visitTypeVariable(TypeVariable t);
 
     /**
      * Visits a wildcard.
-     * 
+     *
      * @param t the type to visit
      */
     public void visitWildcardType(WildcardType t);

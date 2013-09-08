@@ -1,10 +1,27 @@
- /*
- * @(#)AccessibleExtendedTable.java	1.7 06/04/07 
-  *
-  * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
-  * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
-  *
-  */
+/*
+ * Copyright (c) 2001, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 package javax.accessibility;
 
 /**
@@ -18,7 +35,6 @@ package javax.accessibility;
   * If the return value is not null and the type of the return value is
   * AccessibleExtendedTable, the object supports this interface.
   *
-  * @version     1.7 04/07/06
   * @author      Lynn Monsanto
   * @since 1.4
   */
@@ -55,4 +71,3 @@ public interface AccessibleExtendedTable extends AccessibleTable {
       */
      public int getAccessibleIndex(int r, int c);
 }
-

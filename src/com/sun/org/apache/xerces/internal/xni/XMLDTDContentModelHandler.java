@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +23,7 @@ package com.sun.org.apache.xerces.internal.xni;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDContentModelSource;
 
 /**
- * The DTD content model handler interface defines callback methods 
+ * The DTD content model handler interface defines callback methods
  * to report information items in DTD content models of an element
  * declaration. Parser components interested in DTD content model
  * information implement this interface and are registered as the DTD
@@ -29,7 +33,6 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDContentModelSource;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XMLDTDContentModelHandler.java,v 1.2.6.1 2005/09/06 08:51:35 neerajbj Exp $
  */
 public interface XMLDTDContentModelHandler {
 
@@ -39,7 +42,7 @@ public interface XMLDTDContentModelHandler {
 
     // separators
 
-    /** 
+    /**
      * A choice separator for children and mixed content models. This
      * separator is used to specify that the allowed child is one of a
      * collection.
@@ -57,7 +60,7 @@ public interface XMLDTDContentModelHandler {
     public static final short SEPARATOR_CHOICE = 0;
 
     /**
-     * A sequence separator for children content models. This separator 
+     * A sequence separator for children content models. This separator
      * is used to specify that the allowed children must follow in the
      * specified sequence.
      * <p>
@@ -73,7 +76,7 @@ public interface XMLDTDContentModelHandler {
 
     // occurrence counts
 
-    /** 
+    /**
      * This occurrence count limits the element, choice, or sequence in a
      * children content model to zero or one. In other words, the child
      * is optional.
@@ -88,7 +91,7 @@ public interface XMLDTDContentModelHandler {
      */
     public static final short OCCURS_ZERO_OR_ONE = 2;
 
-    /** 
+    /**
      * This occurrence count limits the element, choice, or sequence in a
      * children content model to zero or more. In other words, the child
      * may appear an arbitrary number of times, or not at all. This
@@ -105,7 +108,7 @@ public interface XMLDTDContentModelHandler {
      */
     public static final short OCCURS_ZERO_OR_MORE = 3;
 
-    /** 
+    /**
      * This occurrence count limits the element, choice, or sequence in a
      * children content model to one or more. In other words, the child
      * may appear an arbitrary number of times, but must appear at least
@@ -129,7 +132,7 @@ public interface XMLDTDContentModelHandler {
      * The start of a content model. Depending on the type of the content
      * model, specific methods may be called between the call to the
      * startContentModel method and the call to the endContentModel method.
-     * 
+     *
      * @param elementName The name of the element.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
@@ -139,8 +142,8 @@ public interface XMLDTDContentModelHandler {
     public void startContentModel(String elementName, Augmentations augmentations)
         throws XNIException;
 
-    /** 
-     * A content model of ANY. 
+    /**
+     * A content model of ANY.
      *
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
@@ -188,7 +191,7 @@ public interface XMLDTDContentModelHandler {
      *
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
-     *     
+     *
      * @throws XNIException Thrown by handler to signal an error.
      *
      * @see #startGroup
@@ -197,20 +200,20 @@ public interface XMLDTDContentModelHandler {
 
     /**
      * A referenced element in a mixed or children content model.
-     * 
+     *
      * @param elementName The name of the referenced element.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void element(String elementName, Augmentations augmentations) 
+    public void element(String elementName, Augmentations augmentations)
         throws XNIException;
 
     /**
      * The separator between choices or sequences of a mixed or children
      * content model.
-     * 
+     *
      * @param separator The type of children separator.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
@@ -220,13 +223,13 @@ public interface XMLDTDContentModelHandler {
      * @see #SEPARATOR_CHOICE
      * @see #SEPARATOR_SEQUENCE
      */
-    public void separator(short separator, Augmentations augmentations) 
+    public void separator(short separator, Augmentations augmentations)
         throws XNIException;
 
     /**
      * The occurrence count for a child in a children content model or
      * for the mixed content model group.
-     * 
+     *
      * @param occurrence The occurrence count for the last element
      *                   or group.
      * @param augmentations Additional information that may include infoset
@@ -238,7 +241,7 @@ public interface XMLDTDContentModelHandler {
      * @see #OCCURS_ZERO_OR_MORE
      * @see #OCCURS_ONE_OR_MORE
      */
-    public void occurrence(short occurrence, Augmentations augmentations) 
+    public void occurrence(short occurrence, Augmentations augmentations)
         throws XNIException;
 
     /**

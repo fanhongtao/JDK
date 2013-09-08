@@ -1,8 +1,26 @@
 /*
- * @(#)DefaultMenuLayout.java	1.13 06/12/15
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.basic;
@@ -12,40 +30,33 @@ import javax.swing.plaf.UIResource;
 
 import java.awt.Container;
 import java.awt.Dimension;
-import static sun.swing.SwingUtilities2.BASICMENUITEMUI_MAX_TEXT_OFFSET;
 
 /**
  * The default layout manager for Popup menus and menubars.  This
  * class is an extension of BoxLayout which adds the UIResource tag
- * so that plauggable L&Fs can distinguish it from user-installed
+ * so that pluggable L&Fs can distinguish it from user-installed
  * layout managers on menus.
  *
- * @version 1.13 12/15/06
  * @author Georges Saab
  */
 
 public class DefaultMenuLayout extends BoxLayout implements UIResource {
     public DefaultMenuLayout(Container target, int axis) {
-	super(target, axis);
+        super(target, axis);
     }
 
     public Dimension preferredLayoutSize(Container target) {
         if (target instanceof JPopupMenu) {
-          ((JPopupMenu)target).putClientProperty(
-                                 BasicMenuItemUI.MAX_ARROW_ICON_WIDTH, null);
-          ((JPopupMenu)target).putClientProperty(
-                                 BasicMenuItemUI.MAX_CHECK_ICON_WIDTH, null); 
-          ((JPopupMenu)target).putClientProperty(
-                                 BasicMenuItemUI.MAX_ICON_WIDTH, null);
-          ((JPopupMenu)target).putClientProperty(
-                                 BasicMenuItemUI.MAX_TEXT_WIDTH, null); 
-          ((JPopupMenu)target).putClientProperty(
-                                 BasicMenuItemUI.MAX_ACC_WIDTH, null);
-          ((JPopupMenu)target).putClientProperty(
-                                 BasicMenuItemUI.MAX_ICON_OFFSET, null);
-          ((JPopupMenu)target).putClientProperty(
-                                 BASICMENUITEMUI_MAX_TEXT_OFFSET, null);
+            JPopupMenu popupMenu = (JPopupMenu) target;
+            sun.swing.MenuItemLayoutHelper.clearUsedClientProperties(popupMenu);
+            if (popupMenu.getComponentCount() == 0) {
+                return new Dimension(0, 0);
+            }
         }
+
+        // Make BoxLayout recalculate cached preferred sizes
+        super.invalidateLayout(target);
+
         return super.preferredLayoutSize(target);
     }
 }

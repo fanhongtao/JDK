@@ -1,8 +1,26 @@
 /*
- * @(#)NameParser.java	1.9 05/11/17
+ * Copyright (c) 1999, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -18,7 +36,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.9 05/11/17
   *
   * @see CompoundName
   * @see Name
@@ -26,15 +43,15 @@ package javax.naming;
   */
 
 public interface NameParser {
-	/**
-	  * Parses a name into its components.
-	  *
-	  * @param name The non-null string name to parse.
-	  * @return A non-null parsed form of the name using the naming convention
-	  * of this parser.
+        /**
+          * Parses a name into its components.
+          *
+          * @param name The non-null string name to parse.
+          * @return A non-null parsed form of the name using the naming convention
+          * of this parser.
           * @exception InvalidNameException If name does not conform to
-          * 	syntax defined for the namespace.
+          *     syntax defined for the namespace.
           * @exception NamingException If a naming exception was encountered.
-	  */
-	Name parse(String name) throws NamingException;
+          */
+        Name parse(String name) throws NamingException;
 }

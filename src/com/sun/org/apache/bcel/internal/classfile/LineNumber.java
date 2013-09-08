@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -62,7 +66,6 @@ import  java.io.*;
  * the source that corresponds to a relative address in the byte code. This
  * is used for debugging purposes.
  *
- * @version $Id: LineNumber.java,v 1.1.2.1 2005/07/31 23:46:21 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     LineNumberTable
  */
@@ -106,50 +109,50 @@ public final class LineNumber implements Cloneable, Node, Serializable {
    */
   public void accept(Visitor v) {
     v.visitLineNumber(this);
-  }    
+  }
 
   /**
    * Dump line number/pc pair to file stream in binary format.
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     file.writeShort(start_pc);
     file.writeShort(line_number);
 
-  }    
+  }
   /**
    * @return Corresponding source line
    */
-  public final int getLineNumber() { return line_number; }    
+  public final int getLineNumber() { return line_number; }
 
   /**
    * @return PC in code
-   */  
-  public final int getStartPC() { return start_pc; }    
+   */
+  public final int getStartPC() { return start_pc; }
 
   /**
    * @param line_number.
    */
   public final void setLineNumber(int line_number) {
     this.line_number = line_number;
-  }    
+  }
 
   /**
    * @param start_pc.
    */
   public final void setStartPC(int start_pc) {
     this.start_pc = start_pc;
-  }    
+  }
 
   /**
    * @return String representation
-   */ 
+   */
   public final String toString() {
     return "LineNumber(" + start_pc + ", " + line_number + ")";
-  }    
+  }
 
   /**
    * @return deep copy of this object

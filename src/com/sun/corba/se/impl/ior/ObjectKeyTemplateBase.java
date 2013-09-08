@@ -1,8 +1,26 @@
 /*
- * @(#)ObjectKeyTemplateBase.java	1.17 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior;
@@ -30,9 +48,9 @@ import com.sun.corba.se.impl.logging.IORSystemException ;
 
 
 /**
- * @author 
+ * @author
  */
-public abstract class ObjectKeyTemplateBase implements ObjectKeyTemplate 
+public abstract class ObjectKeyTemplateBase implements ObjectKeyTemplate
 {
     // Fixed constants for Java IDL object key template forms
     public static final String JIDL_ORB_ID = "" ;
@@ -52,128 +70,128 @@ public abstract class ObjectKeyTemplateBase implements ObjectKeyTemplate
 
     public byte[] getAdapterId()
     {
-	return (byte[])(adapterId.clone()) ;
+        return (byte[])(adapterId.clone()) ;
     }
 
     private byte[] computeAdapterId()
     {
-	// write out serverid, orbid, oaid
-	ByteBuffer buff = new ByteBuffer() ;
+        // write out serverid, orbid, oaid
+        ByteBuffer buff = new ByteBuffer() ;
 
-	buff.append( getServerId() ) ;
-	buff.append( orbid ) ;
+        buff.append( getServerId() ) ;
+        buff.append( orbid ) ;
 
-	buff.append( oaid.getNumLevels() ) ;
-	Iterator iter = oaid.iterator() ;
-	while (iter.hasNext()) {
-	    String comp = (String)(iter.next()) ;
-	    buff.append( comp ) ;
-	}
+        buff.append( oaid.getNumLevels() ) ;
+        Iterator iter = oaid.iterator() ;
+        while (iter.hasNext()) {
+            String comp = (String)(iter.next()) ;
+            buff.append( comp ) ;
+        }
 
-	buff.trimToSize() ;
+        buff.trimToSize() ;
 
-	return buff.toArray() ;
+        return buff.toArray() ;
     }
 
-    public ObjectKeyTemplateBase( ORB orb, int magic, int scid, int serverid, 
-	String orbid, ObjectAdapterId oaid ) 
+    public ObjectKeyTemplateBase( ORB orb, int magic, int scid, int serverid,
+        String orbid, ObjectAdapterId oaid )
     {
-	this.orb = orb ;
-	this.wrapper = IORSystemException.get( orb, 
-	    CORBALogDomains.OA_IOR ) ;
-	this.magic = magic ;
-	this.scid = scid ;
-	this.serverid = serverid ;
-	this.orbid = orbid ;
-	this.oaid = oaid ;
+        this.orb = orb ;
+        this.wrapper = IORSystemException.get( orb,
+            CORBALogDomains.OA_IOR ) ;
+        this.magic = magic ;
+        this.scid = scid ;
+        this.serverid = serverid ;
+        this.orbid = orbid ;
+        this.oaid = oaid ;
 
-	adapterId = computeAdapterId() ;
+        adapterId = computeAdapterId() ;
     }
 
-    public boolean equals( Object obj ) 
+    public boolean equals( Object obj )
     {
-	if (!(obj instanceof ObjectKeyTemplateBase))
-	    return false ;
+        if (!(obj instanceof ObjectKeyTemplateBase))
+            return false ;
 
-	ObjectKeyTemplateBase other = (ObjectKeyTemplateBase)obj ;
+        ObjectKeyTemplateBase other = (ObjectKeyTemplateBase)obj ;
 
-	return (magic == other.magic) && (scid == other.scid) && 
-	    (serverid == other.serverid) && (version.equals( other.version ) &&
-	    orbid.equals( other.orbid ) && oaid.equals( other.oaid )) ;
+        return (magic == other.magic) && (scid == other.scid) &&
+            (serverid == other.serverid) && (version.equals( other.version ) &&
+            orbid.equals( other.orbid ) && oaid.equals( other.oaid )) ;
     }
-   
+
     public int hashCode()
     {
-	int result = 17 ;
-	result = 37*result + magic ;
-	result = 37*result + scid ;
-	result = 37*result + serverid ;
-	result = 37*result + version.hashCode() ;
-	result = 37*result + orbid.hashCode() ;
-	result = 37*result + oaid.hashCode() ;
-	return result ;
+        int result = 17 ;
+        result = 37*result + magic ;
+        result = 37*result + scid ;
+        result = 37*result + serverid ;
+        result = 37*result + version.hashCode() ;
+        result = 37*result + orbid.hashCode() ;
+        result = 37*result + oaid.hashCode() ;
+        return result ;
     }
 
-    public int getSubcontractId() 
+    public int getSubcontractId()
     {
-	return scid ;
+        return scid ;
     }
 
     public int getServerId()
     {
-	return serverid ;
+        return serverid ;
     }
 
     public String getORBId()
     {
-	return orbid ;
+        return orbid ;
     }
 
     public ObjectAdapterId getObjectAdapterId()
     {
-	return oaid ;
+        return oaid ;
     }
 
-    public void write(ObjectId objectId, OutputStream os) 
+    public void write(ObjectId objectId, OutputStream os)
     {
-	writeTemplate( os ) ;
-	objectId.write( os ) ;
+        writeTemplate( os ) ;
+        objectId.write( os ) ;
     }
 
     public void write( OutputStream os )
     {
-	writeTemplate( os ) ;
+        writeTemplate( os ) ;
     }
 
     abstract protected void writeTemplate( OutputStream os ) ;
-   
+
     protected int getMagic()
     {
-	return magic ;
+        return magic ;
     }
 
     // All subclasses should set the version in their constructors.
     // Public so it can be used in a white-box test.
     public void setORBVersion( ORBVersion version )
     {
-	this.version = version ;
+        this.version = version ;
     }
 
     public ORBVersion getORBVersion()
     {
-	return version ;
+        return version ;
     }
 
-    protected byte[] readObjectKey( InputStream is ) 
+    protected byte[] readObjectKey( InputStream is )
     {
-	int len = is.read_long() ;
-	byte[] result = new byte[len] ;
-	is.read_octet_array( result, 0, len ) ;
-	return result ;
+        int len = is.read_long() ;
+        byte[] result = new byte[len] ;
+        is.read_octet_array( result, 0, len ) ;
+        return result ;
     }
 
-    public CorbaServerRequestDispatcher getServerRequestDispatcher( ORB orb, ObjectId id ) 
+    public CorbaServerRequestDispatcher getServerRequestDispatcher( ORB orb, ObjectId id )
     {
-	return orb.getRequestDispatcherRegistry().getServerRequestDispatcher( scid ) ;
+        return orb.getRequestDispatcherRegistry().getServerRequestDispatcher( scid ) ;
     }
 }

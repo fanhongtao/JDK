@@ -1,9 +1,38 @@
 /*
- * @(#)DelayQueue.java	1.14 06/04/21
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
+ */
+
 
 package java.util.concurrent;
 import java.util.concurrent.locks.*;
@@ -40,8 +69,32 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
     implements BlockingQueue<E> {
 
     private transient final ReentrantLock lock = new ReentrantLock();
-    private transient final Condition available = lock.newCondition();
     private final PriorityQueue<E> q = new PriorityQueue<E>();
+
+    /**
+     * Thread designated to wait for the element at the head of
+     * the queue.  This variant of the Leader-Follower pattern
+     * (http://www.cs.wustl.edu/~schmidt/POSA/POSA2/) serves to
+     * minimize unnecessary timed waiting.  When a thread becomes
+     * the leader, it waits only for the next delay to elapse, but
+     * other threads await indefinitely.  The leader thread must
+     * signal some other thread before returning from take() or
+     * poll(...), unless some other thread becomes leader in the
+     * interim.  Whenever the head of the queue is replaced with
+     * an element with an earlier expiration time, the leader
+     * field is invalidated by being reset to null, and some
+     * waiting thread, but not necessarily the current leader, is
+     * signalled.  So waiting threads must be prepared to acquire
+     * and lose leadership while waiting.
+     */
+    private Thread leader = null;
+
+    /**
+     * Condition signalled when a newer element becomes available
+     * at the head of the queue or a new thread may need to
+     * become leader.
+     */
+    private final Condition available = lock.newCondition();
 
     /**
      * Creates a new <tt>DelayQueue</tt> that is initially empty.
@@ -82,10 +135,11 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            E first = q.peek();
             q.offer(e);
-            if (first == null || e.compareTo(first) < 0)
-                available.signalAll();
+            if (q.peek() == e) {
+                leader = null;
+                available.signal();
+            }
             return true;
         } finally {
             lock.unlock();
@@ -131,13 +185,8 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
             E first = q.peek();
             if (first == null || first.getDelay(TimeUnit.NANOSECONDS) > 0)
                 return null;
-            else {
-                E x = q.poll();
-                assert x != null;
-                if (q.size() != 0)
-                    available.signalAll();
-                return x;
-            }
+            else
+                return q.poll();
         } finally {
             lock.unlock();
         }
@@ -156,23 +205,29 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
         try {
             for (;;) {
                 E first = q.peek();
-                if (first == null) {
+                if (first == null)
                     available.await();
-                } else {
-                    long delay =  first.getDelay(TimeUnit.NANOSECONDS);
-                    if (delay > 0) {
-                        long tl = available.awaitNanos(delay);
-                    } else {
-                        E x = q.poll();
-                        assert x != null;
-                        if (q.size() != 0)
-                            available.signalAll(); // wake up other takers
-                        return x;
-
+                else {
+                    long delay = first.getDelay(TimeUnit.NANOSECONDS);
+                    if (delay <= 0)
+                        return q.poll();
+                    else if (leader != null)
+                        available.await();
+                    else {
+                        Thread thisThread = Thread.currentThread();
+                        leader = thisThread;
+                        try {
+                            available.awaitNanos(delay);
+                        } finally {
+                            if (leader == thisThread)
+                                leader = null;
+                        }
                     }
                 }
             }
         } finally {
+            if (leader == null && q.peek() != null)
+                available.signal();
             lock.unlock();
         }
     }
@@ -201,23 +256,28 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
                         nanos = available.awaitNanos(nanos);
                 } else {
                     long delay = first.getDelay(TimeUnit.NANOSECONDS);
-                    if (delay > 0) {
-                        if (nanos <= 0)
-                            return null;
-                        if (delay > nanos)
-                            delay = nanos;
-                        long timeLeft = available.awaitNanos(delay);
-                        nanos -= delay - timeLeft;
-                    } else {
-                        E x = q.poll();
-                        assert x != null;
-                        if (q.size() != 0)
-                            available.signalAll();
-                        return x;
+                    if (delay <= 0)
+                        return q.poll();
+                    if (nanos <= 0)
+                        return null;
+                    if (nanos < delay || leader != null)
+                        nanos = available.awaitNanos(nanos);
+                    else {
+                        Thread thisThread = Thread.currentThread();
+                        leader = thisThread;
+                        try {
+                            long timeLeft = available.awaitNanos(delay);
+                            nanos -= delay - timeLeft;
+                        } finally {
+                            if (leader == thisThread)
+                                leader = null;
+                        }
                     }
                 }
             }
         } finally {
+            if (leader == null && q.peek() != null)
+                available.signal();
             lock.unlock();
         }
     }
@@ -274,8 +334,6 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
                 c.add(q.poll());
                 ++n;
             }
-            if (n > 0)
-                available.signalAll();
             return n;
         } finally {
             lock.unlock();
@@ -306,8 +364,6 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
                 c.add(q.poll());
                 ++n;
             }
-            if (n > 0)
-                available.signalAll();
             return n;
         } finally {
             lock.unlock();
@@ -426,12 +482,14 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
     /**
      * Returns an iterator over all the elements (both expired and
      * unexpired) in this queue. The iterator does not return the
-     * elements in any particular order.  The returned
-     * <tt>Iterator</tt> is a "weakly consistent" iterator that will
-     * never throw {@link ConcurrentModificationException}, and
-     * guarantees to traverse elements as they existed upon
-     * construction of the iterator, and may (but is not guaranteed
-     * to) reflect any modifications subsequent to construction.
+     * elements in any particular order.
+     *
+     * <p>The returned iterator is a "weakly consistent" iterator that
+     * will never throw {@link java.util.ConcurrentModificationException
+     * ConcurrentModificationException}, and guarantees to traverse
+     * elements as they existed upon construction of the iterator, and
+     * may (but is not guaranteed to) reflect any modifications
+     * subsequent to construction.
      *
      * @return an iterator over the elements in this queue
      */
@@ -444,8 +502,8 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
      */
     private class Itr implements Iterator<E> {
         final Object[] array; // Array of all elements
-	int cursor;           // index of next element to return;
-	int lastRet;          // index of last element, or -1 if no such
+        int cursor;           // index of next element to return;
+        int lastRet;          // index of last element, or -1 if no such
 
         Itr(Object[] array) {
             lastRet = -1;
@@ -456,6 +514,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
             return cursor < array.length;
         }
 
+        @SuppressWarnings("unchecked")
         public E next() {
             if (cursor >= array.length)
                 throw new NoSuchElementException();
@@ -465,7 +524,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
 
         public void remove() {
             if (lastRet < 0)
-		throw new IllegalStateException();
+                throw new IllegalStateException();
             Object x = array[lastRet];
             lastRet = -1;
             // Traverse underlying queue to find == element,

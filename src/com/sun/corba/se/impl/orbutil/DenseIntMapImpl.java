@@ -1,8 +1,26 @@
 /*
- * @(#)DenseIntMapImpl.java	1.5 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.orbutil ;
@@ -14,47 +32,47 @@ import java.util.ArrayList ;
  * keys in the range 0..max such that "most" of the key space is actually
  * used.
  */
-public class DenseIntMapImpl 
+public class DenseIntMapImpl
 {
     private ArrayList list = new ArrayList() ;
 
-    private void checkKey( int key ) 
+    private void checkKey( int key )
     {
-	if (key < 0)
-	    throw new IllegalArgumentException( "Key must be >= 0." ) ;
+        if (key < 0)
+            throw new IllegalArgumentException( "Key must be >= 0." ) ;
     }
 
     /** If key >= 0, return the value bound to key, or null if none.
      * Throws IllegalArgumentException if key <0.
      */
-    public Object get( int key ) 
+    public Object get( int key )
     {
-	checkKey( key ) ;
+        checkKey( key ) ;
 
-	Object result = null ;
-	if (key < list.size())
-	    result = list.get( key ) ;
+        Object result = null ;
+        if (key < list.size())
+            result = list.get( key ) ;
 
-	return result ;
+        return result ;
     }
 
     /** If key >= 0, bind value to the key.
      * Throws IllegalArgumentException if key <0.
      */
-    public void set( int key, Object value ) 
+    public void set( int key, Object value )
     {
-	checkKey( key ) ;
-	extend( key ) ;
-	list.set( key, value ) ;
+        checkKey( key ) ;
+        extend( key ) ;
+        list.set( key, value ) ;
     }
 
     private void extend( int index )
     {
-	if (index >= list.size()) {
-	    list.ensureCapacity( index + 1 ) ;
-	    int max = list.size() ;
-	    while (max++ <= index)
-		list.add( null ) ;
-	}
+        if (index >= list.size()) {
+            list.ensureCapacity( index + 1 ) ;
+            int max = list.size() ;
+            while (max++ <= index)
+                list.add( null ) ;
+        }
     }
 }

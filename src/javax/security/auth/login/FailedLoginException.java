@@ -1,20 +1,37 @@
 /*
- * @(#)FailedLoginException.java	1.16 05/11/17
+ * Copyright (c) 1998, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.security.auth.login;
 
 /**
  * Signals that user authentication failed.
- * 
+ *
  * <p> This exception is thrown by LoginModules if authentication failed.
  * For example, a <code>LoginModule</code> throws this exception if
  * the user entered an incorrect password.
  *
- * @version 1.16, 11/17/05
  */
 public class FailedLoginException extends LoginException {
 
@@ -25,7 +42,7 @@ public class FailedLoginException extends LoginException {
      * message is a String that describes this particular exception.
      */
     public FailedLoginException() {
-	super();
+        super();
     }
 
     /**
@@ -35,9 +52,9 @@ public class FailedLoginException extends LoginException {
      *
      * <p>
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public FailedLoginException(String msg) {
-	super(msg);
+        super(msg);
     }
 }

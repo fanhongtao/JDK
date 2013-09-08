@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2000 World Wide Web Consortium,
  * (Massachusetts Institute of Technology, Institut National de
  * Recherche en Informatique et en Automatique, Keio University). All
@@ -18,10 +47,9 @@ package org.w3c.dom.html;
  */
 public interface HTMLTitleElement extends HTMLElement {
     /**
-     *  The specified title as a string. 
+     *  The specified title as a string.
      */
     public String getText();
     public void setText(String text);
 
 }
-

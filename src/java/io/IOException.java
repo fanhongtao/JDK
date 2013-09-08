@@ -1,8 +1,26 @@
 /*
- * @(#)IOException.java	1.24 06/03/29
+ * Copyright (c) 1994, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -13,7 +31,6 @@ package java.io;
  * interrupted I/O operations.
  *
  * @author  unascribed
- * @version 1.24, 03/29/06
  * @see     java.io.InputStream
  * @see     java.io.OutputStream
  * @since   JDK1.0
@@ -27,7 +44,7 @@ class IOException extends Exception {
      * as its error detail message.
      */
     public IOException() {
-	super();
+        super();
     }
 
     /**
@@ -38,7 +55,7 @@ class IOException extends Exception {
      *        by the {@link #getMessage()} method)
      */
     public IOException(String message) {
-	super(message);
+        super(message);
     }
 
     /**

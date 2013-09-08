@@ -1,8 +1,26 @@
 /*
- * @(#)CacheMap.java	1.6 05/12/30
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.remote.util;
@@ -13,6 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.WeakHashMap;
 
+import com.sun.jmx.mbeanserver.Util;
+
 /**
  * <p>Like WeakHashMap, except that the keys of the <em>n</em> most
  * recently-accessed entries are kept as {@link SoftReference soft
@@ -22,7 +42,7 @@ import java.util.WeakHashMap;
  * are not referenced elsewhere.  But if memory is short, they will
  * be removed.</p>
  */
-public class CacheMap extends WeakHashMap {
+public class CacheMap<K, V> extends WeakHashMap<K, V> {
     /**
      * <p>Create a <code>CacheMap</code> that can keep up to
      * <code>nSoftReferences</code> as soft references.</p>
@@ -37,21 +57,21 @@ public class CacheMap extends WeakHashMap {
      * <code>nSoftReferences</code> is negative.
      */
     public CacheMap(int nSoftReferences) {
-	if (nSoftReferences < 0) {
-	    throw new IllegalArgumentException("nSoftReferences = " +
-					       nSoftReferences);
-	}
-	this.nSoftReferences = nSoftReferences;
+        if (nSoftReferences < 0) {
+            throw new IllegalArgumentException("nSoftReferences = " +
+                                               nSoftReferences);
+        }
+        this.nSoftReferences = nSoftReferences;
     }
 
-    public Object put(Object key, Object value) {
-	cache(key);
-	return super.put(key, value);
+    public V put(K key, V value) {
+        cache(key);
+        return super.put(key, value);
     }
 
-    public Object get(Object key) {
-	cache(key);
-	return super.get(key);
+    public V get(Object key) {
+        cache(Util.<K>cast(key));
+        return super.get(key);
     }
 
     /* We don't override remove(Object) or try to do something with
@@ -62,39 +82,40 @@ public class CacheMap extends WeakHashMap {
        they are in fact removed -- the caching is just less
        performant.  */
 
-    private void cache(Object key) {
-	Iterator it = cache.iterator();
-	while (it.hasNext()) {
-            SoftReference sref = (SoftReference) it.next();
-            Object key1 = sref.get();
-	    if (key1 == null)
+    private void cache(K key) {
+        Iterator<SoftReference<K>> it = cache.iterator();
+        while (it.hasNext()) {
+            SoftReference<K> sref = it.next();
+            K key1 = sref.get();
+            if (key1 == null)
                 it.remove();
-	    else if (key.equals(key1)) {
-		// Move this element to the head of the LRU list
-		it.remove();
-		cache.add(0, sref);
-		return;
-	    }
-	}
+            else if (key.equals(key1)) {
+                // Move this element to the head of the LRU list
+                it.remove();
+                cache.add(0, sref);
+                return;
+            }
+        }
 
-	int size = cache.size();
-	if (size == nSoftReferences) {
-	    if (size == 0)
-		return;  // degenerate case, equivalent to WeakHashMap
-	    it.remove();
-	}
+        int size = cache.size();
+        if (size == nSoftReferences) {
+            if (size == 0)
+                return;  // degenerate case, equivalent to WeakHashMap
+            it.remove();
+        }
 
-	cache.add(0, new SoftReference(key));
+        cache.add(0, new SoftReference<K>(key));
     }
 
     /* List of soft references for the most-recently referenced keys.
        The list is in most-recently-used order, i.e. the first element
        is the most-recently referenced key.  There are never more than
        nSoftReferences elements of this list.
-    
+
        If we didn't care about J2SE 1.3 compatibility, we could use
        LinkedHashSet in conjunction with a subclass of SoftReference
        whose equals and hashCode reflect the referent.  */
-    private final LinkedList/*<SoftReference>*/ cache = new LinkedList();
+    private final LinkedList<SoftReference<K>> cache =
+            new LinkedList<SoftReference<K>>();
     private final int nSoftReferences;
 }

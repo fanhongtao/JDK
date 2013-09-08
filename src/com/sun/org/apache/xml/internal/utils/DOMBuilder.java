@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,10 +53,10 @@ public class DOMBuilder
 
   /** Current node           */
   protected Node m_currentNode = null;
-  
+
   /** The root node          */
   protected Node m_root = null;
-  
+
   /** The next sibling node  */
   protected Node m_nextSibling = null;
 
@@ -73,7 +77,7 @@ public class DOMBuilder
   {
     m_doc = doc;
     m_currentNode = m_root = node;
-    
+
     if (node instanceof Element)
       m_elemStack.push(node);
   }
@@ -111,7 +115,7 @@ public class DOMBuilder
   {
     return (null != m_docFrag) ? (Node) m_docFrag : (Node) m_doc;
   }
-  
+
   /**
    * Get the root node of the DOM tree.
    */
@@ -119,7 +123,7 @@ public class DOMBuilder
   {
     return m_root;
   }
-  
+
   /**
    * Get the node currently being processed.
    *
@@ -129,21 +133,21 @@ public class DOMBuilder
   {
     return m_currentNode;
   }
-  
+
   /**
-   * Set the next sibling node, which is where the result nodes 
+   * Set the next sibling node, which is where the result nodes
    * should be inserted before.
-   * 
+   *
    * @param nextSibling the next sibling node.
    */
   public void setNextSibling(Node nextSibling)
   {
     m_nextSibling = nextSibling;
   }
-  
+
   /**
    * Return the next sibling node.
-   * 
+   *
    * @return the next sibling node.
    */
   public Node getNextSibling()
@@ -210,7 +214,7 @@ public class DOMBuilder
         if (m_doc.getDocumentElement() != null)
         {
           ok = false;
-          
+
           throw new org.xml.sax.SAXException(
             XMLMessages.createXMLMessage(
               XMLErrorResources.ER_CANT_HAVE_MORE_THAN_ONE_ROOT, null));  //"Can't have more than one root on a DOM!");
@@ -316,8 +320,8 @@ public class DOMBuilder
 
     Element elem;
 
-	// Note that the namespace-aware call must be used to correctly
-	// construct a Level 2 DOM, even for non-namespaced nodes.
+        // Note that the namespace-aware call must be used to correctly
+        // construct a Level 2 DOM, even for non-namespaced nodes.
     if ((null == ns) || (ns.length() == 0))
       elem = m_doc.createElementNS(null,name);
     else
@@ -349,7 +353,7 @@ public class DOMBuilder
           // Crimson won't let us set an xmlns: attribute on the DOM.
           String attrQName = atts.getQName(i);
 
-          // In SAX, xmlns[:] attributes have an empty namespace, while in DOM they 
+          // In SAX, xmlns[:] attributes have an empty namespace, while in DOM they
           // should have the xmlns namespace
           if (attrQName.startsWith("xmlns:") || attrQName.equals("xmlns")) {
             attrNS = "http://www.w3.org/2000/xmlns/";

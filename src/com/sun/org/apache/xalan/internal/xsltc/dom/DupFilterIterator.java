@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +30,10 @@ import com.sun.org.apache.xml.internal.dtm.ref.DTMAxisIteratorBase;
 import com.sun.org.apache.xml.internal.dtm.ref.DTMDefaultBase;
 
 /**
- * Removes duplicates and sorts a source iterator. The nodes from the 
+ * Removes duplicates and sorts a source iterator. The nodes from the
  * source are collected in an array upon calling setStartNode(). This
  * array is later sorted and duplicates are ignored in next().
- * @author G. Todd Miller 
+ * @author G. Todd Miller
  */
 public final class DupFilterIterator extends DTMAxisIteratorBase {
 
@@ -51,7 +55,7 @@ public final class DupFilterIterator extends DTMAxisIteratorBase {
     /**
      * Cardinality of _nodes array.
      */
-    private int _nodesSize = 0; 
+    private int _nodesSize = 0;
 
     /**
      * Last value returned by next().
@@ -64,92 +68,92 @@ public final class DupFilterIterator extends DTMAxisIteratorBase {
     private int _markedLastNext = END;
 
     public DupFilterIterator(DTMAxisIterator source) {
-	_source = source;
+        _source = source;
 // System.out.println("DFI source = " + source + " this = " + this);
 
-	// Cache contents of id() or key() index right away. Necessary for
-	// union expressions containing multiple calls to the same index, and
-	// correct as well since start-node is irrelevant for id()/key() exrp.
-	if (source instanceof KeyIndex) {
-	    setStartNode(DTMDefaultBase.ROOTNODE);
-	}
+        // Cache contents of id() or key() index right away. Necessary for
+        // union expressions containing multiple calls to the same index, and
+        // correct as well since start-node is irrelevant for id()/key() exrp.
+        if (source instanceof KeyIndex) {
+            setStartNode(DTMDefaultBase.ROOTNODE);
+        }
     }
-    
+
     /**
      * Set the start node for this iterator
      * @param node The start node
      * @return A reference to this node iterator
      */
     public DTMAxisIterator setStartNode(int node) {
-	if (_isRestartable) {
-	    // KeyIndex iterators are always relative to the root node, so there
-	    // is never any point in re-reading the iterator (and we SHOULD NOT).
-	    if (_source instanceof KeyIndex
+        if (_isRestartable) {
+            // KeyIndex iterators are always relative to the root node, so there
+            // is never any point in re-reading the iterator (and we SHOULD NOT).
+            if (_source instanceof KeyIndex
                     && _startNode == DTMDefaultBase.ROOTNODE) {
-		return this;
-	    }
+                return this;
+            }
 
-	    if (node != _startNode) {
-		_source.setStartNode(_startNode = node);
+            if (node != _startNode) {
+                _source.setStartNode(_startNode = node);
 
-		_nodes.clear();
-		while ((node = _source.next()) != END) {
-		    _nodes.add(node);
-		}
-		_nodes.sort();
-		_nodesSize = _nodes.cardinality();
-		_current = 0;
-		_lastNext = END;
-		resetPosition();
-	    }
-	}
-	return this;
+                _nodes.clear();
+                while ((node = _source.next()) != END) {
+                    _nodes.add(node);
+                }
+                _nodes.sort();
+                _nodesSize = _nodes.cardinality();
+                _current = 0;
+                _lastNext = END;
+                resetPosition();
+            }
+        }
+        return this;
     }
 
     public int next() {
-	while (_current < _nodesSize) {
-	    final int next = _nodes.at(_current++);
-	    if (next != _lastNext) {
-		return returnNode(_lastNext = next);
-	    }
-	}
-	return END;
+        while (_current < _nodesSize) {
+            final int next = _nodes.at(_current++);
+            if (next != _lastNext) {
+                return returnNode(_lastNext = next);
+            }
+        }
+        return END;
     }
 
     public DTMAxisIterator cloneIterator() {
-	try {
-	    final DupFilterIterator clone =
-		(DupFilterIterator) super.clone();
-	    clone._nodes = (IntegerArray) _nodes.clone();
-	    clone._source = _source.cloneIterator();
-	    clone._isRestartable = false;
-	    return clone.reset();
-	}
-	catch (CloneNotSupportedException e) {
-	    BasisLibrary.runTimeError(BasisLibrary.ITERATOR_CLONE_ERR,
-				      e.toString());
-	    return null;
-	}
+        try {
+            final DupFilterIterator clone =
+                (DupFilterIterator) super.clone();
+            clone._nodes = (IntegerArray) _nodes.clone();
+            clone._source = _source.cloneIterator();
+            clone._isRestartable = false;
+            return clone.reset();
+        }
+        catch (CloneNotSupportedException e) {
+            BasisLibrary.runTimeError(BasisLibrary.ITERATOR_CLONE_ERR,
+                                      e.toString());
+            return null;
+        }
     }
 
     public void setRestartable(boolean isRestartable) {
-	_isRestartable = isRestartable;
-	_source.setRestartable(isRestartable);
+        _isRestartable = isRestartable;
+        _source.setRestartable(isRestartable);
     }
-   
+
     public void setMark() {
-	_markedNode = _current;
+        _markedNode = _current;
         _markedLastNext = _lastNext;    // Bugzilla 25924
     }
 
     public void gotoMark() {
-	_current = _markedNode;
+        _current = _markedNode;
         _lastNext = _markedLastNext;    // Bugzilla 25924
     }
 
     public DTMAxisIterator reset() {
-	_current = 0;
-	_lastNext = END;
-	return resetPosition();
+        _current = 0;
+        _lastNext = END;
+        return resetPosition();
     }
 }

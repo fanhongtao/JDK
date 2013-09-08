@@ -1,11 +1,25 @@
 /*
- * @(#)file      ClientHandler.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.24
- * @(#)lastedit      05/11/17
+ * Copyright (c) 1999, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -17,6 +31,7 @@ package com.sun.jmx.snmp.daemon;
 // java import
 //
 import java.io.*;
+import java.util.logging.Level;
 
 // jmx import
 //
@@ -25,7 +40,7 @@ import javax.management.ObjectName;
 
 // jmx RI import
 //
-import com.sun.jmx.trace.Trace;
+import static com.sun.jmx.defaults.JmxProperties.SNMP_ADAPTOR_LOGGER;
 
 /**
  * The <CODE>ClientHandler</CODE> class is the base class of each
@@ -41,45 +56,41 @@ abstract class ClientHandler implements Runnable {
         objectName = n ;
         interruptCalled = false ;
         dbgTag = makeDebugTag() ;
-	//if (mbs == null ){
-	//thread = new Thread (this) ;
-	thread =  createThread(this);
+        //if (mbs == null ){
+        //thread = new Thread (this) ;
+        thread =  createThread(this);
 
-	//} else {
-	//thread = mbs.getThreadAllocatorSrvIf().obtainThread(objectName,this) ;
-	//}
+        //} else {
+        //thread = mbs.getThreadAllocatorSrvIf().obtainThread(objectName,this) ;
+        //}
         // Note: the thread will be started by the subclass.
     }
 
     // thread service
     Thread createThread(Runnable r) {
-	return new Thread(this);
+        return new Thread(this);
     }
 
     public void interrupt() {
-        if (isTraceOn()) {
-            trace("interrupt","start") ;
-        }
+        SNMP_ADAPTOR_LOGGER.entering(dbgTag, "interrupt");
         interruptCalled = true ;
-	if (thread != null) {
+        if (thread != null) {
             thread.interrupt() ;
-	}
-        if (isTraceOn()) {
-            trace("interrupt","end") ;
         }
+        SNMP_ADAPTOR_LOGGER.exiting(dbgTag, "interrupt");
     }
-  
-  
+
+
     public void join() {
-	if (thread != null) {
+        if (thread != null) {
         try {
             thread.join() ;
         }
         catch(InterruptedException x) {
         }
-	}
+        }
     }
-  
+
     public void run() {
 
         try {
@@ -101,13 +112,13 @@ abstract class ClientHandler implements Runnable {
             //
             adaptorServer.notifyClientHandlerDeleted(this) ;
         }
-    }  
-  
+    }
+
     //
     // The protocol-dependent part of the request
     //
-    public abstract void doRun() ;  
-  
+    public abstract void doRun() ;
+
     protected CommunicatorServer adaptorServer = null ;
     protected int requestId = -1 ;
     protected MBeanServer mbs = null ;
@@ -115,30 +126,6 @@ abstract class ClientHandler implements Runnable {
     protected Thread thread = null ;
     protected boolean interruptCalled = false ;
     protected String dbgTag = null ;
-
-    protected boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_ADAPTOR_SNMP);
-    }
-
-    protected void trace(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_ADAPTOR_SNMP, clz, func, info);
-    }
-
-    protected boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP);
-    }
-
-    protected void debug(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_ADAPTOR_SNMP, clz, func, info);
-    }
-
-    protected void trace(String func, String info) {
-        trace(dbgTag, func, info);
-    }
-
-    protected void debug(String func, String info) {
-        debug(dbgTag, func, info);
-    }
 
     protected String makeDebugTag() {
         return "ClientHandler[" + adaptorServer.getProtocol() + ":" + adaptorServer.getPort() + "][" + requestId + "]";

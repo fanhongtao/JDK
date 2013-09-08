@@ -1,14 +1,32 @@
 /*
- * @(#)CommunicationException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
 
 /**
-  * This exception is thrown when the client is 
+  * This exception is thrown when the client is
   * unable to communicate with the directory or naming service.
   * The inability to communicate with the service might be a result
   * of many factors, such as network partitioning, hardware or interface problems,
@@ -20,7 +38,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
 public class CommunicationException extends NamingException {
@@ -28,18 +45,18 @@ public class CommunicationException extends NamingException {
      * Constructs a new instance of CommunicationException using the
      * arguments supplied.
      *
-     * @param	explanation	Additional detail about this exception.
+     * @param   explanation     Additional detail about this exception.
      * @see java.lang.Throwable#getMessage
      */
     public CommunicationException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
       * Constructs a new instance of CommunicationException.
       */
     public CommunicationException() {
-	super();
+        super();
     }
 
     /**

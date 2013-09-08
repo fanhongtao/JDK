@@ -1,16 +1,33 @@
 /*
- * @(#)ImageInputStream.java	1.49 05/12/01
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.stream;
 
+import java.io.Closeable;
 import java.io.DataInput;
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.UTFDataFormatException;
 import java.nio.ByteOrder;
 
 /**
@@ -25,9 +42,8 @@ import java.nio.ByteOrder;
  * @see FileCacheImageInputStream
  * @see MemoryCacheImageInputStream
  *
- * @version 0.5
  */
-public interface ImageInputStream extends DataInput {
+public interface ImageInputStream extends DataInput, Closeable {
 
     /**
      * Sets the desired byte order for future reads of data values
@@ -189,7 +205,7 @@ public interface ImageInputStream extends DataInput {
      * @exception IOException if an I/O error occurs.
      */
     byte readByte() throws IOException;
-    
+
     /**
      * Reads a byte from the stream, and (conceptually) converts it to
      * an int, masks it with <code>0xff</code> in order to strip off
@@ -692,7 +708,7 @@ public interface ImageInputStream extends DataInput {
      *
      * <p> The bit offset is set to 0 when a stream is first
      * opened, and is reset to 0 by calls to <code>seek</code>,
-     * <code>skipBytes</code>, or any <code>read</code> or 
+     * <code>skipBytes</code>, or any <code>read</code> or
      * <code>readFully</code> method.
      *
      * @return an <code>int</code> containing the bit offset between
@@ -702,7 +718,7 @@ public interface ImageInputStream extends DataInput {
      *
      * @see #setBitOffset
      */
-    int getBitOffset() throws IOException;    
+    int getBitOffset() throws IOException;
 
     /**
      * Sets the bit offset to an integer between 0 and 7, inclusive.

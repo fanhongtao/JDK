@@ -1,15 +1,33 @@
 /*
- * @(#)AttributeSet.java	1.42 06/07/11
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
 import java.util.Enumeration;
 
 /**
- * A collection of unique attributes.  This is a read-only, 
+ * A collection of unique attributes.  This is a read-only,
  * immutable interface.  An attribute is basically a key and
  * a value assigned to the key.  The collection may represent
  * something like a style run, a logical style, etc.  These
@@ -19,12 +37,11 @@ import java.util.Enumeration;
  * Typically View implementations will respond to attribute
  * definitions and render something to represent the attributes.
  * <p>
- * Attributes can potentially resolve in a hierarchy.  If a 
+ * Attributes can potentially resolve in a hierarchy.  If a
  * key doesn't resolve locally, and a resolving parent
  * exists, the key will be resolved through the parent.
  *
  * @author  Timothy Prinzing
- * @version 1.42 07/11/06
  * @see MutableAttributeSet
  */
 public interface AttributeSet {
@@ -32,10 +49,10 @@ public interface AttributeSet {
     /**
      * This interface is the type signature that is expected
      * to be present on any attribute key that contributes to
-     * the determination of what font to use to render some 
-     * text.  This is not considered to be a closed set, the 
-     * definition can change across version of the platform and can 
-     * be amended by additional user added entries that 
+     * the determination of what font to use to render some
+     * text.  This is not considered to be a closed set, the
+     * definition can change across version of the platform and can
+     * be amended by additional user added entries that
      * correspond to logical settings that are specific to
      * some type of content.
      */
@@ -54,7 +71,7 @@ public interface AttributeSet {
      * This interface is the type signature that is expected
      * to be present on any attribute key that contributes to
      * character level presentation.  This would be any attribute
-     * that applies to a so-called <term>run</term> of 
+     * that applies to a so-called <term>run</term> of
      * style.
      */
     public interface CharacterAttribute {
@@ -96,7 +113,7 @@ public interface AttributeSet {
 
     /**
      * Returns an attribute set that is guaranteed not
-     * to change over time.  
+     * to change over time.
      *
      * @return a copy of the attribute set
      */
@@ -104,13 +121,13 @@ public interface AttributeSet {
 
     /**
      * Fetches the value of the given attribute. If the value is not found
-     * locally, the search is continued upward through the resolving 
+     * locally, the search is continued upward through the resolving
      * parent (if one exists) until the value is either
      * found or there are no more parents.  If the value is not found,
      * null is returned.
      *
      * @param key the non-null key of the attribute binding
-     * @return the value
+     * @return the value of the attribute, or {@code null} if not found
      */
     public Object getAttribute(Object key);
 

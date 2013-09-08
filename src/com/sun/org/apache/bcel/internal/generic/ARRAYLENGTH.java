@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -54,11 +58,10 @@ package com.sun.org.apache.bcel.internal.generic;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * ARRAYLENGTH -  Get length of array
  * <PRE>Stack: ..., arrayref -&gt; ..., length</PRE>
  *
- * @version $Id: ARRAYLENGTH.java,v 1.1.2.1 2005/07/31 23:44:51 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ARRAYLENGTH extends Instruction

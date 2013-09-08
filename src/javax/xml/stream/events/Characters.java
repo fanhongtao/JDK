@@ -1,7 +1,35 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream.events;
 
 /**
- * This describes the interface to Characters events. 
+ * This describes the interface to Characters events.
  * All text events get reported as Characters events.
  * Content, CData and whitespace are all reported as
  * Characters events.  IgnorableWhitespace, in most cases,
@@ -9,7 +37,7 @@ package javax.xml.stream.events;
  * content is present for the current element.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @since 1.6
  */
 public interface Characters extends XMLEvent {
@@ -19,7 +47,7 @@ public interface Characters extends XMLEvent {
   public String getData();
 
   /**
-   * Returns true if this set of Characters 
+   * Returns true if this set of Characters
    * is all whitespace.  Whitespace inside a document
    * is reported as CHARACTERS.  This method allows
    * checking of CHARACTERS events to see if they

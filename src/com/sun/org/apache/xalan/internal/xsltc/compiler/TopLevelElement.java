@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,48 +45,48 @@ class TopLevelElement extends SyntaxTreeNode {
      * Type check all the children of this node.
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	return typeCheckContents(stable);
+        return typeCheckContents(stable);
     }
 
     /**
      * Translate this node into JVM bytecodes.
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	ErrorMsg msg = new ErrorMsg(ErrorMsg.NOT_IMPLEMENTED_ERR,
-				    getClass(), this);
-	getParser().reportError(FATAL, msg);
+        ErrorMsg msg = new ErrorMsg(ErrorMsg.NOT_IMPLEMENTED_ERR,
+                                    getClass(), this);
+        getParser().reportError(FATAL, msg);
     }
-	
+
     /**
      * Translate this node into a fresh instruction list.
      * The original instruction list is saved and restored.
      */
     public InstructionList compile(ClassGenerator classGen,
-				   MethodGenerator methodGen) {
-	final InstructionList result, save = methodGen.getInstructionList();
-	methodGen.setInstructionList(result = new InstructionList());
-	translate(classGen, methodGen);
-	methodGen.setInstructionList(save);
-	return result;
+                                   MethodGenerator methodGen) {
+        final InstructionList result, save = methodGen.getInstructionList();
+        methodGen.setInstructionList(result = new InstructionList());
+        translate(classGen, methodGen);
+        methodGen.setInstructionList(save);
+        return result;
     }
 
     public void display(int indent) {
-	indent(indent);
-	Util.println("TopLevelElement");
-	displayContents(indent + IndentIncrement);
+        indent(indent);
+        Util.println("TopLevelElement");
+        displayContents(indent + IndentIncrement);
     }
-    
+
     /**
      * Add a dependency with other top-level elements like
      * variables, parameters or keys.
      */
     public void addDependency(TopLevelElement other) {
-	if (_dependencies == null) {
-	    _dependencies = new Vector();
-	}
-	if (!_dependencies.contains(other)) {
-	    _dependencies.addElement(other);
-	}
+        if (_dependencies == null) {
+            _dependencies = new Vector();
+        }
+        if (!_dependencies.contains(other)) {
+            _dependencies.addElement(other);
+        }
     }
 
     /**
@@ -90,7 +94,7 @@ class TopLevelElement extends SyntaxTreeNode {
      * like variables, parameteres or keys.
      */
     public Vector getDependencies() {
-	return _dependencies;
+        return _dependencies;
     }
 
 }

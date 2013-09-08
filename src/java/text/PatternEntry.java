@@ -1,8 +1,26 @@
 /*
- * @(#)PatternEntry.java	1.26 05/11/17
+ * Copyright (c) 1996, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -27,7 +45,6 @@ import java.lang.Character;
  * This is to be used with MergeCollation for adding patterns to an
  * existing rule table.
  * @see        MergeCollation
- * @version    1.26 11/17/05
  * @author     Mark Davis, Helena Shih
  */
 
@@ -181,18 +198,18 @@ class PatternEntry {
     static class Parser {
         private String pattern;
         private int i;
-        
+
         public Parser(String pattern) {
             this.pattern = pattern;
             this.i = 0;
         }
-        
+
         public PatternEntry next() throws ParseException {
             int newStrength = UNSET;
-            
+
             newChars.setLength(0);
             newExtension.setLength(0);
-            
+
             boolean inChars = true;
             boolean inQuote = false;
         mainLoop:
@@ -261,24 +278,24 @@ class PatternEntry {
                            i+10 : pattern.length()),
                      i);
             }
-            
+
             return new PatternEntry(newStrength, newChars, newExtension);
         }
 
         // We re-use these objects in order to improve performance
         private StringBuffer newChars = new StringBuffer();
         private StringBuffer newExtension = new StringBuffer();
-        
+
     }
-        
+
     static boolean isSpecialChar(char ch) {
         return ((ch == '\u0020') ||
-		((ch <= '\u002F') && (ch >= '\u0022')) ||
+                ((ch <= '\u002F') && (ch >= '\u0022')) ||
                 ((ch <= '\u003F') && (ch >= '\u003A')) ||
                 ((ch <= '\u0060') && (ch >= '\u005B')) ||
                 ((ch <= '\u007E') && (ch >= '\u007B')));
     }
-    
+
 
     static final int RESET = -2;
     static final int UNSET = -1;

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -233,7 +237,7 @@ public class NamespaceSupport2
      *        holding at least three members.
      * @param isAttribute A flag indicating whether this is an
      *        attribute name (true) or an element name (false).
-     * @return The supplied array holding three internalized strings 
+     * @return The supplied array holding three internalized strings
      *        representing the Namespace URI (or empty string), the
      *        local name, and the raw XML 1.0 name; or null if there
      *        is an undeclared prefix.
@@ -319,7 +323,7 @@ public class NamespaceSupport2
      *
      * <p>This method returns prefixes mapped to a specific Namespace
      * URI.  The xml: prefix will be included.  If you want only one
-     * prefix that's mapped to the Namespace URI, and you don't care 
+     * prefix that's mapped to the Namespace URI, and you don't care
      * which one you get, use the {@link #getPrefix getPrefix}
      *  method instead.</p>
      *
@@ -346,14 +350,14 @@ public class NamespaceSupport2
         //
         // **** Currently a filter. That may not be most efficient
         // when I'm done restructuring storage!
-        return new PrefixForUriEnumerator(this,uri,getPrefixes());       
+        return new PrefixForUriEnumerator(this,uri,getPrefixes());
     }
-    
+
 
     /**
      * Return an enumeration of all prefixes declared in this context.
      *
-     * <p>The empty (default) prefix will be included in this 
+     * <p>The empty (default) prefix will be included in this
      * enumeration; note that this behaviour differs from that of
      * {@link #getPrefix} and {@link #getPrefixes}.</p>
      *
@@ -374,7 +378,7 @@ public class NamespaceSupport2
 ////////////////////////////////////////////////////////////////////
 // Local classes.
 // These were _internal_ classes... but in fact they don't have to be,
-// and may be more efficient if they aren't. 
+// and may be more efficient if they aren't.
 ////////////////////////////////////////////////////////////////////
 
 /**
@@ -389,21 +393,21 @@ class PrefixForUriEnumerator implements Enumeration
     private String uri;
     private String lookahead=null;
     private NamespaceSupport2 nsup;
-     
+
     // Kluge: Since one can't do a constructor on an
     // anonymous class (as far as I know)...
     PrefixForUriEnumerator(NamespaceSupport2 nsup,String uri, Enumeration allPrefixes)
     {
-	this.nsup=nsup;
+        this.nsup=nsup;
         this.uri=uri;
         this.allPrefixes=allPrefixes;
     }
-        
+
     public boolean hasMoreElements()
     {
         if(lookahead!=null)
             return true;
-            
+
         while(allPrefixes.hasMoreElements())
             {
                 String prefix=(String)allPrefixes.nextElement();
@@ -415,7 +419,7 @@ class PrefixForUriEnumerator implements Enumeration
             }
         return false;
     }
-        
+
     public Object nextElement()
     {
         if(hasMoreElements())
@@ -441,7 +445,7 @@ final class Context2 {
     ////////////////////////////////////////////////////////////////
     // Manefest Constants
     ////////////////////////////////////////////////////////////////
-        
+
     /**
      * An empty enumeration.
      */
@@ -451,7 +455,7 @@ final class Context2 {
     ////////////////////////////////////////////////////////////////
     // Protected state.
     ////////////////////////////////////////////////////////////////
-        
+
     Hashtable prefixTable;
     Hashtable uriTable;
     Hashtable elementNameTable;
@@ -461,7 +465,7 @@ final class Context2 {
     ////////////////////////////////////////////////////////////////
     // Internal state.
     ////////////////////////////////////////////////////////////////
-        
+
     private Vector declarations = null;
     private boolean tablesDirty = false;
     private Context2 parent = null;
@@ -476,14 +480,14 @@ final class Context2 {
             {
                 prefixTable = new Hashtable();
                 uriTable = new Hashtable();
-                elementNameTable=null; 
-                attributeNameTable=null; 
+                elementNameTable=null;
+                attributeNameTable=null;
             }
         else
             setParent(parent);
     }
 
-        
+
     /**
      * @returns The child Namespace context object, or null if this
      * is the last currently on the chain.
@@ -492,7 +496,7 @@ final class Context2 {
     {
         return child;
     }
-        
+
     /**
      * @returns The parent Namespace context object, or null if this
      * is the root.
@@ -501,7 +505,7 @@ final class Context2 {
     {
         return parent;
     }
-        
+
     /**
      * (Re)set the parent of this Namespace context.
      * This is separate from the c'tor because it's re-applied
@@ -521,8 +525,8 @@ final class Context2 {
         defaultNS = parent.defaultNS;
         tablesDirty = false;
     }
-        
-        
+
+
     /**
      * Declare a Namespace prefix for this context.
      *
@@ -539,7 +543,7 @@ final class Context2 {
         if (declarations == null) {
             declarations = new Vector();
         }
-            
+
         prefix = prefix.intern();
         uri = uri.intern();
         if ("".equals(prefix)) {
@@ -571,7 +575,7 @@ final class Context2 {
     {
         String name[];
         Hashtable table;
-            
+
                                 // Select the appropriate table.
         if (isAttribute) {
             if(elementNameTable==null)
@@ -582,7 +586,7 @@ final class Context2 {
                 attributeNameTable=new Hashtable();
             table = attributeNameTable;
         }
-            
+
                                 // Start by looking in the cache, and
                                 // return immediately if the name
                                 // is already known in this content
@@ -590,13 +594,13 @@ final class Context2 {
         if (name != null) {
             return name;
         }
-            
+
                                 // We haven't seen this name in this
                                 // context before.
         name = new String[3];
         int index = qName.indexOf(':');
-            
-            
+
+
                                 // No prefix.
         if (index == -1) {
             if (isAttribute || defaultNS == null) {
@@ -607,7 +611,7 @@ final class Context2 {
             name[1] = qName.intern();
             name[2] = name[1];
         }
-            
+
                                 // Prefix
         else {
             String prefix = qName.substring(0, index);
@@ -625,20 +629,20 @@ final class Context2 {
             name[1] = local.intern();
             name[2] = qName.intern();
         }
-            
+
                                 // Save in the cache for future use.
         table.put(name[2], name);
         tablesDirty = true;
         return name;
     }
-        
+
 
     /**
      * Look up the URI associated with a prefix in this context.
      *
      * @param prefix The prefix to look up.
      * @return The associated Namespace URI, or null if none is
-     *         declared.    
+     *         declared.
      * @see org.xml.sax.helpers.NamespaceSupport2#getURI
      */
     String getURI (String prefix)
@@ -671,8 +675,8 @@ final class Context2 {
             return (String)uriTable.get(uri);
         }
     }
-        
-        
+
+
     /**
      * Return an enumeration of prefixes declared in this context.
      *
@@ -687,8 +691,8 @@ final class Context2 {
             return declarations.elements();
         }
     }
-        
-        
+
+
     /**
      * Return an enumeration of all prefixes currently in force.
      *
@@ -706,7 +710,7 @@ final class Context2 {
             return prefixTable.keys();
         }
     }
-        
+
     ////////////////////////////////////////////////////////////////
     // Internal methods.
     ////////////////////////////////////////////////////////////////
@@ -722,7 +726,7 @@ final class Context2 {
      *
      * <p> JJK: **** Alternative: each Context2 might declare
      *  _only_ its local bindings, and delegate upward if not found.</p>
-     */     
+     */
     private void copyTables ()
     {
         // Start by copying our parent's bindings
@@ -735,9 +739,9 @@ final class Context2 {
         // used in Xalan... More efficient to remove the whole
         // cache system? ****
         if(elementNameTable!=null)
-            elementNameTable=new Hashtable(); 
+            elementNameTable=new Hashtable();
         if(attributeNameTable!=null)
-            attributeNameTable=new Hashtable(); 
+            attributeNameTable=new Hashtable();
         tablesDirty = true;
     }
 

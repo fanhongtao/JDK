@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,14 +42,13 @@ import org.w3c.dom.Notation;
  * See the XML 1.0 spec, sections 4.7 and 2.6, for more info.
  * <P>
  * Level 1 of the DOM does not support editing Notation contents.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: NotationImpl.java,v 1.2.6.1 2005/08/31 12:30:32 sunithareddy Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
-public class NotationImpl 
-    extends NodeImpl 
+public class NotationImpl
+    extends NodeImpl
     implements Notation {
 
     //
@@ -54,7 +57,7 @@ public class NotationImpl
 
     /** Serialization version. */
     static final long serialVersionUID = -764632195890658402L;
-    
+
     //
     // Data
     //
@@ -77,15 +80,15 @@ public class NotationImpl
 
     /** Factory constructor. */
     public NotationImpl(CoreDocumentImpl ownerDoc, String name) {
-    	super(ownerDoc);
+        super(ownerDoc);
         this.name = name;
     }
-    
+
     //
     // Node methods
     //
 
-    /** 
+    /**
      * A short integer indicating what type of node this is. The named
      * constants for this value are defined in the org.w3c.dom.Node interface.
      */
@@ -109,27 +112,27 @@ public class NotationImpl
 
     /**
      * The Public Identifier for this Notation. If no public identifier
-     * was specified, this will be null.  
+     * was specified, this will be null.
      */
     public String getPublicId() {
 
         if (needsSyncData()) {
             synchronizeData();
         }
-    	return publicId;
+        return publicId;
 
     } // getPublicId():String
 
     /**
      * The System Identifier for this Notation. If no system identifier
-     * was specified, this will be null.  
+     * was specified, this will be null.
      */
     public String getSystemId() {
 
         if (needsSyncData()) {
             synchronizeData();
         }
-    	return systemId;
+        return systemId;
 
     } // getSystemId():String
 
@@ -137,15 +140,15 @@ public class NotationImpl
     // Public methods
     //
 
-    /** 
+    /**
      * NON-DOM: The Public Identifier for this Notation. If no public
-     * identifier was specified, this will be null.  
+     * identifier was specified, this will be null.
      */
     public void setPublicId(String id) {
 
-    	if (isReadOnly()) {
-    		throw new DOMException(
-    		DOMException.NO_MODIFICATION_ALLOWED_ERR,
+        if (isReadOnly()) {
+                throw new DOMException(
+                DOMException.NO_MODIFICATION_ALLOWED_ERR,
                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null));
         }
         if (needsSyncData()) {
@@ -155,30 +158,30 @@ public class NotationImpl
 
     } // setPublicId(String)
 
-    /** 
+    /**
      * NON-DOM: The System Identifier for this Notation. If no system
-     * identifier was specified, this will be null.  
+     * identifier was specified, this will be null.
      */
     public void setSystemId(String id) {
 
-    	if(isReadOnly()) {
-    		throw new DOMException(
-    		DOMException.NO_MODIFICATION_ALLOWED_ERR,
+        if(isReadOnly()) {
+                throw new DOMException(
+                DOMException.NO_MODIFICATION_ALLOWED_ERR,
                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null));
         }
         if (needsSyncData()) {
             synchronizeData();
         }
-    	systemId = id;
+        systemId = id;
 
     } // setSystemId(String)
-    
+
 
     /**
      * Returns the absolute base URI of this node or null if the implementation
      * wasn't able to obtain an absolute URI. Note: If the URI is malformed, a
      * null is returned.
-     * 
+     *
      * @return The absolute base URI of this node or null.
      * @since DOM Level 3
      */

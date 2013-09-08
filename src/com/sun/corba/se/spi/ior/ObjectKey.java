@@ -1,8 +1,26 @@
 /*
- * @(#)ObjectKey.java	1.11 05/11/17 
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior;
@@ -14,8 +32,8 @@ import com.sun.corba.se.spi.orb.ORB ;
 /** The full object key, which is contained in an IIOPProfile.
 * The object identifier corresponds to the information passed into
 * POA::create_reference_with_id and POA::create_reference
-* (in the POA case).  The template 
-* represents the information that is object adapter specific and 
+* (in the POA case).  The template
+* represents the information that is object adapter specific and
 * shared across multiple ObjectKey instances.
 */
 public interface ObjectKey extends Writeable
@@ -29,6 +47,6 @@ public interface ObjectKey extends Writeable
     ObjectKeyTemplate getTemplate()  ;
 
     byte[] getBytes( org.omg.CORBA.ORB orb ) ;
-    
+
     CorbaServerRequestDispatcher getServerRequestDispatcher( ORB orb ) ;
 }

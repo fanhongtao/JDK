@@ -1,8 +1,26 @@
 /*
- * @(#)AbstractTableModel.java	1.42 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.table;
@@ -10,7 +28,7 @@ package javax.swing.table;
 import javax.swing.*;
 import javax.swing.event.*;
 import java.io.Serializable;
-import java.util.EventListener; 
+import java.util.EventListener;
 
 /**
  *  This abstract class provides default implementations for most of
@@ -18,7 +36,7 @@ import java.util.EventListener;
  *  the management of listeners and provides some conveniences for generating
  *  <code>TableModelEvents</code> and dispatching them to the listeners.
  *  To create a concrete <code>TableModel</code> as a subclass of
- *  <code>AbstractTableModel</code> you need only provide implementations 
+ *  <code>AbstractTableModel</code> you need only provide implementations
  *  for the following three methods:
  *
  *  <pre>
@@ -36,7 +54,6 @@ import java.util.EventListener;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.42 11/17/05
  * @author Alan Chung
  * @author Philip Milne
  */
@@ -62,10 +79,10 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      * @return a string containing the default name of <code>column</code>
      */
     public String getColumnName(int column) {
-	String result = "";
-	for (; column >= 0; column = column / 26 - 1) {
-	    result = (char)((char)(column%26)+'A') + result;
-	}
+        String result = "";
+        for (; column >= 0; column = column / 26 - 1) {
+            result = (char)((char)(column%26)+'A') + result;
+        }
         return result;
     }
 
@@ -95,7 +112,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      *  @return the Object.class
      */
     public Class<?> getColumnClass(int columnIndex) {
-	return Object.class;
+        return Object.class;
     }
 
     /**
@@ -106,7 +123,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      *  @return false
      */
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-	return false;
+        return false;
     }
 
     /**
@@ -129,27 +146,27 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      * Adds a listener to the list that's notified each time a change
      * to the data model occurs.
      *
-     * @param	l		the TableModelListener
+     * @param   l               the TableModelListener
      */
     public void addTableModelListener(TableModelListener l) {
-	listenerList.add(TableModelListener.class, l);
+        listenerList.add(TableModelListener.class, l);
     }
 
     /**
      * Removes a listener from the list that's notified each time a
      * change to the data model occurs.
      *
-     * @param	l		the TableModelListener
+     * @param   l               the TableModelListener
      */
     public void removeTableModelListener(TableModelListener l) {
-	listenerList.remove(TableModelListener.class, l);
+        listenerList.remove(TableModelListener.class, l);
     }
 
     /**
-     * Returns an array of all the table model listeners 
+     * Returns an array of all the table model listeners
      * registered on this model.
      *
-     * @return all of this model's <code>TableModelListener</code>s 
+     * @return all of this model's <code>TableModelListener</code>s
      *         or an empty
      *         array if no table model listeners are currently registered
      *
@@ -159,8 +176,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      * @since 1.4
      */
     public TableModelListener[] getTableModelListeners() {
-        return (TableModelListener[])listenerList.getListeners(
-                TableModelListener.class);
+        return listenerList.getListeners(TableModelListener.class);
     }
 
 //
@@ -247,7 +263,7 @@ public abstract class AbstractTableModel implements TableModel, Serializable
     }
 
     /**
-     * Notifies all listeners that the value of the cell at 
+     * Notifies all listeners that the value of the cell at
      * <code>[row, column]</code> has been updated.
      *
      * @param row  row of cell which has been updated
@@ -271,15 +287,15 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      * @see EventListenerList
      */
     public void fireTableChanged(TableModelEvent e) {
-	// Guaranteed to return a non-null array
-	Object[] listeners = listenerList.getListenerList();
-	// Process the listeners last to first, notifying
-	// those that are interested in this event
-	for (int i = listeners.length-2; i>=0; i-=2) {
-	    if (listeners[i]==TableModelListener.class) {
-		((TableModelListener)listeners[i+1]).tableChanged(e);
-	    }
-	}
+        // Guaranteed to return a non-null array
+        Object[] listeners = listenerList.getListenerList();
+        // Process the listeners last to first, notifying
+        // those that are interested in this event
+        for (int i = listeners.length-2; i>=0; i-=2) {
+            if (listeners[i]==TableModelListener.class) {
+                ((TableModelListener)listeners[i+1]).tableChanged(e);
+            }
+        }
     }
 
     /**
@@ -313,12 +329,12 @@ public abstract class AbstractTableModel implements TableModel, Serializable
      * @exception ClassCastException if <code>listenerType</code>
      *          doesn't specify a class or interface that implements
      *          <code>java.util.EventListener</code>
-     * 
+     *
      * @see #getTableModelListeners
      *
      * @since 1.3
      */
-    public <T extends EventListener> T[] getListeners(Class<T> listenerType) { 
-	return listenerList.getListeners(listenerType); 
+    public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
+        return listenerList.getListeners(listenerType);
     }
 } // End of class AbstractTableModel

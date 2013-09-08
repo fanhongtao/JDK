@@ -1,8 +1,26 @@
 /*
- * @(#)IIOPPrimaryToContactInfo.java	1.5 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.transport;
@@ -25,7 +43,7 @@ import com.sun.corba.se.pept.transport.ContactInfo;
  * case of statefull session beans.
  *
  * Note: This assumes static lists of replicas (e.g., AS 8.1 EE).
- * This does NOT work well with LOCATION_FORWARD.  
+ * This does NOT work well with LOCATION_FORWARD.
  *
  * @author Harold Carr
  */
@@ -38,15 +56,15 @@ public interface IIOPPrimaryToContactInfo
 
     /**
      * @param primary - the key.
-     * @param previous - if null return true.  Otherwise, find previous in 
+     * @param previous - if null return true.  Otherwise, find previous in
      * <code>contactInfos</code> and if another <code>ContactInfo</code>
      * follows it in the list then return true.  Otherwise false.
      * @param contactInfos - the list of replicas associated with the
      * primary.
      */
     public boolean hasNext(ContactInfo primary,
-			   ContactInfo previous,
-			   List contactInfos);
+                           ContactInfo previous,
+                           List contactInfos);
 
     /**
      * @param primary - the key.
@@ -58,10 +76,9 @@ public interface IIOPPrimaryToContactInfo
      * previous to primary and return that <code>ContactInfo</code>.
      */
     public ContactInfo next(ContactInfo primary,
-			    ContactInfo previous,
-			    List contactInfos);
+                            ContactInfo previous,
+                            List contactInfos);
 
 }
 
 // End of file.
-

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -66,14 +70,13 @@ import  java.util.StringTokenizer;
 /**
  * Represents a Java class, i.e., the data structures, constant pool,
  * fields, methods and commands contained in a Java .class file.
- * See <a href="ftp://java.sun.com/docs/specs/">JVM 
+ * See <a href="ftp://java.sun.com/docs/specs/">JVM
  * specification</a> for details.
 
  * The intent of this class is to represent a parsed or otherwise existing
  * class file.  Those interested in programatically generating classes
  * should see the <a href="../generic/ClassGen.html">ClassGen</a> class.
 
- * @version $Id: JavaClass.java,v 1.2 2005/08/16 19:34:13 jeffsuttor Exp $
  * @see com.sun.org.apache.bcel.internal.generic.ClassGen
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
@@ -106,7 +109,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
    * use the default SyntheticRepository, because we
    * don't know any better.
    */
-  private transient com.sun.org.apache.bcel.internal.util.Repository repository = 
+  private transient com.sun.org.apache.bcel.internal.util.Repository repository =
     SyntheticRepository.getInstance();
 
   /**
@@ -128,17 +131,17 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
    * @param source Read from file or generated in memory?
    */
   public JavaClass(int        class_name_index,
-		   int        superclass_name_index,
-		   String     file_name,
-		   int        major,
-		   int        minor,
-		   int        access_flags,
-		   ConstantPool constant_pool,
-		   int[]      interfaces,
-		   Field[]      fields,
-		   Method[]     methods,
-		   Attribute[]  attributes,
-		   byte          source)
+                   int        superclass_name_index,
+                   String     file_name,
+                   int        major,
+                   int        minor,
+                   int        access_flags,
+                   ConstantPool constant_pool,
+                   int[]      interfaces,
+                   Field[]      fields,
+                   Method[]     methods,
+                   Attribute[]  attributes,
+                   byte          source)
   {
     if(interfaces == null) // Allowed for backward compatibility
       interfaces = new int[0];
@@ -165,17 +168,17 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
     // Get source file name if available
     for(int i=0; i < attributes.length; i++) {
       if(attributes[i] instanceof SourceFile) {
-	source_file_name = ((SourceFile)attributes[i]).getSourceFileName();
-	break;
+        source_file_name = ((SourceFile)attributes[i]).getSourceFileName();
+        break;
       }
     }
 
     /* According to the specification the following entries must be of type
-     * `ConstantClass' but we check that anyway via the 
+     * `ConstantClass' but we check that anyway via the
      * `ConstPool.getConstant' method.
      */
-    class_name = constant_pool.getConstantString(class_name_index, 
-						 Constants.CONSTANT_Class);
+    class_name = constant_pool.getConstantString(class_name_index,
+                                                 Constants.CONSTANT_Class);
     class_name = Utility.compactClassName(class_name, false);
 
     int index = class_name.lastIndexOf('.');
@@ -186,11 +189,11 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 
     if(superclass_name_index > 0) { // May be zero -> class is java.lang.Object
       superclass_name = constant_pool.getConstantString(superclass_name_index,
-							Constants.CONSTANT_Class);
+                                                        Constants.CONSTANT_Class);
       superclass_name = Utility.compactClassName(superclass_name, false);
     }
     else
-      superclass_name = "java.lang.Object";    
+      superclass_name = "java.lang.Object";
 
     interface_names = new String[interfaces.length];
     for(int i=0; i < interfaces.length; i++) {
@@ -215,21 +218,21 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
    * @param attributes Class attributes
    */
   public JavaClass(int        class_name_index,
-		   int        superclass_name_index,
-		   String     file_name,
-		   int        major,
-		   int        minor,
-		   int        access_flags,
-		   ConstantPool constant_pool,
-		   int[]      interfaces,
-		   Field[]      fields,
-		   Method[]     methods,
-		   Attribute[]  attributes) {
+                   int        superclass_name_index,
+                   String     file_name,
+                   int        major,
+                   int        minor,
+                   int        access_flags,
+                   ConstantPool constant_pool,
+                   int[]      interfaces,
+                   Field[]      fields,
+                   Method[]     methods,
+                   Attribute[]  attributes) {
     this(class_name_index, superclass_name_index, file_name, major, minor, access_flags,
-	 constant_pool, interfaces, fields, methods, attributes, HEAP);
+         constant_pool, interfaces, fields, methods, attributes, HEAP);
   }
 
-      
+
   /**
    * Called by objects that are traversing the nodes of the tree implicitely
    * defined by the contents of a Java class. I.e., the hierarchy of methods,
@@ -248,7 +251,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
       System.out.println(str);
   }
 
-  /** 
+  /**
    * Dump class to a file.
    *
    * @param file Output file
@@ -260,15 +263,15 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 
     if(parent != null) {
       File dir = new File(parent);
-      
+
       if(dir != null)
-	dir.mkdirs();
+        dir.mkdirs();
     }
 
     dump(new DataOutputStream(new FileOutputStream(file)));
   }
 
-  /** 
+  /**
    * Dump class to a file named file_name.
    *
    * @param file_name Output file name
@@ -320,7 +323,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
     file.writeShort(major);
 
     constant_pool.dump(file);
-	
+
     file.writeShort(access_flags);
     file.writeShort(class_name_index);
     file.writeShort(superclass_name_index);
@@ -340,7 +343,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
     if(attributes != null) {
       file.writeShort(attributes.length);
       for(int i=0; i < attributes.length; i++)
-	attributes[i].dump(file);
+        attributes[i].dump(file);
     }
     else
       file.writeShort(0);
@@ -361,7 +364,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
   /**
    * @return Package name.
    */
-  public String getPackageName()       { return package_name; }    
+  public String getPackageName()       { return package_name; }
 
   /**
    * @return Class name index.
@@ -378,32 +381,32 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
    * mandates for the classfile format, these fields are those specific to
    * this class, and not those of the superclass or superinterfaces.
    */
-  public Field[] getFields()         { return fields; }    
+  public Field[] getFields()         { return fields; }
 
   /**
    * @return File name of class, aka SourceFile attribute value
    */
-  public String getFileName()        { return file_name; }    
+  public String getFileName()        { return file_name; }
 
   /**
    * @return Names of implemented interfaces.
    */
-  public String[] getInterfaceNames()  { return interface_names; }    
+  public String[] getInterfaceNames()  { return interface_names; }
 
   /**
    * @return Indices in constant pool of implemented interfaces.
    */
-  public int[] getInterfaceIndices()     { return interfaces; }    
+  public int[] getInterfaceIndices()     { return interfaces; }
 
   /**
    * @return Major number of class file version.
    */
-  public int  getMajor()           { return major; }    
+  public int  getMajor()           { return major; }
 
   /**
    * @return Methods of the class.
    */
-  public Method[] getMethods()       { return methods; }    
+  public Method[] getMethods()       { return methods; }
 
   /**
    * @return A com.sun.org.apache.bcel.internal.classfile.Method corresponding to
@@ -414,9 +417,9 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
       Method method = methods[i];
 
       if(m.getName().equals(method.getName()) &&
-	 (m.getModifiers() == method.getModifiers()) &&
-	 Type.getSignature(m).equals(method.getSignature())) {
-	return method;
+         (m.getModifiers() == method.getModifiers()) &&
+         Type.getSignature(m).equals(method.getSignature())) {
+        return method;
       }
     }
 
@@ -426,27 +429,27 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
   /**
    * @return Minor number of class file version.
    */
-  public int  getMinor()           { return minor; }    
+  public int  getMinor()           { return minor; }
 
   /**
    * @return sbsolute path to file where this class was read from
    */
-  public String getSourceFileName()  { return source_file_name; }    
+  public String getSourceFileName()  { return source_file_name; }
 
   /**
    * @return Superclass name.
    */
-  public String getSuperclassName()  { return superclass_name; }    
+  public String getSuperclassName()  { return superclass_name; }
 
   /**
    * @return Class name index.
    */
-  public int getSuperclassNameIndex() { return superclass_name_index; }    
+  public int getSuperclassNameIndex() { return superclass_name_index; }
 
   static {
     // Debugging ... on/off
     String debug = null, sep = null;
-    
+
     try {
       debug = System.getProperty("JavaClass.debug");
       // Get path separator either / or \ usually
@@ -461,7 +464,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 
     if(sep != null)
       try {
-	JavaClass.sep = sep.charAt(0);
+        JavaClass.sep = sep.charAt(0);
       } catch(StringIndexOutOfBoundsException e) {} // Never reached
   }
 
@@ -470,98 +473,98 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
    */
   public void setAttributes(Attribute[] attributes) {
     this.attributes = attributes;
-  }    
+  }
 
   /**
    * @param class_name .
    */
   public void setClassName(String class_name) {
     this.class_name = class_name;
-  }    
+  }
 
   /**
    * @param class_name_index .
    */
   public void setClassNameIndex(int class_name_index) {
     this.class_name_index = class_name_index;
-  }    
+  }
 
   /**
    * @param constant_pool .
    */
   public void setConstantPool(ConstantPool constant_pool) {
     this.constant_pool = constant_pool;
-  }    
+  }
 
   /**
    * @param fields .
    */
   public void setFields(Field[] fields) {
     this.fields = fields;
-  }    
+  }
 
   /**
    * Set File name of class, aka SourceFile attribute value
    */
   public void setFileName(String file_name) {
     this.file_name = file_name;
-  }    
+  }
 
   /**
    * @param interface_names .
    */
   public void setInterfaceNames(String[] interface_names) {
     this.interface_names = interface_names;
-  }    
+  }
 
   /**
    * @param interfaces .
    */
   public void setInterfaces(int[] interfaces) {
     this.interfaces = interfaces;
-  }    
+  }
 
   /**
    * @param major .
    */
   public void setMajor(int major) {
     this.major = major;
-  }    
+  }
 
   /**
    * @param methods .
    */
   public void setMethods(Method[] methods) {
     this.methods = methods;
-  }    
+  }
 
   /**
    * @param minor .
    */
   public void setMinor(int minor) {
     this.minor = minor;
-  }    
+  }
 
   /**
    * Set absolute path to file this class was read from.
    */
   public void setSourceFileName(String source_file_name) {
     this.source_file_name = source_file_name;
-  }    
+  }
 
   /**
    * @param superclass_name .
    */
   public void setSuperclassName(String superclass_name) {
     this.superclass_name = superclass_name;
-  }    
+  }
 
   /**
    * @param superclass_name_index .
    */
   public void setSuperclassNameIndex(int superclass_name_index) {
     this.superclass_name_index = superclass_name_index;
-  }    
+  }
 
   /**
    * @return String representing class contents.
@@ -571,20 +574,20 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
     access = access.equals("")? "" : (access + " ");
 
     StringBuffer buf = new StringBuffer(access +
-					Utility.classOrInterface(access_flags) + 
-					" " +
-					class_name + " extends " +
-					Utility.compactClassName(superclass_name,
-								 false) + '\n');
+                                        Utility.classOrInterface(access_flags) +
+                                        " " +
+                                        class_name + " extends " +
+                                        Utility.compactClassName(superclass_name,
+                                                                 false) + '\n');
     int size = interfaces.length;
 
     if(size > 0) {
       buf.append("implements\t\t");
 
       for(int i=0; i < size; i++) {
-	buf.append(interface_names[i]);
-	if(i < size - 1)
-	  buf.append(", ");
+        buf.append(interface_names[i]);
+        if(i < size - 1)
+          buf.append(", ");
       }
 
       buf.append('\n');
@@ -600,23 +603,23 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
     if(attributes.length > 0) {
       buf.append("\nAttribute(s):\n");
       for(int i=0; i < attributes.length; i++)
-	buf.append(indent(attributes[i]));
+        buf.append(indent(attributes[i]));
     }
 
     if(fields.length > 0) {
       buf.append("\n" + fields.length + " fields:\n");
       for(int i=0; i < fields.length; i++)
-	buf.append("\t" + fields[i] + '\n');
+        buf.append("\t" + fields[i] + '\n');
     }
 
     if(methods.length > 0) {
       buf.append("\n" + methods.length + " methods:\n");
       for(int i=0; i < methods.length; i++)
-	buf.append("\t" + methods[i] + '\n');
+        buf.append("\t" + methods[i] + '\n');
     }
 
     return buf.toString();
-  }    
+  }
 
   private static final String indent(Object obj) {
     StringTokenizer tok = new StringTokenizer(obj.toString(), "\n");
@@ -701,7 +704,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 
     for(int i=0; i < super_classes.length; i++) {
       if(super_classes[i].equals(super_class)) {
-	return true;
+        return true;
       }
     }
 
@@ -728,7 +731,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 
     for(int i=0; i < super_interfaces.length; i++) {
       if(super_interfaces[i].equals(inter)) {
-	return true;
+        return true;
       }
     }
 
@@ -761,7 +764,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
     ClassVector vec   = new ClassVector();
 
     for(clazz = clazz.getSuperClass(); clazz != null;
-	clazz = clazz.getSuperClass())
+        clazz = clazz.getSuperClass())
     {
       vec.addElement(clazz);
     }
@@ -778,7 +781,7 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
 
     try {
       for(int i = 0; i < interfaces.length; i++) {
-	classes[i] = repository.loadClass(interfaces[i]);
+        classes[i] = repository.loadClass(interfaces[i]);
       }
     } catch(ClassNotFoundException e) {
       System.err.println(e);
@@ -794,28 +797,28 @@ public class JavaClass extends AccessFlags implements Cloneable, Node {
   public JavaClass[] getAllInterfaces() {
     ClassQueue  queue = new ClassQueue();
     ClassVector vec   = new ClassVector();
-    
+
     queue.enqueue(this);
-    
+
     while(!queue.empty()) {
       JavaClass clazz = queue.dequeue();
-      
+
       JavaClass   souper     = clazz.getSuperClass();
       JavaClass[] interfaces = clazz.getInterfaces();
-      
+
       if(clazz.isInterface()) {
-	vec.addElement(clazz);
+        vec.addElement(clazz);
       } else {
-	if(souper != null) {
-	  queue.enqueue(souper);
-	}
+        if(souper != null) {
+          queue.enqueue(souper);
+        }
       }
-      
+
       for(int i = 0; i < interfaces.length; i++) {
-	queue.enqueue(interfaces[i]);
+        queue.enqueue(interfaces[i]);
       }
     }
-	    
+
     return vec.toArray();
   }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)CDRInputStreamBase.java	1.18 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -33,9 +51,9 @@ abstract class CDRInputStreamBase extends java.io.InputStream
         this.parent = parent;
     }
 
-    public abstract void init(org.omg.CORBA.ORB orb, 
-                              ByteBuffer byteBuffer, 
-                              int size, 
+    public abstract void init(org.omg.CORBA.ORB orb,
+                              ByteBuffer byteBuffer,
+                              int size,
                               boolean littleEndian,
                               BufferManagerRead bufferManager);
 
@@ -104,7 +122,7 @@ abstract class CDRInputStreamBase extends java.io.InputStream
     public abstract void read_short_array (org.omg.CORBA.ShortSeqHolder seq, int offset, int length);
     public abstract void read_ushort_array (org.omg.CORBA.UShortSeqHolder seq, int offset, int length);
     public abstract void read_long_array (org.omg.CORBA.LongSeqHolder seq, int offset, int length);
-    public abstract void read_ulong_array (org.omg.CORBA.ULongSeqHolder seq, int offset, int length); 
+    public abstract void read_ulong_array (org.omg.CORBA.ULongSeqHolder seq, int offset, int length);
     public abstract void read_ulonglong_array (org.omg.CORBA.ULongLongSeqHolder seq, int offset, int length);
     public abstract void read_longlong_array (org.omg.CORBA.LongLongSeqHolder seq, int offset, int length);
     public abstract void read_float_array (org.omg.CORBA.FloatSeqHolder seq, int offset, int length);
@@ -118,7 +136,7 @@ abstract class CDRInputStreamBase extends java.io.InputStream
     // Right now, they'll go up to the java.io versions!
 
 //     public abstract int read(byte b[]) throws IOException;
-//     public abstract int read(byte b[], int off, int len) throws IOException 
+//     public abstract int read(byte b[], int off, int len) throws IOException
 //     public abstract long skip(long n) throws IOException;
 //     public abstract int available() throws IOException;
 //     public abstract void close() throws IOException;
@@ -148,7 +166,7 @@ abstract class CDRInputStreamBase extends java.io.InputStream
 
     // Needed by request and reply messages for GIOP versions >= 1.2 only.
     abstract void setHeaderPadding(boolean headerPadding);
-    
+
     // Needed by IIOPInputStream and other subclasses
 
     public abstract ByteBuffer getByteBuffer();

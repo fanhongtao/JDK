@@ -1,8 +1,26 @@
 /*
- * @(#)JavaFileObject.java	1.8 06/09/25
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.tools;
@@ -81,9 +99,9 @@ public interface JavaFileObject extends FileObject {
     /**
      * Checks if this file object is compatible with the specified
      * simple name and kind.  A simple name is a single identifier
-     * (not qualified) as defined in the <a
-     * href="http://java.sun.com/docs/books/jls/">Java Language
-     * Specification</a> 3rd ed., section 6.2 "Names and Identifiers".
+     * (not qualified) as defined in
+     * <cite>The Java&trade; Language Specification</cite>,
+     * section 6.2 "Names and Identifiers".
      *
      * @param simpleName a simple name of a class
      * @param kind a kind

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,57 +39,57 @@ import com.sun.org.apache.xpath.internal.operations.Variable;
 
 public class HasPositionalPredChecker extends XPathVisitor
 {
-	private boolean m_hasPositionalPred = false;
-	private int m_predDepth = 0;
-	
-	/**
-	 * Process the LocPathIterator to see if it contains variables 
-	 * or functions that may make it context dependent.
-	 * @param path LocPathIterator that is assumed to be absolute, but needs checking.
-	 * @return true if the path is confirmed to be absolute, false if it 
-	 * may contain context dependencies.
-	 */
-	public static boolean check(LocPathIterator path)
-	{
-		HasPositionalPredChecker hppc = new HasPositionalPredChecker();
-		path.callVisitors(null, hppc);
-		return hppc.m_hasPositionalPred;
-	}
-	
-	/**
-	 * Visit a function.
-	 * @param owner The owner of the expression, to which the expression can 
-	 *              be reset if rewriting takes place.
-	 * @param func The function reference object.
-	 * @return true if the sub expressions should be traversed.
-	 */
-	public boolean visitFunction(ExpressionOwner owner, Function func)
-	{
-		if((func instanceof FuncPosition) ||
-		   (func instanceof FuncLast))
-			m_hasPositionalPred = true;
-		return true;
-	}
-	
-//	/**
-//	 * Visit a variable reference.
-//	 * @param owner The owner of the expression, to which the expression can 
-//	 *              be reset if rewriting takes place.
-//	 * @param var The variable reference object.
-//	 * @return true if the sub expressions should be traversed.
-//	 */
-//	public boolean visitVariableRef(ExpressionOwner owner, Variable var)
-//	{
-//		m_hasPositionalPred = true;
-//		return true;
-//	}
-	
+        private boolean m_hasPositionalPred = false;
+        private int m_predDepth = 0;
+
+        /**
+         * Process the LocPathIterator to see if it contains variables
+         * or functions that may make it context dependent.
+         * @param path LocPathIterator that is assumed to be absolute, but needs checking.
+         * @return true if the path is confirmed to be absolute, false if it
+         * may contain context dependencies.
+         */
+        public static boolean check(LocPathIterator path)
+        {
+                HasPositionalPredChecker hppc = new HasPositionalPredChecker();
+                path.callVisitors(null, hppc);
+                return hppc.m_hasPositionalPred;
+        }
+
+        /**
+         * Visit a function.
+         * @param owner The owner of the expression, to which the expression can
+         *              be reset if rewriting takes place.
+         * @param func The function reference object.
+         * @return true if the sub expressions should be traversed.
+         */
+        public boolean visitFunction(ExpressionOwner owner, Function func)
+        {
+                if((func instanceof FuncPosition) ||
+                   (func instanceof FuncLast))
+                        m_hasPositionalPred = true;
+                return true;
+        }
+
+//      /**
+//       * Visit a variable reference.
+//       * @param owner The owner of the expression, to which the expression can
+//       *              be reset if rewriting takes place.
+//       * @param var The variable reference object.
+//       * @return true if the sub expressions should be traversed.
+//       */
+//      public boolean visitVariableRef(ExpressionOwner owner, Variable var)
+//      {
+//              m_hasPositionalPred = true;
+//              return true;
+//      }
+
   /**
-   * Visit a predicate within a location path.  Note that there isn't a 
-   * proper unique component for predicates, and that the expression will 
+   * Visit a predicate within a location path.  Note that there isn't a
+   * proper unique component for predicates, and that the expression will
    * be called also for whatever type Expression is.
-   * 
-   * @param owner The owner of the expression, to which the expression can 
+   *
+   * @param owner The owner of the expression, to which the expression can
    *              be reset if rewriting takes place.
    * @param pred The predicate object.
    * @return true if the sub expressions should be traversed.
@@ -96,7 +100,7 @@ public class HasPositionalPredChecker extends XPathVisitor
 
     if(m_predDepth == 1)
     {
-      if((pred instanceof Variable) || 
+      if((pred instanceof Variable) ||
          (pred instanceof XNumber) ||
          (pred instanceof Div) ||
          (pred instanceof Plus) ||
@@ -108,7 +112,7 @@ public class HasPositionalPredChecker extends XPathVisitor
          (pred instanceof Function))
           m_hasPositionalPred = true;
       else
-      	pred.callVisitors(owner, this);
+        pred.callVisitors(owner, this);
     }
 
     m_predDepth--;
@@ -119,4 +123,3 @@ public class HasPositionalPredChecker extends XPathVisitor
 
 
 }
-

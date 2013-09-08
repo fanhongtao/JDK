@@ -1,8 +1,26 @@
 /*
- * @(#)JMXServerErrorException.java	1.11 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -22,7 +40,6 @@ import javax.management.MBeanServer;
  *
  * @see java.rmi.ServerError
  * @since 1.5
- * @since.unbundled 1.0
  */
 public class JMXServerErrorException extends IOException {
 
@@ -38,12 +55,12 @@ public class JMXServerErrorException extends IOException {
      * connectors will never do so.
      */
     public JMXServerErrorException(String s, Error err) {
-	super(s);
-	cause = err;
+        super(s);
+        cause = err;
     }
 
     public Throwable getCause() {
-	return cause;
+        return cause;
     }
 
     /**

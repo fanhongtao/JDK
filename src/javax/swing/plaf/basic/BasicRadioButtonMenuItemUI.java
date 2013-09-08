@@ -1,10 +1,28 @@
 /*
- * @(#)BasicRadioButtonMenuItemUI.java	1.46 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package javax.swing.plaf.basic;
 
 import javax.swing.*;
@@ -16,7 +34,6 @@ import javax.swing.border.*;
 /**
  * BasicRadioButtonMenuItem implementation
  *
- * @version 1.46 11/17/05
  * @author Georges Saab
  * @author David Karlton
  */
@@ -27,9 +44,9 @@ public class BasicRadioButtonMenuItemUI extends BasicMenuItemUI
     }
 
     protected String getPropertyPrefix() {
-	return "RadioButtonMenuItem";
+        return "RadioButtonMenuItem";
     }
-    
+
     public void processMouseEvent(JMenuItem item,MouseEvent e,MenuElement path[],MenuSelectionManager manager) {
         Point p = e.getPoint();
         if(p.x >= 0 && p.x < item.getWidth() &&
@@ -49,11 +66,3 @@ public class BasicRadioButtonMenuItemUI extends BasicMenuItemUI
         }
     }
 }
-
-
-
-
-
-
-
-

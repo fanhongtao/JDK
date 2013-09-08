@@ -1,8 +1,26 @@
 /*
- * @(#)RequestDispatcherDefault.java	1.19 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.protocol ;
@@ -30,68 +48,68 @@ import com.sun.corba.se.impl.protocol.BootstrapServerRequestDispatcher ;
 public final class RequestDispatcherDefault {
     private RequestDispatcherDefault() {}
 
-    public static ClientRequestDispatcher makeClientRequestDispatcher() 
+    public static ClientRequestDispatcher makeClientRequestDispatcher()
     {
-	return new CorbaClientRequestDispatcherImpl() ;
+        return new CorbaClientRequestDispatcherImpl() ;
     }
 
-    public static CorbaServerRequestDispatcher makeServerRequestDispatcher( ORB orb ) 
+    public static CorbaServerRequestDispatcher makeServerRequestDispatcher( ORB orb )
     {
-	return new CorbaServerRequestDispatcherImpl( (com.sun.corba.se.spi.orb.ORB)orb ) ;
+        return new CorbaServerRequestDispatcherImpl( (com.sun.corba.se.spi.orb.ORB)orb ) ;
     }
 
-    public static CorbaServerRequestDispatcher makeBootstrapServerRequestDispatcher( ORB orb ) 
+    public static CorbaServerRequestDispatcher makeBootstrapServerRequestDispatcher( ORB orb )
     {
-	return new BootstrapServerRequestDispatcher( orb ) ;
+        return new BootstrapServerRequestDispatcher( orb ) ;
     }
 
-    public static CorbaServerRequestDispatcher makeINSServerRequestDispatcher( ORB orb ) 
+    public static CorbaServerRequestDispatcher makeINSServerRequestDispatcher( ORB orb )
     {
-	return new INSServerRequestDispatcher( orb ) ;
+        return new INSServerRequestDispatcher( orb ) ;
     }
 
-    public static LocalClientRequestDispatcherFactory makeMinimalServantCacheLocalClientRequestDispatcherFactory( final ORB orb ) 
+    public static LocalClientRequestDispatcherFactory makeMinimalServantCacheLocalClientRequestDispatcherFactory( final ORB orb )
     {
-	return new LocalClientRequestDispatcherFactory() {
-	    public LocalClientRequestDispatcher create( int id, IOR ior ) {
-		return new MinimalServantCacheLocalCRDImpl( orb, id, ior ) ;
-	    }
-	} ;
+        return new LocalClientRequestDispatcherFactory() {
+            public LocalClientRequestDispatcher create( int id, IOR ior ) {
+                return new MinimalServantCacheLocalCRDImpl( orb, id, ior ) ;
+            }
+        } ;
     }
 
-    public static LocalClientRequestDispatcherFactory makeInfoOnlyServantCacheLocalClientRequestDispatcherFactory( final ORB orb ) 
+    public static LocalClientRequestDispatcherFactory makeInfoOnlyServantCacheLocalClientRequestDispatcherFactory( final ORB orb )
     {
-	return new LocalClientRequestDispatcherFactory() {
-	    public LocalClientRequestDispatcher create( int id, IOR ior ) {
-		return new InfoOnlyServantCacheLocalCRDImpl( orb, id, ior ) ;
-	    }
-	} ;
+        return new LocalClientRequestDispatcherFactory() {
+            public LocalClientRequestDispatcher create( int id, IOR ior ) {
+                return new InfoOnlyServantCacheLocalCRDImpl( orb, id, ior ) ;
+            }
+        } ;
     }
 
-    public static LocalClientRequestDispatcherFactory makeFullServantCacheLocalClientRequestDispatcherFactory( final ORB orb ) 
+    public static LocalClientRequestDispatcherFactory makeFullServantCacheLocalClientRequestDispatcherFactory( final ORB orb )
     {
-	return new LocalClientRequestDispatcherFactory() {
-	    public LocalClientRequestDispatcher create( int id, IOR ior ) {
-		return new FullServantCacheLocalCRDImpl( orb, id, ior ) ;
-	    }
-	} ;
+        return new LocalClientRequestDispatcherFactory() {
+            public LocalClientRequestDispatcher create( int id, IOR ior ) {
+                return new FullServantCacheLocalCRDImpl( orb, id, ior ) ;
+            }
+        } ;
     }
 
-    public static LocalClientRequestDispatcherFactory makeJIDLLocalClientRequestDispatcherFactory( final ORB orb ) 
+    public static LocalClientRequestDispatcherFactory makeJIDLLocalClientRequestDispatcherFactory( final ORB orb )
     {
-	return new LocalClientRequestDispatcherFactory() {
-	    public LocalClientRequestDispatcher create( int id, IOR ior ) {
-		return new JIDLLocalCRDImpl( orb, id, ior ) ;
-	    }
-	} ;
+        return new LocalClientRequestDispatcherFactory() {
+            public LocalClientRequestDispatcher create( int id, IOR ior ) {
+                return new JIDLLocalCRDImpl( orb, id, ior ) ;
+            }
+        } ;
     }
 
-    public static LocalClientRequestDispatcherFactory makePOALocalClientRequestDispatcherFactory( final ORB orb ) 
+    public static LocalClientRequestDispatcherFactory makePOALocalClientRequestDispatcherFactory( final ORB orb )
     {
-	return new LocalClientRequestDispatcherFactory() {
-	    public LocalClientRequestDispatcher create( int id, IOR ior ) {
-		return new POALocalCRDImpl( orb, id, ior ) ;
-	    }
-	} ;
+        return new LocalClientRequestDispatcherFactory() {
+            public LocalClientRequestDispatcher create( int id, IOR ior ) {
+                return new POALocalCRDImpl( orb, id, ior ) ;
+            }
+        } ;
     }
 }

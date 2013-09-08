@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,10 +27,9 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParseException;
 
 /**
  * The Default XPointer error handler used by the XInclude implementation.
- * XPointer error's are thrown so that they may be caught by the XInclude 
+ * XPointer error's are thrown so that they may be caught by the XInclude
  * implementation and reported as resource errors.
  *
- * @version $Id: XPointerErrorHandler.java,v 1.1.4.1 2005/09/08 05:25:44 sunithareddy Exp $
  */
 class XPointerErrorHandler implements XMLErrorHandler {
 
@@ -41,17 +44,17 @@ class XPointerErrorHandler implements XMLErrorHandler {
     // Constructors
     //
 
-    /** 
-     * Constructs an error handler that prints error messages to 
-     * <code>System.err</code>. 
+    /**
+     * Constructs an error handler that prints error messages to
+     * <code>System.err</code>.
      */
     public XPointerErrorHandler() {
         this(new PrintWriter(System.err));
     } // <init>()
 
-    /** 
+    /**
      * Constructs an error handler that prints error messages to the
-     * specified <code>PrintWriter</code. 
+     * specified <code>PrintWriter</code.
      */
     public XPointerErrorHandler(PrintWriter out) {
         fOut = out;
@@ -71,7 +74,7 @@ class XPointerErrorHandler implements XMLErrorHandler {
     public void error(String domain, String key, XMLParseException ex)
             throws XNIException {
         printError("Error", ex);
-        //throw ex; 
+        //throw ex;
     } // error(XMLParseException)
 
     /** Fatal error. */

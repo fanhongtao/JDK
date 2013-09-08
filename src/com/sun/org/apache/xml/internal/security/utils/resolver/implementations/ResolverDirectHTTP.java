@@ -1,4 +1,7 @@
-
+/*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 /*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
@@ -16,8 +19,6 @@
  *
  */
 package com.sun.org.apache.xml.internal.security.utils.resolver.implementations;
-
-
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -60,16 +61,17 @@ import org.w3c.dom.Attr;
 public class ResolverDirectHTTP extends ResourceResolverSpi {
 
    /** {@link java.util.logging} logging facility */
-    static java.util.logging.Logger log = 
+    static java.util.logging.Logger log =
         java.util.logging.Logger.getLogger(
                             ResolverDirectHTTP.class.getName());
 
    /** Field properties[] */
-   static final String properties[] = { "http.proxy.host", "http.proxy.port",
-                                        "http.proxy.username",
-                                        "http.proxy.password",
-                                        "http.basic.username",
-                                        "http.basic.password" };
+   private static final String properties[] =
+        { "http.proxy.host", "http.proxy.port",
+          "http.proxy.username",
+          "http.proxy.password",
+          "http.basic.username",
+          "http.basic.password" };
 
    /** Field HttpProxyHost */
    private static final int HttpProxyHost = 0;
@@ -89,6 +91,9 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
    /** Field HttpProxyPass */
    private static final int HttpBasicPass = 5;
 
+   public boolean engineIsThreadSafe() {
+           return true;
+   }
    /**
     * Method resolve
     *
@@ -96,7 +101,7 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
     * @param BaseURI
     *
     * @throws ResourceResolverException
-    * @return 
+    * @return
     * $todo$ calculate the correct URI from the attribute and the BaseURI
     */
    public XMLSignatureInput engineResolve(Attr uri, String BaseURI)
@@ -115,25 +120,26 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
             useProxy = true;
          }
 
-         String oldProxySet =
-            (String) System.getProperties().get("http.proxySet");
-         String oldProxyHost =
-            (String) System.getProperties().get("http.proxyHost");
-         String oldProxyPort =
-            (String) System.getProperties().get("http.proxyPort");
+         String oldProxySet = null;
+         String oldProxyHost = null;
+         String oldProxyPort = null;
+         // switch on proxy usage
+         if (useProxy) {
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "Use of HTTP proxy enabled: " + proxyHost + ":"
+                      + proxyPort);
+            }
+            oldProxySet = System.getProperty("http.proxySet");
+            oldProxyHost = System.getProperty("http.proxyHost");
+            oldProxyPort = System.getProperty("http.proxyPort");
+            System.setProperty("http.proxySet", "true");
+            System.setProperty("http.proxyHost", proxyHost);
+            System.setProperty("http.proxyPort", proxyPort);
+         }
+
          boolean switchBackProxy = ((oldProxySet != null)
                                     && (oldProxyHost != null)
                                     && (oldProxyPort != null));
-
-         // switch on proxy usage
-         if (useProxy) {
-            if (true)
-            	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Use of HTTP proxy enabled: " + proxyHost + ":"
-                      + proxyPort);
-            System.getProperties().put("http.proxySet", "true");
-            System.getProperties().put("http.proxyHost", proxyHost);
-            System.getProperties().put("http.proxyPort", proxyPort);
-         }
 
          // calculate new URI
          URI uriNew = getNewURI(uri.getNodeValue(), BaseURI);
@@ -211,7 +217,7 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
             summarized += read;
          }
 
-         if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Fetched " + summarized + " bytes from URI "
+         log.log(java.util.logging.Level.FINE, "Fetched " + summarized + " bytes from URI "
                    + uriNew.toString());
 
          XMLSignatureInput result = new XMLSignatureInput(baos.toByteArray());
@@ -221,10 +227,10 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
          result.setMIMEType(mimeType);
 
          // switch off proxy usage
-         if (switchBackProxy) {
-            System.getProperties().put("http.proxySet", oldProxySet);
-            System.getProperties().put("http.proxyHost", oldProxyHost);
-            System.getProperties().put("http.proxyPort", oldProxyPort);
+         if (useProxy && switchBackProxy) {
+            System.setProperty("http.proxySet", oldProxySet);
+            System.setProperty("http.proxyHost", oldProxyHost);
+            System.setProperty("http.proxyPort", oldProxyPort);
          }
 
          return result;
@@ -246,7 +252,7 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
     */
    public boolean engineCanResolve(Attr uri, String BaseURI) {
       if (uri == null) {
-         if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "quick fail, uri == null");
+         log.log(java.util.logging.Level.FINE, "quick fail, uri == null");
 
          return false;
       }
@@ -254,30 +260,33 @@ public class ResolverDirectHTTP extends ResourceResolverSpi {
       String uriNodeValue = uri.getNodeValue();
 
       if (uriNodeValue.equals("") || (uriNodeValue.charAt(0)=='#')) {
-         if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "quick fail for empty URIs and local ones");
+         log.log(java.util.logging.Level.FINE, "quick fail for empty URIs and local ones");
 
          return false;
       }
 
-      if (true)
-      	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "I was asked whether I can resolve " + uriNodeValue);
+      if (log.isLoggable(java.util.logging.Level.FINE)) {
+         log.log(java.util.logging.Level.FINE, "I was asked whether I can resolve " + uriNodeValue);
+      }
 
       if ( uriNodeValue.startsWith("http:") ||
-				 BaseURI.startsWith("http:")) {
-         if (true)
-         	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "I state that I can resolve " + uriNodeValue);
+                                (BaseURI!=null && BaseURI.startsWith("http:") )) {
+         if (log.isLoggable(java.util.logging.Level.FINE)) {
+            log.log(java.util.logging.Level.FINE, "I state that I can resolve " + uriNodeValue);
+         }
 
          return true;
       }
 
-      if (true)
-      	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "I state that I can't resolve " + uriNodeValue);
+      if (log.isLoggable(java.util.logging.Level.FINE)) {
+         log.log(java.util.logging.Level.FINE, "I state that I can't resolve " + uriNodeValue);
+      }
 
       return false;
    }
 
    /**
-    * @inheritDoc 
+    * @inheritDoc
     */
    public String[] engineGetPropertyKeys() {
       return (String[]) ResolverDirectHTTP.properties.clone();

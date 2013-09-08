@@ -1,8 +1,26 @@
 /*
- * @(#)ServiceContexts.java	1.25 05/11/17
+ * Copyright (c) 1999, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.servicecontext;
@@ -43,30 +61,30 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
 public class ServiceContexts {
     private static boolean isDebugging( OutputStream os )
     {
-	ORB orb = (ORB)(os.orb()) ;
-	if (orb==null)
-	    return false ;
-	return orb.serviceContextDebugFlag ;
+        ORB orb = (ORB)(os.orb()) ;
+        if (orb==null)
+            return false ;
+        return orb.serviceContextDebugFlag ;
     }
 
     private static boolean isDebugging( InputStream is )
     {
-	ORB orb = (ORB)(is.orb()) ;
-	if (orb==null) 
-	    return false ;
-	return orb.serviceContextDebugFlag ;
+        ORB orb = (ORB)(is.orb()) ;
+        if (orb==null)
+            return false ;
+        return orb.serviceContextDebugFlag ;
     }
 
-    private void dprint( String msg ) 
+    private void dprint( String msg )
     {
-	ORBUtility.dprint( this, msg ) ;
+        ORBUtility.dprint( this, msg ) ;
     }
 
-    public static void writeNullServiceContext( OutputStream os ) 
+    public static void writeNullServiceContext( OutputStream os )
     {
-	if (isDebugging(os))
-	    ORBUtility.dprint( "ServiceContexts", "Writing null service context" ) ;
-	os.write_long( 0 ) ;
+        if (isDebugging(os))
+            ORBUtility.dprint( "ServiceContexts", "Writing null service context" ) ;
+        os.write_long( 0 ) ;
     }
 
     /**
@@ -107,27 +125,27 @@ public class ServiceContexts {
 
     public ServiceContexts( ORB orb )
     {
-	this.orb = orb ;
-	wrapper = ORBUtilSystemException.get( orb, 
-	    CORBALogDomains.RPC_PROTOCOL ) ;
+        this.orb = orb ;
+        wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_PROTOCOL ) ;
 
-	addAlignmentOnWrite = false ;
+        addAlignmentOnWrite = false ;
 
         scMap = new HashMap();
 
         // Use the GIOP version of the ORB.  Should
-        // be specified in ServiceContext.  
+        // be specified in ServiceContext.
         // See REVISIT below concerning giopVersion.
         giopVersion = orb.getORBData().getGIOPVersion();
-	codeBase = null ;
+        codeBase = null ;
     }
 
-    /** 
+    /**
      * Read the Service contexts from the input stream.
      */
     public ServiceContexts(InputStream s)
     {
-	this( (ORB)(s.orb()) ) ;
+        this( (ORB)(s.orb()) ) ;
 
         // We need to store this so that we can have access
         // to the CodeBase for unmarshaling possible
@@ -137,8 +155,8 @@ public class ServiceContexts {
 
         createMapFromInputStream(s);
 
-	// Fix for bug 4904723
-	giopVersion = ((CDRInputStream)s).getGIOPVersion();
+        // Fix for bug 4904723
+        giopVersion = ((CDRInputStream)s).getGIOPVersion();
     }
 
     /**
@@ -179,7 +197,7 @@ public class ServiceContexts {
             //
             // Note:  As of Jan 2001, no standard OMG or Sun service contexts
             // ship wchar data or are defined as using anything but GIOP 1.0 CDR.
-            EncapsInputStream eis 
+            EncapsInputStream eis
                 = new EncapsInputStream(orb,
                                         data,
                                         data.length,
@@ -187,37 +205,37 @@ public class ServiceContexts {
                                         codeBase);
             eis.consumeEndian();
 
-	    // Now the input stream passed to a ServiceContext
-	    // constructor is already the encapsulation input
-	    // stream with the endianness read off, so the
-	    // service context should just unmarshal its own
-	    // data.
-	    sc = scd.makeServiceContext(eis, giopVersion);
-	    if (sc == null)
-		throw wrapper.svcctxUnmarshalError( 
-		    CompletionStatus.COMPLETED_MAYBE);
+            // Now the input stream passed to a ServiceContext
+            // constructor is already the encapsulation input
+            // stream with the endianness read off, so the
+            // service context should just unmarshal its own
+            // data.
+            sc = scd.makeServiceContext(eis, giopVersion);
+            if (sc == null)
+                throw wrapper.svcctxUnmarshalError(
+                    CompletionStatus.COMPLETED_MAYBE);
         }
 
         return sc;
     }
 
-    public void addAlignmentPadding() 
+    public void addAlignmentPadding()
     {
-	// Make service context 12 bytes longer by adding 
-	// JAVAIDL_ALIGN_SERVICE_ID service context at end.
-	// The exact length
-	// must be >8 (minimum service context size) and 
-	// =4 mod 8, so 12 is the minimum.
-	addAlignmentOnWrite = true ;
+        // Make service context 12 bytes longer by adding
+        // JAVAIDL_ALIGN_SERVICE_ID service context at end.
+        // The exact length
+        // must be >8 (minimum service context size) and
+        // =4 mod 8, so 12 is the minimum.
+        addAlignmentOnWrite = true ;
     }
 
-    /** 
+    /**
      * Hopefully unused scid:  This should be changed to a proper
      * VMCID aligned value.  REVISIT!
      */
     private static final int JAVAIDL_ALIGN_SERVICE_ID = 0xbe1345cd ;
 
-    /** 
+    /**
      * Write the service contexts to the output stream.
      *
      * If they haven't been unmarshaled, we don't have to
@@ -225,41 +243,41 @@ public class ServiceContexts {
      */
     public void write(OutputStream os, GIOPVersion gv)
     {
-	if (isDebugging(os)) {
-	    dprint( "Writing service contexts to output stream" ) ;
-	    Utility.printStackTrace() ;
-  	}
+        if (isDebugging(os)) {
+            dprint( "Writing service contexts to output stream" ) ;
+            Utility.printStackTrace() ;
+        }
 
-	int numsc = scMap.size();
+        int numsc = scMap.size();
 
-	if (addAlignmentOnWrite) {
-	    if (isDebugging(os))
-		dprint( "Adding alignment padding" ) ;
+        if (addAlignmentOnWrite) {
+            if (isDebugging(os))
+                dprint( "Adding alignment padding" ) ;
 
-	    numsc++ ;
-	}
+            numsc++ ;
+        }
 
-	if (isDebugging(os))
-	    dprint( "Service context has " + numsc + " components"  ) ;
+        if (isDebugging(os))
+            dprint( "Service context has " + numsc + " components"  ) ;
 
-	os.write_long( numsc ) ;
+        os.write_long( numsc ) ;
 
         writeServiceContextsInOrder(os, gv);
 
-	if (addAlignmentOnWrite) {
-	    if (isDebugging(os))
-		dprint( "Writing alignment padding" ) ;
+        if (addAlignmentOnWrite) {
+            if (isDebugging(os))
+                dprint( "Writing alignment padding" ) ;
 
-	    os.write_long( JAVAIDL_ALIGN_SERVICE_ID ) ;
-	    os.write_long( 4 ) ;
-	    os.write_octet( (byte)0 ) ;
-	    os.write_octet( (byte)0 ) ;
-	    os.write_octet( (byte)0 ) ;
-	    os.write_octet( (byte)0 ) ;
-	}
+            os.write_long( JAVAIDL_ALIGN_SERVICE_ID ) ;
+            os.write_long( 4 ) ;
+            os.write_octet( (byte)0 ) ;
+            os.write_octet( (byte)0 ) ;
+            os.write_octet( (byte)0 ) ;
+            os.write_octet( (byte)0 ) ;
+        }
 
-	if (isDebugging(os))
-	    dprint( "Service context writing complete" ) ;
+        if (isDebugging(os))
+            dprint( "Service context writing complete" ) ;
     }
 
     /**
@@ -275,9 +293,9 @@ public class ServiceContexts {
 
         Object unknownExceptionInfo = scMap.remove(ueInfoId);
 
-	Iterator iter = scMap.keySet().iterator();
+        Iterator iter = scMap.keySet().iterator();
 
-	while (iter.hasNext()) {
+        while (iter.hasNext()) {
             Integer id = (Integer)iter.next();
 
             writeMapEntry(os, id, scMap.get(id), gv);
@@ -326,7 +344,7 @@ public class ServiceContexts {
     /** Add a service context to the stream, if there is not already
      * a service context in this object with the same id as sc.
      */
-    public void put( ServiceContext sc ) 
+    public void put( ServiceContext sc )
     {
         Integer id = new Integer(sc.getId());
         scMap.put(id, sc);
@@ -336,7 +354,7 @@ public class ServiceContexts {
         this.delete(new Integer(scId));
     }
 
-    public void delete(Integer id) 
+    public void delete(Integer id)
     {
         scMap.remove(id)  ;
     }
@@ -345,11 +363,11 @@ public class ServiceContexts {
         return this.get(new Integer(scId));
     }
 
-    public ServiceContext get(Integer id) 
+    public ServiceContext get(Integer id)
     {
         Object result = scMap.get(id);
-	if (result == null)
-	    return null ;
+        if (result == null)
+            return null ;
 
         // Lazy unmarshaling on first use.
         if (result instanceof byte[]) {
@@ -366,7 +384,7 @@ public class ServiceContexts {
 
     private ORB orb ;
 
-    /** 
+    /**
      * Map of all ServiceContext objects in this container.
      *
      * Keys are java.lang.Integers for service context IDs.
@@ -376,13 +394,13 @@ public class ServiceContexts {
      * This provides a mild optimization if we don't happen to
      * use a given service context, but it's main advantage is
      * that it allows us to change the order in which we
-     * unmarshal them.  We need to do the UnknownExceptionInfo service 
+     * unmarshal them.  We need to do the UnknownExceptionInfo service
      * context after the SendingContextRunTime service context so that we can
      * get the CodeBase if necessary.
      */
     private Map scMap;
 
-    /** 
+    /**
      * If true, write out a special alignment service context to force the
      * correct alignment on re-marshalling.
      */
@@ -390,5 +408,5 @@ public class ServiceContexts {
 
     private CodeBase codeBase;
     private GIOPVersion giopVersion;
-    private ORBUtilSystemException wrapper ; 
+    private ORBUtilSystemException wrapper ;
 }

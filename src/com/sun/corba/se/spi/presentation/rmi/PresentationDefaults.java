@@ -1,8 +1,26 @@
 /*
- * @(#)PresentationDefaults.java	1.7 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.presentation.rmi;
@@ -21,25 +39,24 @@ public abstract class PresentationDefaults
 
     private PresentationDefaults() {}
 
-    public synchronized static PresentationManager.StubFactoryFactory 
-	getStaticStubFactoryFactory()
+    public synchronized static PresentationManager.StubFactoryFactory
+        getStaticStubFactoryFactory()
     {
-	if (staticImpl == null)
-	    staticImpl = new StubFactoryFactoryStaticImpl( );
+        if (staticImpl == null)
+            staticImpl = new StubFactoryFactoryStaticImpl( );
 
-	return staticImpl ;
+        return staticImpl ;
     }
 
-    public static PresentationManager.StubFactoryFactory 
-	getProxyStubFactoryFactory()
+    public static PresentationManager.StubFactoryFactory
+        getProxyStubFactoryFactory()
     {
-	return new StubFactoryFactoryProxyImpl();
+        return new StubFactoryFactoryProxyImpl();
     }
 
-    public static PresentationManager.StubFactory makeStaticStubFactory( 
-	Class stubClass )
+    public static PresentationManager.StubFactory makeStaticStubFactory(
+        Class stubClass )
     {
-	return new StubFactoryStaticImpl( stubClass ) ;
+        return new StubFactoryStaticImpl( stubClass ) ;
     }
 }
-

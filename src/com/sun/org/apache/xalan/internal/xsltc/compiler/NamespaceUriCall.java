@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,14 +40,14 @@ final class NamespaceUriCall extends NameBase {
      * Handles calls with no parameter (current node is implicit parameter).
      */
     public NamespaceUriCall(QName fname) {
-	super(fname);
+        super(fname);
     }
 
     /**
      * Handles calls with one parameter (either node or node-set).
      */
     public NamespaceUriCall(QName fname, Vector arguments) {
-	super(fname, arguments);
+        super(fname, arguments);
     }
 
     /**
@@ -51,15 +55,15 @@ final class NamespaceUriCall extends NameBase {
      * on the stack
      */
     public void translate(ClassGenerator classGen,
-			  MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+                          MethodGenerator methodGen) {
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// Returns the string value for a node in the DOM
-	final int getNamespace = cpg.addInterfaceMethodref(DOM_INTF,
-							   "getNamespaceName",
-							   "(I)"+STRING_SIG);
-	super.translate(classGen, methodGen);
-	il.append(new INVOKEINTERFACE(getNamespace, 2));
+        // Returns the string value for a node in the DOM
+        final int getNamespace = cpg.addInterfaceMethodref(DOM_INTF,
+                                                           "getNamespaceName",
+                                                           "(I)"+STRING_SIG);
+        super.translate(classGen, methodGen);
+        il.append(new INVOKEINTERFACE(getNamespace, 2));
     }
 }

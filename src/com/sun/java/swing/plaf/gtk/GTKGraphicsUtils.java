@@ -1,8 +1,26 @@
 /*
- * @(#)GTKGraphicsUtils.java	1.18 06/11/30
+ * Copyright (c) 2002, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.java.swing.plaf.gtk;
 
@@ -13,12 +31,16 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 
 /**
- * @version 1.18, 11/30/06
  * @author Joshua Outwater
  */
 class GTKGraphicsUtils extends SynthGraphicsUtils {
     public void paintText(SynthContext context, Graphics g, String text,
                           int x, int y, int mnemonicIndex) {
+        if (text == null || text.length() <= 0) {
+            // We don't need to paint empty strings
+            return;
+        }
+
         if (context.getRegion() == Region.INTERNAL_FRAME_TITLE_PANE) {
             // Metacity handles painting of text on internal frame title,
             // ignore this.
@@ -48,7 +70,7 @@ class GTKGraphicsUtils extends SynthGraphicsUtils {
                 super.paintText(context, g, text, x+1, y+1, mnemonicIndex);
                 g.setColor(Color.WHITE);
             }
-            
+
             super.paintText(context, g, text, x, y, mnemonicIndex);
         }
     }
@@ -66,6 +88,11 @@ class GTKGraphicsUtils extends SynthGraphicsUtils {
      */
     public void paintText(SynthContext context, Graphics g, String text,
                           Rectangle bounds, int mnemonicIndex) {
+        if (text == null || text.length() <= 0) {
+            // We don't need to paint empty strings
+            return;
+        }
+
         Region id = context.getRegion();
         if ((id == Region.RADIO_BUTTON ||
              id == Region.CHECK_BOX ||
@@ -110,7 +137,7 @@ class GTKGraphicsUtils extends SynthGraphicsUtils {
         int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
         return((gtkState == SynthConstants.MOUSE_OVER) &&
                (id == Region.MENU ||
-                id == Region.MENU_ITEM || 
+                id == Region.MENU_ITEM ||
                 id == Region.CHECK_BOX_MENU_ITEM ||
                 id == Region.RADIO_BUTTON_MENU_ITEM));
     }

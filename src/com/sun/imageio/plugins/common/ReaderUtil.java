@@ -1,14 +1,34 @@
 /*
- * @(#)ReaderUtil.java	1.1 05/11/16
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.common;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.IOException;
+import javax.imageio.stream.ImageInputStream;
 
 /**
  * This class contains utility methods that may be useful to ImageReader
@@ -179,5 +199,18 @@ public class ReaderUtil {
                              passYStart, passHeight, passPeriodY,
                              vals, 1);
         return vals;
+    }
+
+    public static int readMultiByteInteger(ImageInputStream iis)
+        throws IOException
+    {
+        int value = iis.readByte();
+        int result = value & 0x7f;
+        while((value & 0x80) == 0x80) {
+            result <<= 7;
+            value = iis.readByte();
+            result |= (value & 0x7f);
+        }
+        return result;
     }
 }

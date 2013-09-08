@@ -1,8 +1,7 @@
 /*
- * @(#)TraceTags.java	1.18 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
 package com.sun.jmx.trace;
@@ -11,8 +10,8 @@ package com.sun.jmx.trace;
  * Defines common trace constants.
  *
  * @since 1.5
- * @since.unbundled JMX RI 1.2
  */
+@Deprecated
 public interface TraceTags {
 
     /**
@@ -55,7 +54,7 @@ public interface TraceTags {
 
     /**
      * Information type defined for all other classes.
-     */  
+     */
     public static final int INFO_MISC = 16;
 
     /**
@@ -77,10 +76,10 @@ public interface TraceTags {
      * Information type defined for for SNMP Adaptor.
      */
     public static final int INFO_ADAPTOR_SNMP = 256;
-    
+
     /**
      * Information type defined for for SNMP.
      */
     public static final int INFO_SNMP = 512;
-    
+
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)KeyPair.java	1.16 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -17,7 +35,6 @@ import java.util.*;
  * @see PublicKey
  * @see PrivateKey
  *
- * @version 1.16 05/11/17
  * @author Benjamin Renaud
  */
 
@@ -40,8 +57,8 @@ public final class KeyPair implements java.io.Serializable {
      * @param privateKey the private key.
      */
     public KeyPair(PublicKey publicKey, PrivateKey privateKey) {
-	this.publicKey = publicKey;
-	this.privateKey = privateKey;
+        this.publicKey = publicKey;
+        this.privateKey = privateKey;
     }
 
     /**
@@ -50,7 +67,7 @@ public final class KeyPair implements java.io.Serializable {
      * @return a reference to the public key.
      */
     public PublicKey getPublic() {
-	return publicKey;
+        return publicKey;
     }
 
      /**
@@ -59,6 +76,6 @@ public final class KeyPair implements java.io.Serializable {
      * @return a reference to the private key.
      */
    public PrivateKey getPrivate() {
-	return privateKey;
+        return privateKey;
     }
 }

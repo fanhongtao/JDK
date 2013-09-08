@@ -1,8 +1,26 @@
 /*
- * @(#)WriteAbortedException.java	1.21 05/11/17
+ * Copyright (c) 1996, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -10,7 +28,7 @@ package java.io;
 /**
  * Signals that one of the ObjectStreamExceptions was thrown during a
  * write operation.  Thrown during a read operation when one of the
- * ObjectStreamExceptions was thrown during a write operation.  The 
+ * ObjectStreamExceptions was thrown during a write operation.  The
  * exception that terminated the write can be found in the detail
  * field. The stream is reset to it's initial state and all references
  * to objects already deserialized are discarded.
@@ -23,7 +41,6 @@ package java.io;
  * method, as well as the aforementioned "legacy field."
  *
  * @author  unascribed
- * @version 1.21, 11/17/05
  * @since   JDK1.1
  */
 public class WriteAbortedException extends ObjectStreamException {
@@ -47,9 +64,9 @@ public class WriteAbortedException extends ObjectStreamException {
      * @param ex  Exception causing the abort.
      */
     public WriteAbortedException(String s, Exception ex) {
-	super(s);
+        super(s);
         initCause(null);  // Disallow subsequent initCause
-	detail = ex;
+        detail = ex;
     }
 
     /**
@@ -57,10 +74,10 @@ public class WriteAbortedException extends ObjectStreamException {
      * exception, if there is one.
      */
     public String getMessage() {
-	if (detail == null)
-	    return super.getMessage();
-	else
-	    return super.getMessage() + "; " + detail.toString();
+        if (detail == null)
+            return super.getMessage();
+        else
+            return super.getMessage() + "; " + detail.toString();
     }
 
     /**

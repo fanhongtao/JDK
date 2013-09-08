@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,15 +29,14 @@ import com.sun.org.apache.xerces.internal.util.MessageFormatter;
 // TODO: fix error messages in XIncludeMessages.properties
 /**
  * XIncludeMessageFormatter provides error messages for the XInclude 1.0 Candidate Recommendation
- * 
+ *
  * @author Peter McCracken, IBM
- * 
- * @version $Id: XIncludeMessageFormatter.java,v 1.3 2005/09/26 13:03:03 sunithareddy Exp $
+ *
  */
 public class XIncludeMessageFormatter implements MessageFormatter {
-    
+
     public static final String XINCLUDE_DOMAIN = "http://www.w3.org/TR/xinclude";
-    
+
      // private objects to cache the locale and resource bundle
     private Locale fLocale = null;
     private ResourceBundle fResourceBundle = null;
@@ -41,13 +44,13 @@ public class XIncludeMessageFormatter implements MessageFormatter {
     /**
      * Formats a message with the specified arguments using the given
      * locale information.
-     * 
+     *
      * @param locale    The locale of the message.
      * @param key       The message key.
      * @param arguments The message replacement text arguments. The order
      *                  of the arguments must match that of the placeholders
      *                  in the actual message.
-     * 
+     *
      * @return Returns the formatted message.
      *
      * @throws MissingResourceException Thrown if the message with the
@@ -55,7 +58,7 @@ public class XIncludeMessageFormatter implements MessageFormatter {
      */
      public String formatMessage(Locale locale, String key, Object[] arguments)
         throws MissingResourceException {
-        
+
         if (fResourceBundle == null || locale != fLocale) {
             if (locale != null) {
                 fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XIncludeMessages", locale);
@@ -65,7 +68,7 @@ public class XIncludeMessageFormatter implements MessageFormatter {
             if (fResourceBundle == null)
                 fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XIncludeMessages");
         }
-        
+
         String msg = fResourceBundle.getString(key);
         if (arguments != null) {
             try {
@@ -74,7 +77,7 @@ public class XIncludeMessageFormatter implements MessageFormatter {
                 msg = fResourceBundle.getString("FormatFailed");
                 msg += " " + fResourceBundle.getString(key);
             }
-        } 
+        }
 
         if (msg == null) {
             msg = fResourceBundle.getString("BadMessageKey");

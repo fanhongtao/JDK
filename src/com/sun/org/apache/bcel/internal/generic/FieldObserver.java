@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -58,10 +62,8 @@ package com.sun.org.apache.bcel.internal.generic;
  * Imnplement this interface if you're interested in changes to a FieldGen object
  * and register yourself with addObserver().
  *
- * @version $Id: FieldObserver.java,v 1.1.2.1 2005/07/31 23:44:42 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public interface FieldObserver {
   public void notify(FieldGen field);
 }
-

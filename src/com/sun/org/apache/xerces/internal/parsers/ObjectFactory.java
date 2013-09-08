@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,7 +41,6 @@ import java.io.InputStreamReader;
  * when bundled as part of the JDK.
  * <p>
  *
- * @version $Id: ObjectFactory.java,v 1.3 2005/09/26 13:02:56 sunithareddy Exp $
  */
 final class ObjectFactory {
 
@@ -50,7 +53,7 @@ final class ObjectFactory {
 
     /** Set to true for debugging */
     private static final boolean DEBUG = false;
-    
+
     /**
      * Default columns per line.
      */
@@ -171,7 +174,7 @@ final class ObjectFactory {
                 fLastModified = -1;
                 fXercesProperties = null;
             }
-            
+
             synchronized (ObjectFactory.class) {
                 boolean loadProperties = false;
                 FileInputStream fis = null;
@@ -515,7 +518,7 @@ final class ObjectFactory {
 
         /** Serialization version. */
         static final long serialVersionUID = -7285495612271660427L;
-        
+
         //
         // Data
         //

@@ -1,8 +1,26 @@
 /*
- * @(#)MBeanTrustPermission.java	1.17 06/04/21
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -25,17 +43,16 @@ import java.security.BasicPermission;
  * sources may be registered in the MBeanServer.
  *
  * @since 1.5
- * @since.unbundled JMX 1.2
  */
 public class MBeanTrustPermission extends BasicPermission {
 
     private static final long serialVersionUID = -2952178077029018140L;
 
     /** <p>Create a new MBeanTrustPermission with the given name.</p>
-	<p>This constructor is equivalent to
-	<code>MBeanTrustPermission(name,null)</code>.</p>
-	@param name the name of the permission. It must be
-	"register" or "*" for this permission.
+        <p>This constructor is equivalent to
+        <code>MBeanTrustPermission(name,null)</code>.</p>
+        @param name the name of the permission. It must be
+        "register" or "*" for this permission.
      *
      * @throws NullPointerException if <code>name</code> is <code>null</code>.
      * @throws IllegalArgumentException if <code>name</code> is neither
@@ -46,10 +63,10 @@ public class MBeanTrustPermission extends BasicPermission {
     }
 
     /** <p>Create a new MBeanTrustPermission with the given name.</p>
-	@param name the name of the permission. It must be
-	"register" or "*" for this permission.
-	@param actions the actions for the permission.  It must be
-	null or <code>""</code>.
+        @param name the name of the permission. It must be
+        "register" or "*" for this permission.
+        @param actions the actions for the permission.  It must be
+        null or <code>""</code>.
      *
      * @throws NullPointerException if <code>name</code> is <code>null</code>.
      * @throws IllegalArgumentException if <code>name</code> is neither
@@ -58,15 +75,15 @@ public class MBeanTrustPermission extends BasicPermission {
      */
     public MBeanTrustPermission(String name, String actions) {
         super(name, actions);
-	/* Check that actions is a null empty string */
-	if (actions != null && actions.length() > 0)
-	    throw new IllegalArgumentException("MBeanTrustPermission " +
-					       "actions must be null: " +
-					       actions);
+        /* Check that actions is a null empty string */
+        if (actions != null && actions.length() > 0)
+            throw new IllegalArgumentException("MBeanTrustPermission " +
+                                               "actions must be null: " +
+                                               actions);
 
         if (!name.equals("register") && !name.equals("*"))
             throw new IllegalArgumentException("MBeanTrustPermission: " +
-					       "Unknown target name " +
+                                               "Unknown target name " +
                                                "[" + name + "]");
     }
 }

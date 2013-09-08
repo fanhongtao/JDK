@@ -1,23 +1,49 @@
 /*
- * @(#)ProtectionDomain.java	1.47 05/11/17
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package java.security;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.WeakHashMap;
+import sun.misc.JavaSecurityProtectionDomainAccess;
+import static sun.misc.JavaSecurityProtectionDomainAccess.ProtectionDomainCache;
+import sun.misc.SharedSecrets;
 import sun.security.util.Debug;
 import sun.security.util.SecurityConstants;
+import sun.misc.JavaSecurityAccess;
+import sun.misc.SharedSecrets;
 
-/** 
+/**
  *
  *<p>
  * This ProtectionDomain class encapsulates the characteristics of a domain,
- * which encloses a set of classes whose instances are granted a set 
+ * which encloses a set of classes whose instances are granted a set
  * of permissions when being executed on behalf of a given set of Principals.
  * <p>
  * A static set of permissions can be bound to a ProtectionDomain when it is
@@ -27,14 +53,43 @@ import sun.security.util.SecurityConstants;
  * mapped to a set of permissions by the current Policy whenever a permission
  * is checked.
  * <p>
- * 
- * @version 	1.47, 11/17/05
- * @author Li Gong 
+ *
+ * @author Li Gong
  * @author Roland Schemers
  * @author Gary Ellison
  */
 
 public class ProtectionDomain {
+
+    static {
+        // Set up JavaSecurityAccess in SharedSecrets
+        SharedSecrets.setJavaSecurityAccess(
+            new JavaSecurityAccess() {
+                public <T> T doIntersectionPrivilege(
+                    PrivilegedAction<T> action,
+                    final AccessControlContext stack,
+                    final AccessControlContext context)
+                {
+                    if (action == null) {
+                        throw new NullPointerException();
+                    }
+                    return AccessController.doPrivileged(
+                        action,
+                        new AccessControlContext(
+                            stack.getContext(), context).optimize()
+                    );
+                }
+
+                public <T> T doIntersectionPrivilege(
+                    PrivilegedAction<T> action,
+                    AccessControlContext context)
+                {
+                    return doIntersectionPrivilege(action,
+                        AccessController.getContext(), context);
+                }
+            }
+       );
+    }
 
     /* CodeSource */
     private CodeSource codesource ;
@@ -55,6 +110,11 @@ public class ProtectionDomain {
        or dynamic (via a policy refresh) */
     private boolean staticPermissions;
 
+    /*
+     * An object used as a key when the ProtectionDomain is stored in a Map.
+     */
+    final Key key = new Key();
+
     private static final Debug debug = Debug.getInstance("domain");
 
     /**
@@ -68,19 +128,19 @@ public class ProtectionDomain {
      * @param permissions the permissions granted to this domain
      */
     public ProtectionDomain(CodeSource codesource,
-			    PermissionCollection permissions) {
-	this.codesource = codesource;
-	if (permissions != null) {
-	    this.permissions = permissions;
-	    this.permissions.setReadOnly();
-	    if (permissions instanceof Permissions &&
-		((Permissions)permissions).allPermission != null) {
-		hasAllPerm = true;
-	    }
-	}
-	this.classloader = null;
-	this.principals = new Principal[0];
-	staticPermissions = true;
+                            PermissionCollection permissions) {
+        this.codesource = codesource;
+        if (permissions != null) {
+            this.permissions = permissions;
+            this.permissions.setReadOnly();
+            if (permissions instanceof Permissions &&
+                ((Permissions)permissions).allPermission != null) {
+                hasAllPerm = true;
+            }
+        }
+        this.classloader = null;
+        this.principals = new Principal[0];
+        staticPermissions = true;
     }
 
     /**
@@ -95,7 +155,7 @@ public class ProtectionDomain {
      * <p>
      * This constructor is typically used by
      * {@link SecureClassLoader ClassLoaders}
-     * and {@link DomainCombiner DomainCombiners} which delegate to 
+     * and {@link DomainCombiner DomainCombiners} which delegate to
      * <code>Policy</code> to actively associate the permissions granted to
      * this domain. This constructor affords the
      * Policy provider the opportunity to augment the supplied
@@ -105,31 +165,30 @@ public class ProtectionDomain {
      * @param codesource the CodeSource associated with this domain
      * @param permissions the permissions granted to this domain
      * @param classloader the ClassLoader associated with this domain
-     * @param principals the array of Principals associated with this 
-     * domain. The contents of the array are copied to protect against 
+     * @param principals the array of Principals associated with this
+     * domain. The contents of the array are copied to protect against
      * subsequent modification.
      * @see Policy#refresh
      * @see Policy#getPermissions(ProtectionDomain)
      * @since 1.4
      */
     public ProtectionDomain(CodeSource codesource,
-			    PermissionCollection permissions,
-			    ClassLoader classloader,
-			    Principal[] principals) {
-	this.codesource = codesource;
-	if (permissions != null) {
-	    this.permissions = permissions;
-	    this.permissions.setReadOnly();
-	    if (permissions instanceof Permissions &&
-		((Permissions)permissions).allPermission != null) {
-		hasAllPerm = true;
-	    }
-	}
-	this.classloader = classloader;
-	this.principals = (principals != null ?
-			   (Principal[])principals.clone():
-			   new Principal[0]);
-	staticPermissions = false;
+                            PermissionCollection permissions,
+                            ClassLoader classloader,
+                            Principal[] principals) {
+        this.codesource = codesource;
+        if (permissions != null) {
+            this.permissions = permissions;
+            this.permissions.setReadOnly();
+            if (permissions instanceof Permissions &&
+                ((Permissions)permissions).allPermission != null) {
+                hasAllPerm = true;
+            }
+        }
+        this.classloader = classloader;
+        this.principals = (principals != null ? principals.clone():
+                           new Principal[0]);
+        staticPermissions = false;
     }
 
     /**
@@ -138,7 +197,7 @@ public class ProtectionDomain {
      * @since 1.2
      */
     public final CodeSource getCodeSource() {
-	return this.codesource;
+        return this.codesource;
     }
 
 
@@ -149,7 +208,7 @@ public class ProtectionDomain {
      * @since 1.4
      */
     public final ClassLoader getClassLoader() {
-	return this.classloader;
+        return this.classloader;
     }
 
 
@@ -161,36 +220,36 @@ public class ProtectionDomain {
      * @since 1.4
      */
     public final Principal[] getPrincipals() {
-	return (Principal[])this.principals.clone();
+        return this.principals.clone();
     }
 
-    /** 
-     * Returns the static permissions granted to this domain. 
-     * 
+    /**
+     * Returns the static permissions granted to this domain.
+     *
      * @return the static set of permissions for this domain which may be null.
      * @see Policy#refresh
      * @see Policy#getPermissions(ProtectionDomain)
      */
     public final PermissionCollection getPermissions() {
-	return permissions;
+        return permissions;
     }
 
     /**
-     * Check and see if this ProtectionDomain implies the permissions 
-     * expressed in the Permission object. 
+     * Check and see if this ProtectionDomain implies the permissions
+     * expressed in the Permission object.
      * <p>
      * The set of permissions evaluated is a function of whether the
      * ProtectionDomain was constructed with a static set of permissions
      * or it was bound to a dynamically mapped set of permissions.
      * <p>
-     * If the ProtectionDomain was constructed to a 
+     * If the ProtectionDomain was constructed to a
      * {@link #ProtectionDomain(CodeSource, PermissionCollection)
      * statically bound} PermissionCollection then the permission will
      * only be checked against the PermissionCollection supplied at
      * construction.
      * <p>
      * However, if the ProtectionDomain was constructed with
-     * the constructor variant which supports 
+     * the constructor variant which supports
      * {@link #ProtectionDomain(CodeSource, PermissionCollection,
      * ClassLoader, java.security.Principal[]) dynamically binding}
      * permissions, then the permission will be checked against the
@@ -204,52 +263,52 @@ public class ProtectionDomain {
      */
     public boolean implies(Permission permission) {
 
-	if (hasAllPerm) {
-	    // internal permission collection already has AllPermission -
-	    // no need to go to policy
-	    return true;
-	}
+        if (hasAllPerm) {
+            // internal permission collection already has AllPermission -
+            // no need to go to policy
+            return true;
+        }
 
-	if (!staticPermissions && 
-	    Policy.getPolicyNoCheck().implies(this, permission))
-	    return true;
-	if (permissions != null) 
-	    return permissions.implies(permission);
+        if (!staticPermissions &&
+            Policy.getPolicyNoCheck().implies(this, permission))
+            return true;
+        if (permissions != null)
+            return permissions.implies(permission);
 
-	return false;
+        return false;
     }
 
     /**
      * Convert a ProtectionDomain to a String.
      */
-    public String toString() {
-	String pals = "<no principals>";
-	if (principals != null && principals.length > 0) {
-	    StringBuilder palBuf = new StringBuilder("(principals ");
-	    
-	    for (int i = 0; i < principals.length; i++) {
-		palBuf.append(principals[i].getClass().getName() +
-			    " \"" + principals[i].getName() +
-			    "\"");
-		if (i < principals.length-1)
-		    palBuf.append(",\n");
-		else
-		    palBuf.append(")\n");
-	    }
-	    pals = palBuf.toString();
-	}
+    @Override public String toString() {
+        String pals = "<no principals>";
+        if (principals != null && principals.length > 0) {
+            StringBuilder palBuf = new StringBuilder("(principals ");
 
-	// Check if policy is set; we don't want to load
-	// the policy prematurely here	
-	PermissionCollection pc = Policy.isSet() && seeAllp() ?
-				      mergePermissions():
-	                              getPermissions();
+            for (int i = 0; i < principals.length; i++) {
+                palBuf.append(principals[i].getClass().getName() +
+                            " \"" + principals[i].getName() +
+                            "\"");
+                if (i < principals.length-1)
+                    palBuf.append(",\n");
+                else
+                    palBuf.append(")\n");
+            }
+            pals = palBuf.toString();
+        }
 
- 	return "ProtectionDomain "+
- 	    " "+codesource+"\n"+
- 	    " "+classloader+"\n"+
- 	    " "+pals+"\n"+
-	    " "+pc+"\n"; 
+        // Check if policy is set; we don't want to load
+        // the policy prematurely here
+        PermissionCollection pc = Policy.isSet() && seeAllp() ?
+                                      mergePermissions():
+                                      getPermissions();
+
+        return "ProtectionDomain "+
+            " "+codesource+"\n"+
+            " "+classloader+"\n"+
+            " "+pals+"\n"+
+            " "+pc+"\n";
     }
 
     /**
@@ -258,127 +317,151 @@ public class ProtectionDomain {
      * . SecurityManager is null
      *
      * . SecurityManager is not null,
-     *		debug is not null,
-     *		SecurityManager impelmentation is in bootclasspath,
-     *		Policy implementation is in bootclasspath
-     *		(the bootclasspath restrictions avoid recursion)
+     *          debug is not null,
+     *          SecurityManager impelmentation is in bootclasspath,
+     *          Policy implementation is in bootclasspath
+     *          (the bootclasspath restrictions avoid recursion)
      *
      * . SecurityManager is not null,
-     *		debug is null,
-     *		caller has Policy.getPolicy permission
+     *          debug is null,
+     *          caller has Policy.getPolicy permission
      */
     private static boolean seeAllp() {
-	SecurityManager sm = System.getSecurityManager();
+        SecurityManager sm = System.getSecurityManager();
 
-	if (sm == null) {
-	    return true;
-	} else {
-	    if (debug != null) {
-		if (sm.getClass().getClassLoader() == null &&
-		    Policy.getPolicyNoCheck().getClass().getClassLoader()
-								== null) {
-		    return true;
-		}
-	    } else {
-		try {
-		    sm.checkPermission(SecurityConstants.GET_POLICY_PERMISSION);
-		    return true;
-		} catch (SecurityException se) {
-		    // fall thru and return false
-		}
-	    }
-	}
+        if (sm == null) {
+            return true;
+        } else {
+            if (debug != null) {
+                if (sm.getClass().getClassLoader() == null &&
+                    Policy.getPolicyNoCheck().getClass().getClassLoader()
+                                                                == null) {
+                    return true;
+                }
+            } else {
+                try {
+                    sm.checkPermission(SecurityConstants.GET_POLICY_PERMISSION);
+                    return true;
+                } catch (SecurityException se) {
+                    // fall thru and return false
+                }
+            }
+        }
 
-	return false;
+        return false;
     }
 
     private PermissionCollection mergePermissions() {
-	if (staticPermissions)
-	    return permissions;
-	
-        PermissionCollection perms = (PermissionCollection)
+        if (staticPermissions)
+            return permissions;
+
+        PermissionCollection perms =
             java.security.AccessController.doPrivileged
-            (new java.security.PrivilegedAction() {
-                    public Object run() {
+            (new java.security.PrivilegedAction<PermissionCollection>() {
+                    public PermissionCollection run() {
                         Policy p = Policy.getPolicyNoCheck();
                         return p.getPermissions(ProtectionDomain.this);
                     }
                 });
-	
-	Permissions mergedPerms = new Permissions();
-	int swag = 32;
-	int vcap = 8;       
-	Enumeration e;
-	List pdVector = new ArrayList(vcap);
-	List plVector = new ArrayList(swag);
-            
-	//
-	// Build a vector of domain permissions for subsequent merge
-	if (permissions != null) {
-	    synchronized (permissions) {
-		e = permissions.elements();
-		while (e.hasMoreElements()) {
-		    Permission p = (Permission)e.nextElement();
-		    pdVector.add(p);
-		}
-	    }
-	}
 
-	//
-	// Build a vector of Policy permissions for subsequent merge
-	if (perms != null) {
-	    synchronized (perms) {
-		e = perms.elements();
-		while (e.hasMoreElements()) {
-		    plVector.add(e.nextElement());
-		    vcap++;
-		}
-	    }
-	}
+        Permissions mergedPerms = new Permissions();
+        int swag = 32;
+        int vcap = 8;
+        Enumeration<Permission> e;
+        List<Permission> pdVector = new ArrayList<>(vcap);
+        List<Permission> plVector = new ArrayList<>(swag);
 
-	if (perms != null && permissions != null) {
-	    //
-	    // Weed out the duplicates from the policy. Unless a refresh
-	    // has occured since the pd was consed this should result in
-	    // an empty vector.
-	    synchronized (permissions) {
-		e = permissions.elements();   // domain vs policy
-		while (e.hasMoreElements()) {
-		    Permission pdp = (Permission)e.nextElement();
-		    Class pdpClass = pdp.getClass();
-		    String pdpActions = pdp.getActions();
-		    String pdpName = pdp.getName();
-		    for (int i = 0; i < plVector.size(); i++) {
-			Permission pp = (Permission) plVector.get(i);
-			if (pdpClass.isInstance(pp)) {
-			    // The equals() method on some permissions
-			    // have some side effects so this manual 
-			    // comparison is sufficient.
-			    if (pdpName.equals(pp.getName()) &&
-				pdpActions.equals(pp.getActions())) {
-				plVector.remove(i);
-				break;
-			    } 
-			}
-		    }
-		}
-	    }
-	}
-                
-	if (perms !=null) {
-	    // the order of adding to merged perms and permissions
-	    // needs to preserve the bugfix 4301064
-                
-	    for (int i = plVector.size()-1; i >= 0; i--) {
-		mergedPerms.add((Permission)plVector.get(i));
-	    }
-	}
-	if (permissions != null) {
-	    for (int i = pdVector.size()-1; i >= 0; i--) {
-		mergedPerms.add((Permission)pdVector.get(i));
-	    }
-	}
+        //
+        // Build a vector of domain permissions for subsequent merge
+        if (permissions != null) {
+            synchronized (permissions) {
+                e = permissions.elements();
+                while (e.hasMoreElements()) {
+                    pdVector.add(e.nextElement());
+                }
+            }
+        }
 
-	return mergedPerms;
+        //
+        // Build a vector of Policy permissions for subsequent merge
+        if (perms != null) {
+            synchronized (perms) {
+                e = perms.elements();
+                while (e.hasMoreElements()) {
+                    plVector.add(e.nextElement());
+                    vcap++;
+                }
+            }
+        }
+
+        if (perms != null && permissions != null) {
+            //
+            // Weed out the duplicates from the policy. Unless a refresh
+            // has occured since the pd was consed this should result in
+            // an empty vector.
+            synchronized (permissions) {
+                e = permissions.elements();   // domain vs policy
+                while (e.hasMoreElements()) {
+                    Permission pdp = e.nextElement();
+                    Class pdpClass = pdp.getClass();
+                    String pdpActions = pdp.getActions();
+                    String pdpName = pdp.getName();
+                    for (int i = 0; i < plVector.size(); i++) {
+                        Permission pp = plVector.get(i);
+                        if (pdpClass.isInstance(pp)) {
+                            // The equals() method on some permissions
+                            // have some side effects so this manual
+                            // comparison is sufficient.
+                            if (pdpName.equals(pp.getName()) &&
+                                pdpActions.equals(pp.getActions())) {
+                                plVector.remove(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (perms !=null) {
+            // the order of adding to merged perms and permissions
+            // needs to preserve the bugfix 4301064
+
+            for (int i = plVector.size()-1; i >= 0; i--) {
+                mergedPerms.add(plVector.get(i));
+            }
+        }
+        if (permissions != null) {
+            for (int i = pdVector.size()-1; i >= 0; i--) {
+                mergedPerms.add(pdVector.get(i));
+            }
+        }
+
+        return mergedPerms;
+    }
+
+    /**
+     * Used for storing ProtectionDomains as keys in a Map.
+     */
+    final class Key {}
+
+    static {
+        SharedSecrets.setJavaSecurityProtectionDomainAccess(
+            new JavaSecurityProtectionDomainAccess() {
+                public ProtectionDomainCache getProtectionDomainCache() {
+                    return new ProtectionDomainCache() {
+                        private final Map<Key, PermissionCollection> map =
+                            Collections.synchronizedMap
+                                (new WeakHashMap<Key, PermissionCollection>());
+                        public void put(ProtectionDomain pd,
+                            PermissionCollection pc) {
+                            map.put((pd == null ? null : pd.key), pc);
+                        }
+                        public PermissionCollection get(ProtectionDomain pd) {
+                            return pd == null ? map.get(null) : map.get(pd.key);
+                        }
+                    };
+                }
+            });
     }
 }

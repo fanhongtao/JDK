@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,10 +71,10 @@ final class DocumentCall extends FunctionCall {
             throw new TypeCheckError(msg);
         }
 
-        // Parse the first argument 
+        // Parse the first argument
         _arg1 = argument(0);
 
-        if (_arg1 == null) {// should not happened 
+        if (_arg1 == null) {// should not happened
             ErrorMsg msg = new ErrorMsg(ErrorMsg.DOCUMENT_ARG_ERR, this);
             throw new TypeCheckError(msg);
         }
@@ -80,11 +84,11 @@ final class DocumentCall extends FunctionCall {
             _arg1 = new CastExpr(_arg1, Type.String);
         }
 
-        // Parse the second argument 
+        // Parse the second argument
         if (ac == 2) {
             _arg2 = argument(1);
 
-            if (_arg2 == null) {// should not happened 
+            if (_arg2 == null) {// should not happened
                 ErrorMsg msg = new ErrorMsg(ErrorMsg.DOCUMENT_ARG_ERR, this);
                 throw new TypeCheckError(msg);
             }
@@ -103,7 +107,7 @@ final class DocumentCall extends FunctionCall {
 
         return _type = Type.NodeSet;
     }
-    
+
     /**
      * Translates the document() function call to a call to LoadDocument()'s
      * static method document().
@@ -116,7 +120,7 @@ final class DocumentCall extends FunctionCall {
         final int domField = cpg.addFieldref(classGen.getClassName(),
                                              DOM_FIELD,
                                              DOM_INTF_SIG);
-          
+
         String docParamList = null;
         if (ac == 1) {
            // documentF(Object,String,AbstractTranslet,DOM)
@@ -125,7 +129,7 @@ final class DocumentCall extends FunctionCall {
         } else { //ac == 2; ac < 1 or as >2  was tested in typeChec()
            // documentF(Object,DTMAxisIterator,String,AbstractTranslet,DOM)
            docParamList = "("+OBJECT_SIG+NODE_ITERATOR_SIG+STRING_SIG
-                         +TRANSLET_SIG+DOM_INTF_SIG+")"+NODE_ITERATOR_SIG;  
+                         +TRANSLET_SIG+DOM_INTF_SIG+")"+NODE_ITERATOR_SIG;
         }
         final int docIdx = cpg.addMethodref(LOAD_DOCUMENT_CLASS, "documentF",
                                             docParamList);
@@ -140,9 +144,9 @@ final class DocumentCall extends FunctionCall {
         if (ac == 2) {
             //_arg2 == null was tested in typeChec()
             _arg2.translate(classGen, methodGen);
-            _arg2.startIterator(classGen, methodGen);       
+            _arg2.startIterator(classGen, methodGen);
         }
-    
+
         // Feck the rest of the parameters on the stack
         il.append(new PUSH(cpg, getStylesheet().getSystemId()));
         il.append(classGen.loadTranslet());

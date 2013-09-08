@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2004, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // Locator2.java - extended Locator
 // http://www.saxproject.org
 // Public Domain: no warranty.
@@ -9,7 +34,7 @@ import org.xml.sax.Locator;
 
 
 /**
- * SAX2 extension to augment the entity information provided 
+ * SAX2 extension to augment the entity information provided
  * though a {@link Locator}.
  * If an implementation supports this extension, the Locator
  * provided in {@link org.xml.sax.ContentHandler#setDocumentLocator
@@ -28,7 +53,6 @@ import org.xml.sax.Locator;
  *
  * @since SAX 2.0 (extensions 1.1 alpha)
  * @author David Brownell
- * @version TBS
  */
 public interface Locator2 extends Locator
 {

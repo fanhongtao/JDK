@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +34,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
  * @author Elena Litani
  * @author Gopal Sharma, SUN Microsystem Inc.
  *
- * @version $Id: YearDV.java,v 1.2.6.1 2005/09/06 11:43:10 neerajbj Exp $
+ * @version $Id: YearDV.java,v 1.7 2010-11-01 04:39:47 joehw Exp $
  */
 
 public class YearDV extends AbstractDateTimeDV {
@@ -67,6 +71,15 @@ public class YearDV extends AbstractDateTimeDV {
             start = 1;
         }
         int sign = findUTCSign(str, start, len);
+
+        final int length = ((sign == -1) ? len : sign) - start;
+        if (length < 4) {
+            throw new RuntimeException("Year must have 'CCYY' format");
+        }
+        else if (length > 4 && str.charAt(start) == '0') {
+            throw new RuntimeException("Leading zeros are required if the year value would otherwise have fewer than four digits; otherwise they are forbidden");
+        }
+
         if (sign == -1) {
             date.year=parseIntYear(str, len);
         }
@@ -84,7 +97,7 @@ public class YearDV extends AbstractDateTimeDV {
 
         //save unnormalized values
         saveUnnormalized(date);
-        
+
         if ( date.utc!=0 && date.utc!='Z' ) {
             normalize(date);
         }
@@ -104,10 +117,12 @@ public class YearDV extends AbstractDateTimeDV {
         append(message, (char)date.utc, 0);
         return message.toString();
     }
-    
+
     protected XMLGregorianCalendar getXMLGregorianCalendar(DateTimeData date) {
-        return factory.newXMLGregorianCalendar(date.unNormYear, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED
-                , DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, date.timezoneHr * 60 + date.timezoneMin);
+        return datatypeFactory.newXMLGregorianCalendar(date.unNormYear, DatatypeConstants.FIELD_UNDEFINED,
+                DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED,
+                DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED,
+                date.hasTimeZone() ? date.timezoneHr * 60 + date.timezoneMin : DatatypeConstants.FIELD_UNDEFINED);
     }
 }
 

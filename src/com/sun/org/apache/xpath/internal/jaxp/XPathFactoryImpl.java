@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +33,7 @@ import javax.xml.xpath.XPathVariableResolver;
 /**
  * The XPathFactory builds XPaths.
  *
- * @version $Revision: 1.2 $
+ * @version $Revision: 1.9 $
  * @author  Ramesh Mandava
  */
 public  class XPathFactoryImpl extends XPathFactory {
@@ -52,7 +56,20 @@ public  class XPathFactoryImpl extends XPathFactory {
 	/**
 	 * <p>State of secure processing feature.</p>
 	 */
-	private boolean featureSecureProcessing = false;
+	private boolean _isNotSecureProcessing = true;
+        /**
+         * <p>State of secure mode.</p>
+         */
+        private boolean _isSecureMode = false;
+        /**
+         * javax.xml.xpath.XPathFactory implementation.
+         */
+        public XPathFactoryImpl() {
+            if (System.getSecurityManager() != null) {
+                _isSecureMode = true;
+                _isNotSecureProcessing = false;
+            }
+        }
 		
 	/**
 	 * <p>Is specified object model supported by this 
@@ -102,7 +119,7 @@ public  class XPathFactoryImpl extends XPathFactory {
 	public javax.xml.xpath.XPath newXPath() {
 	    return new com.sun.org.apache.xpath.internal.jaxp.XPathImpl(
                     xPathVariableResolver, xPathFunctionResolver,
-                    featureSecureProcessing );
+                    !_isNotSecureProcessing );
 	}
 	    
 	/**
@@ -144,8 +161,14 @@ public  class XPathFactoryImpl extends XPathFactory {
 		
             // secure processing?
             if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
+                if ((_isSecureMode) && (!value)) {
+                    String fmsg = XSLMessages.createXPATHMessage(
+                            XPATHErrorResources.ER_SECUREPROCESSING_FEATURE,
+                            new Object[] { name, CLASS_NAME, new Boolean(value) } );
+                    throw new XPathFactoryConfigurationException( fmsg );
+                }
 
-                featureSecureProcessing = value;
+                _isNotSecureProcessing = !value;
 						
                 // all done processing feature
                 return;
@@ -194,7 +217,7 @@ public  class XPathFactoryImpl extends XPathFactory {
 		
             // secure processing?
             if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
-                return featureSecureProcessing;
+                return !_isNotSecureProcessing;
             }
 		
             // unknown feature

@@ -1,8 +1,26 @@
 /*
- * @(#)NotContextException.java	1.8 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming;
@@ -25,7 +43,6 @@ package javax.naming;
   *
   * @author Rosanna Lee
   * @author Scott Seligman
-  * @version 1.8 05/11/17
   * @since 1.3
   */
 
@@ -34,11 +51,11 @@ public class NotContextException extends NamingException {
      * Constructs a new instance of NotContextException using an
      * explanation. All other fields default to null.
      *
-     * @param	explanation	Possibly null additional detail about this exception.
+     * @param   explanation     Possibly null additional detail about this exception.
      * @see java.lang.Throwable#getMessage
      */
     public NotContextException(String explanation) {
-	super(explanation);
+        super(explanation);
     }
 
     /**
@@ -46,7 +63,7 @@ public class NotContextException extends NamingException {
       * All fields default to null.
       */
     public NotContextException() {
-	super();
+        super();
     }
 
     /**

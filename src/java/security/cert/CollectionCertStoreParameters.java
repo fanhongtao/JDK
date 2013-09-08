@@ -1,8 +1,26 @@
 /*
- * @(#)CollectionCertStoreParameters.java	1.9 05/11/17
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
@@ -29,16 +47,15 @@ import java.util.Collections;
  * provide the necessary locking. Multiple threads each manipulating
  * separate objects need not synchronize.
  *
- * @version 	1.9 11/17/05
- * @since	1.4
- * @author	Steve Hanna
+ * @since       1.4
+ * @author      Steve Hanna
  * @see         java.util.Collection
  * @see         CertStore
  */
 public class CollectionCertStoreParameters
     implements CertStoreParameters {
 
-    private Collection coll;
+    private Collection<?> coll;
 
     /**
      * Creates an instance of <code>CollectionCertStoreParameters</code>
@@ -73,8 +90,8 @@ public class CollectionCertStoreParameters
     }
 
     /**
-     * Creates an instance of <code>CollectionCertStoreParameters</code> with 
-     * the default parameter values (an empty and immutable 
+     * Creates an instance of <code>CollectionCertStoreParameters</code> with
+     * the default parameter values (an empty and immutable
      * <code>Collection</code>).
      */
     public CollectionCertStoreParameters() {

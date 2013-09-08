@@ -1,8 +1,26 @@
 /*
- * @(#)TaggedProfileTemplate.java	1.12 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior;
@@ -20,17 +38,17 @@ import com.sun.corba.se.spi.ior.WriteContents ;
 import com.sun.corba.se.spi.orb.ORB ;
 
 /** Base template for creating TaggedProfiles.  A TaggedProfile will often contain
-* tagged components.  A template that does not contain components acts like 
+* tagged components.  A template that does not contain components acts like
 * an empty immutable list.
 *
 * @author Ken Cavanaugh
 */
-public interface TaggedProfileTemplate extends List, Identifiable, 
+public interface TaggedProfileTemplate extends List, Identifiable,
     WriteContents, MakeImmutable
-{    
+{
     /** Return an iterator that iterates over tagged components with
     * identifier id.  It is not possible to modify the list through this
-    * iterator.  
+    * iterator.
     */
     public Iterator iteratorById( int id ) ;
 
@@ -45,16 +63,16 @@ public interface TaggedProfileTemplate extends List, Identifiable,
     /** Return true if temp is equivalent to this template.  Equivalence
      * means that in some sense an invocation on a profile created by this
      * template has the same results as an invocation on a profile
-     * created from temp.  Equivalence may be weaker than equality.  
+     * created from temp.  Equivalence may be weaker than equality.
      */
     boolean isEquivalent( TaggedProfileTemplate temp );
 
     /** Return the tagged components in this profile (if any)
      * in the GIOP marshalled form, which is required for Portable
-     * Interceptors.  Returns null if either the profile has no 
+     * Interceptors.  Returns null if either the profile has no
      * components, or if this type of profile can never contain
      * components.
      */
-    org.omg.IOP.TaggedComponent[] getIOPComponents( 
-	ORB orb, int id );
+    org.omg.IOP.TaggedComponent[] getIOPComponents(
+        ORB orb, int id );
 }

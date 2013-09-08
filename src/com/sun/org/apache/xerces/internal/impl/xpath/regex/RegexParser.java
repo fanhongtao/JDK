@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +30,7 @@ import java.util.Vector;
  * 
  * @xerces.internal
  *
- * @version $Id: RegexParser.java,v 1.2.6.1 2005/09/06 11:46:34 neerajbj Exp $
+ * @version $Id: RegexParser.java,v 1.8 2010-11-01 04:39:54 joehw Exp $
  */
 class RegexParser {
     static final int T_CHAR = 0;
@@ -75,9 +79,11 @@ class RegexParser {
     static protected final int S_INBRACKETS = 1;
     static protected final int S_INXBRACKETS = 2;
     int context = S_NORMAL;
+    int parenOpened = 1;
     int parennumber = 1;
     boolean hasBackReferences;
     Vector references = null;
+    int parenCount = 0;
 
     public RegexParser() {
         this.setLocale(Locale.getDefault());
@@ -88,10 +94,16 @@ class RegexParser {
 
     public void setLocale(Locale locale) {
         try {
-            this.resources = ResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message", locale);
-        } catch (MissingResourceException mre) {
+            if (locale != null) {
+                this.resources = ResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message", locale);
+            }
+            else {
+                this.resources = ResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message");
+            }
+        }
+        catch (MissingResourceException mre) {
             throw new RuntimeException("Installation Problem???  Couldn't load messages: "
-                                       +mre.getMessage());
+                                       + mre.getMessage());
         }
     }
 
@@ -99,7 +111,7 @@ class RegexParser {
         return new ParseException(this.resources.getString(key), loc);
     }
 
-    private final boolean isSet(int flag) {
+    protected final boolean isSet(int flag) {
         return (this.options & flag) == flag;
     }
 
@@ -108,6 +120,7 @@ class RegexParser {
         this.offset = 0;
         this.setContext(S_NORMAL);
         this.parennumber = 1;
+        this.parenOpened = 1;
         this.hasBackReferences = false;
         this.regex = regex;
         if (this.isSet(RegularExpression.EXTENDED_COMMENT))
@@ -119,6 +132,8 @@ class RegexParser {
         Token ret = this.parseRegex();
         if (this.offset != this.regexlen)
             throw ex("parser.parse.1", this.offset);
+        if (parenCount < 0)
+            throw ex("parser.factor.0", this.offset);
         if (this.references != null) {
             for (int i = 0;  i < this.references.size();  i ++) {
                 ReferencePosition position = (ReferencePosition)this.references.elementAt(i);
@@ -168,8 +183,9 @@ class RegexParser {
                 break;
 
               case '-':
-                if (this.isSet(RegularExpression.XMLSCHEMA_MODE)
-                    && this.offset < this.regexlen && this.regex.charAt(this.offset) == '[') {
+                // Allow character class subtraction (regardless of whether we are in
+                // XML Schema mode or not)
+                if (this.offset < this.regexlen && this.regex.charAt(this.offset) == '[') {
                     this.offset++;
                     ret = T_XMLSCHEMA_CC_SUBTRACTION;
                 } else
@@ -205,10 +221,25 @@ class RegexParser {
           case ')': ret = T_RPAREN;         break;
           case '.': ret = T_DOT;            break;
           case '[': ret = T_LBRACKET;       break;
-          case '^': ret = T_CARET;          break;
-          case '$': ret = T_DOLLAR;         break;
+          case '^':
+              if (this.isSet(RegularExpression.XMLSCHEMA_MODE)) {
+                  ret = T_CHAR;
+              }
+              else {
+                  ret = T_CARET;
+              }
+              break;
+          case '$':
+              if (this.isSet(RegularExpression.XMLSCHEMA_MODE)) {
+                  ret = T_CHAR;
+              }
+              else {
+                  ret = T_DOLLAR;
+              }
+              break;
           case '(':
             ret = T_LPAREN;
+            parenCount++;
             if (this.offset >= this.regexlen)
                 break;
             if (this.regex.charAt(this.offset) != '?')
@@ -254,7 +285,7 @@ class RegexParser {
                 throw ex("parser.next.2", this.offset-2);
             }
             break;
-            
+
           case '\\':
             ret = T_BACKSOLIDUS;
             if (this.offset >= this.regexlen)
@@ -275,7 +306,7 @@ class RegexParser {
      *            | atom (('*' | '+' | '?' | minmax ) '?'? )?)
      *            | '(?=' regex ')'  | '(?!' regex ')'  | '(?&lt;=' regex ')'  | '(?&lt;!' regex ')'
      * atom ::= char | '.' | range | '(' regex ')' | '(?:' regex ')' | '\' [0-9]
-     *          | '\w' | '\W' | '\d' | '\D' | '\s' | '\S' | category-block 
+     *          | '\w' | '\W' | '\d' | '\D' | '\s' | '\S' | category-block
      */
     Token parseRegex() throws ParseException {
         Token tok = this.parseTerm();
@@ -297,10 +328,11 @@ class RegexParser {
      */
     Token parseTerm() throws ParseException {
         int ch = this.read();
+        Token tok = null;
         if (ch == T_OR || ch == T_RPAREN || ch == T_EOF) {
-            return Token.createEmpty();
+            tok = Token.createEmpty();
         } else {
-            Token tok = this.parseFactor();
+            tok = this.parseFactor();
             Token concat = null;
             while ((ch = this.read()) != T_OR && ch != T_RPAREN && ch != T_EOF) {
                 if (concat == null) {
@@ -311,8 +343,11 @@ class RegexParser {
                 concat.addChild(this.parseFactor());
                 //tok = Token.createConcat(tok, this.parseFactor());
             }
-            return tok;
         }
+        if (ch == T_RPAREN) {
+            parenCount--;
+        }
+        return tok;
     }
 
     // ----------------------------------------------------------------
@@ -417,9 +452,10 @@ class RegexParser {
     }
     Token processParen() throws ParseException {
         this.next();
-        int p = this.parennumber++;
+        int p = this.parenOpened++;
         Token tok = Token.createParen(this.parseRegex(), p);
         if (this.read() != T_RPAREN)  throw ex("parser.factor.1", this.offset-1);
+        this.parennumber++;
         this.next();                            // Skips ')'
         return tok;
     }
@@ -439,9 +475,31 @@ class RegexParser {
         int ch = this.regex.charAt(this.offset);
         if ('1' <= ch && ch <= '9') {
             refno = ch-'0';
+            int finalRefno = refno;
+
+            if (this.parennumber <= refno)
+                throw ex("parser.parse.2", this.offset);
+
+            while (this.offset + 1 < this.regexlen) {
+                ch = this.regex.charAt(this.offset + 1);
+                if ('1' <= ch && ch <= '9') {
+                    refno = (refno * 10) + (ch - '0');
+                    if (refno < this.parennumber) {
+                        finalRefno= refno;
+                        ++this.offset;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+
             this.hasBackReferences = true;
             if (this.references == null)  this.references = new Vector();
-            this.references.addElement(new ReferencePosition(refno, this.offset));
+            this.references.addElement(new ReferencePosition(finalRefno, this.offset));
             this.offset ++;
             if (this.regex.charAt(this.offset) != ')')  throw ex("parser.factor.1", this.offset);
             this.offset ++;
@@ -550,10 +608,33 @@ class RegexParser {
     }
     Token processBackreference() throws ParseException {
         int refnum = this.chardata-'0';
-        Token tok = Token.createBackReference(refnum);
+        int finalRefnum = refnum;
+
+        if (this.parennumber <= refnum)
+            throw ex("parser.parse.2", this.offset-2);
+
+        while  (this.offset < this.regexlen) {
+            final int ch = this.regex.charAt(this.offset);
+            if ('1' <= ch && ch <= '9') {
+                refnum = (refnum * 10) + (ch - '0');
+                if (refnum < this.parennumber) {
+                    ++this.offset;
+                    finalRefnum = refnum;
+                    this.chardata = ch;
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                break;
+            }
+        }
+
+        Token tok = Token.createBackReference(finalRefnum);
         this.hasBackReferences = true;
         if (this.references == null)  this.references = new Vector();
-        this.references.addElement(new ReferencePosition(refnum, this.offset-2));
+        this.references.addElement(new ReferencePosition(finalRefnum, this.offset-2));
         this.next();
         return tok;
     }
@@ -569,7 +650,7 @@ class RegexParser {
      * min ::= [0-9]+
      * max ::= [0-9]+
      */
-    Token parseFactor() throws ParseException {        
+    Token parseFactor() throws ParseException {
         int ch = this.read();
         Token tok;
         switch (ch) {
@@ -628,7 +709,7 @@ class RegexParser {
                    if (off >= this.regexlen) {
                        throw ex("parser.quantifier.3", this.offset);
                    }
-                   else if ((ch = this.regex.charAt(off++)) >= '0' && ch <= '9') {                       
+                   else if ((ch = this.regex.charAt(off++)) >= '0' && ch <= '9') {
 
                         max = ch -'0';       // {min,max}
                         while (off < this.regexlen
@@ -643,7 +724,7 @@ class RegexParser {
                             throw ex("parser.quantifier.4", this.offset);
                    }
                    else { // assume {min,}
-                        max = -1;           
+                        max = -1;
                     }
                 }
 
@@ -818,7 +899,6 @@ class RegexParser {
         while ((type = this.read()) != T_EOF) {
             if (type == T_CHAR && this.chardata == ']' && !firstloop)
                 break;
-            firstloop = false;
             int c = this.chardata;
             boolean end = false;
             if (type == T_BACKSOLIDUS) {
@@ -835,7 +915,7 @@ class RegexParser {
                     c = this.processCIinCharacterClass(tok, c);
                     if (c < 0)  end = true;
                     break;
-                    
+
                   case 'p':
                   case 'P':
                     int pstart = this.offset;
@@ -868,42 +948,83 @@ class RegexParser {
                     throw this.ex("parser.cc.1", nameend);
                 this.offset = nameend+2;
             }
+            else if (type == T_XMLSCHEMA_CC_SUBTRACTION && !firstloop) {
+                if (nrange) {
+                    nrange = false;
+                    if (useNrange) {
+                        tok = (RangeToken) Token.complementRanges(tok);
+                    }
+                    else {
+                        base.subtractRanges(tok);
+                        tok = base;
+                    }
+                }
+                RangeToken range2 = this.parseCharacterClass(false);
+                tok.subtractRanges(range2);
+                if (this.read() != T_CHAR || this.chardata != ']') {
+                    throw this.ex("parser.cc.5", this.offset);
+                }
+                break;                          // Exit this loop
+            }
             this.next();
             if (!end) {                         // if not shorthands...
                 if (this.read() != T_CHAR || this.chardata != '-') { // Here is no '-'.
-                    tok.addRange(c, c);
-                } else {
+                    if (!this.isSet(RegularExpression.IGNORE_CASE) || c > 0xffff) {
+                        tok.addRange(c, c);
+                    }
+                    else {
+                        addCaseInsensitiveChar(tok, c);
+                    }
+                }
+                else if (type == T_XMLSCHEMA_CC_SUBTRACTION) {
+                    throw this.ex("parser.cc.8", this.offset-1);
+                }
+                else {
                     this.next(); // Skips '-'
                     if ((type = this.read()) == T_EOF)  throw this.ex("parser.cc.2", this.offset);
                     if (type == T_CHAR && this.chardata == ']') {
-                        tok.addRange(c, c);
+                        if (!this.isSet(RegularExpression.IGNORE_CASE) || c > 0xffff) {
+                            tok.addRange(c, c);
+                        }
+                        else {
+                            addCaseInsensitiveChar(tok, c);
+                        }
                         tok.addRange('-', '-');
                     } else {
                         int rangeend = this.chardata;
-                        if (type == T_BACKSOLIDUS)
+                        if (type == T_BACKSOLIDUS) {
                             rangeend = this.decodeEscaped();
+                        }
                         this.next();
-                        tok.addRange(c, rangeend);
+                        if (c > rangeend) {
+                            throw this.ex("parser.ope.3", this.offset-1);
+                        }
+                        if (!this.isSet(RegularExpression.IGNORE_CASE) ||
+                                (c > 0xffff && rangeend > 0xffff)) {
+                            tok.addRange(c, rangeend);
+                        }
+                        else {
+                            addCaseInsensitiveCharRange(tok, c, rangeend);
+                        }
                     }
                 }
             }
             if (this.isSet(RegularExpression.SPECIAL_COMMA)
-                && this.read() == T_CHAR && this.chardata == ',')
+                && this.read() == T_CHAR && this.chardata == ',') {
                 this.next();
+            }
+            firstloop = false;
         }
-        if (this.read() == T_EOF)
+        if (this.read() == T_EOF) {
             throw this.ex("parser.cc.2", this.offset);
+        }
+
         if (!useNrange && nrange) {
             base.subtractRanges(tok);
             tok = base;
         }
         tok.sortRanges();
         tok.compactRanges();
-        //tok.dumpRanges();
-        /*
-        if (this.isSet(RegularExpression.IGNORE_CASE))
-            tok = RangeToken.createCaseInsensitiveToken(tok);
-        */
         this.setContext(S_NORMAL);
         this.next();                    // Skips ']'
 
@@ -1081,5 +1202,39 @@ class RegexParser {
         if (ch <= 'F')  return ch-'A'+10;
         if (ch < 'a')  return -1;
         return ch-'a'+10;
+    }
+
+    static protected final void addCaseInsensitiveChar(RangeToken tok, int c) {
+        final int[] caseMap = CaseInsensitiveMap.get(c);
+        tok.addRange(c, c);
+
+        if (caseMap != null) {
+            for (int i=0; i<caseMap.length; i+=2) {
+                tok.addRange(caseMap[i], caseMap[i]);
+            }
+        }
+
+    }
+
+    static protected final void addCaseInsensitiveCharRange(RangeToken tok, int start, int end) {
+        int[] caseMap;
+        int r1, r2;
+        if (start <= end) {
+            r1 = start;
+            r2 = end;
+        } else {
+            r1 = end;
+            r2 = start;
+        }
+
+        tok.addRange(r1, r2);
+        for (int ch = r1;  ch <= r2;  ch++) {
+            caseMap = CaseInsensitiveMap.get(ch);
+            if (caseMap != null) {
+                for (int i=0; i<caseMap.length; i+=2) {
+                    tok.addRange(caseMap[i], caseMap[i]);
+                }
+            }
+        }
     }
 }

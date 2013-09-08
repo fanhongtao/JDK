@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -62,7 +66,6 @@ import  java.io.*;
  * local variables and the the of stack items at a given byte code offset.
  * See CLDC specification 5.3.1.2
  *
- * @version $Id: StackMapEntry.java,v 1.1.2.1 2005/07/31 23:46:24 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     StackMap
  * @see     StackMapType
@@ -95,10 +98,10 @@ public final class StackMapEntry implements Cloneable {
   }
 
   public StackMapEntry(int byte_code_offset, int number_of_locals,
-		       StackMapType[] types_of_locals,
-		       int number_of_stack_items,
-		       StackMapType[] types_of_stack_items,
-		       ConstantPool constant_pool) {
+                       StackMapType[] types_of_locals,
+                       int number_of_stack_items,
+                       StackMapType[] types_of_stack_items,
+                       ConstantPool constant_pool) {
     this.byte_code_offset = byte_code_offset;
     this.number_of_locals = number_of_locals;
     this.types_of_locals = types_of_locals;
@@ -112,7 +115,7 @@ public final class StackMapEntry implements Cloneable {
    *
    * @param file Output file stream
    * @throws IOException
-   */ 
+   */
   public final void dump(DataOutputStream file) throws IOException
   {
     file.writeShort(byte_code_offset);
@@ -128,7 +131,7 @@ public final class StackMapEntry implements Cloneable {
 
   /**
    * @return String representation.
-   */ 
+   */
   public final String toString() {
     StringBuffer buf = new StringBuffer("(offset=" + byte_code_offset);
 
@@ -136,9 +139,9 @@ public final class StackMapEntry implements Cloneable {
       buf.append(", locals={");
 
       for(int i=0; i < number_of_locals; i++) {
-	buf.append(types_of_locals[i]);
-	if(i < number_of_locals - 1)
-	  buf.append(", ");
+        buf.append(types_of_locals[i]);
+        if(i < number_of_locals - 1)
+          buf.append(", ");
       }
 
       buf.append("}");
@@ -148,9 +151,9 @@ public final class StackMapEntry implements Cloneable {
       buf.append(", stack items={");
 
       for(int i=0; i < number_of_stack_items; i++) {
-	buf.append(types_of_stack_items[i]);
-	if(i < number_of_stack_items - 1)
-	  buf.append(", ");
+        buf.append(types_of_stack_items[i]);
+        if(i < number_of_stack_items - 1)
+          buf.append(", ");
       }
 
       buf.append("}");
@@ -158,7 +161,7 @@ public final class StackMapEntry implements Cloneable {
 
     buf.append(")");
 
-    return buf.toString();    
+    return buf.toString();
   }
 
 
@@ -197,12 +200,12 @@ public final class StackMapEntry implements Cloneable {
 
   /**
    * @return Constant pool used by this object.
-   */   
+   */
   public final ConstantPool getConstantPool() { return constant_pool; }
 
   /**
    * @param constant_pool Constant pool to be used for this object.
-   */   
+   */
   public final void setConstantPool(ConstantPool constant_pool) {
     this.constant_pool = constant_pool;
   }

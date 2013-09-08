@@ -1,8 +1,26 @@
 /*
- * @(#)DynamicMethodMarshaller.java	1.11 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.presentation.rmi ;
@@ -48,7 +66,7 @@ public interface DynamicMethodMarshaller
      */
     Object copyResult( Object result, ORB orb ) throws RemoteException ;
 
-    /** Read the result from the InputStream.  Returns null 
+    /** Read the result from the InputStream.  Returns null
      * if the result type is null.
      */
     Object readResult( InputStream is ) ;
@@ -69,7 +87,7 @@ public interface DynamicMethodMarshaller
      */
     void writeException( OutputStream os, Exception ex ) ;
 
-    /** Reads an exception ID and the corresponding exception from 
+    /** Reads an exception ID and the corresponding exception from
      * the input stream.  This should be an exception declared in
      * this method.
      */

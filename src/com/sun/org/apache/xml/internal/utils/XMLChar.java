@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +44,6 @@ package com.sun.org.apache.xml.internal.utils;
  * @author Arnaud  Le Hors, IBM
  * @author Rahul Srivastava, Sun Microsystems Inc.
  *
- * @version $Id: XMLChar.java,v 1.2.4.1 2005/09/15 08:16:01 suresh_emailid Exp $
  */
 public class XMLChar {
 
@@ -65,10 +68,10 @@ public class XMLChar {
 
     /** Pubid character mask. */
     public static final int MASK_PUBID = 0x10;
-    
-    /** 
+
+    /**
      * Content character mask. Special characters are those that can
-     * be considered the start of markup, such as '&lt;' and '&amp;'. 
+     * be considered the start of markup, such as '&lt;' and '&amp;'.
      * The various newline characters are considered special as well.
      * All other valid XML characters can be considered content.
      * <p>
@@ -87,13 +90,13 @@ public class XMLChar {
     //
 
     static {
-        
+
         //
         // [2] Char ::= #x9 | #xA | #xD | [#x20-#xD7FF] |
         //              [#xE000-#xFFFD] | [#x10000-#x10FFFF]
         //
 
-        int charRange[] = { 
+        int charRange[] = {
             0x0009, 0x000A, 0x000D, 0x000D, 0x0020, 0xD7FF, 0xE000, 0xFFFD,
         };
 
@@ -101,7 +104,7 @@ public class XMLChar {
         // [3] S ::= (#x20 | #x9 | #xD | #xA)+
         //
 
-        int spaceChar[] = { 
+        int spaceChar[] = {
             0x0020, 0x0009, 0x000D, 0x000A,
         };
 
@@ -110,7 +113,7 @@ public class XMLChar {
         //                  CombiningChar | Extender
         //
 
-        int nameChar[] = { 
+        int nameChar[] = {
             0x002D, 0x002E, // '-' and '.'
         };
 
@@ -118,7 +121,7 @@ public class XMLChar {
         // [5] Name ::= (Letter | '_' | ':') (NameChar)*
         //
 
-        int nameStartChar[] = { 
+        int nameStartChar[] = {
             0x003A, 0x005F, // ':' and '_'
         };
 
@@ -280,7 +283,7 @@ public class XMLChar {
 
         // set name start characters
         for (int i = 0; i < nameStartChar.length; i++) {
-            CHARS[nameStartChar[i]] |= MASK_NAME_START | MASK_NAME | 
+            CHARS[nameStartChar[i]] |= MASK_NAME_START | MASK_NAME |
                                        MASK_NCNAME_START | MASK_NCNAME;
         }
         for (int i = 0; i < letterRange.length; i += 2) {
@@ -529,7 +532,7 @@ public class XMLChar {
         }
         return true;
     } // isValidName(String):boolean
-    
+
 
     /*
      * from the namespace rec
@@ -565,7 +568,7 @@ public class XMLChar {
      * in the XML 1.0 Recommendation
      *
      * @param nmtoken string to check
-     * @return true if nmtoken is a valid Nmtoken 
+     * @return true if nmtoken is a valid Nmtoken
      */
     public static boolean isValidNmtoken(String nmtoken) {
         if (nmtoken.length() == 0)
@@ -639,20 +642,20 @@ public class XMLChar {
         }
         return false;
     } // isValidIANAEncoding(String):boolean
-    
+
    /**
      * Simple check to determine if qname is legal. If it returns false
-     * then <param>str</param> is illegal; if it returns true then 
+     * then <param>str</param> is illegal; if it returns true then
      * <param>str</param> is legal.
      */
     public static boolean isValidQName(String str) {
-       
+
        final int colon = str.indexOf(':');
-       
+
        if (colon == 0 || colon == str.length() - 1) {
            return false;
-       }       
-       
+       }
+
        if (colon > 0) {
            final String prefix = str.substring(0,colon);
            final String localPart = str.substring(colon+1);
@@ -660,7 +663,7 @@ public class XMLChar {
        }
        else {
            return isValidNCName(str);
-       }       
-    }      
+       }
+    }
 
 } // class XMLChar

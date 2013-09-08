@@ -1,8 +1,26 @@
 /*
- * @(#)XAConnection.java	1.10 06/04/16
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sql;
@@ -11,8 +29,8 @@ import java.sql.*;
 
 
 /**
- * An object that provides support for distributed 
- * transactions.  An <code>XAConnection</code> object  may be enlisted 
+ * An object that provides support for distributed
+ * transactions.  An <code>XAConnection</code> object  may be enlisted
  * in a distributed transaction by means of an <code>XAResource</code> object.
  * A transaction manager, usually part of a middle tier server, manages an
  * <code>XAConnection</code> object through the <code>XAResource</code> object.
@@ -27,8 +45,8 @@ public interface XAConnection extends PooledConnection {
 
 
   /**
-   * Retrieves an <code>XAResource</code> object that 
-   * the transaction manager will use 
+   * Retrieves an <code>XAResource</code> object that
+   * the transaction manager will use
    * to manage this <code>XAConnection</code> object's participation in a
    * distributed transaction.
    *
@@ -40,9 +58,4 @@ public interface XAConnection extends PooledConnection {
    */
   javax.transaction.xa.XAResource getXAResource() throws SQLException;
 
- } 
-
-
-
-
-
+ }

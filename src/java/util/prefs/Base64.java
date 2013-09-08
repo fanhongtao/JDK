@@ -1,8 +1,26 @@
 /*
- * @(#)Base64.java	1.7 05/11/17
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.prefs;
@@ -12,7 +30,6 @@ package java.util.prefs;
  * and vice-versa.
  *
  * @author  Josh Bloch
- * @version 1.7, 11/17/05
  * @see     Preferences
  * @since   1.4
  */
@@ -77,7 +94,7 @@ class Base64 {
 
     /**
      * This array is a lookup table that translates 6-bit positive integer
-     * index values into their "Base64 Alphabet" equivalents as specified 
+     * index values into their "Base64 Alphabet" equivalents as specified
      * in Table 1 of RFC 2045.
      */
     private static final char intToBase64[] = {
@@ -106,7 +123,7 @@ class Base64 {
     /**
      * Translates the specified Base64 string (as per Preferences.get(byte[]))
      * into a byte array.
-     * 
+     *
      * @throw IllegalArgumentException if <tt>s</tt> is not a valid Base64
      *        string.
      */
@@ -117,7 +134,7 @@ class Base64 {
     /**
      * Translates the specified "alternate representation" Base64 string
      * into a byte array.
-     * 
+     *
      * @throw IllegalArgumentException or ArrayOutOfBoundsException
      *        if <tt>s</tt> is not a valid alternate representation
      *        Base64 string.
@@ -218,7 +235,7 @@ class Base64 {
         34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
         51, 22, 23, 24, 25
     };
-    
+
     public static void main(String args[]) {
         int numRuns  = Integer.parseInt(args[0]);
         int numBytes = Integer.parseInt(args[1]);

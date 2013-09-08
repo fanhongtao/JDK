@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -58,7 +62,7 @@ import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.classfile.*;
 import java.util.HashMap;
 
-/** 
+/**
  * This class is used to build up a constant pool. The user adds
  * constants via `addXXX' methods, `addString', `addClass',
  * etc.. These methods return an index into the constant
@@ -68,7 +72,6 @@ import java.util.HashMap;
  * Constants.MAX_SHORT entries. Note that the first (0) is used by the
  * JVM and that Double and Long constants need two slots.
  *
- * @version $Id: ConstantPoolGen.java,v 1.1.2.1 2005/07/31 23:45:00 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see Constant
  */
@@ -107,47 +110,47 @@ public class ConstantPoolGen implements java.io.Serializable {
       Constant c = constants[i];
 
       if(c instanceof ConstantString) {
-	ConstantString s  = (ConstantString)c;
-	ConstantUtf8   u8 = (ConstantUtf8)constants[s.getStringIndex()];
+        ConstantString s  = (ConstantString)c;
+        ConstantUtf8   u8 = (ConstantUtf8)constants[s.getStringIndex()];
 
-	string_table.put(u8.getBytes(), new Index(i));
+        string_table.put(u8.getBytes(), new Index(i));
       } else if(c instanceof ConstantClass) {
-	ConstantClass s  = (ConstantClass)c;
-	ConstantUtf8  u8 = (ConstantUtf8)constants[s.getNameIndex()];
+        ConstantClass s  = (ConstantClass)c;
+        ConstantUtf8  u8 = (ConstantUtf8)constants[s.getNameIndex()];
 
-	class_table.put(u8.getBytes(), new Index(i));
+        class_table.put(u8.getBytes(), new Index(i));
       } else if(c instanceof ConstantNameAndType) {
-	ConstantNameAndType n    = (ConstantNameAndType)c;
-	ConstantUtf8        u8   = (ConstantUtf8)constants[n.getNameIndex()];
-	ConstantUtf8        u8_2 = (ConstantUtf8)constants[n.getSignatureIndex()];
+        ConstantNameAndType n    = (ConstantNameAndType)c;
+        ConstantUtf8        u8   = (ConstantUtf8)constants[n.getNameIndex()];
+        ConstantUtf8        u8_2 = (ConstantUtf8)constants[n.getSignatureIndex()];
 
-	n_a_t_table.put(u8.getBytes() + NAT_DELIM + u8_2.getBytes(), new Index(i));
+        n_a_t_table.put(u8.getBytes() + NAT_DELIM + u8_2.getBytes(), new Index(i));
        } else if(c instanceof ConstantUtf8) {
          ConstantUtf8 u = (ConstantUtf8)c;
-         
+
          utf8_table.put(u.getBytes(), new Index(i));
       } else if(c instanceof ConstantCP) {
-	ConstantCP          m     = (ConstantCP)c;
-	ConstantClass       clazz = (ConstantClass)constants[m.getClassIndex()];
-	ConstantNameAndType n     = (ConstantNameAndType)constants[m.getNameAndTypeIndex()];
-	
+        ConstantCP          m     = (ConstantCP)c;
+        ConstantClass       clazz = (ConstantClass)constants[m.getClassIndex()];
+        ConstantNameAndType n     = (ConstantNameAndType)constants[m.getNameAndTypeIndex()];
+
         ConstantUtf8 u8         = (ConstantUtf8)constants[clazz.getNameIndex()];
         String       class_name = u8.getBytes().replace('/', '.');
 
-	u8 = (ConstantUtf8)constants[n.getNameIndex()];
-	String method_name = u8.getBytes();
+        u8 = (ConstantUtf8)constants[n.getNameIndex()];
+        String method_name = u8.getBytes();
 
-	u8 = (ConstantUtf8)constants[n.getSignatureIndex()];
-	String signature = u8.getBytes();
+        u8 = (ConstantUtf8)constants[n.getSignatureIndex()];
+        String signature = u8.getBytes();
 
-	String delim = METHODREF_DELIM;
+        String delim = METHODREF_DELIM;
 
-	if(c instanceof ConstantInterfaceMethodref)
-	  delim = IMETHODREF_DELIM;
-	else if(c instanceof ConstantFieldref)
-	  delim = FIELDREF_DELIM;
+        if(c instanceof ConstantInterfaceMethodref)
+          delim = IMETHODREF_DELIM;
+        else if(c instanceof ConstantFieldref)
+          delim = FIELDREF_DELIM;
 
-	cp_table.put(class_name + delim + method_name + delim + signature, new Index(i));
+        cp_table.put(class_name + delim + method_name + delim + signature, new Index(i));
       }
     }
   }
@@ -178,7 +181,7 @@ public class ConstantPoolGen implements java.io.Serializable {
 
   private HashMap string_table = new HashMap();
 
-  /** 
+  /**
    * Look for ConstantString in ConstantPool containing String `str'.
    *
    * @param str String to search for
@@ -188,7 +191,7 @@ public class ConstantPoolGen implements java.io.Serializable {
     Index index = (Index)string_table.get(str);
     return (index != null)? index.index : -1;
   }
-  
+
   /**
    * Add a new String constant to the ConstantPool, if it is not already in there.
    *
@@ -197,7 +200,7 @@ public class ConstantPoolGen implements java.io.Serializable {
    */
   public int addString(String str) {
     int ret;
-    
+
     if((ret = lookupString(str)) != -1)
       return ret; // Already in CP
 
@@ -206,7 +209,7 @@ public class ConstantPoolGen implements java.io.Serializable {
     adjustSize();
 
     ConstantString s  = new ConstantString(utf8);
-       
+
     ret = index;
     constants[index++] = s;
 
@@ -277,7 +280,7 @@ public class ConstantPoolGen implements java.io.Serializable {
     return addClass_(type.getSignature());
   }
 
-  /** 
+  /**
    * Look for ConstantInteger in ConstantPool.
    *
    * @param n integer number to look for
@@ -286,10 +289,10 @@ public class ConstantPoolGen implements java.io.Serializable {
   public int lookupInteger(int n) {
     for(int i=1; i < index; i++) {
       if(constants[i] instanceof ConstantInteger) {
-	ConstantInteger c = (ConstantInteger)constants[i];
+        ConstantInteger c = (ConstantInteger)constants[i];
 
-	if(c.getBytes() == n)
-	  return i;
+        if(c.getBytes() == n)
+          return i;
       }
     }
 
@@ -316,7 +319,7 @@ public class ConstantPoolGen implements java.io.Serializable {
     return ret;
   }
 
-  /** 
+  /**
    * Look for ConstantFloat in ConstantPool.
    *
    * @param n Float number to look for
@@ -327,10 +330,10 @@ public class ConstantPoolGen implements java.io.Serializable {
 
     for(int i=1; i < index; i++) {
       if(constants[i] instanceof ConstantFloat) {
-	ConstantFloat c = (ConstantFloat)constants[i];
+        ConstantFloat c = (ConstantFloat)constants[i];
 
-	if(Float.floatToIntBits(c.getBytes()) == bits)
-	  return i;
+        if(Float.floatToIntBits(c.getBytes()) == bits)
+          return i;
       }
     }
 
@@ -359,7 +362,7 @@ public class ConstantPoolGen implements java.io.Serializable {
 
   private HashMap utf8_table = new HashMap();
 
-  /** 
+  /**
    * Look for ConstantUtf8 in ConstantPool.
    *
    * @param n Utf8 string to look for
@@ -393,7 +396,7 @@ public class ConstantPoolGen implements java.io.Serializable {
     return ret;
   }
 
-  /** 
+  /**
    * Look for ConstantLong in ConstantPool.
    *
    * @param n Long number to look for
@@ -402,10 +405,10 @@ public class ConstantPoolGen implements java.io.Serializable {
   public int lookupLong(long n) {
     for(int i=1; i < index; i++) {
       if(constants[i] instanceof ConstantLong) {
-	ConstantLong c = (ConstantLong)constants[i];
+        ConstantLong c = (ConstantLong)constants[i];
 
-	if(c.getBytes() == n)
-	  return i;
+        if(c.getBytes() == n)
+          return i;
       }
     }
 
@@ -433,7 +436,7 @@ public class ConstantPoolGen implements java.io.Serializable {
     return ret;
   }
 
-  /** 
+  /**
    * Look for ConstantDouble in ConstantPool.
    *
    * @param n Double number to look for
@@ -444,10 +447,10 @@ public class ConstantPoolGen implements java.io.Serializable {
 
     for(int i=1; i < index; i++) {
       if(constants[i] instanceof ConstantDouble) {
-	ConstantDouble c = (ConstantDouble)constants[i];
-	
-	if(Double.doubleToLongBits(c.getBytes()) == bits)
-	  return i;
+        ConstantDouble c = (ConstantDouble)constants[i];
+
+        if(Double.doubleToLongBits(c.getBytes()) == bits)
+          return i;
       }
     }
 
@@ -477,7 +480,7 @@ public class ConstantPoolGen implements java.io.Serializable {
 
   private HashMap n_a_t_table = new HashMap();
 
-  /** 
+  /**
    * Look for ConstantNameAndType in ConstantPool.
    *
    * @param name of variable/method
@@ -490,7 +493,7 @@ public class ConstantPoolGen implements java.io.Serializable {
   }
 
   /**
-   * Add a new NameAndType constant to the ConstantPool if it is not already 
+   * Add a new NameAndType constant to the ConstantPool if it is not already
    * in there.
    *
    * @param n NameAndType string to add
@@ -516,7 +519,7 @@ public class ConstantPoolGen implements java.io.Serializable {
 
   private HashMap cp_table = new HashMap();
 
-  /** 
+  /**
    * Look for ConstantMethodref in ConstantPool.
    *
    * @param class_name Where to find method
@@ -526,17 +529,17 @@ public class ConstantPoolGen implements java.io.Serializable {
    */
   public int lookupMethodref(String class_name, String method_name, String signature) {
     Index index = (Index)cp_table.get(class_name + METHODREF_DELIM + method_name +
-				      METHODREF_DELIM + signature);
+                                      METHODREF_DELIM + signature);
     return (index != null)? index.index : -1;
   }
 
   public int lookupMethodref(MethodGen method) {
     return lookupMethodref(method.getClassName(), method.getName(),
-			  method.getSignature());
+                          method.getSignature());
   }
 
   /**
-   * Add a new Methodref constant to the ConstantPool, if it is not already 
+   * Add a new Methodref constant to the ConstantPool, if it is not already
    * in there.
    *
    * @param n Methodref string to add
@@ -556,17 +559,17 @@ public class ConstantPoolGen implements java.io.Serializable {
     constants[index++] = new ConstantMethodref(class_index, name_and_type_index);
 
     cp_table.put(class_name + METHODREF_DELIM + method_name +
-		 METHODREF_DELIM + signature, new Index(ret));
+                 METHODREF_DELIM + signature, new Index(ret));
 
     return ret;
   }
 
   public int addMethodref(MethodGen method) {
     return addMethodref(method.getClassName(), method.getName(),
-			method.getSignature());
+                        method.getSignature());
   }
 
-  /** 
+  /**
    * Look for ConstantInterfaceMethodref in ConstantPool.
    *
    * @param class_name Where to find method
@@ -576,17 +579,17 @@ public class ConstantPoolGen implements java.io.Serializable {
    */
   public int lookupInterfaceMethodref(String class_name, String method_name, String signature) {
     Index index = (Index)cp_table.get(class_name + IMETHODREF_DELIM + method_name +
-				      IMETHODREF_DELIM + signature);
+                                      IMETHODREF_DELIM + signature);
     return (index != null)? index.index : -1;
   }
 
   public int lookupInterfaceMethodref(MethodGen method) {
     return lookupInterfaceMethodref(method.getClassName(), method.getName(),
-				    method.getSignature());
+                                    method.getSignature());
   }
 
   /**
-   * Add a new InterfaceMethodref constant to the ConstantPool, if it is not already 
+   * Add a new InterfaceMethodref constant to the ConstantPool, if it is not already
    * in there.
    *
    * @param n InterfaceMethodref string to add
@@ -606,17 +609,17 @@ public class ConstantPoolGen implements java.io.Serializable {
     constants[index++] = new ConstantInterfaceMethodref(class_index, name_and_type_index);
 
     cp_table.put(class_name + IMETHODREF_DELIM + method_name +
-		 IMETHODREF_DELIM + signature, new Index(ret));
+                 IMETHODREF_DELIM + signature, new Index(ret));
 
     return ret;
   }
 
   public int addInterfaceMethodref(MethodGen method) {
     return addInterfaceMethodref(method.getClassName(), method.getName(),
-				 method.getSignature());
+                                 method.getSignature());
   }
 
-  /** 
+  /**
    * Look for ConstantFieldref in ConstantPool.
    *
    * @param class_name Where to find method
@@ -626,12 +629,12 @@ public class ConstantPoolGen implements java.io.Serializable {
    */
   public int lookupFieldref(String class_name, String field_name, String signature) {
     Index index = (Index)cp_table.get(class_name + FIELDREF_DELIM + field_name +
-				      FIELDREF_DELIM + signature);
+                                      FIELDREF_DELIM + signature);
     return (index != null)? index.index : -1;
   }
 
   /**
-   * Add a new Fieldref constant to the ConstantPool, if it is not already 
+   * Add a new Fieldref constant to the ConstantPool, if it is not already
    * in there.
    *
    * @param n Fieldref string to add
@@ -687,12 +690,12 @@ public class ConstantPoolGen implements java.io.Serializable {
   /**
    * @return constant pool with proper length
    */
-  public ConstantPool getFinalConstantPool() { 
+  public ConstantPool getFinalConstantPool() {
     Constant[] cs = new Constant[index];
-    
+
     System.arraycopy(constants, 0, cs, 0, index);
 
-    return new ConstantPool(cs); 
+    return new ConstantPool(cs);
   }
 
   /**
@@ -766,16 +769,16 @@ public class ConstantPoolGen implements java.io.Serializable {
 
       switch(c.getTag()) {
       case Constants.CONSTANT_InterfaceMethodref:
-	return addInterfaceMethodref(class_name, name, signature);
+        return addInterfaceMethodref(class_name, name, signature);
 
       case Constants.CONSTANT_Methodref:
-	return addMethodref(class_name, name, signature);
+        return addMethodref(class_name, name, signature);
 
       case Constants.CONSTANT_Fieldref:
-	return addFieldref(class_name, name, signature);
+        return addFieldref(class_name, name, signature);
 
       default: // Never reached
-	throw new RuntimeException("Unknown constant type " + c);
+        throw new RuntimeException("Unknown constant type " + c);
       }
     }
 

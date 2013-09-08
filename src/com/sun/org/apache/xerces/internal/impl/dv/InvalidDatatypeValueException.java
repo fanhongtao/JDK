@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -60,17 +64,16 @@ package com.sun.org.apache.xerces.internal.impl.dv;
 /**
  * Datatype exception for invalid values.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Sandy Gao, IBM
  *
- * @version $Id: InvalidDatatypeValueException.java,v 1.1.2.1 2005/08/01 03:38:10 jeffsuttor Exp $
  */
 public class InvalidDatatypeValueException extends DatatypeException {
 
     /** Serialization version. */
     static final long serialVersionUID = -5523739426958236125L;
-    
+
     /**
      * Create a new datatype exception by providing an error code and a list
      * of error message substitution arguments.

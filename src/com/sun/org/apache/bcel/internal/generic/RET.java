@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -56,12 +60,11 @@ package com.sun.org.apache.bcel.internal.generic;
 import java.io.*;
 import com.sun.org.apache.bcel.internal.util.ByteSequence;
 
-/** 
+/**
  * RET - Return from subroutine
  *
  * <PRE>Stack: ..., -&gt; ..., address</PRE>
  *
- * @version $Id: RET.java,v 1.1.2.1 2005/07/31 23:45:17 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class RET extends Instruction implements IndexedInstruction, TypedInstruction {
@@ -97,7 +100,7 @@ public class RET extends Instruction implements IndexedInstruction, TypedInstruc
 
   private final void setWide() {
     if(wide = index > com.sun.org.apache.bcel.internal.Constants.MAX_BYTE)
-      length = 4; // Including the wide byte  
+      length = 4; // Including the wide byte
     else
       length = 2;
   }
@@ -126,7 +129,7 @@ public class RET extends Instruction implements IndexedInstruction, TypedInstruc
   /**
    * Set index of local variable containg the return address
    */
-  public final void setIndex(int n) { 
+  public final void setIndex(int n) {
     if(n < 0)
       throw new ClassGenException("Negative index value: " + n);
 
@@ -139,7 +142,7 @@ public class RET extends Instruction implements IndexedInstruction, TypedInstruc
    */
   public String toString(boolean verbose) {
     return super.toString(verbose) + " " + index;
-  }  
+  }
 
   /** @return return address type
    */

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +28,9 @@ import com.sun.org.apache.xml.internal.dtm.ref.DTMAxisIteratorBase;
 import com.sun.org.apache.xalan.internal.xsltc.util.IntegerArray;
 
 /**
- * CachedNodeListIterator is used for select expressions in a 
- * variable or parameter. This iterator caches all nodes in an 
- * IntegerArray. Its cloneIterator() method is overridden to 
+ * CachedNodeListIterator is used for select expressions in a
+ * variable or parameter. This iterator caches all nodes in an
+ * IntegerArray. Its cloneIterator() method is overridden to
  * return an object of ClonedNodeListIterator.
  */
 public final class CachedNodeListIterator extends DTMAxisIteratorBase {
@@ -41,37 +45,37 @@ public final class CachedNodeListIterator extends DTMAxisIteratorBase {
     private boolean _isEnded = false;
 
     public CachedNodeListIterator(DTMAxisIterator source) {
-	_source = source;
+        _source = source;
     }
 
     public void setRestartable(boolean isRestartable) {
-	//_isRestartable = isRestartable;
-	//_source.setRestartable(isRestartable);
+        //_isRestartable = isRestartable;
+        //_source.setRestartable(isRestartable);
     }
 
     public DTMAxisIterator setStartNode(int node) {
-	if (_isRestartable) {
-	    _startNode = node;
-	    _source.setStartNode(node);
-	    resetPosition();
-	    
-	    _isRestartable = false;
-	}
-	return this;
+        if (_isRestartable) {
+            _startNode = node;
+            _source.setStartNode(node);
+            resetPosition();
+
+            _isRestartable = false;
+        }
+        return this;
     }
 
     public int next() {
         return getNode(_index++);
     }
-    
+
     public int getPosition() {
-    	return _index == 0 ? 1 : _index;
+        return _index == 0 ? 1 : _index;
     }
-    
+
     public int getNodeByPosition(int pos) {
-    	return getNode(pos);
+        return getNode(pos);
     }
-        
+
     public int getNode(int index) {
         if (index < _numCachedNodes) {
             return _nodes.at(index);
@@ -79,11 +83,11 @@ public final class CachedNodeListIterator extends DTMAxisIteratorBase {
         else if (!_isEnded){
             int node = _source.next();
             if (node != END) {
-            	_nodes.add(node);
-            	_numCachedNodes++;
+                _nodes.add(node);
+                _numCachedNodes++;
             }
             else {
-            	_isEnded = true;
+                _isEnded = true;
             }
             return node;
         }
@@ -92,20 +96,20 @@ public final class CachedNodeListIterator extends DTMAxisIteratorBase {
     }
 
     public DTMAxisIterator cloneIterator() {
-	ClonedNodeListIterator clone = new ClonedNodeListIterator(this);
-	return clone;
+        ClonedNodeListIterator clone = new ClonedNodeListIterator(this);
+        return clone;
     }
 
     public DTMAxisIterator reset() {
-    	_index = 0;
-    	return this;
+        _index = 0;
+        return this;
     }
-    
+
     public void setMark() {
-	_source.setMark();
+        _source.setMark();
     }
 
     public void gotoMark() {
-	_source.gotoMark();
+        _source.gotoMark();
     }
 }

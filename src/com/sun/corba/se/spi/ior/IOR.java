@@ -1,8 +1,26 @@
 /*
- * @(#)IOR.java	1.16 05/11/17 
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior;
@@ -27,7 +45,7 @@ public interface IOR extends List, Writeable, MakeImmutable
     /** Return the type id string from the IOR.
     */
     String getTypeId() ;
-   
+
     /** Return an iterator that iterates over tagged profiles with
     * identifier id.  It is not possible to modify the list through this
     * iterator.
@@ -56,7 +74,7 @@ public interface IOR extends List, Writeable, MakeImmutable
 
     /** Return the IORTemplate for this IOR.  This is simply a list
      * of all TaggedProfileTemplates derived from the TaggedProfiles
-     * of the IOR.  
+     * of the IOR.
      */
     IORTemplateList getIORTemplates() ;
 

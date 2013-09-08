@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +23,7 @@ package com.sun.org.apache.xerces.internal.util;
 import java.util.Hashtable;
 
 /**
- * EncodingMap is a convenience class which handles conversions between 
+ * EncodingMap is a convenience class which handles conversions between
  * IANA encoding names and Java encoding names, and vice versa. The
  * encoding names used in XML instance documents <strong>must</strong>
  * be the IANA encoding names specified or one of the aliases for those names
@@ -461,11 +465,10 @@ import java.util.Hashtable;
  *      </TD>
  *  </TR>
  * </TABLE>
- * 
+ *
  * @author TAMURA Kent, IBM
  * @author Andy Clark, IBM
  *
- * @version $Id: EncodingMap.java,v 1.2.6.1 2005/09/05 07:51:19 neerajbj Exp $
  */
 public class EncodingMap {
 
@@ -545,7 +548,7 @@ public class EncodingMap {
         fIANA2JavaMap.put("CP500",    "CP500");
         fIANA2JavaMap.put("CSIBM500",    "CP500");
         fIANA2JavaMap.put("EBCDIC-CP-CH",    "CP500");
-        fIANA2JavaMap.put("EBCDIC-CP-BE",    "CP500"); 
+        fIANA2JavaMap.put("EBCDIC-CP-BE",    "CP500");
         fIANA2JavaMap.put("IBM775",    "CP775");
         fIANA2JavaMap.put("CP775",    "CP775");
         fIANA2JavaMap.put("CSPC775BALTIC",    "CP775");
@@ -694,7 +697,7 @@ public class EncodingMap {
         fIANA2JavaMap.put("WINDOWS-31J",       "MS932");
         fIANA2JavaMap.put("CSWINDOWS31J",       "MS932");
 
-	    // Add support for Cp1252 and its friends
+            // Add support for Cp1252 and its friends
         fIANA2JavaMap.put("WINDOWS-1250",   "Cp1250");
         fIANA2JavaMap.put("WINDOWS-1251",   "Cp1251");
         fIANA2JavaMap.put("WINDOWS-1252",   "Cp1252");
@@ -706,7 +709,7 @@ public class EncodingMap {
         fIANA2JavaMap.put("WINDOWS-1258",   "Cp1258");
         fIANA2JavaMap.put("TIS-620",   "TIS620");
 
-        fIANA2JavaMap.put("ISO-8859-1",      "ISO8859_1"); 
+        fIANA2JavaMap.put("ISO-8859-1",      "ISO8859_1");
         fIANA2JavaMap.put("ISO-IR-100",      "ISO8859_1");
         fIANA2JavaMap.put("ISO_8859-1",      "ISO8859_1");
         fIANA2JavaMap.put("LATIN1",      "ISO8859_1");
@@ -715,34 +718,34 @@ public class EncodingMap {
         fIANA2JavaMap.put("IBM819",      "ISO8859_1");
         fIANA2JavaMap.put("CP819",      "ISO8859_1");
 
-        fIANA2JavaMap.put("ISO-8859-2",      "ISO8859_2"); 
+        fIANA2JavaMap.put("ISO-8859-2",      "ISO8859_2");
         fIANA2JavaMap.put("ISO-IR-101",      "ISO8859_2");
         fIANA2JavaMap.put("ISO_8859-2",      "ISO8859_2");
         fIANA2JavaMap.put("LATIN2",      "ISO8859_2");
         fIANA2JavaMap.put("CSISOLATIN2",      "ISO8859_2");
         fIANA2JavaMap.put("L2",      "ISO8859_2");
 
-        fIANA2JavaMap.put("ISO-8859-3",      "ISO8859_3"); 
+        fIANA2JavaMap.put("ISO-8859-3",      "ISO8859_3");
         fIANA2JavaMap.put("ISO-IR-109",      "ISO8859_3");
         fIANA2JavaMap.put("ISO_8859-3",      "ISO8859_3");
         fIANA2JavaMap.put("LATIN3",      "ISO8859_3");
         fIANA2JavaMap.put("CSISOLATIN3",      "ISO8859_3");
         fIANA2JavaMap.put("L3",      "ISO8859_3");
 
-        fIANA2JavaMap.put("ISO-8859-4",      "ISO8859_4"); 
+        fIANA2JavaMap.put("ISO-8859-4",      "ISO8859_4");
         fIANA2JavaMap.put("ISO-IR-110",      "ISO8859_4");
         fIANA2JavaMap.put("ISO_8859-4",      "ISO8859_4");
         fIANA2JavaMap.put("LATIN4",      "ISO8859_4");
         fIANA2JavaMap.put("CSISOLATIN4",      "ISO8859_4");
         fIANA2JavaMap.put("L4",      "ISO8859_4");
 
-        fIANA2JavaMap.put("ISO-8859-5",      "ISO8859_5"); 
+        fIANA2JavaMap.put("ISO-8859-5",      "ISO8859_5");
         fIANA2JavaMap.put("ISO-IR-144",      "ISO8859_5");
         fIANA2JavaMap.put("ISO_8859-5",      "ISO8859_5");
         fIANA2JavaMap.put("CYRILLIC",      "ISO8859_5");
         fIANA2JavaMap.put("CSISOLATINCYRILLIC",      "ISO8859_5");
 
-        fIANA2JavaMap.put("ISO-8859-6",      "ISO8859_6"); 
+        fIANA2JavaMap.put("ISO-8859-6",      "ISO8859_6");
         fIANA2JavaMap.put("ISO-IR-127",      "ISO8859_6");
         fIANA2JavaMap.put("ISO_8859-6",      "ISO8859_6");
         fIANA2JavaMap.put("ECMA-114",      "ISO8859_6");
@@ -750,7 +753,7 @@ public class EncodingMap {
         fIANA2JavaMap.put("ARABIC",      "ISO8859_6");
         fIANA2JavaMap.put("CSISOLATINARABIC",      "ISO8859_6");
 
-        fIANA2JavaMap.put("ISO-8859-7",      "ISO8859_7"); 
+        fIANA2JavaMap.put("ISO-8859-7",      "ISO8859_7");
         fIANA2JavaMap.put("ISO-IR-126",      "ISO8859_7");
         fIANA2JavaMap.put("ISO_8859-7",      "ISO8859_7");
         fIANA2JavaMap.put("ELOT_928",      "ISO8859_7");
@@ -759,29 +762,29 @@ public class EncodingMap {
         fIANA2JavaMap.put("CSISOLATINGREEK",      "ISO8859_7");
         fIANA2JavaMap.put("GREEK8",      "ISO8859_7");
 
-        fIANA2JavaMap.put("ISO-8859-8",      "ISO8859_8"); 
-        fIANA2JavaMap.put("ISO-8859-8-I",      "ISO8859_8"); // added since this encoding only differs w.r.t. presentation 
+        fIANA2JavaMap.put("ISO-8859-8",      "ISO8859_8");
+        fIANA2JavaMap.put("ISO-8859-8-I",      "ISO8859_8"); // added since this encoding only differs w.r.t. presentation
         fIANA2JavaMap.put("ISO-IR-138",      "ISO8859_8");
         fIANA2JavaMap.put("ISO_8859-8",      "ISO8859_8");
         fIANA2JavaMap.put("HEBREW",      "ISO8859_8");
         fIANA2JavaMap.put("CSISOLATINHEBREW",      "ISO8859_8");
 
-        fIANA2JavaMap.put("ISO-8859-9",      "ISO8859_9"); 
+        fIANA2JavaMap.put("ISO-8859-9",      "ISO8859_9");
         fIANA2JavaMap.put("ISO-IR-148",      "ISO8859_9");
         fIANA2JavaMap.put("ISO_8859-9",      "ISO8859_9");
         fIANA2JavaMap.put("LATIN5",      "ISO8859_9");
         fIANA2JavaMap.put("CSISOLATIN5",      "ISO8859_9");
         fIANA2JavaMap.put("L5",      "ISO8859_9");
 
-        fIANA2JavaMap.put("ISO-8859-13",      "ISO8859_13"); 
-        
-        fIANA2JavaMap.put("ISO-8859-15",      "ISO8859_15_FDIS"); 
+        fIANA2JavaMap.put("ISO-8859-13",      "ISO8859_13");
+
+        fIANA2JavaMap.put("ISO-8859-15",      "ISO8859_15_FDIS");
         fIANA2JavaMap.put("ISO_8859-15",      "ISO8859_15_FDIS");
-        fIANA2JavaMap.put("LATIN-9",          "ISO8859_15_FDIS"); 
+        fIANA2JavaMap.put("LATIN-9",          "ISO8859_15_FDIS");
 
         fIANA2JavaMap.put("KOI8-R",          "KOI8_R");
         fIANA2JavaMap.put("CSKOI8R",          "KOI8_R");
-        fIANA2JavaMap.put("US-ASCII",        "ASCII"); 
+        fIANA2JavaMap.put("US-ASCII",        "ASCII");
         fIANA2JavaMap.put("ISO-IR-6",        "ASCII");
         fIANA2JavaMap.put("ANSI_X3.4-1968",        "ASCII");
         fIANA2JavaMap.put("ANSI_X3.4-1986",        "ASCII");
@@ -797,8 +800,8 @@ public class EncodingMap {
         fIANA2JavaMap.put("UTF-16BE",           "UnicodeBig");
         fIANA2JavaMap.put("UTF-16LE",           "UnicodeLittle");
 
-        // support for 1047, as proposed to be added to the 
-        // IANA registry in 
+        // support for 1047, as proposed to be added to the
+        // IANA registry in
         // http://lists.w3.org/Archives/Public/ietf-charset/2002JulSep/0049.html
         fIANA2JavaMap.put("IBM-1047",    "Cp1047");
         fIANA2JavaMap.put("IBM1047",    "Cp1047");
@@ -855,7 +858,7 @@ public class EncodingMap {
         // REVISIT:
         //   j:CNS11643 -> EUC-TW?
         //   ISO-2022-CN? ISO-2022-CN-EXT?
-                                                
+
         // add Java to IANA encoding mappings
         //fJava2IANAMap.put("8859_1",    "US-ASCII"); // ?
         fJava2IANAMap.put("ISO8859_1",    "ISO-8859-1");
@@ -952,22 +955,22 @@ public class EncodingMap {
 
     /**
      * Adds an IANA to Java encoding name mapping.
-     * 
+     *
      * @param ianaEncoding The IANA encoding name.
      * @param javaEncoding The Java encoding name.
-     * 
+     *
      * @deprecated Use of this method is not recommended. Its
      * effect is JVM wide and may cause unforeseen behaviour
      * for other applications running in the system.
      */
-    public static void putIANA2JavaMapping(String ianaEncoding, 
+    public static void putIANA2JavaMapping(String ianaEncoding,
                                            String javaEncoding) {
         fIANA2JavaMap.put(ianaEncoding, javaEncoding);
     } // putIANA2JavaMapping(String,String)
 
     /**
      * Returns the Java encoding name for the specified IANA encoding name.
-     * 
+     *
      * @param ianaEncoding The IANA encoding name.
      */
     public static String getIANA2JavaMapping(String ianaEncoding) {
@@ -976,9 +979,9 @@ public class EncodingMap {
 
     /**
      * Removes an IANA to Java encoding name mapping.
-     * 
+     *
      * @param ianaEncoding The IANA encoding name.
-     * 
+     *
      * @deprecated Use of this method is not recommended. Its
      * effect is JVM wide and may cause unforeseen behaviour
      * for other applications running in the system.
@@ -989,22 +992,22 @@ public class EncodingMap {
 
     /**
      * Adds a Java to IANA encoding name mapping.
-     * 
+     *
      * @param javaEncoding The Java encoding name.
      * @param ianaEncoding The IANA encoding name.
-     * 
+     *
      * @deprecated Use of this method is not recommended. Its
      * effect is JVM wide and may cause unforeseen behaviour
      * for other applications running in the system.
      */
-    public static void putJava2IANAMapping(String javaEncoding, 
+    public static void putJava2IANAMapping(String javaEncoding,
                                            String ianaEncoding) {
         fJava2IANAMap.put(javaEncoding, ianaEncoding);
     } // putJava2IANAMapping(String,String)
 
     /**
      * Returns the IANA encoding name for the specified Java encoding name.
-     * 
+     *
      * @param javaEncoding The Java encoding name.
      */
     public static String getJava2IANAMapping(String javaEncoding) {
@@ -1013,9 +1016,9 @@ public class EncodingMap {
 
     /**
      * Removes a Java to IANA encoding name mapping.
-     * 
+     *
      * @param javaEncoding The Java encoding name.
-     * 
+     *
      * @deprecated Use of this method is not recommended. Its
      * effect is JVM wide and may cause unforeseen behaviour
      * for other applications running in the system.

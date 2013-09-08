@@ -1,8 +1,36 @@
 /*
- * @(#)ExecutorService.java	1.14 06/07/14
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -117,6 +145,10 @@ public interface ExecutorService extends Executor {
      * tasks are executed, but no new tasks will be accepted.
      * Invocation has no additional effect if already shut down.
      *
+     * <p>This method does not wait for previously submitted tasks to
+     * complete execution.  Use {@link #awaitTermination awaitTermination}
+     * to do that.
+     *
      * @throws SecurityException if a security manager exists and
      *         shutting down this ExecutorService may manipulate
      *         threads that the caller is not permitted to modify
@@ -129,8 +161,12 @@ public interface ExecutorService extends Executor {
 
     /**
      * Attempts to stop all actively executing tasks, halts the
-     * processing of waiting tasks, and returns a list of the tasks that were
-     * awaiting execution.
+     * processing of waiting tasks, and returns a list of the tasks
+     * that were awaiting execution.
+     *
+     * <p>This method does not wait for actively executing tasks to
+     * terminate.  Use {@link #awaitTermination awaitTermination} to
+     * do that.
      *
      * <p>There are no guarantees beyond best-effort attempts to stop
      * processing actively executing tasks.  For example, typical
@@ -296,8 +332,8 @@ public interface ExecutorService extends Executor {
      * @param tasks the collection of tasks
      * @return the result returned by one of the tasks
      * @throws InterruptedException if interrupted while waiting
-     * @throws NullPointerException if tasks or any of its elements
-     *         are <tt>null</tt>
+     * @throws NullPointerException if tasks or any element task
+     *         subject to execution is <tt>null</tt>
      * @throws IllegalArgumentException if tasks is empty
      * @throws ExecutionException if no task successfully completes
      * @throws RejectedExecutionException if tasks cannot be scheduled
@@ -320,8 +356,8 @@ public interface ExecutorService extends Executor {
      * @param unit the time unit of the timeout argument
      * @return the result returned by one of the tasks.
      * @throws InterruptedException if interrupted while waiting
-     * @throws NullPointerException if tasks, any of its elements, or
-     *         unit are <tt>null</tt>
+     * @throws NullPointerException if tasks, or unit, or any element
+     *         task subject to execution is <tt>null</tt>
      * @throws TimeoutException if the given timeout elapses before
      *         any task successfully completes
      * @throws ExecutionException if no task successfully completes

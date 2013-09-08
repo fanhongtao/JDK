@@ -1,8 +1,26 @@
 /*
- * @(#)StreamPrintService.java	1.9 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.print;
@@ -10,11 +28,11 @@ package javax.print;
 import java.io.OutputStream;
 
 /**
- * This class extends {@link PrintService} and represents a 
- * print service that prints data in different formats to a 
+ * This class extends {@link PrintService} and represents a
+ * print service that prints data in different formats to a
  * client-provided output stream.
  * This is principally intended for services where
- * the output format is a document type suitable for viewing 
+ * the output format is a document type suitable for viewing
  * or archiving.
  * The output format must be declared as a mime type.
  * This is equivalent to an output document flavor where the
@@ -23,8 +41,8 @@ import java.io.OutputStream;
  * obtained from a {@link StreamPrintServiceFactory} instance.
  * <p>
  * Note that a <code>StreamPrintService</code> is different from a
- * <code>PrintService</code>, which supports a 
- * {@link javax.print.attribute.standard.Destination Destination} 
+ * <code>PrintService</code>, which supports a
+ * {@link javax.print.attribute.standard.Destination Destination}
  * attribute.  A <code>StreamPrintService</code> always requires an output
  * stream, whereas a <code>PrintService</code> optionally accepts a
  * <code>Destination</code>. A <code>StreamPrintService</code>
@@ -49,7 +67,7 @@ public abstract class StreamPrintService implements PrintService {
      * @param out  stream to which to send formatted print data.
      */
     protected StreamPrintService(OutputStream out) {
-	this.outStream = out;
+        this.outStream = out;
     }
 
     /**
@@ -58,7 +76,7 @@ public abstract class StreamPrintService implements PrintService {
      * @return the stream to which this service will send formatted print data.
      */
     public OutputStream getOutputStream() {
-	return outStream;
+        return outStream;
     }
 
     /**
@@ -78,7 +96,7 @@ public abstract class StreamPrintService implements PrintService {
      * just marks it as not for further use by this service.
      */
     public void dispose() {
-	disposed = true;
+        disposed = true;
     }
 
     /**
@@ -90,7 +108,7 @@ public abstract class StreamPrintService implements PrintService {
      * @return if this <code>StreamPrintService</code> has been disposed
      */
     public boolean isDisposed() {
-	return disposed;
+        return disposed;
     }
 
 }

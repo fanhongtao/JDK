@@ -1,8 +1,36 @@
 /*
- * @(#)AtomicLongFieldUpdater.java	1.14 06/06/15
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent.atomic;
@@ -27,7 +55,7 @@ import java.lang.reflect.*;
  * @author Doug Lea
  * @param <T> The type of the object holding the updatable field
  */
-public abstract class  AtomicLongFieldUpdater<T>  {
+public abstract class  AtomicLongFieldUpdater<T> {
     /**
      * Creates and returns an updater for objects with the given field.
      * The Class argument is needed to check that reflective types and
@@ -241,16 +269,16 @@ public abstract class  AtomicLongFieldUpdater<T>  {
 
         CASUpdater(Class<T> tclass, String fieldName) {
             Field field = null;
-	    Class caller = null;
-	    int modifiers = 0;
+            Class caller = null;
+            int modifiers = 0;
             try {
                 field = tclass.getDeclaredField(fieldName);
-		caller = sun.reflect.Reflection.getCallerClass(3);
-		modifiers = field.getModifiers();
+                caller = sun.reflect.Reflection.getCallerClass(3);
+                modifiers = field.getModifiers();
                 sun.reflect.misc.ReflectUtil.ensureMemberAccess(
-                    caller, tclass, null, modifiers); 
-		sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
-            } catch(Exception ex) {
+                    caller, tclass, null, modifiers);
+                sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
+            } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
 
@@ -261,8 +289,8 @@ public abstract class  AtomicLongFieldUpdater<T>  {
             if (!Modifier.isVolatile(modifiers))
                 throw new IllegalArgumentException("Must be volatile type");
 
-	    this.cclass = (Modifier.isProtected(modifiers) &&
-			   caller != tclass) ? caller : null;
+            this.cclass = (Modifier.isProtected(modifiers) &&
+                           caller != tclass) ? caller : null;
             this.tclass = tclass;
             offset = unsafe.objectFieldOffset(field);
         }
@@ -270,9 +298,9 @@ public abstract class  AtomicLongFieldUpdater<T>  {
         private void fullCheck(T obj) {
             if (!tclass.isInstance(obj))
                 throw new ClassCastException();
-	    if (cclass != null)
-	        ensureProtectedAccess(obj);
-	}
+            if (cclass != null)
+                ensureProtectedAccess(obj);
+        }
 
         public boolean compareAndSet(T obj, long expect, long update) {
             if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
@@ -299,20 +327,20 @@ public abstract class  AtomicLongFieldUpdater<T>  {
             return unsafe.getLongVolatile(obj, offset);
         }
 
-	private void ensureProtectedAccess(T obj) {
-	    if (cclass.isInstance(obj)) {
-		return;
-	    }
-	    throw new RuntimeException (
+        private void ensureProtectedAccess(T obj) {
+            if (cclass.isInstance(obj)) {
+                return;
+            }
+            throw new RuntimeException(
                 new IllegalAccessException("Class " +
-		    cclass.getName() +
+                    cclass.getName() +
                     " can not access a protected member of class " +
                     tclass.getName() +
-		    " using an instance of " +
+                    " using an instance of " +
                     obj.getClass().getName()
-		)
-	    );
-	}
+                )
+            );
+        }
     }
 
 
@@ -324,16 +352,16 @@ public abstract class  AtomicLongFieldUpdater<T>  {
 
         LockedUpdater(Class<T> tclass, String fieldName) {
             Field field = null;
-	    Class caller = null;
-	    int modifiers = 0;
+            Class caller = null;
+            int modifiers = 0;
             try {
                 field = tclass.getDeclaredField(fieldName);
-		caller = sun.reflect.Reflection.getCallerClass(3);
-		modifiers = field.getModifiers();
+                caller = sun.reflect.Reflection.getCallerClass(3);
+                modifiers = field.getModifiers();
                 sun.reflect.misc.ReflectUtil.ensureMemberAccess(
-                    caller, tclass, null, modifiers); 
-		sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
-            } catch(Exception ex) {
+                    caller, tclass, null, modifiers);
+                sun.reflect.misc.ReflectUtil.checkPackageAccess(tclass);
+            } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
 
@@ -344,8 +372,8 @@ public abstract class  AtomicLongFieldUpdater<T>  {
             if (!Modifier.isVolatile(modifiers))
                 throw new IllegalArgumentException("Must be volatile type");
 
-	    this.cclass = (Modifier.isProtected(modifiers) &&
-			   caller != tclass) ? caller : null;
+            this.cclass = (Modifier.isProtected(modifiers) &&
+                           caller != tclass) ? caller : null;
             this.tclass = tclass;
             offset = unsafe.objectFieldOffset(field);
         }
@@ -353,13 +381,13 @@ public abstract class  AtomicLongFieldUpdater<T>  {
         private void fullCheck(T obj) {
             if (!tclass.isInstance(obj))
                 throw new ClassCastException();
-	    if (cclass != null)
-	        ensureProtectedAccess(obj);
-	}
+            if (cclass != null)
+                ensureProtectedAccess(obj);
+        }
 
         public boolean compareAndSet(T obj, long expect, long update) {
             if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            synchronized(this) {
+            synchronized (this) {
                 long v = unsafe.getLong(obj, offset);
                 if (v != expect)
                     return false;
@@ -374,35 +402,35 @@ public abstract class  AtomicLongFieldUpdater<T>  {
 
         public void set(T obj, long newValue) {
             if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            synchronized(this) {
+            synchronized (this) {
                 unsafe.putLong(obj, offset, newValue);
             }
         }
 
         public void lazySet(T obj, long newValue) {
-	    set(obj, newValue);
+            set(obj, newValue);
         }
 
         public long get(T obj) {
             if (obj == null || obj.getClass() != tclass || cclass != null) fullCheck(obj);
-            synchronized(this) {
+            synchronized (this) {
                 return unsafe.getLong(obj, offset);
             }
         }
 
-	private void ensureProtectedAccess(T obj) {
-	    if (cclass.isInstance(obj)) {
-		return;
-	    }
-	    throw new RuntimeException (
+        private void ensureProtectedAccess(T obj) {
+            if (cclass.isInstance(obj)) {
+                return;
+            }
+            throw new RuntimeException(
                 new IllegalAccessException("Class " +
-		    cclass.getName() +
+                    cclass.getName() +
                     " can not access a protected member of class " +
                     tclass.getName() +
-		    " using an instance of " +
+                    " using an instance of " +
                     obj.getClass().getName()
-		)
-	    );
-	}
+                )
+            );
+        }
     }
 }

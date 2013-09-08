@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2006 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,40 +38,40 @@ import com.sun.org.apache.xml.internal.dtm.ref.DTMAxisIteratorBase;
  */
 public final class UnionIterator extends MultiValuedNodeHeapIterator {
     /** wrapper for NodeIterators to support iterator
-	comparison on the value of their next() method
+        comparison on the value of their next() method
     */
     final private DOM _dom;
 
     private final class LookAheadIterator
             extends MultiValuedNodeHeapIterator.HeapNode
     {
-	public DTMAxisIterator iterator;
-		
-	public LookAheadIterator(DTMAxisIterator iterator) {
-            super();
-	    this.iterator = iterator;
-	}
-		
-	public int step() {
-	    _node = iterator.next();
-	    return _node;
-	}
+        public DTMAxisIterator iterator;
 
-	public HeapNode cloneHeapNode() {
+        public LookAheadIterator(DTMAxisIterator iterator) {
+            super();
+            this.iterator = iterator;
+        }
+
+        public int step() {
+            _node = iterator.next();
+            return _node;
+        }
+
+        public HeapNode cloneHeapNode() {
             LookAheadIterator clone = (LookAheadIterator) super.cloneHeapNode();
             clone.iterator = iterator.cloneIterator();
-	    return clone;
-	}
+            return clone;
+        }
 
-	public void setMark() {
+        public void setMark() {
             super.setMark();
-	    iterator.setMark();
-	}
+            iterator.setMark();
+        }
 
-	public void gotoMark() {
+        public void gotoMark() {
             super.gotoMark();
-	    iterator.gotoMark();
-	}
+            iterator.gotoMark();
+        }
 
         public boolean isLessThan(HeapNode heapNode) {
             LookAheadIterator comparand = (LookAheadIterator) heapNode;
@@ -86,7 +90,7 @@ public final class UnionIterator extends MultiValuedNodeHeapIterator {
     } // end of LookAheadIterator
 
     public UnionIterator(DOM dom) {
-	_dom = dom;
+        _dom = dom;
     }
 
     public UnionIterator addIterator(DTMAxisIterator iterator) {

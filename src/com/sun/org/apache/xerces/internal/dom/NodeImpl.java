@@ -1,12 +1,16 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
  /*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -69,12 +73,11 @@ import org.w3c.dom.events.EventTarget;
  * This class doesn't directly support mutation events, however, it still
  * implements the EventTarget interface and forward all related calls to the
  * document so that the document class do so.
- * 
+ *
  * @xerces.internal
  *
  * @author Arnaud  Le Hors, IBM
  * @author Joe Kesselman, IBM
- * @version $Id: NodeImpl.java,v 1.2.6.1 2005/08/31 12:27:09 sunithareddy Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
 public abstract class NodeImpl
@@ -104,18 +107,18 @@ public abstract class NodeImpl
      */
     public static final short TREE_POSITION_DESCENDANT  = 0x08;
     /**
-     * The two nodes have an equivalent position. This is the case of two 
-     * attributes that have the same <code>ownerElement</code>, and two 
+     * The two nodes have an equivalent position. This is the case of two
+     * attributes that have the same <code>ownerElement</code>, and two
      * nodes that are the same.
      */
     public static final short TREE_POSITION_EQUIVALENT  = 0x10;
     /**
-     * The two nodes are the same. Two nodes that are the same have an 
+     * The two nodes are the same. Two nodes that are the same have an
      * equivalent position, though the reverse may not be true.
      */
     public static final short TREE_POSITION_SAME_NODE   = 0x20;
     /**
-     * The two nodes are disconnected, they do not have any common ancestor. 
+     * The two nodes are disconnected, they do not have any common ancestor.
      * This is the case of two nodes that are not in the same document.
      */
     public static final short TREE_POSITION_DISCONNECTED = 0x00;
@@ -192,7 +195,7 @@ public abstract class NodeImpl
      * the name of this node.
      */
     public abstract String getNodeName();
-    
+
     /**
      * Returns the node value.
      * @throws DOMException(DOMSTRING_SIZE_ERR)
@@ -206,7 +209,7 @@ public abstract class NodeImpl
      * Sets the node value.
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR)
      */
-    public void setNodeValue(String x) 
+    public void setNodeValue(String x)
         throws DOMException {
         // Default behavior is to do nothing, overridden in some subclasses
     }
@@ -232,7 +235,7 @@ public abstract class NodeImpl
      * read-only.
      */
     public Node appendChild(Node newChild) throws DOMException {
-    	return insertBefore(newChild, null);
+        return insertBefore(newChild, null);
     }
 
     /**
@@ -262,20 +265,20 @@ public abstract class NodeImpl
 
         if (needsSyncData()) {
             synchronizeData();
-	}
-    	
-    	NodeImpl newnode;
-    	try {
+        }
+
+        NodeImpl newnode;
+        try {
             newnode = (NodeImpl)clone();
-    	}
-    	catch (CloneNotSupportedException e) {
+        }
+        catch (CloneNotSupportedException e) {
             // if we get here we have an error in our program we may as well
             // be vocal about it, so that people can take appropriate action.
             throw new RuntimeException("**Internal Error**" + e);
-    	}
-    	
+        }
+
         // Need to break the association w/ original kids
-    	newnode.ownerNode      = ownerDocument();
+        newnode.ownerNode      = ownerDocument();
         newnode.isOwned(false);
 
         // By default we make all clones readwrite,
@@ -285,7 +288,7 @@ public abstract class NodeImpl
         ownerDocument().callUserDataHandlers(this, newnode,
                                              UserDataHandler.NODE_CLONED);
 
-    	return newnode;
+        return newnode;
 
     } // cloneNode(boolean):Node
 
@@ -306,7 +309,7 @@ public abstract class NodeImpl
 
     /**
      * same as above but returns internal type and this one is not overridden
-     * by CoreDocumentImpl to return null 
+     * by CoreDocumentImpl to return null
      */
     CoreDocumentImpl ownerDocument() {
         // if we have an owner simply forward the request
@@ -328,7 +331,7 @@ public abstract class NodeImpl
         }
         // if we have an owner we rely on it to have it right
         // otherwise ownerNode is our ownerDocument
-	if (!isOwned()) {
+        if (!isOwned()) {
             ownerNode = doc;
         }
     }
@@ -339,7 +342,7 @@ public abstract class NodeImpl
     protected int getNodeNumber() {
         int nodeNumber;
         CoreDocumentImpl cd = (CoreDocumentImpl)(this.getOwnerDocument());
-        nodeNumber = cd.getNodeNumber(this);   
+        nodeNumber = cd.getNodeNumber(this);
         return nodeNumber;
     }
 
@@ -382,12 +385,12 @@ public abstract class NodeImpl
      * @see ElementImpl
      */
     public NamedNodeMap getAttributes() {
-    	return null; // overridden in ElementImpl
+        return null; // overridden in ElementImpl
     }
 
     /**
      *  Returns whether this node (if it is an element) has any attributes.
-     * @return <code>true</code> if this node has any attributes, 
+     * @return <code>true</code> if this node has any attributes,
      *   <code>false</code> otherwise.
      * @since DOM Level 2
      * @see ElementImpl
@@ -430,7 +433,7 @@ public abstract class NodeImpl
      * @see ParentNode
      */
     public Node getFirstChild() {
-    	return null;
+        return null;
     }
 
     /** The first child of this Node, or null if none.
@@ -439,7 +442,7 @@ public abstract class NodeImpl
      * @see ParentNode
      */
     public Node getLastChild() {
-	return null;
+        return null;
     }
 
     /**
@@ -473,9 +476,9 @@ public abstract class NodeImpl
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if this node is
      * read-only.
      */
-    public Node insertBefore(Node newChild, Node refChild) 
-	throws DOMException {
-	throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, 
+    public Node insertBefore(Node newChild, Node refChild)
+        throws DOMException {
+        throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR,
               DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN,
                  "HIERARCHY_REQUEST_ERR", null));
     }
@@ -495,9 +498,9 @@ public abstract class NodeImpl
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if this node is
      * read-only.
      */
-    public Node removeChild(Node oldChild) 
-		throws DOMException {
-	throw new DOMException(DOMException.NOT_FOUND_ERR, 
+    public Node removeChild(Node oldChild)
+                throws DOMException {
+        throw new DOMException(DOMException.NOT_FOUND_ERR,
               DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN,
                  "NOT_FOUND_ERR", null));
     }
@@ -528,7 +531,7 @@ public abstract class NodeImpl
      */
     public Node replaceChild(Node newChild, Node oldChild)
         throws DOMException {
-	throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, 
+        throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR,
               DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN,
                  "HIERARCHY_REQUEST_ERR", null));
     }
@@ -546,7 +549,7 @@ public abstract class NodeImpl
      * @return int
      */
     public int getLength() {
-	return 0;
+        return 0;
     }
 
     /**
@@ -560,7 +563,7 @@ public abstract class NodeImpl
      * @param Index int
      */
     public Node item(int index) {
-	return null;
+        return null;
     }
 
     //
@@ -568,17 +571,17 @@ public abstract class NodeImpl
     //
 
     /**
-     * Puts all <code>Text</code> nodes in the full depth of the sub-tree 
-     * underneath this <code>Node</code>, including attribute nodes, into a 
-     * "normal" form where only markup (e.g., tags, comments, processing 
-     * instructions, CDATA sections, and entity references) separates 
-     * <code>Text</code> nodes, i.e., there are no adjacent <code>Text</code> 
-     * nodes.  This can be used to ensure that the DOM view of a document is 
-     * the same as if it were saved and re-loaded, and is useful when 
-     * operations (such as XPointer lookups) that depend on a particular 
-     * document tree structure are to be used.In cases where the document 
-     * contains <code>CDATASections</code>, the normalize operation alone may 
-     * not be sufficient, since XPointers do not differentiate between 
+     * Puts all <code>Text</code> nodes in the full depth of the sub-tree
+     * underneath this <code>Node</code>, including attribute nodes, into a
+     * "normal" form where only markup (e.g., tags, comments, processing
+     * instructions, CDATA sections, and entity references) separates
+     * <code>Text</code> nodes, i.e., there are no adjacent <code>Text</code>
+     * nodes.  This can be used to ensure that the DOM view of a document is
+     * the same as if it were saved and re-loaded, and is useful when
+     * operations (such as XPointer lookups) that depend on a particular
+     * document tree structure are to be used.In cases where the document
+     * contains <code>CDATASections</code>, the normalize operation alone may
+     * not be sufficient, since XPointers do not differentiate between
      * <code>Text</code> nodes and <code>CDATASection</code> nodes.
      * <p>
      * Note that this implementation simply calls normalize() on this Node's
@@ -586,8 +589,8 @@ public abstract class NodeImpl
      * to take action.
      */
     public void normalize() {
-	/* by default we do not have any children,
-	   ParentNode overrides this behavior */
+        /* by default we do not have any children,
+           ParentNode overrides this behavior */
     }
 
     /**
@@ -676,7 +679,7 @@ public abstract class NodeImpl
     public void setPrefix(String prefix)
         throws DOMException
     {
-	throw new DOMException(DOMException.NAMESPACE_ERR, 
+        throw new DOMException(DOMException.NAMESPACE_ERR,
               DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN,
                  "NAMESPACE_ERR", null));
     }
@@ -697,7 +700,7 @@ public abstract class NodeImpl
     {
         return null;
     }
-    
+
     //
     // EventTarget support
     //
@@ -724,25 +727,25 @@ public abstract class NodeImpl
     //
 
     /**
-     * The absolute base URI of this node or <code>null</code> if undefined. 
-     * This value is computed according to . However, when the 
-     * <code>Document</code> supports the feature "HTML" , the base URI is 
-     * computed using first the value of the href attribute of the HTML BASE 
-     * element if any, and the value of the <code>documentURI</code> 
+     * The absolute base URI of this node or <code>null</code> if undefined.
+     * This value is computed according to . However, when the
+     * <code>Document</code> supports the feature "HTML" , the base URI is
+     * computed using first the value of the href attribute of the HTML BASE
+     * element if any, and the value of the <code>documentURI</code>
      * attribute from the <code>Document</code> interface otherwise.
-     * <br> When the node is an <code>Element</code>, a <code>Document</code> 
-     * or a a <code>ProcessingInstruction</code>, this attribute represents 
-     * the properties [base URI] defined in . When the node is a 
-     * <code>Notation</code>, an <code>Entity</code>, or an 
-     * <code>EntityReference</code>, this attribute represents the 
-     * properties [declaration base URI] in the . How will this be affected 
-     * by resolution of relative namespace URIs issue?It's not.Should this 
-     * only be on Document, Element, ProcessingInstruction, Entity, and 
-     * Notation nodes, according to the infoset? If not, what is it equal to 
-     * on other nodes? Null? An empty string? I think it should be the 
-     * parent's.No.Should this be read-only and computed or and actual 
-     * read-write attribute?Read-only and computed (F2F 19 Jun 2000 and 
-     * teleconference 30 May 2001).If the base HTML element is not yet 
+     * <br> When the node is an <code>Element</code>, a <code>Document</code>
+     * or a a <code>ProcessingInstruction</code>, this attribute represents
+     * the properties [base URI] defined in . When the node is a
+     * <code>Notation</code>, an <code>Entity</code>, or an
+     * <code>EntityReference</code>, this attribute represents the
+     * properties [declaration base URI] in the . How will this be affected
+     * by resolution of relative namespace URIs issue?It's not.Should this
+     * only be on Document, Element, ProcessingInstruction, Entity, and
+     * Notation nodes, according to the infoset? If not, what is it equal to
+     * on other nodes? Null? An empty string? I think it should be the
+     * parent's.No.Should this be read-only and computed or and actual
+     * read-write attribute?Read-only and computed (F2F 19 Jun 2000 and
+     * teleconference 30 May 2001).If the base HTML element is not yet
      * attached to a document, does the insert change the Document.baseURI?
      * Yes. (F2F 26 Sep 2001)
      * @since DOM Level 3
@@ -752,11 +755,11 @@ public abstract class NodeImpl
     }
 
     /**
-     * Compares a node with this node with regard to their position in the 
-     * tree and according to the document order. This order can be extended 
+     * Compares a node with this node with regard to their position in the
+     * tree and according to the document order. This order can be extended
      * by module that define additional types of nodes.
      * @param other The node to compare against this node.
-     * @return Returns how the given node is positioned relatively to this 
+     * @return Returns how the given node is positioned relatively to this
      *   node.
      * @since DOM Level 3
      * @deprecated
@@ -764,71 +767,71 @@ public abstract class NodeImpl
     public short compareTreePosition(Node other) {
         // Questions of clarification for this method - to be answered by the
         // DOM WG.   Current assumptions listed - LM
-        // 
-        // 1. How do ENTITY nodes compare?  
-        //    Current assumption: TREE_POSITION_DISCONNECTED, as ENTITY nodes 
+        //
+        // 1. How do ENTITY nodes compare?
+        //    Current assumption: TREE_POSITION_DISCONNECTED, as ENTITY nodes
         //    aren't really 'in the tree'
         //
         // 2. How do NOTATION nodes compare?
         //    Current assumption: TREE_POSITION_DISCONNECTED, as NOTATION nodes
         //    aren't really 'in the tree'
         //
-        // 3. Are TREE_POSITION_ANCESTOR and TREE_POSITION_DESCENDANT     
-        //    only relevant for nodes that are "part of the document tree"?   
+        // 3. Are TREE_POSITION_ANCESTOR and TREE_POSITION_DESCENDANT
+        //    only relevant for nodes that are "part of the document tree"?
         //     <outer>
         //         <inner  myattr="true"/>
         //     </outer>
         //    Is the element node "outer" considered an ancestor of "myattr"?
-        //    Current assumption: No.                                     
+        //    Current assumption: No.
         //
-        // 4. How do children of ATTRIBUTE nodes compare (with eachother, or  
-        //    with children of other attribute nodes with the same element)    
-        //    Current assumption: Children of ATTRIBUTE nodes are treated as if 
-        //    they they are the attribute node itself, unless the 2 nodes 
-        //    are both children of the same attribute. 
+        // 4. How do children of ATTRIBUTE nodes compare (with eachother, or
+        //    with children of other attribute nodes with the same element)
+        //    Current assumption: Children of ATTRIBUTE nodes are treated as if
+        //    they they are the attribute node itself, unless the 2 nodes
+        //    are both children of the same attribute.
         //
-        // 5. How does an ENTITY_REFERENCE node compare with it's children? 
-        //    Given the DOM, it should precede its children as an ancestor. 
-        //    Given "document order",  does it represent the same position?     
+        // 5. How does an ENTITY_REFERENCE node compare with it's children?
+        //    Given the DOM, it should precede its children as an ancestor.
+        //    Given "document order",  does it represent the same position?
         //    Current assumption: An ENTITY_REFERENCE node is an ancestor of its
         //    children.
         //
-        // 6. How do children of a DocumentFragment compare?   
-        //    Current assumption: If both nodes are part of the same document 
-        //    fragment, there are compared as if they were part of a document. 
+        // 6. How do children of a DocumentFragment compare?
+        //    Current assumption: If both nodes are part of the same document
+        //    fragment, there are compared as if they were part of a document.
 
-        
+
         // If the nodes are the same...
-        if (this==other) 
+        if (this==other)
           return (TREE_POSITION_SAME_NODE | TREE_POSITION_EQUIVALENT);
-        
+
         // If either node is of type ENTITY or NOTATION, compare as disconnected
         short thisType = this.getNodeType();
         short otherType = other.getNodeType();
 
         // If either node is of type ENTITY or NOTATION, compare as disconnected
-        if (thisType == Node.ENTITY_NODE || 
+        if (thisType == Node.ENTITY_NODE ||
             thisType == Node.NOTATION_NODE ||
             otherType == Node.ENTITY_NODE ||
             otherType == Node.NOTATION_NODE ) {
-          return TREE_POSITION_DISCONNECTED; 
+          return TREE_POSITION_DISCONNECTED;
         }
 
-        // Find the ancestor of each node, and the distance each node is from 
+        // Find the ancestor of each node, and the distance each node is from
         // its ancestor.
-        // During this traversal, look for ancestor/descendent relationships 
-        // between the 2 nodes in question. 
-        // We do this now, so that we get this info correct for attribute nodes 
-        // and their children. 
+        // During this traversal, look for ancestor/descendent relationships
+        // between the 2 nodes in question.
+        // We do this now, so that we get this info correct for attribute nodes
+        // and their children.
 
-        Node node; 
+        Node node;
         Node thisAncestor = this;
         Node otherAncestor = other;
         int thisDepth=0;
         int otherDepth=0;
         for (node=this; node != null; node = node.getParentNode()) {
             thisDepth +=1;
-            if (node == other) 
+            if (node == other)
               // The other node is an ancestor of this one.
               return (TREE_POSITION_ANCESTOR | TREE_POSITION_PRECEDING);
             thisAncestor = node;
@@ -836,20 +839,20 @@ public abstract class NodeImpl
 
         for (node=other; node!=null; node=node.getParentNode()) {
             otherDepth +=1;
-            if (node == this) 
+            if (node == this)
               // The other node is a descendent of the reference node.
               return (TREE_POSITION_DESCENDANT | TREE_POSITION_FOLLOWING);
             otherAncestor = node;
         }
-        
-       
+
+
         Node thisNode = this;
         Node otherNode = other;
 
         int thisAncestorType = thisAncestor.getNodeType();
         int otherAncestorType = otherAncestor.getNodeType();
 
-        // if the ancestor is an attribute, get owning element. 
+        // if the ancestor is an attribute, get owning element.
         // we are now interested in the owner to determine position.
 
         if (thisAncestorType == Node.ATTRIBUTE_NODE)  {
@@ -861,21 +864,21 @@ public abstract class NodeImpl
 
         // Before proceeding, we should check if both ancestor nodes turned
         // out to be attributes for the same element
-        if (thisAncestorType == Node.ATTRIBUTE_NODE &&  
-            otherAncestorType == Node.ATTRIBUTE_NODE &&  
-            thisNode==otherNode)              
+        if (thisAncestorType == Node.ATTRIBUTE_NODE &&
+            otherAncestorType == Node.ATTRIBUTE_NODE &&
+            thisNode==otherNode)
             return TREE_POSITION_EQUIVALENT;
 
         // Now, find the ancestor of the owning element, if the original
         // ancestor was an attribute
- 
+
         // Note:  the following 2 loops are quite close to the ones above.
         // May want to common them up.  LM.
         if (thisAncestorType == Node.ATTRIBUTE_NODE) {
             thisDepth=0;
             for (node=thisNode; node != null; node=node.getParentNode()) {
                 thisDepth +=1;
-                if (node == otherNode) 
+                if (node == otherNode)
                   // The other node is an ancestor of the owning element
                   {
                   return TREE_POSITION_PRECEDING;
@@ -890,45 +893,45 @@ public abstract class NodeImpl
             otherDepth=0;
             for (node=otherNode; node != null; node=node.getParentNode()) {
                 otherDepth +=1;
-                if (node == thisNode) 
-                  // The other node is a descendent of the reference 
+                if (node == thisNode)
+                  // The other node is a descendent of the reference
                   // node's element
                   return TREE_POSITION_FOLLOWING;
                 otherAncestor = node;
             }
         }
 
-        // thisAncestor and otherAncestor must be the same at this point,  
+        // thisAncestor and otherAncestor must be the same at this point,
         // otherwise, we are not in the same tree or document fragment
-        if (thisAncestor != otherAncestor) 
-          return TREE_POSITION_DISCONNECTED; 
+        if (thisAncestor != otherAncestor)
+          return TREE_POSITION_DISCONNECTED;
 
-      
-        // Go up the parent chain of the deeper node, until we find a node 
+
+        // Go up the parent chain of the deeper node, until we find a node
         // with the same depth as the shallower node
 
         if (thisDepth > otherDepth) {
           for (int i=0; i<thisDepth - otherDepth; i++)
             thisNode = thisNode.getParentNode();
           // Check if the node we have reached is in fact "otherNode". This can
-          // happen in the case of attributes.  In this case, otherNode 
+          // happen in the case of attributes.  In this case, otherNode
           // "precedes" this.
-          if (thisNode == otherNode) 
+          if (thisNode == otherNode)
             return TREE_POSITION_PRECEDING;
         }
- 
+
         else {
           for (int i=0; i<otherDepth - thisDepth; i++)
             otherNode = otherNode.getParentNode();
           // Check if the node we have reached is in fact "thisNode".  This can
-          // happen in the case of attributes.  In this case, otherNode 
+          // happen in the case of attributes.  In this case, otherNode
           // "follows" this.
-          if (otherNode == thisNode) 
+          if (otherNode == thisNode)
             return TREE_POSITION_FOLLOWING;
         }
-             
-        // We now have nodes at the same depth in the tree.  Find a common 
-        // ancestor.                                   
+
+        // We now have nodes at the same depth in the tree.  Find a common
+        // ancestor.
         Node thisNodeP, otherNodeP;
         for (thisNodeP=thisNode.getParentNode(),
                   otherNodeP=otherNode.getParentNode();
@@ -939,11 +942,11 @@ public abstract class NodeImpl
              otherNodeP = otherNodeP.getParentNode();
         }
 
-        // At this point, thisNode and otherNode are direct children of 
-        // the common ancestor.  
+        // At this point, thisNode and otherNode are direct children of
+        // the common ancestor.
         // See whether thisNode or otherNode is the leftmost
 
-        for (Node current=thisNodeP.getFirstChild(); 
+        for (Node current=thisNodeP.getFirstChild();
                   current!=null;
                   current=current.getNextSibling()) {
                if (current==otherNode) {
@@ -953,24 +956,24 @@ public abstract class NodeImpl
                  return TREE_POSITION_FOLLOWING;
                }
         }
-        // REVISIT:  shouldn't get here.   Should probably throw an 
+        // REVISIT:  shouldn't get here.   Should probably throw an
         // exception
         return 0;
 
     }
     /**
-     * Compares a node with this node with regard to their position in the 
-     * document. 
+     * Compares a node with this node with regard to their position in the
+     * document.
      * @param other The node to compare against this node.
-     * @return Returns how the given node is positioned relatively to this 
+     * @return Returns how the given node is positioned relatively to this
      *   node.
      * @since DOM Level 3
      */
     public short compareDocumentPosition(Node other) throws DOMException {
 
         // If the nodes are the same, no flags should be set
-        if (this==other) 
-          return 0; 
+        if (this==other)
+          return 0;
 
         // check if other is from a different implementation
         try {
@@ -983,67 +986,67 @@ public abstract class NodeImpl
         }
 
         Document thisOwnerDoc, otherOwnerDoc;
-        // get the respective Document owners.  
-        if (this.getNodeType() == Node.DOCUMENT_NODE) 
+        // get the respective Document owners.
+        if (this.getNodeType() == Node.DOCUMENT_NODE)
           thisOwnerDoc = (Document)this;
         else
           thisOwnerDoc = this.getOwnerDocument();
-        if (other.getNodeType() == Node.DOCUMENT_NODE) 
+        if (other.getNodeType() == Node.DOCUMENT_NODE)
           otherOwnerDoc = (Document)other;
         else
           otherOwnerDoc = other.getOwnerDocument();
 
-        // If from different documents, we know they are disconnected. 
-        // and have an implementation dependent order 
-        if (thisOwnerDoc != otherOwnerDoc && 
-            thisOwnerDoc !=null && 
-            otherOwnerDoc !=null) 
+        // If from different documents, we know they are disconnected.
+        // and have an implementation dependent order
+        if (thisOwnerDoc != otherOwnerDoc &&
+            thisOwnerDoc !=null &&
+            otherOwnerDoc !=null)
  {
           int otherDocNum = ((CoreDocumentImpl)otherOwnerDoc).getNodeNumber();
           int thisDocNum = ((CoreDocumentImpl)thisOwnerDoc).getNodeNumber();
-          if (otherDocNum > thisDocNum)  
-            return DOCUMENT_POSITION_DISCONNECTED | 
-                   DOCUMENT_POSITION_FOLLOWING | 
+          if (otherDocNum > thisDocNum)
+            return DOCUMENT_POSITION_DISCONNECTED |
+                   DOCUMENT_POSITION_FOLLOWING |
                    DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC;
           else
-            return DOCUMENT_POSITION_DISCONNECTED | 
-                   DOCUMENT_POSITION_PRECEDING | 
+            return DOCUMENT_POSITION_DISCONNECTED |
+                   DOCUMENT_POSITION_PRECEDING |
                    DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC;
-                  
-        }
-     
-        // Find the ancestor of each node, and the distance each node is from 
-        // its ancestor.
-        // During this traversal, look for ancestor/descendent relationships 
-        // between the 2 nodes in question. 
-        // We do this now, so that we get this info correct for attribute nodes 
-        // and their children. 
 
-        Node node; 
+        }
+
+        // Find the ancestor of each node, and the distance each node is from
+        // its ancestor.
+        // During this traversal, look for ancestor/descendent relationships
+        // between the 2 nodes in question.
+        // We do this now, so that we get this info correct for attribute nodes
+        // and their children.
+
+        Node node;
         Node thisAncestor = this;
         Node otherAncestor = other;
-       
+
         int thisDepth=0;
         int otherDepth=0;
         for (node=this; node != null; node = node.getParentNode()) {
             thisDepth +=1;
-            if (node == other) 
+            if (node == other)
               // The other node is an ancestor of this one.
-              return (DOCUMENT_POSITION_CONTAINS | 
+              return (DOCUMENT_POSITION_CONTAINS |
                       DOCUMENT_POSITION_PRECEDING);
             thisAncestor = node;
         }
 
         for (node=other; node!=null; node=node.getParentNode()) {
             otherDepth +=1;
-            if (node == this) 
+            if (node == this)
               // The other node is a descendent of the reference node.
-              return (DOCUMENT_POSITION_IS_CONTAINED | 
+              return (DOCUMENT_POSITION_IS_CONTAINED |
                       DOCUMENT_POSITION_FOLLOWING);
             otherAncestor = node;
         }
-        
-       
+
+
 
         int thisAncestorType = thisAncestor.getNodeType();
         int otherAncestorType = otherAncestor.getNodeType();
@@ -1051,46 +1054,46 @@ public abstract class NodeImpl
         Node otherNode = other;
 
         // Special casing for ENTITY, NOTATION, DOCTYPE and ATTRIBUTES
-        // LM:  should rewrite this.                                          
+        // LM:  should rewrite this.
         switch (thisAncestorType) {
           case Node.NOTATION_NODE:
           case Node.ENTITY_NODE: {
             DocumentType container = thisOwnerDoc.getDoctype();
-            if (container == otherAncestor) return 
+            if (container == otherAncestor) return
                    (DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
             switch (otherAncestorType) {
-              case Node.NOTATION_NODE: 
+              case Node.NOTATION_NODE:
               case Node.ENTITY_NODE:  {
-                if (thisAncestorType != otherAncestorType) 
+                if (thisAncestorType != otherAncestorType)
                  // the nodes are of different types
-                 return ((thisAncestorType>otherAncestorType) ? 
+                 return ((thisAncestorType>otherAncestorType) ?
                     DOCUMENT_POSITION_PRECEDING:DOCUMENT_POSITION_FOLLOWING);
                 else {
                  // the nodes are of the same type.  Find order.
                  if (thisAncestorType == Node.NOTATION_NODE)
-                 
+
                      if (((NamedNodeMapImpl)container.getNotations()).precedes(otherAncestor,thisAncestor))
-                       return (DOCUMENT_POSITION_PRECEDING | 
+                       return (DOCUMENT_POSITION_PRECEDING |
                                DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC);
                      else
-                       return (DOCUMENT_POSITION_FOLLOWING | 
+                       return (DOCUMENT_POSITION_FOLLOWING |
                                DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC);
                  else
                      if (((NamedNodeMapImpl)container.getEntities()).precedes(otherAncestor,thisAncestor))
-                       return (DOCUMENT_POSITION_PRECEDING | 
+                       return (DOCUMENT_POSITION_PRECEDING |
                                DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC);
                      else
-                       return (DOCUMENT_POSITION_FOLLOWING | 
+                       return (DOCUMENT_POSITION_FOLLOWING |
                                DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC);
                 }
               }
             }
             thisNode = thisAncestor = thisOwnerDoc;
             break;
-          } 
+          }
           case Node.DOCUMENT_TYPE_NODE: {
-            if (otherNode == thisOwnerDoc) 
-              return (DOCUMENT_POSITION_PRECEDING | 
+            if (otherNode == thisOwnerDoc)
+              return (DOCUMENT_POSITION_PRECEDING |
                       DOCUMENT_POSITION_CONTAINS);
             else if (thisOwnerDoc!=null && thisOwnerDoc==otherOwnerDoc)
               return (DOCUMENT_POSITION_FOLLOWING);
@@ -1102,10 +1105,10 @@ public abstract class NodeImpl
               otherNode = ((AttrImpl)otherAncestor).getOwnerElement();
               if (otherNode == thisNode) {
                 if (((NamedNodeMapImpl)thisNode.getAttributes()).precedes(other,this))
-                  return (DOCUMENT_POSITION_PRECEDING | 
+                  return (DOCUMENT_POSITION_PRECEDING |
                           DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC);
                 else
-                  return (DOCUMENT_POSITION_FOLLOWING | 
+                  return (DOCUMENT_POSITION_FOLLOWING |
                           DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC);
               }
             }
@@ -1114,10 +1117,10 @@ public abstract class NodeImpl
             thisDepth=0;
             for (node=thisNode; node != null; node=node.getParentNode()) {
                 thisDepth +=1;
-                if (node == otherNode) 
+                if (node == otherNode)
                   {
                   // The other node is an ancestor of the owning element
-                  return (DOCUMENT_POSITION_CONTAINS | 
+                  return (DOCUMENT_POSITION_CONTAINS |
                           DOCUMENT_POSITION_PRECEDING);
                   }
                 thisAncestor = node;
@@ -1128,14 +1131,14 @@ public abstract class NodeImpl
           case Node.NOTATION_NODE:
           case Node.ENTITY_NODE: {
           DocumentType container = thisOwnerDoc.getDoctype();
-            if (container == this) return (DOCUMENT_POSITION_IS_CONTAINED | 
+            if (container == this) return (DOCUMENT_POSITION_IS_CONTAINED |
                                           DOCUMENT_POSITION_FOLLOWING);
             otherNode = otherAncestor = thisOwnerDoc;
             break;
           }
           case Node.DOCUMENT_TYPE_NODE: {
-            if (thisNode == otherOwnerDoc) 
-              return (DOCUMENT_POSITION_FOLLOWING | 
+            if (thisNode == otherOwnerDoc)
+              return (DOCUMENT_POSITION_FOLLOWING |
                       DOCUMENT_POSITION_IS_CONTAINED);
             else if (otherOwnerDoc!=null && thisOwnerDoc==otherOwnerDoc)
               return (DOCUMENT_POSITION_PRECEDING);
@@ -1146,62 +1149,62 @@ public abstract class NodeImpl
             otherNode = ((AttrImpl)otherAncestor).getOwnerElement();
             for (node=otherNode; node != null; node=node.getParentNode()) {
                 otherDepth +=1;
-                if (node == thisNode) 
-                  // The other node is a descendent of the reference 
+                if (node == thisNode)
+                  // The other node is a descendent of the reference
                   // node's element
-                  return DOCUMENT_POSITION_FOLLOWING | 
+                  return DOCUMENT_POSITION_FOLLOWING |
                          DOCUMENT_POSITION_IS_CONTAINED;
                 otherAncestor = node;
             }
 
           }
         }
- 
-        // thisAncestor and otherAncestor must be the same at this point,  
-        // otherwise, the original nodes are disconnected 
+
+        // thisAncestor and otherAncestor must be the same at this point,
+        // otherwise, the original nodes are disconnected
         if (thisAncestor != otherAncestor) {
           int thisAncestorNum, otherAncestorNum;
           thisAncestorNum = ((NodeImpl)thisAncestor).getNodeNumber();
           otherAncestorNum = ((NodeImpl)otherAncestor).getNodeNumber();
-          
-          if (thisAncestorNum > otherAncestorNum) 
-            return DOCUMENT_POSITION_DISCONNECTED | 
-                   DOCUMENT_POSITION_FOLLOWING | 
+
+          if (thisAncestorNum > otherAncestorNum)
+            return DOCUMENT_POSITION_DISCONNECTED |
+                   DOCUMENT_POSITION_FOLLOWING |
                    DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC;
           else
-            return DOCUMENT_POSITION_DISCONNECTED | 
-                   DOCUMENT_POSITION_PRECEDING | 
+            return DOCUMENT_POSITION_DISCONNECTED |
+                   DOCUMENT_POSITION_PRECEDING |
                    DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC;
         }
 
-      
-        // Go up the parent chain of the deeper node, until we find a node 
+
+        // Go up the parent chain of the deeper node, until we find a node
         // with the same depth as the shallower node
 
         if (thisDepth > otherDepth) {
           for (int i=0; i<thisDepth - otherDepth; i++)
             thisNode = thisNode.getParentNode();
           // Check if the node we have reached is in fact "otherNode". This can
-          // happen in the case of attributes.  In this case, otherNode 
+          // happen in the case of attributes.  In this case, otherNode
           // "precedes" this.
-          if (thisNode == otherNode) 
+          if (thisNode == otherNode)
 {
             return DOCUMENT_POSITION_PRECEDING;
           }
         }
- 
+
         else {
           for (int i=0; i<otherDepth - thisDepth; i++)
             otherNode = otherNode.getParentNode();
           // Check if the node we have reached is in fact "thisNode".  This can
-          // happen in the case of attributes.  In this case, otherNode 
+          // happen in the case of attributes.  In this case, otherNode
           // "follows" this.
-          if (otherNode == thisNode) 
+          if (otherNode == thisNode)
             return DOCUMENT_POSITION_FOLLOWING;
         }
-             
-        // We now have nodes at the same depth in the tree.  Find a common 
-        // ancestor.                                   
+
+        // We now have nodes at the same depth in the tree.  Find a common
+        // ancestor.
         Node thisNodeP, otherNodeP;
         for (thisNodeP=thisNode.getParentNode(),
                   otherNodeP=otherNode.getParentNode();
@@ -1212,11 +1215,11 @@ public abstract class NodeImpl
              otherNodeP = otherNodeP.getParentNode();
         }
 
-        // At this point, thisNode and otherNode are direct children of 
-        // the common ancestor.  
+        // At this point, thisNode and otherNode are direct children of
+        // the common ancestor.
         // See whether thisNode or otherNode is the leftmost
 
-        for (Node current=thisNodeP.getFirstChild(); 
+        for (Node current=thisNodeP.getFirstChild();
                   current!=null;
                   current=current.getNextSibling()) {
                if (current==otherNode) {
@@ -1226,24 +1229,24 @@ public abstract class NodeImpl
                  return DOCUMENT_POSITION_FOLLOWING;
                }
         }
-        // REVISIT:  shouldn't get here.   Should probably throw an 
+        // REVISIT:  shouldn't get here.   Should probably throw an
         // exception
         return 0;
 
     }
 
     /**
-     * This attribute returns the text content of this node and its 
-     * descendants. When it is defined to be null, setting it has no effect. 
-     * When set, any possible children this node may have are removed and 
-     * replaced by a single <code>Text</code> node containing the string 
-     * this attribute is set to. On getting, no serialization is performed, 
-     * the returned string does not contain any markup. No whitespace 
-     * normalization is performed, the returned string does not contain the 
-     * element content whitespaces . Similarly, on setting, no parsing is 
+     * This attribute returns the text content of this node and its
+     * descendants. When it is defined to be null, setting it has no effect.
+     * When set, any possible children this node may have are removed and
+     * replaced by a single <code>Text</code> node containing the string
+     * this attribute is set to. On getting, no serialization is performed,
+     * the returned string does not contain any markup. No whitespace
+     * normalization is performed, the returned string does not contain the
+     * element content whitespaces . Similarly, on setting, no parsing is
      * performed either, the input string is taken as pure textual content.
-     * <br>The string returned is made of the text content of this node 
-     * depending on its type, as defined below: 
+     * <br>The string returned is made of the text content of this node
+     * depending on its type, as defined below:
      * <table border='1'>
      * <tr>
      * <th>Node type</th>
@@ -1251,17 +1254,17 @@ public abstract class NodeImpl
      * </tr>
 
     /**
-     * This attribute returns the text content of this node and its 
-     * descendants. When it is defined to be null, setting it has no effect. 
-     * When set, any possible children this node may have are removed and 
-     * replaced by a single <code>Text</code> node containing the string 
-     * this attribute is set to. On getting, no serialization is performed, 
-     * the returned string does not contain any markup. No whitespace 
-     * normalization is performed, the returned string does not contain the 
-     * element content whitespaces . Similarly, on setting, no parsing is 
+     * This attribute returns the text content of this node and its
+     * descendants. When it is defined to be null, setting it has no effect.
+     * When set, any possible children this node may have are removed and
+     * replaced by a single <code>Text</code> node containing the string
+     * this attribute is set to. On getting, no serialization is performed,
+     * the returned string does not contain any markup. No whitespace
+     * normalization is performed, the returned string does not contain the
+     * element content whitespaces . Similarly, on setting, no parsing is
      * performed either, the input string is taken as pure textual content.
-     * <br>The string returned is made of the text content of this node 
-     * depending on its type, as defined below: 
+     * <br>The string returned is made of the text content of this node
+     * depending on its type, as defined below:
      * <table border='1'>
      * <tr>
      * <th>Node type</th>
@@ -1269,14 +1272,14 @@ public abstract class NodeImpl
      * </tr>
      * <tr>
      * <td valign='top' rowspan='1' colspan='1'>
-     * ELEMENT_NODE, ENTITY_NODE, ENTITY_REFERENCE_NODE, 
+     * ELEMENT_NODE, ENTITY_NODE, ENTITY_REFERENCE_NODE,
      * DOCUMENT_FRAGMENT_NODE</td>
-     * <td valign='top' rowspan='1' colspan='1'>concatenation of the <code>textContent</code> 
-     * attribute value of every child node, excluding COMMENT_NODE and 
+     * <td valign='top' rowspan='1' colspan='1'>concatenation of the <code>textContent</code>
+     * attribute value of every child node, excluding COMMENT_NODE and
      * PROCESSING_INSTRUCTION_NODE nodes</td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'>ATTRIBUTE_NODE, TEXT_NODE, 
+     * <td valign='top' rowspan='1' colspan='1'>ATTRIBUTE_NODE, TEXT_NODE,
      * CDATA_SECTION_NODE, COMMENT_NODE, PROCESSING_INSTRUCTION_NODE</td>
      * <td valign='top' rowspan='1' colspan='1'>
      * <code>nodeValue</code></td>
@@ -1290,8 +1293,8 @@ public abstract class NodeImpl
      * @exception DOMException
      *   NO_MODIFICATION_ALLOWED_ERR: Raised when the node is readonly.
      * @exception DOMException
-     *   DOMSTRING_SIZE_ERR: Raised when it would return more characters than 
-     *   fit in a <code>DOMString</code> variable on the implementation 
+     *   DOMSTRING_SIZE_ERR: Raised when it would return more characters than
+     *   fit in a <code>DOMString</code> variable on the implementation
      *   platform.
      * @since DOM Level 3
      */
@@ -1308,17 +1311,17 @@ public abstract class NodeImpl
     }
 
     /**
-     * This attribute returns the text content of this node and its 
-     * descendants. When it is defined to be null, setting it has no effect. 
-     * When set, any possible children this node may have are removed and 
-     * replaced by a single <code>Text</code> node containing the string 
-     * this attribute is set to. On getting, no serialization is performed, 
-     * the returned string does not contain any markup. No whitespace 
-     * normalization is performed, the returned string does not contain the 
-     * element content whitespaces . Similarly, on setting, no parsing is 
+     * This attribute returns the text content of this node and its
+     * descendants. When it is defined to be null, setting it has no effect.
+     * When set, any possible children this node may have are removed and
+     * replaced by a single <code>Text</code> node containing the string
+     * this attribute is set to. On getting, no serialization is performed,
+     * the returned string does not contain any markup. No whitespace
+     * normalization is performed, the returned string does not contain the
+     * element content whitespaces . Similarly, on setting, no parsing is
      * performed either, the input string is taken as pure textual content.
-     * <br>The string returned is made of the text content of this node 
-     * depending on its type, as defined below: 
+     * <br>The string returned is made of the text content of this node
+     * depending on its type, as defined below:
      * <table border='1'>
      * <tr>
      * <th>Node type</th>
@@ -1326,14 +1329,14 @@ public abstract class NodeImpl
      * </tr>
      * <tr>
      * <td valign='top' rowspan='1' colspan='1'>
-     * ELEMENT_NODE, ENTITY_NODE, ENTITY_REFERENCE_NODE, 
+     * ELEMENT_NODE, ENTITY_NODE, ENTITY_REFERENCE_NODE,
      * DOCUMENT_FRAGMENT_NODE</td>
-     * <td valign='top' rowspan='1' colspan='1'>concatenation of the <code>textContent</code> 
-     * attribute value of every child node, excluding COMMENT_NODE and 
+     * <td valign='top' rowspan='1' colspan='1'>concatenation of the <code>textContent</code>
+     * attribute value of every child node, excluding COMMENT_NODE and
      * PROCESSING_INSTRUCTION_NODE nodes</td>
      * </tr>
      * <tr>
-     * <td valign='top' rowspan='1' colspan='1'>ATTRIBUTE_NODE, TEXT_NODE, 
+     * <td valign='top' rowspan='1' colspan='1'>ATTRIBUTE_NODE, TEXT_NODE,
      * CDATA_SECTION_NODE, COMMENT_NODE, PROCESSING_INSTRUCTION_NODE</td>
      * <td valign='top' rowspan='1' colspan='1'>
      * <code>nodeValue</code></td>
@@ -1347,8 +1350,8 @@ public abstract class NodeImpl
      * @exception DOMException
      *   NO_MODIFICATION_ALLOWED_ERR: Raised when the node is readonly.
      * @exception DOMException
-     *   DOMSTRING_SIZE_ERR: Raised when it would return more characters than 
-     *   fit in a <code>DOMString</code> variable on the implementation 
+     *   DOMSTRING_SIZE_ERR: Raised when it would return more characters than
+     *   fit in a <code>DOMString</code> variable on the implementation
      *   platform.
      * @since DOM Level 3
      */
@@ -1359,15 +1362,15 @@ public abstract class NodeImpl
 
     /**
      * Returns whether this node is the same node as the given one.
-     * <br>This method provides a way to determine whether two 
-     * <code>Node</code> references returned by the implementation reference 
-     * the same object. When two <code>Node</code> references are references 
-     * to the same object, even if through a proxy, the references may be 
-     * used completely interchangably, such that all attributes have the 
-     * same values and calling the same DOM method on either reference 
+     * <br>This method provides a way to determine whether two
+     * <code>Node</code> references returned by the implementation reference
+     * the same object. When two <code>Node</code> references are references
+     * to the same object, even if through a proxy, the references may be
+     * used completely interchangably, such that all attributes have the
+     * same values and calling the same DOM method on either reference
      * always has exactly the same effect.
      * @param other The node to test against.
-     * @return Returns <code>true</code> if the nodes are the same, 
+     * @return Returns <code>true</code> if the nodes are the same,
      *   <code>false</code> otherwise.
      * @since DOM Level 3
      */
@@ -1377,25 +1380,25 @@ public abstract class NodeImpl
     }
 
 
-     
+
 
     /**
      *  DOM Level 3: Experimental
-     *  This method checks if the specified <code>namespaceURI</code> is the 
-     *  default namespace or not. 
+     *  This method checks if the specified <code>namespaceURI</code> is the
+     *  default namespace or not.
      *  @param namespaceURI The namespace URI to look for.
-     *  @return  <code>true</code> if the specified <code>namespaceURI</code> 
-     *   is the default namespace, <code>false</code> otherwise. 
+     *  @return  <code>true</code> if the specified <code>namespaceURI</code>
+     *   is the default namespace, <code>false</code> otherwise.
      * @since DOM Level 3
      */
     public boolean isDefaultNamespace(String namespaceURI){
         // REVISIT: remove casts when DOM L3 becomes REC.
         short type = this.getNodeType();
         switch (type) {
-        case Node.ELEMENT_NODE: {             
+        case Node.ELEMENT_NODE: {
             String namespace = this.getNamespaceURI();
             String prefix = this.getPrefix();
-            
+
             // REVISIT: is it possible that prefix is empty string?
             if (prefix == null || prefix.length() == 0) {
                 if (namespaceURI == null) {
@@ -1438,7 +1441,7 @@ public abstract class NodeImpl
                 }
                 return false;
             }
-        default:{   
+        default:{
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.isDefaultNamespace(namespaceURI);
@@ -1453,15 +1456,15 @@ public abstract class NodeImpl
 
 
     /**
-     * 
+     *
      * DOM Level 3 - Experimental:
      * Look up the prefix associated to the given namespace URI, starting from this node.
-     * 
+     *
      * @param namespaceURI
      * @return the prefix for the namespace
      */
     public String lookupPrefix(String namespaceURI){
-        
+
         // REVISIT: When Namespaces 1.1 comes out this may not be true
         // Prefix can't be bound to null namespace
         if (namespaceURI == null) {
@@ -1473,7 +1476,7 @@ public abstract class NodeImpl
         switch (type) {
         case Node.ELEMENT_NODE: {
 
-                String namespace = this.getNamespaceURI(); // to flip out children 
+                String namespace = this.getNamespaceURI(); // to flip out children
                 return lookupNamespacePrefix(namespaceURI, (ElementImpl)this);
             }
         case Node.DOCUMENT_NODE:{
@@ -1493,7 +1496,7 @@ public abstract class NodeImpl
                 }
                 return null;
             }
-        default:{   
+        default:{
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.lookupPrefix(namespaceURI);
@@ -1507,7 +1510,7 @@ public abstract class NodeImpl
      * DOM Level 3 - Experimental:
      * Look up the namespace URI associated to the given prefix, starting from this node.
      * Use lookupNamespaceURI(null) to lookup the default namespace
-     * 
+     *
      * @param namespaceURI
      * @return th URI for the namespace
      * @since DOM Level 3
@@ -1515,8 +1518,8 @@ public abstract class NodeImpl
     public String lookupNamespaceURI(String specifiedPrefix) {
         short type = this.getNodeType();
         switch (type) {
-        case Node.ELEMENT_NODE : {  
-                
+        case Node.ELEMENT_NODE : {
+
                 String namespace = this.getNamespaceURI();
                 String prefix = this.getPrefix();
                 if (namespace !=null) {
@@ -1528,7 +1531,7 @@ public abstract class NodeImpl
                         // non default namespace
                         return namespace;
                     }
-                } 
+                }
                 if (this.hasAttributes()) {
                     NamedNodeMap map = this.getAttributes();
                     int length = map.getLength();
@@ -1543,7 +1546,7 @@ public abstract class NodeImpl
                                 attr.getNodeName().equals("xmlns")) {
                                 // default namespace
                                 return value;
-                            } else if (attrPrefix !=null && 
+                            } else if (attrPrefix !=null &&
                                        attrPrefix.equals("xmlns") &&
                                        attr.getLocalName().equals(specifiedPrefix)) {
                                 // non default namespace
@@ -1561,7 +1564,7 @@ public abstract class NodeImpl
 
 
             }
-        case Node.DOCUMENT_NODE : {   
+        case Node.DOCUMENT_NODE : {
                 return((NodeImpl)((Document)this).getDocumentElement()).lookupNamespaceURI(specifiedPrefix);
             }
         case Node.ENTITY_NODE :
@@ -1577,7 +1580,7 @@ public abstract class NodeImpl
                 }
                 return null;
             }
-        default:{ 
+        default:{
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.lookupNamespaceURI(specifiedPrefix);
@@ -1603,7 +1606,7 @@ public abstract class NodeImpl
 
     String lookupNamespacePrefix(String namespaceURI, ElementImpl el){
         String namespace = this.getNamespaceURI();
-        // REVISIT: if no prefix is available is it null or empty string, or 
+        // REVISIT: if no prefix is available is it null or empty string, or
         //          could be both?
         String prefix = this.getPrefix();
 
@@ -1651,43 +1654,43 @@ public abstract class NodeImpl
 
     /**
      * Tests whether two nodes are equal.
-     * <br>This method tests for equality of nodes, not sameness (i.e., 
-     * whether the two nodes are references to the same object) which can be 
-     * tested with <code>Node.isSameNode</code>. All nodes that are the same 
+     * <br>This method tests for equality of nodes, not sameness (i.e.,
+     * whether the two nodes are references to the same object) which can be
+     * tested with <code>Node.isSameNode</code>. All nodes that are the same
      * will also be equal, though the reverse may not be true.
-     * <br>Two nodes are equal if and only if the following conditions are 
-     * satisfied: The two nodes are of the same type.The following string 
-     * attributes are equal: <code>nodeName</code>, <code>localName</code>, 
+     * <br>Two nodes are equal if and only if the following conditions are
+     * satisfied: The two nodes are of the same type.The following string
+     * attributes are equal: <code>nodeName</code>, <code>localName</code>,
      * <code>namespaceURI</code>, <code>prefix</code>, <code>nodeValue</code>
-     * , <code>baseURI</code>. This is: they are both <code>null</code>, or 
+     * , <code>baseURI</code>. This is: they are both <code>null</code>, or
      * they have the same length and are character for character identical.
-     * The <code>attributes</code> <code>NamedNodeMaps</code> are equal. 
-     * This is: they are both <code>null</code>, or they have the same 
-     * length and for each node that exists in one map there is a node that 
-     * exists in the other map and is equal, although not necessarily at the 
-     * same index.The <code>childNodes</code> <code>NodeLists</code> are 
-     * equal. This is: they are both <code>null</code>, or they have the 
-     * same length and contain equal nodes at the same index. This is true 
-     * for <code>Attr</code> nodes as for any other type of node. Note that 
-     * normalization can affect equality; to avoid this, nodes should be 
-     * normalized before being compared. 
-     * <br>For two <code>DocumentType</code> nodes to be equal, the following 
-     * conditions must also be satisfied: The following string attributes 
-     * are equal: <code>publicId</code>, <code>systemId</code>, 
-     * <code>internalSubset</code>.The <code>entities</code> 
-     * <code>NamedNodeMaps</code> are equal.The <code>notations</code> 
-     * <code>NamedNodeMaps</code> are equal. 
-     * <br>On the other hand, the following do not affect equality: the 
-     * <code>ownerDocument</code> attribute, the <code>specified</code> 
-     * attribute for <code>Attr</code> nodes, the 
-     * <code>isWhitespaceInElementContent</code> attribute for 
-     * <code>Text</code> nodes, as well as any user data or event listeners 
+     * The <code>attributes</code> <code>NamedNodeMaps</code> are equal.
+     * This is: they are both <code>null</code>, or they have the same
+     * length and for each node that exists in one map there is a node that
+     * exists in the other map and is equal, although not necessarily at the
+     * same index.The <code>childNodes</code> <code>NodeLists</code> are
+     * equal. This is: they are both <code>null</code>, or they have the
+     * same length and contain equal nodes at the same index. This is true
+     * for <code>Attr</code> nodes as for any other type of node. Note that
+     * normalization can affect equality; to avoid this, nodes should be
+     * normalized before being compared.
+     * <br>For two <code>DocumentType</code> nodes to be equal, the following
+     * conditions must also be satisfied: The following string attributes
+     * are equal: <code>publicId</code>, <code>systemId</code>,
+     * <code>internalSubset</code>.The <code>entities</code>
+     * <code>NamedNodeMaps</code> are equal.The <code>notations</code>
+     * <code>NamedNodeMaps</code> are equal.
+     * <br>On the other hand, the following do not affect equality: the
+     * <code>ownerDocument</code> attribute, the <code>specified</code>
+     * attribute for <code>Attr</code> nodes, the
+     * <code>isWhitespaceInElementContent</code> attribute for
+     * <code>Text</code> nodes, as well as any user data or event listeners
      * registered on the nodes.
      * @param arg The node to compare equality with.
-     * @param deep If <code>true</code>, recursively compare the subtrees; if 
-     *   <code>false</code>, compare only the nodes themselves (and its 
+     * @param deep If <code>true</code>, recursively compare the subtrees; if
+     *   <code>false</code>, compare only the nodes themselves (and its
      *   attributes, if it is an <code>Element</code>).
-     * @return If the nodes, and possibly subtrees are equal, 
+     * @return If the nodes, and possibly subtrees are equal,
      *   <code>true</code> otherwise <code>false</code>.
      * @since DOM Level 3
      */
@@ -1759,30 +1762,30 @@ public abstract class NodeImpl
     }
 
     /**
-     * Associate an object to a key on this node. The object can later be 
-     * retrieved from this node by calling <code>getUserData</code> with the 
+     * Associate an object to a key on this node. The object can later be
+     * retrieved from this node by calling <code>getUserData</code> with the
      * same key.
      * @param key The key to associate the object to.
-     * @param data The object to associate to the given key, or 
+     * @param data The object to associate to the given key, or
      *   <code>null</code> to remove any existing association to that key.
-     * @param handler The handler to associate to that key, or 
+     * @param handler The handler to associate to that key, or
      *   <code>null</code>.
-     * @return Returns the <code>DOMObject</code> previously associated to 
+     * @return Returns the <code>DOMObject</code> previously associated to
      *   the given key on this node, or <code>null</code> if there was none.
      * @since DOM Level 3
      */
-    public Object setUserData(String key, 
-                              Object data, 
+    public Object setUserData(String key,
+                              Object data,
                               UserDataHandler handler) {
         return ownerDocument().setUserData(this, key, data, handler);
     }
 
     /**
-     * Retrieves the object associated to a key on a this node. The object 
-     * must first have been set to this node by calling 
+     * Retrieves the object associated to a key on a this node. The object
+     * must first have been set to this node by calling
      * <code>setUserData</code> with the same key.
      * @param key The key the object is associated to.
-     * @return Returns the <code>DOMObject</code> associated to the given key 
+     * @return Returns the <code>DOMObject</code> associated to the given key
      *   on this node, or <code>null</code> if there was none.
      * @since DOM Level 3
      */
@@ -1790,9 +1793,9 @@ public abstract class NodeImpl
         return ownerDocument().getUserData(this, key);
     }
 
-	protected Hashtable getUserDataRecord(){
+        protected Hashtable getUserDataRecord(){
         return ownerDocument().getUserDataRecord(this);
-	}
+        }
 
     //
     // Public methods
@@ -1813,7 +1816,7 @@ public abstract class NodeImpl
      *
      * @param readOnly True or false as desired.
      * @param deep If true, children are also toggled. Note that this will
-     *	not change the state of an EntityReference or its children,
+     *  not change the state of an EntityReference or its children,
      *  which are always read-only.
      */
     public void setReadOnly(boolean readOnly, boolean deep) {
@@ -1821,7 +1824,7 @@ public abstract class NodeImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-    	isReadOnly(readOnly);
+        isReadOnly(readOnly);
 
     } // setReadOnly(boolean,boolean)
 
@@ -1895,8 +1898,8 @@ public abstract class NodeImpl
         needsSyncData(false);
     }
 
-    /** 
-     * For non-child nodes, the node which "points" to this node.  
+    /**
+     * For non-child nodes, the node which "points" to this node.
      * For example, the owning element for an attribute
      */
     protected Node getContainer() {

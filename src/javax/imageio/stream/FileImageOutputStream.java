@@ -1,13 +1,30 @@
 /*
- * @(#)FileImageOutputStream.java	1.17 06/01/05
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.stream;
 
-import java.io.DataInput;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,7 +38,6 @@ import sun.java2d.Disposer;
  * output directly to a <code>File</code> or
  * <code>RandomAccessFile</code>.
  *
- * @version 0.5
  */
 public class FileImageOutputStream extends ImageOutputStreamImpl {
 

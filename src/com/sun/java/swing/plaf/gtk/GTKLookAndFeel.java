@@ -1,34 +1,54 @@
 /*
- * @(#)GTKLookAndFeel.java	1.111 08/11/17
+ * Copyright (c) 2002, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
+
 package com.sun.java.swing.plaf.gtk;
 
-import java.lang.ref.*;
-import javax.swing.plaf.synth.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.io.File;
+import java.lang.ref.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Locale;
 import javax.swing.*;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.colorchooser.*;
 import javax.swing.plaf.*;
+import javax.swing.plaf.synth.*;
 import javax.swing.text.DefaultEditorKit;
 
 import com.sun.java.swing.plaf.gtk.GTKConstants.PositionType;
 import com.sun.java.swing.plaf.gtk.GTKConstants.StateType;
-
-import sun.swing.SwingUtilities2;
-import sun.awt.AppContext;
+import sun.awt.SunToolkit;
+import sun.awt.UNIXToolkit;
+import sun.awt.OSInfo;
 import sun.security.action.GetPropertyAction;
 import sun.swing.DefaultLayoutStyle;
+import sun.swing.SwingUtilities2;
 
 /**
- * @version 1.111, 11/17/08
  * @author Scott Violet
  */
 public class GTKLookAndFeel extends SynthLookAndFeel {
@@ -67,32 +87,27 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
      * method.
      */
     private boolean inInitialize;
-    
-    /** 
-     * If true, PropertyChangeListeners have been installed for the 
-     * Toolkit. 
-     */ 
-    private boolean pclInstalled; 
-    
+
+    /**
+     * If true, PropertyChangeListeners have been installed for the
+     * Toolkit.
+     */
+    private boolean pclInstalled;
+
     /**
      * StyleFactory needs to be created only the first time.
      */
     private GTKStyleFactory styleFactory;
-    
+
     /**
      * Cached theme name. Used by GTKGraphicsUtils
      */
     private static String gtkThemeName = "Default";
 
-    /**
-     * Fallback fontname for GTK L&F
-     */
-    final static String DEFAULT_FONT_NAME = "sans 10";
-    
     static {
         // Backup for specifying the version, this isn't currently documented.
         // If you pass in anything but 2.2 you got the 2.0 colors/look.
-        String version = (String)java.security.AccessController.doPrivileged(
+        String version = AccessController.doPrivileged(
                new GetPropertyAction("swing.gtk.version"));
         if (version != null) {
             IS_22 = version.equals("2.2");
@@ -109,21 +124,20 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
         if (cjkLocale) {
             boolean isSunDesktop = false;
-            String osName = System.getProperty("os.name");
-            if (osName != null) {
-                if (osName.equals("SunOS")) {
+            switch (OSInfo.getOSType()) {
+                case SOLARIS:
                     isSunDesktop = true;
-                } else if (osName.equals("Linux")) {
-                    Boolean val =
-                        (Boolean)java.security.AccessController.doPrivileged(
-                            new java.security.PrivilegedAction() {
-                                    public Object run() {
-                                        File f = new File("/etc/sun-release");
-                                        return Boolean.valueOf(f.exists());
-                                    }
-                                });
+                    break;
+
+                case LINUX:
+                    Boolean val = AccessController.doPrivileged(
+                                    new PrivilegedAction<Boolean>() {
+                                        public Boolean run() {
+                                            File f = new File("/etc/sun-release");
+                                            return Boolean.valueOf(f.exists());
+                                        }
+                                    });
                     isSunDesktop = val.booleanValue();
-                }
             }
             if (isSunDesktop && !sun.java2d.SunGraphicsEnvironment.isOpenSolaris) {
                 isSunCJK = true;
@@ -162,7 +176,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
     /**
      * Maps from Synth state to native GTK state using typesafe enumeration
-     * StateType.  This is only used by the GTKNativeEngine.
+     * StateType.  This is only used by GTKEngine.
      */
     static StateType synthStateToGTKStateType(int state) {
         StateType result;
@@ -180,7 +194,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 result = StateType.INSENSITIVE;
                 break;
             case SynthConstants.ENABLED:
-            default: 
+            default:
                 result = StateType.NORMAL;
                 break;
         }
@@ -188,7 +202,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
     }
 
     /**
-     * Maps from a Synth state to the corresponding GTK state. 
+     * Maps from a Synth state to the corresponding GTK state.
      * The GTK states are named differently than Synth's states, the
      * following gives the mapping:
      * <table><tr><td>Synth<td>GTK
@@ -223,7 +237,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             } else {
                 state = SynthConstants.PRESSED;
             }
-            
+
         } else if ((state & SynthConstants.SELECTED) != 0) {
             if (region == Region.MENU) {
                 state = SynthConstants.MOUSE_OVER;
@@ -252,9 +266,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         else if ((state & SynthConstants.MOUSE_OVER) != 0) {
             state = SynthConstants.MOUSE_OVER;
         }
-        else if ((state & SynthConstants.DISABLED) != 0) { 
-            state = SynthConstants.DISABLED; 
-        } 
+        else if ((state & SynthConstants.DISABLED) != 0) {
+            state = SynthConstants.DISABLED;
+        }
         else {
             if (region == Region.SLIDER_TRACK) {
                 state = SynthConstants.PRESSED;
@@ -284,11 +298,11 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         UIDefaults table = super.getDefaults();
 
         // SynthTabbedPaneUI supports rollover on tabs, GTK does not
-        table.put("TabbedPane.isTabRollover", Boolean.TRUE);
+        table.put("TabbedPane.isTabRollover", Boolean.FALSE);
 
         // Prevents Synth from setting text AA by itself
         table.put("Synth.doNotSetTextAA", true);
-        
+
         initResourceBundle(table);
         // For compatability with apps expecting certain defaults we'll
         // populate the table with the values from basic.
@@ -299,7 +313,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
     }
 
     private void installPropertyChangeListeners() {
-        if(!pclInstalled) {        
+        if(!pclInstalled) {
             Toolkit kit = Toolkit.getDefaultToolkit();
             WeakPCL pcl = new WeakPCL(this, kit, "gnome.Net/ThemeName");
             kit.addPropertyChangeListener(pcl.getKey(), pcl);
@@ -322,26 +336,48 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         // populate the table with the values from basic.
         super.initComponentDefaults(table);
 
+        Integer zero =  Integer.valueOf(0);
+        Object zeroBorder = new sun.swing.SwingLazyValue(
+            "javax.swing.plaf.BorderUIResource$EmptyBorderUIResource",
+            new Object[] {zero, zero, zero, zero});
         Object focusBorder = new GTKStyle.GTKLazyValue(
             "com.sun.java.swing.plaf.gtk.GTKPainter$ListTableFocusBorder",
             "getUnselectedCellBorder");
         Object focusSelectedBorder = new GTKStyle.GTKLazyValue(
             "com.sun.java.swing.plaf.gtk.GTKPainter$ListTableFocusBorder",
             "getSelectedCellBorder");
+        Object noFocusBorder = new GTKStyle.GTKLazyValue(
+            "com.sun.java.swing.plaf.gtk.GTKPainter$ListTableFocusBorder",
+            "getNoFocusCellBorder");
 
-        GTKStyleFactory factory = (GTKStyleFactory)getStyleFactory(); 
+        GTKStyleFactory factory = (GTKStyleFactory)getStyleFactory();
         GTKStyle tableStyle = (GTKStyle)factory.getStyle(null, Region.TREE);
+        Color tableBg = tableStyle.getGTKColor(SynthConstants.ENABLED,
+                GTKColorType.TEXT_BACKGROUND);
         Color tableFocusCellBg = tableStyle.getGTKColor(SynthConstants.ENABLED,
                 GTKColorType.BACKGROUND);
         Color tableFocusCellFg = tableStyle.getGTKColor(SynthConstants.ENABLED,
                 GTKColorType.FOREGROUND);
-        
-        Integer caretBlinkRate = new Integer(500);
+
+        // The following progress bar size calculations come from
+        // gtkprogressbar.c (version 2.8.20), see MIN_* constants and
+        // the gtk_progress_bar_size_request() method.
+        GTKStyle progStyle = (GTKStyle)
+            factory.getStyle(null, Region.PROGRESS_BAR);
+        int progXThickness = progStyle.getXThickness();
+        int progYThickness = progStyle.getYThickness();
+        int hProgWidth  = 150 - (progXThickness * 2);
+        int hProgHeight =  20 - (progYThickness * 2);
+        int vProgWidth  =  22 - (progXThickness * 2);
+        int vProgHeight =  80 - (progYThickness * 2);
+
+        Integer caretBlinkRate = Integer.valueOf(500);
         Insets zeroInsets = new InsetsUIResource(0, 0, 0, 0);
 
         Double defaultCaretAspectRatio = new Double(0.025);
         Color caretColor = table.getColor("caretColor");
-        
+        Color controlText = table.getColor("controlText");
+
         Object fieldInputMap = new UIDefaults.LazyInputMap(new Object[] {
                        "ctrl C", DefaultEditorKit.copyAction,
                        "ctrl V", DefaultEditorKit.pasteAction,
@@ -349,9 +385,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                          "COPY", DefaultEditorKit.copyAction,
                         "PASTE", DefaultEditorKit.pasteAction,
                           "CUT", DefaultEditorKit.cutAction,
-               "control INSERT", DefaultEditorKit.copyAction, 
-                 "shift INSERT", DefaultEditorKit.pasteAction, 
-                 "shift DELETE", DefaultEditorKit.cutAction, 
+               "control INSERT", DefaultEditorKit.copyAction,
+                 "shift INSERT", DefaultEditorKit.pasteAction,
+                 "shift DELETE", DefaultEditorKit.cutAction,
                    "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                 "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                   "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -391,9 +427,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                          "COPY", DefaultEditorKit.copyAction,
                         "PASTE", DefaultEditorKit.pasteAction,
                           "CUT", DefaultEditorKit.cutAction,
-               "control INSERT", DefaultEditorKit.copyAction, 
-                 "shift INSERT", DefaultEditorKit.pasteAction, 
-                 "shift DELETE", DefaultEditorKit.cutAction, 
+               "control INSERT", DefaultEditorKit.copyAction,
+                 "shift INSERT", DefaultEditorKit.pasteAction,
+                 "shift DELETE", DefaultEditorKit.cutAction,
                    "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                 "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                   "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -433,9 +469,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                              "COPY", DefaultEditorKit.copyAction,
                             "PASTE", DefaultEditorKit.pasteAction,
                               "CUT", DefaultEditorKit.cutAction,
-                   "control INSERT", DefaultEditorKit.copyAction, 
-                     "shift INSERT", DefaultEditorKit.pasteAction, 
-                     "shift DELETE", DefaultEditorKit.cutAction, 
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
                        "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                       "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -476,7 +512,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                       "ctrl DELETE", DefaultEditorKit.deleteNextWordAction,
                   "ctrl BACK_SPACE", DefaultEditorKit.deletePrevWordAction,
                             "RIGHT", DefaultEditorKit.forwardAction,
-                             "LEFT", DefaultEditorKit.backwardAction, 
+                             "LEFT", DefaultEditorKit.backwardAction,
                          "KP_RIGHT", DefaultEditorKit.forwardAction,
                           "KP_LEFT", DefaultEditorKit.backwardAction,
                               "TAB", DefaultEditorKit.insertTabAction,
@@ -499,28 +535,28 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             public Object createValue(UIDefaults table) {
                 GTKStyleFactory factory = (GTKStyleFactory)getStyleFactory();
                 GTKStyle style = (GTKStyle)factory.getStyle(null, region);
-                return style.getFontForState(null, region, SynthConstants.ENABLED);
+                return style.getFontForState(null);
             }
         }
-        
+
         Object[] defaults = new Object[] {
-            "ArrowButton.size", new Integer(13),
+            "ArrowButton.size", Integer.valueOf(13),
 
 
             "Button.defaultButtonFollowsFocus", Boolean.FALSE,
-	    "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
+            "Button.focusInputMap", new UIDefaults.LazyInputMap(new Object[] {
                          "SPACE", "pressed",
                 "released SPACE", "released",
                          "ENTER", "pressed",
-                "released ENTER", "released" 
+                "released ENTER", "released"
               }),
             "Button.font", new FontLazyValue(Region.BUTTON),
             "Button.margin", zeroInsets,
 
 
-	    "CheckBox.focusInputMap", new UIDefaults.LazyInputMap(new Object[]{
+            "CheckBox.focusInputMap", new UIDefaults.LazyInputMap(new Object[]{
                          "SPACE", "pressed",
-                "released SPACE", "released" 
+                "released SPACE", "released"
               }),
             "CheckBox.icon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
@@ -529,15 +565,14 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "CheckBox.margin", zeroInsets,
 
 
-            "CheckBoxMenuItem.arrowIcon", new GTKStyle.GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getCheckBoxMenuItemArrowIcon"),
+            "CheckBoxMenuItem.arrowIcon", null,
             "CheckBoxMenuItem.checkIcon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getCheckBoxMenuItemCheckIcon"),
-            "CheckBoxMenuItem.font", 
+            "CheckBoxMenuItem.font",
                 new FontLazyValue(Region.CHECK_BOX_MENU_ITEM),
             "CheckBoxMenuItem.margin", zeroInsets,
+            "CheckBoxMenuItem.alignAcceleratorText", Boolean.FALSE,
 
 
             "ColorChooser.showPreviewPanelText", Boolean.FALSE,
@@ -550,25 +585,25 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "ColorChooser.font", new FontLazyValue(Region.COLOR_CHOOSER),
 
 
-	    "ComboBox.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		     "ESCAPE", "hidePopup",
-		    "PAGE_UP", "pageUpPassThrough",
-		  "PAGE_DOWN", "pageDownPassThrough",
-		       "HOME", "homePassThrough",
-		        "END", "endPassThrough",
-		       "DOWN", "selectNext",
-		    "KP_DOWN", "selectNext",
-		   "alt DOWN", "togglePopup",
-		"alt KP_DOWN", "togglePopup",
-		     "alt UP", "togglePopup",
-		  "alt KP_UP", "togglePopup",
-		      "SPACE", "spacePopup",
+            "ComboBox.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                     "ESCAPE", "hidePopup",
+                    "PAGE_UP", "pageUpPassThrough",
+                  "PAGE_DOWN", "pageDownPassThrough",
+                       "HOME", "homePassThrough",
+                        "END", "endPassThrough",
+                       "DOWN", "selectNext",
+                    "KP_DOWN", "selectNext",
+                   "alt DOWN", "togglePopup",
+                "alt KP_DOWN", "togglePopup",
+                     "alt UP", "togglePopup",
+                  "alt KP_UP", "togglePopup",
+                      "SPACE", "spacePopup",
                       "ENTER", "enterPressed",
-		         "UP", "selectPrevious",
-		      "KP_UP", "selectPrevious"
+                         "UP", "selectPrevious",
+                      "KP_UP", "selectPrevious"
 
-		 }),
+                 }),
             "ComboBox.font", new FontLazyValue(Region.COMBO_BOX),
             "ComboBox.isEnterSelectablePopup", Boolean.TRUE,
 
@@ -581,18 +616,18 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "EditorPane.font", new FontLazyValue(Region.EDITOR_PANE),
 
 
-	    "FileChooser.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
+            "FileChooser.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
                      "ESCAPE", "cancelSelection",
                  "ctrl ENTER", "approveSelection"
-		 }),
+                 }),
             "FileChooserUI", "com.sun.java.swing.plaf.gtk.GTKLookAndFeel",
 
 
             "FormattedTextField.caretForeground", caretColor,
             "FormattedTextField.caretAspectRatio", defaultCaretAspectRatio,
             "FormattedTextField.caretBlinkRate", caretBlinkRate,
-	    "FormattedTextField.focusInputMap",
+            "FormattedTextField.focusInputMap",
               new UIDefaults.LazyInputMap(new Object[] {
                            "ctrl C", DefaultEditorKit.copyAction,
                            "ctrl V", DefaultEditorKit.pasteAction,
@@ -600,9 +635,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                              "COPY", DefaultEditorKit.copyAction,
                             "PASTE", DefaultEditorKit.pasteAction,
                               "CUT", DefaultEditorKit.cutAction,
-                   "control INSERT", DefaultEditorKit.copyAction, 
-                     "shift INSERT", DefaultEditorKit.pasteAction, 
-                     "shift DELETE", DefaultEditorKit.cutAction, 
+                   "control INSERT", DefaultEditorKit.copyAction,
+                     "shift INSERT", DefaultEditorKit.pasteAction,
+                     "shift DELETE", DefaultEditorKit.cutAction,
                        "shift LEFT", DefaultEditorKit.selectionBackwardAction,
                     "shift KP_LEFT", DefaultEditorKit.selectionBackwardAction,
                       "shift RIGHT", DefaultEditorKit.selectionForwardAction,
@@ -639,13 +674,13 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                              "DOWN", "decrement",
                           "KP_DOWN", "decrement",
               }),
-            "FormattedTextField.font", 
+            "FormattedTextField.font",
                 new FontLazyValue(Region.FORMATTED_TEXT_FIELD),
 
 
-	    "InternalFrameTitlePane.titlePaneLayout",
-				new GTKStyle.GTKLazyValue("com.sun.java.swing.plaf.gtk.Metacity",
-						 "getTitlePaneLayout"),
+            "InternalFrameTitlePane.titlePaneLayout",
+                                new GTKStyle.GTKLazyValue("com.sun.java.swing.plaf.gtk.Metacity",
+                                                 "getTitlePaneLayout"),
             "InternalFrame.windowBindings", new Object[] {
                   "shift ESCAPE", "showSystemMenu",
                     "ctrl SPACE", "showSystemMenu",
@@ -657,118 +692,122 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "InternalFrameTitlePane.maximizeButtonOpacity", null,
             "InternalFrameTitlePane.closeButtonOpacity", null,
 
-            "Label.font", new FontLazyValue(Region.LABEL), 
+            "Label.font", new FontLazyValue(Region.LABEL),
 
+            "List.background", tableBg,
             "List.focusCellHighlightBorder", focusBorder,
             "List.focusSelectedCellHighlightBorder", focusSelectedBorder,
-	    "List.focusInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
+            "List.noFocusBorder", noFocusBorder,
+            "List.focusInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
                            "ctrl C", "copy",
                            "ctrl V", "paste",
                            "ctrl X", "cut",
                              "COPY", "copy",
                             "PASTE", "paste",
                               "CUT", "cut",
-                   "control INSERT", "copy", 
-                     "shift INSERT", "paste", 
-                     "shift DELETE", "cut", 
+                   "control INSERT", "copy",
+                     "shift INSERT", "paste",
+                     "shift DELETE", "cut",
                                "UP", "selectPreviousRow",
-		            "KP_UP", "selectPreviousRow",
-		         "shift UP", "selectPreviousRowExtendSelection",
-		      "shift KP_UP", "selectPreviousRowExtendSelection",
+                            "KP_UP", "selectPreviousRow",
+                         "shift UP", "selectPreviousRowExtendSelection",
+                      "shift KP_UP", "selectPreviousRowExtendSelection",
                     "ctrl shift UP", "selectPreviousRowExtendSelection",
                  "ctrl shift KP_UP", "selectPreviousRowExtendSelection",
                           "ctrl UP", "selectPreviousRowChangeLead",
                        "ctrl KP_UP", "selectPreviousRowChangeLead",
-		             "DOWN", "selectNextRow",
-		          "KP_DOWN", "selectNextRow",
-		       "shift DOWN", "selectNextRowExtendSelection",
-		    "shift KP_DOWN", "selectNextRowExtendSelection",
+                             "DOWN", "selectNextRow",
+                          "KP_DOWN", "selectNextRow",
+                       "shift DOWN", "selectNextRowExtendSelection",
+                    "shift KP_DOWN", "selectNextRowExtendSelection",
                   "ctrl shift DOWN", "selectNextRowExtendSelection",
                "ctrl shift KP_DOWN", "selectNextRowExtendSelection",
                         "ctrl DOWN", "selectNextRowChangeLead",
                      "ctrl KP_DOWN", "selectNextRowChangeLead",
-		             "LEFT", "selectPreviousColumn",
-		          "KP_LEFT", "selectPreviousColumn",
-		       "shift LEFT", "selectPreviousColumnExtendSelection",
-		    "shift KP_LEFT", "selectPreviousColumnExtendSelection",
+                             "LEFT", "selectPreviousColumn",
+                          "KP_LEFT", "selectPreviousColumn",
+                       "shift LEFT", "selectPreviousColumnExtendSelection",
+                    "shift KP_LEFT", "selectPreviousColumnExtendSelection",
                   "ctrl shift LEFT", "selectPreviousColumnExtendSelection",
                "ctrl shift KP_LEFT", "selectPreviousColumnExtendSelection",
                         "ctrl LEFT", "selectPreviousColumnChangeLead",
                      "ctrl KP_LEFT", "selectPreviousColumnChangeLead",
-		            "RIGHT", "selectNextColumn",
-		         "KP_RIGHT", "selectNextColumn",
-		      "shift RIGHT", "selectNextColumnExtendSelection",
-		   "shift KP_RIGHT", "selectNextColumnExtendSelection",
+                            "RIGHT", "selectNextColumn",
+                         "KP_RIGHT", "selectNextColumn",
+                      "shift RIGHT", "selectNextColumnExtendSelection",
+                   "shift KP_RIGHT", "selectNextColumnExtendSelection",
                  "ctrl shift RIGHT", "selectNextColumnExtendSelection",
               "ctrl shift KP_RIGHT", "selectNextColumnExtendSelection",
                        "ctrl RIGHT", "selectNextColumnChangeLead",
                     "ctrl KP_RIGHT", "selectNextColumnChangeLead",
-		             "HOME", "selectFirstRow",
-		       "shift HOME", "selectFirstRowExtendSelection",
+                             "HOME", "selectFirstRow",
+                       "shift HOME", "selectFirstRowExtendSelection",
                   "ctrl shift HOME", "selectFirstRowExtendSelection",
                         "ctrl HOME", "selectFirstRowChangeLead",
-		              "END", "selectLastRow",
-		        "shift END", "selectLastRowExtendSelection",
+                              "END", "selectLastRow",
+                        "shift END", "selectLastRowExtendSelection",
                    "ctrl shift END", "selectLastRowExtendSelection",
                          "ctrl END", "selectLastRowChangeLead",
-		          "PAGE_UP", "scrollUp",
-		    "shift PAGE_UP", "scrollUpExtendSelection",
+                          "PAGE_UP", "scrollUp",
+                    "shift PAGE_UP", "scrollUpExtendSelection",
                "ctrl shift PAGE_UP", "scrollUpExtendSelection",
                      "ctrl PAGE_UP", "scrollUpChangeLead",
-		        "PAGE_DOWN", "scrollDown",
-		  "shift PAGE_DOWN", "scrollDownExtendSelection",
+                        "PAGE_DOWN", "scrollDown",
+                  "shift PAGE_DOWN", "scrollDownExtendSelection",
              "ctrl shift PAGE_DOWN", "scrollDownExtendSelection",
                    "ctrl PAGE_DOWN", "scrollDownChangeLead",
-		           "ctrl A", "selectAll",
-		       "ctrl SLASH", "selectAll",
-		  "ctrl BACK_SLASH", "clearSelection",
+                           "ctrl A", "selectAll",
+                       "ctrl SLASH", "selectAll",
+                  "ctrl BACK_SLASH", "clearSelection",
                             "SPACE", "addToSelection",
                        "ctrl SPACE", "toggleAndAnchor",
                       "shift SPACE", "extendTo",
                  "ctrl shift SPACE", "moveSelectionTo"
-		 }),
-	    "List.focusInputMap.RightToLeft",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		             "LEFT", "selectNextColumn",
-		          "KP_LEFT", "selectNextColumn",
-		       "shift LEFT", "selectNextColumnExtendSelection",
-		    "shift KP_LEFT", "selectNextColumnExtendSelection",
+                 }),
+            "List.focusInputMap.RightToLeft",
+               new UIDefaults.LazyInputMap(new Object[] {
+                             "LEFT", "selectNextColumn",
+                          "KP_LEFT", "selectNextColumn",
+                       "shift LEFT", "selectNextColumnExtendSelection",
+                    "shift KP_LEFT", "selectNextColumnExtendSelection",
                   "ctrl shift LEFT", "selectNextColumnExtendSelection",
                "ctrl shift KP_LEFT", "selectNextColumnExtendSelection",
                         "ctrl LEFT", "selectNextColumnChangeLead",
                      "ctrl KP_LEFT", "selectNextColumnChangeLead",
-		            "RIGHT", "selectPreviousColumn",
-		         "KP_RIGHT", "selectPreviousColumn",
-		      "shift RIGHT", "selectPreviousColumnExtendSelection",
-		   "shift KP_RIGHT", "selectPreviousColumnExtendSelection",
+                            "RIGHT", "selectPreviousColumn",
+                         "KP_RIGHT", "selectPreviousColumn",
+                      "shift RIGHT", "selectPreviousColumnExtendSelection",
+                   "shift KP_RIGHT", "selectPreviousColumnExtendSelection",
                  "ctrl shift RIGHT", "selectPreviousColumnExtendSelection",
               "ctrl shift KP_RIGHT", "selectPreviousColumnExtendSelection",
                        "ctrl RIGHT", "selectPreviousColumnChangeLead",
                     "ctrl KP_RIGHT", "selectPreviousColumnChangeLead",
-		 }),
+                 }),
             "List.font", new FontLazyValue(Region.LIST),
+            "List.rendererUseUIBorder", Boolean.FALSE,
 
-
- 	    "Menu.shortcutKeys", new int[] {KeyEvent.ALT_MASK},
+            "Menu.shortcutKeys", new int[] {KeyEvent.ALT_MASK},
             "Menu.arrowIcon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getMenuArrowIcon"),
+            "Menu.checkIcon", null,
             "Menu.font", new FontLazyValue(Region.MENU),
             "Menu.margin", zeroInsets,
+            "Menu.cancelMode", "hideMenuTree",
+            "Menu.alignAcceleratorText", Boolean.FALSE,
 
 
-	    "MenuBar.windowBindings", new Object[] {
-		"F10", "takeFocus" },
+            "MenuBar.windowBindings", new Object[] {
+                "F10", "takeFocus" },
             "MenuBar.font", new FontLazyValue(Region.MENU_BAR),
 
 
-            "MenuItem.arrowIcon", new GTKStyle.GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getMenuItemArrowIcon"),
+            "MenuItem.arrowIcon", null,
             "MenuItem.checkIcon", null,
             "MenuItem.font", new FontLazyValue(Region.MENU_ITEM),
             "MenuItem.margin", zeroInsets,
+            "MenuItem.alignAcceleratorText", Boolean.FALSE,
 
 
             "OptionPane.setButtonMargin", Boolean.FALSE,
@@ -776,9 +815,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "OptionPane.buttonOrientation", new Integer(SwingConstants.RIGHT),
             "OptionPane.minimumSize", new DimensionUIResource(262, 90),
             "OptionPane.buttonPadding", new Integer(10),
-	    "OptionPane.windowBindings", new Object[] {
-		"ESCAPE", "close" },
-	    "OptionPane.buttonClickThreshhold", new Integer(500),
+            "OptionPane.windowBindings", new Object[] {
+                "ESCAPE", "close" },
+            "OptionPane.buttonClickThreshhold", new Integer(500),
             "OptionPane.isYesLast", Boolean.TRUE,
             "OptionPane.font", new FontLazyValue(Region.OPTION_PANE),
 
@@ -793,38 +832,40 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
 
             "PopupMenu.consumeEventOnClose", Boolean.TRUE,
-	    "PopupMenu.selectedWindowInputMapBindings", new Object[] {
-		  "ESCAPE", "cancel",
+            "PopupMenu.selectedWindowInputMapBindings", new Object[] {
+                  "ESCAPE", "cancel",
                     "DOWN", "selectNext",
-		 "KP_DOWN", "selectNext",
-		      "UP", "selectPrevious",
-		   "KP_UP", "selectPrevious",
-		    "LEFT", "selectParent",
-		 "KP_LEFT", "selectParent",
-		   "RIGHT", "selectChild",
-		"KP_RIGHT", "selectChild",
-		   "ENTER", "return",
-		   "SPACE", "return"
-	    },
-	    "PopupMenu.selectedWindowInputMapBindings.RightToLeft",
+                 "KP_DOWN", "selectNext",
+                      "UP", "selectPrevious",
+                   "KP_UP", "selectPrevious",
+                    "LEFT", "selectParent",
+                 "KP_LEFT", "selectParent",
+                   "RIGHT", "selectChild",
+                "KP_RIGHT", "selectChild",
+                   "ENTER", "return",
+                   "SPACE", "return"
+            },
+            "PopupMenu.selectedWindowInputMapBindings.RightToLeft",
                   new Object[] {
-		    "LEFT", "selectChild",
-		 "KP_LEFT", "selectChild",
-		   "RIGHT", "selectParent",
-		"KP_RIGHT", "selectParent",
-	    },
+                    "LEFT", "selectChild",
+                 "KP_LEFT", "selectChild",
+                   "RIGHT", "selectParent",
+                "KP_RIGHT", "selectParent",
+            },
             "PopupMenu.font", new FontLazyValue(Region.POPUP_MENU),
 
-            "ProgressBar.horizontalSize", new DimensionUIResource(146, 16),
-            "ProgressBar.verticalSize", new DimensionUIResource(16, 146),
+            "ProgressBar.horizontalSize",
+                new DimensionUIResource(hProgWidth, hProgHeight),
+            "ProgressBar.verticalSize",
+                new DimensionUIResource(vProgWidth, vProgHeight),
             "ProgressBar.font", new FontLazyValue(Region.PROGRESS_BAR),
 
-	    "RadioButton.focusInputMap",
+            "RadioButton.focusInputMap",
                    new UIDefaults.LazyInputMap(new Object[] {
-		            "SPACE", "pressed",
+                            "SPACE", "pressed",
                    "released SPACE", "released",
-                           "RETURN", "pressed" 
-	           }),
+                           "RETURN", "pressed"
+                   }),
             "RadioButton.icon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getRadioButtonIcon"),
@@ -832,87 +873,93 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "RadioButton.margin", zeroInsets,
 
 
-            "RadioButtonMenuItem.arrowIcon", new GTKStyle.GTKLazyValue(
-                              "com.sun.java.swing.plaf.gtk.GTKIconFactory",
-                              "getRadioButtonMenuItemArrowIcon"),
+            "RadioButtonMenuItem.arrowIcon", null,
             "RadioButtonMenuItem.checkIcon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getRadioButtonMenuItemCheckIcon"),
-            "RadioButtonMenuItem.font", new FontLazyValue(Region.RADIO_BUTTON_MENU_ITEM), 
+            "RadioButtonMenuItem.font", new FontLazyValue(Region.RADIO_BUTTON_MENU_ITEM),
             "RadioButtonMenuItem.margin", zeroInsets,
+            "RadioButtonMenuItem.alignAcceleratorText", Boolean.FALSE,
+
 
             // These bindings are only enabled when there is a default
             // button set on the rootpane.
             "RootPane.defaultButtonWindowKeyBindings", new Object[] {
-		               "ENTER", "press",
-		      "released ENTER", "release",
-		          "ctrl ENTER", "press",
+                               "ENTER", "press",
+                      "released ENTER", "release",
+                          "ctrl ENTER", "press",
                  "ctrl released ENTER", "release"
             },
 
 
             "ScrollBar.squareButtons", Boolean.FALSE,
-            "ScrollBar.thumbHeight", new Integer(14),
-            "ScrollBar.width", new Integer(16),
+            "ScrollBar.thumbHeight", Integer.valueOf(14),
+            "ScrollBar.width", Integer.valueOf(16),
             "ScrollBar.minimumThumbSize", new Dimension(8, 8),
             "ScrollBar.maximumThumbSize", new Dimension(4096, 4096),
             "ScrollBar.allowsAbsolutePositioning", Boolean.TRUE,
+            "ScrollBar.alwaysShowThumb", Boolean.TRUE,
             "ScrollBar.ancestorInputMap",
-	           new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "positiveUnitIncrement",
-		    "KP_RIGHT", "positiveUnitIncrement",
-		        "DOWN", "positiveUnitIncrement",
-		     "KP_DOWN", "positiveUnitIncrement",
-		   "PAGE_DOWN", "positiveBlockIncrement",
-		        "LEFT", "negativeUnitIncrement",
-		     "KP_LEFT", "negativeUnitIncrement",
-		          "UP", "negativeUnitIncrement",
-		       "KP_UP", "negativeUnitIncrement",
-		     "PAGE_UP", "negativeBlockIncrement",
-		        "HOME", "minScroll",
-		         "END", "maxScroll"
+                   new UIDefaults.LazyInputMap(new Object[] {
+                       "RIGHT", "positiveUnitIncrement",
+                    "KP_RIGHT", "positiveUnitIncrement",
+                        "DOWN", "positiveUnitIncrement",
+                     "KP_DOWN", "positiveUnitIncrement",
+                   "PAGE_DOWN", "positiveBlockIncrement",
+                        "LEFT", "negativeUnitIncrement",
+                     "KP_LEFT", "negativeUnitIncrement",
+                          "UP", "negativeUnitIncrement",
+                       "KP_UP", "negativeUnitIncrement",
+                     "PAGE_UP", "negativeBlockIncrement",
+                        "HOME", "minScroll",
+                         "END", "maxScroll"
                    }),
             "ScrollBar.ancestorInputMap.RightToLeft",
                     new UIDefaults.LazyInputMap(new Object[] {
-		       "RIGHT", "negativeUnitIncrement",
-		    "KP_RIGHT", "negativeUnitIncrement",
-		        "LEFT", "positiveUnitIncrement",
-		     "KP_LEFT", "positiveUnitIncrement",
+                       "RIGHT", "negativeUnitIncrement",
+                    "KP_RIGHT", "negativeUnitIncrement",
+                        "LEFT", "positiveUnitIncrement",
+                     "KP_LEFT", "positiveUnitIncrement",
                     }),
 
 
-	    "Spinner.disableOnBoundaryValues", Boolean.TRUE,
+            "Spinner.disableOnBoundaryValues", Boolean.TRUE,
+
+
+            "ScrollPane.fillUpperCorner", Boolean.TRUE,
+            "ScrollPane.fillLowerCorner", Boolean.TRUE,
             "ScrollPane.ancestorInputMap",
                     new UIDefaults.LazyInputMap(new Object[] {
-		           "RIGHT", "unitScrollRight",
-		        "KP_RIGHT", "unitScrollRight",
-		            "DOWN", "unitScrollDown",
-		         "KP_DOWN", "unitScrollDown",
-		            "LEFT", "unitScrollLeft",
-		         "KP_LEFT", "unitScrollLeft",
-		              "UP", "unitScrollUp",
-		           "KP_UP", "unitScrollUp",
-		         "PAGE_UP", "scrollUp",
-		       "PAGE_DOWN", "scrollDown",
-		    "ctrl PAGE_UP", "scrollLeft",
-		  "ctrl PAGE_DOWN", "scrollRight",
-		       "ctrl HOME", "scrollHome",
-		        "ctrl END", "scrollEnd"
+                           "RIGHT", "unitScrollRight",
+                        "KP_RIGHT", "unitScrollRight",
+                            "DOWN", "unitScrollDown",
+                         "KP_DOWN", "unitScrollDown",
+                            "LEFT", "unitScrollLeft",
+                         "KP_LEFT", "unitScrollLeft",
+                              "UP", "unitScrollUp",
+                           "KP_UP", "unitScrollUp",
+                         "PAGE_UP", "scrollUp",
+                       "PAGE_DOWN", "scrollDown",
+                    "ctrl PAGE_UP", "scrollLeft",
+                  "ctrl PAGE_DOWN", "scrollRight",
+                       "ctrl HOME", "scrollHome",
+                        "ctrl END", "scrollEnd"
                     }),
             "ScrollPane.ancestorInputMap.RightToLeft",
                     new UIDefaults.LazyInputMap(new Object[] {
-		    "ctrl PAGE_UP", "scrollRight",
-		  "ctrl PAGE_DOWN", "scrollLeft",
+                    "ctrl PAGE_UP", "scrollRight",
+                  "ctrl PAGE_DOWN", "scrollLeft",
                     }),
             "ScrollPane.font", new FontLazyValue(Region.SCROLL_PANE),
 
 
             "Separator.insets", zeroInsets,
-            "Separator.thickness", new Integer(2),
+            "Separator.thickness", Integer.valueOf(2),
 
 
-            "Slider.thumbWidth", new Integer(30),
-            "Slider.thumbHeight", new Integer(14),
+            "Slider.paintValue", Boolean.TRUE,
+            "Slider.thumbWidth", Integer.valueOf(30),
+            "Slider.thumbHeight", Integer.valueOf(14),
             "Slider.focusInputMap",
                     new UIDefaults.LazyInputMap(new Object[] {
                             "RIGHT", "positiveUnitIncrement",
@@ -935,10 +982,10 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                              "LEFT", "positiveUnitIncrement",
                           "KP_LEFT", "positiveUnitIncrement",
                          }),
-
+            "Slider.onlyLeftMouseButtonDrag", Boolean.FALSE,
 
             "Spinner.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
+               new UIDefaults.LazyInputMap(new Object[] {
                                "UP", "increment",
                             "KP_UP", "increment",
                              "DOWN", "decrement",
@@ -949,61 +996,65 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
             "SplitPane.ancestorInputMap",
                     new UIDefaults.LazyInputMap(new Object[] {
-   		        "UP", "negativeIncrement",
-		      "DOWN", "positiveIncrement",
-		      "LEFT", "negativeIncrement",
-		     "RIGHT", "positiveIncrement",
-		     "KP_UP", "negativeIncrement",
-		   "KP_DOWN", "positiveIncrement",
-		   "KP_LEFT", "negativeIncrement",
-		  "KP_RIGHT", "positiveIncrement",
-		      "HOME", "selectMin",
-		       "END", "selectMax",
-		        "F8", "startResize",
-		        "F6", "toggleFocus",
-		  "ctrl TAB", "focusOutForward",
- 	    "ctrl shift TAB", "focusOutBackward"
+                        "UP", "negativeIncrement",
+                      "DOWN", "positiveIncrement",
+                      "LEFT", "negativeIncrement",
+                     "RIGHT", "positiveIncrement",
+                     "KP_UP", "negativeIncrement",
+                   "KP_DOWN", "positiveIncrement",
+                   "KP_LEFT", "negativeIncrement",
+                  "KP_RIGHT", "positiveIncrement",
+                      "HOME", "selectMin",
+                       "END", "selectMax",
+                        "F8", "startResize",
+                        "F6", "toggleFocus",
+                  "ctrl TAB", "focusOutForward",
+            "ctrl shift TAB", "focusOutBackward"
                     }),
 
 
-            "SplitPane.size", new Integer(7),
-            "SplitPane.oneTouchOffset", new Integer(2),
-            "SplitPane.oneTouchButtonSize", new Integer(5),
+            "SplitPane.size", Integer.valueOf(7),
+            "SplitPane.oneTouchOffset", Integer.valueOf(2),
+            "SplitPane.oneTouchButtonSize", Integer.valueOf(5),
             "SplitPane.supportsOneTouchButtons", Boolean.FALSE,
 
 
-	    "TabbedPane.focusInputMap",
-	      new UIDefaults.LazyInputMap(new Object[] {
-		         "RIGHT", "navigateRight",
-	              "KP_RIGHT", "navigateRight",
-	                  "LEFT", "navigateLeft",
-	               "KP_LEFT", "navigateLeft",
-	                    "UP", "navigateUp",
-	                 "KP_UP", "navigateUp",
-	                  "DOWN", "navigateDown",
-	               "KP_DOWN", "navigateDown",
-	             "ctrl DOWN", "requestFocusForVisibleComponent",
-	          "ctrl KP_DOWN", "requestFocusForVisibleComponent",
-			 "SPACE", "selectTabWithFocus"
-		}),
-	    "TabbedPane.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		         "ctrl TAB", "navigateNext",
-		   "ctrl shift TAB", "navigatePrevious",
-		   "ctrl PAGE_DOWN", "navigatePageDown",
-	             "ctrl PAGE_UP", "navigatePageUp",
-	                  "ctrl UP", "requestFocus",
-	               "ctrl KP_UP", "requestFocus",
-		 }),
+            "TabbedPane.focusInputMap",
+              new UIDefaults.LazyInputMap(new Object[] {
+                         "RIGHT", "navigateRight",
+                      "KP_RIGHT", "navigateRight",
+                          "LEFT", "navigateLeft",
+                       "KP_LEFT", "navigateLeft",
+                            "UP", "navigateUp",
+                         "KP_UP", "navigateUp",
+                          "DOWN", "navigateDown",
+                       "KP_DOWN", "navigateDown",
+                     "ctrl DOWN", "requestFocusForVisibleComponent",
+                  "ctrl KP_DOWN", "requestFocusForVisibleComponent",
+                         "SPACE", "selectTabWithFocus"
+                }),
+            "TabbedPane.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                         "ctrl TAB", "navigateNext",
+                   "ctrl shift TAB", "navigatePrevious",
+                   "ctrl PAGE_DOWN", "navigatePageDown",
+                     "ctrl PAGE_UP", "navigatePageUp",
+                          "ctrl UP", "requestFocus",
+                       "ctrl KP_UP", "requestFocus",
+                 }),
 
-            "TabbedPane.selectionFollowsFocus", Boolean.FALSE,
+            "TabbedPane.labelShift", 3,
+            "TabbedPane.selectedLabelShift", 3,
             "TabbedPane.font", new FontLazyValue(Region.TABBED_PANE),
+            "TabbedPane.selectedTabPadInsets", new InsetsUIResource(2, 2, 0, 1),
 
+            "Table.scrollPaneBorder", zeroBorder,
+            "Table.background", tableBg,
             "Table.focusCellBackground", tableFocusCellBg,
             "Table.focusCellForeground", tableFocusCellFg,
             "Table.focusCellHighlightBorder", focusBorder,
             "Table.focusSelectedCellHighlightBorder", focusSelectedBorder,
-            "Table.ancestorInputMap", 
+            "Table.ancestorInputMap",
                     new UIDefaults.LazyInputMap(new Object[] {
                                "ctrl C", "copy",
                                "ctrl V", "paste",
@@ -1011,9 +1062,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                                  "COPY", "copy",
                                 "PASTE", "paste",
                                   "CUT", "cut",
-                       "control INSERT", "copy", 
-                         "shift INSERT", "paste", 
-                         "shift DELETE", "cut", 
+                       "control INSERT", "copy",
+                         "shift INSERT", "paste",
+                         "shift DELETE", "cut",
                                 "RIGHT", "selectNextColumn",
                              "KP_RIGHT", "selectNextColumn",
                           "shift RIGHT", "selectNextColumnExtendSelection",
@@ -1107,8 +1158,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "Table.descendingSortIcon",  new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getDescendingSortIcon"),
-            
+
             "TableHeader.font", new FontLazyValue(Region.TABLE_HEADER),
+            "TableHeader.alignSorterArrow", Boolean.TRUE,
 
             "TextArea.caretForeground", caretColor,
             "TextArea.caretAspectRatio", defaultCaretAspectRatio,
@@ -1134,16 +1186,18 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             "TextPane.font", new FontLazyValue(Region.TEXT_PANE),
 
 
-            "TitledBorder.titleColor", new ColorUIResource(Color.BLACK),
-            "TitledBorder.border", new UIDefaults.ProxyLazyValue(
-                      "javax.swing.plaf.BorderUIResource",
-                      "getEtchedBorderUIResource"),
+            "TitledBorder.titleColor", controlText,
+            "TitledBorder.border", new UIDefaults.LazyValue() {
+                public Object createValue(UIDefaults table) {
+                    return new GTKPainter.TitledBorder();
+                }
+            },
 
-	    "ToggleButton.focusInputMap",
+            "ToggleButton.focusInputMap",
                    new UIDefaults.LazyInputMap(new Object[] {
-		            "SPACE", "pressed",
-                   "released SPACE", "released" 
-	           }),
+                            "SPACE", "pressed",
+                   "released SPACE", "released"
+                   }),
             "ToggleButton.font", new FontLazyValue(Region.TOGGLE_BUTTON),
             "ToggleButton.margin", zeroInsets,
 
@@ -1154,39 +1208,40 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                     return GTKIconFactory.getToolBarHandleIcon();
                 }
             },
-	    "ToolBar.ancestorInputMap",
-	       new UIDefaults.LazyInputMap(new Object[] {
-		        "UP", "navigateUp",
-		     "KP_UP", "navigateUp",
-		      "DOWN", "navigateDown",
-		   "KP_DOWN", "navigateDown",
-		      "LEFT", "navigateLeft",
-		   "KP_LEFT", "navigateLeft",
-		     "RIGHT", "navigateRight",
-		  "KP_RIGHT", "navigateRight"
-		 }),
+            "ToolBar.ancestorInputMap",
+               new UIDefaults.LazyInputMap(new Object[] {
+                        "UP", "navigateUp",
+                     "KP_UP", "navigateUp",
+                      "DOWN", "navigateDown",
+                   "KP_DOWN", "navigateDown",
+                      "LEFT", "navigateLeft",
+                   "KP_LEFT", "navigateLeft",
+                     "RIGHT", "navigateRight",
+                  "KP_RIGHT", "navigateRight"
+                 }),
             "ToolBar.font", new FontLazyValue(Region.TOOL_BAR),
 
             "ToolTip.font", new FontLazyValue(Region.TOOL_TIP),
 
-            "Tree.padding", new Integer(4),
+            "Tree.padding", Integer.valueOf(4),
+            "Tree.background", tableBg,
             "Tree.drawHorizontalLines", Boolean.FALSE,
             "Tree.drawVerticalLines", Boolean.FALSE,
-            "Tree.rowHeight", new Integer(-1),
+            "Tree.rowHeight", Integer.valueOf(-1),
             "Tree.scrollsOnExpand", Boolean.FALSE,
-            "Tree.expanderSize", new Integer(10),
+            "Tree.expanderSize", Integer.valueOf(10),
             "Tree.repaintWholeRow", Boolean.TRUE,
-	    "Tree.closedIcon", null,
-	    "Tree.leafIcon", null,
-	    "Tree.openIcon", null,
+            "Tree.closedIcon", null,
+            "Tree.leafIcon", null,
+            "Tree.openIcon", null,
             "Tree.expandedIcon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getTreeExpandedIcon"),
             "Tree.collapsedIcon", new GTKStyle.GTKLazyValue(
                               "com.sun.java.swing.plaf.gtk.GTKIconFactory",
                               "getTreeCollapsedIcon"),
-            "Tree.leftChildIndent", new Integer(2),
-            "Tree.rightChildIndent", new Integer(12),
+            "Tree.leftChildIndent", Integer.valueOf(2),
+            "Tree.rightChildIndent", Integer.valueOf(12),
             "Tree.scrollsHorizontallyAndVertically", Boolean.FALSE,
             "Tree.drawsFocusBorder", Boolean.TRUE,
             "Tree.focusInputMap",
@@ -1197,56 +1252,56 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                                    "COPY", "copy",
                                   "PASTE", "paste",
                                     "CUT", "cut",
-                         "control INSERT", "copy", 
-                           "shift INSERT", "paste", 
-                           "shift DELETE", "cut", 
-		                     "UP", "selectPrevious",
-		                  "KP_UP", "selectPrevious",
-		               "shift UP", "selectPreviousExtendSelection",
-		            "shift KP_UP", "selectPreviousExtendSelection",
+                         "control INSERT", "copy",
+                           "shift INSERT", "paste",
+                           "shift DELETE", "cut",
+                                     "UP", "selectPrevious",
+                                  "KP_UP", "selectPrevious",
+                               "shift UP", "selectPreviousExtendSelection",
+                            "shift KP_UP", "selectPreviousExtendSelection",
                           "ctrl shift UP", "selectPreviousExtendSelection",
                        "ctrl shift KP_UP", "selectPreviousExtendSelection",
                                 "ctrl UP", "selectPreviousChangeLead",
                              "ctrl KP_UP", "selectPreviousChangeLead",
-		                   "DOWN", "selectNext",
-		                "KP_DOWN", "selectNext",
-		             "shift DOWN", "selectNextExtendSelection",
-		          "shift KP_DOWN", "selectNextExtendSelection",
+                                   "DOWN", "selectNext",
+                                "KP_DOWN", "selectNext",
+                             "shift DOWN", "selectNextExtendSelection",
+                          "shift KP_DOWN", "selectNextExtendSelection",
                         "ctrl shift DOWN", "selectNextExtendSelection",
                      "ctrl shift KP_DOWN", "selectNextExtendSelection",
                               "ctrl DOWN", "selectNextChangeLead",
                            "ctrl KP_DOWN", "selectNextChangeLead",
-		                  "RIGHT", "selectChild",
-		               "KP_RIGHT", "selectChild",
-		                   "LEFT", "selectParent",
-		                "KP_LEFT", "selectParent",
+                                  "RIGHT", "selectChild",
+                               "KP_RIGHT", "selectChild",
+                                   "LEFT", "selectParent",
+                                "KP_LEFT", "selectParent",
                                 "typed +", "expand",
                                 "typed -", "collapse",
                              "BACK_SPACE", "moveSelectionToParent",
-		                "PAGE_UP", "scrollUpChangeSelection",
-		          "shift PAGE_UP", "scrollUpExtendSelection",
+                                "PAGE_UP", "scrollUpChangeSelection",
+                          "shift PAGE_UP", "scrollUpExtendSelection",
                      "ctrl shift PAGE_UP", "scrollUpExtendSelection",
                            "ctrl PAGE_UP", "scrollUpChangeLead",
-		              "PAGE_DOWN", "scrollDownChangeSelection",
-		        "shift PAGE_DOWN", "scrollDownExtendSelection",
+                              "PAGE_DOWN", "scrollDownChangeSelection",
+                        "shift PAGE_DOWN", "scrollDownExtendSelection",
                    "ctrl shift PAGE_DOWN", "scrollDownExtendSelection",
                          "ctrl PAGE_DOWN", "scrollDownChangeLead",
-		                   "HOME", "selectFirst",
-		             "shift HOME", "selectFirstExtendSelection",
+                                   "HOME", "selectFirst",
+                             "shift HOME", "selectFirstExtendSelection",
                         "ctrl shift HOME", "selectFirstExtendSelection",
                               "ctrl HOME", "selectFirstChangeLead",
-		                    "END", "selectLast",
-		              "shift END", "selectLastExtendSelection",
+                                    "END", "selectLast",
+                              "shift END", "selectLastExtendSelection",
                          "ctrl shift END", "selectLastExtendSelection",
                                "ctrl END", "selectLastChangeLead",
-		                     "F2", "startEditing",
-		                 "ctrl A", "selectAll",
-		             "ctrl SLASH", "selectAll",
-		        "ctrl BACK_SLASH", "clearSelection",
-		              "ctrl LEFT", "scrollLeft",
-		           "ctrl KP_LEFT", "scrollLeft",
-		             "ctrl RIGHT", "scrollRight",
-		          "ctrl KP_RIGHT", "scrollRight",
+                                     "F2", "startEditing",
+                                 "ctrl A", "selectAll",
+                             "ctrl SLASH", "selectAll",
+                        "ctrl BACK_SLASH", "clearSelection",
+                              "ctrl LEFT", "scrollLeft",
+                           "ctrl KP_LEFT", "scrollLeft",
+                             "ctrl RIGHT", "scrollRight",
+                          "ctrl KP_RIGHT", "scrollRight",
                                   "SPACE", "addToSelection",
                              "ctrl SPACE", "toggleAndAnchor",
                             "shift SPACE", "extendTo",
@@ -1254,34 +1309,25 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                     }),
             "Tree.focusInputMap.RightToLeft",
                     new UIDefaults.LazyInputMap(new Object[] {
-		                  "RIGHT", "selectParent",
-		               "KP_RIGHT", "selectParent",
-		                   "LEFT", "selectChild",
-		                "KP_LEFT", "selectChild",
-		 }),
+                                  "RIGHT", "selectParent",
+                               "KP_RIGHT", "selectParent",
+                                   "LEFT", "selectChild",
+                                "KP_LEFT", "selectChild",
+                 }),
             "Tree.ancestorInputMap",
                       new UIDefaults.LazyInputMap(new Object[] {
-		         "ESCAPE", "cancel"
+                         "ESCAPE", "cancel"
                       }),
             "Tree.font", new FontLazyValue(Region.TREE),
-            
+
             "Viewport.font", new FontLazyValue(Region.VIEWPORT)
         };
-	table.putDefaults(defaults);
+        table.putDefaults(defaults);
 
         if (fallbackFont != null) {
             table.put("TitledBorder.font", fallbackFont);
         }
-	table.put(SwingUtilities2.AA_TEXT_PROPERTY_KEY, aaTextInfo);
-
-        // The property "Slider.paintValue" may be passed through AppContext
-        // to avoid loading Swing into plugin (6594219)
-        String key = "Slider.paintValue";
-        Object tmp = AppContext.getAppContext().get(key);
-        if (tmp == null) {
-            tmp = Boolean.TRUE;
-        }
-        table.put(key, tmp);
+        table.put(SwingUtilities2.AA_TEXT_PROPERTY_KEY, aaTextInfo);
     }
 
     protected void initSystemColorDefaults(UIDefaults table) {
@@ -1308,45 +1354,43 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                   entryStyle.getGTKColor(SynthConstants.DISABLED,
                                          GTKColorType.TEXT_FOREGROUND));
         Object caretColor =
-            entryStyle.getClassSpecificValue(Region.TEXT_FIELD, "cursor-color");
+            entryStyle.getClassSpecificValue("cursor-color");
         if (caretColor == null) {
             caretColor = GTKStyle.BLACK_COLOR;
         }
         table.put("caretColor", caretColor);
-        
+
         GTKStyle menuStyle = (GTKStyle)factory.getStyle(null, Region.MENU_ITEM);
         table.put("menu", menuStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.BACKGROUND));
         table.put("menuText", menuStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.TEXT_FOREGROUND));
-        
+
         GTKStyle scrollbarStyle = (GTKStyle)factory.getStyle(null, Region.SCROLL_BAR);
         table.put("scrollbar", scrollbarStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.BACKGROUND));
-        
+
         GTKStyle infoStyle = (GTKStyle)factory.getStyle(null, Region.OPTION_PANE);
         table.put("info", infoStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.BACKGROUND));
         table.put("infoText", infoStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.TEXT_FOREGROUND));
-        
+
         GTKStyle desktopStyle = (GTKStyle)factory.getStyle(null, Region.DESKTOP_PANE);
         table.put("desktop", desktopStyle.getGTKColor(SynthConstants.ENABLED,
                                            GTKColorType.BACKGROUND));
-        
+
         // colors specific only for GTK
-        // It is impossible to create a simple GtkWidget without specifying the 
+        // It is impossible to create a simple GtkWidget without specifying the
         // type. So for GtkWidget we can use any appropriate concrete type of
         // wigdet. LABEL in this case.
         GTKStyle widgetStyle = (GTKStyle)factory.getStyle(null, Region.LABEL);
-        table.put("control", widgetStyle.getGTKColor(SynthConstants.ENABLED,
-                                           GTKColorType.BACKGROUND));
-        table.put("controlText", widgetStyle.getGTKColor(
-                      SynthConstants.ENABLED,
-                      GTKColorType.TEXT_FOREGROUND));
-        
-        table.put("controlHighlight", widgetStyle.getGTKColor(
-                SynthConstants.ENABLED, GTKColorType.BACKGROUND));
+        Color bg = widgetStyle.getGTKColor(SynthConstants.ENABLED,
+                                           GTKColorType.BACKGROUND);
+        table.put("control", bg);
+        table.put("controlHighlight", bg);
+        table.put("controlText", widgetStyle.getGTKColor(SynthConstants.ENABLED,
+                                               GTKColorType.TEXT_FOREGROUND));
         table.put("controlLtHighlight", widgetStyle.getGTKColor(
                 SynthConstants.ENABLED, GTKColorType.LIGHT));
         table.put("controlShadow", widgetStyle.getGTKColor(
@@ -1373,22 +1417,36 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
 
         if (key == "FileChooserUI") {
             return GTKFileChooserUI.createUI(c);
-	}
+        }
         return SynthLookAndFeel.createUI(c);
     }
-    
+
     /**
      * Returns the cached gtkThemeName
      */
     static String getGtkThemeName() {
         return gtkThemeName;
     }
-    
+
     static boolean isLeftToRight(Component c) {
         return c.getComponentOrientation().isLeftToRight();
     }
 
     public void initialize() {
+        /*
+         * We need to call loadGTK() to ensure that the native GTK
+         * libraries are loaded.  It is very unlikely that this call will
+         * fail (since we've already verified native GTK support in
+         * isSupportedLookAndFeel()), but we can throw an error in the
+         * failure situation just in case.
+         */
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        if (toolkit instanceof UNIXToolkit &&
+            !((UNIXToolkit)toolkit).loadGTK())
+        {
+            throw new InternalError("Unable to load native GTK libraries");
+        }
+
         super.initialize();
         inInitialize = true;
         loadStyles();
@@ -1412,7 +1470,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         aaTextInfo = SwingUtilities2.AATextInfo.getAATextInfo(gtkAAFontSettingsCond);
     }
 
-    static ReferenceQueue queue = new ReferenceQueue();
+    static ReferenceQueue<GTKLookAndFeel> queue = new ReferenceQueue<GTKLookAndFeel>();
 
     private static void flushUnreferenced() {
         WeakPCL pcl;
@@ -1422,12 +1480,12 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         }
     }
 
-    static class WeakPCL extends WeakReference implements
+    static class WeakPCL extends WeakReference<GTKLookAndFeel> implements
             PropertyChangeListener {
         private Toolkit kit;
         private String key;
 
-        WeakPCL(Object target, Toolkit kit, String key) {
+        WeakPCL(GTKLookAndFeel target, Toolkit kit, String key) {
             super(target, queue);
             this.kit = kit;
             this.key = key;
@@ -1436,7 +1494,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
         public String getKey() { return key; }
 
         public void propertyChange(final PropertyChangeEvent pce) {
-            final GTKLookAndFeel lnf = (GTKLookAndFeel)get();
+            final GTKLookAndFeel lnf = get();
 
             if (lnf == null || UIManager.getLookAndFeel() != lnf) {
                 // The property was GC'ed, we're no longer interested in
@@ -1449,7 +1507,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
                         String name = pce.getPropertyName();
-                        /* We are listening for GTK desktop text AA settings: 
+                        /* We are listening for GTK desktop text AA settings:
                          * "gnome.Xft/Antialias" and "gnome.Xft/RGBA".
                          * However we don't need to read these here as
                          * the UIDefaults reads them and this event causes
@@ -1460,9 +1518,9 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                             GTKIconFactory.resetIcons();
                         }
                         lnf.loadStyles();
-                        Frame appFrames[] = Frame.getFrames();
-                        for (int i = 0; i < appFrames.length; i++) {
-                            SynthLookAndFeel.updateStyles(appFrames[i]);
+                        Window appWindows[] = Window.getWindows();
+                        for (int i = 0; i < appWindows.length; i++) {
+                            SynthLookAndFeel.updateStyles(appWindows[i]);
                         }
                     }
                 });
@@ -1475,11 +1533,13 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
     }
 
     public boolean isSupportedLookAndFeel() {
-        return true;
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        return (toolkit instanceof SunToolkit &&
+                ((SunToolkit)toolkit).isNativeGTKAvailable());
     }
 
     public boolean isNativeLookAndFeel() {
-        return false;
+        return true;
     }
 
     public String getDescription() {
@@ -1505,18 +1565,18 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
                 getDesktopProperty("gnome.Net/ThemeName");
 
         setStyleFactory(getGTKStyleFactory());
-        
+
         // If we are in initialize initializations will be
         // called later, don't do it now.
         if (!inInitialize) {
             UIDefaults table = UIManager.getLookAndFeelDefaults();
             initSystemColorDefaults(table);
-            initComponentDefaults(table);            
+            initComponentDefaults(table);
         }
     }
-    
+
     private GTKStyleFactory getGTKStyleFactory() {
-        
+
         GTKEngine engine = GTKEngine.INSTANCE;
         Object iconSizes = engine.getSetting(GTKEngine.Settings.GTK_ICON_SIZES);
         if (iconSizes instanceof String) {
@@ -1532,7 +1592,7 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
        if (!(fontName instanceof String)) {
             fontName = engine.getSetting(GTKEngine.Settings.GTK_FONT_NAME);
             if (!(fontName instanceof String)) {
-               fontName = DEFAULT_FONT_NAME;
+               fontName = "sans 10";
             }
         }
 
@@ -1555,27 +1615,27 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             if (splits.length != 2) {
                 return false;
             }
-            
+
             String size = splits[0].trim().intern();
             if (size.length() < 1) {
                 return false;
             }
 
             splits = splits[1].split(",");
-            
+
             if (splits.length != 2) {
                 return false;
             }
-            
+
             String width = splits[0].trim();
             String height = splits[1].trim();
-            
+
             if (width.length() < 1 || height.length() < 1) {
                 return false;
             }
 
-            int w = 0;
-            int h = 0;
+            int w;
+            int h;
 
             try {
                 w = Integer.parseInt(width);
@@ -1585,13 +1645,13 @@ public class GTKLookAndFeel extends SynthLookAndFeel {
             }
 
             if (w > 0 && h > 0) {
-                int type = GTKStyle.GTKStockIconInfo.getIconType(size); 
+                int type = GTKStyle.GTKStockIconInfo.getIconType(size);
                 GTKStyle.GTKStockIconInfo.setIconSize(type, w, h);
             } else {
                 System.err.println("Invalid size in gtk-icon-sizes: " + w + "," + h);
             }
         }
-        
+
         return true;
     }
 

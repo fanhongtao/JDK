@@ -1,8 +1,36 @@
 /*
- * @(#)ConcurrentMap.java	1.10 06/04/21
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -75,9 +103,11 @@ public interface ConcurrentMap<K, V> extends Map<K, V> {
      * @throws UnsupportedOperationException if the <tt>remove</tt> operation
      *         is not supported by this map
      * @throws ClassCastException if the key or value is of an inappropriate
-     *         type for this map (optional)
+     *         type for this map
+     *         (<a href="../Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified key or value is null,
-     *         and this map does not permit null keys or values (optional)
+     *         and this map does not permit null keys or values
+     *         (<a href="../Collection.html#optional-restrictions">optional</a>)
      */
     boolean remove(Object key, Object value);
 

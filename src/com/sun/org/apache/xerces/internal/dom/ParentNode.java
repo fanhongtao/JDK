@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -64,7 +68,7 @@ import org.w3c.dom.UserDataHandler;
  * @author Arnaud  Le Hors, IBM
  * @author Joe Kesselman, IBM
  * @author Andy Clark, IBM
- * @version $Id: ParentNode.java,v 1.2.6.1 2005/08/31 12:39:32 sunithareddy Exp $
+ * @version $Id: ParentNode.java,v 1.6 2009/07/21 20:30:28 joehw Exp $
  */
 public abstract class ParentNode
     extends ChildNode {
@@ -365,14 +369,16 @@ public abstract class ParentNode
             // Prevent cycles in the tree
             // newChild cannot be ancestor of this Node,
             // and actually cannot be this
-            boolean treeSafe = true;
-            for (NodeImpl a = this; treeSafe && a != null; a = a.parentNode())
-            {
-                treeSafe = newChild != a;
-            }
-            if(!treeSafe) {
-                throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, 
-                            DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "HIERARCHY_REQUEST_ERR", null));
+            if (ownerDocument.ancestorChecking) {
+                boolean treeSafe = true;
+                for (NodeImpl a = this; treeSafe && a != null; a = a.parentNode())
+                {
+                    treeSafe = newChild != a;
+                }
+                if(!treeSafe) {
+                    throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, 
+                                DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "HIERARCHY_REQUEST_ERR", null));
+                }
             }
         }
 

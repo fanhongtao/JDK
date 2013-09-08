@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,14 +24,14 @@
 package com.sun.org.apache.xpath.internal.compiler;
 
 /**
- * 
+ *
  * Like IntVector, but used only for the OpMap array.  Length of array
- * is kept in the m_lengthPos position of the array.  Only the required methods 
+ * is kept in the m_lengthPos position of the array.  Only the required methods
  * are in included here.
  * @xsl.usage internal
  */
 public class OpMapVector {
-    
+
  /** Size of blocks to allocate          */
   protected int m_blocksize;
 
@@ -39,7 +43,7 @@ public class OpMapVector {
 
   /** Size of array          */
   protected int m_mapSize;
-  
+
     /**
    * Construct a OpMapVector, using the given block size.
    *
@@ -53,7 +57,7 @@ public class OpMapVector {
     m_lengthPos = lengthPos;
     m_map = new int[blocksize];
   }
-  
+
   /**
    * Get the nth element.
    *
@@ -64,8 +68,8 @@ public class OpMapVector {
   public final int elementAt(int i)
   {
     return m_map[i];
-  }  
-   
+  }
+
     /**
    * Sets the component at the specified index of this vector to be the
    * specified object. The previous component at that position is discarded.
@@ -81,7 +85,7 @@ public class OpMapVector {
     if (index >= m_mapSize)
     {
       int oldSize = m_mapSize;
-      
+
       m_mapSize += m_blocksize;
 
       int newMap[] = new int[m_mapSize];
@@ -93,22 +97,22 @@ public class OpMapVector {
 
     m_map[index] = value;
   }
-  
-  
+
+
   /*
    * Reset the array to the supplied size.  No checking is done.
-   * 
+   *
    * @param size The size to trim to.
    */
   public final void setToSize(int size) {
-    
+
     int newMap[] = new int[size];
 
     System.arraycopy(m_map, 0, newMap, 0, m_map[m_lengthPos]);
 
     m_mapSize = size;
     m_map = newMap;
-    
-  }  
+
+  }
 
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,23 +39,23 @@ public interface DOM {
     public final static int  FIRST_TYPE             = 0;
 
     public final static int  NO_TYPE                = -1;
-    
+
     // 0 is reserved for NodeIterator.END
     public final static int NULL     = 0;
 
     // used by some node iterators to know which node to return
     public final static int RETURN_CURRENT = 0;
     public final static int RETURN_PARENT  = 1;
-    
+
     // Constants used by getResultTreeFrag to indicate the types of the RTFs.
     public final static int SIMPLE_RTF   = 0;
     public final static int ADAPTIVE_RTF = 1;
     public final static int TREE_RTF     = 2;
-    
+
     /** returns singleton iterator containg the document root */
     public DTMAxisIterator getIterator();
     public String getStringValue();
-	
+
     public DTMAxisIterator getChildren(final int node);
     public DTMAxisIterator getTypedChildren(final int type);
     public DTMAxisIterator getAxisIterator(final int axis);
@@ -59,7 +63,7 @@ public interface DOM {
     public DTMAxisIterator getNthDescendant(int node, int n, boolean includeself);
     public DTMAxisIterator getNamespaceAxisIterator(final int axis, final int ns);
     public DTMAxisIterator getNodeValueIterator(DTMAxisIterator iter, int returnType,
-					     String value, boolean op);
+                                             String value, boolean op);
     public DTMAxisIterator orderNodes(DTMAxisIterator source, int node);
     public String getNodeName(final int node);
     public String getNodeNameX(final int node);
@@ -70,14 +74,14 @@ public interface DOM {
     public int getAttributeNode(final int gType, final int element);
     public String getStringValueX(final int node);
     public void copy(final int node, SerializationHandler handler)
-	throws TransletException;
+        throws TransletException;
     public void copy(DTMAxisIterator nodes, SerializationHandler handler)
-	throws TransletException;
+        throws TransletException;
     public String shallowCopy(final int node, SerializationHandler handler)
-	throws TransletException;
+        throws TransletException;
     public boolean lessThan(final int node1, final int node2);
     public void characters(final int textNode, SerializationHandler handler)
-	throws TransletException;
+        throws TransletException;
     public Node makeNode(int index);
     public Node makeNode(DTMAxisIterator iter);
     public NodeList makeNodeList(int index);
@@ -90,7 +94,7 @@ public interface DOM {
     public boolean isElement(final int node);
     public boolean isAttribute(final int node);
     public String lookupNamespace(int node, String prefix)
-	throws TransletException;
+        throws TransletException;
     public int getNodeIdent(final int nodehandle);
     public int getNodeHandle(final int nodeId);
     public DOM getResultTreeFrag(int initialSize, int rtfType);

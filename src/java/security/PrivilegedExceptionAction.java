@@ -1,8 +1,26 @@
 /*
- * @(#)PrivilegedExceptionAction.java	1.11 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -30,11 +48,11 @@ public interface PrivilegedExceptionAction<T> {
      * <code>AccessController.doPrivileged</code> after enabling privileges.
      *
      * @return a class-dependent value that may represent the results of the
-     *	       computation.  Each class that implements
-     *	       <code>PrivilegedExceptionAction</code> should document what
+     *         computation.  Each class that implements
+     *         <code>PrivilegedExceptionAction</code> should document what
      *         (if anything) this value represents.
      * @throws Exception an exceptional condition has occurred.  Each class
-     *	       that implements <code>PrivilegedExceptionAction</code> should
+     *         that implements <code>PrivilegedExceptionAction</code> should
      *         document the exceptions that its run method can throw.
      * @see AccessController#doPrivileged(PrivilegedExceptionAction)
      * @see AccessController#doPrivileged(PrivilegedExceptionAction,AccessControlContext)

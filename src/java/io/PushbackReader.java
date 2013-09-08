@@ -1,8 +1,26 @@
 /*
- * @(#)PushbackReader.java	1.21 06/01/24
+ * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -12,9 +30,8 @@ package java.io;
  * A character-stream reader that allows characters to be pushed back into the
  * stream.
  *
- * @version 	1.21, 06/01/24
- * @author	Mark Reinhold
- * @since	JDK1.1
+ * @author      Mark Reinhold
+ * @since       JDK1.1
  */
 
 public class PushbackReader extends FilterReader {
@@ -29,16 +46,16 @@ public class PushbackReader extends FilterReader {
      * Creates a new pushback reader with a pushback buffer of the given size.
      *
      * @param   in   The reader from which characters will be read
-     * @param	size The size of the pushback buffer
+     * @param   size The size of the pushback buffer
      * @exception IllegalArgumentException if size is <= 0
      */
     public PushbackReader(Reader in, int size) {
-	super(in);
+        super(in);
         if (size <= 0) {
             throw new IllegalArgumentException("size <= 0");
         }
-	this.buf = new char[size];
-	this.pos = size;
+        this.buf = new char[size];
+        this.pos = size;
     }
 
     /**
@@ -47,13 +64,13 @@ public class PushbackReader extends FilterReader {
      * @param   in  The reader from which characters will be read
      */
     public PushbackReader(Reader in) {
-	this(in, 1);
+        this(in, 1);
     }
 
     /** Checks to make sure that the stream has not been closed. */
     private void ensureOpen() throws IOException {
-	if (buf == null)
-	    throw new IOException("Stream closed");
+        if (buf == null)
+            throw new IOException("Stream closed");
     }
 
     /**
@@ -65,13 +82,13 @@ public class PushbackReader extends FilterReader {
      * @exception  IOException  If an I/O error occurs
      */
     public int read() throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-	    if (pos < buf.length)
-		return buf[pos++];
-	    else
-		return super.read();
-	}
+        synchronized (lock) {
+            ensureOpen();
+            if (pos < buf.length)
+                return buf[pos++];
+            else
+                return super.read();
+        }
     }
 
     /**
@@ -87,8 +104,8 @@ public class PushbackReader extends FilterReader {
      * @exception  IOException  If an I/O error occurs
      */
     public int read(char cbuf[], int off, int len) throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
+        synchronized (lock) {
+            ensureOpen();
             try {
                 if (len <= 0) {
                     if (len < 0) {
@@ -132,12 +149,12 @@ public class PushbackReader extends FilterReader {
      *                          or if some other I/O error occurs
      */
     public void unread(int c) throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-	    if (pos == 0)
-		throw new IOException("Pushback buffer overflow");
-	    buf[--pos] = (char) c;
-	}
+        synchronized (lock) {
+            ensureOpen();
+            if (pos == 0)
+                throw new IOException("Pushback buffer overflow");
+            buf[--pos] = (char) c;
+        }
     }
 
     /**
@@ -155,13 +172,13 @@ public class PushbackReader extends FilterReader {
      *                          buffer, or if some other I/O error occurs
      */
     public void unread(char cbuf[], int off, int len) throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-	    if (len > pos)
-		throw new IOException("Pushback buffer overflow");
-	    pos -= len;
-	    System.arraycopy(cbuf, off, buf, pos, len);
-	}
+        synchronized (lock) {
+            ensureOpen();
+            if (len > pos)
+                throw new IOException("Pushback buffer overflow");
+            pos -= len;
+            System.arraycopy(cbuf, off, buf, pos, len);
+        }
     }
 
     /**
@@ -176,7 +193,7 @@ public class PushbackReader extends FilterReader {
      *                          buffer, or if some other I/O error occurs
      */
     public void unread(char cbuf[]) throws IOException {
-	unread(cbuf, 0, cbuf.length);
+        unread(cbuf, 0, cbuf.length);
     }
 
     /**
@@ -185,10 +202,10 @@ public class PushbackReader extends FilterReader {
      * @exception  IOException  If an I/O error occurs
      */
     public boolean ready() throws IOException {
-	synchronized (lock) {
-	    ensureOpen();
-	    return (pos < buf.length) || super.ready();
-	}
+        synchronized (lock) {
+            ensureOpen();
+            return (pos < buf.length) || super.ready();
+        }
     }
 
     /**
@@ -198,17 +215,17 @@ public class PushbackReader extends FilterReader {
      * @exception  IOException  Always, since mark is not supported
      */
     public void mark(int readAheadLimit) throws IOException {
-	throw new IOException("mark/reset not supported");
+        throw new IOException("mark/reset not supported");
     }
 
     /**
-     * Resets the stream. The <code>reset</code> method of 
+     * Resets the stream. The <code>reset</code> method of
      * <code>PushbackReader</code> always throws an exception.
      *
      * @exception  IOException  Always, since reset is not supported
      */
     public void reset() throws IOException {
-	throw new IOException("mark/reset not supported");
+        throw new IOException("mark/reset not supported");
     }
 
     /**
@@ -216,7 +233,7 @@ public class PushbackReader extends FilterReader {
      * not.
      */
     public boolean markSupported() {
-	return false;
+        return false;
     }
 
     /**
@@ -228,8 +245,8 @@ public class PushbackReader extends FilterReader {
      * @exception  IOException  If an I/O error occurs
      */
     public void close() throws IOException {
-	super.close();
-	buf = null;
+        super.close();
+        buf = null;
     }
 
     /**
@@ -246,7 +263,7 @@ public class PushbackReader extends FilterReader {
     public long skip(long n) throws IOException {
         if (n < 0L)
             throw new IllegalArgumentException("skip value is negative");
-	synchronized (lock) {
+        synchronized (lock) {
             ensureOpen();
             int avail = buf.length - pos;
             if (avail > 0) {

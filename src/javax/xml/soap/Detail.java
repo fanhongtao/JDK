@@ -1,6 +1,6 @@
 /*
- * Copyright 1997-2008 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms. 
+ * Copyright (c) 2004, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
  *
@@ -22,12 +22,6 @@
  *
  *
  */
-/*
- * $Id: Detail.java,v 1.8 2005/04/05 20:34:16 mk125090 Exp $
- * $Revision: 1.8 $
- * $Date: 2005/04/05 20:34:16 $
- */
-
 
 package javax.xml.soap;
 

@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,7 +58,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * 
  * @author <a href="mailto:Joseph.Fialli@Sun.COM">Joseph Fialli</a>
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
- * @version $Id: DatatypeFactoryImpl.java,v 1.2.6.1 2005/08/31 13:02:39 sunithareddy Exp $
+ * @version $Id: DatatypeFactoryImpl.java,v 1.6 2010/05/19 05:02:55 joehw Exp $
  */
 public class DatatypeFactoryImpl
 	extends DatatypeFactory {
@@ -185,6 +189,308 @@ public class DatatypeFactoryImpl
 				minutes,
 				seconds
 			);
+		}
+	/**
+	 * <p>Create a <code>Duration</code> of type <code>xdt:yearMonthDuration</code> using the specified
+	 * <code>year</code> and <code>month</code> as defined in
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#yearMonthDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:yearMonthDuration</a>.</p>
+	 *
+     * <p>The XML Schema specification states that values can be of an arbitrary size.
+     * Implementations may chose not to or be incapable of supporting arbitrarily large and/or small values.
+     * An {@link UnsupportedOperationException} will be thrown with a message indicating implementation limits
+     * if implementation capacities are exceeded.</p>
+     *
+     * <p>A <code>null</code> value indicates that field is not set.</p>
+     *
+     * @param isPositive Set to <code>false</code> to create a negative duration. When the length
+     *   of the duration is zero, this parameter will be ignored.
+	 * @param year Year of <code>Duration</code>.
+	 * @param month Month of <code>Duration</code>.
+	 *
+	 * @return New <code>Duration</code> created using the specified <code>year</code> and <code>month</code>.
+	 *
+	 * @throws IllegalArgumentException If the values are not a valid representation of a
+	 * <code>Duration</code>: if all of the fields (year, month) are null or
+	 * if any of the fields is negative.
+	 * @throws UnsupportedOperationException If implementation cannot support requested values.
+	 */
+	public Duration newDurationYearMonth(
+		final boolean isPositive,
+		final BigInteger year,
+		final BigInteger month) {
+
+                return new DurationYearMonthImpl(
+                         isPositive,
+                         year,
+                         month
+                 );
+
+	}
+	/**
+	 * <p>Create a <code>Duration</code> of type <code>xdt:yearMonthDuration</code> using the specified
+	 * <code>year</code> and <code>month</code> as defined in
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#yearMonthDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:yearMonthDuration</a>.</p>
+	 *
+     * <p>A {@link DatatypeConstants#FIELD_UNDEFINED} value indicates that field is not set.</p>
+     *
+     * @param isPositive Set to <code>false</code> to create a negative duration. When the length
+     *   of the duration is zero, this parameter will be ignored.
+	 * @param year Year of <code>Duration</code>.
+	 * @param month Month of <code>Duration</code>.
+	 *
+	 * @return New <code>Duration</code> created using the specified <code>year</code> and <code>month</code>.
+	 *
+	 * @throws IllegalArgumentException If the values are not a valid representation of a
+	 * <code>Duration</code>: if any of the fields (year, month) is negative.
+	 */
+    @Override
+	public Duration newDurationYearMonth(
+		final boolean isPositive,
+		final int year,
+		final int month) {
+
+		return new DurationYearMonthImpl(
+			isPositive,
+			year,
+			month);
+		}
+
+	/**
+	 * <p>Create a <code>Duration</code> of type <code>xdt:yearMonthDuration</code> by parsing its <code>String</code> representation,
+	 * "<em>PnYnM</em>", <a href="http://www.w3.org/TR/xpath-datamodel#yearMonthDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:yearMonthDuration</a>.</p>
+	 *
+	 * <p>The datatype <code>xdt:yearMonthDuration</code> is a subtype of <code>xs:duration</code>
+	 * whose lexical representation contains only year and month components.
+	 * This datatype resides in the namespace {@link javax.xml.XMLConstants#W3C_XPATH_DATATYPE_NS_URI}.</p>
+	 *
+     * <p>Both values are set and availabe from the created {@link Duration}</p>
+	 *
+     * <p>The XML Schema specification states that values can be of an arbitrary size.
+     * Implementations may chose not to or be incapable of supporting arbitrarily large and/or small values.
+     * An {@link UnsupportedOperationException} will be thrown with a message indicating implementation limits
+     * if implementation capacities are exceeded.</p>
+     *
+	 * @param lexicalRepresentation Lexical representation of a duration.
+	 *
+	 * @return New <code>Duration</code> created using the specified <code>lexicalRepresentation</code>.
+	 *
+	 * @throws IllegalArgumentException If <code>lexicalRepresentation</code> is not a valid representation of a <code>Duration</code> expressed only in terms of years and months.
+	 * @throws UnsupportedOperationException If implementation cannot support requested values.
+	 * @throws NullPointerException If <code>lexicalRepresentation</code> is <code>null</code>.
+	 */
+        public Duration newDurationYearMonth(
+                final String lexicalRepresentation) {
+
+                return new DurationYearMonthImpl(lexicalRepresentation);
+
+        }
+	/**
+	 * <p>Create a <code>Duration</code> of type <code>xdt:yearMonthDuration</code> using the specified milliseconds as defined in
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#yearMonthDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:yearMonthDuration</a>.</p>
+	 *
+	 * <p>The datatype <code>xdt:yearMonthDuration</code> is a subtype of <code>xs:duration</code>
+	 * whose lexical representation contains only year and month components.
+	 * This datatype resides in the namespace {@link javax.xml.XMLConstants#W3C_XPATH_DATATYPE_NS_URI}.</p>
+	 *
+     * <p>Both values are set by computing their values from the specified milliseconds
+     * and are availabe using the <code>get</code> methods of  the created {@link Duration}.
+     * The values conform to and are defined by:</p>
+     * <ul>
+     *   <li>ISO 8601:2000(E) Section 5.5.3.2 Alternative format</li>
+     *   <li><a href="http://www.w3.org/TR/xmlschema-2/#isoformats">
+     *     W3C XML Schema 1.0 Part 2, Appendix D, ISO 8601 Date and Time Formats</a>
+     *   </li>
+     *   <li>{@link XMLGregorianCalendar}  Date/Time Datatype Field Mapping Between XML Schema 1.0 and Java Representation</li>
+     * </ul>
+     *
+	 * <p>The default start instance is defined by {@link GregorianCalendar}'s use of the start of the epoch: i.e.,
+	 * {@link java.util.Calendar#YEAR} = 1970,
+	 * {@link java.util.Calendar#MONTH} = {@link java.util.Calendar#JANUARY},
+	 * {@link java.util.Calendar#DATE} = 1, etc.
+	 * This is important as there are variations in the Gregorian Calendar,
+	 * e.g. leap years have different days in the month = {@link java.util.Calendar#FEBRUARY}
+	 * so the result of {@link Duration#getMonths()} can be influenced.</p>
+	 *
+     * <p>Any remaining milliseconds after determining the year and month are discarded.</p>
+	 *
+	 * @param durationInMilliseconds Milliseconds of <code>Duration</code> to create.
+	 *
+	 * @return New <code>Duration</code> created using the specified <code>durationInMilliseconds</code>.
+	 */
+    public Duration newDurationYearMonth(
+            final long durationInMilliseconds) {
+
+        return new DurationYearMonthImpl(durationInMilliseconds);
+    }
+
+	/**
+	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> by parsing its <code>String</code> representation,
+	 * "<em>PnDTnHnMnS</em>", <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
+	 *
+	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
+	 * whose lexical representation contains only day, hour, minute, and second components.
+	 * This datatype resides in the namespace <code>http://www.w3.org/2003/11/xpath-datatypes</code>.</p>
+	 *
+     * <p>All four values are set and availabe from the created {@link Duration}</p>
+	 *
+     * <p>The XML Schema specification states that values can be of an arbitrary size.
+     * Implementations may chose not to or be incapable of supporting arbitrarily large and/or small values.
+     * An {@link UnsupportedOperationException} will be thrown with a message indicating implementation limits
+     * if implementation capacities are exceeded.</p>
+     *
+	 * @param lexicalRepresentation Lexical representation of a duration.
+	 *
+	 * @return New <code>Duration</code> created using the specified <code>lexicalRepresentation</code>.
+	 *
+	 * @throws IllegalArgumentException If <code>lexicalRepresentation</code> is not a valid representation of a <code>Duration</code> expressed only in terms of days and time.
+	 * @throws UnsupportedOperationException If implementation cannot support requested values.
+	 * @throws NullPointerException If <code>lexicalRepresentation</code> is <code>null</code>.
+	 */
+	public Duration newDurationDayTime(final String lexicalRepresentation) {
+	    // lexicalRepresentation must be non-null
+	    if (lexicalRepresentation == null) {
+		throw new NullPointerException(
+                    "Trying to create an xdt:dayTimeDuration with an invalid"
+                    + " lexical representation of \"null\"");
+	    }
+
+	    return new DurationDayTimeImpl(lexicalRepresentation);
+	}
+
+	/**
+	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> using the specified milliseconds as defined in
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
+	 *
+	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
+	 * whose lexical representation contains only day, hour, minute, and second components.
+	 * This datatype resides in the namespace <code>http://www.w3.org/2003/11/xpath-datatypes</code>.</p>
+	 *
+     * <p>All four values are set by computing their values from the specified milliseconds
+     * and are availabe using the <code>get</code> methods of  the created {@link Duration}.
+     * The values conform to and are defined by:</p>
+     * <ul>
+     *   <li>ISO 8601:2000(E) Section 5.5.3.2 Alternative format</li>
+     *   <li><a href="http://www.w3.org/TR/xmlschema-2/#isoformats">
+     *     W3C XML Schema 1.0 Part 2, Appendix D, ISO 8601 Date and Time Formats</a>
+     *   </li>
+     *   <li>{@link XMLGregorianCalendar}  Date/Time Datatype Field Mapping Between XML Schema 1.0 and Java Representation</li>
+     * </ul>
+	 *
+	 * <p>The default start instance is defined by {@link GregorianCalendar}'s use of the start of the epoch: i.e.,
+	 * {@link java.util.Calendar#YEAR} = 1970,
+	 * {@link java.util.Calendar#MONTH} = {@link java.util.Calendar#JANUARY},
+	 * {@link java.util.Calendar#DATE} = 1, etc.
+	 * This is important as there are variations in the Gregorian Calendar,
+	 * e.g. leap years have different days in the month = {@link java.util.Calendar#FEBRUARY}
+	 * so the result of {@link Duration#getDays()} can be influenced.</p>
+	 *
+     * <p>Any remaining milliseconds after determining the day, hour, minute and second are discarded.</p>
+     *
+	 * @param durationInMilliseconds Milliseconds of <code>Duration</code> to create.
+	 *
+	 * @return New <code>Duration</code> created with the specified <code>durationInMilliseconds</code>.
+	 *
+	 * @see <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>
+	 */
+	public Duration newDurationDayTime(final long durationInMilliseconds) {
+
+		return new DurationDayTimeImpl(durationInMilliseconds);
+	}
+
+	/**
+	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> using the specified
+	 * <code>day</code>, <code>hour</code>, <code>minute</code> and <code>second</code> as defined in
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
+	 *
+	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
+	 * whose lexical representation contains only day, hour, minute, and second components.
+	 * This datatype resides in the namespace <code>http://www.w3.org/2003/11/xpath-datatypes</code>.</p>
+	 *
+     * <p>The XML Schema specification states that values can be of an arbitrary size.
+     * Implementations may chose not to or be incapable of supporting arbitrarily large and/or small values.
+     * An {@link UnsupportedOperationException} will be thrown with a message indicating implementation limits
+     * if implementation capacities are exceeded.</p>
+     *
+     * <p>A <code>null</code> value indicates that field is not set.</p>
+     *
+     * @param isPositive Set to <code>false</code> to create a negative duration. When the length
+     *   of the duration is zero, this parameter will be ignored.
+	 * @param day Day of <code>Duration</code>.
+	 * @param hour Hour of <code>Duration</code>.
+	 * @param minute Minute of <code>Duration</code>.
+	 * @param second Second of <code>Duration</code>.
+	 *
+	 * @return New <code>Duration</code> created with the specified <code>day</code>, <code>hour</code>, <code>minute</code>
+	 * and <code>second</code>.
+	 *
+	 * @throws IllegalArgumentException If the values are not a valid representation of a
+	 * <code>Duration</code>: if all the fields (day, hour, ...) are null or
+	 * if any of the fields is negative.
+	 * @throws UnsupportedOperationException If implementation cannot support requested values.
+	 */
+	public Duration newDurationDayTime(
+		final boolean isPositive,
+		final BigInteger day,
+		final BigInteger hour,
+		final BigInteger minute,
+		final BigInteger second) {
+
+		return new DurationDayTimeImpl(
+			isPositive,
+			day,
+			hour,
+			minute,
+			(second != null)? new BigDecimal(second):null
+		);
+	}
+
+	/**
+	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> using the specified
+	 * <code>day</code>, <code>hour</code>, <code>minute</code> and <code>second</code> as defined in
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
+	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
+	 *
+	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
+	 * whose lexical representation contains only day, hour, minute, and second components.
+	 * This datatype resides in the namespace <code>http://www.w3.org/2003/11/xpath-datatypes</code>.</p>
+	 *
+     * <p>A {@link DatatypeConstants#FIELD_UNDEFINED} value indicates that field is not set.</p>
+     *
+     * @param isPositive Set to <code>false</code> to create a negative duration. When the length
+     *   of the duration is zero, this parameter will be ignored.
+	 * @param day Day of <code>Duration</code>.
+	 * @param hour Hour of <code>Duration</code>.
+	 * @param minute Minute of <code>Duration</code>.
+	 * @param second Second of <code>Duration</code>.
+	 *
+	 * @return New <code>Duration</code> created with the specified <code>day</code>, <code>hour</code>, <code>minute</code>
+	 * and <code>second</code>.
+	 *
+	 * @throws IllegalArgumentException If the values are not a valid representation of a
+	 * <code>Duration</code>: if any of the fields (day, hour, ...) is negative.
+	 */
+	public Duration newDurationDayTime(
+		final boolean isPositive,
+		final int day,
+		final int hour,
+		final int minute,
+		final int second) {
+
+			return new DurationDayTimeImpl(
+				isPositive,
+				day,
+				hour,
+				minute,
+				second
+				);
 		}
 
 	/**

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,7 +126,7 @@ class SecuritySupport12 extends SecuritySupport {
                 }
             });
     }
-    
+
     boolean getFileExists(final File f) {
     return ((Boolean)
             AccessController.doPrivileged(new PrivilegedAction() {
@@ -131,7 +135,7 @@ class SecuritySupport12 extends SecuritySupport {
                 }
             })).booleanValue();
     }
-    
+
     long getLastModified(final File f) {
     return ((Long)
             AccessController.doPrivileged(new PrivilegedAction() {
@@ -140,5 +144,5 @@ class SecuritySupport12 extends SecuritySupport {
                 }
             })).longValue();
     }
-        
+
 }

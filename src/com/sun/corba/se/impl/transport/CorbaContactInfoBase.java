@@ -1,8 +1,26 @@
 /*
- * @(#)CorbaContactInfoBase.java	1.15 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.transport;
@@ -53,7 +71,7 @@ import com.sun.corba.se.impl.orbutil.ORBUtility;
  */
 public abstract class CorbaContactInfoBase
     implements
-	CorbaContactInfo
+        CorbaContactInfo
 {
     protected ORB orb;
     protected CorbaContactInfoList contactInfoList;
@@ -69,151 +87,151 @@ public abstract class CorbaContactInfoBase
 
     public Broker getBroker()
     {
-	return orb;
+        return orb;
     }
 
     public ContactInfoList getContactInfoList()
     {
-	return contactInfoList;
+        return contactInfoList;
     }
 
-    public ClientRequestDispatcher getClientRequestDispatcher() 
+    public ClientRequestDispatcher getClientRequestDispatcher()
     {
-	int scid =
-	    getEffectiveProfile().getObjectKeyTemplate().getSubcontractId() ;
-	RequestDispatcherRegistry scr = orb.getRequestDispatcherRegistry() ;
-	return scr.getClientRequestDispatcher( scid ) ;
+        int scid =
+            getEffectiveProfile().getObjectKeyTemplate().getSubcontractId() ;
+        RequestDispatcherRegistry scr = orb.getRequestDispatcherRegistry() ;
+        return scr.getClientRequestDispatcher( scid ) ;
     }
 
     // Note: not all derived classes will use a connection cache.
     // These are convenience methods that may not be used.
     public void setConnectionCache(OutboundConnectionCache connectionCache)
     {
-	this.connectionCache = connectionCache;
+        this.connectionCache = connectionCache;
     }
 
     public OutboundConnectionCache getConnectionCache()
     {
-	return connectionCache;
+        return connectionCache;
     }
 
-    // Called when client making an invocation.    
+    // Called when client making an invocation.
     public MessageMediator createMessageMediator(Broker broker,
-						 ContactInfo contactInfo,
-						 Connection connection,
-						 String methodName,
-						 boolean isOneWay)
+                                                 ContactInfo contactInfo,
+                                                 Connection connection,
+                                                 String methodName,
+                                                 boolean isOneWay)
     {
-	// REVISIT: Would like version, ior, requestid, etc., decisions
-	// to be in client subcontract.  Cannot pass these to this
-	// factory method because it breaks generic abstraction.
-	// Maybe set methods on mediator called from subcontract
-	// after creation?
-	CorbaMessageMediator messageMediator =
- 	    new CorbaMessageMediatorImpl(
-	        (ORB) broker,
-		contactInfo,
- 		connection,
- 		GIOPVersion.chooseRequestVersion( (ORB)broker,
-		     effectiveTargetIOR),
- 		effectiveTargetIOR,
- 		((CorbaConnection)connection).getNextRequestId(),
- 		getAddressingDisposition(),
- 		methodName,
- 		isOneWay);
+        // REVISIT: Would like version, ior, requestid, etc., decisions
+        // to be in client subcontract.  Cannot pass these to this
+        // factory method because it breaks generic abstraction.
+        // Maybe set methods on mediator called from subcontract
+        // after creation?
+        CorbaMessageMediator messageMediator =
+            new CorbaMessageMediatorImpl(
+                (ORB) broker,
+                contactInfo,
+                connection,
+                GIOPVersion.chooseRequestVersion( (ORB)broker,
+                     effectiveTargetIOR),
+                effectiveTargetIOR,
+                ((CorbaConnection)connection).getNextRequestId(),
+                getAddressingDisposition(),
+                methodName,
+                isOneWay);
 
-	return messageMediator;
+        return messageMediator;
     }
 
     // Called when connection handling a read event.
     public MessageMediator createMessageMediator(Broker broker,Connection conn)
     {
-	ORB orb = (ORB) broker;
-	CorbaConnection connection = (CorbaConnection) conn;
+        ORB orb = (ORB) broker;
+        CorbaConnection connection = (CorbaConnection) conn;
 
         if (orb.transportDebugFlag) {
-	    if (connection.shouldReadGiopHeaderOnly()) {
-		dprint(
-		".createMessageMediator: waiting for message header on connection: "
-		+ connection);
-	    } else {
-		dprint(
-		".createMessageMediator: waiting for message on connection: "
-		+ connection);
-	    }
-	}
+            if (connection.shouldReadGiopHeaderOnly()) {
+                dprint(
+                ".createMessageMediator: waiting for message header on connection: "
+                + connection);
+            } else {
+                dprint(
+                ".createMessageMediator: waiting for message on connection: "
+                + connection);
+            }
+        }
 
-	Message msg = null;
+        Message msg = null;
 
-	if (connection.shouldReadGiopHeaderOnly()) {
-	    // read giop header only
-	    msg = MessageBase.readGIOPHeader(orb, connection);
-	} else {
-	    // read entire giop message
-	    msg = MessageBase.readGIOPMessage(orb, connection);
-	}
+        if (connection.shouldReadGiopHeaderOnly()) {
+            // read giop header only
+            msg = MessageBase.readGIOPHeader(orb, connection);
+        } else {
+            // read entire giop message
+            msg = MessageBase.readGIOPMessage(orb, connection);
+        }
 
-	ByteBuffer byteBuffer = msg.getByteBuffer();
-	msg.setByteBuffer(null);
-	CorbaMessageMediator messageMediator =
-	    new CorbaMessageMediatorImpl(orb, connection, msg, byteBuffer);
+        ByteBuffer byteBuffer = msg.getByteBuffer();
+        msg.setByteBuffer(null);
+        CorbaMessageMediator messageMediator =
+            new CorbaMessageMediatorImpl(orb, connection, msg, byteBuffer);
 
-	return messageMediator;
+        return messageMediator;
     }
 
     // Called when connection reading message body
     public MessageMediator finishCreatingMessageMediator(Broker broker,
                                Connection conn, MessageMediator messageMediator)
     {
-	ORB orb = (ORB) broker;
-	CorbaConnection connection = (CorbaConnection) conn;
-	CorbaMessageMediator corbaMessageMediator =
-	              (CorbaMessageMediator)messageMediator;
+        ORB orb = (ORB) broker;
+        CorbaConnection connection = (CorbaConnection) conn;
+        CorbaMessageMediator corbaMessageMediator =
+                      (CorbaMessageMediator)messageMediator;
 
         if (orb.transportDebugFlag) {
-	    dprint(
-	    ".finishCreatingMessageMediator: waiting for message body on connection: "
-		+ connection);
-	}
+            dprint(
+            ".finishCreatingMessageMediator: waiting for message body on connection: "
+                + connection);
+        }
 
-	Message msg = corbaMessageMediator.getDispatchHeader();
-	msg.setByteBuffer(corbaMessageMediator.getDispatchBuffer());
+        Message msg = corbaMessageMediator.getDispatchHeader();
+        msg.setByteBuffer(corbaMessageMediator.getDispatchBuffer());
 
-	// read giop body only
-	msg = MessageBase.readGIOPBody(orb, connection, msg);
+        // read giop body only
+        msg = MessageBase.readGIOPBody(orb, connection, msg);
 
-	ByteBuffer byteBuffer = msg.getByteBuffer();
-	msg.setByteBuffer(null);
-	corbaMessageMediator.setDispatchHeader(msg);
-	corbaMessageMediator.setDispatchBuffer(byteBuffer);
+        ByteBuffer byteBuffer = msg.getByteBuffer();
+        msg.setByteBuffer(null);
+        corbaMessageMediator.setDispatchHeader(msg);
+        corbaMessageMediator.setDispatchBuffer(byteBuffer);
 
-	return corbaMessageMediator;
+        return corbaMessageMediator;
     }
 
     public OutputObject createOutputObject(MessageMediator messageMediator)
     {
-	CorbaMessageMediator corbaMessageMediator = (CorbaMessageMediator)
-	    messageMediator;
-	
-	OutputObject outputObject = 
-	    new CDROutputObject(orb, messageMediator, 
-				corbaMessageMediator.getRequestHeader(),
-				corbaMessageMediator.getStreamFormatVersion());
+        CorbaMessageMediator corbaMessageMediator = (CorbaMessageMediator)
+            messageMediator;
 
-	messageMediator.setOutputObject(outputObject);
-	return outputObject;
+        OutputObject outputObject =
+            new CDROutputObject(orb, messageMediator,
+                                corbaMessageMediator.getRequestHeader(),
+                                corbaMessageMediator.getStreamFormatVersion());
+
+        messageMediator.setOutputObject(outputObject);
+        return outputObject;
     }
 
     public InputObject createInputObject(Broker broker,
-					 MessageMediator messageMediator)
+                                         MessageMediator messageMediator)
     {
-	// REVISIT: Duplicate of acceptor code.
-	CorbaMessageMediator corbaMessageMediator = (CorbaMessageMediator)
-	    messageMediator;
-	return new CDRInputObject((ORB)broker,
-				  (CorbaConnection)messageMediator.getConnection(),
-				  corbaMessageMediator.getDispatchBuffer(),
-				  corbaMessageMediator.getDispatchHeader());
+        // REVISIT: Duplicate of acceptor code.
+        CorbaMessageMediator corbaMessageMediator = (CorbaMessageMediator)
+            messageMediator;
+        return new CDRInputObject((ORB)broker,
+                                  (CorbaConnection)messageMediator.getConnection(),
+                                  corbaMessageMediator.getDispatchBuffer(),
+                                  corbaMessageMediator.getDispatchHeader());
     }
 
     ////////////////////////////////////////////////////
@@ -223,7 +241,7 @@ public abstract class CorbaContactInfoBase
 
     public short getAddressingDisposition()
     {
-	return addressingDisposition;
+        return addressingDisposition;
     }
 
     public void setAddressingDisposition(short addressingDisposition)
@@ -234,17 +252,17 @@ public abstract class CorbaContactInfoBase
     // REVISIT - remove this.
     public IOR getTargetIOR()
     {
-	return  contactInfoList.getTargetIOR();
+        return  contactInfoList.getTargetIOR();
     }
 
     public IOR getEffectiveTargetIOR()
     {
-	return effectiveTargetIOR ;
+        return effectiveTargetIOR ;
     }
 
     public IIOPProfile getEffectiveProfile()
     {
-	return effectiveTargetIOR.getProfile();
+        return effectiveTargetIOR.getProfile();
     }
 
     ////////////////////////////////////////////////////
@@ -254,9 +272,9 @@ public abstract class CorbaContactInfoBase
 
     public String toString()
     {
-	return
-	    "CorbaContactInfoBase[" 
-	    + "]";
+        return
+            "CorbaContactInfoBase["
+            + "]";
     }
 
 
@@ -265,9 +283,9 @@ public abstract class CorbaContactInfoBase
     // Implementation
     //
 
-    protected void dprint(String msg) 
+    protected void dprint(String msg)
     {
-	ORBUtility.dprint("CorbaContactInfoBase", msg);
+        ORBUtility.dprint("CorbaContactInfoBase", msg);
     }
 }
 

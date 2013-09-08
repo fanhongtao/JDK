@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -60,7 +64,6 @@ import java.util.StringTokenizer;
 /**
  * Super class for the INVOKExxx family of instructions.
  *
- * @version $Id: InvokeInstruction.java,v 1.1.2.1 2005/07/31 23:44:46 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class InvokeInstruction extends FieldOrMethod
@@ -100,13 +103,13 @@ public abstract class InvokeInstruction extends FieldOrMethod
       int    sum;
 
       if(opcode == Constants.INVOKESTATIC)
-	sum = 0;
+        sum = 0;
       else
-	sum = 1;  // this reference
+        sum = 1;  // this reference
 
       int n = args.length;
       for (int i = 0; i < n; i++)
-	sum += args[i].getSize();
+        sum += args[i].getSize();
 
       return sum;
    }

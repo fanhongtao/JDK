@@ -1,12 +1,29 @@
 /*
- * @(#)BreakDictionary.java	1.15 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
- * @(#)BreakDictionary.java        1.3 99/04/07
  *
  * (C) Copyright Taligent, Inc. 1996, 1997 - All Rights Reserved
  * (C) Copyright IBM Corp. 1996 - 2002 - All Rights Reserved
@@ -139,7 +156,7 @@ class BreakDictionary {
         catch (PrivilegedActionException e) {
             throw new InternalError(e.toString());
         }
- 
+
         byte[] buf = new byte[8];
         if (in.read(buf) != 8) {
             throw new MissingResourceException("Wrong data length",
@@ -149,7 +166,7 @@ class BreakDictionary {
         // check vesion
         int version = BreakIterator.getInt(buf, 0);
         if (version != supportedVersion) {
-            throw new MissingResourceException("Dictionary version(" + version + ") is unsupported", 
+            throw new MissingResourceException("Dictionary version(" + version + ") is unsupported",
                                                            dictionaryName, "");
         }
 
@@ -322,4 +339,3 @@ class BreakDictionary {
         return table[row * numCols + col];
     }
 }
-

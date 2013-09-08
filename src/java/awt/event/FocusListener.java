@@ -1,8 +1,26 @@
 /*
- * @(#)FocusListener.java	1.17 06/04/13
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -10,16 +28,16 @@ package java.awt.event;
 import java.util.EventListener;
 
 /**
- * The listener interface for receiving keyboard focus events on 
+ * The listener interface for receiving keyboard focus events on
  * a component.
  * The class that is interested in processing a focus event
  * either implements this interface (and all the methods it
  * contains) or extends the abstract <code>FocusAdapter</code> class
  * (overriding only the methods of interest).
  * The listener object created from that class is then registered with a
- * component using the component's <code>addFocusListener</code> 
+ * component using the component's <code>addFocusListener</code>
  * method. When the component gains or loses the keyboard focus,
- * the relevant method in the listener object 
+ * the relevant method in the listener object
  * is invoked, and the <code>FocusEvent</code> is passed to it.
  *
  * @see FocusAdapter
@@ -27,7 +45,6 @@ import java.util.EventListener;
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/focuslistener.html">Tutorial: Writing a Focus Listener</a>
  *
  * @author Carl Quinn
- * @version 1.17 04/13/06
  * @since 1.1
  */
 public interface FocusListener extends EventListener {

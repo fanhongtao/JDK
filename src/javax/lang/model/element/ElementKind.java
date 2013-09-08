@@ -1,8 +1,26 @@
 /*
- * @(#)ElementKind.java	1.4 06/08/02
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.element;
@@ -17,7 +35,6 @@ package javax.lang.model.element;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.4 06/08/02
  * @see Element
  * @since 1.6
  */
@@ -67,11 +84,17 @@ public enum ElementKind {
     /** A type parameter. */
     TYPE_PARAMETER,
 
-    /** 
+    /**
      * An implementation-reserved element.  This is not the element
      * you are looking for.
      */
-    OTHER;
+    OTHER,
+
+    /**
+     * A resource variable.
+     * @since 1.7
+     */
+    RESOURCE_VARIABLE;
 
 
     /**
@@ -81,7 +104,7 @@ public enum ElementKind {
      * @return {@code true} if this is a kind of class
      */
     public boolean isClass() {
-	return this == CLASS || this == ENUM;
+        return this == CLASS || this == ENUM;
     }
 
     /**
@@ -91,7 +114,7 @@ public enum ElementKind {
      * @return {@code true} if this is a kind of interface
      */
     public boolean isInterface() {
-	return this == INTERFACE || this == ANNOTATION_TYPE;
+        return this == INTERFACE || this == ANNOTATION_TYPE;
     }
 
     /**
@@ -101,6 +124,6 @@ public enum ElementKind {
      * @return {@code true} if this is a kind of field
      */
     public boolean isField() {
-	return this == FIELD || this == ENUM_CONSTANT;
+        return this == FIELD || this == ENUM_CONSTANT;
     }
 }

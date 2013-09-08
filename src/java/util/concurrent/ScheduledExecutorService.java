@@ -1,8 +1,36 @@
 /*
- * @(#)ScheduledExecutorService.java	1.6 05/11/17
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -44,24 +72,23 @@ import java.util.*;
  * Here is a class with a method that sets up a ScheduledExecutorService
  * to beep every ten seconds for an hour:
  *
- * <pre>
+ *  <pre> {@code
  * import static java.util.concurrent.TimeUnit.*;
  * class BeeperControl {
- *    private final ScheduledExecutorService scheduler =
- *       Executors.newScheduledThreadPool(1);
+ *   private final ScheduledExecutorService scheduler =
+ *     Executors.newScheduledThreadPool(1);
  *
- *    public void beepForAnHour() {
- *        final Runnable beeper = new Runnable() {
- *                public void run() { System.out.println("beep"); }
- *            };
- *        final ScheduledFuture&lt;?&gt; beeperHandle =
- *            scheduler.scheduleAtFixedRate(beeper, 10, 10, SECONDS);
- *        scheduler.schedule(new Runnable() {
- *                public void run() { beeperHandle.cancel(true); }
- *            }, 60 * 60, SECONDS);
- *    }
- * }
- * </pre>
+ *   public void beepForAnHour() {
+ *     final Runnable beeper = new Runnable() {
+ *       public void run() { System.out.println("beep"); }
+ *     };
+ *     final ScheduledFuture<?> beeperHandle =
+ *       scheduler.scheduleAtFixedRate(beeper, 10, 10, SECONDS);
+ *     scheduler.schedule(new Runnable() {
+ *       public void run() { beeperHandle.cancel(true); }
+ *     }, 60 * 60, SECONDS);
+ *   }
+ * }}</pre>
  *
  * @since 1.5
  * @author Doug Lea
@@ -83,7 +110,7 @@ public interface ScheduledExecutorService extends ExecutorService {
      * @throws NullPointerException if command is null
      */
     public ScheduledFuture<?> schedule(Runnable command,
-				       long delay, TimeUnit unit);
+                                       long delay, TimeUnit unit);
 
     /**
      * Creates and executes a ScheduledFuture that becomes enabled after the
@@ -98,7 +125,7 @@ public interface ScheduledExecutorService extends ExecutorService {
      * @throws NullPointerException if callable is null
      */
     public <V> ScheduledFuture<V> schedule(Callable<V> callable,
-					   long delay, TimeUnit unit);
+                                           long delay, TimeUnit unit);
 
     /**
      * Creates and executes a periodic action that becomes enabled first
@@ -126,9 +153,9 @@ public interface ScheduledExecutorService extends ExecutorService {
      * @throws IllegalArgumentException if period less than or equal to zero
      */
     public ScheduledFuture<?> scheduleAtFixedRate(Runnable command,
-						  long initialDelay,
-						  long period,
-						  TimeUnit unit);
+                                                  long initialDelay,
+                                                  long period,
+                                                  TimeUnit unit);
 
     /**
      * Creates and executes a periodic action that becomes enabled first
@@ -153,8 +180,8 @@ public interface ScheduledExecutorService extends ExecutorService {
      * @throws IllegalArgumentException if delay less than or equal to zero
      */
     public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command,
-						     long initialDelay,
-						     long delay,
-						     TimeUnit unit);
+                                                     long initialDelay,
+                                                     long delay,
+                                                     TimeUnit unit);
 
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +43,7 @@ public class ReverseAxesWalker extends AxesWalker
   {
     super(locPathIterator, axis);
   }
-  
+
   /**
    * Set the root node of the TreeWalker.
    * (Not part of the DOM2 TreeWalker interface).
@@ -63,7 +67,7 @@ public class ReverseAxesWalker extends AxesWalker
     m_iterator = null;
     super.detach();
   }
-  
+
   /**
    * Get the next node in document order on the axes.
    *
@@ -75,7 +79,7 @@ public class ReverseAxesWalker extends AxesWalker
       return DTM.NULL;
 
     int next = m_iterator.next();
-    
+
     if (m_isFresh)
       m_isFresh = false;
 
@@ -124,9 +128,9 @@ public class ReverseAxesWalker extends AxesWalker
     // -sb
     if(predicateIndex < 0)
       return -1;
-      
+
     int count = m_proximityPositions[predicateIndex];
-      
+
     if (count <= 0)
     {
       AxesWalker savedWalker = wi().getLastUsedWalker();
@@ -164,7 +168,7 @@ public class ReverseAxesWalker extends AxesWalker
         wi().setLastUsedWalker(savedWalker);
       }
     }
-    
+
     return count;
   }
 
@@ -227,19 +231,19 @@ public class ReverseAxesWalker extends AxesWalker
 
     return count;
   }
-  
+
   /**
-   * Returns true if all the nodes in the iteration well be returned in document 
+   * Returns true if all the nodes in the iteration well be returned in document
    * order.
    * Warning: This can only be called after setRoot has been called!
-   * 
+   *
    * @return false.
    */
   public boolean isDocOrdered()
   {
     return false;  // I think.
   }
-  
+
   /** The DTM inner traversal class, that corresponds to the super axis. */
   protected DTMAxisIterator m_iterator;
 }

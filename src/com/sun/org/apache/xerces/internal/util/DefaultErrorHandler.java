@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,7 +31,6 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParseException;
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: DefaultErrorHandler.java,v 1.2.6.1 2005/09/05 07:49:27 neerajbj Exp $
  */
 public class DefaultErrorHandler
     implements XMLErrorHandler {
@@ -43,17 +46,17 @@ public class DefaultErrorHandler
     // Constructors
     //
 
-    /** 
-     * Constructs an error handler that prints error messages to 
-     * <code>System.err</code>. 
+    /**
+     * Constructs an error handler that prints error messages to
+     * <code>System.err</code>.
      */
     public DefaultErrorHandler() {
         this(new PrintWriter(System.err));
     } // <init>()
 
-    /** 
+    /**
      * Constructs an error handler that prints error messages to the
-     * specified <code>PrintWriter</code. 
+     * specified <code>PrintWriter</code.
      */
     public DefaultErrorHandler(PrintWriter out) {
         fOut = out;
@@ -64,7 +67,7 @@ public class DefaultErrorHandler
     //
 
     /** Warning. */
-    public void warning(String domain, String key, XMLParseException ex) 
+    public void warning(String domain, String key, XMLParseException ex)
         throws XNIException {
         printError("Warning", ex);
     } // warning(XMLParseException)

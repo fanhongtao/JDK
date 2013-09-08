@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +68,7 @@ public class ContextMatchStepPattern extends StepPattern
     else
       return this.SCORE_NONE;
   }
-  
+
   /**
    * Execute the match pattern step relative to another step.
    *
@@ -93,18 +97,18 @@ public class ContextMatchStepPattern extends StepPattern
     {
       int predContext = xctxt.getCurrentNode();
       DTMAxisTraverser traverser;
-      
+
       int axis = m_axis;
-      
+
       boolean needToTraverseAttrs = WalkerFactory.isDownwardAxisOfMany(axis);
-      boolean iterRootIsAttr = (dtm.getNodeType(xctxt.getIteratorRoot()) 
+      boolean iterRootIsAttr = (dtm.getNodeType(xctxt.getIteratorRoot())
                                  == DTM.ATTRIBUTE_NODE);
 
       if((Axis.PRECEDING == axis) && iterRootIsAttr)
       {
         axis = Axis.PRECEDINGANDANCESTOR;
       }
-      
+
       traverser = dtm.getAxisTraverser(axis);
 
       for (int relative = traverser.first(context); DTM.NULL != relative;
@@ -118,37 +122,37 @@ public class ContextMatchStepPattern extends StepPattern
 
           if (score != NodeTest.SCORE_NONE)
           {
-	      //score = executePredicates( xctxt, prevStep, SCORE_OTHER, 
-	      //       predContext, relative);
-	      if (executePredicates(xctxt, dtm, context))
-		  return score;
-	      
-	      score = NodeTest.SCORE_NONE;
+              //score = executePredicates( xctxt, prevStep, SCORE_OTHER,
+              //       predContext, relative);
+              if (executePredicates(xctxt, dtm, context))
+                  return score;
+
+              score = NodeTest.SCORE_NONE;
           }
-          
+
           if(needToTraverseAttrs && iterRootIsAttr
              && (DTM.ELEMENT_NODE == dtm.getNodeType(relative)))
           {
             int xaxis = Axis.ATTRIBUTE;
-            for (int i = 0; i < 2; i++) 
-            {            
+            for (int i = 0; i < 2; i++)
+            {
               DTMAxisTraverser atraverser = dtm.getAxisTraverser(xaxis);
-        
-              for (int arelative = atraverser.first(relative); 
+
+              for (int arelative = atraverser.first(relative);
                       DTM.NULL != arelative;
                       arelative = atraverser.next(relative, arelative))
               {
                 try
                 {
                   xctxt.pushCurrentNode(arelative);
-        
+
                   score = execute(xctxt);
-        
+
                   if (score != NodeTest.SCORE_NONE)
                   {
-		      //score = executePredicates( xctxt, prevStep, SCORE_OTHER, 
-		      //       predContext, arelative);
-        
+                      //score = executePredicates( xctxt, prevStep, SCORE_OTHER,
+                      //       predContext, arelative);
+
                     if (score != NodeTest.SCORE_NONE)
                       return score;
                   }

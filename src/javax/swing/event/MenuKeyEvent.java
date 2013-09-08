@@ -1,8 +1,26 @@
 /*
- * @(#)MenuKeyEvent.java	1.14 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.event;
 
@@ -27,7 +45,6 @@ import java.awt.Component;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.14 11/17/05
  * @author Georges Saab
  */
 public class MenuKeyEvent extends KeyEvent {
@@ -52,11 +69,11 @@ public class MenuKeyEvent extends KeyEvent {
      * @param m          a MenuSelectionManager object that handles selections
      */
     public MenuKeyEvent(Component source, int id, long when, int modifiers,
-			int keyCode, char keyChar,
-			MenuElement p[], MenuSelectionManager m) {
+                        int keyCode, char keyChar,
+                        MenuElement p[], MenuSelectionManager m) {
         super(source, id, when, modifiers, keyCode, keyChar);
-	path = p;
-	manager = m;
+        path = p;
+        manager = m;
     }
 
     /**
@@ -65,7 +82,7 @@ public class MenuKeyEvent extends KeyEvent {
      * @return an array of MenuElement objects representing the path value
      */
     public MenuElement[] getPath() {
-	return path;
+        return path;
     }
 
     /**
@@ -74,7 +91,6 @@ public class MenuKeyEvent extends KeyEvent {
      * @return a MenuSelectionManager object
      */
     public MenuSelectionManager getMenuSelectionManager() {
-	return manager;
+        return manager;
     }
 }
-

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,17 +27,17 @@ package com.sun.org.apache.xml.internal.dtm;
  * <code>DTMIterators</code> are used to step through a (possibly
  * filtered) set of nodes.  Their API is modeled largely after the DOM
  * NodeIterator.
- * 
- * <p>A DTMIterator is a somewhat unusual type of iterator, in that it 
+ *
+ * <p>A DTMIterator is a somewhat unusual type of iterator, in that it
  * can serve both single node iteration and random access.</p>
- * 
+ *
  * <p>The DTMIterator's traversal semantics, i.e. how it walks the tree,
  * are specified when it is created, possibly and probably by an XPath
- * <a href="http://www.w3.org/TR/xpath#NT-LocationPath>LocationPath</a> or 
+ * <a href="http://www.w3.org/TR/xpath#NT-LocationPath>LocationPath</a> or
  * a <a href="http://www.w3.org/TR/xpath#NT-UnionExpr">UnionExpr</a>.</p>
- * 
- * <p>A DTMIterator is meant to be created once as a master static object, and 
- * then cloned many times for runtime use.  Or the master object itself may 
+ *
+ * <p>A DTMIterator is meant to be created once as a master static object, and
+ * then cloned many times for runtime use.  Or the master object itself may
  * be used for simpler use cases.</p>
  *
  * <p>At this time, we do not expect DTMIterator to emulate
@@ -64,13 +68,13 @@ public interface DTMIterator
   public static final short FILTER_REJECT = 2;
 
   /**
-   * Skip this single node. 
+   * Skip this single node.
    */
   public static final short FILTER_SKIP = 3;
-    
+
   /**
-   * Get an instance of a DTM that "owns" a node handle.  Since a node 
-   * iterator may be passed without a DTMManager, this allows the 
+   * Get an instance of a DTM that "owns" a node handle.  Since a node
+   * iterator may be passed without a DTMManager, this allows the
    * caller to easily get the DTM using just the iterator.
    *
    * @param nodeHandle the nodeHandle.
@@ -78,10 +82,10 @@ public interface DTMIterator
    * @return a non-null DTM reference.
    */
   public DTM getDTM(int nodeHandle);
-  
+
   /**
-   * Get an instance of the DTMManager.  Since a node 
-   * iterator may be passed without a DTMManager, this allows the 
+   * Get an instance of the DTMManager.  Since a node
+   * iterator may be passed without a DTMManager, this allows the
    * caller to easily get the DTMManager using just the iterator.
    *
    * @return a non-null DTMManager reference.
@@ -90,8 +94,8 @@ public interface DTMIterator
 
   /**
    * The root node of the <code>DTMIterator</code>, as specified when it
-   * was created.  Note the root node is not the root node of the 
-   * document tree, but the context node from where the iteration 
+   * was created.  Note the root node is not the root node of the
+   * document tree, but the context node from where the iteration
    * begins and ends.
    *
    * @return nodeHandle int Handle of the context node.
@@ -105,7 +109,7 @@ public interface DTMIterator
    * where the iteration begins.
    *
    * @param nodeHandle int Handle of the context node.
-   * @param environment The environment object.  
+   * @param environment The environment object.
    * The environment in which this iterator operates, which should provide:
    * <ul>
    * <li>a node (the context node... same value as "root" defined below) </li>
@@ -114,13 +118,13 @@ public interface DTMIterator
    * <li>a function library </li>
    * <li>the set of namespace declarations in scope for the expression.</li>
    * <ul>
-   * 
-   * <p>At this time the exact implementation of this environment is application 
+   *
+   * <p>At this time the exact implementation of this environment is application
    * dependent.  Probably a proper interface will be created fairly soon.</p>
-   * 
+   *
    */
   public void setRoot(int nodeHandle, Object environment);
-  
+
   /**
    * Reset the iterator to the start. After resetting, the next node returned
    * will be the root node -- or, if that's filtered out, the first node
@@ -130,7 +134,7 @@ public interface DTMIterator
 
   /**
    * This attribute determines which node types are presented via the
-   * iterator. The available set of constants is defined above.  
+   * iterator. The available set of constants is defined above.
    * Nodes not accepted by
    * <code>whatToShow</code> will be skipped, but their children may still
    * be considered.
@@ -144,7 +148,7 @@ public interface DTMIterator
    * reference nodes are visible to the iterator. If false, they  and
    * their descendants will be rejected. Note that this rejection takes
    * precedence over <code>whatToShow</code> and the filter. </p>
-   * 
+   *
    * <p> To produce a view of the document that has entity references
    * expanded and does not expose the entity reference node itself, use
    * the <code>whatToShow</code> flags to hide the entity reference node
@@ -188,11 +192,11 @@ public interface DTMIterator
    * raise a runtime exception.
    */
   public void detach();
-  
+
   /**
    * Specify if it's OK for detach to release the iterator for reuse.
-   * 
-   * @param allowRelease true if it is OK for detach to release this iterator 
+   *
+   * @param allowRelease true if it is OK for detach to release this iterator
    * for pooling.
    */
   public void allowDetachToRelease(boolean allowRelease);
@@ -219,7 +223,7 @@ public interface DTMIterator
 
   /**
    * If setShouldCacheNodes(true) is called, then nodes will
-   * be cached, enabling random access, and giving the ability to do 
+   * be cached, enabling random access, and giving the ability to do
    * sorts and the like.  They are not cached by default.
    *
    * %REVIEW% Shouldn't the other random-access methods throw an exception
@@ -228,11 +232,11 @@ public interface DTMIterator
    * @param b true if the nodes should be cached.
    */
   public void setShouldCacheNodes(boolean b);
-  
+
   /**
-   * Tells if this iterator can have nodes added to it or set via 
+   * Tells if this iterator can have nodes added to it or set via
    * the <code>setItem(int node, int index)</code> method.
-   * 
+   *
    * @return True if the nodelist can be mutated.
    */
   public boolean isMutable();
@@ -260,7 +264,7 @@ public interface DTMIterator
 
   /**
    * Set the current position in the node set.
-   * 
+   *
    * @param i Must be a valid index.
    */
   public void setCurrentPos(int i);
@@ -276,22 +280,22 @@ public interface DTMIterator
    *   index.
    */
   public int item(int index);
-  
+
   /**
    * Sets the node at the specified index of this vector to be the
    * specified node. The previous component at that position is discarded.
    *
    * <p>The index must be a value greater than or equal to 0 and less
-   * than the current size of the vector.  
+   * than the current size of the vector.
    * The iterator must be in cached mode.</p>
-   * 
+   *
    * <p>Meant to be used for sorted iterators.</p>
    *
    * @param node Node to set
    * @param index Index of where to set the node
    */
   public void setItem(int node, int index);
-  
+
   /**
    * The number of nodes in the list. The range of valid child node indices
    * is 0 to <code>length-1</code> inclusive. Note that this requires running
@@ -300,9 +304,9 @@ public interface DTMIterator
    * @return The number of nodes in the list.
    */
   public int getLength();
-    
+
   //=========== Cloning operations. ============
-  
+
   /**
    * Get a cloned Iterator that is reset to the start of the iteration.
    *
@@ -313,7 +317,7 @@ public interface DTMIterator
   public DTMIterator cloneWithReset() throws CloneNotSupportedException;
 
   /**
-   * Get a clone of this iterator, but don't reset the iteration in the 
+   * Get a clone of this iterator, but don't reset the iteration in the
    * process, so that it may be used from the current position.
    *
    * @return A clone of this object.
@@ -321,20 +325,20 @@ public interface DTMIterator
    * @throws CloneNotSupportedException
    */
   public Object clone() throws CloneNotSupportedException;
-  
+
   /**
-   * Returns true if all the nodes in the iteration well be returned in document 
+   * Returns true if all the nodes in the iteration well be returned in document
    * order.
-   * 
-   * @return true if all the nodes in the iteration well be returned in document 
+   *
+   * @return true if all the nodes in the iteration well be returned in document
    * order.
    */
   public boolean isDocOrdered();
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis();

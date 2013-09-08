@@ -1,8 +1,26 @@
 /*
- * @(#)InflaterOutputStream.java	1.1 06/02/28
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.zip;
@@ -15,13 +33,12 @@ import java.io.OutputStream;
  * Implements an output stream filter for uncompressing data stored in the
  * "deflate" compression format.
  *
- * @version	1.1
- * @since	1.6
- * @author	David R Tribble (david@tribble.com)
+ * @since       1.6
+ * @author      David R Tribble (david@tribble.com)
  *
- * @see	InflaterInputStream
- * @see	DeflaterInputStream
- * @see	DeflaterOutputStream
+ * @see InflaterInputStream
+ * @see DeflaterInputStream
+ * @see DeflaterOutputStream
  */
 
 public class InflaterOutputStream extends FilterOutputStream {
@@ -39,7 +56,7 @@ public class InflaterOutputStream extends FilterOutputStream {
 
     /** true iff {@link #close()} has been called. */
     private boolean closed = false;
-    
+
     /**
      * Checks to make sure that this stream has not been closed.
      */
@@ -48,7 +65,7 @@ public class InflaterOutputStream extends FilterOutputStream {
             throw new IOException("Stream closed");
         }
     }
-    
+
     /**
      * Creates a new output stream with a default decompressor and buffer
      * size.

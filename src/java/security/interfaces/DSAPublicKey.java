@@ -1,8 +1,26 @@
 /*
- * @(#)DSAPublicKey.java	1.22 05/11/17
+ * Copyright (c) 1996, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.interfaces;
@@ -18,7 +36,6 @@ import java.math.BigInteger;
  * @see DSAKey
  * @see DSAPrivateKey
  *
- * @version 1.22 05/11/17
  * @author Benjamin Renaud
  */
 public interface DSAPublicKey extends DSAKey, java.security.PublicKey {
@@ -26,8 +43,8 @@ public interface DSAPublicKey extends DSAKey, java.security.PublicKey {
     // Declare serialVersionUID to be compatible with JDK1.1
 
    /**
-    * The class fingerprint that is set to indicate 
-    * serialization compatibility with a previous 
+    * The class fingerprint that is set to indicate
+    * serialization compatibility with a previous
     * version of the class.
     */
     static final long serialVersionUID = 1234526332779022332L;
@@ -39,5 +56,3 @@ public interface DSAPublicKey extends DSAKey, java.security.PublicKey {
      */
     public BigInteger getY();
 }
-
-

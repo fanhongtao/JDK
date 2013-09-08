@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -56,12 +60,11 @@ package com.sun.org.apache.bcel.internal.util;
 import java.util.LinkedList;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 
-/** 
+/**
  * Utility class implementing a (typesafe) queue of JavaClass
  * objects.
  *
- * @version $Id: ClassQueue.java,v 1.1.2.1 2005/07/31 23:46:58 jeffsuttor Exp $
- * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see ClassVector
 */
 public class ClassQueue implements java.io.Serializable {
@@ -78,4 +81,4 @@ public class ClassQueue implements java.io.Serializable {
   public String toString() {
     return vec.toString();
   }
-}  
+}

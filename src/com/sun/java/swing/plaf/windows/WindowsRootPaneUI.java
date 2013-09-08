@@ -1,8 +1,26 @@
 /*
- * @(#)WindowsRootPaneUI.java	1.18 06/01/23
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.windows;
@@ -43,7 +61,6 @@ import javax.swing.plaf.basic.ComboPopup;
  * Windows implementation of RootPaneUI, there is one shared between all
  * JRootPane instances.
  *
- * @version 1.18 01/23/06
  * @author Mark Davidson
  * @since 1.4
  */
@@ -53,7 +70,7 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
     static final AltProcessor altProcessor = new AltProcessor();
 
     public static ComponentUI createUI(JComponent c) {
-	return windowsRootPaneUI;
+        return windowsRootPaneUI;
     }
 
     static class AltProcessor implements KeyEventPostProcessor {
@@ -77,7 +94,7 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
                 ev.consume();
             } else {
                 menuCanceledOnPress = false;
-	        WindowsLookAndFeel.setMnemonicHidden(false);
+                WindowsLookAndFeel.setMnemonicHidden(false);
                 WindowsGraphicsUtils.repaintMnemonicsInWindow(winAncestor);
                 JMenuBar mbar = root != null ? root.getJMenuBar() : null;
                 if(mbar == null && winAncestor instanceof JFrame) {
@@ -92,7 +109,7 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
 
         void altReleased(KeyEvent ev) {
             if (menuCanceledOnPress) {
-	        WindowsLookAndFeel.setMnemonicHidden(true);
+                WindowsLookAndFeel.setMnemonicHidden(true);
                 WindowsGraphicsUtils.repaintMnemonicsInWindow(winAncestor);
                 return;
             }
@@ -133,7 +150,7 @@ public class WindowsRootPaneUI extends BasicRootPaneUI {
             }
             if (ev.getKeyCode() == KeyEvent.VK_ALT) {
                 root = SwingUtilities.getRootPane(ev.getComponent());
-                winAncestor = (root == null ? null : 
+                winAncestor = (root == null ? null :
                         SwingUtilities.getWindowAncestor(root));
 
                 if (ev.getID() == KeyEvent.KEY_PRESSED) {

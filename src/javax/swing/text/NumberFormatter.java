@@ -1,15 +1,32 @@
 /*
- * @(#)NumberFormatter.java	1.11 05/11/17
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
 import java.lang.reflect.*;
 import java.text.*;
 import java.util.*;
-import javax.swing.text.*;
 
 /**
  * <code>NumberFormatter</code> subclasses <code>InternationalFormatter</code>
@@ -39,7 +56,7 @@ import javax.swing.text.*;
  * <p>
  * If you are going to allow the user to enter decimal
  * values, you should either force the DecimalFormat to contain at least
- * one decimal (<code>#.0###</code>), or allow the value to be invalid 
+ * one decimal (<code>#.0###</code>), or allow the value to be invalid
  * <code>setAllowsInvalid(true)</code>. Otherwise users may not be able to
  * input decimal values.
  * <p>
@@ -70,7 +87,6 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.4 03/05/01
  * @since 1.4
  */
 public class NumberFormatter extends InternationalFormatter {
@@ -115,7 +131,7 @@ public class NumberFormatter extends InternationalFormatter {
         DecimalFormatSymbols dfs = getDecimalFormatSymbols();
 
         if (dfs != null) {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
             sb.append(dfs.getCurrencySymbol());
             sb.append(dfs.getDecimalSeparator());
@@ -156,23 +172,24 @@ public class NumberFormatter extends InternationalFormatter {
      */
     private Object convertValueToValueClass(Object value, Class valueClass) {
         if (valueClass != null && (value instanceof Number)) {
+            Number numberValue = (Number)value;
             if (valueClass == Integer.class) {
-                return new Integer(((Number)value).intValue());
+                return Integer.valueOf(numberValue.intValue());
             }
             else if (valueClass == Long.class) {
-                return new Long(((Number)value).longValue());
+                return Long.valueOf(numberValue.longValue());
             }
             else if (valueClass == Float.class) {
-                return new Float(((Number)value).floatValue());
+                return Float.valueOf(numberValue.floatValue());
             }
             else if (valueClass == Double.class) {
-                return new Double(((Number)value).doubleValue());
+                return Double.valueOf(numberValue.doubleValue());
             }
             else if (valueClass == Byte.class) {
-                return new Byte(((Number)value).byteValue());
+                return Byte.valueOf(numberValue.byteValue());
             }
             else if (valueClass == Short.class) {
-                return new Short(((Number)value).shortValue());
+                return Short.valueOf(numberValue.shortValue());
             }
         }
         return value;
@@ -220,13 +237,6 @@ public class NumberFormatter extends InternationalFormatter {
         }
         return null;
     }
-
-    /**
-     */
-    private boolean isValidInsertionCharacter(char aChar) {
-        return (Character.isDigit(aChar) || specialChars.indexOf(aChar) != -1);
-    }
-
 
     /**
      * Subclassed to return false if <code>text</code> contains in an invalid
@@ -281,10 +291,7 @@ public class NumberFormatter extends InternationalFormatter {
             if (attrs.get(NumberFormat.Field.SIGN) != null) {
                 size--;
             }
-            if (size == 0) {
-                return true;
-            }
-            return false;
+            return size == 0;
         }
         return true;
     }
@@ -297,10 +304,7 @@ public class NumberFormatter extends InternationalFormatter {
     boolean isNavigatable(int index) {
         if (!super.isNavigatable(index)) {
             // Don't skip the decimal, it causes wierd behavior
-            if (getBufferedChar(index) == getDecimalSeparator()) {
-                return true;
-            }
-            return false;
+            return getBufferedChar(index) == getDecimalSeparator();
         }
         return true;
     }
@@ -323,11 +327,7 @@ public class NumberFormatter extends InternationalFormatter {
                 Map attrs = iterator.getAttributes();
 
                 if (attrs != null && attrs.size() > 0) {
-                    Iterator keys = attrs.keySet().iterator();
-
-                    while (keys.hasNext()) {
-                        Object key = keys.next();
-
+                    for (Object key : attrs.keySet()) {
                         if (key instanceof NumberFormat.Field) {
                             return (NumberFormat.Field)key;
                         }
@@ -359,7 +359,7 @@ public class NumberFormatter extends InternationalFormatter {
      * true if a sign change was attempted.
      */
     private boolean toggleSignIfNecessary(DocumentFilter.FilterBypass fb,
-                                              int offset, char aChar) throws 
+                                              int offset, char aChar) throws
                               BadLocationException {
         if (aChar == getMinusSign() || aChar == getPositiveSign()) {
             NumberFormat.Field field = getFieldFrom(offset, -1);
@@ -395,28 +395,6 @@ public class NumberFormatter extends InternationalFormatter {
     }
 
     /**
-     * Returns true if the range offset to length identifies the only
-     * integer field.
-     */
-    private boolean isOnlyIntegerField(int offset, int length) {
-        if (isValidMask()) {
-            int start = getAttributeStart(NumberFormat.Field.INTEGER);
-
-            if (start != -1) {
-                AttributedCharacterIterator iterator = getIterator();
-
-                iterator.setIndex(start);
-                if (offset > start || iterator.getRunLimit(
-                    NumberFormat.Field.INTEGER) > (offset + length)) {
-                    return false;
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Invoked to toggle the sign. For this to work the value class
      * must have a single arg constructor that takes a String.
      */
@@ -434,7 +412,7 @@ public class NumberFormatter extends InternationalFormatter {
                         string = string.substring(1);
                     }
                 }
-                else { 
+                else {
                     if (string.charAt(0) == '+') {
                         string = string.substring(1);
                     }
@@ -443,7 +421,7 @@ public class NumberFormatter extends InternationalFormatter {
                     }
                 }
                 if (string != null) {
-                    Class valueClass = getValueClass();
+                    Class<?> valueClass = getValueClass();
 
                     if (valueClass == null) {
                         valueClass = value.getClass();

@@ -1,8 +1,26 @@
 /*
- * @(#)ContentHandlerFactory.java	1.13 05/11/17
+ * Copyright (c) 1995, 1997, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.net;
@@ -16,7 +34,6 @@ package java.net;
  * to create a <code>ContentHandler</code> for a MIME type.
  *
  * @author  James Gosling
- * @version 1.13, 11/17/05
  * @see     java.net.ContentHandler
  * @see     java.net.URLStreamHandler
  * @since   JDK1.0

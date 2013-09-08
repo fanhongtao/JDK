@@ -1,3 +1,27 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 package javax.xml.stream;
 
 /**
@@ -38,7 +62,7 @@ public interface XMLStreamConstants {
   public static final int COMMENT=5;
 
   /**
-   * The characters are white space 
+   * The characters are white space
    * (see [XML], 2.10 "White Space Handling").
    * Events are only reported as SPACE if they are ignorable white
    * space.  Otherwise they are reported as CHARACTERS.
@@ -84,13 +108,13 @@ public interface XMLStreamConstants {
 
   /**
    * Indicates the event is a namespace declaration
-   * 
+   *
    * @see javax.xml.stream.events.Namespace
    */
   public static final int NAMESPACE=13;
 
   /**
-   * Indicates a Notation 
+   * Indicates a Notation
    * @see javax.xml.stream.events.NotationDeclaration
    */
   public static final int NOTATION_DECLARATION=14;
@@ -101,7 +125,6 @@ public interface XMLStreamConstants {
    */
   public static final int ENTITY_DECLARATION=15;
 }
-
 
 
 

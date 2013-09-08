@@ -1,8 +1,26 @@
 /*
- * @(#)splashscreen.h	1.5 05/11/17
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -11,5 +29,3 @@ int     DoSplashLoadFile(const char* filename);
 void    DoSplashInit(void);
 void    DoSplashClose(void);
 void    DoSplashSetFileJarName(const char* fileName, const char* jarName);
-
-

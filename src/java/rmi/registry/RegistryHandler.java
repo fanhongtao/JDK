@@ -1,8 +1,26 @@
 /*
- * @(#)RegistryHandler.java	1.15 05/11/17
+ * Copyright (c) 1997, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi.registry;
@@ -15,7 +33,6 @@ import java.rmi.UnknownHostException;
  * runtime in previous implementation versions.  It should never be accessed
  * by application code.
  *
- * @version 1.15, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @deprecated no replacement
@@ -38,7 +55,7 @@ public interface RegistryHandler {
      */
     @Deprecated
     Registry registryStub(String host, int port)
-	throws RemoteException, UnknownHostException;
+        throws RemoteException, UnknownHostException;
 
     /**
      * Constructs and exports a Registry on the specified port.

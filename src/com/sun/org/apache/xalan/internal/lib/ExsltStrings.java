@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,7 +45,7 @@ import org.w3c.dom.Text;
  * </pre>
  * The documentation for each function has been copied from the relevant
  * EXSLT Implementer page.
- * 
+ *
  * @see <a href="http://www.exslt.org/">EXSLT</a>
 
  * @xsl.usage general
@@ -49,39 +53,39 @@ import org.w3c.dom.Text;
 public class ExsltStrings extends ExsltBase
 {
   /**
-   * The str:align function aligns a string within another string. 
+   * The str:align function aligns a string within another string.
    * <p>
-   * The first argument gives the target string to be aligned. The second argument gives 
-   * the padding string within which it is to be aligned. 
+   * The first argument gives the target string to be aligned. The second argument gives
+   * the padding string within which it is to be aligned.
    * <p>
-   * If the target string is shorter than the padding string then a range of characters 
-   * in the padding string are repaced with those in the target string. Which characters 
-   * are replaced depends on the value of the third argument, which gives the type of 
-   * alignment. It can be one of 'left', 'right' or 'center'. If no third argument is 
-   * given or if it is not one of these values, then it defaults to left alignment. 
+   * If the target string is shorter than the padding string then a range of characters
+   * in the padding string are repaced with those in the target string. Which characters
+   * are replaced depends on the value of the third argument, which gives the type of
+   * alignment. It can be one of 'left', 'right' or 'center'. If no third argument is
+   * given or if it is not one of these values, then it defaults to left alignment.
    * <p>
-   * With left alignment, the range of characters replaced by the target string begins 
-   * with the first character in the padding string. With right alignment, the range of 
-   * characters replaced by the target string ends with the last character in the padding 
-   * string. With center alignment, the range of characters replaced by the target string 
-   * is in the middle of the padding string, such that either the number of unreplaced 
-   * characters on either side of the range is the same or there is one less on the left 
-   * than there is on the right. 
+   * With left alignment, the range of characters replaced by the target string begins
+   * with the first character in the padding string. With right alignment, the range of
+   * characters replaced by the target string ends with the last character in the padding
+   * string. With center alignment, the range of characters replaced by the target string
+   * is in the middle of the padding string, such that either the number of unreplaced
+   * characters on either side of the range is the same or there is one less on the left
+   * than there is on the right.
    * <p>
-   * If the target string is longer than the padding string, then it is truncated to be 
+   * If the target string is longer than the padding string, then it is truncated to be
    * the same length as the padding string and returned.
    *
    * @param targetStr The target string
    * @param paddingStr The padding string
    * @param type The type of alignment
-   * 
+   *
    * @return The string after alignment
    */
   public static String align(String targetStr, String paddingStr, String type)
   {
     if (targetStr.length() >= paddingStr.length())
       return targetStr.substring(0, paddingStr.length());
-    
+
     if (type.equals("right"))
     {
       return paddingStr.substring(0, paddingStr.length() - targetStr.length()) + targetStr;
@@ -95,7 +99,7 @@ public class ExsltStrings extends ExsltBase
     else
     {
       return targetStr + paddingStr.substring(targetStr.length());
-    }    
+    }
   }
 
   /**
@@ -105,10 +109,10 @@ public class ExsltStrings extends ExsltBase
   {
     return align(targetStr, paddingStr, "left");
   }
-  
+
   /**
-   * The str:concat function takes a node set and returns the concatenation of the 
-   * string values of the nodes in that node set. If the node set is empty, it returns 
+   * The str:concat function takes a node set and returns the concatenation of the
+   * string values of the nodes in that node set. If the node set is empty, it returns
    * an empty string.
    *
    * @param nl A node set
@@ -121,22 +125,22 @@ public class ExsltStrings extends ExsltBase
     {
       Node node = nl.item(i);
       String value = toString(node);
-      
+
       if (value != null && value.length() > 0)
         sb.append(value);
     }
-    
+
     return sb.toString();
   }
-    
+
   /**
-   * The str:padding function creates a padding string of a certain length. 
-   * The first argument gives the length of the padding string to be created. 
-   * The second argument gives a string to be used to create the padding. This 
-   * string is repeated as many times as is necessary to create a string of the 
-   * length specified by the first argument; if the string is more than a character 
-   * long, it may have to be truncated to produce the required length. If no second 
-   * argument is specified, it defaults to a space (' '). If the second argument is 
+   * The str:padding function creates a padding string of a certain length.
+   * The first argument gives the length of the padding string to be created.
+   * The second argument gives a string to be used to create the padding. This
+   * string is repeated as many times as is necessary to create a string of the
+   * length specified by the first argument; if the string is more than a character
+   * long, it may have to be truncated to produce the required length. If no second
+   * argument is specified, it defaults to a space (' '). If the second argument is
    * an empty string, str:padding returns an empty string.
    *
    * @param length The length of the padding string to be created
@@ -148,7 +152,7 @@ public class ExsltStrings extends ExsltBase
   {
     if (pattern == null || pattern.length() == 0)
       return "";
-    
+
     StringBuffer sb = new StringBuffer();
     int len = (int)length;
     int numAdded = 0;
@@ -157,12 +161,12 @@ public class ExsltStrings extends ExsltBase
     {
       if (index == pattern.length())
         index = 0;
-        
+
       sb.append(pattern.charAt(index));
       index++;
       numAdded++;
     }
-  
+
     return sb.toString();
   }
 
@@ -173,16 +177,16 @@ public class ExsltStrings extends ExsltBase
   {
     return padding(length, " ");
   }
-    
+
   /**
-   * The str:split function splits up a string and returns a node set of token 
-   * elements, each containing one token from the string. 
+   * The str:split function splits up a string and returns a node set of token
+   * elements, each containing one token from the string.
    * <p>
-   * The first argument is the string to be split. The second argument is a pattern 
-   * string. The string given by the first argument is split at any occurrence of 
-   * this pattern. For example: 
+   * The first argument is the string to be split. The second argument is a pattern
+   * string. The string given by the first argument is split at any occurrence of
+   * this pattern. For example:
    * <pre>
-   * str:split('a, simple, list', ', ') gives the node set consisting of: 
+   * str:split('a, simple, list', ', ') gives the node set consisting of:
    *
    * <token>a</token>
    * <token>simple</token>
@@ -198,22 +202,22 @@ public class ExsltStrings extends ExsltBase
   public static NodeList split(String str, String pattern)
   {
 
-    
+
     NodeSet resultSet = new NodeSet();
     resultSet.setShouldCacheNodes(true);
-    
+
     boolean done = false;
     int fromIndex = 0;
     int matchIndex = 0;
     String token = null;
-    
+
     while (!done && fromIndex < str.length())
     {
       matchIndex = str.indexOf(pattern, fromIndex);
       if (matchIndex >= 0)
       {
-	token = str.substring(fromIndex, matchIndex);
-	fromIndex = matchIndex + pattern.length();
+        token = str.substring(fromIndex, matchIndex);
+        fromIndex = matchIndex + pattern.length();
       }
       else
       {
@@ -227,13 +231,13 @@ public class ExsltStrings extends ExsltBase
         Element element = doc.createElement("token");
         Text text = doc.createTextNode(token);
         element.appendChild(text);
-        resultSet.addNode(element);      
+        resultSet.addNode(element);
       }
     }
-    
+
     return resultSet;
   }
-  
+
   /**
    * See above
    */
@@ -243,15 +247,15 @@ public class ExsltStrings extends ExsltBase
   }
 
   /**
-   * The str:tokenize function splits up a string and returns a node set of token 
-   * elements, each containing one token from the string. 
+   * The str:tokenize function splits up a string and returns a node set of token
+   * elements, each containing one token from the string.
    * <p>
-   * The first argument is the string to be tokenized. The second argument is a 
-   * string consisting of a number of characters. Each character in this string is 
-   * taken as a delimiting character. The string given by the first argument is split 
-   * at any occurrence of any of these characters. For example: 
+   * The first argument is the string to be tokenized. The second argument is a
+   * string consisting of a number of characters. Each character in this string is
+   * taken as a delimiting character. The string given by the first argument is split
+   * at any occurrence of any of these characters. For example:
    * <pre>
-   * str:tokenize('2001-06-03T11:40:23', '-T:') gives the node set consisting of: 
+   * str:tokenize('2001-06-03T11:40:23', '-T:') gives the node set consisting of:
    *
    * <token>2001</token>
    * <token>06</token>
@@ -260,10 +264,10 @@ public class ExsltStrings extends ExsltBase
    * <token>40</token>
    * <token>23</token>
    * </pre>
-   * If the second argument is omitted, the default is the string '&#x9;&#xA;&#xD;&#x20;' 
-   * (i.e. whitespace characters). 
+   * If the second argument is omitted, the default is the string '&#x9;&#xA;&#xD;&#x20;'
+   * (i.e. whitespace characters).
    * <p>
-   * If the second argument is an empty string, the function returns a set of token 
+   * If the second argument is an empty string, the function returns a set of token
    * elements, each of which holds a single character.
    * <p>
    * Note: This one is different from the tokenize extension function in the Xalan
@@ -280,7 +284,7 @@ public class ExsltStrings extends ExsltBase
 
 
     NodeSet resultSet = new NodeSet();
-    
+
     if (delims != null && delims.length() > 0)
     {
       StringTokenizer lTokenizer = new StringTokenizer(toTokenize, delims);
@@ -292,11 +296,11 @@ public class ExsltStrings extends ExsltBase
         {
           Element element = doc.createElement("token");
           element.appendChild(doc.createTextNode(lTokenizer.nextToken()));
-          resultSet.addNode(element);      
+          resultSet.addNode(element);
         }
       }
     }
-    // If the delimiter is an empty string, create one token Element for 
+    // If the delimiter is an empty string, create one token Element for
     // every single character.
     else
     {
@@ -308,7 +312,7 @@ public class ExsltStrings extends ExsltBase
         {
           Element element = doc.createElement("token");
           element.appendChild(doc.createTextNode(toTokenize.substring(i, i+1)));
-          resultSet.addNode(element);              
+          resultSet.addNode(element);
         }
       }
     }
@@ -332,7 +336,7 @@ public class ExsltStrings extends ExsltBase
      * synchronization.
      *
      */
-    private static class DocumentHolder 
+    private static class DocumentHolder
     {
         // Reuse the Document object to reduce memory usage.
         private static final Document m_doc;
@@ -341,7 +345,7 @@ public class ExsltStrings extends ExsltBase
             {
                 m_doc =DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
             }
-           
+
             catch(ParserConfigurationException pce)
             {
                   throw new com.sun.org.apache.xml.internal.utils.WrappedRuntimeException(pce);
@@ -349,5 +353,5 @@ public class ExsltStrings extends ExsltBase
 
         }
     }
-  
+
 }

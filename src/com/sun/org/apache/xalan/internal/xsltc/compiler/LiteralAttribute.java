@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,108 +52,108 @@ final class LiteralAttribute extends Instruction {
      * @param parser the XSLT parser (wraps XPath parser).
      */
     public LiteralAttribute(String name, String value, Parser parser,
-        SyntaxTreeNode parent) 
+        SyntaxTreeNode parent)
     {
-	_name = name;
+        _name = name;
         setParent(parent);
-	_value = AttributeValue.create(this, value, parser);
+        _value = AttributeValue.create(this, value, parser);
     }
 
     public void display(int indent) {
-	indent(indent);
-	Util.println("LiteralAttribute name=" + _name + " value=" + _value);
+        indent(indent);
+        Util.println("LiteralAttribute name=" + _name + " value=" + _value);
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	_value.typeCheck(stable);
-	typeCheckContents(stable);
-	return Type.Void;
+        _value.typeCheck(stable);
+        typeCheckContents(stable);
+        return Type.Void;
     }
 
     protected boolean contextDependent() {
-	return _value.contextDependent();
+        return _value.contextDependent();
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// push handler
-	il.append(methodGen.loadHandler());
-	// push attribute name - namespace prefix set by parent node
-	il.append(new PUSH(cpg, _name));
-	// push attribute value
-	_value.translate(classGen, methodGen);
-	
-	// Generate code that calls SerializationHandler.addUniqueAttribute()
-	// if all attributes are unique.
-	SyntaxTreeNode parent = getParent();
-	if (parent instanceof LiteralElement
-	    && ((LiteralElement)parent).allAttributesUnique()) {	    
-	    
-	    int flags = 0;
-	    boolean isHTMLAttrEmpty = false;
-	    ElemDesc elemDesc = ((LiteralElement)parent).getElemDesc();
-	    
-	    // Set the HTML flags
-	    if (elemDesc != null) {
-	    	if (elemDesc.isAttrFlagSet(_name, ElemDesc.ATTREMPTY)) {
-	    	    flags = flags | SerializationHandler.HTML_ATTREMPTY;
-	    	    isHTMLAttrEmpty = true;
-	    	}
-	    	else if (elemDesc.isAttrFlagSet(_name, ElemDesc.ATTRURL)) {
-	    	    flags = flags | SerializationHandler.HTML_ATTRURL;
-	    	}
-	    }
-	    
-	    if (_value instanceof SimpleAttributeValue) {
-	        String attrValue = ((SimpleAttributeValue)_value).toString();
-	        
-	        if (!hasBadChars(attrValue) && !isHTMLAttrEmpty) {
-	            flags = flags | SerializationHandler.NO_BAD_CHARS;
-	        }
-	    }
-	        
-	    il.append(new PUSH(cpg, flags));
-	    il.append(methodGen.uniqueAttribute());
-	}
-	else {
-	    // call attribute
-	    il.append(methodGen.attribute());
-	}
+        // push handler
+        il.append(methodGen.loadHandler());
+        // push attribute name - namespace prefix set by parent node
+        il.append(new PUSH(cpg, _name));
+        // push attribute value
+        _value.translate(classGen, methodGen);
+
+        // Generate code that calls SerializationHandler.addUniqueAttribute()
+        // if all attributes are unique.
+        SyntaxTreeNode parent = getParent();
+        if (parent instanceof LiteralElement
+            && ((LiteralElement)parent).allAttributesUnique()) {
+
+            int flags = 0;
+            boolean isHTMLAttrEmpty = false;
+            ElemDesc elemDesc = ((LiteralElement)parent).getElemDesc();
+
+            // Set the HTML flags
+            if (elemDesc != null) {
+                if (elemDesc.isAttrFlagSet(_name, ElemDesc.ATTREMPTY)) {
+                    flags = flags | SerializationHandler.HTML_ATTREMPTY;
+                    isHTMLAttrEmpty = true;
+                }
+                else if (elemDesc.isAttrFlagSet(_name, ElemDesc.ATTRURL)) {
+                    flags = flags | SerializationHandler.HTML_ATTRURL;
+                }
+            }
+
+            if (_value instanceof SimpleAttributeValue) {
+                String attrValue = ((SimpleAttributeValue)_value).toString();
+
+                if (!hasBadChars(attrValue) && !isHTMLAttrEmpty) {
+                    flags = flags | SerializationHandler.NO_BAD_CHARS;
+                }
+            }
+
+            il.append(new PUSH(cpg, flags));
+            il.append(methodGen.uniqueAttribute());
+        }
+        else {
+            // call attribute
+            il.append(methodGen.attribute());
+        }
     }
-    
+
     /**
      * Return true if at least one character in the String is considered to
      * be a "bad" character. A bad character is one whose code is:
      * less than 32 (a space),
      * or greater than 126,
-     * or it is one of '<', '>', '&' or '\"'. 
+     * or it is one of '<', '>', '&' or '\"'.
      * This helps the serializer to decide whether the String needs to be escaped.
      */
     private boolean hasBadChars(String value) {
-    	char[] chars = value.toCharArray();
-    	int size = chars.length;
-    	for (int i = 0; i < size; i++) {
-    	    char ch = chars[i];
-    	    if (ch < 32 || 126 < ch || ch == '<' || ch == '>' || ch == '&' || ch == '\"')
-                return true;    	        
-    	}
-    	return false;
+        char[] chars = value.toCharArray();
+        int size = chars.length;
+        for (int i = 0; i < size; i++) {
+            char ch = chars[i];
+            if (ch < 32 || 126 < ch || ch == '<' || ch == '>' || ch == '&' || ch == '\"')
+                return true;
+        }
+        return false;
     }
-    
+
     /**
      * Return the name of the attribute
      */
     public String getName() {
         return _name;
     }
-    
+
     /**
      * Return the value of the attribute
      */
     public AttributeValue getValue() {
         return _value;
     }
-    
+
 }

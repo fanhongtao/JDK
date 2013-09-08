@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -55,10 +59,9 @@ package com.sun.org.apache.bcel.internal.generic;
  */
 import com.sun.org.apache.bcel.internal.Constants;
 
-/** 
+/**
  * Denotes array type, such as int[][]
  *
- * @version $Id: ArrayType.java,v 1.1.2.1 2005/07/31 23:45:20 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class ArrayType extends ReferenceType {
@@ -69,7 +72,7 @@ public final class ArrayType extends ReferenceType {
    * Convenience constructor for array type, e.g. int[]
    *
    * @param type array type, e.g. T_INT
-   */ 
+   */
   public ArrayType(byte type, int dimensions) {
     this(BasicType.getType(type), dimensions);
   }
@@ -78,7 +81,7 @@ public final class ArrayType extends ReferenceType {
    * Convenience constructor for reference array type, e.g. Object[]
    *
    * @param class_name complete name of class (java.lang.String, e.g.)
-   */ 
+   */
   public ArrayType(String class_name, int dimensions) {
     this(new ObjectType(class_name), dimensions);
   }
@@ -87,7 +90,7 @@ public final class ArrayType extends ReferenceType {
    * Constructor for array of given type
    *
    * @param type type of array (may be an array itself)
-   */ 
+   */
   public ArrayType(Type type, int dimensions) {
     super(Constants.T_ARRAY, "<dummy>");
 
@@ -100,7 +103,7 @@ public final class ArrayType extends ReferenceType {
       this.dimensions = dimensions + array.dimensions;
       basic_type      = array.basic_type;
       break;
-      
+
     case Constants.T_VOID:
       throw new ClassGenException("Invalid type: void[]");
 
@@ -142,7 +145,7 @@ public final class ArrayType extends ReferenceType {
 
   /** @return a hash code value for the object.
    */
-  public int hashcode() { return basic_type.hashCode() ^ dimensions; }
+  public int hashCode() { return basic_type.hashCode() ^ dimensions; }
 
   /** @return true if both type objects refer to the same array type.
    */

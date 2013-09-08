@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,40 +47,40 @@ import org.xml.sax.helpers.XMLFilterImpl;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 /**
- * skeleton extension of XMLFilterImpl for now.  
+ * skeleton extension of XMLFilterImpl for now.
  * @author Santiago Pericas-Geertsen
- * @author G. Todd Miller 
+ * @author G. Todd Miller
  */
 public class TrAXFilter extends XMLFilterImpl {
     private Templates              _templates;
-    private TransformerImpl	   _transformer;
+    private TransformerImpl        _transformer;
     private TransformerHandlerImpl _transformerHandler;
 
-    public TrAXFilter(Templates templates)  throws 
-	TransformerConfigurationException
+    public TrAXFilter(Templates templates)  throws
+        TransformerConfigurationException
     {
-	_templates = templates;
-	_transformer = (TransformerImpl) templates.newTransformer();
+        _templates = templates;
+        _transformer = (TransformerImpl) templates.newTransformer();
         _transformerHandler = new TransformerHandlerImpl(_transformer);
     }
-    
+
     public Transformer getTransformer() {
         return _transformer;
     }
 
     private void createParent() throws SAXException {
-	XMLReader parent = null;
+        XMLReader parent = null;
         try {
             SAXParserFactory pfactory = SAXParserFactory.newInstance();
             pfactory.setNamespaceAware(true);
-            
+
             if (_transformer.isSecureProcessing()) {
                 try {
                     pfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
                 }
                 catch (SAXException e) {}
             }
-            
+
             SAXParser saxparser = pfactory.newSAXParser();
             parent = saxparser.getXMLReader();
         }
@@ -119,23 +123,23 @@ public class TrAXFilter extends XMLFilterImpl {
         }
     }
 
-    public void parse (String systemId) throws SAXException, IOException 
+    public void parse (String systemId) throws SAXException, IOException
     {
         parse(new InputSource(systemId));
     }
 
-    public void setContentHandler (ContentHandler handler) 
+    public void setContentHandler (ContentHandler handler)
     {
-	_transformerHandler.setResult(new SAXResult(handler));
-	if (getParent() == null) {
+        _transformerHandler.setResult(new SAXResult(handler));
+        if (getParent() == null) {
                 try {
                     createParent();
                 }
                 catch (SAXException  e) {
-                   return; 
+                   return;
                 }
-	}
-	getParent().setContentHandler(_transformerHandler);
+        }
+        getParent().setContentHandler(_transformerHandler);
     }
 
     public void setErrorListener (ErrorListener handler) { }

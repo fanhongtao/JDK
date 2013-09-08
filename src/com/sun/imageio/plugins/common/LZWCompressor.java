@@ -1,8 +1,26 @@
 /*
- * @(#)LZWCompressor.java	1.2 05/11/17
+ * Copyright (c) 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.common;
@@ -18,28 +36,28 @@ import javax.imageio.stream.ImageOutputStream;
 public class LZWCompressor {
     /** base underlying code size of data being compressed 8 for TIFF, 1 to 8 for GIF **/
     int codeSize;
-    
+
     /** reserved clear code based on code size **/
     int clearCode;
-    
+
     /** reserved end of data code based on code size **/
     int endOfInfo;
-    
+
     /** current number bits output for each code **/
     int numBits;
-    
+
     /** limit at which current number of bits code size has to be increased **/
     int limit;
-    
+
     /** the prefix code which represents the predecessor string to current input point **/
     short prefix;
-    
+
     /** output destination for bit codes **/
     BitFile bf;
-    
+
     /** general purpose LZW string table **/
     LZWStringTable lzss;
-    
+
     /** modify the limits of the code values in LZW encoding due to TIFF bug / feature **/
     boolean tiffFudge;
 
@@ -117,7 +135,7 @@ public class LZWCompressor {
         if (prefix != -1) {
             bf.writeBits(prefix, numBits);
         }
-        
+
         bf.writeBits(endOfInfo, numBits);
         bf.flush();
     }

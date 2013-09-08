@@ -1,13 +1,31 @@
 /*
- * @(#)FileChooserUI.java	1.20 05/11/17
+ * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf;
 
-import javax.swing.JFileChooser;
+import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileView;
 import java.io.File;
@@ -15,7 +33,6 @@ import java.io.File;
 /**
  * Pluggable look and feel interface for <code>JFileChooser</code>.
  *
- * @version 1.20 11/17/05
  * @author Jeff Dinkins
  */
 
@@ -29,5 +46,15 @@ public abstract class FileChooserUI extends ComponentUI
 
     public abstract void rescanCurrentDirectory(JFileChooser fc);
     public abstract void ensureFileIsVisible(JFileChooser fc, File f);
-}
 
+    /**
+     * Returns default button for current <code>LookAndFeel</code>.
+     * <code>JFileChooser</code> will use this button as default button
+     * for dialog windows.
+     *
+     * @since 1.7
+     */
+    public JButton getDefaultButton(JFileChooser fc) {
+        return null;
+    }
+}

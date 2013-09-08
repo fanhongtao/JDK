@@ -1,8 +1,26 @@
 /*
- * @(#)MBeanServerAccessController.java	1.11 08/12/18
- * 
- * Copyright 2006-2008 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.remote.security;
@@ -66,19 +84,19 @@ import javax.management.remote.MBeanServerForwarder;
  * to handle policy files and security managers.</p>
  */
 public abstract class MBeanServerAccessController
-	implements MBeanServerForwarder {
+        implements MBeanServerForwarder {
 
     public MBeanServer getMBeanServer() {
-	return mbs;
+        return mbs;
     }
 
     public void setMBeanServer(MBeanServer mbs) {
-	if (mbs == null)
-	    throw new IllegalArgumentException("Null MBeanServer");
-	if (this.mbs != null)
-	    throw new IllegalArgumentException("MBeanServer object already " +
-					       "initialized");
-	this.mbs = mbs;
+        if (mbs == null)
+            throw new IllegalArgumentException("Null MBeanServer");
+        if (this.mbs != null)
+            throw new IllegalArgumentException("MBeanServer object already " +
+                                               "initialized");
+        this.mbs = mbs;
     }
 
     /**
@@ -122,13 +140,13 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public void addNotificationListener(ObjectName name,
-					NotificationListener listener,
-					NotificationFilter filter,
-					Object handback)
-	throws InstanceNotFoundException {
-	checkRead();
-	getMBeanServer().addNotificationListener(name, listener,
-						 filter, handback);
+                                        NotificationListener listener,
+                                        NotificationFilter filter,
+                                        Object handback)
+        throws InstanceNotFoundException {
+        checkRead();
+        getMBeanServer().addNotificationListener(name, listener,
+                                                 filter, handback);
     }
 
     /**
@@ -136,13 +154,13 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public void addNotificationListener(ObjectName name,
-					ObjectName listener,
-					NotificationFilter filter,
-					Object handback)
-	throws InstanceNotFoundException {
-	checkRead();
-	getMBeanServer().addNotificationListener(name, listener,
-						 filter, handback);
+                                        ObjectName listener,
+                                        NotificationFilter filter,
+                                        Object handback)
+        throws InstanceNotFoundException {
+        checkRead();
+        getMBeanServer().addNotificationListener(name, listener,
+                                                 filter, handback);
     }
 
     /**
@@ -150,21 +168,21 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ObjectInstance createMBean(String className, ObjectName name)
-	throws
-	ReflectionException,
-	InstanceAlreadyExistsException,
-	MBeanRegistrationException,
-	MBeanException,
-	NotCompliantMBeanException {
-	checkCreate(className);
-	SecurityManager sm = System.getSecurityManager();
-	if (sm == null) {
-	    Object object = getMBeanServer().instantiate(className);
-	    checkClassLoader(object);
-	    return getMBeanServer().registerMBean(object, name);
-	} else {
-	    return getMBeanServer().createMBean(className, name);
-	}
+        throws
+        ReflectionException,
+        InstanceAlreadyExistsException,
+        MBeanRegistrationException,
+        MBeanException,
+        NotCompliantMBeanException {
+        checkCreate(className);
+        SecurityManager sm = System.getSecurityManager();
+        if (sm == null) {
+            Object object = getMBeanServer().instantiate(className);
+            checkClassLoader(object);
+            return getMBeanServer().registerMBean(object, name);
+        } else {
+            return getMBeanServer().createMBean(className, name);
+        }
     }
 
     /**
@@ -172,25 +190,25 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ObjectInstance createMBean(String className, ObjectName name,
-				      Object params[], String signature[])
-	throws
-	ReflectionException,
-	InstanceAlreadyExistsException,
-	MBeanRegistrationException,
-	MBeanException,
-	NotCompliantMBeanException {
-	checkCreate(className);
-	SecurityManager sm = System.getSecurityManager();
-	if (sm == null) {
-	    Object object = getMBeanServer().instantiate(className,
-							 params,
-							 signature);
-	    checkClassLoader(object);
-	    return getMBeanServer().registerMBean(object, name);
-	} else {
-	    return getMBeanServer().createMBean(className, name,
-						params, signature);
-	}
+                                      Object params[], String signature[])
+        throws
+        ReflectionException,
+        InstanceAlreadyExistsException,
+        MBeanRegistrationException,
+        MBeanException,
+        NotCompliantMBeanException {
+        checkCreate(className);
+        SecurityManager sm = System.getSecurityManager();
+        if (sm == null) {
+            Object object = getMBeanServer().instantiate(className,
+                                                         params,
+                                                         signature);
+            checkClassLoader(object);
+            return getMBeanServer().registerMBean(object, name);
+        } else {
+            return getMBeanServer().createMBean(className, name,
+                                                params, signature);
+        }
     }
 
     /**
@@ -198,25 +216,25 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ObjectInstance createMBean(String className,
-				      ObjectName name,
-				      ObjectName loaderName)
-	throws
-	ReflectionException,
-	InstanceAlreadyExistsException,
-	MBeanRegistrationException,
-	MBeanException,
-	NotCompliantMBeanException,
-	InstanceNotFoundException {
+                                      ObjectName name,
+                                      ObjectName loaderName)
+        throws
+        ReflectionException,
+        InstanceAlreadyExistsException,
+        MBeanRegistrationException,
+        MBeanException,
+        NotCompliantMBeanException,
+        InstanceNotFoundException {
         checkCreate(className);
-	SecurityManager sm = System.getSecurityManager();
-	if (sm == null) {
-	    Object object = getMBeanServer().instantiate(className,
-							 loaderName);
-	    checkClassLoader(object);
-	    return getMBeanServer().registerMBean(object, name);
-	} else {
-	    return getMBeanServer().createMBean(className, name, loaderName);
-	}
+        SecurityManager sm = System.getSecurityManager();
+        if (sm == null) {
+            Object object = getMBeanServer().instantiate(className,
+                                                         loaderName);
+            checkClassLoader(object);
+            return getMBeanServer().registerMBean(object, name);
+        } else {
+            return getMBeanServer().createMBean(className, name, loaderName);
+        }
     }
 
     /**
@@ -224,65 +242,68 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ObjectInstance createMBean(String className,
-				      ObjectName name,
-				      ObjectName loaderName,
-				      Object params[],
-				      String signature[])
-	throws
-	ReflectionException,
-	InstanceAlreadyExistsException,
-	MBeanRegistrationException,
-	MBeanException,
-	NotCompliantMBeanException,
-	InstanceNotFoundException {
+                                      ObjectName name,
+                                      ObjectName loaderName,
+                                      Object params[],
+                                      String signature[])
+        throws
+        ReflectionException,
+        InstanceAlreadyExistsException,
+        MBeanRegistrationException,
+        MBeanException,
+        NotCompliantMBeanException,
+        InstanceNotFoundException {
         checkCreate(className);
-	SecurityManager sm = System.getSecurityManager();
-	if (sm == null) {
-	    Object object = getMBeanServer().instantiate(className,
-							 loaderName,
-							 params,
-							 signature);
-	    checkClassLoader(object);
-	    return getMBeanServer().registerMBean(object, name);
-	} else {
-	    return getMBeanServer().createMBean(className, name, loaderName,
-						params, signature);
-	}
+        SecurityManager sm = System.getSecurityManager();
+        if (sm == null) {
+            Object object = getMBeanServer().instantiate(className,
+                                                         loaderName,
+                                                         params,
+                                                         signature);
+            checkClassLoader(object);
+            return getMBeanServer().registerMBean(object, name);
+        } else {
+            return getMBeanServer().createMBean(className, name, loaderName,
+                                                params, signature);
+        }
     }
 
     /**
      * Call <code>checkRead()</code>, then forward this method to the
      * wrapped object.
      */
+    @Deprecated
     public ObjectInputStream deserialize(ObjectName name, byte[] data)
-	throws InstanceNotFoundException, OperationsException {
-	checkRead();
-	return getMBeanServer().deserialize(name, data);
+        throws InstanceNotFoundException, OperationsException {
+        checkRead();
+        return getMBeanServer().deserialize(name, data);
     }
 
     /**
      * Call <code>checkRead()</code>, then forward this method to the
      * wrapped object.
      */
+    @Deprecated
     public ObjectInputStream deserialize(String className, byte[] data)
-	throws OperationsException, ReflectionException {
-	checkRead();
-	return getMBeanServer().deserialize(className, data);
+        throws OperationsException, ReflectionException {
+        checkRead();
+        return getMBeanServer().deserialize(className, data);
     }
 
     /**
      * Call <code>checkRead()</code>, then forward this method to the
      * wrapped object.
      */
+    @Deprecated
     public ObjectInputStream deserialize(String className,
-					 ObjectName loaderName,
-					 byte[] data)
-	throws
-	InstanceNotFoundException,
-	OperationsException,
-	ReflectionException {
-	checkRead();
-	return getMBeanServer().deserialize(className, loaderName, data);
+                                         ObjectName loaderName,
+                                         byte[] data)
+        throws
+        InstanceNotFoundException,
+        OperationsException,
+        ReflectionException {
+        checkRead();
+        return getMBeanServer().deserialize(className, loaderName, data);
     }
 
     /**
@@ -290,13 +311,13 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public Object getAttribute(ObjectName name, String attribute)
-	throws
-	MBeanException,
-	AttributeNotFoundException,
-	InstanceNotFoundException,
-	ReflectionException {
-	checkRead();
-	return getMBeanServer().getAttribute(name, attribute);
+        throws
+        MBeanException,
+        AttributeNotFoundException,
+        InstanceNotFoundException,
+        ReflectionException {
+        checkRead();
+        return getMBeanServer().getAttribute(name, attribute);
     }
 
     /**
@@ -304,9 +325,9 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public AttributeList getAttributes(ObjectName name, String[] attributes)
-	throws InstanceNotFoundException, ReflectionException {
-	checkRead();
-	return getMBeanServer().getAttributes(name, attributes);
+        throws InstanceNotFoundException, ReflectionException {
+        checkRead();
+        return getMBeanServer().getAttributes(name, attributes);
     }
 
     /**
@@ -314,9 +335,9 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ClassLoader getClassLoader(ObjectName loaderName)
-	throws InstanceNotFoundException {
-	checkRead();
-	return getMBeanServer().getClassLoader(loaderName);
+        throws InstanceNotFoundException {
+        checkRead();
+        return getMBeanServer().getClassLoader(loaderName);
     }
 
     /**
@@ -324,9 +345,9 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ClassLoader getClassLoaderFor(ObjectName mbeanName)
-	throws InstanceNotFoundException {
-	checkRead();
-	return getMBeanServer().getClassLoaderFor(mbeanName);
+        throws InstanceNotFoundException {
+        checkRead();
+        return getMBeanServer().getClassLoaderFor(mbeanName);
     }
 
     /**
@@ -334,8 +355,8 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ClassLoaderRepository getClassLoaderRepository() {
-	checkRead();
-	return getMBeanServer().getClassLoaderRepository();
+        checkRead();
+        return getMBeanServer().getClassLoaderRepository();
     }
 
     /**
@@ -343,8 +364,8 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public String getDefaultDomain() {
-	checkRead();
-	return getMBeanServer().getDefaultDomain();
+        checkRead();
+        return getMBeanServer().getDefaultDomain();
     }
 
     /**
@@ -352,8 +373,8 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public String[] getDomains() {
-	checkRead();
-	return getMBeanServer().getDomains();
+        checkRead();
+        return getMBeanServer().getDomains();
     }
 
     /**
@@ -361,8 +382,8 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public Integer getMBeanCount() {
-	checkRead();
-	return getMBeanServer().getMBeanCount();
+        checkRead();
+        return getMBeanServer().getMBeanCount();
     }
 
     /**
@@ -370,12 +391,12 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public MBeanInfo getMBeanInfo(ObjectName name)
-	throws
-	InstanceNotFoundException,
-	IntrospectionException,
-	ReflectionException {
-	checkRead();
-	return getMBeanServer().getMBeanInfo(name);
+        throws
+        InstanceNotFoundException,
+        IntrospectionException,
+        ReflectionException {
+        checkRead();
+        return getMBeanServer().getMBeanInfo(name);
     }
 
     /**
@@ -383,9 +404,9 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ObjectInstance getObjectInstance(ObjectName name)
-	throws InstanceNotFoundException {
-	checkRead();
-	return getMBeanServer().getObjectInstance(name);
+        throws InstanceNotFoundException {
+        checkRead();
+        return getMBeanServer().getObjectInstance(name);
     }
 
     /**
@@ -393,9 +414,9 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public Object instantiate(String className)
-	throws ReflectionException, MBeanException {
+        throws ReflectionException, MBeanException {
         checkCreate(className);
-	return getMBeanServer().instantiate(className);
+        return getMBeanServer().instantiate(className);
     }
 
     /**
@@ -403,11 +424,11 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public Object instantiate(String className,
-			      Object params[],
-			      String signature[]) 
-	throws ReflectionException, MBeanException {
+                              Object params[],
+                              String signature[])
+        throws ReflectionException, MBeanException {
         checkCreate(className);
-	return getMBeanServer().instantiate(className, params, signature);
+        return getMBeanServer().instantiate(className, params, signature);
     }
 
     /**
@@ -415,9 +436,9 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public Object instantiate(String className, ObjectName loaderName)
-	throws ReflectionException, MBeanException, InstanceNotFoundException {
+        throws ReflectionException, MBeanException, InstanceNotFoundException {
         checkCreate(className);
-	return getMBeanServer().instantiate(className, loaderName);
+        return getMBeanServer().instantiate(className, loaderName);
     }
 
     /**
@@ -425,11 +446,11 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public Object instantiate(String className, ObjectName loaderName,
-			      Object params[], String signature[])
-	throws ReflectionException, MBeanException, InstanceNotFoundException {
+                              Object params[], String signature[])
+        throws ReflectionException, MBeanException, InstanceNotFoundException {
         checkCreate(className);
-	return getMBeanServer().instantiate(className, loaderName,
-					    params, signature);
+        return getMBeanServer().instantiate(className, loaderName,
+                                            params, signature);
     }
 
     /**
@@ -437,14 +458,14 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public Object invoke(ObjectName name, String operationName,
-			 Object params[], String signature[])
-	throws
-	InstanceNotFoundException,
-	MBeanException,
-	ReflectionException {
-	checkWrite();
+                         Object params[], String signature[])
+        throws
+        InstanceNotFoundException,
+        MBeanException,
+        ReflectionException {
+        checkWrite();
         checkMLetMethods(name, operationName);
-	return getMBeanServer().invoke(name, operationName, params, signature);
+        return getMBeanServer().invoke(name, operationName, params, signature);
     }
 
     /**
@@ -452,9 +473,9 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public boolean isInstanceOf(ObjectName name, String className)
-	throws InstanceNotFoundException {
-	checkRead();
-	return getMBeanServer().isInstanceOf(name, className);
+        throws InstanceNotFoundException {
+        checkRead();
+        return getMBeanServer().isInstanceOf(name, className);
     }
 
     /**
@@ -462,26 +483,26 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public boolean isRegistered(ObjectName name) {
-	checkRead();
-	return getMBeanServer().isRegistered(name);
+        checkRead();
+        return getMBeanServer().isRegistered(name);
     }
 
     /**
      * Call <code>checkRead()</code>, then forward this method to the
      * wrapped object.
      */
-    public Set queryMBeans(ObjectName name, QueryExp query) {
-	checkRead();
-	return getMBeanServer().queryMBeans(name, query);
+    public Set<ObjectInstance> queryMBeans(ObjectName name, QueryExp query) {
+        checkRead();
+        return getMBeanServer().queryMBeans(name, query);
     }
 
     /**
      * Call <code>checkRead()</code>, then forward this method to the
      * wrapped object.
      */
-    public Set queryNames(ObjectName name, QueryExp query) {
-	checkRead();
-	return getMBeanServer().queryNames(name, query);
+    public Set<ObjectName> queryNames(ObjectName name, QueryExp query) {
+        checkRead();
+        return getMBeanServer().queryNames(name, query);
     }
 
     /**
@@ -489,12 +510,12 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public ObjectInstance registerMBean(Object object, ObjectName name)
-	throws
-	InstanceAlreadyExistsException,
-	MBeanRegistrationException,
-	NotCompliantMBeanException {
-	checkWrite();
-	return getMBeanServer().registerMBean(object, name);
+        throws
+        InstanceAlreadyExistsException,
+        MBeanRegistrationException,
+        NotCompliantMBeanException {
+        checkWrite();
+        return getMBeanServer().registerMBean(object, name);
     }
 
     /**
@@ -502,10 +523,10 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public void removeNotificationListener(ObjectName name,
-					   NotificationListener listener)
-	throws InstanceNotFoundException, ListenerNotFoundException {
-	checkRead();
-	getMBeanServer().removeNotificationListener(name, listener);
+                                           NotificationListener listener)
+        throws InstanceNotFoundException, ListenerNotFoundException {
+        checkRead();
+        getMBeanServer().removeNotificationListener(name, listener);
     }
 
     /**
@@ -513,13 +534,13 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public void removeNotificationListener(ObjectName name,
-					   NotificationListener listener,
-					   NotificationFilter filter,
-					   Object handback)
-	throws InstanceNotFoundException, ListenerNotFoundException {
-	checkRead();
-	getMBeanServer().removeNotificationListener(name, listener,
-						    filter, handback);
+                                           NotificationListener listener,
+                                           NotificationFilter filter,
+                                           Object handback)
+        throws InstanceNotFoundException, ListenerNotFoundException {
+        checkRead();
+        getMBeanServer().removeNotificationListener(name, listener,
+                                                    filter, handback);
     }
 
     /**
@@ -527,10 +548,10 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public void removeNotificationListener(ObjectName name,
-					   ObjectName listener)
-	throws InstanceNotFoundException, ListenerNotFoundException {
-	checkRead();
-	getMBeanServer().removeNotificationListener(name, listener);
+                                           ObjectName listener)
+        throws InstanceNotFoundException, ListenerNotFoundException {
+        checkRead();
+        getMBeanServer().removeNotificationListener(name, listener);
     }
 
     /**
@@ -538,13 +559,13 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public void removeNotificationListener(ObjectName name,
-					   ObjectName listener,
-					   NotificationFilter filter,
-					   Object handback)
-	throws InstanceNotFoundException, ListenerNotFoundException {
-	checkRead();
-	getMBeanServer().removeNotificationListener(name, listener,
-						    filter, handback);
+                                           ObjectName listener,
+                                           NotificationFilter filter,
+                                           Object handback)
+        throws InstanceNotFoundException, ListenerNotFoundException {
+        checkRead();
+        getMBeanServer().removeNotificationListener(name, listener,
+                                                    filter, handback);
     }
 
     /**
@@ -552,14 +573,14 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public void setAttribute(ObjectName name, Attribute attribute)
-	throws
-	InstanceNotFoundException,
-	AttributeNotFoundException,
-	InvalidAttributeValueException,
-	MBeanException,
-	ReflectionException {
-	checkWrite();
-	getMBeanServer().setAttribute(name, attribute);
+        throws
+        InstanceNotFoundException,
+        AttributeNotFoundException,
+        InvalidAttributeValueException,
+        MBeanException,
+        ReflectionException {
+        checkWrite();
+        getMBeanServer().setAttribute(name, attribute);
     }
 
     /**
@@ -567,10 +588,10 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public AttributeList setAttributes(ObjectName name,
-				       AttributeList attributes)
-	throws InstanceNotFoundException, ReflectionException {
-	checkWrite();
-	return getMBeanServer().setAttributes(name, attributes);
+                                       AttributeList attributes)
+        throws InstanceNotFoundException, ReflectionException {
+        checkWrite();
+        return getMBeanServer().setAttributes(name, attributes);
     }
 
     /**
@@ -578,9 +599,9 @@ public abstract class MBeanServerAccessController
      * wrapped object.
      */
     public void unregisterMBean(ObjectName name)
-	throws InstanceNotFoundException, MBeanRegistrationException {
-	checkUnregister(name);
-	getMBeanServer().unregisterMBean(name);
+        throws InstanceNotFoundException, MBeanRegistrationException {
+        checkUnregister(name);
+        getMBeanServer().unregisterMBean(name);
     }
 
     //----------------
@@ -588,11 +609,11 @@ public abstract class MBeanServerAccessController
     //----------------
 
     private void checkClassLoader(Object object) {
-	if (object instanceof ClassLoader)
-	    throw new SecurityException("Access denied! Creating an " +
-					"MBean that is a ClassLoader " +
-					"is forbidden unless a security " +
-					"manager is installed.");
+        if (object instanceof ClassLoader)
+            throw new SecurityException("Access denied! Creating an " +
+                                        "MBean that is a ClassLoader " +
+                                        "is forbidden unless a security " +
+                                        "manager is installed.");
     }
 
     private void checkMLetMethods(ObjectName name, String operation)
@@ -624,7 +645,7 @@ public abstract class MBeanServerAccessController
             // for this property is false.
             final String propName = "jmx.remote.x.mlet.allow.getMBeansFromURL";
             GetPropertyAction propAction = new GetPropertyAction(propName);
-            String propValue = (String) AccessController.doPrivileged(propAction);
+            String propValue = AccessController.doPrivileged(propAction);
             boolean allowGetMBeansFromURL = "true".equalsIgnoreCase(propValue);
             if (!allowGetMBeansFromURL) {
                 throw new SecurityException("Access denied! MLet method " +

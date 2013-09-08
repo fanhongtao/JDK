@@ -1,16 +1,32 @@
 /*
- * @(#)AsynchInvoke.java	1.15 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.corba;
@@ -36,9 +52,9 @@ public class AsynchInvoke implements Runnable {
 
     public AsynchInvoke (ORB o, RequestImpl reqToInvokeOn, boolean n)
     {
-	_orb = o;
-	_req = reqToInvokeOn;
-	_notifyORB = n;
+        _orb = o;
+        _req = reqToInvokeOn;
+        _notifyORB = n;
     };
 
 
@@ -50,25 +66,25 @@ public class AsynchInvoke implements Runnable {
      *
      */
 
-    public void run() 
+    public void run()
     {
-	// do the actual invocation
-	_req.doInvocation();
-    
-	// for the asynchronous case, note that the response has been
-	// received.
-	synchronized (_req)
-	    {
-		// update local boolean indicator
-		_req.gotResponse = true;
+        // do the actual invocation
+        _req.doInvocation();
 
-		// notify any client waiting on a 'get_response'
-		_req.notify();
-	    }
-      
-	if (_notifyORB == true) {
-	    _orb.notifyORB() ;
-	}
+        // for the asynchronous case, note that the response has been
+        // received.
+        synchronized (_req)
+            {
+                // update local boolean indicator
+                _req.gotResponse = true;
+
+                // notify any client waiting on a 'get_response'
+                _req.notify();
+            }
+
+        if (_notifyORB == true) {
+            _orb.notifyORB() ;
+        }
     }
 
 };

@@ -1,8 +1,26 @@
 /*
- * @(#)ControllerEventListener.java	1.16 05/11/17
+ * Copyright (c) 1999, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sound.midi;
@@ -23,11 +41,10 @@ import java.util.EventListener;
  *
  * @see MidiChannel#controlChange(int, int)
  *
- * @version 1.16, 05/11/17
  * @author Kara Kytle
  */
 public interface ControllerEventListener extends EventListener {
-    
+
     /**
      * Invoked when a <code>Sequencer</code> has encountered and processed
      * a control-change event of interest to this listener.  The event passed

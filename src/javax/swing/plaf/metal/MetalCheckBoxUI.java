@@ -1,8 +1,26 @@
 /*
- * @(#)MetalCheckBoxUI.java	1.20 09/08/10
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -30,12 +48,11 @@ import java.io.Serializable;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.20 08/10/09
  * @author Michael C. Albers
  *
  */
 public class MetalCheckBoxUI extends MetalRadioButtonUI {
-    
+
     // NOTE: MetalCheckBoxUI inherts from MetalRadioButtonUI instead
     // of BasicCheckBoxUI because we want to pick up all the
     // painting changes made in MetalRadioButtonUI.
@@ -51,7 +68,7 @@ public class MetalCheckBoxUI extends MetalRadioButtonUI {
     // ********************************
     public static ComponentUI createUI(JComponent b) {
         AppContext appContext = AppContext.getAppContext();
-        MetalCheckBoxUI checkboxUI = 
+        MetalCheckBoxUI checkboxUI =
                 (MetalCheckBoxUI) appContext.get(METAL_CHECK_BOX_UI_KEY);
         if (checkboxUI == null) {
             checkboxUI = new MetalCheckBoxUI();
@@ -61,23 +78,23 @@ public class MetalCheckBoxUI extends MetalRadioButtonUI {
     }
 
     public String getPropertyPrefix() {
-	return propertyPrefix;
+        return propertyPrefix;
     }
 
     // ********************************
     //          Defaults
     // ********************************
     public void installDefaults(AbstractButton b) {
-	super.installDefaults(b);
-	if(!defaults_initialized) {
-	    icon = UIManager.getIcon(getPropertyPrefix() + "icon");
-	    defaults_initialized = true;
-	}
+        super.installDefaults(b);
+        if(!defaults_initialized) {
+            icon = UIManager.getIcon(getPropertyPrefix() + "icon");
+            defaults_initialized = true;
+        }
     }
-    
+
     protected void uninstallDefaults(AbstractButton b) {
-	super.uninstallDefaults(b);
-	defaults_initialized = false;
+        super.uninstallDefaults(b);
+        defaults_initialized = false;
     }
 
 }

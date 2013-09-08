@@ -1,8 +1,26 @@
 /*
- * @(#)DynUnionImpl.java	1.9 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.dynamicany;
@@ -183,7 +201,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
     */
     public org.omg.DynamicAny.DynAny get_discriminator () {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         return (checkInitComponents() ? discriminator : null);
     }
@@ -208,7 +226,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
         throws org.omg.DynamicAny.DynAnyPackage.TypeMismatch
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if ( ! newDiscriminator.type().equal(discriminatorType())) {
             throw new TypeMismatch();
@@ -245,7 +263,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
         throws org.omg.DynamicAny.DynAnyPackage.TypeMismatch
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         int defaultIndex = defaultIndex();
         if (defaultIndex == -1) {
@@ -274,7 +292,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
         throws org.omg.DynamicAny.DynAnyPackage.TypeMismatch
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         // _REVISIT_ How does one check for "entire range of discriminator values"?
         if (defaultIndex() != -1) {
@@ -302,7 +320,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
     // values for explicit case labels returns false.
     public boolean has_no_active_member () {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         // _REVISIT_ How does one check for "entire range of discriminator values"?
         if (defaultIndex() != -1) {
@@ -314,7 +332,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
 
     public org.omg.CORBA.TCKind discriminator_kind () {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         return discriminatorType().kind();
     }
@@ -329,7 +347,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
         throws org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if ( ! checkInitComponents() || currentMemberIndex == NO_INDEX)
             throw new InvalidValue();
@@ -344,7 +362,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
         throws org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if ( ! checkInitComponents() || currentMemberIndex == NO_INDEX)
             throw new InvalidValue();
@@ -358,7 +376,7 @@ public class DynUnionImpl extends DynAnyConstructedImpl implements DynUnion
         throws org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         if ( ! checkInitComponents() || currentMemberIndex == NO_INDEX)
             throw new InvalidValue();

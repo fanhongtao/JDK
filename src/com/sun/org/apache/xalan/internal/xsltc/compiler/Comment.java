@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,17 +42,17 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 final class Comment extends Instruction {
 
     public void parseContents(Parser parser) {
-	parseChildren(parser);
+        parseChildren(parser);
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	typeCheckContents(stable);
-	return Type.String;
+        typeCheckContents(stable);
+        return Type.String;
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
         // Shortcut for literal strings
         Text rawText = null;

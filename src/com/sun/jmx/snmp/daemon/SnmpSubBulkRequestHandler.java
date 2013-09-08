@@ -1,11 +1,25 @@
 /*
- * @(#)file      SnmpSubBulkRequestHandler.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.24
- * @(#)date      06/11/29
+ * Copyright (c) 1998, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -18,7 +32,7 @@ package com.sun.jmx.snmp.daemon;
 //
 import java.util.Enumeration;
 import java.util.Vector;
-
+import java.util.logging.Level;
 // jmx imports
 //
 import com.sun.jmx.snmp.SnmpPdu;
@@ -30,6 +44,7 @@ import com.sun.jmx.snmp.SnmpStatusException;
 import com.sun.jmx.snmp.SnmpEngine;
 // SNMP Runtime import
 //
+import static com.sun.jmx.defaults.JmxProperties.SNMP_ADAPTOR_LOGGER;
 import com.sun.jmx.snmp.agent.SnmpMibAgent;
 import com.sun.jmx.snmp.agent.SnmpMibRequest;
 import com.sun.jmx.snmp.ThreadContext;
@@ -45,194 +60,208 @@ class SnmpSubBulkRequestHandler extends SnmpSubRequestHandler {
      * in the original request.
      */
     protected SnmpSubBulkRequestHandler(SnmpEngine engine,
-					SnmpAdaptorServer server,
-					SnmpIncomingRequest incRequest,
-					SnmpMibAgent agent, 
-					SnmpPdu req, 
-					int nonRepeat,
-                                        int maxRepeat, 
-					int R) {
-	super(engine, incRequest, agent, req);
-	init(server, req, nonRepeat, maxRepeat, R);
+                                        SnmpAdaptorServer server,
+                                        SnmpIncomingRequest incRequest,
+                                        SnmpMibAgent agent,
+                                        SnmpPdu req,
+                                        int nonRepeat,
+                                        int maxRepeat,
+                                        int R) {
+        super(engine, incRequest, agent, req);
+        init(server, req, nonRepeat, maxRepeat, R);
     }
-    
+
     /**
      * The constuctor initialize the subrequest with the whole varbind list contained
      * in the original request.
      */
     protected SnmpSubBulkRequestHandler(SnmpAdaptorServer server,
-					SnmpMibAgent agent, 
-					SnmpPdu req, 
-					int nonRepeat,
-                                        int maxRepeat, 
-					int R) {
-	super(agent, req);
-	init(server, req, nonRepeat, maxRepeat, R);
+                                        SnmpMibAgent agent,
+                                        SnmpPdu req,
+                                        int nonRepeat,
+                                        int maxRepeat,
+                                        int R) {
+        super(agent, req);
+        init(server, req, nonRepeat, maxRepeat, R);
     }
-    
+
     public void run() {
-    
+
         size= varBind.size();
-    
+
         try {
             // Invoke a getBulk operation
             //
-	    /* NPCTE fix for bugId 4492741, esc 0, 16-August-2001 */
-	    final ThreadContext oldContext =
+            /* NPCTE fix for bugId 4492741, esc 0, 16-August-2001 */
+            final ThreadContext oldContext =
                 ThreadContext.push("SnmpUserData",data);
-	    try {
-		if (isTraceOn()) {
-                	trace("run", "[" + Thread.currentThread() + 
-			"]:getBulk operation on " + agent.getMibName());
-		}
-		agent.getBulk(createMibRequest(varBind,version,data), 
-			      nonRepeat, maxRepeat);
-	    } finally {
+            try {
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                        "run", "[" + Thread.currentThread() +
+                        "]:getBulk operation on " + agent.getMibName());
+                }
+                agent.getBulk(createMibRequest(varBind,version,data),
+                              nonRepeat, maxRepeat);
+            } finally {
                 ThreadContext.restore(oldContext);
-            }  
-	    /* end of NPCTE fix for bugId 4492741 */
-	    
+            }
+            /* end of NPCTE fix for bugId 4492741 */
+
         } catch(SnmpStatusException x) {
             errorStatus = x.getStatus() ;
             errorIndex=  x.getErrorIndex();
-            if (isDebugOn()) {
-                debug("run", "[" + Thread.currentThread() + 
-		      "]:an Snmp error occured during the operation");
-                debug("run", x);
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpSubRequestHandler.class.getName(),
+                    "run", "[" + Thread.currentThread() +
+                    "]:an Snmp error occured during the operation", x);
             }
         }
         catch(Exception x) {
             errorStatus = SnmpDefinitions.snmpRspGenErr ;
-            if (isDebugOn()) {
-                debug("run", "[" + Thread.currentThread() + 
-		      "]:a generic error occured during the operation");
-                debug("run", x);
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpSubRequestHandler.class.getName(),
+                    "run", "[" + Thread.currentThread() +
+                    "]:a generic error occured during the operation", x);
             }
         }
-        if (isTraceOn()) {
-            trace("run", "[" + Thread.currentThread() + 
-		  "]:operation completed");
+        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+            SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                "run", "[" + Thread.currentThread() +
+                  "]:operation completed");
         }
     }
-    
+
     private void init(SnmpAdaptorServer server,
-		      SnmpPdu req,
-		      int nonRepeat,
-		      int maxRepeat, 
-		      int R) {
-	this.server = server;
+                      SnmpPdu req,
+                      int nonRepeat,
+                      int maxRepeat,
+                      int R) {
+        this.server = server;
         this.nonRepeat= nonRepeat;
-        this.maxRepeat= maxRepeat;  
+        this.maxRepeat= maxRepeat;
         this.globalR= R;
-	
-	final int max= translation.length;
+
+        final int max= translation.length;
         final SnmpVarBind[] list= req.varBindList;
-        final NonSyncVector nonSyncVarBind = ((NonSyncVector)varBind);
+        final NonSyncVector<SnmpVarBind> nonSyncVarBind =
+                ((NonSyncVector<SnmpVarBind>)varBind);
         for(int i=0; i < max; i++) {
             translation[i]= i;
             // we need to allocate a new SnmpVarBind. Otherwise the first
             // sub request will modify the list...
             //
-	    final SnmpVarBind newVarBind = 
-		new SnmpVarBind(list[i].oid, list[i].value);
+            final SnmpVarBind newVarBind =
+                new SnmpVarBind(list[i].oid, list[i].value);
             nonSyncVarBind.addNonSyncElement(newVarBind);
         }
     }
-    
+
     /**
      * The method updates find out which element to use at update time. Handle oid overlapping as well
      */
-    private SnmpVarBind findVarBind(SnmpVarBind element, 
-				    SnmpVarBind result) {
-	
-	if (element == null) return null;
+    private SnmpVarBind findVarBind(SnmpVarBind element,
+                                    SnmpVarBind result) {
 
-	if (result.oid == null) {
-	     return element;
-	}
+        if (element == null) return null;
 
-	if (element.value == SnmpVarBind.endOfMibView) return result;
+        if (result.oid == null) {
+             return element;
+        }
 
-	if (result.value == SnmpVarBind.endOfMibView) return element;
+        if (element.value == SnmpVarBind.endOfMibView) return result;
 
-	final SnmpValue val = result.value;
+        if (result.value == SnmpVarBind.endOfMibView) return element;
 
-	int comp = element.oid.compareTo(result.oid);
-	if(isDebugOn()) {
-	    trace("findVarBind","Comparing OID element : " + element.oid +
-		  " with result : " + result.oid);
-	    trace("findVarBind","Values element : " + element.value +
-		  " result : " + result.value);
-	}
-	if (comp < 0) {
-	    // Take the smallest (lexicographically)
-	    //
-	    return element;
-	}
-	else {
-	    if(comp == 0) {
-		// Must compare agent used for reply
-		// Take the deeper within the reply
-		if(isDebugOn()) {
-		    trace("findVarBind"," oid overlapping. Oid : " + 
-			  element.oid + "value :" + element.value);
-		    trace("findVarBind","Already present varBind : " + 
-			  result);
-		}
-		SnmpOid oid = result.oid;
-		SnmpMibAgent deeperAgent = server.getAgentMib(oid);
+        final SnmpValue val = result.value;
 
-		if(isDebugOn())
-		    trace("findVarBind","Deeper agent : " + deeperAgent);
-		if(deeperAgent == agent) {
-		    if(isDebugOn())
-			trace("updateResult","The current agent is the deeper one. Update the value with the current one");
-		    return element;
-		} else {
-		    if(isDebugOn())
-			trace("updateResult","Current is not the deeper, return the previous one.");
-		    return result;
-		}
-		    
-		/*
-		   Vector v = new Vector();
-		   SnmpMibRequest getReq = createMibRequest(v,
-		   version,
-		   null);
-		   SnmpVarBind realValue = new SnmpVarBind(oid);
-		   getReq.addVarBind(realValue);
-		   try {
-		   deeperAgent.get(getReq);
-		   } catch(SnmpStatusException e) {
-		   e.printStackTrace();
-		   }
-		   
-		   if(isDebugOn())
-		   trace("findVarBind", "Biggest priority value is : " +  
-		   realValue.value);
-		   
-		   return realValue;
-		*/
-		
-	    }
-	    else {
-		if(isDebugOn())
-		    trace("findVarBind",
-			  "The right varBind is the already present one");
-		return result;
-	    }
-	}
+        int comp = element.oid.compareTo(result.oid);
+        if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+            SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                "findVarBind","Comparing OID element : " + element.oid +
+                  " with result : " + result.oid);
+            SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                "findVarBind","Values element : " + element.value +
+                  " result : " + result.value);
+        }
+        if (comp < 0) {
+            // Take the smallest (lexicographically)
+            //
+            return element;
+        }
+        else {
+            if(comp == 0) {
+                // Must compare agent used for reply
+                // Take the deeper within the reply
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                        "findVarBind"," oid overlapping. Oid : " +
+                          element.oid + "value :" + element.value);
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                         "findVarBind","Already present varBind : " +
+                          result);
+                }
+                SnmpOid oid = result.oid;
+                SnmpMibAgent deeperAgent = server.getAgentMib(oid);
+
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                        "findVarBind","Deeper agent : " + deeperAgent);
+                }
+                if(deeperAgent == agent) {
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                            "findVarBind","The current agent is the deeper one. Update the value with the current one");
+                    }
+                    return element;
+                } else {
+                    if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                        SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                            "findVarBind","The current agent is not the deeper one. return the previous one.");
+                    }
+                    return result;
+                }
+
+                /*
+                   Vector v = new Vector();
+                   SnmpMibRequest getReq = createMibRequest(v,
+                   version,
+                   null);
+                   SnmpVarBind realValue = new SnmpVarBind(oid);
+                   getReq.addVarBind(realValue);
+                   try {
+                   deeperAgent.get(getReq);
+                   } catch(SnmpStatusException e) {
+                   e.printStackTrace();
+                   }
+
+                   if(isDebugOn())
+                   trace("findVarBind", "Biggest priority value is : " +
+                   realValue.value);
+
+                   return realValue;
+                */
+
+            }
+            else {
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                        "findVarBind","The right varBind is the already present one");
+                }
+                return result;
+            }
+        }
     }
     /**
-     * The method updates a given var bind list with the result of a 
+     * The method updates a given var bind list with the result of a
      * previsouly invoked operation.
      * Prior to calling the method, one must make sure that the operation was
      * successful. As such the method getErrorIndex or getErrorStatus should be
      * called.
      */
     protected void updateResult(SnmpVarBind[] result) {
-	// we can assume that the run method is over ...
-        // 
+        // we can assume that the run method is over ...
+        //
 
         final Enumeration e= varBind.elements();
         final int max= result.length;
@@ -244,27 +273,32 @@ class SnmpSubBulkRequestHandler extends SnmpSubRequestHandler {
             if (e.hasMoreElements() == false)
                 return;
 
-	    // bugId 4641694: must check position in order to avoid 
-	    //       ArrayIndexOutOfBoundException
-	    final int pos=translation[i];
-	    if (pos >= max) {
-		debug("updateResult","Position `"+pos+"' is out of bound...");
-		continue;
-	    }
+            // bugId 4641694: must check position in order to avoid
+            //       ArrayIndexOutOfBoundException
+            final int pos=translation[i];
+            if (pos >= max) {
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINEST)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINEST, SnmpSubRequestHandler.class.getName(),
+                        "updateResult","Position '"+pos+"' is out of bound...");
+                }
+                continue;
+            }
 
-	    final SnmpVarBind element= (SnmpVarBind) e.nextElement();
-	    
-	    if (element == null) continue;
-	    if (isDebugOn())
-		trace("updateResult", "Non repeaters Current element : " + 
-		      element + " from agent : " + agent);
-	    final SnmpVarBind res = findVarBind(element,result[pos]);
-	    
-	    if(res == null) continue;
-	    
-	    result[pos] = res;
-	}
- 
+            final SnmpVarBind element= (SnmpVarBind) e.nextElement();
+
+            if (element == null) continue;
+            if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                    "updateResult","Non repeaters Current element : " +
+                      element + " from agent : " + agent);
+            }
+            final SnmpVarBind res = findVarBind(element,result[pos]);
+
+            if(res == null) continue;
+
+            result[pos] = res;
+        }
+
         // Now update the values which have been repeated
         // more than once.
         int localR= size - nonRepeat;
@@ -276,24 +310,22 @@ class SnmpSubBulkRequestHandler extends SnmpSubRequestHandler {
                 if (e.hasMoreElements() ==false)
                     return;
                 final SnmpVarBind element= (SnmpVarBind) e.nextElement();
-		
-		if (element == null) continue;
-		if (isDebugOn())
-		    trace("updateResult", "Repeaters Current element : " + 
-			  element + " from agent : " + agent);
-		final SnmpVarBind res = findVarBind(element, result[pos]);
-		
-		if(res == null) continue;
-	    
-		result[pos] = res;
+
+                if (element == null) continue;
+                if (SNMP_ADAPTOR_LOGGER.isLoggable(Level.FINER)) {
+                    SNMP_ADAPTOR_LOGGER.logp(Level.FINER, SnmpSubRequestHandler.class.getName(),
+                        "updateResult","Repeaters Current element : " +
+                          element + " from agent : " + agent);
+                }
+                final SnmpVarBind res = findVarBind(element, result[pos]);
+
+                if(res == null) continue;
+
+                result[pos] = res;
             }
         }
     }
-  
-    protected String makeDebugTag() {
-        return "SnmpSubBulkRequestHandler";
-    }
-    
+
     // PROTECTED VARIABLES
     //------------------
 
@@ -301,9 +333,9 @@ class SnmpSubBulkRequestHandler extends SnmpSubRequestHandler {
      * Specific to the sub request
      */
     protected int nonRepeat=0;
-  
+
     protected int maxRepeat=0;
-  
+
     /**
      * R as defined in RCF 1902 for the global request the sub-request is associated to.
      */

@@ -1,8 +1,26 @@
 /*
- * @(#)RenderableImageOp.java	1.17 05/11/17
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ********************************************************************
@@ -39,7 +57,7 @@ public class RenderableImageOp implements RenderableImage {
     Rectangle2D boundingBox;
 
 
-    /** 
+    /**
      * Constructs a RenderedImageOp given a
      * ContextualRenderedImageFactory object, and
      * a ParameterBlock containing RenderableImage sources and other
@@ -57,7 +75,7 @@ public class RenderableImageOp implements RenderableImage {
         this.paramBlock = (ParameterBlock) paramBlock.clone();
     }
 
-    /** 
+    /**
      * Returns a vector of RenderableImages that are the sources of
      * image data for this RenderableImage. Note that this method may
      * return an empty vector, to indicate that the image has no sources,
@@ -87,7 +105,7 @@ public class RenderableImageOp implements RenderableImage {
         }
         return sources;
     }
-    
+
     /**
      * Gets a property from the property set of this image.
      * If the property name is not recognized, java.awt.Image.UndefinedProperty
@@ -108,7 +126,7 @@ public class RenderableImageOp implements RenderableImage {
     public String[] getPropertyNames() {
         return myCRIF.getPropertyNames();
     }
-  
+
     /**
      * Returns true if successive renderings (that is, calls to
      * createRendering() or createScaledRendering()) with the same arguments
@@ -123,7 +141,7 @@ public class RenderableImageOp implements RenderableImage {
         return myCRIF.isDynamic();
     }
 
-    /** 
+    /**
      * Gets the width in user coordinate space.  By convention, the
      * usual width of a RenderableImage is equal to the image's aspect
      * ratio (width divided by height).
@@ -137,7 +155,7 @@ public class RenderableImageOp implements RenderableImage {
         return (float)boundingBox.getWidth();
     }
 
-    /** 
+    /**
      * Gets the height in user coordinate space.  By convention, the
      * usual height of a RenderedImage is equal to 1.0F.
      *
@@ -149,8 +167,8 @@ public class RenderableImageOp implements RenderableImage {
         }
         return (float)boundingBox.getHeight();
     }
-  
-    /** 
+
+    /**
      * Gets the minimum X coordinate of the rendering-independent image data.
      */
     public float getMinX() {
@@ -160,7 +178,7 @@ public class RenderableImageOp implements RenderableImage {
         return (float)boundingBox.getMinX();
     }
 
-    /** 
+    /**
      * Gets the minimum Y coordinate of the rendering-independent image data.
      */
     public float getMinY() {
@@ -186,8 +204,8 @@ public class RenderableImageOp implements RenderableImage {
         return oldParamBlock;
     }
 
-    /** 
-     * Returns a reference to the current parameter block. 
+    /**
+     * Returns a reference to the current parameter block.
      * @return the <code>ParameterBlock</code> of this
      *         <code>RenderableImageOp</code>.
      * @see #setParameterBlock(ParameterBlock)
@@ -207,9 +225,9 @@ public class RenderableImageOp implements RenderableImage {
      * Math.round(h*(getWidth()/getHeight())).
      * Similarly, if h == 0, it will be taken to equal
      * Math.round(w*(getHeight()/getWidth())).  One of
-     * w or h must be non-zero or else an IllegalArgumentException 
+     * w or h must be non-zero or else an IllegalArgumentException
      * will be thrown.
-     * 
+     *
      * <p> The created RenderedImage may have a property identified
      * by the String HINTS_OBSERVED to indicate which RenderingHints
      * were used to create the image.  In addition any RenderedImages
@@ -234,7 +252,7 @@ public class RenderableImageOp implements RenderableImage {
         return createRendering(newRC);
     }
 
-    /** 
+    /**
      * Gets a RenderedImage instance of this image with a default
      * width and height in pixels.  The RenderContext is built
      * automatically with an appropriate usr2dev transform and an area
@@ -249,8 +267,8 @@ public class RenderableImageOp implements RenderableImage {
         RenderContext newRC = new RenderContext(usr2dev);
         return createRendering(newRC);
     }
-    
-    /** 
+
+    /**
      * Creates a RenderedImage which represents this
      * RenderableImageOp (including its Renderable sources) rendered
      * according to the given RenderContext.
@@ -301,7 +319,7 @@ public class RenderableImageOp implements RenderableImage {
         try {
             // This assumes that if there is no renderable source, that there
             // is a rendered source in paramBlock
-            
+
             if (sources != null) {
                 Vector renderedSources = new Vector();
                 for (int i = 0; i < sources.size(); i++) {
@@ -312,12 +330,12 @@ public class RenderableImageOp implements RenderableImage {
                     if (rdrdImage == null) {
                         return null;
                     }
-                    
+
                     // Add this rendered image to the ParameterBlock's
                     // list of RenderedImages.
                     renderedSources.addElement(rdrdImage);
                 }
-                
+
                 if (renderedSources.size() > 0) {
                     renderedParamBlock.setSources(renderedSources);
                 }

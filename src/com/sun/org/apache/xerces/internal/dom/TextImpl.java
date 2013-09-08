@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,28 +37,27 @@ import org.w3c.dom.Text;
  * Note that CDATASection is a subclass of Text. This is conceptually
  * valid, since they're really just two different ways of quoting
  * characters when they're written out as part of an XML stream.
- * 
+ *
  * @xerces.internal
  *
- * @version $Id: TextImpl.java,v 1.2.6.1 2005/08/31 12:46:37 sunithareddy Exp $
  * @since  PR-DOM-Level-1-19980818.
  */
-public class TextImpl 
-    extends CharacterDataImpl 
+public class TextImpl
+    extends CharacterDataImpl
     implements CharacterData, Text {
 
-    // 
+    //
     // Private Data members
     //
 
-    
+
     //
     // Constants
     //
 
     /** Serialization version. */
     static final long serialVersionUID = -5294980852957403469L;
-        
+
     //
     // Constructors
     //
@@ -66,10 +69,10 @@ public class TextImpl
     public TextImpl(CoreDocumentImpl ownerDoc, String data) {
         super(ownerDoc, data);
     }
-    
+
     /**
      * NON-DOM: resets node and sets specified values for the current node
-     * 
+     *
      * @param ownerDoc
      * @param data
      */
@@ -85,7 +88,7 @@ public class TextImpl
     // Node methods
     //
 
-    /** 
+    /**
      * A short integer indicating what type of node this is. The named
      * constants for this value are defined in the org.w3c.dom.Node interface.
      */
@@ -109,15 +112,15 @@ public class TextImpl
         isIgnorableWhitespace(ignore);
 
     } // setIgnorableWhitespace(boolean)
-    
+
 
     /**
-     * DOM L3 Core CR - Experimental 
-     * 
-     * Returns whether this text node contains 
-     * element content whitespace</a>, often abusively called "ignorable whitespace". 
-     * The text node is determined to contain whitespace in element content 
-     * during the load of the document or if validation occurs while using 
+     * DOM L3 Core CR - Experimental
+     *
+     * Returns whether this text node contains
+     * element content whitespace</a>, often abusively called "ignorable whitespace".
+     * The text node is determined to contain whitespace in element content
+     * during the load of the document or if validation occurs while using
      * <code>Document.normalizeDocument()</code>.
      * @since DOM Level 3
      */
@@ -132,16 +135,16 @@ public class TextImpl
 
     /**
      * DOM Level 3 WD - Experimental.
-     * Returns all text of <code>Text</code> nodes logically-adjacent text 
+     * Returns all text of <code>Text</code> nodes logically-adjacent text
      * nodes to this node, concatenated in document order.
      * @since DOM Level 3
      */
     public String getWholeText(){
-        
+
         if (needsSyncData()) {
             synchronizeData();
         }
-     
+
         if (fBufferStr == null){
             fBufferStr = new StringBuffer();
         }
@@ -151,25 +154,25 @@ public class TextImpl
         if (data != null && data.length() != 0) {
             fBufferStr.append(data);
         }
-        
+
         //concatenate text of logically adjacent text nodes to the left of this node in the tree
         getWholeTextBackward(this.getPreviousSibling(), fBufferStr, this.getParentNode());
         String temp = fBufferStr.toString();
-      
+
         //clear buffer
         fBufferStr.setLength(0);
-        
+
         //concatenate text of logically adjacent text nodes to the right of this node in the tree
         getWholeTextForward(this.getNextSibling(), fBufferStr, this.getParentNode());
-        
+
         return temp + fBufferStr.toString();
-    
+
     }
-    
+
     /**
-     * internal method taking a StringBuffer in parameter and inserts the 
+     * internal method taking a StringBuffer in parameter and inserts the
      * text content at the start of the buffer
-     * 
+     *
      * @param buf
      */
     protected void insertTextContent(StringBuffer buf) throws DOMException {
@@ -180,23 +183,23 @@ public class TextImpl
      }
 
     /**
-     * Concatenates the text of all logically-adjacent text nodes to the 
+     * Concatenates the text of all logically-adjacent text nodes to the
      * right of this node
      * @param node
      * @param buffer
-     * @param parent 
+     * @param parent
      * @return true - if execution was stopped because the type of node
      *         other than EntityRef, Text, CDATA is encountered, otherwise
      *         return false
      */
     private boolean getWholeTextForward(Node node, StringBuffer buffer, Node parent){
-    	// boolean to indicate whether node is a child of an entity reference
-    	boolean inEntRef = false;
-    	
-    	if (parent!=null) {
-    		inEntRef = parent.getNodeType()==Node.ENTITY_REFERENCE_NODE;
-    	}
-    	
+        // boolean to indicate whether node is a child of an entity reference
+        boolean inEntRef = false;
+
+        if (parent!=null) {
+                inEntRef = parent.getNodeType()==Node.ENTITY_REFERENCE_NODE;
+        }
+
         while (node != null) {
             short type = node.getNodeType();
             if (type == Node.ENTITY_REFERENCE_NODE) {
@@ -204,30 +207,30 @@ public class TextImpl
                     return true;
                 }
             }
-            else if (type == Node.TEXT_NODE || 
+            else if (type == Node.TEXT_NODE ||
                      type == Node.CDATA_SECTION_NODE) {
                 ((NodeImpl)node).getTextContent(buffer);
             }
             else {
-                return true; 
+                return true;
             }
 
             node = node.getNextSibling();
         }
-       
-        // if the parent node is an entity reference node, must 
+
+        // if the parent node is an entity reference node, must
         // check nodes to the right of the parent entity reference node for logically adjacent
         // text nodes
         if (inEntRef) {
             getWholeTextForward(parent.getNextSibling(), buffer, parent.getParentNode());
-        		return true;
+                        return true;
         }
-        
+
         return false;
     }
-    
+
     /**
-     * Concatenates the text of all logically-adjacent text nodes to the left of 
+     * Concatenates the text of all logically-adjacent text nodes to the left of
      * the node
      * @param node
      * @param buffer
@@ -237,13 +240,13 @@ public class TextImpl
      *         return false
      */
     private boolean getWholeTextBackward(Node node, StringBuffer buffer, Node parent){
-    	
-    	// boolean to indicate whether node is a child of an entity reference
-    	boolean inEntRef = false;
-    	if (parent!=null) {
-    		inEntRef = parent.getNodeType()==Node.ENTITY_REFERENCE_NODE;
-    	}
-    	
+
+        // boolean to indicate whether node is a child of an entity reference
+        boolean inEntRef = false;
+        if (parent!=null) {
+                inEntRef = parent.getNodeType()==Node.ENTITY_REFERENCE_NODE;
+        }
+
         while (node != null) {
             short type = node.getNodeType();
             if (type == Node.ENTITY_REFERENCE_NODE) {
@@ -251,25 +254,25 @@ public class TextImpl
                     return true;
                 }
             }
-            else if (type == Node.TEXT_NODE || 
+            else if (type == Node.TEXT_NODE ||
                      type == Node.CDATA_SECTION_NODE) {
                 ((TextImpl)node).insertTextContent(buffer);
             }
             else {
-                return true; 
+                return true;
             }
 
             node = node.getPreviousSibling();
         }
-        
-        // if the parent node is an entity reference node, must 
+
+        // if the parent node is an entity reference node, must
         // check nodes to the left of the parent entity reference node for logically adjacent
         // text nodes
         if (inEntRef) {
-        	getWholeTextBackward(parent.getPreviousSibling(), buffer, parent.getParentNode());
+                getWholeTextBackward(parent.getPreviousSibling(), buffer, parent.getParentNode());
             return true;
         }
-        
+
         return false;
     }
 
@@ -278,7 +281,7 @@ public class TextImpl
      * nodes with the specified text. All logically-adjacent text nodes are
      * removed including the current node unless it was the recipient of the
      * replacement text.
-     * 
+     *
      * @param content
      *            The content of the replacing Text node.
      * @return text - The Text node created with the specified content.
@@ -308,7 +311,7 @@ public class TextImpl
                                 DOMMessageFormatter.DOM_DOMAIN,
                                 "NO_MODIFICATION_ALLOWED_ERR", null));
             }
-            
+
             // make sure we can make the replacement
             if (!canModifyNext(this)) {
                 throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR,
@@ -340,7 +343,7 @@ public class TextImpl
             //If the logically-adjacent next node can be removed
             //remove it. A logically adjacent node can be removed if
             //it is a Text or CDATASection node or an EntityReference with
-            //Text and CDATA only children.            
+            //Text and CDATA only children.
             if ((prev.getNodeType() == Node.TEXT_NODE)
                     || (prev.getNodeType() == Node.CDATA_SECTION_NODE)
                     || (prev.getNodeType() == Node.ENTITY_REFERENCE_NODE && hasTextOnlyChildren(prev))) {
@@ -387,7 +390,7 @@ public class TextImpl
      * any its previous sibling was not or was an EntityReference that did not
      * contain only Text or CDATASection nodes, return false. Check this
      * recursively for EntityReference nodes.
-     * 
+     *
      * @param node
      * @return true - can replace text false - can't replace exception must be
      *         raised
@@ -472,7 +475,7 @@ public class TextImpl
      * node any its next sibling was not or was an EntityReference that did not
      * contain only Text or CDATASection nodes, return false. Check this
      * recursively for EntityReference nodes.
-     * 
+     *
      * @param node
      * @return true - can replace text false - can't replace exception must be
      *         raised
@@ -543,25 +546,25 @@ public class TextImpl
 
     /**
      * Check if an EntityReference node has Text Only child nodes
-     * 
+     *
      * @param node
      * @return true - Contains text only children
      */
     private boolean hasTextOnlyChildren(Node node) {
 
         Node child = node;
-        
+
         if (child == null) {
             return false;
         }
-        
+
         child = child.getFirstChild();
         while (child != null) {
             int type = child.getNodeType();
-            
+
             if (type == Node.ENTITY_REFERENCE_NODE) {
                 return hasTextOnlyChildren(child);
-            } 
+            }
             else if (type != Node.TEXT_NODE
                     && type != Node.CDATA_SECTION_NODE
                     && type != Node.ENTITY_REFERENCE_NODE) {
@@ -571,8 +574,8 @@ public class TextImpl
         }
         return true;
     }
-    
-    
+
+
     /**
      * NON-DOM: Returns whether this Text is ignorable whitespace.
      */
@@ -585,7 +588,7 @@ public class TextImpl
 
     } // isIgnorableWhitespace():boolean
 
-    
+
     //
     // Text methods
     //
@@ -594,26 +597,26 @@ public class TextImpl
      * Break a text node into two sibling nodes. (Note that if the current node
      * has no parent, they won't wind up as "siblings" -- they'll both be
      * orphans.)
-     * 
+     *
      * @param offset
      *            The offset at which to split. If offset is at the end of the
      *            available data, the second node will be empty.
-     * 
+     *
      * @return A reference to the new node (containing data after the offset
      *         point). The original node will contain data up to that point.
-     * 
+     *
      * @throws DOMException(INDEX_SIZE_ERR)
      *             if offset is <0 or >length.
-     * 
+     *
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR)
      *             if node is read-only.
      */
-    public Text splitText(int offset) 
+    public Text splitText(int offset)
         throws DOMException {
 
         if (isReadOnly()) {
             throw new DOMException(
-            DOMException.NO_MODIFICATION_ALLOWED_ERR, 
+            DOMException.NO_MODIFICATION_ALLOWED_ERR,
                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null));
         }
 
@@ -621,10 +624,10 @@ public class TextImpl
             synchronizeData();
         }
         if (offset < 0 || offset > data.length() ) {
-            throw new DOMException(DOMException.INDEX_SIZE_ERR, 
+            throw new DOMException(DOMException.INDEX_SIZE_ERR,
                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "INDEX_SIZE_ERR", null));
         }
-            
+
         // split text into two separate nodes
         Text newText =
             getOwnerDocument().createTextNode(data.substring(offset));
@@ -640,9 +643,9 @@ public class TextImpl
 
     } // splitText(int):Text
 
-    
+
     /**
-     * NON-DOM (used by DOMParser): Reset data for the node. 
+     * NON-DOM (used by DOMParser): Reset data for the node.
      */
     public void replaceData (String value){
         data = value;
@@ -650,7 +653,7 @@ public class TextImpl
 
 
     /**
-     * NON-DOM (used by DOMParser: Sets data to empty string. 
+     * NON-DOM (used by DOMParser: Sets data to empty string.
      *  Returns the value the data was set to.
      */
     public String removeData (){

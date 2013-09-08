@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,11 +34,10 @@ import org.xml.sax.SAXException;
 /**
  * XPath matcher.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Andy Clark, IBM
  *
- * @version $Id: XPathMatcher.java,v 1.2.6.1 2005/09/08 09:02:30 sunithareddy Exp $
  */
 public class XPathMatcher {
 
@@ -70,7 +73,7 @@ public class XPathMatcher {
                                                DEBUG_STACK;
 
     // constants describing whether a match was made,
-    // and if so how.  
+    // and if so how.
     // matched any way
     protected static final int MATCHED = 1;
     // matched on the attribute axis
@@ -104,7 +107,7 @@ public class XPathMatcher {
      * matching is successful for the given xpath expression.
      */
     private int [] fNoMatchDepth;
-    
+
     final QName fQName = new QName();
 
 
@@ -124,24 +127,24 @@ public class XPathMatcher {
         for(int i=0; i<fStepIndexes.length; i++) fStepIndexes[i] = new IntStack();
         fCurrentStep = new int[fLocationPaths.length];
         fNoMatchDepth = new int[fLocationPaths.length];
-        fMatched = new int[fLocationPaths.length];        
+        fMatched = new int[fLocationPaths.length];
     } // <init>(XPath)
 
     //
     // Public methods
     //
 
-    /** 
+    /**
      * Returns value of first member of fMatched that
-     * is nonzero.  
+     * is nonzero.
      */
     public boolean isMatched() {
         // xpath has been matched if any one of the members of the union have matched.
-        for (int i=0; i < fLocationPaths.length; i++) 
-            if (((fMatched[i] & MATCHED) == MATCHED) 
-                    && ((fMatched[i] & MATCHED_DESCENDANT_PREVIOUS) != MATCHED_DESCENDANT_PREVIOUS) 
+        for (int i=0; i < fLocationPaths.length; i++)
+            if (((fMatched[i] & MATCHED) == MATCHED)
+                    && ((fMatched[i] & MATCHED_DESCENDANT_PREVIOUS) != MATCHED_DESCENDANT_PREVIOUS)
                     && ((fNoMatchDepth[i] == 0)
-                    || ((fMatched[i] & MATCHED_DESCENDANT) == MATCHED_DESCENDANT))) 
+                    || ((fMatched[i] & MATCHED_DESCENDANT) == MATCHED_DESCENDANT)))
                 return true;
 
         return false;
@@ -153,8 +156,8 @@ public class XPathMatcher {
 
     // a place-holder method; to be overridden by subclasses
     // that care about matching element content.
-    protected void handleContent(XSTypeDefinition type, boolean nillable, Object value, short valueType, ShortList itemValueType) { 
-    } 
+    protected void handleContent(XSTypeDefinition type, boolean nillable, Object value, short valueType, ShortList itemValueType) {
+    }
 
     /**
      * This method is called when the XPath handler matches the
@@ -207,7 +210,7 @@ public class XPathMatcher {
             System.out.println(toString()+"#startElement("+
                                "element={"+element+"},"+
                                "attributes=..."+attributes+
-                               ")");                     
+                               ")");
         }
 
         for(int i = 0; i < fLocationPaths.length; i++) {
@@ -352,7 +355,7 @@ public class XPathMatcher {
             }
         }
 
-    } 
+    }
     // startElement(QName,XMLAttrList,int)
 
     /**
@@ -367,7 +370,7 @@ public class XPathMatcher {
        * @param nillable - nillable
        *        true if the element declaration is nillable.
        * @param value - actual value
-       *        the typed value of the content of this element. 
+       *        the typed value of the content of this element.
        */
     public void endElement(QName element, XSTypeDefinition type, boolean nillable, Object value, short valueType, ShortList itemValueType) {
         if (DEBUG_METHODS2) {

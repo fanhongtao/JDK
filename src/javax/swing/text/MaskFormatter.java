@@ -1,8 +1,26 @@
 /*
- * @(#)MaskFormatter.java	1.13 05/11/17
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.text;
@@ -11,7 +29,6 @@ import java.io.*;
 import java.text.*;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.text.*;
 
 /**
  * <code>MaskFormatter</code> is used to format and edit strings. The behavior
@@ -130,7 +147,6 @@ import javax.swing.text.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.13 11/17/05
  * @since 1.4
  */
 public class MaskFormatter extends DefaultFormatter {
@@ -368,7 +384,7 @@ public class MaskFormatter extends DefaultFormatter {
      */
     public String valueToString(Object value) throws ParseException {
         String sValue = (value == null) ? "" : value.toString();
-        StringBuffer result = new StringBuffer();
+        StringBuilder result = new StringBuilder();
         String placeholder = getPlaceholder();
         int[] valueCounter = { 0 };
 
@@ -429,7 +445,7 @@ public class MaskFormatter extends DefaultFormatter {
      */
     private Object stringToValue(String value, boolean completeMatch) throws
                          ParseException {
-        int errorOffset = -1;
+        int errorOffset;
 
         if ((errorOffset = getInvalidOffset(value, completeMatch)) == -1) {
             if (!getValueContainsLiteralCharacters()) {
@@ -467,7 +483,7 @@ public class MaskFormatter extends DefaultFormatter {
      * Invokes <code>append</code> on the mask characters in
      * <code>mask</code>.
      */
-    private void append(StringBuffer result, String value, int[] index,
+    private void append(StringBuilder result, String value, int[] index,
                         String placeholder, MaskCharacter[] mask)
                           throws ParseException {
         for (int counter = 0, maxCounter = mask.length;
@@ -481,8 +497,8 @@ public class MaskFormatter extends DefaultFormatter {
      */
     private void updateInternalMask() throws ParseException {
         String mask = getMask();
-        ArrayList fixed = new ArrayList();
-        ArrayList temp = fixed;
+        ArrayList<MaskCharacter> fixed = new ArrayList<MaskCharacter>();
+        ArrayList<MaskCharacter> temp = fixed;
 
         if (mask != null) {
             for (int counter = 0, maxCounter = mask.length();
@@ -594,13 +610,13 @@ public class MaskFormatter extends DefaultFormatter {
      * Removes the literal characters from the passed in string.
      */
     private String stripLiteralChars(String string) {
-        StringBuffer sb = null;
+        StringBuilder sb = null;
         int last = 0;
 
         for (int counter = 0, max = string.length(); counter < max; counter++){
             if (isLiteral(counter)) {
                 if (sb == null) {
-                    sb = new StringBuffer();
+                    sb = new StringBuilder();
                     if (counter > 0) {
                         sb.append(string.substring(0, counter));
                     }
@@ -630,7 +646,7 @@ public class MaskFormatter extends DefaultFormatter {
      * Subclassed to update the internal representation of the mask after
      * the default read operation has completed.
      */
-    private void readObject(ObjectInputStream s) 
+    private void readObject(ObjectInputStream s)
         throws IOException, ClassNotFoundException {
         s.defaultReadObject();
         try {
@@ -698,10 +714,10 @@ public class MaskFormatter extends DefaultFormatter {
      */
     boolean canReplace(ReplaceHolder rh) {
         // This method is rather long, but much of the burden is in
-        // maintaining a String and swapping to a StringBuffer only if
+        // maintaining a String and swapping to a StringBuilder only if
         // absolutely necessary.
         if (!getAllowsInvalid()) {
-            StringBuffer replace = null;
+            StringBuilder replace = null;
             String text = rh.text;
             int tl = (text != null) ? text.length() : 0;
 
@@ -720,7 +736,7 @@ public class MaskFormatter extends DefaultFormatter {
                     char aChar = text.charAt(textIndex);
                     if (aChar != getCharacter(rh.offset + counter, aChar)) {
                         if (replace == null) {
-                            replace = new StringBuffer();
+                            replace = new StringBuilder();
                             if (textIndex > 0) {
                                 replace.append(text.substring(0, textIndex));
                             }
@@ -741,7 +757,7 @@ public class MaskFormatter extends DefaultFormatter {
                         }
                     }
                     else if (textIndex > 0) {
-                        replace = new StringBuffer(max);
+                        replace = new StringBuilder(max);
                         replace.append(text.substring(0, textIndex));
                         replace.append(getLiteral(rh.offset + counter));
                         if (textIndex < tl) {
@@ -757,13 +773,13 @@ public class MaskFormatter extends DefaultFormatter {
                         rh.offset++;
                         rh.length--;
                         counter--;
-			max--;
+                        max--;
                     }
                 }
                 else if (textIndex >= tl) {
                     // placeholder
                     if (replace == null) {
-                        replace = new StringBuffer();
+                        replace = new StringBuilder();
                         if (text != null) {
                             replace.append(text);
                         }
@@ -846,7 +862,7 @@ public class MaskFormatter extends DefaultFormatter {
          * Appends the necessary character in <code>formatting</code> at
          * <code>index</code> to <code>buff</code>.
          */
-        public void append(StringBuffer buff, String formatting, int[] index,
+        public void append(StringBuilder buff, String formatting, int[] index,
                            String placeholder)
                           throws ParseException {
             boolean inString = index[0] < formatting.length();

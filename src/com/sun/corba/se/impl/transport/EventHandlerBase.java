@@ -1,8 +1,26 @@
 /*
- * @(#)EventHandlerBase.java	1.10 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.transport;
@@ -24,7 +42,7 @@ import com.sun.corba.se.impl.orbutil.ORBUtility;
 
 public abstract class EventHandlerBase
     implements
-	EventHandler
+        EventHandler
 {
     protected ORB orb;
     protected Work work;
@@ -39,22 +57,22 @@ public abstract class EventHandlerBase
 
     public void setUseSelectThreadToWait(boolean x)
     {
-	useSelectThreadToWait = x;
+        useSelectThreadToWait = x;
     }
 
     public boolean shouldUseSelectThreadToWait()
     {
-	return useSelectThreadToWait;
+        return useSelectThreadToWait;
     }
 
     public void setSelectionKey(SelectionKey selectionKey)
     {
-	this.selectionKey = selectionKey;
+        this.selectionKey = selectionKey;
     }
 
     public SelectionKey getSelectionKey()
     {
-	return selectionKey;
+        return selectionKey;
     }
 
     /*
@@ -65,67 +83,67 @@ public abstract class EventHandlerBase
      */
     public void handleEvent()
     {
-	if (orb.transportDebugFlag) {
-	    dprint(".handleEvent->: " + this);
-	}
-	getSelectionKey().interestOps(getSelectionKey().interestOps() &
-				      (~ getInterestOps()));
-	if (shouldUseWorkerThreadForEvent()) {
-	    Throwable throwable = null;
-	    try {
-		if (orb.transportDebugFlag) {
-		    dprint(".handleEvent: addWork to pool: " + 0);
-		}
-		orb.getThreadPoolManager().getThreadPool(0)
-		    .getWorkQueue(0).addWork(getWork());
-	    } catch (NoSuchThreadPoolException e) {
-		throwable = e;
-	    } catch (NoSuchWorkQueueException e) {
-		throwable = e;
-	    }
-	    // REVISIT: need to close connection.
-	    if (throwable != null) {
-		if (orb.transportDebugFlag) {
-		    dprint(".handleEvent: " + throwable);
-		}
-		INTERNAL i = new INTERNAL("NoSuchThreadPoolException");
-		i.initCause(throwable);
-		throw i;
-	    }
-	} else {
-	    if (orb.transportDebugFlag) {
-		dprint(".handleEvent: doWork");
-	    }
-	    getWork().doWork();
-	}
-	if (orb.transportDebugFlag) {
-	    dprint(".handleEvent<-: " + this);
-	}
+        if (orb.transportDebugFlag) {
+            dprint(".handleEvent->: " + this);
+        }
+        getSelectionKey().interestOps(getSelectionKey().interestOps() &
+                                      (~ getInterestOps()));
+        if (shouldUseWorkerThreadForEvent()) {
+            Throwable throwable = null;
+            try {
+                if (orb.transportDebugFlag) {
+                    dprint(".handleEvent: addWork to pool: " + 0);
+                }
+                orb.getThreadPoolManager().getThreadPool(0)
+                    .getWorkQueue(0).addWork(getWork());
+            } catch (NoSuchThreadPoolException e) {
+                throwable = e;
+            } catch (NoSuchWorkQueueException e) {
+                throwable = e;
+            }
+            // REVISIT: need to close connection.
+            if (throwable != null) {
+                if (orb.transportDebugFlag) {
+                    dprint(".handleEvent: " + throwable);
+                }
+                INTERNAL i = new INTERNAL("NoSuchThreadPoolException");
+                i.initCause(throwable);
+                throw i;
+            }
+        } else {
+            if (orb.transportDebugFlag) {
+                dprint(".handleEvent: doWork");
+            }
+            getWork().doWork();
+        }
+        if (orb.transportDebugFlag) {
+            dprint(".handleEvent<-: " + this);
+        }
     }
 
     public boolean shouldUseWorkerThreadForEvent()
     {
-	return useWorkerThreadForEvent;
+        return useWorkerThreadForEvent;
     }
 
     public void setUseWorkerThreadForEvent(boolean x)
     {
-	useWorkerThreadForEvent = x;
+        useWorkerThreadForEvent = x;
     }
 
     public void setWork(Work work)
     {
-	this.work = work;
+        this.work = work;
     }
 
     public Work getWork()
     {
-	return work;
+        return work;
     }
 
     private void dprint(String msg)
     {
-	ORBUtility.dprint("EventHandlerBase", msg);
+        ORBUtility.dprint("EventHandlerBase", msg);
     }
 }
 

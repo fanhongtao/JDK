@@ -1,10 +1,28 @@
 /*
- * @(#)IllegalCharsetNameException.java	1.2 01/09/17
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
  *
- * Copyright 2000 by Sun Microsystems, Inc.  All Rights Reserved.
- * 
- * This software is the proprietary information of Sun Microsystems, Inc.  
- * Use is subject to license terms.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -16,13 +34,14 @@ package java.nio.charset;
  * Unchecked exception thrown when a string that is not a
  * <a href=Charset.html#names>legal charset name</a> is used as such.
  *
- * @version 1.2, 01/09/17
  * @since 1.4
  */
 
 public class IllegalCharsetNameException
     extends IllegalArgumentException
 {
+
+    private static final long serialVersionUID = 1457525358470002989L;
 
     private String charsetName;
 

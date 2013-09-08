@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,12 +64,12 @@ import com.sun.org.apache.xml.internal.security.utils.I18n;
  */
 public class XMLSecurityException extends Exception {
 
-	
-	
+
+
    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+         *
+         */
+        private static final long serialVersionUID = 1L;
 
    /** Field originalException */
    protected Exception originalException = null;
@@ -167,8 +171,8 @@ public class XMLSecurityException extends Exception {
 
       if (msgID == null) {
          return "Missing message ID";
-      } 
-      return msgID;      
+      }
+      return msgID;
    }
 
    /** @inheritDoc */

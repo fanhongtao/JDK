@@ -1,8 +1,26 @@
 /*
- * @(#)CorbaContactInfoListIteratorImpl.java	1.30 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.transport;
@@ -33,7 +51,7 @@ import com.sun.corba.se.impl.protocol.CorbaInvocationInfo;
 
 public class CorbaContactInfoListIteratorImpl
     implements
-	CorbaContactInfoListIterator
+        CorbaContactInfoListIterator
 {
     protected ORB orb;
     protected CorbaContactInfoList contactInfoList;
@@ -52,29 +70,29 @@ public class CorbaContactInfoListIteratorImpl
 
     public CorbaContactInfoListIteratorImpl(
         ORB orb,
-	CorbaContactInfoList corbaContactInfoList,
-	ContactInfo primaryContactInfo,
-	List listOfContactInfos)
+        CorbaContactInfoList corbaContactInfoList,
+        ContactInfo primaryContactInfo,
+        List listOfContactInfos)
     {
-	this.orb = orb;
-	this.contactInfoList = corbaContactInfoList;
-	this.primaryContactInfo = primaryContactInfo;
-	if (listOfContactInfos != null) {
-	    // listOfContactInfos is null when used by the legacy
-	    // socket factory.  In that case this iterator is NOT used.
-	    this.effectiveTargetIORIterator = listOfContactInfos.iterator();
-	}
-	// List is immutable so no need to synchronize access.
-	this.listOfContactInfos = listOfContactInfos;
+        this.orb = orb;
+        this.contactInfoList = corbaContactInfoList;
+        this.primaryContactInfo = primaryContactInfo;
+        if (listOfContactInfos != null) {
+            // listOfContactInfos is null when used by the legacy
+            // socket factory.  In that case this iterator is NOT used.
+            this.effectiveTargetIORIterator = listOfContactInfos.iterator();
+        }
+        // List is immutable so no need to synchronize access.
+        this.listOfContactInfos = listOfContactInfos;
 
-	this.previousContactInfo = null;
-	this.isAddrDispositionRetry = false;
+        this.previousContactInfo = null;
+        this.isAddrDispositionRetry = false;
 
-	this.successContactInfo = null;
-	this.failureContactInfo = null;
-	this.failureException = null;
+        this.successContactInfo = null;
+        this.failureContactInfo = null;
+        this.failureException = null;
 
-	primaryToContactInfo = orb.getORBData().getIIOPPrimaryToContactInfo();
+        primaryToContactInfo = orb.getORBData().getIIOPPrimaryToContactInfo();
     }
 
     ////////////////////////////////////////////////////
@@ -84,55 +102,55 @@ public class CorbaContactInfoListIteratorImpl
 
     public boolean hasNext()
     {
-	// REVISIT: Implement as internal closure iterator which would
-	// wraps sticky or default.  Then hasNext and next just call
-	// the closure.
+        // REVISIT: Implement as internal closure iterator which would
+        // wraps sticky or default.  Then hasNext and next just call
+        // the closure.
 
-	if (isAddrDispositionRetry) {
-	    return true;
-	}
+        if (isAddrDispositionRetry) {
+            return true;
+        }
 
-	boolean result;
+        boolean result;
 
-	if (primaryToContactInfo != null) {
-	    result = primaryToContactInfo.hasNext(primaryContactInfo,
-						  previousContactInfo,
-						  listOfContactInfos);
-	} else {
-	    result = effectiveTargetIORIterator.hasNext();
-	}
+        if (primaryToContactInfo != null) {
+            result = primaryToContactInfo.hasNext(primaryContactInfo,
+                                                  previousContactInfo,
+                                                  listOfContactInfos);
+        } else {
+            result = effectiveTargetIORIterator.hasNext();
+        }
 
-	return result;
+        return result;
     }
 
     public Object next()
     {
-	if (isAddrDispositionRetry) {
-	    isAddrDispositionRetry = false;
-	    return previousContactInfo;
-	}
+        if (isAddrDispositionRetry) {
+            isAddrDispositionRetry = false;
+            return previousContactInfo;
+        }
 
-	// We hold onto the last in case we get an addressing
-	// disposition retry.  Then we use it again.
+        // We hold onto the last in case we get an addressing
+        // disposition retry.  Then we use it again.
 
-	// We also hold onto it for the sticky manager.
+        // We also hold onto it for the sticky manager.
 
-	if (primaryToContactInfo != null) {
-	    previousContactInfo = (CorbaContactInfo)
-		primaryToContactInfo.next(primaryContactInfo,
-					  previousContactInfo,
-					  listOfContactInfos);
-	} else {
-	    previousContactInfo = (CorbaContactInfo)
-		effectiveTargetIORIterator.next();
-	}
+        if (primaryToContactInfo != null) {
+            previousContactInfo = (CorbaContactInfo)
+                primaryToContactInfo.next(primaryContactInfo,
+                                          previousContactInfo,
+                                          listOfContactInfos);
+        } else {
+            previousContactInfo = (CorbaContactInfo)
+                effectiveTargetIORIterator.next();
+        }
 
-	return previousContactInfo;
+        return previousContactInfo;
     }
 
     public void remove()
     {
-	throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
     ////////////////////////////////////////////////////
@@ -142,47 +160,47 @@ public class CorbaContactInfoListIteratorImpl
 
     public ContactInfoList getContactInfoList()
     {
-	return contactInfoList;
+        return contactInfoList;
     }
 
     public void reportSuccess(ContactInfo contactInfo)
     {
-	this.successContactInfo = (CorbaContactInfo)contactInfo;
+        this.successContactInfo = (CorbaContactInfo)contactInfo;
     }
 
-    public boolean reportException(ContactInfo contactInfo, 
-				   RuntimeException ex)
+    public boolean reportException(ContactInfo contactInfo,
+                                   RuntimeException ex)
     {
-	this.failureContactInfo = (CorbaContactInfo)contactInfo;
-	this.failureException = ex;
-	if (ex instanceof COMM_FAILURE) {
-	    SystemException se = (SystemException) ex;
-	    if (se.completed == CompletionStatus.COMPLETED_NO) {
-		if (hasNext()) {
-		    return true;
-		}
-		if (contactInfoList.getEffectiveTargetIOR() !=
-		    contactInfoList.getTargetIOR()) 
+        this.failureContactInfo = (CorbaContactInfo)contactInfo;
+        this.failureException = ex;
+        if (ex instanceof COMM_FAILURE) {
+            SystemException se = (SystemException) ex;
+            if (se.completed == CompletionStatus.COMPLETED_NO) {
+                if (hasNext()) {
+                    return true;
+                }
+                if (contactInfoList.getEffectiveTargetIOR() !=
+                    contactInfoList.getTargetIOR())
                 {
-		    // retry from root ior
-		    updateEffectiveTargetIOR(contactInfoList.getTargetIOR());
-		    return true;
-		}
-	    }
-	}
-	return false;
+                    // retry from root ior
+                    updateEffectiveTargetIOR(contactInfoList.getTargetIOR());
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public RuntimeException getFailureException()
     {
-	if (failureException == null) {
-	    return
-		ORBUtilSystemException.get( orb,
-					    CORBALogDomains.RPC_TRANSPORT )
-		    .invalidContactInfoListIteratorFailureException();
-	} else {
-	    return failureException;
-	}
+        if (failureException == null) {
+            return
+                ORBUtilSystemException.get( orb,
+                                            CORBALogDomains.RPC_TRANSPORT )
+                    .invalidContactInfoListIteratorFailureException();
+        } else {
+            return failureException;
+        }
     }
 
     ////////////////////////////////////////////////////
@@ -190,17 +208,17 @@ public class CorbaContactInfoListIteratorImpl
     // spi.CorbaContactInfoListIterator
     //
 
-    public void reportAddrDispositionRetry(CorbaContactInfo contactInfo, 
-					   short disposition)
+    public void reportAddrDispositionRetry(CorbaContactInfo contactInfo,
+                                           short disposition)
     {
-	previousContactInfo.setAddressingDisposition(disposition);
-	isAddrDispositionRetry = true;
+        previousContactInfo.setAddressingDisposition(disposition);
+        isAddrDispositionRetry = true;
     }
 
     public void reportRedirect(CorbaContactInfo contactInfo,
-			       IOR forwardedIOR)
+                               IOR forwardedIOR)
     {
-	updateEffectiveTargetIOR(forwardedIOR);
+        updateEffectiveTargetIOR(forwardedIOR);
     }
 
     ////////////////////////////////////////////////////
@@ -208,9 +226,9 @@ public class CorbaContactInfoListIteratorImpl
     // Implementation.
     //
 
-    // 
+    //
     // REVISIT:
-    // 
+    //
     // The normal operation for a standard iterator is to throw
     // ConcurrentModificationException whenever the underlying collection
     // changes.  This is implemented by keeping a modification counter (the
@@ -218,23 +236,23 @@ public class CorbaContactInfoListIteratorImpl
     // Essentially what you need to do is whenever the iterator fails this
     // way, go back to ContactInfoList and get a new iterator.
     //
-    // Need to update CorbaClientRequestDispatchImpl to catch and use 
+    // Need to update CorbaClientRequestDispatchImpl to catch and use
     // that exception.
     //
 
     public void updateEffectiveTargetIOR(IOR newIOR)
     {
-	contactInfoList.setEffectiveTargetIOR(newIOR);
-	// If we report the exception in _request (i.e., beginRequest
-	// we cannot throw RemarshalException to the stub because _request
-	// does not declare that exception.
-	// To keep the two-level dispatching (first level chooses ContactInfo,
-	// second level is specific to that ContactInfo/EPT) we need to
-	// ensure that the request dispatchers get their iterator from the 
-	// InvocationStack (i.e., ThreadLocal). That way if the list iterator
-	// needs a complete update it happens right here.
-	((CorbaInvocationInfo)orb.getInvocationInfo())
-	    .setContactInfoListIterator(contactInfoList.iterator());
+        contactInfoList.setEffectiveTargetIOR(newIOR);
+        // If we report the exception in _request (i.e., beginRequest
+        // we cannot throw RemarshalException to the stub because _request
+        // does not declare that exception.
+        // To keep the two-level dispatching (first level chooses ContactInfo,
+        // second level is specific to that ContactInfo/EPT) we need to
+        // ensure that the request dispatchers get their iterator from the
+        // InvocationStack (i.e., ThreadLocal). That way if the list iterator
+        // needs a complete update it happens right here.
+        ((CorbaInvocationInfo)orb.getInvocationInfo())
+            .setContactInfoListIterator(contactInfoList.iterator());
     }
 }
 

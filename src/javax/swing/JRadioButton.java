@@ -1,8 +1,26 @@
 /*
- * @(#)JRadioButton.java	1.78 06/08/08
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -28,12 +46,12 @@ import java.io.IOException;
  * <blockquote>
  * <strong>Note:</strong>
  * The ButtonGroup object is a logical grouping -- not a physical grouping.
- * Tocreate a button panel, you should still create a {@link JPanel} or similar
+ * To create a button panel, you should still create a {@link JPanel} or similar
  * container-object and add a {@link javax.swing.border.Border} to it to set it off from surrounding
  * components.
  * </blockquote>
  * <p>
- * Buttons can be configured, and to some degree controlled, by 
+ * Buttons can be configured, and to some degree controlled, by
  * <code><a href="Action.html">Action</a></code>s.  Using an
  * <code>Action</code> with a button has many benefits beyond directly
  * configuring a button.  Refer to <a href="Action.html#buttonActions">
@@ -59,14 +77,13 @@ import java.io.IOException;
  * of all JavaBeans<sup><font size="-2">TM</font></sup>
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
- * 
+ *
  * @beaninfo
  *   attribute: isContainer false
  * description: A component which can display it's state as selected or deselected.
  *
  * @see ButtonGroup
  * @see JCheckBox
- * @version 1.78 08/08/06
  * @author Jeff Dinkins
  */
 public class JRadioButton extends JToggleButton implements Accessible {
@@ -85,7 +102,7 @@ public class JRadioButton extends JToggleButton implements Accessible {
     public JRadioButton () {
         this(null, null, false);
     }
-     
+
     /**
      * Creates an initially unselected radio button
      * with the specified image but no text.
@@ -97,20 +114,20 @@ public class JRadioButton extends JToggleButton implements Accessible {
     }
 
     /**
-     * Creates a radiobutton where properties are taken from the 
+     * Creates a radiobutton where properties are taken from the
      * Action supplied.
      *
      * @since 1.3
      */
     public JRadioButton(Action a) {
         this();
-	setAction(a);
+        setAction(a);
     }
 
     /**
      * Creates a radio button with the specified image
      * and selection state, but no text.
-     *   
+     *
      * @param icon  the image that the button should display
      * @param selected  if true, the button is initially selected;
      *                  otherwise, the button is initially unselected
@@ -118,10 +135,10 @@ public class JRadioButton extends JToggleButton implements Accessible {
     public JRadioButton(Icon icon, boolean selected) {
         this(null, icon, selected);
     }
-    
+
     /**
      * Creates an unselected radio button with the specified text.
-     * 
+     *
      * @param text  the string displayed on the radio button
      */
     public JRadioButton (String text) {
@@ -131,7 +148,7 @@ public class JRadioButton extends JToggleButton implements Accessible {
     /**
      * Creates a radio button with the specified text
      * and selection state.
-     * 
+     *
      * @param text  the string displayed on the radio button
      * @param selected  if true, the button is initially selected;
      *                  otherwise, the button is initially unselected
@@ -144,7 +161,7 @@ public class JRadioButton extends JToggleButton implements Accessible {
      * Creates a radio button that has the specified text and image,
      * and that is initially unselected.
      *
-     * @param text  the string displayed on the radio button 
+     * @param text  the string displayed on the radio button
      * @param icon  the image that the button should display
      */
     public JRadioButton(String text, Icon icon) {
@@ -155,7 +172,7 @@ public class JRadioButton extends JToggleButton implements Accessible {
      * Creates a radio button that has the specified text, image,
      * and selection state.
      *
-     * @param text  the string displayed on the radio button 
+     * @param text  the string displayed on the radio button
      * @param icon  the image that the button should display
      */
     public JRadioButton (String text, Icon icon, boolean selected) {
@@ -173,7 +190,7 @@ public class JRadioButton extends JToggleButton implements Accessible {
     public void updateUI() {
         setUI((ButtonUI)UIManager.getUI(this));
     }
-    
+
 
     /**
      * Returns the name of the L&F class
@@ -198,8 +215,8 @@ public class JRadioButton extends JToggleButton implements Accessible {
     void setIconFromAction(Action a) {
     }
 
-    /** 
-     * See readObject() and writeObject() in JComponent for more 
+    /**
+     * See readObject() and writeObject() in JComponent for more
      * information about serialization in Swing.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -215,16 +232,16 @@ public class JRadioButton extends JToggleButton implements Accessible {
 
 
     /**
-     * Returns a string representation of this JRadioButton. This method 
-     * is intended to be used only for debugging purposes, and the 
-     * content and format of the returned string may vary between      
-     * implementations. The returned string may be empty but may not 
+     * Returns a string representation of this JRadioButton. This method
+     * is intended to be used only for debugging purposes, and the
+     * content and format of the returned string may vary between
+     * implementations. The returned string may be empty but may not
      * be <code>null</code>.
-     * 
+     *
      * @return  a string representation of this JRadioButton.
      */
     protected String paramString() {
-	return super.paramString();
+        return super.paramString();
     }
 
 
@@ -234,12 +251,12 @@ public class JRadioButton extends JToggleButton implements Accessible {
 
 
     /**
-     * Gets the AccessibleContext associated with this JRadioButton. 
-     * For JRadioButtons, the AccessibleContext takes the form of an 
-     * AccessibleJRadioButton. 
+     * Gets the AccessibleContext associated with this JRadioButton.
+     * For JRadioButtons, the AccessibleContext takes the form of an
+     * AccessibleJRadioButton.
      * A new AccessibleJRadioButton instance is created if necessary.
      *
-     * @return an AccessibleJRadioButton that serves as the 
+     * @return an AccessibleJRadioButton that serves as the
      *         AccessibleContext of this JRadioButton
      * @beaninfo
      *       expert: true
@@ -253,9 +270,9 @@ public class JRadioButton extends JToggleButton implements Accessible {
     }
 
     /**
-     * This class implements accessibility support for the 
-     * <code>JRadioButton</code> class.  It provides an implementation of the 
-     * Java Accessibility API appropriate to radio button 
+     * This class implements accessibility support for the
+     * <code>JRadioButton</code> class.  It provides an implementation of the
+     * Java Accessibility API appropriate to radio button
      * user-interface elements.
      * <p>
      * <strong>Warning:</strong>
@@ -281,4 +298,3 @@ public class JRadioButton extends JToggleButton implements Accessible {
 
     } // inner class AccessibleJRadioButton
 }
-  

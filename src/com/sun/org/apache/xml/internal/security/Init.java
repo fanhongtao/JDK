@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +20,9 @@
  */
 package com.sun.org.apache.xml.internal.security;
 
-
-
 import java.io.InputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -47,23 +48,23 @@ import org.w3c.dom.Node;
  * done by calling {@link Init#init} which should be done in any static block
  * of the files of this library. We ensure that this call is only executed once.
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  */
 public final class Init {
 
   /** {@link java.util.logging} logging facility */
-  static java.util.logging.Logger log = 
+  static java.util.logging.Logger log =
         java.util.logging.Logger.getLogger(Init.class.getName());
 
    /** Field _initialized */
    private static boolean _alreadyInitialized = false;
-   
+
    /** The namespace for CONF file **/
    public static final String CONF_NS="http://www.xmlsecurity.org/NS/#configuration";
 
    /**
     * Method isInitialized
-    * @return true if the librairy is already initialized.     
+    * @return true if the librairy is already initialized.
     *
     */
    public static final boolean isInitialized() {
@@ -109,27 +110,26 @@ public final class Init {
             dbf.setValidating(false);
 
             DocumentBuilder db = dbf.newDocumentBuilder();
-	    
-	    // We don't allow users to override the Apache XML Security
-	    // configuration in the JRE. Users should use the standard security
-	    // provider mechanism instead if implementing their own
-	    // transform or canonicalization algorithms.
-      	    // String cfile = System.getProperty("com.sun.org.apache.xml.internal.security.resource.config");
-	    // InputStream is =
-	    //     Class.forName("com.sun.org.apache.xml.internal.security.Init")
-	    //     .getResourceAsStream(cfile != null ? cfile : "resource/config.xml");
-	    InputStream is = (InputStream) AccessController.doPrivileged(
-		new PrivilegedAction() {
-		    public Object run() {
-			return getClass().getResourceAsStream
-	    			("resource/config.xml");
-		    }
-		});
+            // We don't allow users to override the Apache XML Security
+            // configuration in the JRE. Users should use the standard security
+            // provider mechanism instead if implementing their own
+            // transform or canonicalization algorithms.
+            // InputStream is = Class.forName("com.sun.org.apache.xml.internal.security.Init").getResourceAsStream("resource/config.xml");
+            InputStream is = (InputStream) AccessController.doPrivileged(
+                new PrivilegedAction() {
+                    public Object run() {
+//                        String cfile = System.getProperty
+//                            ("com.sun.org.apache.xml.internal.security.resource.config");
+                        return getClass().getResourceAsStream
+//                            (cfile != null ? cfile : "resource/config.xml");
+                            ("resource/config.xml");
+                    }
+                });
 
             Document doc = db.parse(is);
-            long XX_parsing_end = System.currentTimeMillis();                       
-            long XX_configure_i18n_start = 0;            
-            
+            long XX_parsing_end = System.currentTimeMillis();
+            long XX_configure_i18n_start = 0;
+
             {
                 XX_configure_reg_keyInfo_start = System.currentTimeMillis();
                try {
@@ -141,29 +141,29 @@ public final class Init {
                }
                XX_configure_reg_keyInfo_end = System.currentTimeMillis();
             }
-            
-			long XX_configure_reg_transforms_start=0;
-			long XX_configure_reg_jcemapper_start=0;
-			long XX_configure_reg_sigalgos_start=0;
-			long XX_configure_reg_resourceresolver_end=0;
-			long XX_configure_reg_prefixes_end=0;
+
+                        long XX_configure_reg_transforms_start=0;
+                        long XX_configure_reg_jcemapper_start=0;
+                        long XX_configure_reg_sigalgos_start=0;
+                        long XX_configure_reg_resourceresolver_end=0;
+                        long XX_configure_reg_prefixes_end=0;
             Node config=doc.getFirstChild();
             for (;config!=null;config=config.getNextSibling()) {
-            	if ("Configuration".equals(config.getLocalName())) {
-            		break;
+                if ("Configuration".equals(config.getLocalName())) {
+                        break;
                 }
             }
-			for (Node el=config.getFirstChild();el!=null;el=el.getNextSibling()) {
+                        for (Node el=config.getFirstChild();el!=null;el=el.getNextSibling()) {
                 if (!(el instanceof Element)) {
-                	continue;
+                        continue;
                 }
                 String tag=el.getLocalName();
-// 
+//
 // Commented out: not supported in the JDK. We use the default locale.
 //
 //            if (tag.equals("ResourceBundles")){
 //                XX_configure_i18n_start = System.currentTimeMillis();
-//            	Element resource=(Element)el;
+//                Element resource=(Element)el;
 //               /* configure internationalization */
 //               Attr langAttr = resource.getAttributeNode("defaultLanguageCode");
 //               Attr countryAttr = resource.getAttributeNode("defaultCountryCode");
@@ -177,11 +177,11 @@ public final class Init {
 //               I18n.init(languageCode, countryCode);
 //               XX_configure_i18n_end = System.currentTimeMillis();
 //            }
-           
+
             if (tag.equals("CanonicalizationMethods")){
                 XX_configure_reg_c14n_start = System.currentTimeMillis();
                Canonicalizer.init();
-               Element[] list=XMLUtils.selectNodes(el.getFirstChild(),CONF_NS,"CanonicalizationMethod");               
+               Element[] list=XMLUtils.selectNodes(el.getFirstChild(),CONF_NS,"CanonicalizationMethod");
 
                for (int i = 0; i < list.length; i++) {
                   String URI = list[i].getAttributeNS(null,
@@ -198,11 +198,11 @@ public final class Init {
 
                         if (currMeth.getDeclaringClass().getName()
                                 .equals(JAVACLASS)) {
-                           log.log(java.util.logging.Level.FINE, currMeth.getDeclaringClass().toString());
+                           log.log(java.util.logging.Level.FINE, currMeth.getDe claringClass().toString());
                         }
                      }*/
-                      if (true)
-                      	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Canonicalizer.register(" + URI + ", "
+                      if (log.isLoggable(java.util.logging.Level.FINE))
+                        log.log(java.util.logging.Level.FINE, "Canonicalizer.register(" + URI + ", "
                             + JAVACLASS + ")");
                      Canonicalizer.register(URI, JAVACLASS);
                   } catch (ClassNotFoundException e) {
@@ -214,7 +214,7 @@ public final class Init {
                }
                XX_configure_reg_c14n_end = System.currentTimeMillis();
             }
-                        
+
             if (tag.equals("TransformAlgorithms")){
                XX_configure_reg_transforms_start = System.currentTimeMillis();
                Transform.init();
@@ -229,9 +229,8 @@ public final class Init {
                         "JAVACLASS");
                   try {
                      Class.forName(JAVACLASS);
-                     if (true)
-                     	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Transform.register(" + URI + ", " + JAVACLASS
-                            + ")");
+                     if (log.isLoggable(java.util.logging.Level.FINE))
+                        log.log(java.util.logging.Level.FINE, "Transform.register(" + URI + ", " + JAVACLASS + ")");
                      Transform.register(URI, JAVACLASS);
                   } catch (ClassNotFoundException e) {
                      Object exArgs[] = { URI, JAVACLASS };
@@ -240,12 +239,12 @@ public final class Init {
                                               exArgs));
 
                   } catch (NoClassDefFoundError ex) {
-					  log.log(java.util.logging.Level.WARNING, "Not able to found dependecies for algorithm, I'm keep working.");
+                                          log.log(java.util.logging.Level.WARNING, "Not able to found dependecies for algorithm, I'm keep working.");
                   }
                }
                XX_configure_reg_transforms_end = System.currentTimeMillis();
             }
-                        
+
 
             if ("JCEAlgorithmMappings".equals(tag)){
                XX_configure_reg_jcemapper_start = System.currentTimeMillis();
@@ -253,13 +252,13 @@ public final class Init {
                XX_configure_reg_jcemapper_end = System.currentTimeMillis();
             }
 
-                        
+
 
             if (tag.equals("SignatureAlgorithms")){
                XX_configure_reg_sigalgos_start = System.currentTimeMillis();
                SignatureAlgorithm.providerInit();
 
-               Element[] sigElems = XMLUtils.selectNodes(el.getFirstChild(), CONF_NS,                  
+               Element[] sigElems = XMLUtils.selectNodes(el.getFirstChild(), CONF_NS,
                   "SignatureAlgorithm");
 
                for (int i = 0; i < sigElems.length; i++) {
@@ -280,12 +279,11 @@ public final class Init {
 //
 //                        if (currMeth.getDeclaringClass().getName()
 //                                .equals(JAVACLASS)) {
-//                           log.log(java.util.logging.Level.FINE, currMeth.getDeclaringClass().toString());
+//                           log.log(java.util.logging.Level.FINE, currMeth.getDe claringClass().toString());
 //                        }
 //                     }
-                      if (true)
-                      	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "SignatureAlgorithm.register(" + URI + ", "
-                            + JAVACLASS + ")");
+                      if (log.isLoggable(java.util.logging.Level.FINE))
+                        log.log(java.util.logging.Level.FINE, "SignatureAlgorithm.register(" + URI + ", " + JAVACLASS + ")");
                      SignatureAlgorithm.register(URI, JAVACLASS);
                   } catch (ClassNotFoundException e) {
                      Object exArgs[] = { URI, JAVACLASS };
@@ -298,8 +296,8 @@ public final class Init {
                XX_configure_reg_sigalgos_end = System.currentTimeMillis();
             }
 
-            
-            
+
+
             if (tag.equals("ResourceResolvers")){
                XX_configure_reg_resourceresolver_start = System.currentTimeMillis();
                ResourceResolver.init();
@@ -316,30 +314,28 @@ public final class Init {
                         "DESCRIPTION");
 
                   if ((Description != null) && (Description.length() > 0)) {
-                    if (true)
-                    	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Register Resolver: " + JAVACLASS + ": "
-                               + Description);
+                    if (log.isLoggable(java.util.logging.Level.FINE))
+                        log.log(java.util.logging.Level.FINE, "Register Resolver: " + JAVACLASS + ": " + Description);
                   } else {
-                    if (true)
-                    	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Register Resolver: " + JAVACLASS
-                               + ": For unknown purposes");
+                    if (log.isLoggable(java.util.logging.Level.FINE))
+                        log.log(java.util.logging.Level.FINE, "Register Resolver: " + JAVACLASS + ": For unknown purposes");
                   }
-				  try {
-					  ResourceResolver.register(JAVACLASS);
-				  } catch (Throwable e) {
-					  log.log(java.util.logging.Level.WARNING, "Cannot register:"+JAVACLASS+" perhaps some needed jars are not installed",e);
-				  }
+                                  try {
+                                          ResourceResolver.register(JAVACLASS);
+                                  } catch (Throwable e) {
+                                          log.log(java.util.logging.Level.WARNING, "Cannot register:"+JAVACLASS+" perhaps some needed jars are not installed",e);
+                                  }
                   XX_configure_reg_resourceresolver_end =
                     System.currentTimeMillis();
-               }               
+               }
 
             }
 
-            
 
-            
 
-                        
+
+
+
             if (tag.equals("KeyResolver")){
                XX_configure_reg_keyResolver_start =System.currentTimeMillis();
                KeyResolver.init();
@@ -355,13 +351,11 @@ public final class Init {
                         "DESCRIPTION");
 
                   if ((Description != null) && (Description.length() > 0)) {
-                    if (true)
-                    	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Register Resolver: " + JAVACLASS + ": "
-                               + Description);
+                    if (log.isLoggable(java.util.logging.Level.FINE))
+                        log.log(java.util.logging.Level.FINE, "Register Resolver: " + JAVACLASS + ": " + Description);
                   } else {
-                    if (true)
-                    	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Register Resolver: " + JAVACLASS
-                               + ": For unknown purposes");
+                    if (log.isLoggable(java.util.logging.Level.FINE))
+                        log.log(java.util.logging.Level.FINE, "Register Resolver: " + JAVACLASS + ": For unknown purposes");
                   }
 
                   KeyResolver.register(JAVACLASS);
@@ -369,11 +363,11 @@ public final class Init {
                XX_configure_reg_keyResolver_end = System.currentTimeMillis();
             }
 
-                        
+
             if (tag.equals("PrefixMappings")){
                 XX_configure_reg_prefixes_start = System.currentTimeMillis();
-                if (true)
-                	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Now I try to bind prefixes:");
+                if (log.isLoggable(java.util.logging.Level.FINE))
+                    log.log(java.util.logging.Level.FINE, "Now I try to bind prefixes:");
 
                Element[] nl = XMLUtils.selectNodes(el.getFirstChild(), CONF_NS,"PrefixMapping");
 
@@ -382,39 +376,38 @@ public final class Init {
                                         "namespace");
                   String prefix = nl[i].getAttributeNS(null,
                                      "prefix");
-                  if (true)
-                  	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "Now I try to bind " + prefix + " to " + namespace);
+                  if (log.isLoggable(java.util.logging.Level.FINE))
+                      log.log(java.util.logging.Level.FINE, "Now I try to bind " + prefix + " to " + namespace);
                   com.sun.org.apache.xml.internal.security.utils.ElementProxy
                      .setDefaultPrefix(namespace, prefix);
                }
                XX_configure_reg_prefixes_end = System.currentTimeMillis();
             }
             }
-            
+
             long XX_init_end = System.currentTimeMillis();
 
             //J-
-            if (true) {
-            	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "XX_init                             " + ((int)(XX_init_end - XX_init_start)) + " ms");
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_prng                           " + ((int)(XX_prng_end - XX_prng_start)) + " ms");
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_parsing                        " + ((int)(XX_parsing_end - XX_parsing_start)) + " ms");            
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_i18n                 " + ((int)(XX_configure_i18n_end- XX_configure_i18n_start)) + " ms");
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_reg_c14n             " + ((int)(XX_configure_reg_c14n_end- XX_configure_reg_c14n_start)) + " ms");                       
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_reg_jcemapper        " + ((int)(XX_configure_reg_jcemapper_end- XX_configure_reg_jcemapper_start)) + " ms");
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_reg_keyInfo          " + ((int)(XX_configure_reg_keyInfo_end- XX_configure_reg_keyInfo_start)) + " ms");
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_reg_keyResolver      " + ((int)(XX_configure_reg_keyResolver_end- XX_configure_reg_keyResolver_start)) + " ms");
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_reg_prefixes         " + ((int)(XX_configure_reg_prefixes_end- XX_configure_reg_prefixes_start)) + " ms");            
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_reg_resourceresolver " + ((int)(XX_configure_reg_resourceresolver_end- XX_configure_reg_resourceresolver_start)) + " ms");
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_reg_sigalgos         " + ((int)(XX_configure_reg_sigalgos_end- XX_configure_reg_sigalgos_start)) + " ms");
-                if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "  XX_configure_reg_transforms       " + ((int)(XX_configure_reg_transforms_end- XX_configure_reg_transforms_start)) + " ms");
+            if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "XX_init                             " + ((int)(XX_init_end - XX_init_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_prng                           " + ((int)(XX_prng_end - XX_prng_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_parsing                        " + ((int)(XX_parsing_end - XX_parsing_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_i18n                 " + ((int)(XX_configure_i18n_end- XX_configure_i18n_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_reg_c14n             " + ((int)(XX_configure_reg_c14n_end- XX_configure_reg_c14n_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_reg_jcemapper        " + ((int)(XX_configure_reg_jcemapper_end- XX_configure_reg_jcemapper_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_reg_keyInfo          " + ((int)(XX_configure_reg_keyInfo_end- XX_configure_reg_keyInfo_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_reg_keyResolver      " + ((int)(XX_configure_reg_keyResolver_end- XX_configure_reg_keyResolver_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_reg_prefixes         " + ((int)(XX_configure_reg_prefixes_end- XX_configure_reg_prefixes_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_reg_resourceresolver " + ((int)(XX_configure_reg_resourceresolver_end- XX_configure_reg_resourceresolver_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_reg_sigalgos         " + ((int)(XX_configure_reg_sigalgos_end- XX_configure_reg_sigalgos_start)) + " ms");
+                log.log(java.util.logging.Level.FINE, "  XX_configure_reg_transforms       " + ((int)(XX_configure_reg_transforms_end- XX_configure_reg_transforms_start)) + " ms");
             }
          } catch (Exception e) {
             log.log(java.util.logging.Level.SEVERE, "Bad: ", e);
             e.printStackTrace();
          }
-      
+
    }
 
-  
-}
 
+}

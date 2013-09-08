@@ -1,11 +1,29 @@
 /*
- * @(#)CounterMonitorMBean.java	4.27 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
-package javax.management.monitor; 
+package javax.management.monitor;
 
 // jmx imports
 //
@@ -14,16 +32,14 @@ import javax.management.ObjectName;
 /**
  * Exposes the remote management interface of the counter monitor MBean.
  *
- * @version     4.27     11/17/05
- * @author      Sun Microsystems, Inc
  *
  * @since 1.5
  */
-public interface CounterMonitorMBean extends MonitorMBean { 
-        
+public interface CounterMonitorMBean extends MonitorMBean {
+
     // GETTERS AND SETTERS
-    //--------------------    
-    
+    //--------------------
+
     /**
      * Gets the derived gauge.
      *
@@ -32,7 +48,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      */
     @Deprecated
     public Number getDerivedGauge();
-    
+
     /**
      * Gets the derived gauge timestamp.
      *
@@ -41,7 +57,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      */
     @Deprecated
     public long getDerivedGaugeTimeStamp();
-    
+
     /**
      * Gets the threshold value.
      *
@@ -52,7 +68,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      * @deprecated As of JMX 1.2, replaced by {@link #getThreshold(ObjectName)}
      */
     @Deprecated
-    public Number getThreshold(); 
+    public Number getThreshold();
 
     /**
      * Sets the threshold value.
@@ -64,7 +80,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      * @deprecated As of JMX 1.2, replaced by {@link #setInitThreshold}
      */
     @Deprecated
-    public void setThreshold(Number value) throws java.lang.IllegalArgumentException; 
+    public void setThreshold(Number value) throws java.lang.IllegalArgumentException;
 
     /**
      * Gets the derived gauge for the specified MBean.
@@ -73,10 +89,9 @@ public interface CounterMonitorMBean extends MonitorMBean {
      * @return The derived gauge for the specified MBean if this MBean is in the
      *         set of observed MBeans, or <code>null</code> otherwise.
      *
-     * @since.unbundled JMX 1.2
      */
     public Number getDerivedGauge(ObjectName object);
-    
+
     /**
      * Gets the derived gauge timestamp for the specified MBean.
      *
@@ -84,10 +99,9 @@ public interface CounterMonitorMBean extends MonitorMBean {
      * @return The derived gauge timestamp for the specified MBean if this MBean
      *         is in the set of observed MBeans, or <code>null</code> otherwise.
      *
-     * @since.unbundled JMX 1.2
      */
     public long getDerivedGaugeTimeStamp(ObjectName object);
-    
+
     /**
      * Gets the threshold value for the specified MBean.
      *
@@ -97,9 +111,8 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #setThreshold
      *
-     * @since.unbundled JMX 1.2
      */
-    public Number getThreshold(ObjectName object); 
+    public Number getThreshold(ObjectName object);
 
     /**
      * Gets the initial threshold value common to all observed objects.
@@ -108,10 +121,9 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #setInitThreshold
      *
-     * @since.unbundled JMX 1.2
      */
     public Number getInitThreshold();
-    
+
     /**
      * Sets the initial threshold value common to all observed MBeans.
      *
@@ -121,7 +133,6 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #getInitThreshold
      *
-     * @since.unbundled JMX 1.2
      */
     public void setInitThreshold(Number value) throws java.lang.IllegalArgumentException;
 
@@ -132,7 +143,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @return The offset value.
      */
-    public Number getOffset(); 
+    public Number getOffset();
 
     /**
      * Sets the offset value.
@@ -143,7 +154,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #getOffset()
      */
-    public void setOffset(Number value) throws java.lang.IllegalArgumentException; 
+    public void setOffset(Number value) throws java.lang.IllegalArgumentException;
 
     /**
      * Gets the modulus value.
@@ -152,7 +163,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #setModulus
      */
-    public Number getModulus(); 
+    public Number getModulus();
 
     /**
      * Sets the modulus value.
@@ -163,8 +174,8 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #getModulus
      */
-    public void setModulus(Number value) throws java.lang.IllegalArgumentException; 
-    
+    public void setModulus(Number value) throws java.lang.IllegalArgumentException;
+
     /**
      * Gets the notification's on/off switch value.
      *
@@ -173,7 +184,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #setNotify
      */
-    public boolean getNotify(); 
+    public boolean getNotify();
 
     /**
      * Sets the notification's on/off switch value.
@@ -182,7 +193,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #getNotify
      */
-    public void setNotify(boolean value); 
+    public void setNotify(boolean value);
 
     /**
      * Gets the difference mode flag value.
@@ -192,7 +203,7 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #setDifferenceMode
      */
-    public boolean getDifferenceMode(); 
+    public boolean getDifferenceMode();
 
     /**
      * Sets the difference mode flag value.
@@ -201,5 +212,5 @@ public interface CounterMonitorMBean extends MonitorMBean {
      *
      * @see #getDifferenceMode
      */
-    public void setDifferenceMode(boolean value); 
+    public void setDifferenceMode(boolean value);
 }

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,23 +41,23 @@ final class Fallback extends Instruction {
      * This element never produces any data on the stack
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	if (_active) {
-	    return(typeCheckContents(stable));
-	}
-	else {
-	    return Type.Void;
-	}
+        if (_active) {
+            return(typeCheckContents(stable));
+        }
+        else {
+            return Type.Void;
+        }
     }
 
     /**
      * Activate this fallback element
      */
     public void activate() {
-	_active = true;
+        _active = true;
     }
 
     public String toString() {
-	return("fallback");
+        return("fallback");
     }
 
     /**
@@ -61,7 +65,7 @@ final class Fallback extends Instruction {
      * some unsupported element or non-XSLTC extension element
      */
     public void parseContents(Parser parser) {
-	if (_active) parseChildren(parser);
+        if (_active) parseChildren(parser);
     }
 
     /**
@@ -69,9 +73,9 @@ final class Fallback extends Instruction {
      * some unsupported element or non-XSLTC extension element
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	if (_active) translateContents(classGen, methodGen);
+        if (_active) translateContents(classGen, methodGen);
     }
 }

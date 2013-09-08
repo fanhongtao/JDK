@@ -1,8 +1,26 @@
 /*
- * @(#)DynamicStubImpl.java	1.6 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.presentation.rmi ;
@@ -37,7 +55,7 @@ import com.sun.corba.se.impl.util.JDKBridge ;
 import com.sun.corba.se.impl.util.Utility ;
 
 // XXX Do we need _get_codebase?
-public class DynamicStubImpl extends ObjectImpl 
+public class DynamicStubImpl extends ObjectImpl
     implements DynamicStub, Serializable
 {
     private static final long serialVersionUID = 4852612040012087675L;
@@ -46,97 +64,97 @@ public class DynamicStubImpl extends ObjectImpl
     private StubIORImpl ior ;
     private DynamicStub self = null ;  // The actual DynamicProxy for this stub.
 
-    public void setSelf( DynamicStub self ) 
+    public void setSelf( DynamicStub self )
     {
-	// XXX Should probably only allow this once.
-	this.self = self ;
+        // XXX Should probably only allow this once.
+        this.self = self ;
     }
 
     public DynamicStub getSelf()
     {
-	return self ;
+        return self ;
     }
 
-    public DynamicStubImpl( String[] typeIds ) 
+    public DynamicStubImpl( String[] typeIds )
     {
-	this.typeIds = typeIds ;
-	ior = null ;
+        this.typeIds = typeIds ;
+        ior = null ;
     }
 
-    public void setDelegate( Delegate delegate ) 
+    public void setDelegate( Delegate delegate )
     {
-	_set_delegate( delegate ) ;
+        _set_delegate( delegate ) ;
     }
 
-    public Delegate getDelegate() 
+    public Delegate getDelegate()
     {
-	return _get_delegate() ;
+        return _get_delegate() ;
     }
 
     public ORB getORB()
     {
-	return (ORB)_orb() ;
+        return (ORB)_orb() ;
     }
 
-    public String[] _ids() 
+    public String[] _ids()
     {
-	return typeIds ;
+        return typeIds ;
     }
 
-    public String[] getTypeIds() 
+    public String[] getTypeIds()
     {
-	return _ids() ;
+        return _ids() ;
     }
 
-    public void connect( ORB orb ) throws RemoteException 
+    public void connect( ORB orb ) throws RemoteException
     {
-	ior = StubConnectImpl.connect( ior, self, this, orb ) ;
+        ior = StubConnectImpl.connect( ior, self, this, orb ) ;
     }
 
     public boolean isLocal()
     {
-	return _is_local() ;
+        return _is_local() ;
     }
 
-    public OutputStream request( String operation, 
-	boolean responseExpected ) 
+    public OutputStream request( String operation,
+        boolean responseExpected )
     {
-	return _request( operation, responseExpected ) ; 
+        return _request( operation, responseExpected ) ;
     }
-    
-    private void readObject( ObjectInputStream stream ) throws 
-	IOException, ClassNotFoundException
+
+    private void readObject( ObjectInputStream stream ) throws
+        IOException, ClassNotFoundException
     {
-	ior = new StubIORImpl() ;
-	ior.doRead( stream ) ;
+        ior = new StubIORImpl() ;
+        ior.doRead( stream ) ;
     }
 
     private void writeObject( ObjectOutputStream stream ) throws
-	IOException
+        IOException
     {
-	if (ior == null) 
-	    ior = new StubIORImpl( this ) ;
-	ior.doWrite( stream ) ;
+        if (ior == null)
+            ior = new StubIORImpl( this ) ;
+        ior.doWrite( stream ) ;
     }
 
     public Object readResolve()
     {
-	String repositoryId = ior.getRepositoryId() ;
-	String cname = RepositoryId.cache.getId( repositoryId ).getClassName() ; 
+        String repositoryId = ior.getRepositoryId() ;
+        String cname = RepositoryId.cache.getId( repositoryId ).getClassName() ;
 
-	Class cls = null ;
+        Class cls = null ;
 
-	try {
-	    cls = JDKBridge.loadClass( cname, null, null ) ;
-	} catch (ClassNotFoundException exc) {
-	    // XXX log this
-	}
+        try {
+            cls = JDKBridge.loadClass( cname, null, null ) ;
+        } catch (ClassNotFoundException exc) {
+            // XXX log this
+        }
 
-	PresentationManager pm = 
-	    com.sun.corba.se.spi.orb.ORB.getPresentationManager() ;
-	PresentationManager.ClassData classData = pm.getClassData( cls ) ;
-	InvocationHandlerFactoryImpl ihfactory = 
-	    (InvocationHandlerFactoryImpl)classData.getInvocationHandlerFactory() ;
-	return ihfactory.getInvocationHandler( this ) ;
+        PresentationManager pm =
+            com.sun.corba.se.spi.orb.ORB.getPresentationManager() ;
+        PresentationManager.ClassData classData = pm.getClassData( cls ) ;
+        InvocationHandlerFactoryImpl ihfactory =
+            (InvocationHandlerFactoryImpl)classData.getInvocationHandlerFactory() ;
+        return ihfactory.getInvocationHandler( this ) ;
     }
 }

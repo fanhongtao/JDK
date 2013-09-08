@@ -1,8 +1,26 @@
 /*
- * @(#)ModifiableClassLoaderRepository.java	1.16 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.jmx.mbeanserver;
@@ -13,16 +31,15 @@ import javax.management.ObjectName;
 import javax.management.loading.ClassLoaderRepository;
 
 /**
- * This interface keeps the list of Class Loaders registered in the 
+ * This interface keeps the list of Class Loaders registered in the
  * MBean Server.
- * It provides the necessary methods to load classes using the 
+ * It provides the necessary methods to load classes using the
  * registered Class Loaders, and to add/remove class loaders from the
  * list.
  *
  * @since 1.5
- * @since.unbundled JMX RI 1.2
  */
-public interface ModifiableClassLoaderRepository 
+public interface ModifiableClassLoaderRepository
     extends ClassLoaderRepository {
 
     /**

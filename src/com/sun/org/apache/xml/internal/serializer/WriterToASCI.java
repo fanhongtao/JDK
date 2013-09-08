@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +33,9 @@ import java.io.Writer;
  * moment it does not do buffering, though I reserve the right to do some
  * buffering down the line if I can prove that it will be faster even if the
  * output stream is buffered.
- * 
+ *
  * This class is only used internally within Xalan.
- * 
+ *
  * @xsl.usage internal
  */
 class WriterToASCI extends Writer implements WriterChain

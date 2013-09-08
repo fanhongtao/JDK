@@ -1,8 +1,26 @@
 /*
- * @(#)TypeVisitor.java	1.5 06/07/31
+ * Copyright (c) 2005, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.type;
@@ -21,7 +39,7 @@ import javax.lang.model.element.*;
  * {@code NullPointerException} if the additional parameter {@code p}
  * is {@code null}; see documentation of the implementing class for
  * details.
- * 
+ *
  * <p> <b>WARNING:</b> It is possible that methods will be added to
  * this interface to accommodate new, currently unknown, language
  * structures added to future versions of the Java&trade; programming
@@ -43,7 +61,6 @@ import javax.lang.model.element.*;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.5 06/07/31
  * @since 1.6
  */
 public interface TypeVisitor<R, P> {
@@ -142,7 +159,17 @@ public interface TypeVisitor<R, P> {
      * @param p a visitor-specified parameter
      * @return  a visitor-specified result
      * @throws UnknownTypeException
-     *	a visitor implementation may optionally throw this exception
+     *  a visitor implementation may optionally throw this exception
      */
     R visitUnknown(TypeMirror t, P p);
+
+    /**
+     * Visits a union type.
+     *
+     * @param t the type to visit
+     * @param p a visitor-specified parameter
+     * @return  a visitor-specified result
+     * @since 1.7
+     */
+    R visitUnion(UnionType t, P p);
 }

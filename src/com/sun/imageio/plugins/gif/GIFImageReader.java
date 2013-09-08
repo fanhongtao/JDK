@@ -1,8 +1,26 @@
 /*
- * @(#)GIFImageReader.java	1.46 05/12/01
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.gif;
@@ -31,9 +49,6 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
 import com.sun.imageio.plugins.common.ReaderUtil;
 
-/**
- * @version 0.5
- */
 public class GIFImageReader extends ImageReader {
 
     // The current ImageInputStream source.
@@ -43,7 +58,7 @@ public class GIFImageReader extends ImageReader {
 
     // True if the file header including stream metadata has been read.
     boolean gotHeader = false;
-    
+
     // Global metadata, read once per input setting.
     GIFStreamMetadata streamMetadata = null;
 
@@ -86,7 +101,7 @@ public class GIFImageReader extends ImageReader {
 
     // The image's tile.
     WritableRaster theTile = null;
-    
+
     // The image dimensions (from the stream).
     int width = -1, height = -1;
 
@@ -117,13 +132,13 @@ public class GIFImageReader extends ImageReader {
         if (input != null) {
             if (!(input instanceof ImageInputStream)) {
                 throw new IllegalArgumentException
-                    ("input not an ImageInputStream!"); 
+                    ("input not an ImageInputStream!");
             }
             this.stream = (ImageInputStream)input;
         } else {
             this.stream = null;
         }
-        
+
         // Clear all values based on the previous stream contents
         resetStreamSettings();
     }
@@ -228,7 +243,7 @@ public class GIFImageReader extends ImageReader {
         if (imageMetadata.transparentColorFlag) {
             a = new byte[lutLength];
             Arrays.fill(a, (byte)255);
-            
+
             // Some files erroneously have a transparent color index
             // of 255 even though there are fewer than 256 colors.
             int idx = Math.min(imageMetadata.transparentColorIndex,
@@ -277,7 +292,7 @@ public class GIFImageReader extends ImageReader {
     // a 32-bit lookahead buffer that is filled from the left
     // and extracted from the right.
     //
-    // When the last block is found, we continue to 
+    // When the last block is found, we continue to
     //
     private int getCode(int codeSize, int codeMask) throws IOException {
         if (bitPos + codeSize > 32) {
@@ -291,7 +306,7 @@ public class GIFImageReader extends ImageReader {
         while (bitPos >= 8 && !lastBlockFound) {
             next32Bits >>>= 8;
             bitPos -= 8;
-            
+
             // Check if current block is out of bytes
             if (nextByte >= blockLength) {
                 // Get next block size
@@ -322,21 +337,21 @@ public class GIFImageReader extends ImageReader {
                                       byte[] initial,
                                       int[] length) {
         int numEntries = 1 << initCodeSize;
-  	for (int i = 0; i < numEntries; i++) {
+        for (int i = 0; i < numEntries; i++) {
             prefix[i] = -1;
             suffix[i] = (byte)i;
             initial[i] = (byte)i;
             length[i] = 1;
         }
-        
+
         // Fill in the entire table for robustness against
         // out-of-sequence codes.
-  	for (int i = numEntries; i < 4096; i++) {
+        for (int i = numEntries; i < 4096; i++) {
             prefix[i] = -1;
             length[i] = 1;
         }
-        
-	// tableIndex = numEntries + 2;
+
+        // tableIndex = numEntries + 2;
         // codeSize = initCodeSize + 1;
         // codeMask = (1 << codeSize) - 1;
     }
@@ -414,7 +429,7 @@ public class GIFImageReader extends ImageReader {
                 if (decodeThisRow) {
                     outputRow();
                 }
-                
+
                 streamX = 0;
                 if (imageMetadata.interlaceFlag) {
                     streamY += interlaceIncrement[interlacePass];
@@ -434,8 +449,8 @@ public class GIFImageReader extends ImageReader {
                 } else {
                     ++streamY;
                 }
-                
-                // Determine whether pixels from this row will 
+
+                // Determine whether pixels from this row will
                 // be written to the destination
                 this.destY = destinationRegion.y +
                     (streamY - sourceRegion.y)/sourceYSubsampling;
@@ -445,7 +460,7 @@ public class GIFImageReader extends ImageReader {
     }
 
     // END LZW STUFF
-    
+
     private void readHeader() throws IIOException {
         if (gotHeader) {
             return;
@@ -459,7 +474,7 @@ public class GIFImageReader extends ImageReader {
 
         try {
             stream.setByteOrder(ByteOrder.LITTLE_ENDIAN);
-            
+
             byte[] signature = new byte[6];
             stream.readFully(signature);
 
@@ -489,7 +504,7 @@ public class GIFImageReader extends ImageReader {
             }
 
             // Found position of metadata for image 0
-            imageStartPosition.add(new Long(stream.getStreamPosition()));
+            imageStartPosition.add(Long.valueOf(stream.getStreamPosition()));
         } catch (IOException e) {
             throw new IIOException("I/O error reading header!", e);
         }
@@ -499,7 +514,7 @@ public class GIFImageReader extends ImageReader {
 
     private boolean skipImage() throws IIOException {
         // Stream must be at the beginning of an image descriptor
-        // upon exit 
+        // upon exit
 
         try {
             while (true) {
@@ -516,7 +531,7 @@ public class GIFImageReader extends ImageReader {
                     }
 
                     stream.skipBytes(1);
-                    
+
                     int length = 0;
                     do {
                         length = stream.readUnsignedByte();
@@ -558,7 +573,7 @@ public class GIFImageReader extends ImageReader {
         try {
             // Find closest known index
             int index = Math.min(imageIndex, imageStartPosition.size() - 1);
-            
+
             // Seek to that position
             Long l = (Long)imageStartPosition.get(index);
             stream.seek(l.longValue());
@@ -569,8 +584,8 @@ public class GIFImageReader extends ImageReader {
                     --index;
                     return index;
                 }
-                
-                Long l1 = new Long(stream.getStreamPosition());                
+
+                Long l1 = new Long(stream.getStreamPosition());
                 imageStartPosition.add(l1);
                 ++index;
             }
@@ -611,7 +626,7 @@ public class GIFImageReader extends ImageReader {
         try {
             // Create an object to store the image metadata
             this.imageMetadata = new GIFImageMetadata();
-            
+
             long startPosition = stream.getStreamPosition();
             while (true) {
                 int blockType = stream.readUnsignedByte();
@@ -653,17 +668,17 @@ public class GIFImageReader extends ImageReader {
                         int gcePackedFields = stream.readUnsignedByte();
                         imageMetadata.disposalMethod =
                             (gcePackedFields >> 2) & 0x3;
-                        imageMetadata.userInputFlag = 
+                        imageMetadata.userInputFlag =
                             (gcePackedFields & 0x2) != 0;
-                        imageMetadata.transparentColorFlag = 
+                        imageMetadata.transparentColorFlag =
                             (gcePackedFields & 0x1) != 0;
 
                         imageMetadata.delayTime = stream.readUnsignedShort();
-                        imageMetadata.transparentColorIndex 
+                        imageMetadata.transparentColorIndex
                             = stream.readUnsignedByte();
-                        
+
                         int terminator = stream.readUnsignedByte();
-                    } else if (label == 0x1) { // Plain text extension 
+                    } else if (label == 0x1) { // Plain text extension
                         int length = stream.readUnsignedByte();
                         imageMetadata.hasPlainTextExtension = true;
                         imageMetadata.textGridLeft =
@@ -692,10 +707,28 @@ public class GIFImageReader extends ImageReader {
                     } else if (label == 0xff) { // Application extension
                         int blockSize = stream.readUnsignedByte();
                         byte[] applicationID = new byte[8];
-                        stream.readFully(applicationID);
                         byte[] authCode = new byte[3];
-                        stream.readFully(authCode);
+
+                        // read available data
+                        byte[] blockData = new byte[blockSize];
+                        stream.readFully(blockData);
+
+                        int offset = copyData(blockData, 0, applicationID);
+                        offset = copyData(blockData, offset, authCode);
+
                         byte[] applicationData = concatenateBlocks();
+
+                        if (offset < blockSize) {
+                            int len = blockSize - offset;
+                            byte[] data =
+                                new byte[len + applicationData.length];
+
+                            System.arraycopy(blockData, offset, data, 0, len);
+                            System.arraycopy(applicationData, 0, data, len,
+                                             applicationData.length);
+
+                            applicationData = data;
+                        }
 
                         // Init lists if necessary
                         if (imageMetadata.applicationIDs == null) {
@@ -730,6 +763,16 @@ public class GIFImageReader extends ImageReader {
         }
     }
 
+    private int copyData(byte[] src, int offset, byte[] dst) {
+        int len = dst.length;
+        int rest = src.length - offset;
+        if (len > rest) {
+            len = rest;
+        }
+        System.arraycopy(src, offset, dst, 0, len);
+        return offset + len;
+    }
+
     private void startPass(int pass) {
         if (updateListeners == null) {
             return;
@@ -745,7 +788,7 @@ public class GIFImageReader extends ImageReader {
         int[] vals = ReaderUtil.
             computeUpdatedPixels(sourceRegion,
                                  destinationOffset,
-                                 destinationRegion.x, 
+                                 destinationRegion.x,
                                  destinationRegion.y,
                                  destinationRegion.x +
                                  destinationRegion.width - 1,
@@ -814,7 +857,7 @@ public class GIFImageReader extends ImageReader {
 
         // Get source region, taking subsampling offsets into account,
         // and clipping against the true source bounds
-        
+
         this.sourceRegion = new Rectangle(0, 0, 0, 0);
         this.destinationRegion = new Rectangle(0, 0, 0, 0);
         computeRegions(param, width, height, theImage,
@@ -916,7 +959,7 @@ public class GIFImageReader extends ImageReader {
                     suffix[ti] = initial[newSuffixIndex];
                     initial[ti] = initial[oc];
                     length[ti] = length[oc] + 1;
-                    
+
                     ++tableIndex;
                     if ((tableIndex == (1 << codeSize)) &&
                         (tableIndex < 4096)) {
@@ -932,7 +975,7 @@ public class GIFImageReader extends ImageReader {
                     string[i] = suffix[c];
                     c = prefix[c];
                 }
-                
+
                 outputPixels(string, len);
                 oldCode = code;
             }
@@ -943,8 +986,8 @@ public class GIFImageReader extends ImageReader {
             e.printStackTrace();
             throw new IIOException("I/O error reading image!", e);
         }
-    }    
-    
+    }
+
     /**
      * Remove all settings including global settings such as
      * <code>Locale</code>s and listeners, as well as stream settings.

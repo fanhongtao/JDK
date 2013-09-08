@@ -1,8 +1,26 @@
 /*
- * @(#)POAPolicyMediator.java	1.24 05/11/17
+ * Copyright (c) 2001, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.oa.poa ;
@@ -20,8 +38,8 @@ import org.omg.PortableServer.POAPackage.ObjectNotActive ;
 
 /** POAPolicyMediator defines an interface to which the POA delegates all
  * policy specific operations.  This permits code paths for different
- * policies to be optimized by creating the correct code at POA creation 
- * time.  Also note that as much as possible, this interface does not 
+ * policies to be optimized by creating the correct code at POA creation
+ * time.  Also note that as much as possible, this interface does not
  * do any concurrency control, except as noted.  The POA is responsible
  * for concurrency control.
  */
@@ -45,15 +63,15 @@ public interface POAPolicyMediator {
     */
     int getServerId() ;
 
-    /** Get the servant to use for an invocation with the 
+    /** Get the servant to use for an invocation with the
     * given id and operation.
     * @param id the object ID for which we are requesting a servant
-    * @param operation the name of the operation to be performed on 
+    * @param operation the name of the operation to be performed on
     * the servant
     * @return the resulting Servant.
     */
-    java.lang.Object getInvocationServant( byte[] id, 
-	String operation ) throws ForwardRequest ;
+    java.lang.Object getInvocationServant( byte[] id,
+        String operation ) throws ForwardRequest ;
 
     /** Release a servant that was obtained from getInvocationServant.
     */
@@ -88,8 +106,8 @@ public interface POAPolicyMediator {
     */
     void setDefaultServant( Servant servant ) throws WrongPolicy ;
 
-    void activateObject( byte[] id, Servant servant ) 
-	throws ObjectAlreadyActive, ServantAlreadyActive, WrongPolicy ;
+    void activateObject( byte[] id, Servant servant )
+        throws ObjectAlreadyActive, ServantAlreadyActive, WrongPolicy ;
 
     /** Deactivate the object that is associated with the given id.
     * Returns the servant for id.

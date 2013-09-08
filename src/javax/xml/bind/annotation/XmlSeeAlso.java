@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2006, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 package javax.xml.bind.annotation;
 
 import javax.xml.bind.JAXBContext;
@@ -42,11 +67,10 @@ import java.lang.annotation.Target;
  * <p>
  * This would allow you to do <tt>JAXBContext.newInstance(Animal.class)</tt>.
  * By the help of this annotation, JAXB implementations will be able to
- * correctly bind <tt>Dog</tt> and <tt>Cat</tt>. 
+ * correctly bind <tt>Dog</tt> and <tt>Cat</tt>.
  *
  * @author Kohsuke Kawaguchi
  * @since JAXB2.1
- * @version $Revision: 1.1 $
  */
 @Target({ElementType.TYPE})
 @Retention(RUNTIME)

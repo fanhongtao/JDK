@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // CatalogEntry.java - Represents Catalog entries
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,7 +50,6 @@ import java.util.Vector;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class CatalogEntry {
   /** The nextEntry is the ordinal number of the next entry type. */
@@ -169,7 +172,7 @@ public class CatalogEntry {
     try {
       Integer iArgs = (Integer) entryArgs.get(type);
       if (iArgs.intValue() != args.size()) {
-	throw new CatalogException(CatalogException.INVALID_ENTRY);
+        throw new CatalogException(CatalogException.INVALID_ENTRY);
       }
     } catch (ArrayIndexOutOfBoundsException e) {
       throw new CatalogException(CatalogException.INVALID_ENTRY_TYPE);
@@ -194,7 +197,7 @@ public class CatalogEntry {
     try {
       Integer iArgs = (Integer) entryArgs.get(type);
       if (iArgs.intValue() != args.size()) {
-	throw new CatalogException(CatalogException.INVALID_ENTRY);
+        throw new CatalogException(CatalogException.INVALID_ENTRY);
       }
     } catch (ArrayIndexOutOfBoundsException e) {
       throw new CatalogException(CatalogException.INVALID_ENTRY_TYPE);

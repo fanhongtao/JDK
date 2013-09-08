@@ -1,8 +1,26 @@
 /*
- * @(#)MotifSplitPaneDivider.java	1.18 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.java.swing.plaf.motif;
@@ -25,7 +43,6 @@ import javax.swing.plaf.basic.BasicSplitPaneDivider;
  * version of Swing.  A future release of Swing will provide support for
  * long term persistence.
  *
- * @version 1.18 11/17/05
  * @author Jeff Dinkins
  */
 public class MotifSplitPaneDivider extends BasicSplitPaneDivider
@@ -70,23 +87,23 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
      * PENDING(jeff) - rewrite JSplitPane so that this ins't needed
      */
     public void setDividerSize(int newSize) {
-	Insets          insets = getInsets();
-	int             borderSize = 0;
-	if (getBasicSplitPaneUI().getOrientation() ==
-	    JSplitPane.HORIZONTAL_SPLIT) {
-	    if (insets != null) {
-		borderSize = insets.left + insets.right;
-	    }
-	}
-	else if (insets != null) {
-	    borderSize = insets.top + insets.bottom;
-	}
+        Insets          insets = getInsets();
+        int             borderSize = 0;
+        if (getBasicSplitPaneUI().getOrientation() ==
+            JSplitPane.HORIZONTAL_SPLIT) {
+            if (insets != null) {
+                borderSize = insets.left + insets.right;
+            }
+        }
+        else if (insets != null) {
+            borderSize = insets.top + insets.bottom;
+        }
         if (newSize < pad + minimumThumbSize + borderSize) {
             setDividerSize(pad + minimumThumbSize + borderSize);
         } else {
             vThumbHeight = hThumbWidth = newSize - pad - borderSize;
             super.setDividerSize(newSize);
-        }                  
+        }
     }
 
     /**
@@ -178,8 +195,8 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
            if (mouseHandler != null) {
                splitPane.removeMouseListener(mouseHandler);
                splitPane.removeMouseMotionListener(mouseHandler);
-	       removeMouseListener(mouseHandler);
-	       removeMouseMotionListener(mouseHandler);
+               removeMouseListener(mouseHandler);
+               removeMouseMotionListener(mouseHandler);
                mouseHandler = null;
            }
         }
@@ -190,8 +207,8 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
                 if (mouseHandler == null) mouseHandler=new MotifMouseHandler();
                 splitPane.addMouseListener(mouseHandler);
                 splitPane.addMouseMotionListener(mouseHandler);
-		addMouseListener(mouseHandler);
-		addMouseMotionListener(mouseHandler);
+                addMouseListener(mouseHandler);
+                addMouseMotionListener(mouseHandler);
                 splitPane.addPropertyChangeListener(this);
                 if (splitPane.isOneTouchExpandable()) {
                     oneTouchExpandableChanged();
@@ -209,28 +226,28 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
      */
     private boolean isInThumb(int x, int y) {
         Dimension           size = getSize();
-	int                 thumbX;
-	int                 thumbY;
-	int                 thumbWidth;
-	int                 thumbHeight;
+        int                 thumbX;
+        int                 thumbY;
+        int                 thumbWidth;
+        int                 thumbHeight;
 
-	if (getBasicSplitPaneUI().getOrientation() ==
-	    JSplitPane.HORIZONTAL_SPLIT) {
+        if (getBasicSplitPaneUI().getOrientation() ==
+            JSplitPane.HORIZONTAL_SPLIT) {
             int center = size.width/2;
             thumbX = center - hThumbWidth/2;
             thumbY = hThumbOffset;
-	    thumbWidth = hThumbWidth;
-	    thumbHeight = hThumbHeight;
-	}
-	else {
+            thumbWidth = hThumbWidth;
+            thumbHeight = hThumbHeight;
+        }
+        else {
             int center = size.height/2;
             thumbX = size.width - vThumbOffset;
             thumbY = size.height/2 - vThumbHeight/2;
-	    thumbWidth = vThumbWidth;
-	    thumbHeight = vThumbHeight;
-	}
-	return (x >= thumbX && x < (thumbX + thumbWidth) &&
-		y >= thumbY && y < (thumbY + thumbHeight));
+            thumbWidth = vThumbWidth;
+            thumbHeight = vThumbHeight;
+        }
+        return (x >= thumbX && x < (thumbX + thumbWidth) &&
+                y >= thumbY && y < (thumbY + thumbHeight));
     }
 
     //
@@ -239,11 +256,11 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
     //
 
     private DragController getDragger() {
-	return dragger;
+        return dragger;
     }
 
     private JSplitPane getSplitPane() {
-	return splitPane;
+        return splitPane;
     }
 
 
@@ -254,25 +271,25 @@ public class MotifSplitPaneDivider extends BasicSplitPaneDivider
      */
     private class MotifMouseHandler extends MouseHandler {
         public void mousePressed(MouseEvent e) {
-	    // Constrain the mouse pressed to the thumb.
-	    if (e.getSource() == MotifSplitPaneDivider.this &&
-		getDragger() == null && getSplitPane().isEnabled() &&
-		isInThumb(e.getX(), e.getY())) {
-		super.mousePressed(e);
-	    }
-	}
+            // Constrain the mouse pressed to the thumb.
+            if (e.getSource() == MotifSplitPaneDivider.this &&
+                getDragger() == null && getSplitPane().isEnabled() &&
+                isInThumb(e.getX(), e.getY())) {
+                super.mousePressed(e);
+            }
+        }
 
         public void mouseMoved(MouseEvent e) {
-	    if (getDragger() != null) {
-		return;
-	    }
-	    if (!isInThumb(e.getX(), e.getY())) {
-		if (getCursor() != defaultCursor) {
-		    setCursor(defaultCursor);
-		}
-		return;
-	    }
-	    super.mouseMoved(e);
-	}
+            if (getDragger() != null) {
+                return;
+            }
+            if (!isInThumb(e.getX(), e.getY())) {
+                if (getCursor() != defaultCursor) {
+                    setCursor(defaultCursor);
+                }
+                return;
+            }
+            super.mouseMoved(e);
+        }
     }
 }

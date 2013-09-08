@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -290,7 +294,6 @@ import java.util.Vector;
  *
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
  * @author <a href="mailto:ts@sch-fer.de">Tobias Sch&auml;fer</a>
- * @version $Id: RE.java,v 1.1.2.1 2005/08/01 00:02:55 jeffsuttor Exp $
  */
 public class RE implements Serializable
 {

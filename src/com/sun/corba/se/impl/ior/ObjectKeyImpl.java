@@ -1,8 +1,26 @@
 /*
- * @(#)ObjectKeyImpl.java	1.18 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior;
@@ -20,62 +38,62 @@ import com.sun.corba.se.spi.ior.ObjectKeyTemplate ;
 import com.sun.corba.se.impl.encoding.EncapsOutputStream ;
 
 /**
- * @author 
+ * @author
  */
-public class ObjectKeyImpl implements ObjectKey 
+public class ObjectKeyImpl implements ObjectKey
 {
     private ObjectKeyTemplate oktemp;
     private ObjectId id;
-    
+
     public boolean equals( Object obj )
     {
-	if (obj == null)
-	    return false ;
+        if (obj == null)
+            return false ;
 
-	if (!(obj instanceof ObjectKeyImpl))
-	    return false ;
+        if (!(obj instanceof ObjectKeyImpl))
+            return false ;
 
-	ObjectKeyImpl other = (ObjectKeyImpl)obj ;
+        ObjectKeyImpl other = (ObjectKeyImpl)obj ;
 
-	return oktemp.equals( other.oktemp ) &&
-	    id.equals( other.id ) ;
+        return oktemp.equals( other.oktemp ) &&
+            id.equals( other.id ) ;
     }
 
     public int hashCode()
     {
-	return oktemp.hashCode() ^ id.hashCode() ;
+        return oktemp.hashCode() ^ id.hashCode() ;
     }
 
-    public ObjectKeyTemplate getTemplate() 
+    public ObjectKeyTemplate getTemplate()
     {
-	return oktemp ;
+        return oktemp ;
     }
 
     public ObjectId getId()
     {
-	return id ;
+        return id ;
     }
 
-    public ObjectKeyImpl( ObjectKeyTemplate oktemp, ObjectId id ) 
+    public ObjectKeyImpl( ObjectKeyTemplate oktemp, ObjectId id )
     {
-	this.oktemp = oktemp ;
-	this.id = id ;
+        this.oktemp = oktemp ;
+        this.id = id ;
     }
 
-    public void write( OutputStream os ) 
+    public void write( OutputStream os )
     {
-	oktemp.write( id, os ) ;
+        oktemp.write( id, os ) ;
     }
 
-    public byte[] getBytes( org.omg.CORBA.ORB orb ) 
+    public byte[] getBytes( org.omg.CORBA.ORB orb )
     {
-	EncapsOutputStream os = new EncapsOutputStream( (ORB)orb ) ;
-	write( os ) ;
-	return os.toByteArray() ;
+        EncapsOutputStream os = new EncapsOutputStream( (ORB)orb ) ;
+        write( os ) ;
+        return os.toByteArray() ;
     }
 
-    public CorbaServerRequestDispatcher getServerRequestDispatcher( ORB orb ) 
+    public CorbaServerRequestDispatcher getServerRequestDispatcher( ORB orb )
     {
-	return oktemp.getServerRequestDispatcher( orb, id ) ;
+        return oktemp.getServerRequestDispatcher( orb, id ) ;
     }
 }

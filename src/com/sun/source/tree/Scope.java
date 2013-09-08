@@ -1,11 +1,26 @@
 /*
- * @(#)Scope.java	1.1 06/06/24
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Use and Distribution is subject to the Java Research License available
- * at <http://wwws.sun.com/software/communitysource/jrl.html>.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.source.tree;
@@ -18,12 +33,12 @@ import javax.lang.model.type.DeclaredType;
 
 /**
  * Interface for determining locally available program elements, such as
- * local variables and imports. 
- * Upon creation, a Scope is associated with a given program position; 
+ * local variables and imports.
+ * Upon creation, a Scope is associated with a given program position;
  * for example, a {@linkplain Tree tree node}. This position may be used to
  * infer an enclosing method and/or class.
- * 
- * <p>A Scope does not itself contain the details of the elements corresponding 
+ *
+ * <p>A Scope does not itself contain the details of the elements corresponding
  * to the parameters, methods and fields of the methods and classes containing
  * its position. However, these elements can be determined from the enclosing
  * elements.
@@ -40,17 +55,17 @@ public interface Scope {
      * Returns the enclosing scope.
      */
     public Scope getEnclosingScope();
-    
+
     /**
      * Returns the innermost type element containing the position of this scope
      */
     public TypeElement getEnclosingClass();
-    
+
     /**
      * Returns the innermost executable element containing the position of this scope.
      */
     public ExecutableElement getEnclosingMethod();
-    
+
     /**
      * Returns the elements directly contained in this scope.
      */

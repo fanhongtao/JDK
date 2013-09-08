@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,22 +42,22 @@ public class Function3Args extends Function2Args
   /**
    * Return the third argument passed to the function (at index 2).
    *
-   * @return An expression that represents the third argument passed to the 
+   * @return An expression that represents the third argument passed to the
    *         function.
    */
   public Expression getArg2()
   {
     return m_arg2;
   }
-  
+
   /**
-   * This function is used to fixup variables from QNames to stack frame 
+   * This function is used to fixup variables from QNames to stack frame
    * indexes at stylesheet build time.
-   * @param vars List of QNames that correspond to variables.  This list 
-   * should be searched backwards for the first qualified name that 
-   * corresponds to the variable reference qname.  The position of the 
-   * QName in the vector from the start of the vector will be its position 
-   * in the stack frame (but variables above the globalsTop value will need 
+   * @param vars List of QNames that correspond to variables.  This list
+   * should be searched backwards for the first qualified name that
+   * corresponds to the variable reference qname.  The position of the
+   * QName in the vector from the start of the vector will be its position
+   * in the stack frame (but variables above the globalsTop value will need
    * to be offset to the current stack frame).
    */
   public void fixupVariables(java.util.Vector vars, int globalsSize)
@@ -64,7 +68,7 @@ public class Function3Args extends Function2Args
   }
 
   /**
-   * Set an argument expression for a function.  This method is called by the 
+   * Set an argument expression for a function.  This method is called by the
    * XPath compiler.
    *
    * @param arg non-null expression that represents the argument.
@@ -84,11 +88,11 @@ public class Function3Args extends Function2Args
       arg.exprSetParent(this);
     }
     else
-		  reportWrongNumberArgs();
+                  reportWrongNumberArgs();
   }
 
   /**
-   * Check that the number of arguments passed to this function is correct. 
+   * Check that the number of arguments passed to this function is correct.
    *
    *
    * @param argNum The number of arguments that is being passed to the function.
@@ -110,19 +114,19 @@ public class Function3Args extends Function2Args
   protected void reportWrongNumberArgs() throws WrongNumberArgsException {
       throw new WrongNumberArgsException(XSLMessages.createXPATHMessage("three", null));
   }
-  
+
   /**
-   * Tell if this expression or it's subexpressions can traverse outside 
+   * Tell if this expression or it's subexpressions can traverse outside
    * the current subtree.
-   * 
+   *
    * @return true if traversal outside the context node's subtree can occur.
    */
    public boolean canTraverseOutsideSubtree()
    {
-    return super.canTraverseOutsideSubtree() 
+    return super.canTraverseOutsideSubtree()
     ? true : m_arg2.canTraverseOutsideSubtree();
    }
-   
+
   class Arg2Owner implements ExpressionOwner
   {
     /**
@@ -139,20 +143,20 @@ public class Function3Args extends Function2Args
      */
     public void setExpression(Expression exp)
     {
-    	exp.exprSetParent(Function3Args.this);
-    	m_arg2 = exp;
+        exp.exprSetParent(Function3Args.this);
+        m_arg2 = exp;
     }
   }
 
-   
+
   /**
    * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callArgVisitors(XPathVisitor visitor)
   {
-  	super.callArgVisitors(visitor);
-  	if(null != m_arg2)
-  		m_arg2.callVisitors(new Arg2Owner(), visitor);
+        super.callArgVisitors(visitor);
+        if(null != m_arg2)
+                m_arg2.callVisitors(new Arg2Owner(), visitor);
   }
 
   /**
@@ -160,21 +164,21 @@ public class Function3Args extends Function2Args
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!super.deepEquals(expr))
-  		return false;
-  		
-  	if(null != m_arg2)
-  	{
-  		if(null == ((Function3Args)expr).m_arg2)
-  			return false;
+        if(!super.deepEquals(expr))
+                return false;
 
-  		if(!m_arg2.deepEquals(((Function3Args)expr).m_arg2))
-  			return false;
-  	}
-  	else if (null != ((Function3Args)expr).m_arg2)
-  		return false;
-  		
-  	return true;
+        if(null != m_arg2)
+        {
+                if(null == ((Function3Args)expr).m_arg2)
+                        return false;
+
+                if(!m_arg2.deepEquals(((Function3Args)expr).m_arg2))
+                        return false;
+        }
+        else if (null != ((Function3Args)expr).m_arg2)
+                return false;
+
+        return true;
   }
 
 

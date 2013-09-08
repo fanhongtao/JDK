@@ -1,8 +1,26 @@
 /*
- * @(#)BufferManagerReadStream.java	1.15 08/01/10
+ * Copyright (c) 2000, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -36,11 +54,11 @@ public class BufferManagerReadStream
     private ORBUtilSystemException wrapper ;
     private boolean debug = false;
 
-    BufferManagerReadStream( ORB orb ) 
+    BufferManagerReadStream( ORB orb )
     {
-	this.orb = orb ;
-	this.wrapper = ORBUtilSystemException.get( orb,
-	    CORBALogDomains.RPC_ENCODING ) ;
+        this.orb = orb ;
+        this.wrapper = ORBUtilSystemException.get( orb,
+            CORBALogDomains.RPC_ENCODING ) ;
         debug = orb.transportDebugFlag;
     }
 
@@ -73,15 +91,15 @@ public class BufferManagerReadStream
             fragmentQueue.notify();
         }
     }
- 
+
     public ByteBufferWithInfo underflow (ByteBufferWithInfo bbwi)
     {
 
       ByteBufferWithInfo result = null;
 
       try {
-	  //System.out.println("ENTER underflow");
-	
+          //System.out.println("ENTER underflow");
+
         synchronized (fragmentQueue) {
 
             if (receivedCancel) {
@@ -91,7 +109,7 @@ public class BufferManagerReadStream
             while (fragmentQueue.size() == 0) {
 
                 if (endOfStream) {
-		    throw wrapper.endOfStream() ;
+                    throw wrapper.endOfStream() ;
                 }
 
                 boolean interrupted = false;
@@ -149,7 +167,7 @@ public class BufferManagerReadStream
         }
         return result;
       } finally {
-	  //System.out.println("EXIT underflow");
+          //System.out.println("EXIT underflow");
       }
     }
 
@@ -192,7 +210,7 @@ public class BufferManagerReadStream
                         if (inputBbAddress != bbAddress)
                         {
                             if (debug)
-                            { 
+                            {
                                  // print address of ByteBuffer released
                                  StringBuffer sb = new StringBuffer(80);
                                  sb.append("close() - fragmentQueue is ")
@@ -238,7 +256,7 @@ public class BufferManagerReadStream
                    if (inputBbAddress != bbAddress)
                    {
                        if (debug)
-                       { 
+                       {
                             // print address of ByteBuffer being released
                             StringBuffer sb = new StringBuffer(80);
                             sb.append("close() - fragmentStack - releasing ")

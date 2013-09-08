@@ -1,3 +1,31 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream;
 
 /**
@@ -7,7 +35,7 @@ package javax.xml.stream;
  * an application may only report line numbers.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @since 1.6
  */
 public interface Location {
@@ -24,12 +52,12 @@ public interface Location {
    * @return the current column number
    */
   int getColumnNumber();
-  
+
   /**
    * Return the byte or character offset into the input source this location
-   * is pointing to. If the input source is a file or a byte stream then 
-   * this is the byte offset into that stream, but if the input source is 
-   * a character media then the offset is the character offset. 
+   * is pointing to. If the input source is a file or a byte stream then
+   * this is the byte offset into that stream, but if the input source is
+   * a character media then the offset is the character offset.
    * Returns -1 if there is no offset available.
    * @return the current offset
    */
@@ -47,6 +75,4 @@ public interface Location {
    */
   public String getSystemId();
 }
-
-
 

@@ -1,8 +1,26 @@
 /*
- * @(#)MemoryHandler.java	1.26 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.logging;
@@ -23,7 +41,7 @@ package java.util.logging;
  * An incoming <tt>LogRecord</tt> has a type that is greater than
  * a pre-defined level, the <tt>pushLevel</tt>.
  * <li>
- * An external class calls the <tt>push</tt> method explicitly. 
+ * An external class calls the <tt>push</tt> method explicitly.
  * <li>
  * A subclass overrides the <tt>log</tt> method and scans each incoming
  * <tt>LogRecord</tt> and calls <tt>push</tt> if a record matches some
@@ -36,22 +54,21 @@ package java.util.logging;
  * (or have invalid values) then the specified default values are used.
  * If no default value is defined then a RuntimeException is thrown.
  * <ul>
- * <li>   java.util.logging.MemoryHandler.level 
- *	  specifies the level for the <tt>Handler</tt>
+ * <li>   java.util.logging.MemoryHandler.level
+ *        specifies the level for the <tt>Handler</tt>
  *        (defaults to <tt>Level.ALL</tt>).
  * <li>   java.util.logging.MemoryHandler.filter
- *	  specifies the name of a <tt>Filter</tt> class to use
- *	  (defaults to no <tt>Filter</tt>).
- * <li>   java.util.logging.MemoryHandler.size 
- *	  defines the buffer size (defaults to 1000).
+ *        specifies the name of a <tt>Filter</tt> class to use
+ *        (defaults to no <tt>Filter</tt>).
+ * <li>   java.util.logging.MemoryHandler.size
+ *        defines the buffer size (defaults to 1000).
  * <li>   java.util.logging.MemoryHandler.push
- *	  defines the <tt>pushLevel</tt> (defaults to <tt>level.SEVERE</tt>). 
+ *        defines the <tt>pushLevel</tt> (defaults to <tt>level.SEVERE</tt>).
  * <li>   java.util.logging.MemoryHandler.target
- *	  specifies the name of the target <tt>Handler </tt> class.
- *	  (no default).
+ *        specifies the name of the target <tt>Handler </tt> class.
+ *        (no default).
  * </ul>
  *
- * @version 1.26, 11/17/05
  * @since 1.4
  */
 
@@ -68,16 +85,16 @@ public class MemoryHandler extends Handler {
     // javadoc.
     private void configure() {
         LogManager manager = LogManager.getLogManager();
-	String cname = getClass().getName();
+        String cname = getClass().getName();
 
-	pushLevel = manager.getLevelProperty(cname +".push", Level.SEVERE);
-	size = manager.getIntProperty(cname + ".size", DEFAULT_SIZE);
-	if (size <= 0) {
-	    size = DEFAULT_SIZE;
-	}
-	setLevel(manager.getLevelProperty(cname +".level", Level.ALL));
-	setFilter(manager.getFilterProperty(cname +".filter", null));
-	setFormatter(manager.getFormatterProperty(cname +".formatter", new SimpleFormatter()));
+        pushLevel = manager.getLevelProperty(cname +".push", Level.SEVERE);
+        size = manager.getIntProperty(cname + ".size", DEFAULT_SIZE);
+        if (size <= 0) {
+            size = DEFAULT_SIZE;
+        }
+        setLevel(manager.getLevelProperty(cname +".level", Level.ALL));
+        setFilter(manager.getFilterProperty(cname +".filter", null));
+        setFormatter(manager.getFormatterProperty(cname +".formatter", new SimpleFormatter()));
     }
 
     /**
@@ -85,27 +102,27 @@ public class MemoryHandler extends Handler {
      * <tt>LogManager</tt> configuration properties.
      */
     public MemoryHandler() {
-	sealed = false;
-	configure();
-	sealed = true;
+        sealed = false;
+        configure();
+        sealed = true;
 
-	String name = "???";
-	try {
+        String name = "???";
+        try {
             LogManager manager = LogManager.getLogManager();
-	    name = manager.getProperty("java.util.logging.MemoryHandler.target");
-	    Class clz = ClassLoader.getSystemClassLoader().loadClass(name);
-	    target = (Handler) clz.newInstance();
-	} catch (Exception ex) {
-	    throw new RuntimeException("MemoryHandler can't load handler \"" + name + "\"" , ex);
-	}
-	init();
+            name = manager.getProperty("java.util.logging.MemoryHandler.target");
+            Class clz = ClassLoader.getSystemClassLoader().loadClass(name);
+            target = (Handler) clz.newInstance();
+        } catch (Exception ex) {
+            throw new RuntimeException("MemoryHandler can't load handler \"" + name + "\"" , ex);
+        }
+        init();
     }
 
     // Initialize.  Size is a count of LogRecords.
     private void init() {
-	buffer = new LogRecord[size];
-	start = 0;
-	count = 0;
+        buffer = new LogRecord[size];
+        start = 0;
+        count = 0;
     }
 
     /**
@@ -114,27 +131,27 @@ public class MemoryHandler extends Handler {
      * The <tt>MemoryHandler</tt> is configured based on <tt>LogManager</tt>
      * properties (or their default values) except that the given <tt>pushLevel</tt>
      * argument and buffer size argument are used.
-     *     
+     *
      * @param target  the Handler to which to publish output.
      * @param size    the number of log records to buffer (must be greater than zero)
      * @param pushLevel  message level to push on
      *
-     * @throws IllegalArgumentException is size is <= 0
+     * @throws IllegalArgumentException if size is <= 0
      */
     public MemoryHandler(Handler target, int size, Level pushLevel) {
-	if (target == null || pushLevel == null) {
-	    throw new NullPointerException();
-	}
-	if (size <= 0) {
-	    throw new IllegalArgumentException();
-	}
-	sealed = false;
-	configure();
-	sealed = true;
-	this.target = target;
-	this.pushLevel = pushLevel;
-	this.size = size;
-	init();
+        if (target == null || pushLevel == null) {
+            throw new NullPointerException();
+        }
+        if (size <= 0) {
+            throw new IllegalArgumentException();
+        }
+        sealed = false;
+        configure();
+        sealed = true;
+        this.target = target;
+        this.pushLevel = pushLevel;
+        this.size = size;
+        init();
     }
 
     /**
@@ -148,25 +165,25 @@ public class MemoryHandler extends Handler {
      * greater than or equal to the <tt>pushLevel</tt> then <tt>push</tt>
      * is called to write all buffered records to the target output
      * <tt>Handler</tt>.
-     * 
+     *
      * @param  record  description of the log event. A null record is
      *                 silently ignored and is not published
      */
     public synchronized void publish(LogRecord record) {
-	if (!isLoggable(record)) {
-	    return;
-	}
-	int ix = (start+count)%buffer.length;
-	buffer[ix] = record;
-	if (count < buffer.length) {
-	    count++;
-	} else {
-	    start++;
-	    start %= buffer.length;
-	}
-	if (record.getLevel().intValue() >= pushLevel.intValue()) {
-	    push();
-	}
+        if (!isLoggable(record)) {
+            return;
+        }
+        int ix = (start+count)%buffer.length;
+        buffer[ix] = record;
+        if (count < buffer.length) {
+            count++;
+        } else {
+            start++;
+            start %= buffer.length;
+        }
+        if (record.getLevel().intValue() >= pushLevel.intValue()) {
+            push();
+        }
     }
 
     /**
@@ -175,14 +192,14 @@ public class MemoryHandler extends Handler {
      * The buffer is then cleared.
      */
     public synchronized void push() {
-	for (int i = 0; i < count; i++) {
-	    int ix = (start+i)%buffer.length;
-	    LogRecord record = buffer[ix];
-	    target.publish(record);
-	}
-	// Empty the buffer.
-	start = 0;
-	count = 0;
+        for (int i = 0; i < count; i++) {
+            int ix = (start+i)%buffer.length;
+            LogRecord record = buffer[ix];
+            target.publish(record);
+        }
+        // Empty the buffer.
+        start = 0;
+        count = 0;
     }
 
     /**
@@ -192,7 +209,7 @@ public class MemoryHandler extends Handler {
      * buffer are <b>not</b> written out.  That requires a "push".
      */
     public void flush() {
-	target.flush();
+        target.flush();
     }
 
     /**
@@ -203,12 +220,12 @@ public class MemoryHandler extends Handler {
      *             the caller does not have <tt>LoggingPermission("control")</tt>.
      */
     public void close() throws SecurityException {
-	target.close();
-	setLevel(Level.OFF);
+        target.close();
+        setLevel(Level.OFF);
     }
 
-    /** 
-     * Set the <tt>pushLevel</tt>.  After a <tt>LogRecord</tt> is copied 
+    /**
+     * Set the <tt>pushLevel</tt>.  After a <tt>LogRecord</tt> is copied
      * into our internal buffer, if its level is greater than or equal to
      * the <tt>pushLevel</tt>, then <tt>push</tt> will be called.
      *
@@ -217,37 +234,37 @@ public class MemoryHandler extends Handler {
      *             the caller does not have <tt>LoggingPermission("control")</tt>.
      */
     public void setPushLevel(Level newLevel) throws SecurityException {
-	if (newLevel == null) {
-	    throw new NullPointerException();
-	}
-	LogManager manager = LogManager.getLogManager();
+        if (newLevel == null) {
+            throw new NullPointerException();
+        }
+        LogManager manager = LogManager.getLogManager();
         checkAccess();
-	pushLevel = newLevel;
+        pushLevel = newLevel;
     }
 
-    /** 
+    /**
      * Get the <tt>pushLevel</tt>.
      *
      * @return the value of the <tt>pushLevel</tt>
      */
     public synchronized Level getPushLevel() {
-	return pushLevel;
+        return pushLevel;
     }
 
     /**
-     * Check if this <tt>Handler</tt> would actually log a given 
+     * Check if this <tt>Handler</tt> would actually log a given
      * <tt>LogRecord</tt> into its internal buffer.
      * <p>
-     * This method checks if the <tt>LogRecord</tt> has an appropriate level and 
+     * This method checks if the <tt>LogRecord</tt> has an appropriate level and
      * whether it satisfies any <tt>Filter</tt>.  However it does <b>not</b>
      * check whether the <tt>LogRecord</tt> would result in a "push" of the
-     * buffer contents. It will return false if the <tt>LogRecord</tt> is Null.
+     * buffer contents. It will return false if the <tt>LogRecord</tt> is null.
      * <p>
      * @param record  a <tt>LogRecord</tt>
      * @return true if the <tt>LogRecord</tt> would be logged.
      *
      */
     public boolean isLoggable(LogRecord record) {
-	return super.isLoggable(record);
+        return super.isLoggable(record);
     }
 }

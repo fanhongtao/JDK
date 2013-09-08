@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,7 +76,7 @@ public class CachedXPathAPI
   {
     xpathSupport = new XPathContext();
   }
-  
+
   /**
    * <p>This constructor shares its {@link XPathContext} with a pre-existing
    * {@link CachedXPathAPI}.  That allows sharing document models
@@ -101,7 +105,7 @@ public class CachedXPathAPI
   {
     return this.xpathSupport;
   }
-  
+
 
   /**
    * Use an XPath string to select a single node. XPath namespace
@@ -178,7 +182,7 @@ public class CachedXPathAPI
     // Execute the XPath, and have it return the result
     XObject list = eval(contextNode, str, namespaceNode);
 
-    // Have the XObject return its result as a NodeSetDTM.                
+    // Have the XObject return its result as a NodeSetDTM.
     return list.nodeset();
   }
 
@@ -243,7 +247,7 @@ public class CachedXPathAPI
   }
 
   /**
-   *  Evaluate XPath string to an XObject. 
+   *  Evaluate XPath string to an XObject.
    *  XPath namespace prefixes are resolved from the namespaceNode.
    *  The implementation of this is a little slow, since it creates
    *  a number of objects each time it is called.  This could be optimized

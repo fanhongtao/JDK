@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,57 +39,57 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
 
 /**
- * @author G. Todd Miller 
+ * @author G. Todd Miller
  */
 final class FilteredAbsoluteLocationPath extends Expression {
-    private Expression _path;	// may be null 
+    private Expression _path;   // may be null
 
     public FilteredAbsoluteLocationPath() {
-	_path = null;
+        _path = null;
     }
 
     public FilteredAbsoluteLocationPath(Expression path) {
-	_path = path;
-	if (path != null) {
-	    _path.setParent(this);
-	}
+        _path = path;
+        if (path != null) {
+            _path.setParent(this);
+        }
     }
 
     public void setParser(Parser parser) {
-	super.setParser(parser);
-	if (_path != null) {
-	    _path.setParser(parser);
-	}
+        super.setParser(parser);
+        if (_path != null) {
+            _path.setParser(parser);
+        }
     }
 
     public Expression getPath() {
-	return(_path);
+        return(_path);
     }
-    
+
     public String toString() {
-	return "FilteredAbsoluteLocationPath(" +
-	    (_path != null ? _path.toString() : "null") + ')';
+        return "FilteredAbsoluteLocationPath(" +
+            (_path != null ? _path.toString() : "null") + ')';
     }
-	
+
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	if (_path != null) {
-	    final Type ptype = _path.typeCheck(stable);
-	    if (ptype instanceof NodeType) {		// promote to node-set
-		_path = new CastExpr(_path, Type.NodeSet);
-	    }
-	}
-	return _type = Type.NodeSet;	
+        if (_path != null) {
+            final Type ptype = _path.typeCheck(stable);
+            if (ptype instanceof NodeType) {            // promote to node-set
+                _path = new CastExpr(_path, Type.NodeSet);
+            }
+        }
+        return _type = Type.NodeSet;
     }
-	
+
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
-	if (_path != null) {
-	    final int initDFI = cpg.addMethodref(DUP_FILTERED_ITERATOR,
-						"<init>",
-						"("
-						+ NODE_ITERATOR_SIG
-						+ ")V");
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
+        if (_path != null) {
+            final int initDFI = cpg.addMethodref(DUP_FILTERED_ITERATOR,
+                                                "<init>",
+                                                "("
+                                                + NODE_ITERATOR_SIG
+                                                + ")V");
 
             // Backwards branches are prohibited if an uninitialized object is
             // on the stack by section 4.9.4 of the JVM Specification, 2nd Ed.
@@ -96,28 +100,28 @@ final class FilteredAbsoluteLocationPath extends Expression {
             // in temporary variables, create the object and reload the
             // arguments from the temporaries to avoid the problem.
 
-	    // Compile relative path iterator(s)
+            // Compile relative path iterator(s)
             LocalVariableGen pathTemp =
                methodGen.addLocalVariable("filtered_absolute_location_path_tmp",
                                           Util.getJCRefType(NODE_ITERATOR_SIG),
                                           il.getEnd(), null);
-	    _path.translate(classGen, methodGen);
+            _path.translate(classGen, methodGen);
             il.append(new ASTORE(pathTemp.getIndex()));
 
-	    // Create new Dup Filter Iterator
-	    il.append(new NEW(cpg.addClass(DUP_FILTERED_ITERATOR)));
-	    il.append(DUP);
+            // Create new Dup Filter Iterator
+            il.append(new NEW(cpg.addClass(DUP_FILTERED_ITERATOR)));
+            il.append(DUP);
             il.append(new ALOAD(pathTemp.getIndex()));
 
-	    // Initialize Dup Filter Iterator with iterator from the stack
-	    il.append(new INVOKESPECIAL(initDFI));
-	}
-	else {
-	    final int git = cpg.addInterfaceMethodref(DOM_INTF,
-						      "getIterator",
-						      "()"+NODE_ITERATOR_SIG);
-	    il.append(methodGen.loadDOM());
-	    il.append(new INVOKEINTERFACE(git, 1));
-	}
+            // Initialize Dup Filter Iterator with iterator from the stack
+            il.append(new INVOKESPECIAL(initDFI));
+        }
+        else {
+            final int git = cpg.addInterfaceMethodref(DOM_INTF,
+                                                      "getIterator",
+                                                      "()"+NODE_ITERATOR_SIG);
+            il.append(methodGen.loadDOM());
+            il.append(new INVOKEINTERFACE(git, 1));
+        }
     }
 }

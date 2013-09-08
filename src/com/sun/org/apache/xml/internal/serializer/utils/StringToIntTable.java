@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,20 +25,20 @@ package com.sun.org.apache.xml.internal.serializer.utils;
 /**
  * A very simple lookup table that stores a list of strings, the even
  * number strings being keys, and the odd number strings being values.
- * 
- * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+ *
+ * This class is a copy of the one in com.sun.org.apache.xml.internal.utils.
  * It exists to cut the serializers dependancy on that package.
- * 
+ *
  * This class is not a public API, it is only public so it can be used
  * in com.sun.org.apache.xml.internal.serializer.
- *  
+ *
  * @xsl.usage internal
  */
 public final class StringToIntTable
 {
 
   public static final int INVALID_KEY = -10000;
-  
+
   /** Block size to allocate          */
   private int m_blocksize;
 
@@ -82,7 +86,7 @@ public final class StringToIntTable
   /**
    * Get the length of the list.
    *
-   * @return the length of the list 
+   * @return the length of the list
    */
   public final int getLength()
   {
@@ -127,7 +131,7 @@ public final class StringToIntTable
    * @param key String to look for
    *
    * @return The String's int value
-   * 
+   *
    */
   public final int get(String key)
   {
@@ -181,10 +185,10 @@ public final class StringToIntTable
 
     return false;
   }
-  
+
   /**
    * Return array of keys in the table.
-   * 
+   *
    * @return Array of strings
    */
   public final String[] keys()
@@ -197,5 +201,5 @@ public final class StringToIntTable
     }
 
     return keysArr;
-  }  
+  }
 }

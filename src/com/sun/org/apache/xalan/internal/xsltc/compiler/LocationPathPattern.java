@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,30 +41,30 @@ public abstract class LocationPathPattern extends Pattern {
     private int _position = 0;
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	return Type.Void;		// TODO
+        return Type.Void;               // TODO
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	// TODO: What does it mean to translate a Pattern ?
+        // TODO: What does it mean to translate a Pattern ?
     }
-	
+
     public void setTemplate(final Template template) {
-	_template = template;
-	_priority = template.getPriority();
-	_importPrecedence = template.getImportPrecedence();
-	_position = template.getPosition();
+        _template = template;
+        _priority = template.getPriority();
+        _importPrecedence = template.getImportPrecedence();
+        _position = template.getPosition();
     }
-		
+
     public Template getTemplate() {
-	return _template;
+        return _template;
     }
-		
+
     public final double getPriority() {
-	return Double.isNaN(_priority) ? getDefaultPriority() : _priority;
+        return Double.isNaN(_priority) ? getDefaultPriority() : _priority;
     }
-		
+
     public double getDefaultPriority() {
-	return 0.5;
+        return 0.5;
     }
 
     /**
@@ -72,34 +76,34 @@ public abstract class LocationPathPattern extends Pattern {
      *  o) then check the position - the template that occured last wins
      */
     public boolean noSmallerThan(LocationPathPattern other) {
-	if (_importPrecedence > other._importPrecedence) {
-	    return true;
-	}
-	else if (_importPrecedence == other._importPrecedence) {
-	    if (_priority > other._priority) {
-		return true;
-	    }
-	    else if (_priority == other._priority) {
-		if (_position > other._position) {
-		    return true;
-		}
-	    }
-	}
-	return false;
+        if (_importPrecedence > other._importPrecedence) {
+            return true;
+        }
+        else if (_importPrecedence == other._importPrecedence) {
+            if (_priority > other._priority) {
+                return true;
+            }
+            else if (_priority == other._priority) {
+                if (_position > other._position) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
-    
+
     public abstract StepPattern getKernelPattern();
-	
+
     public abstract void reduceKernelPattern();
-		
+
     public abstract boolean isWildcard();
 
     public int getAxis() {
-	final StepPattern sp = getKernelPattern();
-	return (sp != null) ? sp.getAxis() : Axis.CHILD;
+        final StepPattern sp = getKernelPattern();
+        return (sp != null) ? sp.getAxis() : Axis.CHILD;
     }
 
     public String toString() {
-	return "root()";
+        return "root()";
     }
 }

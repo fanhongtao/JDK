@@ -1,8 +1,26 @@
 /*
- * @(#)ButtonModel.java	1.29 06/02/14
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
@@ -53,11 +71,10 @@ import javax.swing.event.*;
  * the model to unarmed and unpressed, triggers the button, and causes an
  * <code>ActionEvent</code> to be fired.
  *
- * @version 1.29 02/14/06
  * @author Jeff Dinkins
  */
 public interface ButtonModel extends ItemSelectable {
-    
+
     /**
      * Indicates partial commitment towards triggering the
      * button.
@@ -66,8 +83,8 @@ public interface ButtonModel extends ItemSelectable {
      *         and ready to be triggered
      * @see #setArmed
      */
-    boolean isArmed();     
-        
+    boolean isArmed();
+
     /**
      * Indicates if the button has been selected. Only needed for
      * certain types of buttons - such as radio buttons and check boxes.
@@ -75,7 +92,7 @@ public interface ButtonModel extends ItemSelectable {
      * @return <code>true</code> if the button is selected
      */
     boolean isSelected();
-        
+
     /**
      * Indicates if the button can be selected or triggered by
      * an input device, such as a mouse pointer.
@@ -83,7 +100,7 @@ public interface ButtonModel extends ItemSelectable {
      * @return <code>true</code> if the button is enabled
      */
     boolean isEnabled();
-        
+
     /**
      * Indicates if the button is pressed.
      *
@@ -100,7 +117,7 @@ public interface ButtonModel extends ItemSelectable {
 
     /**
      * Marks the button as armed or unarmed.
-     * 
+     *
      * @param b whether or not the button should be armed
      */
     public void setArmed(boolean b);
@@ -115,7 +132,7 @@ public interface ButtonModel extends ItemSelectable {
 
     /**
      * Enables or disables the button.
-     * 
+     *
      * @param b whether or not the button should be enabled
      * @see #isEnabled
      */
@@ -123,7 +140,7 @@ public interface ButtonModel extends ItemSelectable {
 
     /**
      * Sets the button to pressed or unpressed.
-     * 
+     *
      * @param b whether or not the button should be pressed
      * @see #isPressed
      */
@@ -131,7 +148,7 @@ public interface ButtonModel extends ItemSelectable {
 
     /**
      * Sets or clears the button's rollover state
-     * 
+     *
      * @param b whether or not the button is in the rollover state
      * @see #isRollover
      */
@@ -179,7 +196,7 @@ public interface ButtonModel extends ItemSelectable {
      * @param group the <code>ButtonGroup</code> the button belongs to
      */
     public void setGroup(ButtonGroup group);
-    
+
     /**
      * Adds an <code>ActionListener</code> to the model.
      *

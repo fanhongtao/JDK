@@ -1,8 +1,26 @@
 /*
- * @(#)AbstractSet.java	1.29 06/04/21
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -31,7 +49,6 @@ package java.util;
  *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.29, 04/21/06
  * @see Collection
  * @see AbstractCollection
  * @see Set
@@ -66,14 +83,14 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
      * @return <tt>true</tt> if the specified object is equal to this set
      */
     public boolean equals(Object o) {
-	if (o == this)
-	    return true;
+        if (o == this)
+            return true;
 
-	if (!(o instanceof Set))
-	    return false;
-	Collection c = (Collection) o;
-	if (c.size() != size())
-	    return false;
+        if (!(o instanceof Set))
+            return false;
+        Collection c = (Collection) o;
+        if (c.size() != size())
+            return false;
         try {
             return containsAll(c);
         } catch (ClassCastException unused)   {
@@ -101,14 +118,14 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
      * @see Set#equals(Object)
      */
     public int hashCode() {
-	int h = 0;
-	Iterator<E> i = iterator();
-	while (i.hasNext()) {
-	    E obj = i.next();
+        int h = 0;
+        Iterator<E> i = iterator();
+        while (i.hasNext()) {
+            E obj = i.next();
             if (obj != null)
                 h += obj.hashCode();
         }
-	return h;
+        return h;
     }
 
     /**
@@ -139,9 +156,11 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
      * @throws UnsupportedOperationException if the <tt>removeAll</tt> operation
      *         is not supported by this set
      * @throws ClassCastException if the class of an element of this set
-     *         is incompatible with the specified collection (optional)
+     *         is incompatible with the specified collection
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if this set contains a null element and the
-     *         specified collection does not permit null elements (optional),
+     *         specified collection does not permit null elements
+     * (<a href="Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
      * @see #remove(Object)
      * @see #contains(Object)

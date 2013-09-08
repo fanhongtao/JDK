@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +49,7 @@ import org.xml.sax.SAXException;
  * simply passed directly to the wrapped handler.
  *
  * The user of this class doesn't know if the output is ultimatley XML or HTML.
- * 
+ *
  * This class is not a public API, it is public because it is used within Xalan.
  * @xsl.usage internal
  */
@@ -81,7 +85,7 @@ public final class ToUnknownStream extends SerializerBase
      * the namespace URI associated with the first element
      */
     private String m_firstElementURI;
-    
+
     /**
      * the local name (no prefix) associated with the first element
      */
@@ -266,6 +270,27 @@ public final class ToUnknownStream extends SerializerBase
         String localName,
         String rawName,
         String type,
+        String value)
+        throws SAXException
+    {
+        addAttribute(uri, localName, rawName, type, value, false);
+    }
+
+    /**
+     * Adds an attribute to the currenly open tag
+     * @param uri the URI of a namespace
+     * @param localName the attribute name, without prefix
+     * @param rawName the attribute name, with prefix (if any)
+     * @param type the type of the attribute, typically "CDATA"
+     * @param value the value of the parameter
+     * @param XSLAttribute true if this attribute is coming from an xsl:attribute element
+     * @see ExtendedContentHandler#addAttribute(String, String, String, String, String)
+     */
+    public void addAttribute(
+        String uri,
+        String localName,
+        String rawName,
+        String type,
         String value,
         boolean XSLAttribute)
         throws SAXException
@@ -289,7 +314,7 @@ public final class ToUnknownStream extends SerializerBase
             flush();
         }
         m_handler.addAttribute(rawName, value);
- 
+
     }
 
     /**
@@ -303,13 +328,13 @@ public final class ToUnknownStream extends SerializerBase
             flush();
         }
         m_handler.addUniqueAttribute(rawName, value, flags);
- 
+
     }
 
     /**
-     * Converts the String to a character array and calls the SAX method 
+     * Converts the String to a character array and calls the SAX method
      * characters(char[],int,int);
-     * 
+     *
      * @see ExtendedContentHandler#characters(String)
      */
     public void characters(String chars) throws SAXException
@@ -320,8 +345,8 @@ public final class ToUnknownStream extends SerializerBase
             m_charsBuff = new char[length*2 + 1];
         }
         chars.getChars(0, length, m_charsBuff, 0);
-        this.characters(m_charsBuff, 0, length);  
-    }    
+        this.characters(m_charsBuff, 0, length);
+    }
 
     /**
      * Pass the call on to the underlying handler
@@ -357,10 +382,10 @@ public final class ToUnknownStream extends SerializerBase
      * @param prefix the prefix associated with the given URI.
      *
      * @see ExtendedContentHandler#namespaceAfterStartElement(String, String)
-     */    
+     */
     public void namespaceAfterStartElement(String prefix, String uri)
-        throws SAXException 
-    {  
+        throws SAXException
+    {
         // hack for XSLTC with finding URI for default namespace
         if (m_firstTagNotEmitted && m_firstElementURI == null && m_firstElementName != null)
         {
@@ -373,10 +398,10 @@ public final class ToUnknownStream extends SerializerBase
                 // the uri for the element... lets remember it
                 m_firstElementURI = uri;
             }
-        }         
-        startPrefixMapping(prefix,uri, false);          
+        }
+        startPrefixMapping(prefix,uri, false);
     }
-    
+
     public boolean startPrefixMapping(String prefix, String uri, boolean shouldFlush)
         throws SAXException
     {
@@ -391,9 +416,9 @@ public final class ToUnknownStream extends SerializerBase
                  */
                 flush();
                 pushed = m_handler.startPrefixMapping(prefix, uri, shouldFlush);
-            } 
-            else 
-            {           
+            }
+            else
+            {
                 if (m_namespacePrefix == null)
                 {
                     m_namespacePrefix = new Vector();
@@ -401,7 +426,7 @@ public final class ToUnknownStream extends SerializerBase
                 }
                 m_namespacePrefix.addElement(prefix);
                 m_namespaceURI.addElement(uri);
-            
+
                 if (m_firstElementURI == null)
                 {
                     if (prefix.equals(m_firstElementPrefix))
@@ -439,13 +464,13 @@ public final class ToUnknownStream extends SerializerBase
         m_needToCallStartDocument = true;
     }
 
- 
-    
+
+
     public void startElement(String qName) throws SAXException
     {
         this.startElement(null, null, qName, null);
     }
-    
+
     public void startElement(String namespaceURI, String localName, String qName) throws SAXException
     {
         this.startElement(namespaceURI, localName, qName, null);
@@ -457,47 +482,47 @@ public final class ToUnknownStream extends SerializerBase
         String elementName,
         Attributes atts) throws SAXException
     {
-        
+
         if (m_needToCallSetDocumentInfo){
             super.setDocumentInfo();
             m_needToCallSetDocumentInfo = false;
         }
-        
+
         /* we are notified of the start of an element */
         if (m_firstTagNotEmitted)
         {
             /* we have not yet sent the first element on its way */
-            if (m_firstElementName != null) 
+            if (m_firstElementName != null)
             {
                 /* this is not the first element, but a later one.
                  * But we have the old element pending, so flush it out,
-                 * then send this one on its way. 
+                 * then send this one on its way.
                  */
                 flush();
-                m_handler.startElement(namespaceURI, localName, elementName,  atts);                
+                m_handler.startElement(namespaceURI, localName, elementName,  atts);
             }
             else
             {
-                /* this is the very first element that we have seen, 
+                /* this is the very first element that we have seen,
                  * so save it for flushing later.  We may yet get to know its
                  * URI due to added attributes.
                  */
-                 
+
                 m_wrapped_handler_not_initialized = true;
                 m_firstElementName = elementName;
-                
+
                 // null if not known
                 m_firstElementPrefix = getPrefixPartUnknown(elementName);
-                
+
                 // null if not known
                 m_firstElementURI = namespaceURI;
-                
+
                 // null if not known
                 m_firstElementLocalName = localName;
 
                 if (m_tracer != null)
                     firePseudoElement(elementName);
-                    
+
                 /* we don't want to call our own addAttributes, which
                  * merely delegates to the wrapped handler, but we want to
                  * add these attributes to m_attributes. So me must call super.
@@ -505,15 +530,15 @@ public final class ToUnknownStream extends SerializerBase
                  * first element, after that this class totally delegates to the
                  * wrapped handler which is either XML or HTML.
                  */
-                if (atts != null)   
+                if (atts != null)
                     super.addAttributes(atts);
-                
+
                 // if there are attributes, then lets make the flush()
                 // call the startElement on the handler and send the
                 // attributes on their way.
-                if (atts != null)   
+                if (atts != null)
                     flush();
-                
+
             }
         }
         else
@@ -802,8 +827,8 @@ public final class ToUnknownStream extends SerializerBase
         }
 
         m_handler.endDocument();
-        
-    
+
+
     }
 
     /**
@@ -823,7 +848,7 @@ public final class ToUnknownStream extends SerializerBase
             if (localName == null && m_firstElementLocalName != null)
                 localName = m_firstElementLocalName;
         }
-        
+
         m_handler.endElement(namespaceURI, localName, qName);
     }
 
@@ -1028,7 +1053,7 @@ public final class ToUnknownStream extends SerializerBase
             //            {
             m_handler.setMediaType(oldHandler.getMediaType());
             //            }
-            
+
             m_handler.setTransformer(oldHandler.getTransformer());
         }
 
@@ -1047,7 +1072,7 @@ public final class ToUnknownStream extends SerializerBase
     }
 
     private void emitFirstTag() throws SAXException
-    {   
+    {
         if (m_firstElementName != null)
         {
             if (m_wrapped_handler_not_initialized)
@@ -1200,12 +1225,12 @@ public final class ToUnknownStream extends SerializerBase
      */
     public void flushPending() throws SAXException
     {
- 
+
         flush();
-      
+
         m_handler.flushPending();
     }
-    
+
     private void flush()
     {
         try
@@ -1224,8 +1249,8 @@ public final class ToUnknownStream extends SerializerBase
         {
             throw new RuntimeException(e.toString());
         }
-          
-    
+
+
     }
 
     /**
@@ -1257,14 +1282,14 @@ public final class ToUnknownStream extends SerializerBase
     }
 
     public void setTransformer(Transformer t)
-    {       
+    {
         m_handler.setTransformer(t);
         if ((t instanceof SerializerTrace) &&
             (((SerializerTrace) t).hasTraceListeners())) {
            m_tracer = (SerializerTrace) t;
         } else {
            m_tracer = null;
-        }        
+        }
     }
     public Transformer getTransformer()
     {
@@ -1284,7 +1309,7 @@ public final class ToUnknownStream extends SerializerBase
      * @param locator the source locator
      *
      * @see ExtendedContentHandler#setSourceLocator(javax.xml.transform.SourceLocator)
-     */    
+     */
     public void setSourceLocator(SourceLocator locator)
     {
         m_handler.setSourceLocator(locator);
@@ -1292,13 +1317,13 @@ public final class ToUnknownStream extends SerializerBase
 
     protected void firePseudoElement(String elementName)
     {
-        
+
         if (m_tracer != null) {
             StringBuffer sb = new StringBuffer();
-                
+
             sb.append('<');
             sb.append(elementName);
-            
+
             // convert the StringBuffer to a char array and
             // emit the trace event that these characters "might"
             // be written

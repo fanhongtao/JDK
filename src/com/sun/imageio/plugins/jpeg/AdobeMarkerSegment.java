@@ -1,8 +1,26 @@
 /*
- * @(#)AdobeMarkerSegment.java	1.6 05/11/17
+ * Copyright (c) 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.jpeg;
@@ -63,7 +81,7 @@ class AdobeMarkerSegment extends MarkerSegment {
         return node;
     }
 
-    void updateFromNativeNode(Node node, boolean fromScratch) 
+    void updateFromNativeNode(Node node, boolean fromScratch)
         throws IIOInvalidTreeException {
         // Only the transform is required
         NamedNodeMap attrs = node.getAttributes();
@@ -74,7 +92,7 @@ class AdobeMarkerSegment extends MarkerSegment {
                 ("Adobe APP14 node cannot have > 4 attributes", node);
         }
         if (count > 1) {
-            int value = getAttributeValue(node, attrs, "version", 
+            int value = getAttributeValue(node, attrs, "version",
                                           100, 255, false);
             version = (value != -1) ? value : version;
             value = getAttributeValue(node, attrs, "flags0", 0, 65535, false);
@@ -116,4 +134,3 @@ class AdobeMarkerSegment extends MarkerSegment {
         System.out.println(transform);
     }
 }
-

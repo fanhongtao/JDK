@@ -1,8 +1,26 @@
 /*
- * @(#)MetalRadioButtonUI.java	1.32 09/08/10
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -32,7 +50,6 @@ import javax.swing.text.View;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.32 08/10/09
  * @author Michael C. Albers (Metal modifications)
  * @author Jeff Dinkins (original BasicRadioButtonCode)
  */
@@ -51,7 +68,7 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
     // ********************************
     public static ComponentUI createUI(JComponent c) {
         AppContext appContext = AppContext.getAppContext();
-        MetalRadioButtonUI metalRadioButtonUI = 
+        MetalRadioButtonUI metalRadioButtonUI =
                 (MetalRadioButtonUI) appContext.get(METAL_RADIO_BUTTON_UI_KEY);
         if (metalRadioButtonUI == null) {
             metalRadioButtonUI = new MetalRadioButtonUI();
@@ -61,7 +78,7 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
     }
 
     // ********************************
-    //        Install Defaults 
+    //        Install Defaults
     // ********************************
     public void installDefaults(AbstractButton b) {
         super.installDefaults(b);
@@ -80,7 +97,7 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
     }
 
     // ********************************
-    //         Default Accessors 
+    //         Default Accessors
     // ********************************
     protected Color getSelectColor() {
         return selectColor;
@@ -102,7 +119,7 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
 
         AbstractButton b = (AbstractButton) c;
         ButtonModel model = b.getModel();
-        
+
         Dimension size = c.getSize();
 
         int w = size.width;
@@ -117,7 +134,7 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
         Rectangle textRect = new Rectangle();
 
         Insets i = c.getInsets();
-	viewRect.x += i.left;
+        viewRect.x += i.left;
         viewRect.y += i.top;
         viewRect.width -= (i.right + viewRect.x);
         viewRect.height -= (i.bottom + viewRect.y);
@@ -125,52 +142,52 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
         Icon altIcon = b.getIcon();
         Icon selectedIcon = null;
         Icon disabledIcon = null;
-        
+
         String text = SwingUtilities.layoutCompoundLabel(
             c, fm, b.getText(), altIcon != null ? altIcon : getDefaultIcon(),
             b.getVerticalAlignment(), b.getHorizontalAlignment(),
             b.getVerticalTextPosition(), b.getHorizontalTextPosition(),
             viewRect, iconRect, textRect, b.getIconTextGap());
-        
+
         // fill background
         if(c.isOpaque()) {
             g.setColor(b.getBackground());
-            g.fillRect(0,0, size.width, size.height); 
+            g.fillRect(0,0, size.width, size.height);
         }
 
-        
+
         // Paint the radio button
-        if(altIcon != null) { 
+        if(altIcon != null) {
 
             if(!model.isEnabled()) {
-	        if(model.isSelected()) {
+                if(model.isSelected()) {
                    altIcon = b.getDisabledSelectedIcon();
-		} else {
+                } else {
                    altIcon = b.getDisabledIcon();
-		}
+                }
             } else if(model.isPressed() && model.isArmed()) {
                 altIcon = b.getPressedIcon();
                 if(altIcon == null) {
                     // Use selected icon
                     altIcon = b.getSelectedIcon();
-                } 
+                }
             } else if(model.isSelected()) {
                 if(b.isRolloverEnabled() && model.isRollover()) {
-                        altIcon = (Icon) b.getRolloverSelectedIcon();
+                        altIcon = b.getRolloverSelectedIcon();
                         if (altIcon == null) {
-                                altIcon = (Icon) b.getSelectedIcon();
+                                altIcon = b.getSelectedIcon();
                         }
                 } else {
-                        altIcon = (Icon) b.getSelectedIcon();
+                        altIcon = b.getSelectedIcon();
                 }
             } else if(b.isRolloverEnabled() && model.isRollover()) {
-                altIcon = (Icon) b.getRolloverIcon();
-            } 
-              
+                altIcon = b.getRolloverIcon();
+            }
+
             if(altIcon == null) {
                 altIcon = b.getIcon();
             }
-               
+
             altIcon.paintIcon(c, g, iconRect.x, iconRect.y);
 
         } else {
@@ -194,16 +211,16 @@ public class MetalRadioButtonUI extends BasicRadioButtonUI {
                }
                SwingUtilities2.drawStringUnderlineCharAt(c,g,text,
                        mnemIndex, textRect.x, textRect.y + fm.getAscent());
-	   }
-	   if(b.hasFocus() && b.isFocusPainted() &&
-	      textRect.width > 0 && textRect.height > 0 ) {
-	       paintFocus(g,textRect,size);
-	   }
+           }
+           if(b.hasFocus() && b.isFocusPainted() &&
+              textRect.width > 0 && textRect.height > 0 ) {
+               paintFocus(g,textRect,size);
+           }
         }
     }
 
     protected void paintFocus(Graphics g, Rectangle t, Dimension d){
         g.setColor(getFocusColor());
         g.drawRect(t.x-1, t.y-1, t.width+1, t.height+1);
-    } 
+    }
 }

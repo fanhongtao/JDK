@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,17 +69,17 @@ public class DOM2DTM extends DTMDefaultBaseIterators
 {
   static final boolean JJK_DEBUG=false;
   static final boolean JJK_NEWCODE=true;
-  
+
   /** Manefest constant
    */
   static final String NAMESPACE_DECL_NS="http://www.w3.org/XML/1998/namespace";
-  
+
   /** The current position in the DOM tree. Last node examined for
    * possible copying to DTM. */
   transient private Node m_pos;
   /** The current position in the DTM tree. Who children get appended to. */
   private int m_last_parent=0;
-  /** The current position in the DTM tree. Who children reference as their 
+  /** The current position in the DTM tree. Who children reference as their
    * previous sib. */
   private int m_last_kid=NULL;
 
@@ -87,7 +91,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   /** True iff the first element has been processed. This is used to control
       synthesis of the implied xml: namespace declaration node. */
   boolean m_processedFirstElement=false;
-        
+
   /** true if ALL the nodes in the m_root subtree have been processed;
    * false if our incremental build has not yet finished scanning the
    * DOM tree.  */
@@ -107,18 +111,18 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    * @param mgr The DTMManager who owns this DTM.
    * @param domSource the DOM source that this DTM will wrap.
    * @param dtmIdentity The DTM identity ID for this DTM.
-   * @param whiteSpaceFilter The white space filter for this DTM, which may 
+   * @param whiteSpaceFilter The white space filter for this DTM, which may
    *                         be null.
    * @param xstringfactory XMLString factory for creating character content.
-   * @param doIndexing true if the caller considers it worth it to use 
+   * @param doIndexing true if the caller considers it worth it to use
    *                   indexing schemes.
    */
-  public DOM2DTM(DTMManager mgr, DOMSource domSource, 
+  public DOM2DTM(DTMManager mgr, DOMSource domSource,
                  int dtmIdentity, DTMWSFilter whiteSpaceFilter,
                  XMLStringFactory xstringfactory,
                  boolean doIndexing)
   {
-    super(mgr, domSource, dtmIdentity, whiteSpaceFilter, 
+    super(mgr, domSource, dtmIdentity, whiteSpaceFilter,
           xstringfactory, doIndexing);
 
     // Initialize DOM navigation
@@ -134,9 +138,9 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     //
     // (If it's an EntityReference node, we're probably scrod. For now
     // I'm just hoping nobody is ever quite that foolish... %REVIEW%)
-		//
-		// %ISSUE% What about inherited namespaces in this case?
-		// Do we need to special-case initialize them into the DTM model?
+                //
+                // %ISSUE% What about inherited namespaces in this case?
+                // Do we need to special-case initialize them into the DTM model?
     if(ELEMENT_NODE == m_root.getNodeType())
     {
       NamedNodeMap attrs=m_root.getAttributes();
@@ -160,7 +164,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       } // if attrs exist
     } //if(ELEMENT_NODE)
 
-    // Initialize DTM-completed status 
+    // Initialize DTM-completed status
     m_nodesAreProcessed = false;
   }
 
@@ -171,8 +175,8 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    * @param parentIndex The current parent index.
    * @param previousSibling The previous sibling index.
    * @param forceNodeType If not DTM.NULL, overrides the DOM node type.
-   *	Used to force nodes to Text rather than CDATASection when their
-   *	coalesced value includes ordinary Text nodes (current DTM behavior).
+   *    Used to force nodes to Text rather than CDATASection when their
+   *    coalesced value includes ordinary Text nodes (current DTM behavior).
    *
    * @return The index identity of the node that was added.
    */
@@ -188,7 +192,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       {
         if(m_mgr==null)
           throw new ClassCastException();
-                                
+
                                 // Handle as Extended Addressing
         DTMManagerDefault mgrD=(DTMManagerDefault)m_mgr;
         int id=mgrD.getFirstFreeDTMID();
@@ -206,13 +210,13 @@ public class DOM2DTM extends DTMDefaultBaseIterators
 
     m_size++;
     // ensureSize(nodeIndex);
-    
+
     int type;
     if(NULL==forceNodeType)
         type = node.getNodeType();
     else
         type=forceNodeType;
-        
+
     // %REVIEW% The Namespace Spec currently says that Namespaces are
     // processed in a non-namespace-aware manner, by matching the
     // QName, even though there is in fact a namespace assigned to
@@ -239,37 +243,37 @@ public class DOM2DTM extends DTMDefaultBaseIterators
         type = DTM.NAMESPACE_NODE;
       }
     }
-    
+
     m_nodes.addElement(node);
-    
+
     m_firstch.setElementAt(NOTPROCESSED,nodeIndex);
     m_nextsib.setElementAt(NOTPROCESSED,nodeIndex);
     m_prevsib.setElementAt(previousSibling,nodeIndex);
     m_parent.setElementAt(parentIndex,nodeIndex);
-    
-    if(DTM.NULL != parentIndex && 
-       type != DTM.ATTRIBUTE_NODE && 
+
+    if(DTM.NULL != parentIndex &&
+       type != DTM.ATTRIBUTE_NODE &&
        type != DTM.NAMESPACE_NODE)
     {
       // If the DTM parent had no children, this becomes its first child.
       if(NOTPROCESSED == m_firstch.elementAt(parentIndex))
         m_firstch.setElementAt(nodeIndex,parentIndex);
     }
-    
+
     String nsURI = node.getNamespaceURI();
 
     // Deal with the difference between Namespace spec and XSLT
     // definitions of local name. (The former says PIs don't have
     // localnames; the latter says they do.)
-    String localName =  (type == Node.PROCESSING_INSTRUCTION_NODE) ? 
+    String localName =  (type == Node.PROCESSING_INSTRUCTION_NODE) ?
                          node.getNodeName() :
                          node.getLocalName();
-                         
+
     // Hack to make DOM1 sort of work...
-    if(((type == Node.ELEMENT_NODE) || (type == Node.ATTRIBUTE_NODE)) 
+    if(((type == Node.ELEMENT_NODE) || (type == Node.ATTRIBUTE_NODE))
         && null == localName)
       localName = node.getNodeName(); // -sb
-      
+
     ExpandedNameTable exnt = m_expandedNameTable;
 
     // %TBD% Nodes created with the old non-namespace-aware DOM
@@ -285,13 +289,13 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       {
         // warning("DOM 'level 1' node "+node.getNodeName()+" won't be mapped properly in DOM2DTM.");
       }
-    
-    int expandedNameID = (null != localName) 
+
+    int expandedNameID = (null != localName)
        ? exnt.getExpandedTypeID(nsURI, localName, type) :
          exnt.getExpandedTypeID(type);
 
     m_exptype.setElementAt(expandedNameID,nodeIndex);
-    
+
     indexNode(expandedNameID, nodeIndex);
 
     if (DTM.NULL != previousSibling)
@@ -304,7 +308,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
 
     return nodeIndex;
   }
-  
+
   /**
    * Get the number of nodes that have been added.
    */
@@ -312,28 +316,28 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   {
     return m_nodes.size();
   }
-  
+
  /**
    * This method iterates to the next node that will be added to the table.
    * Each call to this method adds a new node to the table, unless the end
    * is reached, in which case it returns null.
    *
-   * @return The true if a next node is found or false if 
+   * @return The true if a next node is found or false if
    *         there are no more nodes.
    */
   protected boolean nextNode()
   {
-    // Non-recursive one-fetch-at-a-time depth-first traversal with 
+    // Non-recursive one-fetch-at-a-time depth-first traversal with
     // attribute/namespace nodes and white-space stripping.
     // Navigating the DOM is simple, navigating the DTM is simple;
     // keeping track of both at once is a trifle baroque but at least
     // we've avoided most of the special cases.
     if (m_nodesAreProcessed)
       return false;
-        
+
     // %REVIEW% Is this local copy Really Useful from a performance
     // point of view?  Or is this a false microoptimization?
-    Node pos=m_pos; 
+    Node pos=m_pos;
     Node next=null;
     int nexttype=NULL;
 
@@ -341,7 +345,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     do
       {
         // Look down to first child.
-        if (pos.hasChildNodes()) 
+        if (pos.hasChildNodes())
           {
             next = pos.getFirstChild();
 
@@ -350,7 +354,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
             if(next!=null && DOCUMENT_TYPE_NODE==next.getNodeType())
               next=next.getNextSibling();
 
-            // Push DTM context -- except for children of Entity References, 
+            // Push DTM context -- except for children of Entity References,
             // which have no DTM equivalent and cause no DTM navigation.
             if(ENTITY_REFERENCE_NODE!=pos.getNodeType())
               {
@@ -361,8 +365,8 @@ public class DOM2DTM extends DTMDefaultBaseIterators
                 {
                   short wsv =
                     m_wsfilter.getShouldStripSpace(makeNodeHandle(m_last_parent),this);
-                  boolean shouldStrip = (DTMWSFilter.INHERIT == wsv) 
-                    ? getShouldStripWhitespace() 
+                  boolean shouldStrip = (DTMWSFilter.INHERIT == wsv)
+                    ? getShouldStripWhitespace()
                     : (DTMWSFilter.STRIP == wsv);
                   pushShouldStripWhitespace(shouldStrip);
                 } // if(m_wsfilter)
@@ -370,7 +374,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
           }
 
         // If that fails, look up and right (but not past root!)
-        else 
+        else
           {
             if(m_last_kid!=NULL)
               {
@@ -379,7 +383,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
                 if(m_firstch.elementAt(m_last_kid)==NOTPROCESSED)
                   m_firstch.setElementAt(NULL,m_last_kid);
               }
-                        
+
             while(m_last_parent != NULL)
               {
                 // %REVIEW% There's probably a more elegant way to
@@ -390,7 +394,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
 
                 if(next!=null)
                   break; // Found it!
-                
+
                 // No next-sibling found. Pop the DOM.
                 pos=pos.getParentNode();
                 if(pos==null)
@@ -402,7 +406,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
                         for(;;); // Freeze right here!
                       }
                   }
-                
+
                 // The only parents in the DTM are Elements.  However,
                 // the DOM could contain EntityReferences.  If we
                 // encounter one, pop it _without_ popping DTM.
@@ -426,10 +430,10 @@ public class DOM2DTM extends DTMDefaultBaseIterators
             if(m_last_parent==NULL)
               next=null;
           }
-                
+
         if(next!=null)
           nexttype=next.getNodeType();
-                
+
         // If it's an entity ref, advance past it.
         //
         // %REVIEW% Should we let this out the door and just suppress it?
@@ -438,22 +442,22 @@ public class DOM2DTM extends DTMDefaultBaseIterators
         if (ENTITY_REFERENCE_NODE == nexttype)
           pos=next;
       }
-    while (ENTITY_REFERENCE_NODE == nexttype); 
-        
+    while (ENTITY_REFERENCE_NODE == nexttype);
+
     // Did we run out of the tree?
     if(next==null)
       {
         m_nextsib.setElementAt(NULL,0);
         m_nodesAreProcessed = true;
         m_pos=null;
-                
+
         if(JJK_DEBUG)
           {
             System.out.println("***** DOM2DTM Crosscheck:");
             for(int i=0;i<m_nodes.size();++i)
               System.out.println(i+":\t"+m_firstch.elementAt(i)+"\t"+m_nextsib.elementAt(i));
           }
-                
+
         return false;
       }
 
@@ -463,20 +467,20 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     // when true will keep the DTM node from being created.
     //
     // DTM only directly records the first DOM node of any logically-contiguous
-    // sequence. The lastTextNode value will be set to the last node in the 
-    // contiguous sequence, and -- AFTER the DTM addNode -- can be used to 
+    // sequence. The lastTextNode value will be set to the last node in the
+    // contiguous sequence, and -- AFTER the DTM addNode -- can be used to
     // advance next over this whole block. Should be simpler than special-casing
     // the above loop for "Was the logically-preceeding sibling a text node".
-    // 
+    //
     // Finally, a DTM node should be considered a CDATASection only if all the
     // contiguous text it covers is CDATASections. The first Text should
     // force DTM to Text.
-        
+
     boolean suppressNode=false;
     Node lastTextNode=null;
 
     nexttype=next.getNodeType();
-        
+
     // nexttype=pos.getNodeType();
     if(TEXT_NODE == nexttype || CDATA_SECTION_NODE == nexttype)
       {
@@ -496,11 +500,11 @@ public class DOM2DTM extends DTMDefaultBaseIterators
             // suppression
             suppressNode &=
               XMLCharacterRecognizer.isWhiteSpace(n.getNodeValue());
-                        
+
             n=logicalNextDOMTextNode(n);
           }
       }
-        
+
     // Special handling for PIs: Some DOMs represent the XML
     // Declaration as a PI. This is officially incorrect, per the DOM
     // spec, but is considered a "wrong but tolerable" temporary
@@ -510,16 +514,16 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       {
         suppressNode = (pos.getNodeName().toLowerCase().equals("xml"));
       }
-        
-        
+
+
     if(!suppressNode)
       {
         // Inserting next. NOTE that we force the node type; for
         // coalesced Text, this records CDATASections adjacent to
         // ordinary Text as Text.
         int nextindex=addNode(next,m_last_parent,m_last_kid,
-			      nexttype);
-	
+                              nexttype);
+
         m_last_kid=nextindex;
 
         if(ELEMENT_NODE == nexttype)
@@ -542,16 +546,16 @@ public class DOM2DTM extends DTMDefaultBaseIterators
 
                     // If the xml: prefix is explicitly declared
                     // we don't need to synthesize one.
-		    //
-		    // NOTE that XML Namespaces were not originally
-		    // defined as being namespace-aware (grrr), and
-		    // while the W3C is planning to fix this it's
-		    // safer for now to test the QName and trust the
-		    // parsers to prevent anyone from redefining the
-		    // reserved xmlns: prefix
+                    //
+                    // NOTE that XML Namespaces were not originally
+                    // defined as being namespace-aware (grrr), and
+                    // while the W3C is planning to fix this it's
+                    // safer for now to test the QName and trust the
+                    // parsers to prevent anyone from redefining the
+                    // reserved xmlns: prefix
                     if(!m_processedFirstElement
                        && "xmlns:xml".equals(attrs.item(i).getNodeName()))
-                      m_processedFirstElement=true; 
+                      m_processedFirstElement=true;
                   }
                 // Terminate list of attrs, and make sure they aren't
                 // considered children of the element
@@ -565,10 +569,10 @@ public class DOM2DTM extends DTMDefaultBaseIterators
               // being a default attribute defined by the XML
               // Namespaces spec rather than by the DTD.
               attrIndex=addNode(new DOM2DTMdefaultNamespaceDeclarationNode(
-																	(Element)next,"xml",NAMESPACE_DECL_NS,
-																	makeNodeHandle(((attrIndex==NULL)?nextindex:attrIndex)+1)
-																	),
-                                nextindex,attrIndex,NULL);      
+                                                                                                                                        (Element)next,"xml",NAMESPACE_DECL_NS,
+                                                                                                                                        makeNodeHandle(((attrIndex==NULL)?nextindex:attrIndex)+1)
+                                                                                                                                        ),
+                                nextindex,attrIndex,NULL);
               m_firstch.setElementAt(DTM.NULL,attrIndex);
               m_processedFirstElement=true;
             }
@@ -581,14 +585,14 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     if(TEXT_NODE == nexttype || CDATA_SECTION_NODE == nexttype)
       {
         // %TBD% If nexttype was forced to TEXT, patch the DTM node
-                
+
         next=lastTextNode;      // Advance the DOM cursor over contiguous text
       }
-        
+
     // Remember where we left off.
     m_pos=next;
     return true;
-  }  
+  }
 
 
   /**
@@ -648,7 +652,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    * on later nodes in large documents. That might also imply improving
    * this call to handle nodes which would be in this DTM but
    * have not yet been built, which might or might not be a Good Thing.</p>
-   * 
+   *
    * %REVIEW% This relies on being able to test node-identity via
    * object-identity. DTM2DOM proxying is a great example of a case where
    * that doesn't work. DOM Level 3 will provide the isSameNode() method
@@ -662,11 +666,11 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   {
     if (null != node)
     {
-      int len = m_nodes.size();        
+      int len = m_nodes.size();
       boolean isMore;
       int i = 0;
       do
-      {          
+      {
         for (; i < len; i++)
         {
           if (m_nodes.elementAt(i) == node)
@@ -674,13 +678,13 @@ public class DOM2DTM extends DTMDefaultBaseIterators
         }
 
         isMore = nextNode();
-  
+
         len = m_nodes.size();
-            
-      } 
+
+      }
       while(isMore || i < len);
     }
-    
+
     return DTM.NULL;
   }
 
@@ -688,7 +692,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    * getHandleFromNode, intended to be usable by the public.
    *
    * <p>%OPT% This will be pretty slow.</p>
-   * 
+   *
    * %REVIEW% This relies on being able to test node-identity via
    * object-identity. DTM2DOM proxying is a great example of a case where
    * that doesn't work. DOM Level 3 will provide the isSameNode() method
@@ -725,7 +729,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
             {
               if(cursor==m_root)
                 // We know this node; find its handle.
-                return getHandleFromNode(node); 
+                return getHandleFromNode(node);
             } // for ancestors of node
         } // if node and m_root in same Document
     } // if node!=null
@@ -766,13 +770,13 @@ public class DOM2DTM extends DTMDefaultBaseIterators
         // Assume this can not be null.
         type = _type(identity);
 
-				// %REVIEW%
-				// Should namespace nodes be retrievable DOM-style as attrs?
-				// If not we need a separate function... which may be desirable
-				// architecturally, but which is ugly from a code point of view.
-				// (If we REALLY insist on it, this code should become a subroutine
-				// of both -- retrieve the node, then test if the type matches
-				// what you're looking for.)
+                                // %REVIEW%
+                                // Should namespace nodes be retrievable DOM-style as attrs?
+                                // If not we need a separate function... which may be desirable
+                                // architecturally, but which is ugly from a code point of view.
+                                // (If we REALLY insist on it, this code should become a subroutine
+                                // of both -- retrieve the node, then test if the type matches
+                                // what you're looking for.)
         if (type == DTM.ATTRIBUTE_NODE || type==DTM.NAMESPACE_NODE)
         {
           Node node = lookupNode(identity);
@@ -786,7 +790,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
           if (nodeuri.equals(namespaceURI) && name.equals(nodelocalname))
             return makeNodeHandle(identity);
         }
-				
+
         else // if (DTM.NAMESPACE_NODE != type)
         {
           break;
@@ -811,25 +815,25 @@ public class DOM2DTM extends DTMDefaultBaseIterators
 
     int type = getNodeType(nodeHandle);
     Node node = getNode(nodeHandle);
-    // %TBD% If an element only has one text node, we should just use it 
+    // %TBD% If an element only has one text node, we should just use it
     // directly.
-    if(DTM.ELEMENT_NODE == type || DTM.DOCUMENT_NODE == type 
+    if(DTM.ELEMENT_NODE == type || DTM.DOCUMENT_NODE == type
     || DTM.DOCUMENT_FRAGMENT_NODE == type)
     {
       FastStringBuffer buf = StringBufferPool.get();
       String s;
-  
+
       try
       {
         getNodeData(node, buf);
-  
+
         s = (buf.length() > 0) ? buf.toString() : "";
       }
       finally
       {
         StringBufferPool.free(buf);
       }
-  
+
       return m_xstrf.newstr( s );
     }
     else if(TEXT_NODE == type || CDATA_SECTION_NODE == type)
@@ -854,7 +858,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     else
       return m_xstrf.newstr( node.getNodeValue() );
   }
-  
+
   /**
    * Determine if the string-value of a node is whitespace
    *
@@ -864,9 +868,9 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    */
   public boolean isWhitespace(int nodeHandle)
   {
-  	int type = getNodeType(nodeHandle);
+        int type = getNodeType(nodeHandle);
     Node node = getNode(nodeHandle);
-  	if(TEXT_NODE == type || CDATA_SECTION_NODE == type)
+        if(TEXT_NODE == type || CDATA_SECTION_NODE == type)
     {
       // If this is a DTM text node, it may be made of multiple DOM text
       // nodes -- including navigating into Entity References. DOM2DTM
@@ -887,13 +891,13 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     }
     return false;
   }
-  
+
   /**
    * Retrieve the text content of a DOM subtree, appending it into a
    * user-supplied FastStringBuffer object. Note that attributes are
    * not considered part of the content of an element.
    * <p>
-   * There are open questions regarding whitespace stripping. 
+   * There are open questions regarding whitespace stripping.
    * Currently we make no special effort in that regard, since the standard
    * DOM doesn't yet provide DTD-based information to distinguish
    * whitespace-in-element-context from genuine #PCDATA. Note that we
@@ -928,11 +932,11 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     break;
     case Node.TEXT_NODE :
     case Node.CDATA_SECTION_NODE :
-    case Node.ATTRIBUTE_NODE :	// Never a child but might be our starting node
+    case Node.ATTRIBUTE_NODE :  // Never a child but might be our starting node
       buf.append(node.getNodeValue());
       break;
     case Node.PROCESSING_INSTRUCTION_NODE :
-      // warning(XPATHErrorResources.WG_PARSING_AND_PREPARING);        
+      // warning(XPATHErrorResources.WG_PARSING_AND_PREPARING);
       break;
     default :
       // ignore
@@ -1026,19 +1030,19 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       String newname=newnode.getLocalName();
       if (null == newname)
       {
-	// XSLT treats PIs, and possibly other things, as having QNames.
-	String qname = newnode.getNodeName();
-	if('#'==qname.charAt(0))
-	{
-	  //  Match old default for this function
-	  // This conversion may or may not be necessary
-	  newname="";
-	}
-	else
-	{
-	  int index = qname.indexOf(':');
-	  newname = (index < 0) ? qname : qname.substring(index + 1);
-	}
+        // XSLT treats PIs, and possibly other things, as having QNames.
+        String qname = newnode.getNodeName();
+        if('#'==qname.charAt(0))
+        {
+          //  Match old default for this function
+          // This conversion may or may not be necessary
+          newname="";
+        }
+        else
+        {
+          int index = qname.indexOf(':');
+          newname = (index < 0) ? qname : qname.substring(index + 1);
+        }
       }
       return newname;
     }
@@ -1053,23 +1057,23 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       case DTM.ENTITY_REFERENCE_NODE :
       case DTM.NAMESPACE_NODE :
       case DTM.PROCESSING_INSTRUCTION_NODE :
-	{
-	  Node node = getNode(nodeHandle);
-	  
-	  // assume not null.
-	  name = node.getLocalName();
-	  
-	  if (null == name)
-	  {
-	    String qname = node.getNodeName();
-	    int index = qname.indexOf(':');
-	    
-	    name = (index < 0) ? qname : qname.substring(index + 1);
-	  }
-	}
-	break;
+        {
+          Node node = getNode(nodeHandle);
+
+          // assume not null.
+          name = node.getLocalName();
+
+          if (null == name)
+          {
+            String qname = node.getNodeName();
+            int index = qname.indexOf(':');
+
+            name = (index < 0) ? qname : qname.substring(index + 1);
+          }
+        }
+        break;
       default :
-	name = "";
+        name = "";
       }
       return name;
     }
@@ -1149,7 +1153,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     {
       String nsuri;
       short type = getNodeType(nodeHandle);
-      
+
       switch (type)
       {
       case DTM.ATTRIBUTE_NODE :
@@ -1157,29 +1161,29 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       case DTM.ENTITY_REFERENCE_NODE :
       case DTM.NAMESPACE_NODE :
       case DTM.PROCESSING_INSTRUCTION_NODE :
-	{
-	  Node node = getNode(nodeHandle);
-	  
-	  // assume not null.
-	  nsuri = node.getNamespaceURI();
-	  
-	  // %TBD% Handle DOM1?
-	}
-	break;
+        {
+          Node node = getNode(nodeHandle);
+
+          // assume not null.
+          nsuri = node.getNamespaceURI();
+
+          // %TBD% Handle DOM1?
+        }
+        break;
       default :
-	nsuri = null;
+        nsuri = null;
       }
 
       return nsuri;
     }
-    
+
   }
-  
+
   /** Utility function: Given a DOM Text node, determine whether it is
    * logically followed by another Text or CDATASection node. This may
    * involve traversing into Entity References.
-   * 
-   * %REVIEW% DOM Level 3 is expected to add functionality which may 
+   *
+   * %REVIEW% DOM Level 3 is expected to add functionality which may
    * allow us to retire this.
    */
   private Node logicalNextDOMTextNode(Node n)
@@ -1232,10 +1236,10 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     // identity. Inlined it.
     int type = _exptype(makeNodeIdentity(nodeHandle));
     type=(NULL != type) ? getNodeType(nodeHandle) : NULL;
-    
+
     if(TEXT_NODE!=type && CDATA_SECTION_NODE!=type)
       return getNode(nodeHandle).getNodeValue();
-    
+
     // If this is a DTM text node, it may be made of multiple DOM text
     // nodes -- including navigating into Entity References. DOM2DTM
     // records the first node in the sequence and requires that we
@@ -1247,7 +1251,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     Node n=logicalNextDOMTextNode(node);
     if(n==null)
       return node.getNodeValue();
-    
+
     FastStringBuffer buf = StringBufferPool.get();
         buf.append(node.getNodeValue());
     while(n!=null)
@@ -1342,16 +1346,16 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   public int getElementById(String elementId)
   {
 
-    Document doc = (m_root.getNodeType() == Node.DOCUMENT_NODE) 
+    Document doc = (m_root.getNodeType() == Node.DOCUMENT_NODE)
         ? (Document) m_root : m_root.getOwnerDocument();
-        
+
     if(null != doc)
     {
       Node elem = doc.getElementById(elementId);
       if(null != elem)
       {
         int elemHandle = getHandleFromNode(elem);
-        
+
         if(DTM.NULL == elemHandle)
         {
           int identity = m_nodes.size()-1;
@@ -1365,10 +1369,10 @@ public class DOM2DTM extends DTMDefaultBaseIterators
             }
            }
         }
-        
+
         return elemHandle;
       }
-    
+
     }
     return DTM.NULL;
   }
@@ -1411,13 +1415,13 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   {
 
     String url = "";
-    Document doc = (m_root.getNodeType() == Node.DOCUMENT_NODE) 
+    Document doc = (m_root.getNodeType() == Node.DOCUMENT_NODE)
         ? (Document) m_root : m_root.getOwnerDocument();
 
     if (null != doc)
     {
       DocumentType doctype = doc.getDoctype();
-  
+
       if (null != doctype)
       {
         NamedNodeMap entities = doctype.getEntities();
@@ -1426,31 +1430,31 @@ public class DOM2DTM extends DTMDefaultBaseIterators
         Entity entity = (Entity) entities.getNamedItem(name);
         if(null == entity)
           return url;
-        
+
         String notationName = entity.getNotationName();
-  
+
         if (null != notationName)  // then it's unparsed
         {
-          // The draft says: "The XSLT processor may use the public 
-          // identifier to generate a URI for the entity instead of the URI 
-          // specified in the system identifier. If the XSLT processor does 
-          // not use the public identifier to generate the URI, it must use 
-          // the system identifier; if the system identifier is a relative 
-          // URI, it must be resolved into an absolute URI using the URI of 
-          // the resource containing the entity declaration as the base 
+          // The draft says: "The XSLT processor may use the public
+          // identifier to generate a URI for the entity instead of the URI
+          // specified in the system identifier. If the XSLT processor does
+          // not use the public identifier to generate the URI, it must use
+          // the system identifier; if the system identifier is a relative
+          // URI, it must be resolved into an absolute URI using the URI of
+          // the resource containing the entity declaration as the base
           // URI [RFC2396]."
           // So I'm falling a bit short here.
           url = entity.getSystemId();
-  
+
           if (null == url)
           {
             url = entity.getPublicId();
           }
           else
           {
-            // This should be resolved to an absolute URL, but that's hard 
+            // This should be resolved to an absolute URL, but that's hard
             // to do from here.
-          }        
+          }
         }
       }
     }
@@ -1488,7 +1492,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   public void setIncrementalSAXSource(IncrementalSAXSource source)
   {
   }
-  
+
   /** getContentHandler returns "our SAX builder" -- the thing that
    * someone else should send SAX events to in order to extend this
    * DTM model.
@@ -1502,7 +1506,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   {
       return null;
   }
-  
+
   /**
    * Return this DTM's lexical handler.
    *
@@ -1519,7 +1523,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
     return null;
   }
 
-  
+
   /**
    * Return this DTM's EntityResolver.
    *
@@ -1530,7 +1534,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
 
     return null;
   }
-  
+
   /**
    * Return this DTM's DTDHandler.
    *
@@ -1552,7 +1556,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
 
     return null;
   }
-  
+
   /**
    * Return this DTM's DeclHandler.
    *
@@ -1562,7 +1566,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   {
 
     return null;
-  }  
+  }
 
   /** @return true iff we're building this model incrementally (eg
    * we're partnered with a IncrementalSAXSource) and thus require that the
@@ -1575,7 +1579,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   }
 
   // ========== Direct SAX Dispatch, for optimization purposes ========
-  
+
   /**
    * Returns whether the specified <var>ch</var> conforms to the XML 1.0 definition
    * of whitespace.  Refer to <A href="http://www.w3.org/TR/1998/REC-xml-19980210#NT-S">
@@ -1602,7 +1606,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    * @throws org.xml.sax.SAXException
    */
   public void dispatchCharactersEvents(
-          int nodeHandle, org.xml.sax.ContentHandler ch, 
+          int nodeHandle, org.xml.sax.ContentHandler ch,
           boolean normalize)
             throws org.xml.sax.SAXException
   {
@@ -1628,13 +1632,13 @@ public class DOM2DTM extends DTMDefaultBaseIterators
           }
     }
   }
-  
+
   /**
    * Retrieve the text content of a DOM subtree, appending it into a
    * user-supplied FastStringBuffer object. Note that attributes are
    * not considered part of the content of an element.
    * <p>
-   * There are open questions regarding whitespace stripping. 
+   * There are open questions regarding whitespace stripping.
    * Currently we make no special effort in that regard, since the standard
    * DOM doesn't yet provide DTD-based information to distinguish
    * whitespace-in-element-context from genuine #PCDATA. Note that we
@@ -1649,8 +1653,8 @@ public class DOM2DTM extends DTMDefaultBaseIterators
    * @param node Node whose subtree is to be walked, gathering the
    * contents of all Text or CDATASection nodes.
    */
-  protected static void dispatchNodeData(Node node, 
-                                         org.xml.sax.ContentHandler ch, 
+  protected static void dispatchNodeData(Node node,
+                                         org.xml.sax.ContentHandler ch,
                                          int depth)
             throws org.xml.sax.SAXException
   {
@@ -1673,7 +1677,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       if(0 != depth)
         break;
         // NOTE: Because this operation works in the DOM space, it does _not_ attempt
-        // to perform Text Coalition. That should only be done in DTM space. 
+        // to perform Text Coalition. That should only be done in DTM space.
     case Node.TEXT_NODE :
     case Node.CDATA_SECTION_NODE :
     case Node.ATTRIBUTE_NODE :
@@ -1688,16 +1692,16 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       }
       break;
 //    /* case Node.PROCESSING_INSTRUCTION_NODE :
-//      // warning(XPATHErrorResources.WG_PARSING_AND_PREPARING);        
+//      // warning(XPATHErrorResources.WG_PARSING_AND_PREPARING);
 //      break; */
     default :
       // ignore
       break;
     }
   }
-  
+
   TreeWalker m_walker = new TreeWalker(null);
-  
+
   /**
    * Directly create SAX parser events from a subtree.
    *
@@ -1711,13 +1715,13 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   {
     TreeWalker treeWalker = m_walker;
     ContentHandler prevCH = treeWalker.getContentHandler();
-    
+
     if(null != prevCH)
     {
       treeWalker = new TreeWalker(null);
     }
     treeWalker.setContentHandler(ch);
-    
+
     try
     {
       Node node = getNode(nodeHandle);
@@ -1728,7 +1732,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
       treeWalker.setContentHandler(null);
     }
   }
-  
+
   public interface CharacterNodeHandler
   {
     public void characters(Node node)
@@ -1745,7 +1749,7 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   public void setProperty(String property, Object value)
   {
   }
-  
+
   /**
    * No source information is available for DOM2DTM, so return
    * <code>null</code> here.
@@ -1759,5 +1763,3 @@ public class DOM2DTM extends DTMDefaultBaseIterators
   }
 
 }
-
-

@@ -1,8 +1,26 @@
 /*
- * @(#)PopupFactory.java	1.26 05/02/22
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing;
@@ -15,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static javax.swing.ClientPropertyKey.PopupFactory_FORCE_HEAVYWEIGHT_POPUP;
 
 /**
  * <code>PopupFactory</code>, as the name implies, is used to obtain
@@ -34,7 +53,6 @@ import java.util.Map;
  *
  * @see Popup
  *
- * @version 1.26 02/22/05
  * @since 1.4
  */
 public class PopupFactory {
@@ -43,7 +61,8 @@ public class PopupFactory {
      * <code>AppContext</code>. This is the key used in the
      * <code>AppContext</code> to locate the <code>PopupFactory</code>.
      */
-    private static final Object SharedInstanceKey = new Object(); // PopupFactory.SharedInstanceKey
+    private static final Object SharedInstanceKey =
+        new StringBuffer("PopupFactory.SharedInstanceKey");
 
     /**
      * Max number of items to store in any one particular cache.
@@ -69,12 +88,6 @@ public class PopupFactory {
      * Default type of Popup to create.
      */
     private int popupType = LIGHT_WEIGHT_POPUP;
-
-    /**
-     * Key used for client property to force heavy weight popups for a
-     * component.
-     */
-    static final Object forceHeavyWeightPopupKey = new Object(); // __force_heavy_weight_popup__
 
 
     /**
@@ -105,7 +118,7 @@ public class PopupFactory {
                          SharedInstanceKey);
 
         if (factory == null) {
-            factory = new PopupFactory(); 
+            factory = new PopupFactory();
             setSharedInstance(factory);
         }
         return factory;
@@ -153,7 +166,7 @@ public class PopupFactory {
                           "Popup.getPopup must be passed non-null contents");
         }
 
-	int popupType = getPopupType(owner, contents, x, y);
+        int popupType = getPopupType(owner, contents, x, y);
         Popup popup = getPopup(owner, contents, x, y, popupType);
 
         if (popup == null) {
@@ -170,9 +183,9 @@ public class PopupFactory {
                              int ownerX, int ownerY) {
         int popupType = getPopupType();
 
-	if (owner == null || invokerInHeavyWeightPopup(owner)) {
-	    popupType = HEAVY_WEIGHT_POPUP;
-	}
+        if (owner == null || invokerInHeavyWeightPopup(owner)) {
+            popupType = HEAVY_WEIGHT_POPUP;
+        }
         else if (popupType == LIGHT_WEIGHT_POPUP &&
                  !(contents instanceof JToolTip) &&
                  !(contents instanceof JPopupMenu)) {
@@ -186,7 +199,13 @@ public class PopupFactory {
         while (c != null) {
             if (c instanceof JComponent) {
                 if (((JComponent)c).getClientProperty(
-                            forceHeavyWeightPopupKey) == Boolean.TRUE) {
+                            PopupFactory_FORCE_HEAVYWEIGHT_POPUP) == Boolean.TRUE) {
+                    popupType = HEAVY_WEIGHT_POPUP;
+                    break;
+                }
+            } else if (c instanceof Window) {
+                Window w = (Window) c;
+                if (!w.isOpaque() || w.getOpacity() < 1 || w.getShape() != null) {
                     popupType = HEAVY_WEIGHT_POPUP;
                     break;
                 }
@@ -194,7 +213,7 @@ public class PopupFactory {
             c = c.getParent();
         }
 
-	return popupType;
+        return popupType;
     }
 
     /**
@@ -207,14 +226,14 @@ public class PopupFactory {
             return getHeadlessPopup(owner, contents, ownerX, ownerY);
         }
 
-	switch(popupType) {
-	case LIGHT_WEIGHT_POPUP:
-	    return getLightWeightPopup(owner, contents, ownerX, ownerY);
-	case MEDIUM_WEIGHT_POPUP:
-	    return getMediumWeightPopup(owner, contents, ownerX, ownerY);
-	case HEAVY_WEIGHT_POPUP:
-	    return getHeavyWeightPopup(owner, contents, ownerX, ownerY);
-	}
+        switch(popupType) {
+        case LIGHT_WEIGHT_POPUP:
+            return getLightWeightPopup(owner, contents, ownerX, ownerY);
+        case MEDIUM_WEIGHT_POPUP:
+            return getMediumWeightPopup(owner, contents, ownerX, ownerY);
+        case HEAVY_WEIGHT_POPUP:
+            return getHeavyWeightPopup(owner, contents, ownerX, ownerY);
+        }
         return null;
     }
 
@@ -234,7 +253,7 @@ public class PopupFactory {
         return LightWeightPopup.getLightWeightPopup(owner, contents, ownerX,
                                                     ownerY);
     }
-    
+
     /**
      * Creates a medium weight popup.
      */
@@ -261,15 +280,15 @@ public class PopupFactory {
      * <code>Popup</code>.
      */
     private boolean invokerInHeavyWeightPopup(Component i) {
-	if (i != null) {
-	    Container parent;
-	    for(parent = i.getParent() ; parent != null ; parent =
-		    parent.getParent()) {
-		if (parent instanceof Popup.HeavyWeightWindow) {
-		    return true;
+        if (i != null) {
+            Container parent;
+            for(parent = i.getParent() ; parent != null ; parent =
+                    parent.getParent()) {
+                if (parent instanceof Popup.HeavyWeightWindow) {
+                    return true;
                 }
-	    }
-	}
+            }
+        }
         return false;
     }
 
@@ -278,7 +297,8 @@ public class PopupFactory {
      * Popup implementation that uses a Window as the popup.
      */
     private static class HeavyWeightPopup extends Popup {
-        private static final Object heavyWeightPopupCacheKey = new Object(); // PopupFactory.heavyWeightPopupCache
+        private static final Object heavyWeightPopupCacheKey =
+                 new StringBuffer("PopupFactory.heavyWeightPopupCache");
 
         /**
          * Returns either a new or recycled <code>Popup</code> containing
@@ -299,9 +319,9 @@ public class PopupFactory {
                 if(contents instanceof JPopupMenu) {
                     JPopupMenu jpm = (JPopupMenu) contents;
                     Component popComps[] = jpm.getComponents();
-                    for(int i=0;i<popComps.length;i++) {
-                        if(!(popComps[i] instanceof MenuElement) &&
-                           !(popComps[i] instanceof JSeparator)) {
+                    for (Component popComp : popComps) {
+                        if (!(popComp instanceof MenuElement) &&
+                                !(popComp instanceof JSeparator)) {
                             focusPopup = true;
                             break;
                         }
@@ -309,7 +329,7 @@ public class PopupFactory {
                 }
             }
 
-            if (popup == null || 
+            if (popup == null ||
                 ((JWindow) popup.getComponent())
                  .getFocusableWindowState() != focusPopup) {
 
@@ -343,17 +363,16 @@ public class PopupFactory {
          */
         private static HeavyWeightPopup getRecycledHeavyWeightPopup(Window w) {
             synchronized (HeavyWeightPopup.class) {
-                List cache;
-                Map heavyPopupCache = getHeavyWeightPopupCache();
+                List<HeavyWeightPopup> cache;
+                Map<Window, List<HeavyWeightPopup>> heavyPopupCache = getHeavyWeightPopupCache();
 
                 if (heavyPopupCache.containsKey(w)) {
-                    cache = (List)heavyPopupCache.get(w);
+                    cache = heavyPopupCache.get(w);
                 } else {
                     return null;
                 }
-                int c;
-                if ((c = cache.size()) > 0) {
-                    HeavyWeightPopup r = (HeavyWeightPopup)cache.get(0);
+                if (cache.size() > 0) {
+                    HeavyWeightPopup r = cache.get(0);
                     cache.remove(0);
                     return r;
                 }
@@ -366,13 +385,13 @@ public class PopupFactory {
          * <code>Window</code> to a <code>List</code> of
          * <code>HeavyWeightPopup</code>s.
          */
-        private static Map getHeavyWeightPopupCache() {
+        private static Map<Window, List<HeavyWeightPopup>> getHeavyWeightPopupCache() {
             synchronized (HeavyWeightPopup.class) {
-                Map cache = (Map)SwingUtilities.appContextGet(
+                Map<Window, List<HeavyWeightPopup>> cache = (Map<Window, List<HeavyWeightPopup>>)SwingUtilities.appContextGet(
                                   heavyWeightPopupCacheKey);
 
                 if (cache == null) {
-                    cache = new HashMap(2);
+                    cache = new HashMap<Window, List<HeavyWeightPopup>>(2);
                     SwingUtilities.appContextPut(heavyWeightPopupCacheKey,
                                                  cache);
                 }
@@ -385,13 +404,13 @@ public class PopupFactory {
          */
         private static void recycleHeavyWeightPopup(HeavyWeightPopup popup) {
             synchronized (HeavyWeightPopup.class) {
-                List cache;
-                Object window = SwingUtilities.getWindowAncestor(
+                List<HeavyWeightPopup> cache;
+                Window window = SwingUtilities.getWindowAncestor(
                                      popup.getComponent());
-                Map heavyPopupCache = getHeavyWeightPopupCache();
+                Map<Window, List<HeavyWeightPopup>> heavyPopupCache = getHeavyWeightPopupCache();
 
                 if (window instanceof Popup.DefaultFrame ||
-                                      !((Window)window).isVisible()) {
+                                      !window.isVisible()) {
                     // If the Window isn't visible, we don't cache it as we
                     // likely won't ever get a windowClosed event to clean up.
                     // We also don't cache DefaultFrames as this indicates
@@ -400,28 +419,27 @@ public class PopupFactory {
                     popup._dispose();
                     return;
                 } else if (heavyPopupCache.containsKey(window)) {
-                    cache = (List)heavyPopupCache.get(window);
+                    cache = heavyPopupCache.get(window);
                 } else {
-                    cache = new ArrayList();
+                    cache = new ArrayList<HeavyWeightPopup>();
                     heavyPopupCache.put(window, cache);
                     // Clean up if the Window is closed
-                    final Window w = (Window)window;
+                    final Window w = window;
 
                     w.addWindowListener(new WindowAdapter() {
                         public void windowClosed(WindowEvent e) {
-                            List popups;
+                            List<HeavyWeightPopup> popups;
 
                             synchronized(HeavyWeightPopup.class) {
-                                Map heavyPopupCache2 =
+                                Map<Window, List<HeavyWeightPopup>> heavyPopupCache2 =
                                               getHeavyWeightPopupCache();
 
-                                popups = (List)heavyPopupCache2.remove(w);
+                                popups = heavyPopupCache2.remove(w);
                             }
                             if (popups != null) {
                                 for (int counter = popups.size() - 1;
                                                    counter >= 0; counter--) {
-                                    ((HeavyWeightPopup)popups.get(counter)).
-                                                       _dispose();
+                                    popups.get(counter)._dispose();
                                 }
                             }
                         }
@@ -520,10 +538,9 @@ public class PopupFactory {
                 Window[] ownedWindows = w.getOwnedWindows();
                 if(ownedWindows != null) {
                     Rectangle bnd = component.getBounds();
-                    for(int i=0; i<ownedWindows.length;i++) {
-                        Window owned = ownedWindows[i];
-                        if (owned.isVisible() &&
-                            bnd.intersects(owned.getBounds())) {
+                    for (Window window : ownedWindows) {
+                        if (window.isVisible() &&
+                                bnd.intersects(window.getBounds())) {
 
                             return true;
                         }
@@ -534,56 +551,56 @@ public class PopupFactory {
         }
 
         /**
-         * Returns true if the Popup can fit on the screen.
+         * Returns true if popup can fit the screen and the owner's top parent.
+         * It determines can popup be lightweight or mediumweight.
          */
         boolean fitsOnScreen() {
+            boolean result = false;
             Component component = getComponent();
-
             if (owner != null && component != null) {
-                Container parent;
-                int width = component.getWidth();
-                int height = component.getHeight();
-                for(parent = owner.getParent(); parent != null ;
-                    parent = parent.getParent()) {
-                    if (parent instanceof JFrame ||
-                        parent instanceof JDialog ||
-                        parent instanceof JWindow) {
+                int popupWidth = component.getWidth();
+                int popupHeight = component.getHeight();
 
-                        Rectangle r = parent.getBounds();
-                        Insets i = parent.getInsets();
-                        r.x += i.left;
-                        r.y += i.top;
-                        r.width -= (i.left + i.right);
-                        r.height -= (i.top + i.bottom);
+                Container parent = (Container) SwingUtilities.getRoot(owner);
+                if (parent instanceof JFrame ||
+                    parent instanceof JDialog ||
+                    parent instanceof JWindow) {
 
-                        GraphicsConfiguration gc = parent.getGraphicsConfiguration();
+                    Rectangle parentBounds = parent.getBounds();
+                    Insets i = parent.getInsets();
+                    parentBounds.x += i.left;
+                    parentBounds.y += i.top;
+                    parentBounds.width -= i.left + i.right;
+                    parentBounds.height -= i.top + i.bottom;
+
+                    if (JPopupMenu.canPopupOverlapTaskBar()) {
+                        GraphicsConfiguration gc =
+                                parent.getGraphicsConfiguration();
                         Rectangle popupArea = getContainerPopupArea(gc);
-                        return r.intersection(popupArea).contains(x, y, width, height);
-                                                  
-                    } else if (parent instanceof JApplet) {
-                        Rectangle r = parent.getBounds();
-                        Point p  = parent.getLocationOnScreen();
-
-                        r.x = p.x;
-                        r.y = p.y;
-                        return r.contains(x, y, width, height);
-                    } else if (parent instanceof Window || 
-			       parent instanceof Applet) {
-			// No suitable swing component found
-			break;
-		    }
+                        result = parentBounds.intersection(popupArea)
+                                .contains(x, y, popupWidth, popupHeight);
+                    } else {
+                        result = parentBounds
+                                .contains(x, y, popupWidth, popupHeight);
+                    }
+                } else if (parent instanceof JApplet) {
+                    Rectangle parentBounds = parent.getBounds();
+                    Point p = parent.getLocationOnScreen();
+                    parentBounds.x = p.x;
+                    parentBounds.y = p.y;
+                    result = parentBounds.contains(x, y, popupWidth, popupHeight);
                 }
             }
-            return false;
+            return result;
         }
 
-        Rectangle getContainerPopupArea(GraphicsConfiguration gc) { 
+        Rectangle getContainerPopupArea(GraphicsConfiguration gc) {
             Rectangle screenBounds;
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             Insets insets;
             if(gc != null) {
-                // If we have GraphicsConfiguration use it 
-                // to get screen bounds 
+                // If we have GraphicsConfiguration use it
+                // to get screen bounds
                 screenBounds = gc.getBounds();
                 insets = toolkit.getScreenInsets(gc);
             } else {
@@ -627,7 +644,8 @@ public class PopupFactory {
      * Popup implementation that uses a JPanel as the popup.
      */
     private static class LightWeightPopup extends ContainerPopup {
-        private static final Object lightWeightPopupCacheKey = new Object(); // PopupFactory.lightPopupCache
+        private static final Object lightWeightPopupCacheKey =
+                         new StringBuffer("PopupFactory.lightPopupCache");
 
         /**
          * Returns a light weight <code>Popup</code> implementation. If
@@ -642,7 +660,7 @@ public class PopupFactory {
                 popup = new LightWeightPopup();
             }
             popup.reset(owner, contents, ownerX, ownerY);
-            if (!popup.fitsOnScreen() || 
+            if (!popup.fitsOnScreen() ||
                  popup.overlappedByOwnedWindow()) {
                 popup.hide();
                 return null;
@@ -653,11 +671,11 @@ public class PopupFactory {
         /**
          * Returns the cache to use for heavy weight popups.
          */
-        private static List getLightWeightPopupCache() {
-            List cache = (List)SwingUtilities.appContextGet(
+        private static List<LightWeightPopup> getLightWeightPopupCache() {
+            List<LightWeightPopup> cache = (List<LightWeightPopup>)SwingUtilities.appContextGet(
                                    lightWeightPopupCacheKey);
             if (cache == null) {
-                cache = new ArrayList();
+                cache = new ArrayList<LightWeightPopup>();
                 SwingUtilities.appContextPut(lightWeightPopupCacheKey, cache);
             }
             return cache;
@@ -668,7 +686,7 @@ public class PopupFactory {
          */
         private static void recycleLightWeightPopup(LightWeightPopup popup) {
             synchronized (LightWeightPopup.class) {
-                List lightPopupCache = getLightWeightPopupCache();
+                List<LightWeightPopup> lightPopupCache = getLightWeightPopupCache();
                 if (lightPopupCache.size() < MAX_CACHE_SIZE) {
                     lightPopupCache.add(popup);
                 }
@@ -681,11 +699,9 @@ public class PopupFactory {
          */
         private static LightWeightPopup getRecycledLightWeightPopup() {
             synchronized (LightWeightPopup.class) {
-                List lightPopupCache = getLightWeightPopupCache();
-                int c;
-                if((c = lightPopupCache.size()) > 0) {
-                    LightWeightPopup r = (LightWeightPopup)lightPopupCache.
-                                               get(0);
+                List<LightWeightPopup> lightPopupCache = getLightWeightPopupCache();
+                if (lightPopupCache.size() > 0) {
+                    LightWeightPopup r = lightPopupCache.get(0);
                     lightPopupCache.remove(0);
                     return r;
                 }
@@ -707,13 +723,13 @@ public class PopupFactory {
             recycleLightWeightPopup(this);
         }
         public void show() {
-	    Container parent = null;
+            Container parent = null;
 
-	    if (owner != null) {
-		parent = (owner instanceof Container? (Container)owner : owner.getParent());
+            if (owner != null) {
+                parent = (owner instanceof Container? (Container)owner : owner.getParent());
             }
 
-            // Try to find a JLayeredPane and Window to add 
+            // Try to find a JLayeredPane and Window to add
             for (Container p = parent; p != null; p = p.getParent()) {
                 if (p instanceof JRootPane) {
                     if (p.getParent() instanceof JInternalFrame) {
@@ -741,8 +757,7 @@ public class PopupFactory {
 
             component.setLocation(p.x, p.y);
             if (parent instanceof JLayeredPane) {
-                ((JLayeredPane)parent).add(component,
-                                           JLayeredPane.POPUP_LAYER, 0);
+                parent.add(component, JLayeredPane.POPUP_LAYER, 0);
             } else {
                 parent.add(component);
             }
@@ -767,7 +782,7 @@ public class PopupFactory {
             super.reset(owner, contents, ownerX, ownerY);
 
             JComponent component = (JComponent)getComponent();
-            
+
             component.setOpaque(contents.isOpaque());
             component.setLocation(ownerX, ownerY);
             component.add(contents, BorderLayout.CENTER);
@@ -781,10 +796,11 @@ public class PopupFactory {
      * Popup implementation that uses a Panel as the popup.
      */
     private static class MediumWeightPopup extends ContainerPopup {
-        private static final Object mediumWeightPopupCacheKey = new Object(); // PopupFactory.mediumPopupCache
+        private static final Object mediumWeightPopupCacheKey =
+                             new StringBuffer("PopupFactory.mediumPopupCache");
 
         /** Child of the panel. The contents are added to this. */
-	private JRootPane rootPane;
+        private JRootPane rootPane;
 
 
         /**
@@ -811,12 +827,12 @@ public class PopupFactory {
         /**
          * Returns the cache to use for medium weight popups.
          */
-        private static List getMediumWeightPopupCache() {
-            List cache = (List)SwingUtilities.appContextGet(
+        private static List<MediumWeightPopup> getMediumWeightPopupCache() {
+            List<MediumWeightPopup> cache = (List<MediumWeightPopup>)SwingUtilities.appContextGet(
                                     mediumWeightPopupCacheKey);
 
             if (cache == null) {
-                cache = new ArrayList();
+                cache = new ArrayList<MediumWeightPopup>();
                 SwingUtilities.appContextPut(mediumWeightPopupCacheKey, cache);
             }
             return cache;
@@ -827,7 +843,7 @@ public class PopupFactory {
          */
         private static void recycleMediumWeightPopup(MediumWeightPopup popup) {
             synchronized (MediumWeightPopup.class) {
-                List mediumPopupCache = getMediumWeightPopupCache();
+                List<MediumWeightPopup> mediumPopupCache = getMediumWeightPopupCache();
                 if (mediumPopupCache.size() < MAX_CACHE_SIZE) {
                     mediumPopupCache.add(popup);
                 }
@@ -840,12 +856,9 @@ public class PopupFactory {
          */
         private static MediumWeightPopup getRecycledMediumWeightPopup() {
             synchronized (MediumWeightPopup.class) {
-                java.util.List mediumPopupCache =
-                                     getMediumWeightPopupCache();
-                int c;
-                if ((c=mediumPopupCache.size()) > 0) {
-                    MediumWeightPopup r = (MediumWeightPopup)mediumPopupCache.
-                                                 get(0);
+                List<MediumWeightPopup> mediumPopupCache = getMediumWeightPopupCache();
+                if (mediumPopupCache.size() > 0) {
+                    MediumWeightPopup r = mediumPopupCache.get(0);
                     mediumPopupCache.remove(0);
                     return r;
                 }
@@ -868,10 +881,10 @@ public class PopupFactory {
             Container parent = null;
 
             if (owner != null) {
-		parent = owner.getParent();
+                parent = owner.getParent();
             }
             /*
-              Find the top level window,  
+              Find the top level window,
               if it has a layered pane,
               add to that, otherwise
               add to the window. */
@@ -889,7 +902,7 @@ public class PopupFactory {
                                                                        x, y);
                 component.setVisible(false);
                 component.setLocation(p.x, p.y);
-                ((JLayeredPane)parent).add(component, JLayeredPane.POPUP_LAYER,
+                parent.add(component, JLayeredPane.POPUP_LAYER,
                                            0);
             } else {
                 Point p = SwingUtilities.convertScreenLocationToParent(parent,
@@ -905,13 +918,13 @@ public class PopupFactory {
         Component createComponent(Component owner) {
             Panel component = new MediumWeightComponent();
 
-	    rootPane = new JRootPane();
+            rootPane = new JRootPane();
             // NOTE: this uses setOpaque vs LookAndFeel.installProperty as
             // there is NO reason for the RootPane not to be opaque. For
             // painting to work the contentPane must be opaque, therefor the
             // RootPane can also be opaque.
             rootPane.setOpaque(true);
-	    component.add(rootPane, BorderLayout.CENTER);
+            component.add(rootPane, BorderLayout.CENTER);
             return component;
         }
 

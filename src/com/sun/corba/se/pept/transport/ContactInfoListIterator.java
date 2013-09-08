@@ -1,8 +1,26 @@
 /*
- * @(#)ContactInfoListIterator.java	1.11 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.pept.transport;
@@ -17,7 +35,7 @@ import java.util.Iterator;
  */
 public interface ContactInfoListIterator
     extends
-	Iterator
+        Iterator
 {
     /**
      * The underlying list for this iterator.
@@ -49,15 +67,15 @@ public interface ContactInfoListIterator
      * @return Returns true if the request should be retried.
      */
     public boolean reportException(ContactInfo contactInfo,
-				   RuntimeException exception);
+                                   RuntimeException exception);
 
     /**
      * The exception to report to the presentation block.
      *
      * @return If the iterator reaches the end before the invocation
-     * is successful one returns this exception (previously reported to 
+     * is successful one returns this exception (previously reported to
      * the iterator via {@link #reportException}).
-                           
+
      */
     public RuntimeException getFailureException();
 }

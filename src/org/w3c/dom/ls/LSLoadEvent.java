@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2004 World Wide Web Consortium,
  *
  * (Massachusetts Institute of Technology, European Research Consortium for
@@ -16,8 +45,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.events.Event;
 
 /**
- *  This interface represents a load event object that signals the completion 
- * of a document load. 
+ *  This interface represents a load event object that signals the completion
+ * of a document load.
  * <p>See also the <a href='http://www.w3.org/TR/2004/REC-DOM-Level-3-LS-20040407'>Document Object Model (DOM) Level 3 Load
 and Save Specification</a>.
  */

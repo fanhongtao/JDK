@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,7 +46,6 @@ import java.util.Locale;
  * first time any of these methods is called for fast and efficient access.
  *
  *
- * @version $Revision: 1.2.6.1 $ $Date: 2005/09/09 07:26:14 $
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  */
 public final class HTMLdtd
@@ -373,11 +376,11 @@ public final class HTMLdtd
             _byChar = new Hashtable();
             is = HTMLdtd.class.getResourceAsStream( ENTITIES_RESOURCE );
             if ( is == null ) {
-            	throw new RuntimeException( 
-				    DOMMessageFormatter.formatMessage(
-				    DOMMessageFormatter.SERIALIZER_DOMAIN,
+                throw new RuntimeException(
+                                    DOMMessageFormatter.formatMessage(
+                                    DOMMessageFormatter.SERIALIZER_DOMAIN,
                     "ResourceNotFound", new Object[] {ENTITIES_RESOURCE}));
-            }    
+            }
             reader = new BufferedReader( new InputStreamReader( is, "ASCII" ) );
             line = reader.readLine();
             while ( line != null ) {
@@ -402,10 +405,10 @@ public final class HTMLdtd
             }
             is.close();
         }  catch ( Exception except ) {
-			throw new RuntimeException( 
-				DOMMessageFormatter.formatMessage(
-				DOMMessageFormatter.SERIALIZER_DOMAIN,
-                "ResourceNotLoaded", new Object[] {ENTITIES_RESOURCE, except.toString()}));        	
+                        throw new RuntimeException(
+                                DOMMessageFormatter.formatMessage(
+                                DOMMessageFormatter.SERIALIZER_DOMAIN,
+                "ResourceNotLoaded", new Object[] {ENTITIES_RESOURCE, except.toString()}));
         } finally {
             if ( is != null ) {
                 try {
@@ -552,4 +555,3 @@ public final class HTMLdtd
 
 
 }
-

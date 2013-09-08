@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,28 +37,28 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 /**
- * This class provides a DOM level 2 "helper", which provides services currently 
+ * This class provides a DOM level 2 "helper", which provides services currently
  * not provided be the DOM standard.
- * 
- * This class is a copy of the one in com.sun.org.apache.xml.internal.utils. 
+ *
+ * This class is a copy of the one in com.sun.org.apache.xml.internal.utils.
  * It exists to cut the serializers dependancy on that package.
- * 
+ *
  * The differences from the original class are:
- * it doesn't extend DOMHelper, not depricated, 
+ * it doesn't extend DOMHelper, not depricated,
  * dropped method isNodeAfter(Node node1, Node node2)
  * dropped method parse(InputSource)
  * dropped method supportSAX()
- * dropped method setDocument(doc) 
+ * dropped method setDocument(doc)
  * dropped method checkNode(Node)
  * dropped method getDocument()
  * dropped method getElementByID(String id, Document doc)
  * dropped method getParentOfNode(Node node)
  * dropped field Document m_doc;
  * made class non-public
- *   
- * This class is not a public API, it is only public because it is 
+ *
+ * This class is not a public API, it is only public because it is
  * used in com.sun.org.apache.xml.internal.serializer.
- * 
+ *
  * @xsl.usage internal
  */
 public final class DOM2Helper
@@ -83,12 +87,12 @@ public final class DOM2Helper
 
     return (null == name) ? getLocalNameOfNodeFallback(n) : name;
   }
-  
+
   /**
    * Returns the local name of the given node. If the node's name begins
    * with a namespace prefix, this is the part after the colon; otherwise
    * it's the full node name.
-   * 
+   *
    * This method is copied from com.sun.org.apache.xml.internal.utils.DOMHelper
    *
    * @param n the node to be examined.
@@ -125,7 +129,7 @@ public final class DOM2Helper
   }
 
   /** Field m_useDOM2getNamespaceURI is a compile-time flag which
-   *  gates some of the parser options used to build a DOM -- but 
+   *  gates some of the parser options used to build a DOM -- but
    * that code is commented out at this time and nobody else
    * references it, so I've commented this out as well. */
   //private boolean m_useDOM2getNamespaceURI = false;

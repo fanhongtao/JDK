@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +59,7 @@ public class XBoolean extends XObject
 
     m_val = b;
   }
-  
+
   /**
    * Construct a XBoolean object.
    *
@@ -67,7 +71,7 @@ public class XBoolean extends XObject
     super();
 
     m_val = b.booleanValue();
-    m_obj = b;
+    setObject(b);
   }
 
 
@@ -131,14 +135,14 @@ public class XBoolean extends XObject
   public Object object()
   {
     if(null == m_obj)
-      m_obj = new Boolean(m_val);
+      setObject(new Boolean(m_val));
     return m_obj;
   }
 
   /**
    * Tell if two objects are functionally equal.
    *
-   * @param obj2 Object to compare to this  
+   * @param obj2 Object to compare to this
    *
    * @return True if the two objects are equal
    *
@@ -147,8 +151,8 @@ public class XBoolean extends XObject
   public boolean equals(XObject obj2)
   {
 
-    // In order to handle the 'all' semantics of 
-    // nodeset comparisons, we always call the 
+    // In order to handle the 'all' semantics of
+    // nodeset comparisons, we always call the
     // nodeset function.
     if (obj2.getType() == XObject.CLASS_NODESET)
       return obj2.equals(this);

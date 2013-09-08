@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,25 +33,25 @@ import java.util.Vector;
 public final class MultiHashtable extends Hashtable {
     static final long serialVersionUID = -6151608290510033572L;
     public Object put(Object key, Object value) {
-	Vector vector = (Vector)get(key);
-	if (vector == null)
-	    super.put(key, vector = new Vector());
-	vector.add(value);
-	return vector;
+        Vector vector = (Vector)get(key);
+        if (vector == null)
+            super.put(key, vector = new Vector());
+        vector.add(value);
+        return vector;
     }
-	
+
     public Object maps(Object from, Object to) {
-	if (from == null) return null;
-	final Vector vector = (Vector) get(from);
-	if (vector != null) {
-	    final int n = vector.size();
-	    for (int i = 0; i < n; i++) {
+        if (from == null) return null;
+        final Vector vector = (Vector) get(from);
+        if (vector != null) {
+            final int n = vector.size();
+            for (int i = 0; i < n; i++) {
                 final Object item = vector.elementAt(i);
-		if (item.equals(to)) {
-		    return item;
-		}
-	    }
-	}
-	return null;
+                if (item.equals(to)) {
+                    return item;
+                }
+            }
+        }
+        return null;
     }
 }

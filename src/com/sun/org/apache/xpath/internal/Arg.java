@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,7 +88,7 @@ public class Arg
   {
     m_val = val;
   }
-  
+
   /**
    * Have the object release it's resources.
    * Call only when the variable or argument is going out of scope.
@@ -129,14 +133,14 @@ public class Arg
     m_expression = expr;
   }
 
-  /** 
+  /**
    * True if this variable was added with an xsl:with-param or
    * is added via setParameter.
    */
   private boolean m_isFromWithParam;
 
   /**
-   * Tell if this variable is a parameter passed with a with-param or as 
+   * Tell if this variable is a parameter passed with a with-param or as
    * a top-level parameter.
    */
    public boolean isFromWithParam()
@@ -144,9 +148,9 @@ public class Arg
     return m_isFromWithParam;
    }
 
-  /** 
+  /**
    * True if this variable is currently visible.  To be visible,
-   * a variable needs to come either from xsl:variable or be 
+   * a variable needs to come either from xsl:variable or be
    * a "received" parameter, ie one for which an xsl:param has
    * been encountered.
    * Set at the time the object is constructed and updated as needed.
@@ -160,7 +164,7 @@ public class Arg
    {
     return m_isVisible;
    }
-   
+
   /**
    * Update visibility status of this variable.
    */
@@ -218,16 +222,16 @@ public class Arg
     m_isFromWithParam = false;
     m_expression = null;
   }
-  
+
   /**
-   * Equality function specialized for the variable name.  If the argument 
+   * Equality function specialized for the variable name.  If the argument
    * is not a qname, it will deligate to the super class.
-   * 
+   *
    * @param   obj   the reference object with which to compare.
    * @return  <code>true</code> if this object is the same as the obj
    *          argument; <code>false</code> otherwise.
    */
-  public boolean equals(Object obj) 
+  public boolean equals(Object obj)
   {
     if(obj instanceof QName)
     {

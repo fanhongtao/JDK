@@ -1,13 +1,30 @@
 /*
- * @(#)PrintServiceAttributeEvent.java	1.7 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.print.event;
 
-import java.util.List;
 import javax.print.PrintService;
 import javax.print.attribute.AttributeSetUtilities;
 import javax.print.attribute.PrintServiceAttributeSet;
@@ -47,8 +64,8 @@ public class PrintServiceAttributeEvent extends PrintEvent {
      * @return  Print Service object.
      */
     public PrintService getPrintService() {
- 
-    	return (PrintService) getSource();
+
+        return (PrintService) getSource();
     }
 
 
@@ -61,7 +78,7 @@ public class PrintServiceAttributeEvent extends PrintEvent {
      */
     public PrintServiceAttributeSet getAttributes() {
 
-	return attributes;
+        return attributes;
     }
 
 }

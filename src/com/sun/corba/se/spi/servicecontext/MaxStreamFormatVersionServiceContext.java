@@ -1,12 +1,29 @@
 /*
- * @(#)MaxStreamFormatVersionServiceContext.java	1.9 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /**
- * @(#)MaxStreamFormatVersionServiceContext.java	1.9 05/11/17
  */
 package com.sun.corba.se.spi.servicecontext;
 
@@ -37,9 +54,9 @@ public class MaxStreamFormatVersionServiceContext extends ServiceContext {
         this.maxStreamFormatVersion = maxStreamFormatVersion;
     }
 
-    public MaxStreamFormatVersionServiceContext(InputStream is, 
+    public MaxStreamFormatVersionServiceContext(InputStream is,
                                                 GIOPVersion gv) {
-	super(is, gv) ;
+        super(is, gv) ;
 
         maxStreamFormatVersion = is.read_octet();
     }
@@ -47,23 +64,19 @@ public class MaxStreamFormatVersionServiceContext extends ServiceContext {
     public static final int SERVICE_CONTEXT_ID = RMICustomMaxStreamFormat.value;
     public int getId() { return SERVICE_CONTEXT_ID; }
 
-    public void writeData(OutputStream os) throws SystemException 
+    public void writeData(OutputStream os) throws SystemException
     {
         os.write_octet(maxStreamFormatVersion);
     }
-    
+
     public byte getMaximumStreamFormatVersion()
     {
-	return maxStreamFormatVersion;
+        return maxStreamFormatVersion;
     }
 
-    public String toString() 
+    public String toString()
     {
-	return "MaxStreamFormatVersionServiceContext[" 
+        return "MaxStreamFormatVersionServiceContext["
             + maxStreamFormatVersion + "]";
     }
 }
-    
-
-
-

@@ -1,10 +1,28 @@
 /*
- * @(#)DefaultMetalTheme.java	1.31 06/07/12
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package javax.swing.plaf.metal;
 
 import javax.swing.plaf.*;
@@ -68,7 +86,6 @@ import sun.swing.SwingUtilities2;
  * @see MetalLookAndFeel
  * @see MetalLookAndFeel#setCurrentTheme
  *
- * @version 1.31 07/12/06
  * @author Steve Wilson
  */
 public class DefaultMetalTheme extends MetalTheme {
@@ -99,11 +116,11 @@ public class DefaultMetalTheme extends MetalTheme {
     };
 
     // note the properties listed here can currently be used by people
-    // providing runtimes to hint what fonts are good.  For example the bold 
-    // dialog font looks bad on a Mac, so Apple could use this property to 
+    // providing runtimes to hint what fonts are good.  For example the bold
+    // dialog font looks bad on a Mac, so Apple could use this property to
     // hint at a good font.
     //
-    // However, we don't promise to support these forever.  We may move 
+    // However, we don't promise to support these forever.  We may move
     // to getting these from the swing.properties file, or elsewhere.
     /**
      * System property names used to look up fonts.
@@ -209,7 +226,7 @@ public class DefaultMetalTheme extends MetalTheme {
      *
      * @return the primary 1 color
      */
-    protected ColorUIResource getPrimary1() { return primary1; } 
+    protected ColorUIResource getPrimary1() { return primary1; }
 
     /**
      * Returns the primary 2 color. This returns a color with rgb values
@@ -260,7 +277,7 @@ public class DefaultMetalTheme extends MetalTheme {
      *
      * @return the control text font
      */
-    public FontUIResource getControlTextFont() { 
+    public FontUIResource getControlTextFont() {
         return getFont(CONTROL_TEXT_FONT);
     }
 
@@ -269,7 +286,7 @@ public class DefaultMetalTheme extends MetalTheme {
      *
      * @return the sytem text font
      */
-    public FontUIResource getSystemTextFont() { 
+    public FontUIResource getSystemTextFont() {
         return getFont(SYSTEM_TEXT_FONT);
     }
 
@@ -278,7 +295,7 @@ public class DefaultMetalTheme extends MetalTheme {
      *
      * @return the user text font
      */
-    public FontUIResource getUserTextFont() { 
+    public FontUIResource getUserTextFont() {
         return getFont(USER_TEXT_FONT);
     }
 
@@ -290,7 +307,7 @@ public class DefaultMetalTheme extends MetalTheme {
      *
      * @return the menu text font
      */
-    public FontUIResource getMenuTextFont() { 
+    public FontUIResource getMenuTextFont() {
         return getFont(MENU_TEXT_FONT);
     }
 
@@ -299,7 +316,7 @@ public class DefaultMetalTheme extends MetalTheme {
      *
      * @return the window title font
      */
-    public FontUIResource getWindowTitleFont() { 
+    public FontUIResource getWindowTitleFont() {
         return getFont(WINDOW_TITLE_FONT);
     }
 
@@ -308,7 +325,7 @@ public class DefaultMetalTheme extends MetalTheme {
      *
      * @return the sub-text font
      */
-    public FontUIResource getSubTextFont() { 
+    public FontUIResource getSubTextFont() {
         return getFont(SUB_TEXT_FONT);
     }
 
@@ -370,9 +387,9 @@ public class DefaultMetalTheme extends MetalTheme {
          * that it is wrapped inside a <code>doPrivileged</code> call.
          */
         protected Font getPrivilegedFont(final int key) {
-            return (Font)java.security.AccessController.doPrivileged(
-                new java.security.PrivilegedAction() {
-                    public Object run() {
+            return java.security.AccessController.doPrivileged(
+                new java.security.PrivilegedAction<Font>() {
+                    public Font run() {
                         return Font.getFont(getDefaultPropertyName(key));
                     }
                 }

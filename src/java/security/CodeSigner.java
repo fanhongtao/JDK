@@ -1,13 +1,31 @@
 /*
- * @(#)CodeSigner.java	1.5 05/11/17
+ * Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package java.security;
 
-import java.io.Serializable;
+import java.io.*;
 import java.security.cert.CertPath;
 
 /**
@@ -15,7 +33,6 @@ import java.security.cert.CertPath;
  * It is immutable.
  *
  * @since 1.5
- * @version 1.5, 11/17/05
  * @author Vincent Ryan
  */
 
@@ -45,20 +62,20 @@ public final class CodeSigner implements Serializable {
     /**
      * Constructs a CodeSigner object.
      *
-     * @param signerCertPath The signer's certificate path. 
+     * @param signerCertPath The signer's certificate path.
      *                       It must not be <code>null</code>.
-     * @param timestamp A signature timestamp. 
+     * @param timestamp A signature timestamp.
      *                  If <code>null</code> then no timestamp was generated
      *                  for the signature.
-     * @throws NullPointerException if <code>signerCertPath</code> is 
+     * @throws NullPointerException if <code>signerCertPath</code> is
      *                              <code>null</code>.
      */
     public CodeSigner(CertPath signerCertPath, Timestamp timestamp) {
-	if (signerCertPath == null) {
-	    throw new NullPointerException();
-	}
-	this.signerCertPath = signerCertPath;
-	this.timestamp = timestamp;
+        if (signerCertPath == null) {
+            throw new NullPointerException();
+        }
+        this.signerCertPath = signerCertPath;
+        this.timestamp = timestamp;
     }
 
     /**
@@ -67,7 +84,7 @@ public final class CodeSigner implements Serializable {
      * @return A certificate path.
      */
     public CertPath getSignerCertPath() {
-	return signerCertPath;
+        return signerCertPath;
     }
 
     /**
@@ -76,7 +93,7 @@ public final class CodeSigner implements Serializable {
      * @return The timestamp or <code>null</code> if none is present.
      */
     public Timestamp getTimestamp() {
-	return timestamp;
+        return timestamp;
     }
 
     /**
@@ -88,23 +105,23 @@ public final class CodeSigner implements Serializable {
      */
     public int hashCode() {
         if (myhash == -1) {
-	    if (timestamp == null) {
-		myhash = signerCertPath.hashCode();
-	    } else {
-		myhash = signerCertPath.hashCode() + timestamp.hashCode();
-	    }
+            if (timestamp == null) {
+                myhash = signerCertPath.hashCode();
+            } else {
+                myhash = signerCertPath.hashCode() + timestamp.hashCode();
+            }
         }
         return myhash;
     }
 
     /**
      * Tests for equality between the specified object and this
-     * code signer. Two code signers are considered equal if their 
+     * code signer. Two code signers are considered equal if their
      * signer certificate paths are equal and if their timestamps are equal,
      * if present in both.
-     * 
+     *
      * @param obj the object to test for equality with this object.
-     * 
+     *
      * @return true if the objects are considered equal, false otherwise.
      */
     public boolean equals(Object obj) {
@@ -116,23 +133,23 @@ public final class CodeSigner implements Serializable {
         if (this == that) {
             return true;
         }
-	Timestamp thatTimestamp = that.getTimestamp();
-	if (timestamp == null) {
-	    if (thatTimestamp != null) {
-		return false;
-	    }
-	} else {
-	    if (thatTimestamp == null ||
-	        (! timestamp.equals(thatTimestamp))) {
-		return false;
-	    }
-	}
+        Timestamp thatTimestamp = that.getTimestamp();
+        if (timestamp == null) {
+            if (thatTimestamp != null) {
+                return false;
+            }
+        } else {
+            if (thatTimestamp == null ||
+                (! timestamp.equals(thatTimestamp))) {
+                return false;
+            }
+        }
         return signerCertPath.equals(that.getSignerCertPath());
     }
 
     /**
      * Returns a string describing this code signer.
-     * 
+     *
      * @return A string comprising the signer's certificate and a timestamp,
      *         if present.
      */
@@ -140,10 +157,17 @@ public final class CodeSigner implements Serializable {
         StringBuffer sb = new StringBuffer();
         sb.append("(");
         sb.append("Signer: " + signerCertPath.getCertificates().get(0));
-	if (timestamp != null) {
+        if (timestamp != null) {
             sb.append("timestamp: " + timestamp);
-	}
+        }
         sb.append(")");
         return sb.toString();
+    }
+
+    // Explicitly reset hash code value to -1
+    private void readObject(ObjectInputStream ois)
+        throws IOException, ClassNotFoundException {
+     ois.defaultReadObject();
+     myhash = -1;
     }
 }

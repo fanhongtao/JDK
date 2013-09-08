@@ -1,8 +1,26 @@
 /*
- * @(#)Bounds.java	1.22 06/04/21
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -19,18 +37,18 @@ package org.omg.CORBA;
 public final class Bounds extends org.omg.CORBA.UserException {
 
     /**
-     * Constructs an <code>Bounds</code> with no specified detail message. 
+     * Constructs an <code>Bounds</code> with no specified detail message.
      */
     public Bounds() {
-	super();
+        super();
     }
 
     /**
-     * Constructs an <code>Bounds</code> with the specified detail message. 
+     * Constructs an <code>Bounds</code> with the specified detail message.
      *
      * @param   reason   the detail message.
      */
     public Bounds(String reason) {
-	super(reason);
+        super(reason);
     }
 }

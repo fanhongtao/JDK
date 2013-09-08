@@ -1,8 +1,26 @@
 /*
- * @(#)TaggedProfile.java	1.11 05/11/17 
+ * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior;
@@ -13,7 +31,7 @@ import com.sun.corba.se.spi.orb.ORB ;
  * A profile contains all of the information necessary for an invocation.
  * It contains one or more endpoints that may be used for an invocation.
  * A TaggedProfile conceptually has three parts: A TaggedProfileTemplate,
- * an ObjectKeyTemplate, and an ObjectId.  
+ * an ObjectKeyTemplate, and an ObjectId.
  */
 public interface TaggedProfile extends Identifiable, MakeImmutable
 {
@@ -26,11 +44,11 @@ public interface TaggedProfile extends Identifiable, MakeImmutable
     ObjectKey getObjectKey() ;
 
     /** Return true is prof is equivalent to this TaggedProfile.
-     * This means that this and prof are indistinguishable for 
+     * This means that this and prof are indistinguishable for
      * the purposes of remote invocation.  Typically this means that
      * the profile data is identical and both profiles contain exactly
      * the same components (if components are applicable).
-     * isEquivalent( prof ) should imply that getObjectId().equals( 
+     * isEquivalent( prof ) should imply that getObjectId().equals(
      * prof.getObjectId() ) is true, and so is
      * getObjectKeyTemplate().equals( prof.getObjectKeyTemplate() ).
      */
@@ -41,7 +59,7 @@ public interface TaggedProfile extends Identifiable, MakeImmutable
      */
     org.omg.IOP.TaggedProfile getIOPProfile();
 
-    /** Return true if this TaggedProfile was created in orb.  
+    /** Return true if this TaggedProfile was created in orb.
      *  Caches the result.
      */
     boolean isLocal() ;

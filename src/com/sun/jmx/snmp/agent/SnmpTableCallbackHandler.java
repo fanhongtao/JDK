@@ -1,12 +1,27 @@
-/* 
- * @(#)file      SnmpTableCallbackHandler.java 
- * @(#)author    Sun Microsystems, Inc. 
- * @(#)version   1.7 
- * @(#)date      06/11/29 
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- */ 
+/*
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 package com.sun.jmx.snmp.agent;
 
 import javax.management.ObjectName;
@@ -23,7 +38,7 @@ import com.sun.jmx.snmp.agent.SnmpMibTable;
  * You should never need to use this interface directly.
  * </p></b></i>
  *
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  **/
 public interface SnmpTableCallbackHandler {
@@ -40,9 +55,9 @@ public interface SnmpTableCallbackHandler {
      * </p></b></i>
      *
      **/
-    public void addEntryCb(int pos, SnmpOid row, ObjectName name, 
-			   Object entry, SnmpMibTable meta) 
-	throws SnmpStatusException;
+    public void addEntryCb(int pos, SnmpOid row, ObjectName name,
+                           Object entry, SnmpMibTable meta)
+        throws SnmpStatusException;
 
     /**
      * This method is called by the SNMP runtime after a new entry
@@ -55,7 +70,7 @@ public interface SnmpTableCallbackHandler {
      * </p></b></i>
      *
      **/
-    public void removeEntryCb(int pos, SnmpOid row, ObjectName name, 
-			      Object entry, SnmpMibTable meta)
-	throws SnmpStatusException;
+    public void removeEntryCb(int pos, SnmpOid row, ObjectName name,
+                              Object entry, SnmpMibTable meta)
+        throws SnmpStatusException;
 }

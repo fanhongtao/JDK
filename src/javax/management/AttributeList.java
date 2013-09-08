@@ -1,25 +1,49 @@
 /*
- * @(#)AttributeList.java	1.28 05/11/17
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Represents a list of values for attributes of an MBean. The methods
- * used for the insertion of {@link javax.management.Attribute
- * Attribute} objects in the <CODE>AttributeList</CODE> overrides the
- * corresponding methods in the superclass
- * <CODE>ArrayList</CODE>. This is needed in order to insure that the
- * objects contained in the <CODE>AttributeList</CODE> are only
- * <CODE>Attribute</CODE> objects. This avoids getting an exception
- * when retrieving elements from the <CODE>AttributeList</CODE>.
+ * <p>Represents a list of values for attributes of an MBean.  See the
+ * {@link MBeanServerConnection#getAttributes getAttributes} and
+ * {@link MBeanServerConnection#setAttributes setAttributes} methods of
+ * {@link MBeanServer} and {@link MBeanServerConnection}.</p>
+ *
+ * <p id="type-safe">For compatibility reasons, it is possible, though
+ * highly discouraged, to add objects to an {@code AttributeList} that are
+ * not instances of {@code Attribute}.  However, an {@code AttributeList}
+ * can be made <em>type-safe</em>, which means that an attempt to add
+ * an object that is not an {@code Attribute} will produce an {@code
+ * IllegalArgumentException}.  An {@code AttributeList} becomes type-safe
+ * when the method {@link #asList()} is called on it.</p>
  *
  * @since 1.5
  */
@@ -40,8 +64,8 @@ import java.util.List;
 */
 public class AttributeList extends ArrayList<Object> {
 
-    private transient boolean typeSafe;
-    private transient boolean tainted;
+    private transient volatile boolean typeSafe;
+    private transient volatile boolean tainted;
 
     /* Serial version */
     private static final long serialVersionUID = -4077085769279709076L;
@@ -50,7 +74,7 @@ public class AttributeList extends ArrayList<Object> {
      * Constructs an empty <CODE>AttributeList</CODE>.
      */
     public AttributeList() {
-	super();
+        super();
     }
 
     /**
@@ -62,7 +86,7 @@ public class AttributeList extends ArrayList<Object> {
      * ArrayList#ArrayList(int)}.
      */
     public AttributeList(int initialCapacity) {
-	super(initialCapacity);
+        super(initialCapacity);
     }
 
     /**
@@ -79,7 +103,7 @@ public class AttributeList extends ArrayList<Object> {
      * @see ArrayList#ArrayList(java.util.Collection)
      */
     public AttributeList(AttributeList list) {
-	super(list);
+        super(list);
     }
 
     /**
@@ -106,7 +130,7 @@ public class AttributeList extends ArrayList<Object> {
 
         // Check for non-Attribute objects
         //
-        checkTypeSafe(list);
+        adding(list);
 
         // Build the List<Attribute>
         //
@@ -136,12 +160,10 @@ public class AttributeList extends ArrayList<Object> {
      */
     @SuppressWarnings("unchecked")
     public List<Attribute> asList() {
-        if (!typeSafe) {
-            if (tainted)
-                checkTypeSafe(this);
-            typeSafe = true;
-        }
-	return (List<Attribute>) (List) this;
+        typeSafe = true;
+        if (tainted)
+            adding((Collection<?>) this);  // will throw IllegalArgumentException
+        return (List<Attribute>) (List<?>) this;
     }
 
     /**
@@ -150,14 +172,14 @@ public class AttributeList extends ArrayList<Object> {
      * @param object  The attribute to be added.
      */
     public void add(Attribute object)  {
-	super.add(object);
+        super.add(object);
     }
 
     /**
      * Inserts the attribute specified as an element at the position specified.
      * Elements with an index greater than or equal to the current position are
      * shifted up. If the index is out of range (index < 0 || index >
-     * size() a RuntimeOperationsException should be raised, wrapping the
+     * size()) a RuntimeOperationsException should be raised, wrapping the
      * java.lang.IndexOutOfBoundsException thrown.
      *
      * @param object  The <CODE>Attribute</CODE> object to be inserted.
@@ -165,13 +187,13 @@ public class AttributeList extends ArrayList<Object> {
      * object is to be inserted.
      */
     public void add(int index, Attribute object)  {
-	try {
-	    super.add(index, object);
-	}
-	catch (IndexOutOfBoundsException e) {
-	    throw new RuntimeOperationsException(e,
+        try {
+            super.add(index, object);
+        }
+        catch (IndexOutOfBoundsException e) {
+            throw new RuntimeOperationsException(e,
                 "The specified index is out of range");
-	}
+        }
     }
 
     /**
@@ -184,13 +206,13 @@ public class AttributeList extends ArrayList<Object> {
      * @param index  The position specified.
      */
     public void set(int index, Attribute object)  {
-	try {
-	    super.set(index, object);
-	}
-	catch (IndexOutOfBoundsException e) {
-	    throw new RuntimeOperationsException(e,
+        try {
+            super.set(index, object);
+        }
+        catch (IndexOutOfBoundsException e) {
+            throw new RuntimeOperationsException(e,
                 "The specified index is out of range");
-	}
+        }
     }
 
     /**
@@ -205,7 +227,7 @@ public class AttributeList extends ArrayList<Object> {
      * @see ArrayList#addAll(java.util.Collection)
      */
     public boolean addAll(AttributeList list)  {
-	return (super.addAll(list));
+        return (super.addAll(list));
     }
 
     /**
@@ -225,13 +247,12 @@ public class AttributeList extends ArrayList<Object> {
      * @see ArrayList#addAll(int, java.util.Collection)
      */
     public boolean addAll(int index, AttributeList list)  {
-	try {
-	    return super.addAll(index, list);
-	}
-	catch (IndexOutOfBoundsException e) {
-	    throw new RuntimeOperationsException(e,
+        try {
+            return super.addAll(index, list);
+        } catch (IndexOutOfBoundsException e) {
+            throw new RuntimeOperationsException(e,
                 "The specified index is out of range");
-	}
+        }
     }
 
     /*
@@ -240,96 +261,77 @@ public class AttributeList extends ArrayList<Object> {
      * been called on this instance.
      */
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException if this {@code AttributeList} is
+     * <a href="#type-safe">type-safe</a> and {@code element} is not an
+     * {@code Attribute}.
+     */
     @Override
-    public boolean add(Object o) {
-        if (!tainted)
-            tainted = isTainted(o);
-        if (typeSafe)
-            checkTypeSafe(o);
-        return super.add(o);
+    public boolean add(Object element) {
+        adding(element);
+        return super.add(element);
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException if this {@code AttributeList} is
+     * <a href="#type-safe">type-safe</a> and {@code element} is not an
+     * {@code Attribute}.
+     */
     @Override
     public void add(int index, Object element) {
-        if (!tainted)
-            tainted = isTainted(element);
-        if (typeSafe)
-            checkTypeSafe(element);
+        adding(element);
         super.add(index, element);
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException if this {@code AttributeList} is
+     * <a href="#type-safe">type-safe</a> and {@code c} contains an
+     * element that is not an {@code Attribute}.
+     */
     @Override
     public boolean addAll(Collection<?> c) {
-        if (!tainted)
-            tainted = isTainted(c);
-        if (typeSafe)
-            checkTypeSafe(c);
+        adding(c);
         return super.addAll(c);
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException if this {@code AttributeList} is
+     * <a href="#type-safe">type-safe</a> and {@code c} contains an
+     * element that is not an {@code Attribute}.
+     */
     @Override
     public boolean addAll(int index, Collection<?> c) {
-        if (!tainted)
-            tainted = isTainted(c);
-        if (typeSafe)
-            checkTypeSafe(c);
+        adding(c);
         return super.addAll(index, c);
     }
 
+    /**
+     * {@inheritDoc}
+     * @throws IllegalArgumentException if this {@code AttributeList} is
+     * <a href="#type-safe">type-safe</a> and {@code element} is not an
+     * {@code Attribute}.
+     */
     @Override
     public Object set(int index, Object element) {
-        if (!tainted)
-            tainted = isTainted(element);
-        if (typeSafe)
-            checkTypeSafe(element);
+        adding(element);
         return super.set(index, element);
     }
 
-    /**
-     * IllegalArgumentException if o is a non-Attribute object.
-     */
-    private static void checkTypeSafe(Object o) {
-        try {
-            o = (Attribute) o;
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException(e);
-        }
+    private void adding(Object x) {
+        if (x == null || x instanceof Attribute)
+            return;
+        if (typeSafe)
+            throw new IllegalArgumentException("Not an Attribute: " + x);
+        else
+            tainted = true;
     }
 
-    /**
-     * IllegalArgumentException if c contains any non-Attribute objects.
-     */
-    private static void checkTypeSafe(Collection<?> c) {
-        try {
-            Attribute a;
-            for (Object o : c)
-                a = (Attribute) o;
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException(e);
-        }
-    }
-
-    /**
-     * Returns true if o is a non-Attribute object.
-     */
-    private static boolean isTainted(Object o) {
-        try {
-            checkTypeSafe(o);
-        } catch (IllegalArgumentException e) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Returns true if c contains any non-Attribute objects.
-     */
-    private static boolean isTainted(Collection<?> c) {
-        try {
-            checkTypeSafe(c);
-        } catch (IllegalArgumentException e) {
-            return true;
-        }
-        return false;
+    private void adding(Collection<?> c) {
+        for (Object x : c)
+            adding(x);
     }
 }

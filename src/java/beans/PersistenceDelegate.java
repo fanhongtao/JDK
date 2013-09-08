@@ -1,8 +1,26 @@
 /*
- * @(#)PersistenceDelegate.java	1.12 05/11/17
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.beans;
 
@@ -64,7 +82,6 @@ package java.beans;
  *
  * @since 1.4
  *
- * @version 1.12 11/17/05
  * @author Philip Milne
  */
 
@@ -88,7 +105,8 @@ public abstract class PersistenceDelegate {
      *
      * @param oldInstance The instance that will be created by this expression.
      * @param out The stream to which this expression will be written.
-     * @return An expression whose value is <code>oldInstance</code>.
+     *
+     * @throws NullPointerException if {@code out} is {@code null}
      */
     public void writeObject(Object oldInstance, Encoder out) {
         Object newInstance = out.get(oldInstance);
@@ -142,6 +160,8 @@ public abstract class PersistenceDelegate {
      * @param oldInstance The instance that will be created by this expression.
      * @param out The stream to which this expression will be written.
      * @return An expression whose value is <code>oldInstance</code>.
+     *
+     * @throws NullPointerException if {@code out} is {@code null}
      */
     protected abstract Expression instantiate(Object oldInstance, Encoder out);
 
@@ -180,10 +200,12 @@ public abstract class PersistenceDelegate {
      * @param oldInstance The instance to be copied.
      * @param newInstance The instance that is to be modified.
      * @param out The stream to which any initialization statements should be written.
+     *
+     * @throws NullPointerException if {@code out} is {@code null}
      */
     protected void initialize(Class<?> type,
-			      Object oldInstance, Object newInstance,
-			      Encoder out)
+                              Object oldInstance, Object newInstance,
+                              Encoder out)
     {
         Class superType = type.getSuperclass();
         PersistenceDelegate info = out.getPersistenceDelegate(superType);

@@ -1,28 +1,26 @@
 /*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the "License").  You may not use this file except
- * in compliance with the License.
+ * Copyright (c) 2004, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * You can obtain a copy of the license at
- * https://jaxp.dev.java.net/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
  *
- * When distributing Covered Code, include this CDDL
- * HEADER in each file and include the License file at
- * https://jaxp.dev.java.net/CDDLv1.0.html
- * If applicable add the following below this CDDL HEADER
- * with the fields enclosed by brackets "[]" replaced with
- * your own identifying information: Portions Copyright
- * [year] [name of copyright owner]
- */
-
-/*
- * $Id: DatatypeFactory.java,v 1.10 2006/05/19 01:08:42 jeffsuttor Exp $
- * @(#)DatatypeFactory.java	1.17 06/07/13
  *
- * Copyright 2005 Sun Microsystems, Inc. All Rights Reserved.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.datatype;
@@ -64,7 +62,7 @@ import java.util.regex.Pattern;
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
  * @author <a href="mailto:Neeraj.Bajaj@sun.com">Neeraj Bajaj</a>
  *
- * @version $Revision: 1.10 $, $Date: 2006/05/19 01:08:42 $
+ * @version $Revision: 1.13 $, $Date: 2010/03/11 23:10:53 $
  * @since 1.5
  */
 public abstract class DatatypeFactory {
@@ -353,7 +351,7 @@ public abstract class DatatypeFactory {
 		
 	/**
 	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> by parsing its <code>String</code> representation,
-	 * "<em>PnDTnHnMnS</em>", <a href="http://www.w3.org/TR/xpath-datamodel#dt-dayTimeDuration">
+	 * "<em>PnDTnHnMnS</em>", <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
 	 * 
 	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
@@ -397,7 +395,7 @@ public abstract class DatatypeFactory {
 
 	/**
 	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> using the specified milliseconds as defined in
-	 * <a href="http://www.w3.org/TR/xpath-datamodel#dt-dayTimeDuration">
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
 	 * 
 	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
@@ -429,7 +427,7 @@ public abstract class DatatypeFactory {
 	 * 
 	 * @return New <code>Duration</code> created with the specified <code>durationInMilliseconds</code>.
 	 * 
-	 * @see <a href="http://www.w3.org/TR/xpath-datamodel#dt-dayTimeDuration">
+	 * @see <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>
 	 */
 	public Duration newDurationDayTime(final long durationInMilliseconds) {
@@ -440,7 +438,7 @@ public abstract class DatatypeFactory {
 	/**
 	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> using the specified
 	 * <code>day</code>, <code>hour</code>, <code>minute</code> and <code>second</code> as defined in
-	 * <a href="http://www.w3.org/TR/xpath-datamodel#dt-dayTimeDuration">
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
 	 * 
 	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
@@ -490,7 +488,7 @@ public abstract class DatatypeFactory {
 	/**
 	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> using the specified
 	 * <code>day</code>, <code>hour</code>, <code>minute</code> and <code>second</code> as defined in
-	 * <a href="http://www.w3.org/TR/xpath-datamodel#dt-dayTimeDuration">
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
 	 * 
 	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
@@ -530,7 +528,7 @@ public abstract class DatatypeFactory {
 
 	/**
 	 * <p>Create a <code>Duration</code> of type <code>xdt:yearMonthDuration</code> by parsing its <code>String</code> representation,
-	 * "<em>PnYnM</em>", <a href="http://www.w3.org/TR/xpath-datamodel#dt-yearMonthDuration">
+	 * "<em>PnYnM</em>", <a href="http://www.w3.org/TR/xpath-datamodel#yearMonthDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:yearMonthDuration</a>.</p>
 	 * 
 	 * <p>The datatype <code>xdt:yearMonthDuration</code> is a subtype of <code>xs:duration</code>
@@ -576,7 +574,7 @@ public abstract class DatatypeFactory {
 
 	/**
 	 * <p>Create a <code>Duration</code> of type <code>xdt:yearMonthDuration</code> using the specified milliseconds as defined in
-	 * <a href="http://www.w3.org/TR/xpath-datamodel#dt-yearMonthDuration">
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#yearMonthDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:yearMonthDuration</a>.</p>
 	 * 
 	 * <p>The datatype <code>xdt:yearMonthDuration</code> is a subtype of <code>xs:duration</code>
@@ -629,7 +627,7 @@ public abstract class DatatypeFactory {
 	/**
 	 * <p>Create a <code>Duration</code> of type <code>xdt:yearMonthDuration</code> using the specified
 	 * <code>year</code> and <code>month</code> as defined in
-	 * <a href="http://www.w3.org/TR/xpath-datamodel#dt-yearMonthyDuration">
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#yearMonthDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:yearMonthDuration</a>.</p>
 	 * 
      * <p>The XML Schema specification states that values can be of an arbitrary size.
@@ -670,7 +668,7 @@ public abstract class DatatypeFactory {
 	/**
 	 * <p>Create a <code>Duration</code> of type <code>xdt:yearMonthDuration</code> using the specified
 	 * <code>year</code> and <code>month</code> as defined in
-	 * <a href="http://www.w3.org/TR/xpath-datamodel#dt-yearMonthyDuration">
+	 * <a href="http://www.w3.org/TR/xpath-datamodel#yearMonthDuration">
 	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:yearMonthDuration</a>.</p>
 	 * 
      * <p>A {@link DatatypeConstants#FIELD_UNDEFINED} value indicates that field is not set.</p>

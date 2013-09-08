@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidClassException.java	1.24 06/03/24
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -18,7 +36,6 @@ package java.io;
  * </UL>
  *
  * @author  unascribed
- * @version 1.24, 03/24/06
  * @since   JDK1.1
  */
 public class InvalidClassException extends ObjectStreamException {
@@ -38,7 +55,7 @@ public class InvalidClassException extends ObjectStreamException {
      * @param reason  String describing the reason for the exception.
      */
     public InvalidClassException(String reason) {
-	super(reason);
+        super(reason);
     }
 
     /**
@@ -48,17 +65,17 @@ public class InvalidClassException extends ObjectStreamException {
      * @param reason  a String describing the reason for the exception.
      */
     public InvalidClassException(String cname, String reason) {
-	super(reason);
-	classname = cname;
+        super(reason);
+        classname = cname;
     }
 
     /**
      * Produce the message and include the classname, if present.
      */
     public String getMessage() {
-	if (classname == null)
-	    return super.getMessage();
-	else
-	    return classname + "; " + super.getMessage();
+        if (classname == null)
+            return super.getMessage();
+        else
+            return classname + "; " + super.getMessage();
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)Position.java	1.20 06/07/11
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -27,7 +45,6 @@ package javax.swing.text;
  * offset while document content is altered.
  *
  * @author  Timothy Prinzing
- * @version 1.20 07/11/06
  */
 public interface Position {
 
@@ -48,29 +65,29 @@ public interface Position {
      */
     public static final class Bias {
 
-	/**
-	 * Indicates to bias toward the next character
-	 * in the model.
-	 */
-	public static final Bias Forward = new Bias("Forward");
+        /**
+         * Indicates to bias toward the next character
+         * in the model.
+         */
+        public static final Bias Forward = new Bias("Forward");
 
-	/**
-	 * Indicates a bias toward the previous character
-	 * in the model.
-	 */
-	public static final Bias Backward = new Bias("Backward");
+        /**
+         * Indicates a bias toward the previous character
+         * in the model.
+         */
+        public static final Bias Backward = new Bias("Backward");
 
-	/**
-	 * string representation
-	 */
+        /**
+         * string representation
+         */
         public String toString() {
-	    return name;
-	}
+            return name;
+        }
 
         private Bias(String name) {
-	    this.name = name;
-	}
+            this.name = name;
+        }
 
-	private String name;
+        private String name;
     }
 }

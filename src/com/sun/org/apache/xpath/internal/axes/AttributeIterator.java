@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +49,7 @@ public class AttributeIterator extends ChildTestIterator
   {
     super(compiler, opPos, analysis);
   }
-    
+
   /**
    * Get the next node via getFirstAttribute && getNextAttribute.
    */
@@ -56,11 +60,11 @@ public class AttributeIterator extends ChildTestIterator
                      : m_cdtm.getNextAttribute(m_lastFetched);
     return m_lastFetched;
   }
-  
+
   /**
    * Returns the axis being iterated, if it is known.
-   * 
-   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple 
+   *
+   * @return Axis.CHILD, etc., or -1 if the axis is not known or is of multiple
    * types.
    */
   public int getAxis()

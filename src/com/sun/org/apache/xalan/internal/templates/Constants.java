@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,7 +72,7 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
                               ELEMNAME_STYLESHEET = 25, ELEMNAME_TEXT = 42,
                               ELEMNAME_VALUEOF = 30, ELEMNAME_WHEN = 38,
 
-  // Pattern by example support  
+  // Pattern by example support
   ELEMNAME_ROOT = 44, ELEMNAME_ANY = 45, ELEMNAME_ELEMENT = 46,
                       ELEMNAME_TARGETELEMENT = 47, ELEMNAME_ATTRIBUTE = 48,
                       ELEMNAME_TARGETATTRIBUTE = 49, ELEMNAME_URL = 52,  // my own
@@ -95,8 +99,8 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
    * Literals for XSL element names.  Note that there are more
    * names than IDs, because some names map to the same ID.
    */
-  public static final String       
-	  ELEMNAME_ANCHOR_STRING = "anchor",
+  public static final String
+          ELEMNAME_ANCHOR_STRING = "anchor",
       ELEMNAME_ANY_STRING = "any",  // pattern-by-example support
       ELEMNAME_APPLY_IMPORTS_STRING = "apply-imports",
       ELEMNAME_APPLY_TEMPLATES_STRING = "apply-templates",
@@ -111,7 +115,7 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
       ELEMNAME_COMMENT_STRING = "comment",
       ELEMNAME_COMPONENT_STRING = "component",
       ELEMNAME_CONSTRUCT_STRING = "construct",  // my own
-      ELEMNAME_CONTENTS_STRING = "contents", 
+      ELEMNAME_CONTENTS_STRING = "contents",
       ELEMNAME_COPY_OF_STRING ="copy-of",
       ELEMNAME_COPY_STRING = "copy",
       ELEMNAME_COUNTERINCREMENT_STRING = "counter-increment",
@@ -163,7 +167,7 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
       ELEMNAME_VARIABLE_STRING = "variable",
       ELEMNAME_WHEN_STRING = "when",
       ELEMNAME_WITHPARAM_STRING = "with-param";
-  
+
   /**
    * Literals for EXSLT function elements.
    */
@@ -173,14 +177,14 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
   public static final int
     EXSLT_ELEMNAME_FUNCTION = 88,
     EXSLT_ELEMNAME_FUNCRESULT = 89;
-  
-  
+
+
   /**
    * Literals for XSL attribute names.  Note that there may be more
    * names than IDs, because some names may map to the same ID.
    */
   public static final String
-	  ATTRNAME_AMOUNT = "amount",
+          ATTRNAME_AMOUNT = "amount",
       ATTRNAME_ANCESTOR = "ancestor",
       ATTRNAME_ARCHIVE = "archive",
       ATTRNAME_ATTRIBUTE = "attribute",
@@ -235,7 +239,7 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
       ATTRNAME_OUTPUT_ENCODING = "encoding",
       ATTRNAME_OUTPUT_INDENT = "indent",
       ATTRNAME_OUTPUT_MEDIATYPE = "media-type",
-      ATTRNAME_OUTPUT_METHOD = "method",  // qname, 
+      ATTRNAME_OUTPUT_METHOD = "method",  // qname,
       ATTRNAME_OUTPUT_OMITXMLDECL = "omit-xml-declaration",
       ATTRNAME_OUTPUT_STANDALONE = "standalone",
       ATTRNAME_OUTPUT_VERSION = "version",
@@ -260,7 +264,7 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
       ATTRNAME_VERSION = "version",
       ATTRNAME_XMLNS = "xmlns:", // namespace declaration prefix -- NOT an attribute by itself
       ATTRNAME_XMLNSDEF = "xmlns", // default namespace
-      ATTRNAME_XMLSPACE = "xml:space", 
+      ATTRNAME_XMLSPACE = "xml:space",
       ATTRNAME_ZERODIGIT = "zero-digit";
 
   /** IDs for XSL attribute types. These are associated
@@ -327,48 +331,48 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
    * stylesheet wants to take over _all_ the details of formatting,
    * most often when producing something that isn't an XML or HTML
    * document.</li>
-   * </ul> 
+   * </ul>
    * */
   public static final String ATTRVAL_OUTPUT_METHOD_HTML = "html",
                              ATTRVAL_OUTPUT_METHOD_XML = "xml",
                              ATTRVAL_OUTPUT_METHOD_TEXT = "text";
 
-  
+
   /* For space-att*/
   public static final int ATTRVAL_PRESERVE = 1, ATTRVAL_STRIP = 2;
 
-  
+
   /** For indent-result          */
   public static final boolean ATTRVAL_YES = true, ATTRVAL_NO = false;
 
-  
+
   /** For letter-value attribute (part of conversion attributes).          */
   public static final String ATTRVAL_ALPHABETIC = "alphabetic",
                              ATTRVAL_OTHER = "other",
                              ATTRVAL_TRADITIONAL = "traditional";
 
-  
+
   /** For level attribute in xsl:number.          */
   public static final String ATTRVAL_SINGLE = "single",
                              ATTRVAL_MULTI = "multiple", ATTRVAL_ANY = "any";
 
-  
+
   /** For Stylesheet-prefix and result-prefix in xsl:namespace-alias          */
   public static final String ATTRVAL_DEFAULT_PREFIX = "#default";
 
  /** Integer equivalents for above        */
   public static final int NUMBERLETTER_ALPHABETIC = 1, NUMBERLETTER_TRADITIONAL = 2;
-  
+
   /** Integer equivelents for above        */
   public static final int NUMBERLEVEL_SINGLE = 1, NUMBERLEVEL_MULTI = 2,
                           NUMBERLEVEL_ANY = 3, MAX_MULTI_COUNTING_DEPTH = 32;
 
-  
+
   /** some stuff for my patterns-by-example         */
   public static final String ATTRVAL_THIS = ".", ATTRVAL_PARENT = "..",
                              ATTRVAL_ANCESTOR = "ancestor", ATTRVAL_ID = "id";
 
-  
+
   /** Stuff for sorting      */
   public static final String ATTRVAL_DATATYPE_TEXT = "text",
                              ATTRVAL_DATATYPE_NUMBER = "number",
@@ -382,16 +386,16 @@ public class Constants extends com.sun.org.apache.xml.internal.utils.Constants
 
   /** Integer equivelents for ORDER attribute */
   public static final int SORTORDER_ASCENDING = 1, SORTORDER_DESCENDING = 2;
-  
+
   /** Integer equivelents for CASE-ORDER attribute */
   public static final int SORTCASEORDER_UPPERFIRST = 1, SORTCASEORDER_LOWERFIRST = 2;
-  
+
   /** some stuff for Decimal-format       */
   public static final String ATTRVAL_INFINITY = "Infinity",
                              ATTRVAL_NAN = "NaN",
                              DEFAULT_DECIMAL_FORMAT = "#default";
 
-  
+
   /** temp dummy         */
   public static final String ATTRNAME_XXXX = "XXXX";
 }

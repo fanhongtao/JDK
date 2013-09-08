@@ -1,28 +1,44 @@
 /*
- * @(#)StandardMBean.java	1.40 05/12/01
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
 
+import static com.sun.jmx.defaults.JmxProperties.MISC_LOGGER;
 import com.sun.jmx.mbeanserver.DescriptorCache;
 import com.sun.jmx.mbeanserver.Introspector;
 import com.sun.jmx.mbeanserver.MBeanSupport;
 import com.sun.jmx.mbeanserver.MXBeanSupport;
 import com.sun.jmx.mbeanserver.StandardMBeanSupport;
-import com.sun.jmx.remote.util.EnvHelp;
-import com.sun.jmx.trace.Trace;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Method;
-import java.lang.reflect.UndeclaredThrowableException;
+import com.sun.jmx.mbeanserver.Util;
+
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanAttributeInfoSupport;
 import javax.management.openmbean.OpenMBeanConstructorInfo;
@@ -63,7 +79,7 @@ import javax.management.openmbean.OpenMBeanParameterInfoSupport;
  *
  * <ul>
  *
- * <li>Using the public constructor 
+ * <li>Using the public constructor
  *     {@link #StandardMBean(java.lang.Object, java.lang.Class, boolean)
  *     StandardMBean(impl,interface)}:
  *     <pre>
@@ -93,7 +109,7 @@ import javax.management.openmbean.OpenMBeanParameterInfoSupport;
  *
  * </ul>
  *
- * <p>In either case, the class <i>Impl</i> must implement the 
+ * <p>In either case, the class <i>Impl</i> must implement the
  * interface <i>Intf</i>.</p>
  *
  * <p>Standard MBeans based on the naming relationship between
@@ -106,12 +122,8 @@ import javax.management.openmbean.OpenMBeanParameterInfoSupport;
  * {@code super(...)} invocation is instead {@code true}.</p>
  *
  * @since 1.5
- * @since.unbundled JMX 1.2
  */
 public class StandardMBean implements DynamicMBean, MBeanRegistration {
-
-    /** The name of this class to be used for tracing */
-    private final static String dbgTag = "StandardMBean";
 
     private final static DescriptorCache descriptors =
         DescriptorCache.getInstance(JMX.proof);
@@ -127,19 +139,19 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
     private volatile MBeanInfo cachedMBeanInfo;
 
     /**
-     * Make a DynamicMBean out of <var>implementation</var>, using the 
+     * Make a DynamicMBean out of <var>implementation</var>, using the
      * specified <var>mbeanInterface</var> class.
      * @param implementation The implementation of this MBean.
      *        If <code>null</code>, and null implementation is allowed,
      *        then the implementation is assumed to be <var>this</var>.
      * @param mbeanInterface The Management Interface exported by this
-     *        MBean's implementation. If <code>null</code>, then this 
+     *        MBean's implementation. If <code>null</code>, then this
      *        object will use standard JMX design pattern to determine
-     *        the management interface associated with the given 
+     *        the management interface associated with the given
      *        implementation.
-     * @param nullImplementationAllowed <code>true</code> if a null 
+     * @param nullImplementationAllowed <code>true</code> if a null
      *        implementation is allowed. If null implementation is allowed,
-     *        and a null implementation is passed, then the implementation 
+     *        and a null implementation is passed, then the implementation
      *        is assumed to be <var>this</var>.
      * @exception IllegalArgumentException if the given
      *    <var>implementation</var> is null, and null is not allowed.
@@ -152,19 +164,19 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
             // Have to use (T)this rather than mbeanInterface.cast(this)
             // because mbeanInterface might be null.
             if (nullImplementationAllowed)
-                implementation = (T) this;
+                implementation = Util.<T>cast(this);
             else throw new IllegalArgumentException("implementation is null");
         }
         if (isMXBean) {
             if (mbeanInterface == null) {
-                mbeanInterface = Introspector.getMXBeanInterface(
-                        implementation.getClass());
+                mbeanInterface = Util.cast(Introspector.getMXBeanInterface(
+                        implementation.getClass()));
             }
             this.mbean = new MXBeanSupport(implementation, mbeanInterface);
         } else {
             if (mbeanInterface == null) {
-                mbeanInterface = Introspector.getStandardMBeanInterface(
-                        implementation.getClass());
+                mbeanInterface = Util.cast(Introspector.getStandardMBeanInterface(
+                        implementation.getClass()));
             }
             this.mbean =
                     new StandardMBeanSupport(implementation, mbeanInterface);
@@ -178,9 +190,9 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      *
      * @param implementation The implementation of this MBean.
      * @param mbeanInterface The Management Interface exported by this
-     *        MBean's implementation. If <code>null</code>, then this 
+     *        MBean's implementation. If <code>null</code>, then this
      *        object will use standard JMX design pattern to determine
-     *        the management interface associated with the given 
+     *        the management interface associated with the given
      *        implementation.
      * @param <T> Allows the compiler to check
      * that {@code implementation} does indeed implement the class
@@ -192,7 +204,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      *    <var>implementation</var> is null.
      * @exception NotCompliantMBeanException if the <var>mbeanInterface</var>
      *    does not follow JMX design patterns for Management Interfaces, or
-     *    if the given <var>implementation</var> does not implement the 
+     *    if the given <var>implementation</var> does not implement the
      *    specified interface.
      **/
     public <T> StandardMBean(T implementation, Class<T> mbeanInterface)
@@ -204,7 +216,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * <p>Make a DynamicMBean out of <var>this</var>, using the specified
      * <var>mbeanInterface</var> class.</p>
      *
-     * <p>Call {@link #StandardMBean(java.lang.Object, java.lang.Class)
+     * <p>Calls {@link #StandardMBean(java.lang.Object, java.lang.Class)
      *       this(this,mbeanInterface)}.
      * This constructor is reserved to subclasses.</p>
      *
@@ -215,7 +227,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      *    does not follow JMX design patterns for Management Interfaces, or
      *    if <var>this</var> does not implement the specified interface.
      **/
-    protected StandardMBean(Class<?> mbeanInterface) 
+    protected StandardMBean(Class<?> mbeanInterface)
         throws NotCompliantMBeanException {
         construct(null, mbeanInterface, true, false);
     }
@@ -223,16 +235,17 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
     /**
      * <p>Make a DynamicMBean out of the object
      * <var>implementation</var>, using the specified
-     * <var>mbeanInterface</var> class.  This constructor can be used
+     * <var>mbeanInterface</var> class, and choosing whether the
+     * resultant MBean is an MXBean.  This constructor can be used
      * to make either Standard MBeans or MXBeans.  Unlike the
      * constructor {@link #StandardMBean(Object, Class)}, it
      * does not throw NotCompliantMBeanException.</p>
      *
      * @param implementation The implementation of this MBean.
      * @param mbeanInterface The Management Interface exported by this
-     *        MBean's implementation. If <code>null</code>, then this 
+     *        MBean's implementation. If <code>null</code>, then this
      *        object will use standard JMX design pattern to determine
-     *        the management interface associated with the given 
+     *        the management interface associated with the given
      *        implementation.
      * @param isMXBean If true, the {@code mbeanInterface} parameter
      * names an MXBean interface and the resultant MBean is an MXBean.
@@ -245,7 +258,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * @exception IllegalArgumentException if the given
      *    <var>implementation</var> is null, or if the <var>mbeanInterface</var>
      *    does not follow JMX design patterns for Management Interfaces, or
-     *    if the given <var>implementation</var> does not implement the 
+     *    if the given <var>implementation</var> does not implement the
      *    specified interface.
      *
      * @since 1.6
@@ -261,12 +274,13 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
 
     /**
      * <p>Make a DynamicMBean out of <var>this</var>, using the specified
-     * <var>mbeanInterface</var> class.  This constructor can be used
+     * <var>mbeanInterface</var> class, and choosing whether the resulting
+     * MBean is an MXBean.  This constructor can be used
      * to make either Standard MBeans or MXBeans.  Unlike the
      * constructor {@link #StandardMBean(Object, Class)}, it
      * does not throw NotCompliantMBeanException.</p>
      *
-     * <p>Call {@link #StandardMBean(java.lang.Object, java.lang.Class, boolean)
+     * <p>Calls {@link #StandardMBean(java.lang.Object, java.lang.Class, boolean)
      *       this(this, mbeanInterface, isMXBean)}.
      * This constructor is reserved to subclasses.</p>
      *
@@ -310,15 +324,15 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
     public void setImplementation(Object implementation)
         throws NotCompliantMBeanException {
 
-        if (implementation == null) 
+        if (implementation == null)
             throw new IllegalArgumentException("implementation is null");
 
         if (isMXBean()) {
             this.mbean = new MXBeanSupport(implementation,
-                    (Class) getMBeanInterface());
+                    Util.<Class<Object>>cast(getMBeanInterface()));
         } else {
             this.mbean = new StandardMBeanSupport(implementation,
-                    (Class) getMBeanInterface());
+                    Util.<Class<Object>>cast(getMBeanInterface()));
         }
     }
 
@@ -394,45 +408,50 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
     /**
      * Get the {@link MBeanInfo} for this MBean.
      * <p>
-     * This method implements 
-     * {@link javax.management.DynamicMBean#getMBeanInfo() 
+     * This method implements
+     * {@link javax.management.DynamicMBean#getMBeanInfo()
      *   DynamicMBean.getMBeanInfo()}.
      * <p>
      * This method first calls {@link #getCachedMBeanInfo()} in order to
      * retrieve the cached MBeanInfo for this MBean, if any. If the
      * MBeanInfo returned by {@link #getCachedMBeanInfo()} is not null,
      * then it is returned.<br>
-     * Otherwise, this method builds a default MBeanInfo for this MBean, 
+     * Otherwise, this method builds a default MBeanInfo for this MBean,
      * using the Management Interface specified for this MBean.
      * <p>
-     * While building the MBeanInfo, this method calls the customization 
+     * While building the MBeanInfo, this method calls the customization
      * hooks that make it possible for subclasses to supply their custom
      * descriptions, parameter names, etc...<br>
      * Finally, it calls {@link #cacheMBeanInfo(javax.management.MBeanInfo)
-     * cacheMBeanInfo()} in order to cache the new MBeanInfo. 
-     * @return The cached MBeanInfo for that MBean, if not null, or a 
+     * cacheMBeanInfo()} in order to cache the new MBeanInfo.
+     * @return The cached MBeanInfo for that MBean, if not null, or a
      *         newly built MBeanInfo if none was cached.
      **/
     public MBeanInfo getMBeanInfo() {
         try {
             final MBeanInfo cached = getCachedMBeanInfo();
-            if (cached != null) return (MBeanInfo) cached;
+            if (cached != null) return cached;
         } catch (RuntimeException x) {
-            debug("getMBeanInfo", "failed to get cached MBeanInfo: " + x);
-            debugX("getMBeanInfo", x);
+            if (MISC_LOGGER.isLoggable(Level.FINEST)) {
+                MISC_LOGGER.logp(Level.FINEST,
+                        MBeanServerFactory.class.getName(), "getMBeanInfo",
+                        "Failed to get cached MBeanInfo", x);
+            }
         }
 
-        if (isTraceOn()) {
-            trace("getMBeanInfo", "Building MBeanInfo for " +
-                  getImplementationClass().getName());
+        if (MISC_LOGGER.isLoggable(Level.FINER)) {
+            MISC_LOGGER.logp(Level.FINER,
+                    MBeanServerFactory.class.getName(), "getMBeanInfo",
+                    "Building MBeanInfo for " +
+                    getImplementationClass().getName());
         }
 
-	MBeanSupport msupport = mbean;
+        MBeanSupport<?> msupport = mbean;
         final MBeanInfo bi = msupport.getMBeanInfo();
         final Object impl = msupport.getResource();
 
         final boolean immutableInfo = immutableInfo(this.getClass());
-        
+
         final String                  cname = getClassName(bi);
         final String                  text  = getDescription(bi);
         final MBeanConstructorInfo[]  ctors = getConstructors(bi,impl);
@@ -446,11 +465,14 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
         try {
             cacheMBeanInfo(nmbi);
         } catch (RuntimeException x) {
-            debug("cacheMBeanInfo", "failed to cache MBeanInfo: " + x);
-            debugX("cacheMBeanInfo", x);
+            if (MISC_LOGGER.isLoggable(Level.FINEST)) {
+                MISC_LOGGER.logp(Level.FINEST,
+                        MBeanServerFactory.class.getName(), "getMBeanInfo",
+                        "Failed to cache MBeanInfo", x);
+            }
         }
 
-        return nmbi; 
+        return nmbi;
     }
 
     /**
@@ -487,7 +509,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
 
     /**
      * <p>Customization hook:
-     * Get the description that will be used in the MBeanFeatureInfo 
+     * Get the description that will be used in the MBeanFeatureInfo
      * returned by this MBean.</p>
      *
      * <p>Subclasses may redefine this method in order to supply
@@ -495,7 +517,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * {@link MBeanFeatureInfo#getDescription()
      * info.getDescription()}.</p>
      *
-     * <p>This method is called by 
+     * <p>This method is called by
      *      {@link #getDescription(MBeanAttributeInfo)},
      *      {@link #getDescription(MBeanOperationInfo)},
      *      {@link #getDescription(MBeanConstructorInfo)}.</p>
@@ -510,7 +532,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
 
     /**
      * Customization hook:
-     * Get the description that will be used in the MBeanAttributeInfo 
+     * Get the description that will be used in the MBeanAttributeInfo
      * returned by this MBean.
      *
      * <p>Subclasses may redefine this method in order to supply their
@@ -526,7 +548,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
 
     /**
      * Customization hook:
-     * Get the description that will be used in the MBeanConstructorInfo 
+     * Get the description that will be used in the MBeanConstructorInfo
      * returned by this MBean.
      * <br>
      * Subclasses may redefine this method in order to supply their
@@ -549,10 +571,10 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * Subclasses may redefine this method in order to supply their
      * custom description.  The default implementation returns
      * {@link MBeanParameterInfo#getDescription() param.getDescription()}.
-     * 
+     *
      * @param ctor  The default MBeanConstructorInfo derived by reflection.
      * @param param The default MBeanParameterInfo derived by reflection.
-     * @param sequence The sequence number of the parameter considered 
+     * @param sequence The sequence number of the parameter considered
      *        ("0" for the first parameter, "1" for the second parameter,
      *        etc...).
      * @return the description for the given MBeanParameterInfo.
@@ -572,10 +594,10 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * Subclasses may redefine this method in order to supply their
      * custom parameter name.  The default implementation returns
      * {@link MBeanParameterInfo#getName() param.getName()}.
-     *  
+     *
      * @param ctor  The default MBeanConstructorInfo derived by reflection.
      * @param param The default MBeanParameterInfo derived by reflection.
-     * @param sequence The sequence number of the parameter considered 
+     * @param sequence The sequence number of the parameter considered
      *        ("0" for the first parameter, "1" for the second parameter,
      *        etc...).
      * @return the name for the given MBeanParameterInfo.
@@ -589,7 +611,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
 
     /**
      * Customization hook:
-     * Get the description that will be used in the MBeanOperationInfo 
+     * Get the description that will be used in the MBeanOperationInfo
      * returned by this MBean.
      * <br>
      * Subclasses may redefine this method in order to supply their
@@ -605,7 +627,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
 
     /**
      * Customization hook:
-     * Get the <var>impact</var> flag of the operation that will be used in 
+     * Get the <var>impact</var> flag of the operation that will be used in
      * the MBeanOperationInfo returned by this MBean.
      * <br>
      * Subclasses may redefine this method in order to supply their
@@ -627,10 +649,10 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * Subclasses may redefine this method in order to supply their
      * custom parameter name.  The default implementation returns
      * {@link MBeanParameterInfo#getName() param.getName()}.
-     *  
+     *
      * @param op    The default MBeanOperationInfo derived by reflection.
      * @param param The default MBeanParameterInfo derived by reflection.
-     * @param sequence The sequence number of the parameter considered 
+     * @param sequence The sequence number of the parameter considered
      *        ("0" for the first parameter, "1" for the second parameter,
      *        etc...).
      * @return the name to use for the given MBeanParameterInfo.
@@ -650,10 +672,10 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * Subclasses may redefine this method in order to supply their
      * custom description.  The default implementation returns
      * {@link MBeanParameterInfo#getDescription() param.getDescription()}.
-     *  
+     *
      * @param op    The default MBeanOperationInfo derived by reflection.
      * @param param The default MBeanParameterInfo derived by reflection.
-     * @param sequence The sequence number of the parameter considered 
+     * @param sequence The sequence number of the parameter considered
      *        ("0" for the first parameter, "1" for the second parameter,
      *        etc...).
      * @return the description for the given MBeanParameterInfo.
@@ -673,16 +695,16 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * By default, this method returns <code>null</code> if the wrapped
      * implementation is not <var>this</var>. Indeed, if the wrapped
      * implementation is not this object itself, it will not be possible
-     * to recreate a wrapped implementation by calling the implementation 
+     * to recreate a wrapped implementation by calling the implementation
      * constructors through <code>MBeanServer.createMBean(...)</code>.<br>
-     * Otherwise, if the wrapped implementation is <var>this</var>, 
+     * Otherwise, if the wrapped implementation is <var>this</var>,
      * <var>ctors</var> is returned.
      * <br>
-     * Subclasses may redefine this method in order to modify this 
+     * Subclasses may redefine this method in order to modify this
      * behavior, if needed.
      * @param ctors The default MBeanConstructorInfo[] derived by reflection.
      * @param impl  The wrapped implementation. If <code>null</code> is
-     *        passed, the wrapped implementation is ignored and 
+     *        passed, the wrapped implementation is ignored and
      *        <var>ctors</var> is returned.
      * @return the MBeanConstructorInfo[] for the new MBeanInfo.
      **/
@@ -728,7 +750,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * @return the Descriptor for the new MBeanInfo.
      */
     Descriptor getDescriptor(MBeanInfo info, boolean immutableInfo) {
-        ImmutableDescriptor desc = null;
+        ImmutableDescriptor desc;
         if (info == null ||
             info.getDescriptor() == null ||
             info.getDescriptor().getFieldNames().length == 0) {
@@ -808,7 +830,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
         }
         return true;
     }
-    
+
     private static <T> boolean equal(T a, T b) {
         if (a == b)
             return true;
@@ -816,7 +838,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
             return false;
         return a.equals(b);
     }
-    
+
     private static MBeanParameterInfo
             customize(MBeanParameterInfo pi,
                       String name,
@@ -837,11 +859,11 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
                                           pi.getDescriptor());
         }
     }
-    
+
     private static MBeanConstructorInfo
             customize(MBeanConstructorInfo ci,
-		      String description,
-		      MBeanParameterInfo[] signature) {
+                      String description,
+                      MBeanParameterInfo[] signature) {
         if (equal(description, ci.getDescription()) &&
                 identicalArrays(signature, ci.getSignature()))
             return ci;
@@ -859,7 +881,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
                                             ci.getDescriptor());
         }
     }
-    
+
     private static MBeanOperationInfo
             customize(MBeanOperationInfo oi,
                       String description,
@@ -888,7 +910,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
                                           oi.getDescriptor());
         }
     }
-    
+
     private static MBeanAttributeInfo
             customize(MBeanAttributeInfo ai,
                       String description) {
@@ -945,8 +967,8 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
                 for (int ii=0;ii<plen;ii++) {
                     MBeanParameterInfo p = params[ii];
                     nps[ii] = customize(p,
-					getParameterName(c,p,ii),
-					getDescription(c,p,ii));
+                                        getParameterName(c,p,ii),
+                                        getDescription(c,p,ii));
                 }
             } else {
                 nps = null;
@@ -976,8 +998,8 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
                 for (int ii=0;ii<plen;ii++) {
                     MBeanParameterInfo p = params[ii];
                     nps[ii] = customize(p,
-					getParameterName(o,p,ii),
-					getDescription(o,p,ii));
+                                        getParameterName(o,p,ii),
+                                        getDescription(o,p,ii));
                 }
             } else {
                 nps = null;
@@ -1021,20 +1043,20 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * to call the overridden method via {@code super.preRegister(...)}.
      * This is necessary if this object is an MXBean that is referenced
      * by attributes or operations in other MXBeans.</p>
-     * 
+     *
      * @param server The MBean server in which the MBean will be registered.
-     * 
+     *
      * @param name The object name of the MBean.  This name is null if
      * the name parameter to one of the <code>createMBean</code> or
      * <code>registerMBean</code> methods in the {@link MBeanServer}
      * interface is null.  In that case, this method must return a
      * non-null ObjectName for the new MBean.
-     * 
+     *
      * @return The name under which the MBean is to be registered.
      * This value must not be null.  If the <code>name</code>
      * parameter is not null, it will usually but not necessarily be
      * the returned value.
-     * 
+     *
      * @throws IllegalArgumentException if this is an MXBean and
      * {@code name} is null.
      *
@@ -1066,7 +1088,7 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * to call the overridden method via {@code super.postRegister(...)}.
      * This is necessary if this object is an MXBean that is referenced
      * by attributes or operations in other MXBeans.</p>
-     * 
+     *
      * @param registrationDone Indicates whether or not the MBean has
      * been successfully registered in the MBean server. The value
      * false means that the registration phase has failed.
@@ -1085,8 +1107,8 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * <p>The default implementation of this method does nothing.</p>
      *
      * <p>It is good practice for a subclass that overrides this method
-     * to call the overridden method via {@code super.preDeegister(...)}.</p>
-     * 
+     * to call the overridden method via {@code super.preDeregister(...)}.</p>
+     *
      * @throws Exception no checked exceptions are throw by this method
      * but {@code Exception} is declared so that subclasses can override
      * this method and throw their own exceptions.
@@ -1125,8 +1147,8 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * garbage collected just because we know whether its MBeanInfo
      * is immutable.
      */
-    private static final Map<Class, Boolean> mbeanInfoSafeMap =
-	new WeakHashMap<Class, Boolean>();
+    private static final Map<Class<?>, Boolean> mbeanInfoSafeMap =
+        new WeakHashMap<Class<?>, Boolean>();
 
     /**
      * Return true if {@code subclass} is known to preserve the immutability
@@ -1136,24 +1158,24 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
      * methods.
      */
     static boolean immutableInfo(Class<? extends StandardMBean> subclass) {
-	if (subclass == StandardMBean.class ||
+        if (subclass == StandardMBean.class ||
             subclass == StandardEmitterMBean.class)
-	    return true;
-	synchronized (mbeanInfoSafeMap) {
-	    Boolean safe = mbeanInfoSafeMap.get(subclass);
-	    if (safe == null) {
-		try {
-		    MBeanInfoSafeAction action =
+            return true;
+        synchronized (mbeanInfoSafeMap) {
+            Boolean safe = mbeanInfoSafeMap.get(subclass);
+            if (safe == null) {
+                try {
+                    MBeanInfoSafeAction action =
                         new MBeanInfoSafeAction(subclass);
-		    safe = AccessController.doPrivileged(action);
-		} catch (Exception e) { // e.g. SecurityException
-		    /* We don't know, so we assume it isn't.  */
-		    safe = false;
-		}
-		mbeanInfoSafeMap.put(subclass, safe);
-	    }
-	    return safe;
-	}
+                    safe = AccessController.doPrivileged(action);
+                } catch (Exception e) { // e.g. SecurityException
+                    /* We don't know, so we assume it isn't.  */
+                    safe = false;
+                }
+                mbeanInfoSafeMap.put(subclass, safe);
+            }
+            return safe;
+        }
     }
 
     static boolean overrides(Class<?> subclass, Class<?> superclass,
@@ -1170,15 +1192,15 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
     }
 
     private static class MBeanInfoSafeAction
-	    implements PrivilegedAction<Boolean> {
+            implements PrivilegedAction<Boolean> {
 
-	private final Class subclass;
+        private final Class<?> subclass;
 
-	MBeanInfoSafeAction(Class subclass) {
-	    this.subclass = subclass;
-	}
+        MBeanInfoSafeAction(Class<?> subclass) {
+            this.subclass = subclass;
+        }
 
-	public Boolean run() {
+        public Boolean run() {
             // Check for "void cacheMBeanInfo(MBeanInfo)" method.
             //
             if (overrides(subclass, StandardMBean.class,
@@ -1188,64 +1210,28 @@ public class StandardMBean implements DynamicMBean, MBeanRegistration {
             // Check for "MBeanInfo getCachedMBeanInfo()" method.
             //
             if (overrides(subclass, StandardMBean.class,
-                          "getCachedMBeanInfo", (Class[]) null))
+                          "getCachedMBeanInfo", (Class<?>[]) null))
                 return false;
 
             // Check for "MBeanInfo getMBeanInfo()" method.
             //
             if (overrides(subclass, StandardMBean.class,
-                          "getMBeanInfo", (Class[]) null))
+                          "getMBeanInfo", (Class<?>[]) null))
                 return false;
 
             // Check for "MBeanNotificationInfo[] getNotificationInfo()"
             // method.
             //
-            // This method is only taken into account for the MBeanInfo
+            // This method is taken into account for the MBeanInfo
             // immutability checks if and only if the given subclass is
             // StandardEmitterMBean itself or can be assigned to
             // StandardEmitterMBean.
             //
             if (StandardEmitterMBean.class.isAssignableFrom(subclass))
                 if (overrides(subclass, StandardEmitterMBean.class,
-                              "getNotificationInfo", (Class[]) null))
+                              "getNotificationInfo", (Class<?>[]) null))
                     return false;
             return true;
-	}
-    }
-
-    // private stuff
-
-    private static boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_MISC);
-    }
-
-    private static void trace(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_MISC, clz, func, info);
-    }
-    
-    private static void trace(String func, String info) {
-        trace(dbgTag, func, info);
-    }
-    
-    private static boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_MISC);
-    }
-    
-    private static void debug(String clz, String func, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_MISC, clz, func, info);
-    }
-    
-    private static void debug(String func, String info) {
-        debug(dbgTag, func, info);
-    }
-    
-    private static void debugX(String func,Throwable e) {
-        if (isDebugOn()) {
-            final StringWriter s = new StringWriter();
-            e.printStackTrace(new PrintWriter(s));
-            final String stack = s.toString();            
-            debug(dbgTag,func,"Exception caught in "+ func+"(): "+e);
-            debug(dbgTag,func,stack);
         }
     }
 }

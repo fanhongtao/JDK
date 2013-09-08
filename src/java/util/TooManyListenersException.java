@@ -1,8 +1,26 @@
 /*
- * @(#)TooManyListenersException.java	1.14 05/11/17
+ * Copyright (c) 1996, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -24,13 +42,13 @@ package java.util;
  *
  * @see java.util.EventObject
  * @see java.util.EventListener
- * 
- * @version 1.14 05/11/17
+ *
  * @author Laurence P. G. Cable
  * @since  JDK1.1
  */
 
 public class TooManyListenersException extends Exception {
+    private static final long serialVersionUID = 5074640544770687831L;
 
     /**
      * Constructs a TooManyListenersException with no detail message.
@@ -38,7 +56,7 @@ public class TooManyListenersException extends Exception {
      */
 
     public TooManyListenersException() {
-	super();
+        super();
     }
 
     /**
@@ -48,7 +66,6 @@ public class TooManyListenersException extends Exception {
      */
 
     public TooManyListenersException(String s) {
-	super(s);
+        super(s);
     }
 }
-

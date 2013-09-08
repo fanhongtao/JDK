@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +58,7 @@ import org.xml.sax.SAXException;
 public class Manifest extends SignatureElementProxy {
 
   /** {@link java.util.logging} logging facility */
-  static java.util.logging.Logger log = 
+  static java.util.logging.Logger log =
         java.util.logging.Logger.getLogger(Manifest.class.getName());
 
    /** Field _references */
@@ -64,14 +68,11 @@ public class Manifest extends SignatureElementProxy {
    /** Field verificationResults[] */
    private boolean verificationResults[] = null;
 
-   /** Field _signedContents */
-   List _signedContents = new ArrayList();
-
    /** Field _resolverProperties */
-   HashMap _resolverProperties = new HashMap(10);
+   HashMap _resolverProperties = null;
 
    /** Field _perManifestResolvers */
-   List _perManifestResolvers = new ArrayList();
+   List _perManifestResolvers = null;
 
    /**
     * Consturts {@link Manifest}
@@ -140,8 +141,6 @@ public class Manifest extends SignatureElementProxy {
            String BaseURI, String referenceURI, Transforms transforms, String digestURI, String ReferenceId, String ReferenceType)
               throws XMLSignatureException {
 
-      if (this._state == MODE_SIGN) {
-
          // the this._doc is handed implicitly by the this.getOwnerDocument()
          Reference ref = new Reference(this._doc, BaseURI, referenceURI, this,
                                        transforms, digestURI);
@@ -160,7 +159,6 @@ public class Manifest extends SignatureElementProxy {
          // add the Element of the Reference object to the Manifest/SignedInfo
          this._constructionElement.appendChild(ref.getElement());
          XMLUtils.addReturnToElement(this._constructionElement);
-      }
    }
 
    /**
@@ -174,7 +172,6 @@ public class Manifest extends SignatureElementProxy {
    public void generateDigestValues()
            throws XMLSignatureException, ReferenceNotInitializedException {
 
-      if (this._state == MODE_SIGN) {
          for (int i = 0; i < this.getLength(); i++) {
 
             // update the cached Reference object, the Element content is automatically updated
@@ -182,7 +179,6 @@ public class Manifest extends SignatureElementProxy {
 
             currentRef.generateDigestValue();
          }
-      }
    }
 
    /**
@@ -204,21 +200,16 @@ public class Manifest extends SignatureElementProxy {
     */
    public Reference item(int i) throws XMLSecurityException {
 
-      if (this._state == MODE_SIGN) {
-
-         // we already have real objects
-         return (Reference) this._references.get(i);
-      } 
          if (this._references.get(i) == null) {
 
-            // not yet constructed, so _we_ have to            
+            // not yet constructed, so _we_ have to
             Reference ref = new Reference(_referencesEl[i], this._baseURI, this);
 
             this._references.set(i, ref);
          }
 
          return (Reference) this._references.get(i);
-      
+
    }
 
    /**
@@ -228,7 +219,7 @@ public class Manifest extends SignatureElementProxy {
     */
    public void setId(String Id) {
 
-      if ((this._state == MODE_SIGN) && (Id != null)) {
+      if (Id != null) {
          this._constructionElement.setAttributeNS(null, Constants._ATT_ID, Id);
          IdResolver.registerElementById(this._constructionElement, Id);
       }
@@ -286,13 +277,13 @@ public class Manifest extends SignatureElementProxy {
    public boolean verifyReferences(boolean followManifests)
            throws MissingResourceFailureException, XMLSecurityException {
       if (_referencesEl==null) {
-        this._referencesEl =  
+        this._referencesEl =
             XMLUtils.selectDsNodes(this._constructionElement.getFirstChild(),
                          Constants._TAG_REFERENCE);
       }
-   	  if (true) {
-   	  	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "verify " +_referencesEl.length + " References");
-        if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "I am " + (followManifests
+          if (log.isLoggable(java.util.logging.Level.FINE)) {
+                log.log(java.util.logging.Level.FINE, "verify " +_referencesEl.length + " References");
+        log.log(java.util.logging.Level.FINE, "I am " + (followManifests
                            ? ""
                            : "not") + " requested to follow nested Manifests");
       }
@@ -321,13 +312,13 @@ public class Manifest extends SignatureElementProxy {
             if (!currentRefVerified) {
                verify = false;
             }
-            if (true)
-            	if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "The Reference has Type " + currentRef.getType());
+            if (log.isLoggable(java.util.logging.Level.FINE))
+                log.log(java.util.logging.Level.FINE, "The Reference has Type " + currentRef.getType());
 
             // was verification successful till now and do we want to verify the Manifest?
             if (verify && followManifests
                     && currentRef.typeIsReferenceToManifest()) {
-               if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "We have to follow a nested Manifest");
+               log.log(java.util.logging.Level.FINE, "We have to follow a nested Manifest");
 
                 try {
                   XMLSignatureInput signedManifestNodes =
@@ -377,7 +368,7 @@ public class Manifest extends SignatureElementProxy {
 
                      log.log(java.util.logging.Level.WARNING, "The nested Manifest was invalid (bad)");
                   } else {
-                     if (log.isLoggable(java.util.logging.Level.FINE))                                     log.log(java.util.logging.Level.FINE, "The nested Manifest was valid (good)");
+                     log.log(java.util.logging.Level.FINE, "The nested Manifest was valid (good)");
                   }
                } catch (IOException ex) {
                   throw new ReferenceNotInitializedException("empty", ex);
@@ -454,9 +445,13 @@ public class Manifest extends SignatureElementProxy {
     */
    public void addResourceResolver(ResourceResolver resolver) {
 
-      if (resolver != null) {
-         this._perManifestResolvers.add(resolver);
+      if (resolver == null) {
+          return;
       }
+      if (_perManifestResolvers==null)
+          _perManifestResolvers = new ArrayList();
+      this._perManifestResolvers.add(resolver);
+
    }
 
    /**
@@ -466,9 +461,13 @@ public class Manifest extends SignatureElementProxy {
     */
    public void addResourceResolver(ResourceResolverSpi resolverSpi) {
 
-      if (resolverSpi != null) {
-         this._perManifestResolvers.add(new ResourceResolver(resolverSpi));
+      if (resolverSpi == null) {
+          return;
       }
+      if (_perManifestResolvers==null)
+                  _perManifestResolvers = new ArrayList();
+      this._perManifestResolvers.add(new ResourceResolver(resolverSpi));
+
    }
 
    /**
@@ -479,6 +478,9 @@ public class Manifest extends SignatureElementProxy {
     * @param value the value
     */
    public void setResolverProperty(String key, String value) {
+           if (_resolverProperties==null) {
+                   _resolverProperties=new HashMap(10);
+           }
       this._resolverProperties.put(key, value);
    }
 

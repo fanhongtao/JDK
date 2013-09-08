@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -72,30 +76,26 @@ public class ErrorMessages_de extends ListResourceBundle {
  *      grammar for an XML file, the names and types of elements, attributes,
  *      etc.
  *
+ *   9) Translet is an invented term that refers to the class file that contains
+ *      the compiled form of a stylesheet.
  */
 
     // These message should be read from a locale-specific resource bundle
-    /** Get the lookup table for error messages.   
-     *
-     * @return The message lookup table.
-     */
-    public Object[][] getContents()
-    {
-      return new Object[][] {
+    private static final Object[][] _contents =  new Object[][] {
 
         /*
          * Note to translators:  the substitution text in the following message
          * is a class name.  Used for internal errors in the processor.
          */
         {BasisLibrary.RUN_TIME_INTERNAL_ERR,
-        "Interner Fehler bei der Ausf\u00fchrung in ''{0}''"},
+        "Interner Laufzeitfehler in \"{0}\""},
 
         /*
          * Note to translators:  <xsl:copy> is a keyword that should not be
          * translated.
          */
         {BasisLibrary.RUN_TIME_COPY_ERR,
-        "Fehler bei der Ausf\u00fchrung von <xsl:copy>."},
+        "Laufzeitfehler beim Ausf\u00FChren von <xsl:copy>."},
 
         /*
          * Note to translators:  The substitution text refers to data types.
@@ -104,7 +104,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * {0}.
          */
         {BasisLibrary.DATA_CONVERSION_ERR,
-        "Ung\u00fcltige Konvertierung von ''{0}'' nach ''{1}''."},
+        "Ung\u00FCltige Konvertierung von \"{0}\" in \"{1}\"."},
 
         /*
          * Note to translators:  This message is displayed if the function named
@@ -112,7 +112,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * is the acronym naming the product.
          */
         {BasisLibrary.EXTERNAL_FUNC_ERR,
-        "Die externe Funktion ''{0}'' wird nicht von XSLTC unterst\u00fctzt."},
+        "Externe Funktion \"{0}\" nicht unterst\u00FCtzt von XSLTC."},
 
         /*
          * Note to translators:  This message is displayed if two values are
@@ -129,7 +129,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * permitted for a call to this function.
          */
         {BasisLibrary.INVALID_ARGUMENT_ERR,
-        "Ung\u00fcltiger Argumenttyp ''{0}'' in Aufruf von ''{1}''"},
+        "Ung\u00FCltiger Argumenttyp \"{0}\" in Aufruf von \"{1}\""},
 
         /*
          * Note to translators:  There is way of specifying a format for a
@@ -137,7 +137,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * particular value using the specified pattern.
          */
         {BasisLibrary.FORMAT_NUMBER_ERR,
-        "Es wird versucht, die Zahl ''{0}'' mit Muster ''{1}'' zu formatieren."},
+        "Versuch, Zahl \"{0}\" mit Muster \"{1}\" zu formatieren."},
 
         /*
          * Note to translators:  The following represents an internal error
@@ -145,7 +145,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * iterator.  (See definition of iterator above.)
          */
         {BasisLibrary.ITERATOR_CLONE_ERR,
-        "Iterator ''{0}'' kann nicht geklont werden."},
+        "Iterator \"{0}\" kann nicht geclont werden."},
 
         /*
          * Note to translators:  The following represents an internal error
@@ -154,7 +154,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * support.
          */
         {BasisLibrary.AXIS_SUPPORT_ERR,
-        "Iterator f\u00fcr Achse ''{0}'' wird nicht unterst\u00fctzt."},
+        "Iterator f\u00FCr Achse \"{0}\" nicht unterst\u00FCtzt."},
 
         /*
          * Note to translators:  The following represents an internal error
@@ -163,7 +163,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * support.
          */
         {BasisLibrary.TYPED_AXIS_SUPPORT_ERR,
-        "Iterator f\u00fcr Achse ''{0}'' mit Typangabe wird nicht unterst\u00fctzt."},
+        "Iterator f\u00FCr typisierte Achse \"{0}\" nicht unterst\u00FCtzt."},
 
         /*
          * Note to translators:  This message is reported if the stylesheet
@@ -172,7 +172,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * specifies the name of the attribute.
          */
         {BasisLibrary.STRAY_ATTRIBUTE_ERR,
-        "Attribut ''{0}'' befindet sich nicht in einem Element."},
+        "Attribut \"{0}\" au\u00DFerhalb des Elements."},
 
         /*
          * Note to translators:  As with the preceding message, a namespace
@@ -182,7 +182,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * namespace declaration.
          */
         {BasisLibrary.STRAY_NAMESPACE_ERR,
-        "Namensbereichsdeklaration ''{0}''=''{1}'' befindet sich nicht in einem Element."},
+        "Namespace-Deklaration {0}={1} au\u00DFerhalb des Elements."},
 
         /*
          * Note to translators:  The stylesheet contained a reference to a
@@ -190,14 +190,14 @@ public class ErrorMessages_de extends ListResourceBundle {
          * text is the name of the prefix.
          */
         {BasisLibrary.NAMESPACE_PREFIX_ERR,
-        "Der Namensbereich f\u00fcr Pr\u00e4fix ''{0}'' wurde nicht deklariert."},
+        "Namespace f\u00FCr Pr\u00E4fix \"{0}\" wurde nicht deklariert."},
 
         /*
          * Note to translators:  The following represents an internal error.
          * DOMAdapter is a Java class in XSLTC.
          */
         {BasisLibrary.DOM_ADAPTER_INIT_ERR,
-        "DOMAdapter wurde mit dem falschen Typ f\u00fcr das Dokumentobjektmodell der Quelle erstellt."},
+        "DOMAdapter mit falschem Typ von Quell-DOM erstellt."},
 
         /*
          * Note to translators:  The following message indicates that the XML
@@ -206,7 +206,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          * DTD.
          */
         {BasisLibrary.PARSER_DTD_SUPPORT_ERR,
-        "Der von Ihnen verwendete SAX-Parser bearbeitet keine DTD-Deklarationsereignisse."},
+        "Der verwendete SAX-Parser verarbeitet keine DTD-Deklarationsereignisse."},
 
         /*
          * Note to translators:  The following message indicates that the XML
@@ -215,15 +215,74 @@ public class ErrorMessages_de extends ListResourceBundle {
          * declarations.
          */
         {BasisLibrary.NAMESPACES_SUPPORT_ERR,
-        "Der von Ihnen verwendete SAX-Parser unterst\u00fctzt keine XML-Namensbereiche."},
+        "Der verwendete SAX-Parser unterst\u00FCtzt keine XML-Namespaces."},
 
         /*
          * Note to translators:  The substitution text is the URI that was in
          * error.
          */
         {BasisLibrary.CANT_RESOLVE_RELATIVE_URI_ERR,
-        "Der URI-Verweis ''{0}'' konnte nicht aufgel\u00f6st werden."}
+        "URI-Referenz \"{0}\" konnte nicht aufgel\u00F6st werden."},
+
+         /*
+         * Note to translators:  The stylesheet contained an element that was
+         * not recognized as part of the XSL syntax.  The substitution text
+         * gives the element name.
+         */
+        {BasisLibrary.UNSUPPORTED_XSL_ERR,
+        "Nicht unterst\u00FCtztes XSL-Element \"{0}\""},
+
+        /*
+         * Note to translators:  The stylesheet referred to an extension to the
+         * XSL syntax and indicated that it was defined by XSLTC, but XSLTC does
+         * not recognize the particular extension named.  The substitution text
+         * gives the extension name.
+         */
+        {BasisLibrary.UNSUPPORTED_EXT_ERR,
+        "Unbekannte XSLTC-Erweiterung \"{0}\""},
+
+
+        /*
+         * Note to translators:  This error message is produced if the translet
+         * class was compiled using a newer version of XSLTC and deployed for
+         * execution with an older version of XSLTC.  The substitution text is
+         * the name of the translet class.
+         */
+        {BasisLibrary.UNKNOWN_TRANSLET_VERSION_ERR,
+        "Das angegebene Translet \"{0}\" wurde mit einer neueren Version von XSLTC als die verwendete Version der XSLTC-Laufzeit erstellt. Sie m\u00FCssen das Stylesheet neu kompilieren oder eine aktuellere Version von XSLTC verwenden, um dieses Translet auszuf\u00FChren."},
+
+        /*
+         * Note to translators:  An attribute whose effective value is required
+         * to be a "QName" had a value that was incorrect.
+         * 'QName' is an XML syntactic term that must not be translated.  The
+         * substitution text contains the actual value of the attribute.
+         */
+        {BasisLibrary.INVALID_QNAME_ERR,
+        "Ein Attribut, dessen Wert ein QName sein muss, hatte den Wert \"{0}\""},
+
+
+        /*
+         * Note to translators:  An attribute whose effective value is required
+         * to be a "NCName" had a value that was incorrect.
+         * 'NCName' is an XML syntactic term that must not be translated.  The
+         * substitution text contains the actual value of the attribute.
+         */
+        {BasisLibrary.INVALID_NCNAME_ERR,
+        "Ein Attribut, dessen Wert ein NCName sein muss, hatte den Wert \"{0}\""},
+        
+        {BasisLibrary.UNALLOWED_EXTENSION_FUNCTION_ERR,
+        "Verwendung der Erweiterungsfunktion \"{0}\" ist nicht zul\u00E4ssig, wenn das Feature f\u00FCr die sichere Verarbeitung auf \"true\" gesetzt ist."},
+
+        {BasisLibrary.UNALLOWED_EXTENSION_ELEMENT_ERR,
+        "Verwendung des Erweiterungselements \"{0}\" ist nicht zul\u00E4ssig, wenn das Feature f\u00FCr die sichere Verarbeitung auf \"true\" gesetzt ist."},
     };
+    /** Get the lookup table for error messages.
+     *
+     * @return The message lookup table.
+     */
+    public Object[][] getContents()
+    {
+        return _contents;
     }
 
 }

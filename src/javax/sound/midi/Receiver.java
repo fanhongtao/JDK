@@ -1,40 +1,57 @@
 /*
- * @(#)Receiver.java	1.22 05/11/17
+ * Copyright (c) 1999, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
-package javax.sound.midi;		  	 
+package javax.sound.midi;
 
 
 /**
  * A <code>Receiver</code> receives <code>{@link MidiEvent}</code> objects and
  * typically does something useful in response, such as interpreting them to
- * generate sound or raw MIDI output.  Common MIDI receivers include 
- * synthesizers and MIDI Out ports.  
+ * generate sound or raw MIDI output.  Common MIDI receivers include
+ * synthesizers and MIDI Out ports.
  *
  * @see MidiDevice
  * @see Synthesizer
  * @see Transmitter
  *
- * @version 1.22, 05/11/17
  * @author Kara Kytle
  */
-public interface Receiver {
+public interface Receiver extends AutoCloseable {
 
 
     //$$fb 2002-04-12: fix for 4662090: Contradiction in Receiver specification
     /**
      * Sends a MIDI message and time-stamp to this receiver.
-     * If time-stamping is not supported by this receiver, the time-stamp 
+     * If time-stamping is not supported by this receiver, the time-stamp
      * value should be -1.
      * @param message the MIDI message to send
      * @param timeStamp the time-stamp for the message, in microseconds.
      * @throws IllegalStateException if the receiver is closed
-     */ 
-    public void send(MidiMessage message, long timeStamp);													 
-	
+     */
+    public void send(MidiMessage message, long timeStamp);
+
     /**
      * Indicates that the application has finished using the receiver, and
      * that limited resources it requires may be released or made available.

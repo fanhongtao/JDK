@@ -1,11 +1,25 @@
 /*
- * @(#)file      ThreadService.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   1.9
- * @(#)date      06/11/29
+ * Copyright (c) 2002, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -18,28 +32,22 @@ import com.sun.jmx.snmp.tasks.TaskServer;
 /**
  * This class implements a {@link com.sun.jmx.snmp.tasks.TaskServer} over
  * a thread pool.
- * <p><b>This API is a Sun Microsystems internal API  and is subject 
+ * <p><b>This API is a Sun Microsystems internal API  and is subject
  * to change without notice.</b></p>
  **/
 public class ThreadService implements TaskServer {
 
     public ThreadService(int threadNumber) {
-	if (threadNumber <= 0) {
-	    throw new IllegalArgumentException("The thread number should bigger than zero.");
-	}
+        if (threadNumber <= 0) {
+            throw new IllegalArgumentException("The thread number should bigger than zero.");
+        }
 
-	minThreads = threadNumber;
-	threadList = new ExecutorThread[threadNumber];
+        minThreads = threadNumber;
+        threadList = new ExecutorThread[threadNumber];
 
-// 	for (int i=0; i<threadNumber; i++) {
-// 	    threadList[i] = new ExecutorThread();
-// 	    threadList[i].start();
-// 	}
+        priority = Thread.currentThread().getPriority();
+        cloader = Thread.currentThread().getContextClassLoader();
 
-	priority = Thread.currentThread().getPriority();
-	cloader = Thread.currentThread().getContextClassLoader();
-
-//System.out.println("---jsl: ThreadService: running threads = "+threadNumber);
     }
 
 // public methods
@@ -48,7 +56,7 @@ public class ThreadService implements TaskServer {
     /**
      * Submit a task to be executed.
      * Once a task is submitted, it is guaranteed that either
-     * {@link com.sun.jmx.snmp.tasks.Task#run() task.run()} or 
+     * {@link com.sun.jmx.snmp.tasks.Task#run() task.run()} or
      * {@link com.sun.jmx.snmp.tasks.Task#cancel() task.cancel()} will be called.
      * This implementation of TaskServer uses a thread pool to execute
      * the submitted tasks.
@@ -56,7 +64,7 @@ public class ThreadService implements TaskServer {
      * @exception IllegalArgumentException if the submitted task is null.
      **/
     public void submitTask(Task task) throws IllegalArgumentException {
-	submitTask((Runnable)task);
+        submitTask((Runnable)task);
     }
 
     /**
@@ -67,76 +75,75 @@ public class ThreadService implements TaskServer {
      * @exception IllegalArgumentException if the submitted task is null.
      **/
     public void submitTask(Runnable task) throws IllegalArgumentException {
-	stateCheck();
+        stateCheck();
 
-	if (task == null) {
-	    throw new IllegalArgumentException("No task specified.");
-	}
+        if (task == null) {
+            throw new IllegalArgumentException("No task specified.");
+        }
 
-	synchronized(jobList) {
-	    jobList.add(jobList.size(), task);
-//System.out.println("jsl-ThreadService: added job "+addedJobs++);
+        synchronized(jobList) {
+            jobList.add(jobList.size(), task);
 
-	    jobList.notify();
-	}
+            jobList.notify();
+        }
 
-	createThread();
+        createThread();
     }
 
     public Runnable removeTask(Runnable task) {
-	stateCheck();
+        stateCheck();
 
-	Runnable removed = null;
-	synchronized(jobList) {
-	    int lg = jobList.indexOf(task);
-	    if (lg >= 0) {
-		removed = (Runnable)jobList.remove(lg);
-	    }
-	}
-	if (removed != null && removed instanceof Task) 
-	    ((Task) removed).cancel();
-	return removed;
+        Runnable removed = null;
+        synchronized(jobList) {
+            int lg = jobList.indexOf(task);
+            if (lg >= 0) {
+                removed = jobList.remove(lg);
+            }
+        }
+        if (removed != null && removed instanceof Task)
+            ((Task) removed).cancel();
+        return removed;
     }
 
     public void removeAll() {
-	stateCheck();
-	
-	final Object[] jobs;
-	synchronized(jobList) {
-	    jobs = jobList.toArray();
-	    jobList.clear();
-	}
-	final int len = jobs.length;
-	for (int i=0; i<len ; i++) {
-	    final Object o = jobs[i];
-	    if (o!= null && o instanceof Task) ((Task)o).cancel();
-	}
+        stateCheck();
+
+        final Object[] jobs;
+        synchronized(jobList) {
+            jobs = jobList.toArray();
+            jobList.clear();
+        }
+        final int len = jobs.length;
+        for (int i=0; i<len ; i++) {
+            final Object o = jobs[i];
+            if (o!= null && o instanceof Task) ((Task)o).cancel();
+        }
     }
 
     // to terminate
     public void terminate() {
 
-	if (terminated == true) {
-	    return;
-	}
+        if (terminated == true) {
+            return;
+        }
 
-	terminated = true;
+        terminated = true;
 
-	synchronized(jobList) {
-	    jobList.notifyAll();
-	}
+        synchronized(jobList) {
+            jobList.notifyAll();
+        }
 
-	removeAll();
+        removeAll();
 
-	for (int i=0; i<currThreds; i++) {
-	    try {
-		threadList[i].interrupt();
-	    } catch (Exception e) {
-		// TODO
-	    }
-	}
+        for (int i=0; i<currThreds; i++) {
+            try {
+                threadList[i].interrupt();
+            } catch (Exception e) {
+                // TODO
+            }
+        }
 
-	threadList = null;
+        threadList = null;
     }
 
 // private classes
@@ -145,85 +152,82 @@ public class ThreadService implements TaskServer {
     // A thread used to execute jobs
     //
     private class ExecutorThread extends Thread {
-	public ExecutorThread() {
-	    super(threadGroup, "ThreadService-"+counter++);
-	    setDaemon(true);
+        public ExecutorThread() {
+            super(threadGroup, "ThreadService-"+counter++);
+            setDaemon(true);
 
-	    // init
-	    this.setPriority(priority);
-	    this.setContextClassLoader(cloader);
- 
-	    idle++;
-	}
+            // init
+            this.setPriority(priority);
+            this.setContextClassLoader(cloader);
 
-	public void run() {
+            idle++;
+        }
 
-	    while(!terminated) {
-		Runnable job = null;
+        public void run() {
 
-		synchronized(jobList) {
-		    if (jobList.size() > 0) {
-		        job = (Runnable)jobList.remove(0);
-			if (jobList.size() > 0) {
-			    jobList.notify();
-			}
-			
-		    } else {
-			try {
-			    jobList.wait();
-			} catch (InterruptedException ie) {
-			    // terminated ?
-			} finally {
-			}
-			continue;
-		    }
-		}
-		if (job != null) {
-		    try {
-			idle--;
-			job.run();
-//System.out.println("jsl-ThreadService: done job "+doneJobs++);
+            while(!terminated) {
+                Runnable job = null;
 
-		    } catch (Exception e) { 
-			// TODO
-			e.printStackTrace();
-		    } finally {
-			idle++;
-		    }
-		}
+                synchronized(jobList) {
+                    if (jobList.size() > 0) {
+                        job = jobList.remove(0);
+                        if (jobList.size() > 0) {
+                            jobList.notify();
+                        }
 
-		// re-init
-		this.setPriority(priority);
-		this.interrupted();
-		this.setContextClassLoader(cloader);
-	    }
-	}
+                    } else {
+                        try {
+                            jobList.wait();
+                        } catch (InterruptedException ie) {
+                            // terminated ?
+                        } finally {
+                        }
+                        continue;
+                    }
+                }
+                if (job != null) {
+                    try {
+                        idle--;
+                        job.run();
+                    } catch (Exception e) {
+                        // TODO
+                        e.printStackTrace();
+                    } finally {
+                        idle++;
+                    }
+                }
+
+                // re-init
+                this.setPriority(priority);
+                this.interrupted();
+                this.setContextClassLoader(cloader);
+            }
+        }
     }
 
 // private methods
     private void stateCheck() throws IllegalStateException {
-	if (terminated) {
-	    throw new IllegalStateException("The thread service has been terminated.");
-	}
+        if (terminated) {
+            throw new IllegalStateException("The thread service has been terminated.");
+        }
     }
 
     private void createThread() {
-	if (idle < 1) {
-	    synchronized(threadList) {
-		if (jobList.size() > 0 && currThreds < minThreads) {
-		    ExecutorThread et = new ExecutorThread();
-		    et.start();
-		    threadList[currThreds++] = et;
-//System.out.println("jsl-ThreadService: create new thread: "+currThreds);
-		}
-	    }
-	}
+        if (idle < 1) {
+            synchronized(threadList) {
+                if (jobList.size() > 0 && currThreds < minThreads) {
+                    ExecutorThread et = new ExecutorThread();
+                    et.start();
+                    threadList[currThreds++] = et;
+                }
+            }
+        }
     }
 
 
 // protected or private variables
 // ------------------------------
-    private ArrayList jobList = new ArrayList(0);
+    private ArrayList<Runnable> jobList = new ArrayList<Runnable>(0);
 
     private ExecutorThread[] threadList;
     private int minThreads = 1;

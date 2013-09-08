@@ -1,8 +1,26 @@
 /*
- * @(#)Messager.java	1.7 06/08/28
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.annotation.processing;
@@ -31,7 +49,6 @@ import javax.lang.model.element.*;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.7 06/08/28
  * @see ProcessingEnvironment#getLocale
  * @since 1.6
  */
@@ -77,8 +94,8 @@ public interface Messager {
      * @param v    the annotation value to use as a position hint
      */
     void printMessage(Diagnostic.Kind kind,
-		      CharSequence msg,
-		      Element e,
-		      AnnotationMirror a,
-		      AnnotationValue v);
+                      CharSequence msg,
+                      Element e,
+                      AnnotationMirror a,
+                      AnnotationValue v);
 }

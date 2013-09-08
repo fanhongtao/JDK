@@ -1,8 +1,26 @@
 /*
- * @(#)EnumSet.java	1.15 06/07/10
+ * Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -55,7 +73,6 @@ import sun.misc.SharedSecrets;
  * Java Collections Framework</a>.
  *
  * @author Josh Bloch
- * @version 1.15, 07/10/06
  * @since 1.5
  * @see EnumMap
  * @serial exclude
@@ -93,9 +110,9 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
             throw new ClassCastException(elementType + " not an enum");
 
         if (universe.length <= 64)
-            return new RegularEnumSet<E>(elementType, universe);
+            return new RegularEnumSet<>(elementType, universe);
         else
-            return new JumboEnumSet<E>(elementType, universe);
+            return new JumboEnumSet<>(elementType, universe);
     }
 
     /**
@@ -300,6 +317,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      *     or if <tt>rest</tt> is null
      * @return an enum set initially containing the specified elements
      */
+    @SafeVarargs
     public static <E extends Enum<E>> EnumSet<E> of(E first, E... rest) {
         EnumSet<E> result = noneOf(first.getDeclaringClass());
         result.add(first);
@@ -316,11 +334,10 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      *
      * @param from the first element in the range
      * @param to the last element in the range
-     * @throws NullPointerException if <tt>first</tt> or <tt>last</tt> are
-     *     null
-     * @throws IllegalArgumentException if <tt>first.compareTo(last) &gt; 0</tt>
+     * @throws NullPointerException if {@code from} or {@code to} are null
+     * @throws IllegalArgumentException if {@code from.compareTo(to) > 0}
      * @return an enum set initially containing all of the elements in the
-     *     range defined by the two specified endpoints
+     *         range defined by the two specified endpoints
      */
     public static <E extends Enum<E>> EnumSet<E> range(E from, E to) {
         if (from.compareTo(to) > 0)
@@ -369,7 +386,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
      */
     private static <E extends Enum<E>> E[] getUniverse(Class<E> elementType) {
         return SharedSecrets.getJavaLangAccess()
-					.getEnumConstantsShared(elementType);
+                                        .getEnumConstantsShared(elementType);
     }
 
     /**
@@ -400,7 +417,7 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
 
         SerializationProxy(EnumSet<E> set) {
             elementType = set.elementType;
-            elements = (Enum[]) set.toArray(ZERO_LENGTH_ENUM_ARRAY);
+            elements = set.toArray(ZERO_LENGTH_ENUM_ARRAY);
         }
 
         private Object readResolve() {
@@ -414,6 +431,13 @@ public abstract class EnumSet<E extends Enum<E>> extends AbstractSet<E>
     }
 
     Object writeReplace() {
-        return new SerializationProxy<E>(this);
+        return new SerializationProxy<>(this);
+    }
+
+    // readObject method for the serialization proxy pattern
+    // See Effective Java, Second Ed., Item 78.
+    private void readObject(java.io.ObjectInputStream stream)
+        throws java.io.InvalidObjectException {
+        throw new java.io.InvalidObjectException("Proxy required");
     }
 }

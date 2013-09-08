@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -61,12 +65,11 @@ import java.util.HashMap;
 /**
  * Abstract super class for <em>Attribute</em> objects. Currently the
  * <em>ConstantValue</em>, <em>SourceFile</em>, <em>Code</em>,
- * <em>Exceptiontable</em>, <em>LineNumberTable</em>, 
+ * <em>Exceptiontable</em>, <em>LineNumberTable</em>,
  * <em>LocalVariableTable</em>, <em>InnerClasses</em> and
  * <em>Synthetic</em> attributes are supported. The
  * <em>Unknown</em> attribute stands for non-standard-attributes.
  *
- * @version $Id: Attribute.java,v 1.1.2.1 2005/07/31 23:46:25 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     ConstantValue
  * @see     SourceFile
@@ -74,7 +77,7 @@ import java.util.HashMap;
  * @see     Unknown
  * @see     ExceptionTable
  * @see     LineNumberTable
- * @see     LocalVariableTable 
+ * @see     LocalVariableTable
  * @see     InnerClasses
  * @see     Synthetic
  * @see     Deprecated
@@ -87,7 +90,7 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
   protected ConstantPool constant_pool;
 
   protected Attribute(byte tag, int name_index, int length,
-		      ConstantPool constant_pool) {
+                      ConstantPool constant_pool) {
     this.tag           = tag;
     this.name_index    = name_index;
     this.length        = length;
@@ -101,7 +104,7 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
    *
    * @param v Visitor object
    */
-  public abstract void accept(Visitor v);    
+  public abstract void accept(Visitor v);
 
   /**
    * Dump attribute to file stream in binary format.
@@ -123,7 +126,7 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
    *
    * @param name the name of the attribute as stored in the class file
    * @param r the reader object
-   */ 
+   */
   public static void addAttributeReader(String name, AttributeReader r) {
     readers.put(name, r);
   }
@@ -149,7 +152,7 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
    * @throws  ClassFormatException
    */
   public static final Attribute readAttribute(DataInputStream file,
-					      ConstantPool constant_pool)
+                                              ConstantPool constant_pool)
     throws IOException, ClassFormatException
   {
     ConstantUtf8 c;
@@ -160,8 +163,8 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
 
     // Get class name from constant pool via `name_index' indirection
     name_index = (int)file.readUnsignedShort();
-    c          = (ConstantUtf8)constant_pool.getConstant(name_index, 
-							 Constants.CONSTANT_Utf8);
+    c          = (ConstantUtf8)constant_pool.getConstant(name_index,
+                                                         Constants.CONSTANT_Utf8);
     name       = c.getBytes();
 
     // Length of data in bytes
@@ -170,8 +173,8 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
     // Compare strings to find known attribute
     for(byte i=0; i < Constants.KNOWN_ATTRIBUTES; i++) {
       if(name.equals(Constants.ATTRIBUTE_NAMES[i])) {
-	tag = i; // found!
-	break;
+        tag = i; // found!
+        break;
       }
     }
 
@@ -181,25 +184,25 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
       AttributeReader r = (AttributeReader)readers.get(name);
 
       if(r != null)
-	return r.createAttribute(name_index, length, file, constant_pool);
+        return r.createAttribute(name_index, length, file, constant_pool);
       else
-	return new Unknown(name_index, length, file, constant_pool);
+        return new Unknown(name_index, length, file, constant_pool);
 
     case Constants.ATTR_CONSTANT_VALUE:
       return new ConstantValue(name_index, length, file, constant_pool);
 
     case Constants.ATTR_SOURCE_FILE:
       return new SourceFile(name_index, length, file, constant_pool);
-	  
+
     case Constants.ATTR_CODE:
       return new Code(name_index, length, file, constant_pool);
-	  
+
     case Constants.ATTR_EXCEPTIONS:
       return new ExceptionTable(name_index, length, file, constant_pool);
-	  
+
     case Constants.ATTR_LINE_NUMBER_TABLE:
       return new LineNumberTable(name_index, length, file, constant_pool);
-	  
+
     case Constants.ATTR_LOCAL_VARIABLE_TABLE:
       return new LocalVariableTable(name_index, length, file, constant_pool);
 
@@ -224,52 +227,52 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
     default: // Never reached
       throw new IllegalStateException("Ooops! default case reached.");
     }
-  }    
+  }
 
   /**
    * @return Length of attribute field in bytes.
-   */  
-  public final int   getLength()    { return length; }    
+   */
+  public final int   getLength()    { return length; }
 
   /**
    * @param Attribute length in bytes.
    */
   public final void setLength(int length) {
     this.length = length;
-  }    
+  }
 
   /**
    * @param name_index of attribute.
    */
   public final void setNameIndex(int name_index) {
     this.name_index = name_index;
-  }    
+  }
 
   /**
    * @return Name index in constant pool of attribute name.
-   */  
-  public final int getNameIndex() { return name_index; }    
+   */
+  public final int getNameIndex() { return name_index; }
 
   /**
    * @return Tag of attribute, i.e., its type. Value may not be altered, thus
    * there is no setTag() method.
    */
-  public final byte  getTag()       { return tag; }    
+  public final byte  getTag()       { return tag; }
 
   /**
    * @return Constant pool used by this object.
    * @see ConstantPool
-   */   
-  public final ConstantPool getConstantPool() { return constant_pool; }    
+   */
+  public final ConstantPool getConstantPool() { return constant_pool; }
 
   /**
    * @param constant_pool Constant pool to be used for this object.
    * @see ConstantPool
-   */   
+   */
   public final void setConstantPool(ConstantPool constant_pool) {
     this.constant_pool = constant_pool;
   }
-  
+
   /**
    * Use copy() if you want to have a deep copy(), i.e., with all references
    * copied correctly.
@@ -295,7 +298,7 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
 
   /**
    * @return attribute name.
-   */ 
+   */
   public String toString() {
     return Constants.ATTRIBUTE_NAMES[tag];
   }

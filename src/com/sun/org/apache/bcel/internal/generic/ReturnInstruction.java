@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -59,7 +63,6 @@ import com.sun.org.apache.bcel.internal.ExceptionConstants;
 /**
  * Super class for the xRETURN family of instructions.
  *
- * @version $Id: ReturnInstruction.java,v 1.1.2.1 2005/07/31 23:45:43 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class ReturnInstruction extends Instruction
@@ -85,7 +88,7 @@ public abstract class ReturnInstruction extends Instruction
       case Constants.DRETURN: return Type.DOUBLE;
       case Constants.ARETURN: return Type.OBJECT;
       case Constants.RETURN:  return Type.VOID;
- 
+
     default: // Never reached
       throw new ClassGenException("Unknown type " + opcode);
     }
@@ -101,4 +104,3 @@ public abstract class ReturnInstruction extends Instruction
     return getType();
   }
 }
-

@@ -1,6 +1,37 @@
+/*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ * Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
+ */
+
 package javax.xml.stream;
+
 import javax.xml.stream.events.XMLEvent;
+
 import java.util.Iterator;
+
 /**
  *
  * This is the top level interface for parsing XML Events.  It provides
@@ -8,14 +39,14 @@ import java.util.Iterator;
  * information through the property interface.
  *
  * @version 1.0
- * @author Copyright (c) 2003 by BEA Systems. All Rights Reserved.
+ * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
  * @see XMLInputFactory
  * @see XMLEventWriter
  * @since 1.6
  */
 public interface XMLEventReader extends Iterator {
   /**
-   * Get the next XMLEvent 
+   * Get the next XMLEvent
    * @see XMLEvent
    * @throws XMLStreamException if there is an error with the underlying XML.
    * @throws NoSuchElementException iteration has no more elements.
@@ -23,7 +54,7 @@ public interface XMLEventReader extends Iterator {
   public XMLEvent nextEvent() throws XMLStreamException;
 
   /**
-   * Check if there are more events.  
+   * Check if there are more events.
    * Returns true if there are more events and false otherwise.
    * @return true if the event reader has more events, false otherwise
    */
@@ -64,7 +95,7 @@ public interface XMLEventReader extends Iterator {
    * @return The value of the property
    * @throws IllegalArgumentException if the property is not supported
    */
-  public Object getProperty(java.lang.String name) throws java.lang.IllegalArgumentException;  
+  public Object getProperty(java.lang.String name) throws java.lang.IllegalArgumentException;
 
   /**
    * Frees any resources associated with this Reader.  This method does not close the
@@ -73,6 +104,3 @@ public interface XMLEventReader extends Iterator {
    */
   public void close() throws XMLStreamException;
 }
-
-
-

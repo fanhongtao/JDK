@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +27,6 @@ import com.sun.org.apache.xalan.internal.xsltc.TransletException;
 import com.sun.org.apache.xalan.internal.xsltc.StripFilter;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.BasisLibrary;
-import com.sun.org.apache.xalan.internal.xsltc.runtime.AttributeList;
 
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisTraverser;
@@ -37,6 +40,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 
 /**
  * AdaptiveResultTreeImpl is a adaptive DOM model for result tree fragments (RTF). It is
@@ -75,6 +79,8 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
     // Document URI index, which increases by 1 at each getDocumentURI() call.
     private static int _documentURIIndex = 0;
 
+    private static final String EMPTY_STRING = "".intern();
+
     // The SAXImpl object wrapped by this class, if the RTF is a tree.
     private SAXImpl _dom;
     
@@ -90,7 +96,7 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
     private boolean _buildIdIndex;
     
     // The AttributeList
-    private final AttributeList  _attributes = new AttributeList();
+    private final AttributesImpl _attributes = new AttributesImpl();
     
     // The element name
     private String _openElementName;
@@ -678,19 +684,36 @@ public class AdaptiveResultTreeImpl extends SimpleResultTreeImpl
         endElement(qName);
     }
 
- public void addUniqueAttribute(String qName, String value, int flags)
-        throws SAXException
+    public void addAttribute(String qName, String value)
     {
-        addAttribute(qName, value); 
+        // "prefix:localpart" or "localpart"
+        int colonpos = qName.indexOf(":");
+        String uri = EMPTY_STRING;
+        String localName = qName;
+        if (colonpos >0)
+        {
+            String prefix = qName.substring(0, colonpos);
+            localName = qName.substring(colonpos+1);
+            uri = _dom.getNamespaceURI(prefix);
+        }
+
+        addAttribute(uri, localName, qName, "CDATA", value);
     }
 
-    public void addAttribute(String name, String value)
-    {    
+    public void addUniqueAttribute(String qName, String value, int flags)
+        throws SAXException
+    {
+        addAttribute(qName, value);
+    }
+
+    public void addAttribute(String uri, String localName, String qname,
+            String type, String value)
+    {
 	if (_openElementName != null) {
-	    _attributes.add(name, value);
+	    _attributes.addAttribute(uri, localName, qname, type, value);
 	}
 	else {
-	    BasisLibrary.runTimeError(BasisLibrary.STRAY_ATTRIBUTE_ERR, name);
+	    BasisLibrary.runTimeError(BasisLibrary.STRAY_ATTRIBUTE_ERR, qname);
 	}
     }
 

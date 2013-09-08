@@ -1,19 +1,42 @@
 /*
- * @(#)LogRecord.java	1.24 05/11/17
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.logging;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.io.*;
+
+import sun.misc.JavaLangAccess;
+import sun.misc.SharedSecrets;
 
 /**
  * LogRecord objects are used to pass logging requests between
  * the logging framework and individual log Handlers.
  * <p>
- * When a LogRecord is passed into the logging framework it 
+ * When a LogRecord is passed into the logging framework it
  * logically belongs to the framework and should no longer be
  * used or updated by the client application.
  * <p>
@@ -42,14 +65,27 @@ import java.io.*;
  *
  * </ul>
  *
- * @version 1.24, 11/17/05
  * @since 1.4
  */
 
 public class LogRecord implements java.io.Serializable {
-    private static long globalSequenceNumber;
-    private static int nextThreadId=10;
-    private static ThreadLocal threadIds = new ThreadLocal();
+    private static final AtomicLong globalSequenceNumber
+        = new AtomicLong(0);
+
+    /**
+     * The default value of threadID will be the current thread's
+     * thread id, for ease of correlation, unless it is greater than
+     * MIN_SEQUENTIAL_THREAD_ID, in which case we try harder to keep
+     * our promise to keep threadIDs unique by avoiding collisions due
+     * to 32-bit wraparound.  Unfortunately, LogRecord.getThreadID()
+     * returns int, while Thread.getId() returns long.
+     */
+    private static final int MIN_SEQUENTIAL_THREAD_ID = Integer.MAX_VALUE / 2;
+
+    private static final AtomicInteger nextThreadId
+        = new AtomicInteger(MIN_SEQUENTIAL_THREAD_ID);
+
+    private static final ThreadLocal<Integer> threadIds = new ThreadLocal<>();
 
     /**
      * @serial Logging message level
@@ -106,6 +142,23 @@ public class LogRecord implements java.io.Serializable {
     private transient ResourceBundle resourceBundle;
 
     /**
+     * Returns the default value for a new LogRecord's threadID.
+     */
+    private int defaultThreadID() {
+        long tid = Thread.currentThread().getId();
+        if (tid < MIN_SEQUENTIAL_THREAD_ID) {
+            return (int) tid;
+        } else {
+            Integer id = threadIds.get();
+            if (id == null) {
+                id = nextThreadId.getAndIncrement();
+                threadIds.set(id);
+            }
+            return id;
+        }
+    }
+
+    /**
      * Construct a LogRecord with the given level and message values.
      * <p>
      * The sequence property will be initialized with a new unique value.
@@ -116,48 +169,41 @@ public class LogRecord implements java.io.Serializable {
      * The thread ID property will be initialized with a unique ID for
      * the current thread.
      * <p>
-     * All other properties will be initialized to "null". 
-     * 
+     * All other properties will be initialized to "null".
+     *
      * @param level  a logging level value
      * @param msg  the raw non-localized logging message (may be null)
      */
     public LogRecord(Level level, String msg) {
-	// Make sure level isn't null, by calling random method.
-	level.getClass();
-	this.level = level;
-	message = msg;
-	// Assign a thread ID and a unique sequence number.
-	synchronized (LogRecord.class) {
-	    sequenceNumber = globalSequenceNumber++;
-	    Integer id = (Integer)threadIds.get();
-	    if (id == null) {
-		id = new Integer(nextThreadId++);
-		threadIds.set(id);
-	    }
-	    threadID = id.intValue();
-	}
-	millis = System.currentTimeMillis(); 
-	needToInferCaller = true;
+        // Make sure level isn't null, by calling random method.
+        level.getClass();
+        this.level = level;
+        message = msg;
+        // Assign a thread ID and a unique sequence number.
+        sequenceNumber = globalSequenceNumber.getAndIncrement();
+        threadID = defaultThreadID();
+        millis = System.currentTimeMillis();
+        needToInferCaller = true;
    }
 
     /**
-     * Get the source Logger name's
+     * Get the source Logger's name.
      *
      * @return source logger name (may be null)
      */
     public String getLoggerName() {
-	return loggerName;
+        return loggerName;
     }
-   
+
     /**
-     * Set the source Logger name.
+     * Set the source Logger's name.
      *
      * @param name   the source logger name (may be null)
      */
     public void setLoggerName(String name) {
-	loggerName = name;
+        loggerName = name;
     }
-   
+
     /**
      * Get the localization resource bundle
      * <p>
@@ -167,18 +213,18 @@ public class LogRecord implements java.io.Serializable {
      * ResourceBundle is available.
      */
     public ResourceBundle getResourceBundle() {
-	return resourceBundle;
+        return resourceBundle;
     }
-   
+
     /**
      * Set the localization resource bundle.
      *
      * @param bundle  localization bundle (may be null)
      */
     public void setResourceBundle(ResourceBundle bundle) {
-	resourceBundle = bundle;
+        resourceBundle = bundle;
     }
-   
+
     /**
      * Get the localization resource bundle name
      * <p>
@@ -187,38 +233,38 @@ public class LogRecord implements java.io.Serializable {
      * The result may be null if the message is not localizable.
      */
     public String getResourceBundleName() {
-	return resourceBundleName;
+        return resourceBundleName;
     }
-   
+
     /**
      * Set the localization resource bundle name.
      *
      * @param name  localization bundle name (may be null)
      */
     public void setResourceBundleName(String name) {
-	resourceBundleName = name;
+        resourceBundleName = name;
     }
-   
+
     /**
      * Get the logging message level, for example Level.SEVERE.
      * @return the logging message level
-     */  
+     */
     public Level getLevel() {
-	return level;
+        return level;
     }
 
     /**
      * Set the logging message level, for example Level.SEVERE.
      * @param level the logging message level
-     */  
+     */
     public void setLevel(Level level) {
-	if (level == null) {
-	    throw new NullPointerException();
-	}
-	this.level = level;
+        if (level == null) {
+            throw new NullPointerException();
+        }
+        this.level = level;
     }
 
-    /** 
+    /**
      * Get the sequence number.
      * <p>
      * Sequence numbers are normally assigned in the LogRecord
@@ -227,17 +273,17 @@ public class LogRecord implements java.io.Serializable {
      * @return the sequence number
      */
     public long getSequenceNumber() {
-	return sequenceNumber;
+        return sequenceNumber;
     }
 
-    /** 
+    /**
      * Set the sequence number.
      * <p>
      * Sequence numbers are normally assigned in the LogRecord constructor,
      * so it should not normally be necessary to use this method.
      */
     public void setSequenceNumber(long seq) {
-	sequenceNumber = seq;
+        sequenceNumber = seq;
     }
 
     /**
@@ -253,22 +299,22 @@ public class LogRecord implements java.io.Serializable {
      * May be null if no information could be obtained.
      *
      * @return the source class name
-     */  
+     */
     public String getSourceClassName() {
-	if (needToInferCaller) {
-	    inferCaller();
-	}
-	return sourceClassName;
+        if (needToInferCaller) {
+            inferCaller();
+        }
+        return sourceClassName;
     }
 
     /**
      * Set the name of the class that (allegedly) issued the logging request.
      *
      * @param sourceClassName the source class name (may be null)
-     */  
+     */
     public void setSourceClassName(String sourceClassName) {
-	this.sourceClassName = sourceClassName;
-	needToInferCaller = false;
+        this.sourceClassName = sourceClassName;
+        needToInferCaller = false;
     }
 
     /**
@@ -284,22 +330,22 @@ public class LogRecord implements java.io.Serializable {
      * May be null if no information could be obtained.
      *
      * @return the source method name
-     */  
+     */
     public String getSourceMethodName() {
-	if (needToInferCaller) {
-	    inferCaller();
-	}
-	return sourceMethodName;
+        if (needToInferCaller) {
+            inferCaller();
+        }
+        return sourceMethodName;
     }
 
     /**
      * Set the name of the method that (allegedly) issued the logging request.
      *
      * @param sourceMethodName the source method name (may be null)
-     */  
+     */
     public void setSourceMethodName(String sourceMethodName) {
-	this.sourceMethodName = sourceMethodName;
-	needToInferCaller = false;
+        this.sourceMethodName = sourceMethodName;
+        needToInferCaller = false;
     }
 
     /**
@@ -317,7 +363,7 @@ public class LogRecord implements java.io.Serializable {
      * @return the raw message string
      */
     public String getMessage() {
-	return message;
+        return message;
     }
 
     /**
@@ -326,17 +372,17 @@ public class LogRecord implements java.io.Serializable {
      * @param message the raw message string (may be null)
      */
     public void setMessage(String message) {
-	this.message = message;
+        this.message = message;
     }
 
     /**
      * Get the parameters to the log message.
      *
      * @return the log message parameters.  May be null if
-     *			there are no parameters.
+     *                  there are no parameters.
      */
     public Object[] getParameters() {
-	return parameters;
+        return parameters;
     }
 
     /**
@@ -345,7 +391,7 @@ public class LogRecord implements java.io.Serializable {
      * @param parameters the log message parameters. (may be null)
      */
     public void setParameters(Object parameters[]) {
-	this.parameters = parameters;
+        this.parameters = parameters;
     }
 
     /**
@@ -357,15 +403,15 @@ public class LogRecord implements java.io.Serializable {
      * @return thread ID
      */
     public int getThreadID() {
-	return threadID;
+        return threadID;
     }
 
     /**
      * Set an identifier for the thread where the message originated.
-     * @param threadID 	the thread ID
+     * @param threadID  the thread ID
      */
     public void setThreadID(int threadID) {
-	this.threadID = threadID;
+        this.threadID = threadID;
     }
 
     /**
@@ -374,7 +420,7 @@ public class LogRecord implements java.io.Serializable {
      * @return event time in millis since 1970
      */
     public long getMillis() {
-	return millis;
+        return millis;
     }
 
     /**
@@ -383,7 +429,7 @@ public class LogRecord implements java.io.Serializable {
      * @param millis event time in millis since 1970
      */
     public void setMillis(long millis) {
-	this.millis = millis;
+        this.millis = millis;
     }
 
     /**
@@ -395,7 +441,7 @@ public class LogRecord implements java.io.Serializable {
      * @return a throwable
      */
     public Throwable getThrown() {
-	return thrown;
+        return thrown;
     }
 
     /**
@@ -404,7 +450,7 @@ public class LogRecord implements java.io.Serializable {
      * @param thrown  a throwable (may be null)
      */
     public void setThrown(Throwable thrown) {
-	this.thrown = thrown;
+        this.thrown = thrown;
     }
 
     private static final long serialVersionUID = 5372048053134512534L;
@@ -412,7 +458,7 @@ public class LogRecord implements java.io.Serializable {
     /**
      * @serialData Default fields, followed by a two byte version number
      * (major byte, followed by minor byte), followed by information on
-     * the log record parameter array.  If there is no parameter array, 
+     * the log record parameter array.  If there is no parameter array,
      * then -1 is written.  If there is a parameter array (possible of zero
      * length) then the array length is written as an integer, followed
      * by String values for each parameter.  If a parameter is null, then
@@ -420,89 +466,101 @@ public class LogRecord implements java.io.Serializable {
      * is written.
      */
     private void writeObject(ObjectOutputStream out) throws IOException {
-	// We have to call defaultWriteObject first.
-	out.defaultWriteObject();
+        // We have to call defaultWriteObject first.
+        out.defaultWriteObject();
 
-	// Write our version number.
-	out.writeByte(1);
-	out.writeByte(0);
-	if (parameters == null) {
-	    out.writeInt(-1);
-	    return;
-	}
-	out.writeInt(parameters.length);
-	// Write string values for the parameters.
-	for (int i = 0; i < parameters.length; i++) {
-	    if (parameters[i] == null) {
-	        out.writeObject(null);
-	    } else {
-	        out.writeObject(parameters[i].toString());
-	    }
-	}
+        // Write our version number.
+        out.writeByte(1);
+        out.writeByte(0);
+        if (parameters == null) {
+            out.writeInt(-1);
+            return;
+        }
+        out.writeInt(parameters.length);
+        // Write string values for the parameters.
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i] == null) {
+                out.writeObject(null);
+            } else {
+                out.writeObject(parameters[i].toString());
+            }
+        }
     }
 
-    private void readObject(ObjectInputStream in) 
-   			throws IOException, ClassNotFoundException {
-	// We have to call defaultReadObject first.
-	in.defaultReadObject();
+    private void readObject(ObjectInputStream in)
+                        throws IOException, ClassNotFoundException {
+        // We have to call defaultReadObject first.
+        in.defaultReadObject();
 
-	// Read version number.
-	byte major = in.readByte();
-	byte minor = in.readByte();
-	if (major != 1) {
-	    throw new IOException("LogRecord: bad version: " + major + "." + minor);
-	}
-	int len = in.readInt();
-	if (len == -1) {
-	    parameters = null;
-	} else {
-	    parameters = new Object[len];
-	    for (int i = 0; i < parameters.length; i++) {
-	        parameters[i] = in.readObject();
-	    }
-	}
-	// If necessary, try to regenerate the resource bundle.
-	if (resourceBundleName != null) {
-	    try {
-	    	resourceBundle = ResourceBundle.getBundle(resourceBundleName);
-	    } catch (MissingResourceException ex) {
-		// This is not a good place to throw an exception,
-		// so we simply leave the resourceBundle null.
-		resourceBundle = null;
-	    }
-	}
+        // Read version number.
+        byte major = in.readByte();
+        byte minor = in.readByte();
+        if (major != 1) {
+            throw new IOException("LogRecord: bad version: " + major + "." + minor);
+        }
+        int len = in.readInt();
+        if (len == -1) {
+            parameters = null;
+        } else {
+            parameters = new Object[len];
+            for (int i = 0; i < parameters.length; i++) {
+                parameters[i] = in.readObject();
+            }
+        }
+        // If necessary, try to regenerate the resource bundle.
+        if (resourceBundleName != null) {
+            try {
+                resourceBundle = ResourceBundle.getBundle(resourceBundleName);
+            } catch (MissingResourceException ex) {
+                // This is not a good place to throw an exception,
+                // so we simply leave the resourceBundle null.
+                resourceBundle = null;
+            }
+        }
 
-	needToInferCaller = false;
+        needToInferCaller = false;
     }
 
     // Private method to infer the caller's class and method names
     private void inferCaller() {
-	needToInferCaller = false;
-	// Get the stack trace.
-	StackTraceElement stack[] = (new Throwable()).getStackTrace();
-	// First, search back to a method in the Logger class.
-	int ix = 0;
-	while (ix < stack.length) {
-	    StackTraceElement frame = stack[ix];
-	    String cname = frame.getClassName();
-	    if (cname.equals("java.util.logging.Logger")) {
-		break;
-	    }
-	    ix++;
-	}
-	// Now search for the first frame before the "Logger" class.
-	while (ix < stack.length) {
-	    StackTraceElement frame = stack[ix];
-	    String cname = frame.getClassName();
-	    if (!cname.equals("java.util.logging.Logger")) {
-		// We've found the relevant frame.
-	        setSourceClassName(cname);
-	        setSourceMethodName(frame.getMethodName());
-		return;
-	    }
-	    ix++;
-	}
-	// We haven't found a suitable frame, so just punt.  This is
+        needToInferCaller = false;
+        JavaLangAccess access = SharedSecrets.getJavaLangAccess();
+        Throwable throwable = new Throwable();
+        int depth = access.getStackTraceDepth(throwable);
+
+        boolean lookingForLogger = true;
+        for (int ix = 0; ix < depth; ix++) {
+            // Calling getStackTraceElement directly prevents the VM
+            // from paying the cost of building the entire stack frame.
+            StackTraceElement frame =
+                access.getStackTraceElement(throwable, ix);
+            String cname = frame.getClassName();
+            boolean isLoggerImpl = isLoggerImplFrame(cname);
+            if (lookingForLogger) {
+                // Skip all frames until we have found the first logger frame.
+                if (isLoggerImpl) {
+                    lookingForLogger = false;
+                }
+            } else {
+                if (!isLoggerImpl) {
+                    // skip reflection call
+                    if (!cname.startsWith("java.lang.reflect.") && !cname.startsWith("sun.reflect.")) {
+                       // We've found the relevant frame.
+                       setSourceClassName(cname);
+                       setSourceMethodName(frame.getMethodName());
+                       return;
+                    }
+                }
+            }
+        }
+        // We haven't found a suitable frame, so just punt.  This is
         // OK as we are only committed to making a "best effort" here.
+    }
+
+    private boolean isLoggerImplFrame(String cname) {
+        // the log record could be created for a platform logger
+        return (cname.equals("java.util.logging.Logger") ||
+                cname.startsWith("java.util.logging.LoggingProxyImpl") ||
+                cname.startsWith("sun.util.logging."));
     }
 }

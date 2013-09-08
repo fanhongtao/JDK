@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +34,7 @@ import com.sun.org.apache.xml.internal.serializer.EmptySerializer;
  */
 public final class StringValueHandler extends EmptySerializer {
 
-    private StringBuffer _buffer = new StringBuffer();
+    private StringBuilder _buffer = new StringBuilder();
     private String _str = null;
     private static final String EMPTY_STR = "";
     private boolean m_escaping = false;
@@ -105,7 +109,7 @@ public final class StringValueHandler extends EmptySerializer {
 
 	if (value.indexOf("?>") > 0) {
 	    final int n = value.length(); 
-	    final StringBuffer valueOfPI = new StringBuffer();
+	    final StringBuilder valueOfPI = new StringBuilder();
 
 	    for (int i = 0; i < n;) {
 		final char ch = value.charAt(i++);

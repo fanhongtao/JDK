@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -60,14 +64,13 @@ import com.sun.org.apache.bcel.internal.classfile.ConstantPool;
 import java.io.*;
 import com.sun.org.apache.bcel.internal.util.ByteSequence;
 
-/** 
+/**
  * Abstract super class for all Java byte codes.
  *
- * @version $Id: Instruction.java,v 1.1.2.1 2005/07/31 23:44:37 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class Instruction implements Cloneable, Serializable {
-  protected short length = 1;  // Length of instruction in bytes 
+  protected short length = 1;  // Length of instruction in bytes
   protected short opcode = -1; // Opcode number
 
   private static InstructionComparator cmp = InstructionComparator.DEFAULT;
@@ -100,7 +103,7 @@ public abstract class Instruction implements Cloneable, Serializable {
   /**
    * Long output format:
    *
-   * &lt;name of opcode&gt; "["&lt;opcode number&gt;"]" 
+   * &lt;name of opcode&gt; "["&lt;opcode number&gt;"]"
    * "("&lt;length of instruction&gt;")"
    *
    * @param verbose long/short format switch
@@ -129,7 +132,7 @@ public abstract class Instruction implements Cloneable, Serializable {
 
   /**
    * Use with caution, since `BranchInstruction's have a `target' reference which
-   * is not copied correctly (only basic types are). This also applies for 
+   * is not copied correctly (only basic types are). This also applies for
    * `Select' instructions with their multiple branch targets.
    *
    * @see BranchInstruction
@@ -143,15 +146,15 @@ public abstract class Instruction implements Cloneable, Serializable {
       i = this;
     else {
       try {
-	i = (Instruction)clone();
+        i = (Instruction)clone();
       } catch(CloneNotSupportedException e) {
-	System.err.println(e);
+        System.err.println(e);
       }
     }
 
     return i;
   }
-  
+
   /**
    * Read needed data (e.g. index) from file.
    *
@@ -160,7 +163,7 @@ public abstract class Instruction implements Cloneable, Serializable {
    */
   protected void initFromFile(ByteSequence bytes, boolean wide)
     throws IOException
-  {}  
+  {}
 
   /**
    * Read an instruction from (byte code) input stream and return the
@@ -201,9 +204,9 @@ public abstract class Instruction implements Cloneable, Serializable {
       obj = (Instruction)clazz.newInstance();
 
       if(wide && !((obj instanceof LocalVariableInstruction) ||
-		   (obj instanceof IINC) ||
-		   (obj instanceof RET)))
-	throw new Exception("Illegal opcode after wide: " + opcode);
+                   (obj instanceof IINC) ||
+                   (obj instanceof RET)))
+        throw new Exception("Illegal opcode after wide: " + opcode);
 
       obj.setOpcode(opcode);
       obj.initFromFile(bytes, wide); // Do further initializations, if any
@@ -224,10 +227,10 @@ public abstract class Instruction implements Cloneable, Serializable {
       char ch1 = name.charAt(len - 2), ch2 = name.charAt(len - 1);
 
       if((ch1 == '_') && (ch2 >= '0')  && (ch2 <= '5'))
-	name = name.substring(0, len - 2);
-      
+        name = name.substring(0, len - 2);
+
       if(name.equals("ICONST_M1")) // Special case
-	name = "ICONST";
+        name = "ICONST";
     } catch(StringIndexOutOfBoundsException e) { System.err.println(e); }
 
     return "com.sun.org.apache.bcel.internal.generic." + name;

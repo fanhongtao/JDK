@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001, 2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,17 +37,16 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDContentModelSource;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 
 /**
- * @xerces.internal 
- * 
+ * @xerces.internal
+ *
  * @author Rahul Srivastava, Sun Microsystems Inc.
  * @author Sandy Gao, IBM
  *
- * @version $Id: DefaultXMLDocumentHandler.java,v 1.3 2005/09/26 13:02:41 sunithareddy Exp $
  */
-public class DefaultXMLDocumentHandler implements XMLDocumentHandler, 
-                                                  XMLDTDHandler, 
+public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
+                                                  XMLDTDHandler,
                                                   XMLDTDContentModelHandler {
-    
+
     /** Default Constructor */
     public DefaultXMLDocumentHandler() {
     }
@@ -54,7 +57,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * The start of the document.
-     * 
+     *
      * @param locator  The document locator, or null if the document
      *                 location cannot be reported during the parsing
      *                 of this document. However, it is <em>strongly</em>
@@ -71,7 +74,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *                   Thrown by handler to signal an error.
      */
     public void startDocument(XMLLocator locator, String encoding,
-                              NamespaceContext context, Augmentations augs) 
+                              NamespaceContext context, Augmentations augs)
         throws XNIException {
     }
 
@@ -79,13 +82,13 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * Notifies of the presence of an XMLDecl line in the document. If
      * present, this method will be called immediately following the
      * startDocument call.
-     * 
+     *
      * @param version    The XML version.
      * @param encoding   The IANA encoding name of the document, or null if
      *                   not specified.
      * @param standalone The standalone value, or null if not specified.
      * @param augs       Additional information that may include infoset augmentations
-     *                   
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -95,7 +98,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * Notifies of the presence of the DOCTYPE line in the document.
-     * 
+     *
      * @param rootElement
      *                 The name of the root element.
      * @param publicId The public identifier if an external DTD or null
@@ -103,7 +106,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * @param systemId The system identifier if an external DTD, null
      *                 otherwise.
      * @param augs     Additional information that may include infoset augmentations
-     *                 
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -113,10 +116,10 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * A comment.
-     * 
+     *
      * @param text   The text in the comment.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by application to signal an error.
      */
@@ -133,11 +136,11 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * element attributes but are <strong>not</strong> parsed or presented
      * to the application as anything other than text. The application is
      * responsible for parsing the data.
-     * 
+     *
      * @param target The target.
      * @param data   The data or null if none specified.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -148,11 +151,11 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
     /**
      * The start of a namespace prefix mapping. This method will only be
      * called when namespace processing is enabled.
-     * 
+     *
      * @param prefix The namespace prefix.
      * @param uri    The URI bound to the prefix.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -162,11 +165,11 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * The start of an element.
-     * 
+     *
      * @param element    The name of the element.
      * @param attributes The element attributes.
      * @param augs       Additional information that may include infoset augmentations
-     *                   
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -176,11 +179,11 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * An empty element.
-     * 
+     *
      * @param element    The name of the element.
      * @param attributes The element attributes.
      * @param augs       Additional information that may include infoset augmentations
-     *                   
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -193,7 +196,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * <p>
      * <strong>Note:</strong> This method is not called for entity references
      * appearing as part of attribute values.
-     * 
+     *
      * @param name     The name of the general entity.
      * @param identifier The resource identifier.
      * @param encoding The auto-detected IANA encoding name of the entity
@@ -202,10 +205,10 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *                 internal entities or a document entity that is
      *                 parsed from a java.io.Reader).
      * @param augs     Additional information that may include infoset augmentations
-     *                 
+     *
      * @exception XNIException Thrown by handler to signal an error.
      */
-    public void startGeneralEntity(String name, 
+    public void startGeneralEntity(String name,
                                    XMLResourceIdentifier identifier,
                                    String encoding,
                                    Augmentations augs) throws XNIException {
@@ -221,11 +224,11 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * <p>
      * <strong>Note:</strong> This method is not called for entity references
      * appearing as part of attribute values.
-     * 
+     *
      * @param version  The XML version, or null if not specified.
      * @param encoding The IANA encoding name of the entity.
      * @param augs     Additional information that may include infoset augmentations
-     *                 
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -237,10 +240,10 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * <p>
      * <strong>Note:</strong> This method is not called for entity references
      * appearing as part of attribute values.
-     * 
+     *
      * @param name   The name of the entity.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -249,10 +252,10 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * Character content.
-     * 
+     *
      * @param text   The content.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -266,10 +269,10 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * example, the validator can determine if a length of whitespace
      * characters in the document are ignorable based on the element
      * content model.
-     * 
+     *
      * @param text   The ignorable whitespace.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -278,10 +281,10 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * The end of an element.
-     * 
+     *
      * @param element The name of the element.
      * @param augs    Additional information that may include infoset augmentations
-     *                
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -291,10 +294,10 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
     /**
      * The end of a namespace prefix mapping. This method will only be
      * called when namespace processing is enabled.
-     * 
+     *
      * @param prefix The namespace prefix.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -303,9 +306,9 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * The start of a CDATA section.
-     * 
+     *
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -314,9 +317,9 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * The end of a CDATA section.
-     * 
+     *
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -325,9 +328,9 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * The end of the document.
-     * 
+     *
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -343,9 +346,9 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * The start of the DTD.
      *
      * @param locator  The document locator, or null if the document
-     *                 location cannot be reported during the parsing of 
+     *                 location cannot be reported during the parsing of
      *                 the document DTD. However, it is <em>strongly</em>
-     *                 recommended that a locator be supplied that can 
+     *                 recommended that a locator be supplied that can
      *                 at least report the base system identifier of the
      *                 DTD.
      * @param augmentations Additional information that may include infoset
@@ -353,14 +356,14 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void startDTD(XMLLocator locator, Augmentations augmentations) 
+    public void startDTD(XMLLocator locator, Augmentations augmentations)
         throws XNIException {
     }
 
     /**
      * This method notifies of the start of a parameter entity. The parameter
      * entity name start with a '%' character.
-     * 
+     *
      * @param name     The name of the parameter entity.
      * @param identifier The resource identifier.
      * @param encoding The auto-detected IANA encoding name of the entity
@@ -372,7 +375,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void startParameterEntity(String name, 
+    public void startParameterEntity(String name,
                                      XMLResourceIdentifier identifier,
                                      String encoding,
                                      Augmentations augmentations) throws XNIException {
@@ -384,7 +387,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * <p>
      * <strong>Note:</strong> This method is only called for external
      * parameter entities referenced in the DTD.
-     * 
+     *
      * @param version  The XML version, or null if not specified.
      * @param encoding The IANA encoding name of the entity.
      * @param augmentations Additional information that may include infoset
@@ -401,20 +404,20 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
     /**
      * This method notifies the end of a parameter entity. Parameter entity
      * names begin with a '%' character.
-     * 
+     *
      * @param name The name of the parameter entity.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void endParameterEntity(String name, Augmentations augmentations) 
+    public void endParameterEntity(String name, Augmentations augmentations)
         throws XNIException {
     }
 
     /**
      * The start of the DTD external subset.
-     * 
+     *
      * @param identifier The resource identifier.
      * @param augmentations
      *                   Additional information that may include infoset
@@ -423,7 +426,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *                   Thrown by handler to signal an error.
      */
     public void startExternalSubset(XMLResourceIdentifier identifier,
-                                    Augmentations augmentations) 
+                                    Augmentations augmentations)
         throws XNIException {
     }
 
@@ -435,13 +438,13 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void endExternalSubset(Augmentations augmentations) 
+    public void endExternalSubset(Augmentations augmentations)
         throws XNIException {
     }
 
     /**
      * A comment.
-     * 
+     *
      * @param text The text in the comment.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
@@ -449,7 +452,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * @throws XNIException Thrown by application to signal an error.
      */
 /*
-    public void comment(XMLString text, Augmentations augmentations) 
+    public void comment(XMLString text, Augmentations augmentations)
         throws XNIException {
     }
 */
@@ -464,7 +467,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * element attributes but are <strong>not</strong> parsed or presented
      * to the application as anything other than text. The application is
      * responsible for parsing the data.
-     * 
+     *
      * @param target The target.
      * @param data   The data or null if none specified.
      * @param augmentations Additional information that may include infoset
@@ -482,7 +485,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * An element declaration.
-     * 
+     *
      * @param name         The name of the element.
      * @param contentModel The element content model.
      * @param augmentations Additional information that may include infoset
@@ -497,7 +500,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * The start of an attribute list.
-     * 
+     *
      * @param elementName The name of the element that this attribute
      *                    list is associated with.
      * @param augmentations Additional information that may include infoset
@@ -511,13 +514,13 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * An attribute declaration.
-     * 
+     *
      * @param elementName   The name of the element that this attribute
      *                      is associated with.
      * @param attributeName The name of the attribute.
      * @param type          The attribute type. This value will be one of
      *                      the following: "CDATA", "ENTITY", "ENTITIES",
-     *                      "ENUMERATION", "ID", "IDREF", "IDREFS", 
+     *                      "ENUMERATION", "ID", "IDREF", "IDREFS",
      *                      "NMTOKEN", "NMTOKENS", or "NOTATION".
      * @param enumeration   If the type has the value "ENUMERATION" or
      *                      "NOTATION", this array holds the allowed attribute
@@ -527,15 +530,15 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *                      "#REQUIRED", or null.
      * @param defaultValue  The attribute default value, or null if no
      *                      default value is specified.
-     * @param nonNormalizedDefaultValue  The attribute default value with no normalization 
+     * @param nonNormalizedDefaultValue  The attribute default value with no normalization
      *                      performed, or null if no default value is specified.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void attributeDecl(String elementName, String attributeName, 
-                              String type, String[] enumeration, 
+    public void attributeDecl(String elementName, String attributeName,
+                              String type, String[] enumeration,
                               String defaultType, XMLString defaultValue,
                               XMLString nonNormalizedDefaultValue, Augmentations augmentations)
         throws XNIException {
@@ -554,13 +557,13 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * An internal entity declaration.
-     * 
+     *
      * @param name The name of the entity. Parameter entity names start with
-     *             '%', whereas the name of a general entity is just the 
+     *             '%', whereas the name of a general entity is just the
      *             entity name.
      * @param text The value of the entity.
      * @param nonNormalizedText The non-normalized value of the entity. This
-     *             value contains the same sequence of characters that was in 
+     *             value contains the same sequence of characters that was in
      *             the internal entity declaration, without any entity
      *             references expanded.
      * @param augmentations Additional information that may include infoset
@@ -568,36 +571,36 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void internalEntityDecl(String name, XMLString text, 
+    public void internalEntityDecl(String name, XMLString text,
                                    XMLString nonNormalizedText,
-                                   Augmentations augmentations) 
+                                   Augmentations augmentations)
         throws XNIException {
     }
 
     /**
      * An external entity declaration.
-     * 
+     *
      * @param name     The name of the entity. Parameter entity names start
      *                 with '%', whereas the name of a general entity is just
      *                 the entity name.
-     * @param identifier    An object containing all location information 
+     * @param identifier    An object containing all location information
      *                      pertinent to this external entity.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void externalEntityDecl(String name, 
+    public void externalEntityDecl(String name,
                                    XMLResourceIdentifier identifier,
-                                   Augmentations augmentations) 
+                                   Augmentations augmentations)
         throws XNIException {
     }
 
     /**
      * An unparsed entity declaration.
-     * 
+     *
      * @param name     The name of the entity.
-     * @param identifier    An object containing all location information 
+     * @param identifier    An object containing all location information
      *                      pertinent to this unparsed entity declaration.
      * @param notation The name of the notation.
      * @param augmentations Additional information that may include infoset
@@ -605,17 +608,17 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void unparsedEntityDecl(String name, 
-                                   XMLResourceIdentifier identifier, 
-                                   String notation, Augmentations augmentations) 
+    public void unparsedEntityDecl(String name,
+                                   XMLResourceIdentifier identifier,
+                                   String notation, Augmentations augmentations)
         throws XNIException {
     }
 
     /**
      * A notation declaration
-     * 
+     *
      * @param name     The name of the notation.
-     * @param identifier    An object containing all location information 
+     * @param identifier    An object containing all location information
      *                      pertinent to this notation.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
@@ -628,7 +631,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * The start of a conditional section.
-     * 
+     *
      * @param type The type of the conditional section. This value will
      *             either be CONDITIONAL_INCLUDE or CONDITIONAL_IGNORE.
      * @param augmentations Additional information that may include infoset
@@ -639,7 +642,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * @see #CONDITIONAL_INCLUDE
      * @see #CONDITIONAL_IGNORE
      */
-    public void startConditional(short type, Augmentations augmentations) 
+    public void startConditional(short type, Augmentations augmentations)
         throws XNIException {
     }
 
@@ -652,7 +655,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void ignoredCharacters(XMLString text, Augmentations augmentations) 
+    public void ignoredCharacters(XMLString text, Augmentations augmentations)
         throws XNIException {
     }
 
@@ -687,7 +690,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * The start of a content model. Depending on the type of the content
      * model, specific methods may be called between the call to the
      * startContentModel method and the call to the endContentModel method.
-     * 
+     *
      * @param elementName The name of the element.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
@@ -698,8 +701,8 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
         throws XNIException {
     }
 
-    /** 
-     * A content model of ANY. 
+    /**
+     * A content model of ANY.
      *
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
@@ -750,7 +753,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      *
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
-     *     
+     *
      * @throws XNIException Thrown by handler to signal an error.
      *
      * @see #startGroup
@@ -760,21 +763,21 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
 
     /**
      * A referenced element in a mixed or children content model.
-     * 
+     *
      * @param elementName The name of the referenced element.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-    public void element(String elementName, Augmentations augmentations) 
+    public void element(String elementName, Augmentations augmentations)
         throws XNIException {
     }
 
     /**
      * The separator between choices or sequences of a mixed or children
      * content model.
-     * 
+     *
      * @param separator The type of children separator.
      * @param augmentations Additional information that may include infoset
      *                      augmentations.
@@ -784,14 +787,14 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * @see #SEPARATOR_CHOICE
      * @see #SEPARATOR_SEQUENCE
      */
-    public void separator(short separator, Augmentations augmentations) 
+    public void separator(short separator, Augmentations augmentations)
         throws XNIException {
     }
 
     /**
      * The occurrence count for a child in a children content model or
      * for the mixed content model group.
-     * 
+     *
      * @param occurrence The occurrence count for the last element
      *                   or group.
      * @param augmentations Additional information that may include infoset
@@ -803,7 +806,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
      * @see #OCCURS_ZERO_OR_MORE
      * @see #OCCURS_ONE_OR_MORE
      */
-    public void occurrence(short occurrence, Augmentations augmentations) 
+    public void occurrence(short occurrence, Augmentations augmentations)
         throws XNIException {
     }
 
@@ -842,7 +845,7 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
     }
 
     private XMLDTDSource fDTDSource;
-    
+
     // set the source of this handler
     public void setDTDSource(XMLDTDSource source) {
         fDTDSource = source;
@@ -864,5 +867,5 @@ public class DefaultXMLDocumentHandler implements XMLDocumentHandler,
     public XMLDTDContentModelSource getDTDContentModelSource() {
         return fCMSource;
     }
-    
+
 }

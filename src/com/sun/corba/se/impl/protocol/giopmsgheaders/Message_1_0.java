@@ -1,8 +1,26 @@
 /*
- * @(#)Message_1_0.java	1.11 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.protocol.giopmsgheaders;
@@ -19,14 +37,13 @@ import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
  * This implements the GIOP 1.0 Message header.
  *
  * @author Ram Jeyaraman 05/14/2000
- * @version 1.0
  */
 
 public class Message_1_0
         extends com.sun.corba.se.impl.protocol.giopmsgheaders.MessageBase {
 
-    private static ORBUtilSystemException wrapper = 
-	ORBUtilSystemException.get( CORBALogDomains.RPC_PROTOCOL ) ;
+    private static ORBUtilSystemException wrapper =
+        ORBUtilSystemException.get( CORBALogDomains.RPC_PROTOCOL ) ;
 
     // Instance variables
     int magic = (int) 0;
@@ -39,7 +56,7 @@ public class Message_1_0
 
     Message_1_0() {
     }
-    
+
     Message_1_0(int _magic, boolean _byte_order, byte _message_type,
             int _message_size) {
         magic = _magic;
@@ -56,30 +73,30 @@ public class Message_1_0
     }
 
     public int getType() {
-    	return this.message_type;
+        return this.message_type;
     }
 
     public int getSize() {
-	    return this.message_size;
+            return this.message_size;
     }
 
     public boolean isLittleEndian() {
-    	return this.byte_order;
+        return this.byte_order;
     }
 
     public boolean moreFragmentsToFollow() {
-    	return false;
+        return false;
     }
 
     // Mutator methods
 
-    public void	setSize(ByteBuffer byteBuffer, int size) {
-	    this.message_size = size;
+    public void setSize(ByteBuffer byteBuffer, int size) {
+            this.message_size = size;
 
         //
-    	// Patch the size field in the header.
-    	//
-	    int patch = size - GIOPMessageHeaderLength;
+        // Patch the size field in the header.
+        //
+            int patch = size - GIOPMessageHeaderLength;
         if (!isLittleEndian()) {
             byteBuffer.put(8,  (byte)((patch >>> 24) & 0xFF));
             byteBuffer.put(9,  (byte)((patch >>> 16) & 0xFF));
@@ -94,10 +111,10 @@ public class Message_1_0
     }
 
     public FragmentMessage createFragmentMessage() {
-	throw wrapper.fragmentationDisallowed(
-	    CompletionStatus.COMPLETED_MAYBE);
+        throw wrapper.fragmentationDisallowed(
+            CompletionStatus.COMPLETED_MAYBE);
     }
-        
+
     // IO methods
 
     // This should do nothing even if it is called. The Message Header already

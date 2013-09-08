@@ -1,11 +1,33 @@
 /*
- * @(#)JMXConnectorServerFactory.java	1.23 06/04/28
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.remote;
+
+
+import com.sun.jmx.remote.util.ClassLogger;
+import com.sun.jmx.remote.util.EnvHelp;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -15,10 +37,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
-import com.sun.jmx.remote.util.ClassLogger;
-import com.sun.jmx.remote.util.EnvHelp;
 
 /**
  * <p>Factory to create JMX API connector servers.  There
@@ -134,7 +152,6 @@ import com.sun.jmx.remote.util.EnvHelp;
  * calling thread's context class loader.</p>
  *
  * @since 1.5
- * @since.unbundled 1.0
  */
 public class JMXConnectorServerFactory {
 
@@ -153,7 +170,8 @@ public class JMXConnectorServerFactory {
      * loader MBean name.  This class loader is used to deserialize objects in
      * requests received from the client, possibly after consulting an
      * MBean-specific class loader.  The value associated with this
-     * attribute is an instance of {@link ObjectName}.</p>
+     * attribute is an instance of {@link javax.management.ObjectName
+     * ObjectName}.</p>
      */
     public static final String DEFAULT_CLASS_LOADER_NAME =
         "jmx.remote.default.class.loader.name";
@@ -178,10 +196,10 @@ public class JMXConnectorServerFactory {
 
     private static final String PROTOCOL_PROVIDER_DEFAULT_PACKAGE =
         "com.sun.jmx.remote.protocol";
-    
+
     private static final ClassLogger logger =
         new ClassLogger("javax.management.remote.misc","JMXConnectorServerFactory");
-    
+
     /** There are no instances of this class.  */
     private JMXConnectorServerFactory() {
     }
@@ -189,19 +207,17 @@ public class JMXConnectorServerFactory {
     private static JMXConnectorServer
         getConnectorServerAsService(ClassLoader loader,
                                     JMXServiceURL url,
-                                    Map map,
+                                    Map<String, ?> map,
                                     MBeanServer mbs)
         throws IOException {
-        Iterator providers = JMXConnectorFactory.getProviderIterator(
-            JMXConnectorServerProvider.class, loader);
-        JMXConnectorServerProvider provider = null;
-        JMXConnectorServer connection = null;
+        Iterator<JMXConnectorServerProvider> providers =
+                JMXConnectorFactory.
+                getProviderIterator(JMXConnectorServerProvider.class, loader);
+
         IOException exception = null;
         while (providers.hasNext()) {
-            provider = (JMXConnectorServerProvider) providers.next();
             try {
-                connection = provider.newJMXConnectorServer(url, map, mbs);
-                return connection;
+                return providers.next().newJMXConnectorServer(url, map, mbs);
             } catch (JMXProviderException e) {
                 throw e;
             } catch (Exception e) {
@@ -211,7 +227,7 @@ public class JMXConnectorServerFactory {
                                  "] Service provider exception: " + e);
                 if (!(e instanceof MalformedURLException)) {
                     if (exception == null) {
-                        if (exception instanceof IOException) {
+                        if (e instanceof IOException) {
                             exception = (IOException) e;
                         } else {
                             exception = EnvHelp.initCause(
@@ -270,24 +286,27 @@ public class JMXConnectorServerFactory {
                               Map<String,?> environment,
                               MBeanServer mbeanServer)
             throws IOException {
+        Map<String, Object> envcopy;
         if (environment == null)
-            environment = new HashMap();
+            envcopy = new HashMap<String, Object>();
         else {
             EnvHelp.checkAttributes(environment);
-            environment = new HashMap(environment);
+            envcopy = new HashMap<String, Object>(environment);
         }
 
-        final Class targetInterface = JMXConnectorServerProvider.class;
-        final ClassLoader loader = 
-            JMXConnectorFactory.resolveClassLoader(environment);
+        final Class<JMXConnectorServerProvider> targetInterface =
+                JMXConnectorServerProvider.class;
+        final ClassLoader loader =
+            JMXConnectorFactory.resolveClassLoader(envcopy);
         final String protocol = serviceURL.getProtocol();
         final String providerClassName = "ServerProvider";
-        
+
         JMXConnectorServerProvider provider =
-            (JMXConnectorServerProvider)
-            JMXConnectorFactory.getProvider(serviceURL, environment,
+            JMXConnectorFactory.getProvider(serviceURL,
+                                            envcopy,
                                             providerClassName,
-                                            targetInterface, loader);
+                                            targetInterface,
+                                            loader);
 
         IOException exception = null;
         if (provider == null) {
@@ -300,7 +319,7 @@ public class JMXConnectorServerFactory {
                     JMXConnectorServer connection =
                         getConnectorServerAsService(loader,
                                                     serviceURL,
-                                                    environment,
+                                                    envcopy,
                                                     mbeanServer);
                     if (connection != null)
                         return connection;
@@ -310,7 +329,7 @@ public class JMXConnectorServerFactory {
                     exception = e;
                 }
             }
-            provider = (JMXConnectorServerProvider)
+            provider =
                 JMXConnectorFactory.getProvider(
                     protocol,
                     PROTOCOL_PROVIDER_DEFAULT_PACKAGE,
@@ -329,10 +348,10 @@ public class JMXConnectorServerFactory {
             }
         }
 
-        environment = Collections.unmodifiableMap(environment);
+        envcopy = Collections.unmodifiableMap(envcopy);
 
         return provider.newJMXConnectorServer(serviceURL,
-                                              environment,
+                                              envcopy,
                                               mbeanServer);
     }
 }

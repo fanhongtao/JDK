@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,141 +37,141 @@ public final class Util {
     private static char filesep;
 
     static {
-	String temp = System.getProperty("file.separator", "/");
-	filesep = temp.charAt(0);
+        String temp = System.getProperty("file.separator", "/");
+        filesep = temp.charAt(0);
     }
 
     public static String noExtName(String name) {
-	final int index = name.lastIndexOf('.');
-	return name.substring(0, index >= 0 ? index : name.length());
+        final int index = name.lastIndexOf('.');
+        return name.substring(0, index >= 0 ? index : name.length());
     }
 
     /**
-     * Search for both slashes in order to support URLs and 
+     * Search for both slashes in order to support URLs and
      * files.
      */
     public static String baseName(String name) {
-	int index = name.lastIndexOf('\\');
-	if (index < 0) {
-	    index = name.lastIndexOf('/');
-	}
-	
-	if (index >= 0)
-	    return name.substring(index + 1);
-	else {
-	    int lastColonIndex = name.lastIndexOf(':');
-	    if (lastColonIndex > 0)
-	    	return name.substring(lastColonIndex + 1);
-	    else
-	    	return name;
-	}
+        int index = name.lastIndexOf('\\');
+        if (index < 0) {
+            index = name.lastIndexOf('/');
+        }
+
+        if (index >= 0)
+            return name.substring(index + 1);
+        else {
+            int lastColonIndex = name.lastIndexOf(':');
+            if (lastColonIndex > 0)
+                return name.substring(lastColonIndex + 1);
+            else
+                return name;
+        }
     }
 
     /**
-     * Search for both slashes in order to support URLs and 
+     * Search for both slashes in order to support URLs and
      * files.
      */
     public static String pathName(String name) {
-	int index = name.lastIndexOf('/');
-	if (index < 0) {
-	    index = name.lastIndexOf('\\');
-	}
-	return name.substring(0, index + 1);
+        int index = name.lastIndexOf('/');
+        if (index < 0) {
+            index = name.lastIndexOf('\\');
+        }
+        return name.substring(0, index + 1);
     }
 
     /**
      * Replace all illegal Java chars by '_'.
      */
     public static String toJavaName(String name) {
-	if (name.length() > 0) {
-	    final StringBuffer result = new StringBuffer();
+        if (name.length() > 0) {
+            final StringBuffer result = new StringBuffer();
 
-	    char ch = name.charAt(0);
-	    result.append(Character.isJavaIdentifierStart(ch) ? ch : '_');
+            char ch = name.charAt(0);
+            result.append(Character.isJavaIdentifierStart(ch) ? ch : '_');
 
-	    final int n = name.length();
-	    for (int i = 1; i < n; i++) {
-		ch = name.charAt(i);
-		result.append(Character.isJavaIdentifierPart(ch)  ? ch : '_');
-	    }
-	    return result.toString();
-	}
-	return name;
+            final int n = name.length();
+            for (int i = 1; i < n; i++) {
+                ch = name.charAt(i);
+                result.append(Character.isJavaIdentifierPart(ch)  ? ch : '_');
+            }
+            return result.toString();
+        }
+        return name;
     }
 
     public static Type getJCRefType(String signature) {
-	return Type.getType(signature);
+        return Type.getType(signature);
     }
 
     public static String internalName(String cname) {
-	return cname.replace('.', filesep);
+        return cname.replace('.', filesep);
     }
 
     public static void println(String s) {
-	System.out.println(s);
+        System.out.println(s);
     }
 
     public static void println(char ch) {
-	System.out.println(ch);
+        System.out.println(ch);
     }
 
     public static void TRACE1() {
-	System.out.println("TRACE1");
+        System.out.println("TRACE1");
     }
 
     public static void TRACE2() {
-	System.out.println("TRACE2");
+        System.out.println("TRACE2");
     }
 
     public static void TRACE3() {
-	System.out.println("TRACE3");
+        System.out.println("TRACE3");
     }
 
     /**
      * Replace a certain character in a string with a new substring.
      */
     public static String replace(String base, char ch, String str) {
-	return (base.indexOf(ch) < 0) ? base : 
-	    replace(base, String.valueOf(ch), new String[] { str });
+        return (base.indexOf(ch) < 0) ? base :
+            replace(base, String.valueOf(ch), new String[] { str });
     }
 
     public static String replace(String base, String delim, String[] str) {
-	final int len = base.length();
-	final StringBuffer result = new StringBuffer();
+        final int len = base.length();
+        final StringBuffer result = new StringBuffer();
 
-	for (int i = 0; i < len; i++) {
-	    final char ch = base.charAt(i);
-	    final int k = delim.indexOf(ch);
+        for (int i = 0; i < len; i++) {
+            final char ch = base.charAt(i);
+            final int k = delim.indexOf(ch);
 
-	    if (k >= 0) {
-		result.append(str[k]);
-	    }
-	    else {
-		result.append(ch);
-	    }
-	}
-	return result.toString();
+            if (k >= 0) {
+                result.append(str[k]);
+            }
+            else {
+                result.append(ch);
+            }
+        }
+        return result.toString();
     }
 
     /**
      * Replace occurances of '.', '-', '/' and ':'
      */
     public static String escape(String input) {
-	return replace(input, ".-/:", 
-	    new String[] { "$dot$", "$dash$", "$slash$", "$colon$" });
+        return replace(input, ".-/:",
+            new String[] { "$dot$", "$dash$", "$slash$", "$colon$" });
     }
 
     public static String getLocalName(String qname) {
-	final int index = qname.lastIndexOf(":");
-	return (index > 0) ? qname.substring(index + 1) : qname;
+        final int index = qname.lastIndexOf(":");
+        return (index > 0) ? qname.substring(index + 1) : qname;
     }
 
     public static String getPrefix(String qname) {
-	final int index = qname.lastIndexOf(":");
-	return (index > 0) ? qname.substring(0, index) : 
-	    Constants.EMPTYSTRING;
-    } 
-          
+        final int index = qname.lastIndexOf(":");
+        return (index > 0) ? qname.substring(0, index) :
+            Constants.EMPTYSTRING;
+    }
+
     /**
      * Checks if the string is a literal (i.e. not an AVT) or not.
      */
@@ -175,12 +179,12 @@ public final class Util {
         final int length = str.length();
         for (int i = 0; i < length - 1; i++) {
             if (str.charAt(i) == '{' && str.charAt(i + 1) != '{') {
-        	return false;
+                return false;
             }
         }
         return true;
     }
-    
+
     /**
      * Checks if the string is valid list of qnames
      */
@@ -194,7 +198,6 @@ public final class Util {
             }
         }
         return true;
-    }    
-      	   
-}
+    }
 
+}

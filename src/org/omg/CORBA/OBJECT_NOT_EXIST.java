@@ -1,20 +1,38 @@
 /*
- * @(#)OBJECT_NOT_EXIST.java	1.28 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * Exception raised whenever an invocation on a deleted object was 
- * performed. It is an authoritative  "hard"  fault report. Anyone 
- * receiving it is allowed (even expected) to delete all copies of 
- * this object reference and to perform other appropriate  "final 
- * recovery"  style procedures. Bridges forward this exception to 
- * clients, also destroying any records they may hold (for example, 
- * proxy objects used in reference translation). The clients could 
+ * Exception raised whenever an invocation on a deleted object was
+ * performed. It is an authoritative  "hard"  fault report. Anyone
+ * receiving it is allowed (even expected) to delete all copies of
+ * this object reference and to perform other appropriate  "final
+ * recovery"  style procedures. Bridges forward this exception to
+ * clients, also destroying any records they may hold (for example,
+ * proxy objects used in reference translation). The clients could
  * in turn purge any of their own data structures.
  * <P>
  * It contains a minor code, which gives more detailed information about
@@ -26,7 +44,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.13, 09/09/97
  * @since       JDK1.2
  */
 

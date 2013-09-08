@@ -1,8 +1,36 @@
 /*
- * @(#)AbstractQueue.java	1.11 06/04/21
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util;
@@ -13,18 +41,17 @@ package java.util;
  * the base implementation does <em>not</em> allow <tt>null</tt>
  * elements.  Methods {@link #add add}, {@link #remove remove}, and
  * {@link #element element} are based on {@link #offer offer}, {@link
- * #poll poll}, and {@link #peek peek}, respectively but throw
+ * #poll poll}, and {@link #peek peek}, respectively, but throw
  * exceptions instead of indicating failure via <tt>false</tt> or
  * <tt>null</tt> returns.
  *
- * <p> A <tt>Queue</tt> implementation that extends this class must
+ * <p>A <tt>Queue</tt> implementation that extends this class must
  * minimally define a method {@link Queue#offer} which does not permit
  * insertion of <tt>null</tt> elements, along with methods {@link
- * Queue#peek}, {@link Queue#poll}, {@link Collection#size}, and a
- * {@link Collection#iterator} supporting {@link
- * Iterator#remove}. Typically, additional methods will be overridden
- * as well. If these requirements cannot be met, consider instead
- * subclassing {@link AbstractCollection}.
+ * Queue#peek}, {@link Queue#poll}, {@link Collection#size}, and
+ * {@link Collection#iterator}.  Typically, additional methods will be
+ * overridden as well.  If these requirements cannot be met, consider
+ * instead subclassing {@link AbstractCollection}.
  *
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
@@ -156,11 +183,9 @@ public abstract class AbstractQueue<E>
         if (c == this)
             throw new IllegalArgumentException();
         boolean modified = false;
-        Iterator<? extends E> e = c.iterator();
-        while (e.hasNext()) {
-            if (add(e.next()))
+        for (E e : c)
+            if (add(e))
                 modified = true;
-        }
         return modified;
     }
 

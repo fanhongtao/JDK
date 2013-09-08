@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +46,7 @@ public class FuncTrue extends Function
   {
     return XBoolean.S_TRUE;
   }
-  
+
   /**
    * No arguments to process, so this does nothing.
    */

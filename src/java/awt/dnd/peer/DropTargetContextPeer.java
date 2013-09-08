@@ -1,32 +1,41 @@
 /*
- * @(#)DropTargetContextPeer.java	1.14 05/11/17
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.dnd.peer;
 
-import java.awt.Insets;
-
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-
 import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.InvalidDnDOperationException;
-
-import java.io.InputStream;
-import java.io.IOException;
 
 /**
  * <p>
- * This interface is exposed by the underlying window system platform to 
+ * This interface is exposed by the underlying window system platform to
  * enable control of platform DnD operations
  * </p>
  *
- * @version 	1.14, 11/17/05
  * @since 1.2
  *
  */

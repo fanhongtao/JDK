@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -78,8 +82,7 @@ import com.sun.org.apache.bcel.internal.Constants;
  * method in the Method's frame will jump to the appropiate method in
  * the Code frame.
  *
- * @version $Id: Class2HTML.java,v 1.1.2.1 2005/07/31 23:46:59 jeffsuttor Exp $
- * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A> 
+ * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
 */
 public class Class2HTML implements Constants
 {
@@ -92,7 +95,7 @@ public class Class2HTML implements Constants
 
   /**
    * Write contents of the given JavaClass into HTML files.
-   * 
+   *
    * @param java_class The class to write
    * @param dir The directory to put the files in
    */
@@ -110,17 +113,17 @@ public class Class2HTML implements Constants
       class_package = class_name.substring(0, index);
     else
       class_package = ""; // default package
-    
+
     ConstantHTML constant_html = new ConstantHTML(dir, class_name, class_package, methods,
-						  constant_pool);
-    
+                                                  constant_pool);
+
     /* Attributes can't be written in one step, so we just open a file
      * which will be written consequently.
      */
     AttributeHTML attribute_html = new AttributeHTML(dir, class_name, constant_pool, constant_html);
 
     MethodHTML method_html = new MethodHTML(dir, class_name, methods, java_class.getFields(),
-					    constant_html, attribute_html);
+                                            constant_html, attribute_html);
     // Write main file (with frames, yuk)
     writeMainHTML(attribute_html);
     new CodeHTML(dir, class_name, methods, constant_pool, constant_html);
@@ -128,7 +131,7 @@ public class Class2HTML implements Constants
   }
 
   public static void _main(String argv[])
-  { 
+  {
     String[]    file_name = new String[argv.length];
     int         files=0;
     ClassParser parser=null;
@@ -136,49 +139,49 @@ public class Class2HTML implements Constants
     String      zip_file = null;
     char        sep = System.getProperty("file.separator").toCharArray()[0];
     String      dir = "." + sep; // Where to store HTML files
-	
+
     try {
       /* Parse command line arguments.
        */
       for(int i=0; i < argv.length; i++) {
-	if(argv[i].charAt(0) == '-') {  // command line switch
-	  if(argv[i].equals("-d")) {   // Specify target directory, default '.'
-	    dir = argv[++i];
+        if(argv[i].charAt(0) == '-') {  // command line switch
+          if(argv[i].equals("-d")) {   // Specify target directory, default '.'
+            dir = argv[++i];
 
-	    if(!dir.endsWith("" + sep))
-	      dir = dir + sep;
-		      			
-	    new File(dir).mkdirs(); // Create target directory if necessary
-	  }
-	  else if(argv[i].equals("-zip"))
-	    zip_file = argv[++i];
-	  else
-	    System.out.println("Unknown option " + argv[i]);
-	}
-	else // add file name to list */
-	  file_name[files++] = argv[i];
+            if(!dir.endsWith("" + sep))
+              dir = dir + sep;
+
+            new File(dir).mkdirs(); // Create target directory if necessary
+          }
+          else if(argv[i].equals("-zip"))
+            zip_file = argv[++i];
+          else
+            System.out.println("Unknown option " + argv[i]);
+        }
+        else // add file name to list */
+          file_name[files++] = argv[i];
       }
-	
-      if(files == 0)
-	System.err.println("Class2HTML: No input files specified.");
-      else { // Loop through files ...
-	for(int i=0; i < files; i++) {
-	  System.out.print("Processing " + file_name[i] + "...");
-	  if(zip_file == null)
-	    parser = new ClassParser(file_name[i]); // Create parser object from file
-	  else
-	    parser = new ClassParser(zip_file, file_name[i]); // Create parser object from zip file
 
-	  java_class = parser.parse();
-	  new Class2HTML(java_class, dir);
-	  System.out.println("Done.");
-	}		
-      }	  
+      if(files == 0)
+        System.err.println("Class2HTML: No input files specified.");
+      else { // Loop through files ...
+        for(int i=0; i < files; i++) {
+          System.out.print("Processing " + file_name[i] + "...");
+          if(zip_file == null)
+            parser = new ClassParser(file_name[i]); // Create parser object from file
+          else
+            parser = new ClassParser(zip_file, file_name[i]); // Create parser object from zip file
+
+          java_class = parser.parse();
+          new Class2HTML(java_class, dir);
+          System.out.println("Done.");
+        }
+      }
     } catch(Exception e) {
       System.out.println(e);
       e.printStackTrace(System.out);
     }
-  }                                          
+  }
 
   /**
    * Utility method that converts a class reference in the constant pool,
@@ -188,8 +191,8 @@ public class Class2HTML implements Constants
     String str = constant_pool.getConstantString(index, CONSTANT_Class);
     str = Utility.compactClassName(str);
     str = Utility.compactClassName(str, class_package + ".", true);
-	
-    return "<A HREF=\"" + class_name + "_cp.html#cp" + index + 
+
+    return "<A HREF=\"" + class_name + "_cp.html#cp" + index +
       "\" TARGET=ConstantPool>" + str + "</A>";
   }
 
@@ -199,7 +202,7 @@ public class Class2HTML implements Constants
 
     int index = type.indexOf('['); // Type is an array?
     if(index > -1)
-      type = type.substring(0, index); // Tack of the `['  		
+      type = type.substring(0, index); // Tack of the `['
 
     // test for basic type
     if(type.equals("int")  || type.equals("short") || type.equals("boolean") || type.equals("void")   ||
@@ -215,48 +218,48 @@ public class Class2HTML implements Constants
 
     try { // Filter any characters HTML doesn't like such as < and > in particular
       for(int i=0; i < str.length(); i++) {
-	char ch;
-				
-	switch(ch=str.charAt(i)) {
-	case '<': buf.append("&lt;"); break;
-	case '>': buf.append("&gt;"); break;
-	case '\n': buf.append("\\n"); break;
-	case '\r': buf.append("\\r"); break;
-	default:  buf.append(ch);
-	}
+        char ch;
+
+        switch(ch=str.charAt(i)) {
+        case '<': buf.append("&lt;"); break;
+        case '>': buf.append("&gt;"); break;
+        case '\n': buf.append("\\n"); break;
+        case '\r': buf.append("\\r"); break;
+        default:  buf.append(ch);
+        }
       }
     } catch(StringIndexOutOfBoundsException e) {} // Never occurs
 
     return buf.toString();
   }
-	    
+
   private void writeMainHTML(AttributeHTML attribute_html) throws IOException {
     PrintWriter file       = new PrintWriter(new FileOutputStream(dir + class_name + ".html"));
     Attribute[] attributes = java_class.getAttributes();
-    
+
     file.println("<HTML>\n" + "<HEAD><TITLE>Documentation for " + class_name + "</TITLE>" +
-		 "</HEAD>\n" +
-		 "<FRAMESET BORDER=1 cols=\"30%,*\">\n" +
-		 "<FRAMESET BORDER=1 rows=\"80%,*\">\n" +
-		
-		 "<FRAME NAME=\"ConstantPool\" SRC=\"" + class_name + "_cp.html" + "\"\n MARGINWIDTH=\"0\" " +
-		 "MARGINHEIGHT=\"0\" FRAMEBORDER=\"1\" SCROLLING=\"AUTO\">\n" +
-		 "<FRAME NAME=\"Attributes\" SRC=\"" + class_name + "_attributes.html" +
-		 "\"\n MARGINWIDTH=\"0\" " +
-		 "MARGINHEIGHT=\"0\" FRAMEBORDER=\"1\" SCROLLING=\"AUTO\">\n" +
-		 "</FRAMESET>\n" +
-	
-		 "<FRAMESET BORDER=1 rows=\"80%,*\">\n" +
-		 "<FRAME NAME=\"Code\" SRC=\"" + class_name + "_code.html\"\n MARGINWIDTH=0 " +
-		 "MARGINHEIGHT=0 FRAMEBORDER=1 SCROLLING=\"AUTO\">\n" +
-		 "<FRAME NAME=\"Methods\" SRC=\"" + class_name + "_methods.html\"\n MARGINWIDTH=0 " +
-		 "MARGINHEIGHT=0 FRAMEBORDER=1 SCROLLING=\"AUTO\">\n" +
-		 "</FRAMESET></FRAMESET></HTML>"
-		 );
+                 "</HEAD>\n" +
+                 "<FRAMESET BORDER=1 cols=\"30%,*\">\n" +
+                 "<FRAMESET BORDER=1 rows=\"80%,*\">\n" +
+
+                 "<FRAME NAME=\"ConstantPool\" SRC=\"" + class_name + "_cp.html" + "\"\n MARGINWIDTH=\"0\" " +
+                 "MARGINHEIGHT=\"0\" FRAMEBORDER=\"1\" SCROLLING=\"AUTO\">\n" +
+                 "<FRAME NAME=\"Attributes\" SRC=\"" + class_name + "_attributes.html" +
+                 "\"\n MARGINWIDTH=\"0\" " +
+                 "MARGINHEIGHT=\"0\" FRAMEBORDER=\"1\" SCROLLING=\"AUTO\">\n" +
+                 "</FRAMESET>\n" +
+
+                 "<FRAMESET BORDER=1 rows=\"80%,*\">\n" +
+                 "<FRAME NAME=\"Code\" SRC=\"" + class_name + "_code.html\"\n MARGINWIDTH=0 " +
+                 "MARGINHEIGHT=0 FRAMEBORDER=1 SCROLLING=\"AUTO\">\n" +
+                 "<FRAME NAME=\"Methods\" SRC=\"" + class_name + "_methods.html\"\n MARGINWIDTH=0 " +
+                 "MARGINHEIGHT=0 FRAMEBORDER=1 SCROLLING=\"AUTO\">\n" +
+                 "</FRAMESET></FRAMESET></HTML>"
+                 );
 
     file.close();
 
     for(int i=0; i < attributes.length; i++)
       attribute_html.writeAttribute(attributes[i], "class" + i);
-  }        
+  }
 }

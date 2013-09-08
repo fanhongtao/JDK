@@ -1,15 +1,33 @@
 /*
- * @(#)TRANSACTION_UNAVAILABLE.java	1.4 06/04/21
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
  * The CORBA <code>TRANSACTION_UNAVAILABLE</code> exception is thrown
- * by the ORB when it cannot process a transaction service context because 
+ * by the ORB when it cannot process a transaction service context because
  * its connection to the Transaction Service has been abnormally terminated.
  *
  * It contains a minor code, which gives information about
@@ -19,21 +37,20 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.0 10/22/2000
  */
 
 public final class TRANSACTION_UNAVAILABLE extends SystemException {
     /**
-     * Constructs a <code>TRANSACTION_UNAVAILABLE</code> exception  
+     * Constructs a <code>TRANSACTION_UNAVAILABLE</code> exception
      * with a default minor code of 0, a completion state of
      * CompletionStatus.COMPLETED_NO, and a null description.
      */
     public TRANSACTION_UNAVAILABLE() {
-	this("");
+        this("");
     }
 
     /**
-     * Constructs a <code>TRANSACTION_UNAVAILABLE</code> exception with the 
+     * Constructs a <code>TRANSACTION_UNAVAILABLE</code> exception with the
      * specifieddescription message, a minor code of 0, and a completion state
      * of COMPLETED_NO.
      * @param s the String containing a detail message
@@ -43,7 +60,7 @@ public final class TRANSACTION_UNAVAILABLE extends SystemException {
     }
 
     /**
-     * Constructs a <code>TRANSACTION_UNAVAILABLE</code> exception with the 
+     * Constructs a <code>TRANSACTION_UNAVAILABLE</code> exception with the
      * specified minor code and completion status.
      * @param minor the minor code
      * @param completed the completion status
@@ -53,14 +70,14 @@ public final class TRANSACTION_UNAVAILABLE extends SystemException {
     }
 
     /**
-     * Constructs a <code>TRANSACTION_UNAVAILABLE</code> exception with the 
+     * Constructs a <code>TRANSACTION_UNAVAILABLE</code> exception with the
      * specified description message, minor code, and completion status.
      * @param s the String containing a description message
      * @param minor the minor code
      * @param completed the completion status
      */
-    public TRANSACTION_UNAVAILABLE(String s, int minor, 
-				   CompletionStatus completed) {
+    public TRANSACTION_UNAVAILABLE(String s, int minor,
+                                   CompletionStatus completed) {
         super(s, minor, completed);
     }
 }

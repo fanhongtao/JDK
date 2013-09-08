@@ -1,11 +1,31 @@
 /*
- * @(#)FileDescriptor.java	1.22 05/11/17
+ * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Instances of the file descriptor class serve as an opaque handle
@@ -18,9 +38,8 @@ package java.io;
  * Applications should not create their own file descriptors.
  *
  * @author  Pavani Diwanji
- * @version 1.22, 11/17/05
- * @see	    java.io.FileInputStream
- * @see	    java.io.FileOutputStream
+ * @see     java.io.FileInputStream
+ * @see     java.io.FileOutputStream
  * @since   JDK1.0
  */
 public final class FileDescriptor {
@@ -28,15 +47,24 @@ public final class FileDescriptor {
     private int fd;
 
     /**
+     * A counter for tracking the FIS/FOS/RAF instances that
+     * use this FileDescriptor. The FIS/FOS.finalize() will not release
+     * the FileDescriptor if it is still under user by a stream.
+     */
+    private AtomicInteger useCount;
+
+    /**
      * Constructs an (invalid) FileDescriptor
      * object.
      */
     public /**/ FileDescriptor() {
-	fd = -1;
+        fd = -1;
+        useCount = new AtomicInteger();
     }
 
     private /* */ FileDescriptor(int fd) {
-	this.fd = fd;
+        this.fd = fd;
+        useCount = new AtomicInteger();
     }
 
     /**
@@ -73,7 +101,7 @@ public final class FileDescriptor {
      *          <code>false</code> otherwise.
      */
     public boolean valid() {
-	return fd != -1;
+        return fd != -1;
     }
 
     /**
@@ -83,7 +111,7 @@ public final class FileDescriptor {
      * relevant device(s).  In particular, if this FileDescriptor
      * refers to a physical storage medium, such as a file in a file
      * system, sync will not return until all in-memory modified copies
-     * of buffers associated with this FileDesecriptor have been
+     * of buffers associated with this FileDescriptor have been
      * written to the physical medium.
      *
      * sync is meant to be used by code that requires physical
@@ -99,9 +127,9 @@ public final class FileDescriptor {
      * OutputStream.flush) before that data will be affected by sync.
      *
      * @exception SyncFailedException
-     *	      Thrown when the buffers cannot be flushed,
-     *	      or because the system cannot guarantee that all the
-     *	      buffers have been synchronized with physical media.
+     *        Thrown when the buffers cannot be flushed,
+     *        or because the system cannot guarantee that all the
+     *        buffers have been synchronized with physical media.
      * @since     JDK1.1
      */
     public native void sync() throws SyncFailedException;
@@ -110,6 +138,39 @@ public final class FileDescriptor {
     private static native void initIDs();
 
     static {
-	initIDs();
+        initIDs();
+    }
+
+    // Set up JavaIOFileDescriptorAccess in SharedSecrets
+    static {
+        sun.misc.SharedSecrets.setJavaIOFileDescriptorAccess(
+            new sun.misc.JavaIOFileDescriptorAccess() {
+                public void set(FileDescriptor obj, int fd) {
+                    obj.fd = fd;
+                }
+
+                public int get(FileDescriptor obj) {
+                    return obj.fd;
+                }
+
+                public void setHandle(FileDescriptor obj, long handle) {
+                    throw new UnsupportedOperationException();
+                }
+
+                public long getHandle(FileDescriptor obj) {
+                    throw new UnsupportedOperationException();
+                }
+            }
+        );
+    }
+
+    // package private methods used by FIS, FOS and RAF
+
+    int incrementAndGetUseCount() {
+        return useCount.incrementAndGet();
+    }
+
+    int decrementAndGetUseCount() {
+        return useCount.decrementAndGet();
     }
 }

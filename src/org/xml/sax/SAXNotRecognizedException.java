@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // SAXNotRecognizedException.java - unrecognized feature or value.
 // http://www.saxproject.org
 // Written by David Megginson
@@ -23,7 +48,6 @@ package org.xml.sax;
  *
  * @since SAX 2.0
  * @author David Megginson
- * @version 2.0.1 (sax2r2)
  * @see org.xml.sax.SAXNotSupportedException
  */
 public class SAXNotRecognizedException extends SAXException
@@ -34,7 +58,7 @@ public class SAXNotRecognizedException extends SAXException
      */
     public SAXNotRecognizedException ()
     {
-	super();
+        super();
     }
 
 
@@ -45,10 +69,10 @@ public class SAXNotRecognizedException extends SAXException
      */
     public SAXNotRecognizedException (String message)
     {
-	super(message);
+        super(message);
     }
 
-    // Added serialVersionUID to preserve binary compatibility 
+    // Added serialVersionUID to preserve binary compatibility
     static final long serialVersionUID = 5440506620509557213L;
 }
 

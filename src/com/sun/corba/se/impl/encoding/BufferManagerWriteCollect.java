@@ -1,8 +1,26 @@
 /*
- * @(#)BufferManagerWriteCollect.java	1.15 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.impl.encoding;
 
@@ -75,7 +93,7 @@ public class BufferManagerWriteCollect extends BufferManagerWrite
         // Now we must marshal in the fragment header/GIOP header
 
         // REVISIT - we can optimize this by not creating the fragment message
-        // each time.  
+        // each time.
 
         // XREVISIT - Downcast
         FragmentMessage header =
@@ -93,7 +111,7 @@ public class BufferManagerWriteCollect extends BufferManagerWrite
 
         Iterator bufs = iterator();
 
-        Connection conn = 
+        Connection conn =
                           ((OutputObject)outputObject).getMessageMediator().
                                                        getConnection();
 
@@ -112,10 +130,10 @@ public class BufferManagerWriteCollect extends BufferManagerWrite
             ByteBufferPool byteBufferPool = orb.getByteBufferPool();
 
             while (bufs.hasNext()) {
-                
+
                 ByteBufferWithInfo bbwi = (ByteBufferWithInfo)bufs.next();
                 ((CDROutputObject)outputObject).setByteBufferWithInfo(bbwi);
-                
+
                 conn.sendWithoutLock(((CDROutputObject)outputObject));
 
                 sentFragment = true;
@@ -138,7 +156,7 @@ public class BufferManagerWriteCollect extends BufferManagerWrite
             }
 
             sentFullMessage = true;
-            
+
         } finally {
 
             conn.writeUnlock();
@@ -190,24 +208,24 @@ public class BufferManagerWriteCollect extends BufferManagerWrite
 
     private Iterator iterator ()
     {
-	return new BufferManagerWriteCollectIterator();
+        return new BufferManagerWriteCollectIterator();
     }
 
     private class BufferManagerWriteCollectIterator implements Iterator
     {
-	public boolean hasNext ()
-	{
+        public boolean hasNext ()
+        {
             return queue.size() != 0;
-	}
+        }
 
-	public Object next ()
-	{
+        public Object next ()
+        {
             return queue.dequeue();
         }
 
-	public void remove ()
-	{
-	    throw new UnsupportedOperationException();
-	}
+        public void remove ()
+        {
+            throw new UnsupportedOperationException();
+        }
     }
 }

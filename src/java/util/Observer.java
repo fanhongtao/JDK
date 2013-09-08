@@ -1,8 +1,26 @@
 /*
- * @(#)Observer.java	1.20 05/11/17
+ * Copyright (c) 1994, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.util;
 
@@ -11,7 +29,6 @@ package java.util;
  * wants to be informed of changes in observable objects.
  *
  * @author  Chris Warth
- * @version 1.20, 11/17/05
  * @see     java.util.Observable
  * @since   JDK1.0
  */

@@ -1,8 +1,26 @@
 /*
- * @(#)NotQueryExp.java	4.18 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -15,7 +33,7 @@ package javax.management;
  *
  * @since 1.5
  */
-class NotQueryExp extends QueryEval implements QueryExp { 
+class NotQueryExp extends QueryEval implements QueryExp {
 
 
     /* Serial version */
@@ -25,28 +43,28 @@ class NotQueryExp extends QueryEval implements QueryExp {
      * @serial The negated {@link QueryExp}
      */
     private QueryExp exp;
-    
+
 
     /**
      * Basic Constructor.
-     */   
-    public NotQueryExp() { 
-    } 
-    
+     */
+    public NotQueryExp() {
+    }
+
     /**
      * Creates a new NotQueryExp for negating the specified QueryExp.
      */
-    public NotQueryExp(QueryExp q) { 
-	exp = q;
-    } 
+    public NotQueryExp(QueryExp q) {
+        exp = q;
+    }
 
 
     /**
      * Returns the negated query expression of the query.
-     */   
-    public QueryExp getNegatedExp()  { 
-	return exp;
-    } 
+     */
+    public QueryExp getNegatedExp()  {
+        return exp;
+    }
 
     /**
      * Applies the NotQueryExp on a MBean.
@@ -54,22 +72,22 @@ class NotQueryExp extends QueryEval implements QueryExp {
      * @param name The name of the MBean on which the NotQueryExp will be applied.
      *
      * @return  True if the query was successfully applied to the MBean, false otherwise.
-     *     
+     *
      * @exception BadStringOperationException
      * @exception BadBinaryOpValueExpException
-     * @exception BadAttributeValueExpException 
+     * @exception BadAttributeValueExpException
      * @exception InvalidApplicationException
      */
     public boolean apply(ObjectName name) throws BadStringOperationException, BadBinaryOpValueExpException,
-	BadAttributeValueExpException, InvalidApplicationException  { 
-	return exp.apply(name) == false;   
-    } 
+        BadAttributeValueExpException, InvalidApplicationException  {
+        return exp.apply(name) == false;
+    }
 
     /**
      * Returns the string representing the object.
      */
-    public String toString()  { 
-	return "not (" + exp + ")";
-    } 
-
+    @Override
+    public String toString()  {
+        return "not (" + exp + ")";
+    }
  }

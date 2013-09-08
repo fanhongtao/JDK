@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2003-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -94,7 +98,7 @@ import com.sun.org.apache.xerces.internal.xpointer.XPointerProcessor;
  * <ul>
  *  <li>http://apache.org/xml/properties/input-buffer-size</li>
  * </ul>
- * 
+ *
  * Furthermore, the <code>NamespaceContext</code> used in the pipeline is required
  * to be an instance of <code>XIncludeNamespaceSupport</code>.
  * </p>
@@ -107,7 +111,6 @@ import com.sun.org.apache.xerces.internal.xpointer.XPointerProcessor;
  * @author Peter McCracken, IBM
  * @author Michael Glavassevich, IBM
  *
- * @version $Id: XIncludeHandler.java,v 1.2.6.1 2005/09/05 13:46:07 sunithareddy Exp $
  *
  * @see XIncludeNamespaceSupport
  */
@@ -148,10 +151,10 @@ public class XIncludeHandler
             XINCLUDE_BASE,
             (XMLSymbols.PREFIX_XML + ":" + XINCLUDE_BASE).intern(),
             NamespaceContext.XML_URI);
-    
+
     // used for adding [language] attributes
     public final static String XINCLUDE_LANG = "lang".intern();
-    public final static QName XML_LANG_QNAME = 
+    public final static QName XML_LANG_QNAME =
         new QName(
             XMLSymbols.PREFIX_XML,
             XINCLUDE_LANG,
@@ -175,34 +178,34 @@ public class XIncludeHandler
     private final static int STATE_EXPECT_FALLBACK = 3;
 
     // recognized features and properties
-    
+
     /** Feature identifier: validation. */
     protected static final String VALIDATION =
         Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
-    
+
     /** Feature identifier: schema validation. */
     protected static final String SCHEMA_VALIDATION =
         Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_VALIDATION_FEATURE;
-    
+
     /** Feature identifier: dynamic validation. */
-    protected static final String DYNAMIC_VALIDATION = 
+    protected static final String DYNAMIC_VALIDATION =
         Constants.XERCES_FEATURE_PREFIX + Constants.DYNAMIC_VALIDATION_FEATURE;
 
     /** Feature identifier: allow notation and unparsed entity events to be sent out of order. */
     protected static final String ALLOW_UE_AND_NOTATION_EVENTS =
         Constants.SAX_FEATURE_PREFIX
             + Constants.ALLOW_DTD_EVENTS_AFTER_ENDDTD_FEATURE;
-    
+
     /** Feature identifier: fixup base URIs. */
     protected static final String XINCLUDE_FIXUP_BASE_URIS =
         Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FIXUP_BASE_URIS_FEATURE;
-    
+
     /** Feature identifier: fixup language. */
     protected static final String XINCLUDE_FIXUP_LANGUAGE =
         Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FIXUP_LANGUAGE_FEATURE;
-    
+
     /** Property identifier: symbol table. */
-    protected static final String SYMBOL_TABLE = 
+    protected static final String SYMBOL_TABLE =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SYMBOL_TABLE_PROPERTY;
 
     /** Property identifier: error reporter. */
@@ -216,12 +219,12 @@ public class XIncludeHandler
     /** property identifier: security manager. */
     protected static final String SECURITY_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY;
-    
+
     /** property identifier: buffer size. */
     public static final String BUFFER_SIZE =
         Constants.XERCES_PROPERTY_PREFIX + Constants.BUFFER_SIZE_PROPERTY;
-    
-    protected static final String PARSER_SETTINGS = 
+
+    protected static final String PARSER_SETTINGS =
         Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
 
     /** Recognized features. */
@@ -250,7 +253,7 @@ public class XIncludeHandler
 
     // for XIncludeHandler
     protected XIncludeHandler fParentXIncludeHandler;
-    
+
     // for buffer size in XIncludeTextReader
     protected int fBufferSize = XMLEntityManager.DEFAULT_BUFFER_SIZE;
 
@@ -267,7 +270,7 @@ public class XIncludeHandler
     // XInclude or XPointer Handler.  Cache both these
     protected XMLParserConfiguration fXIncludeChildConfig;
     protected XMLParserConfiguration fXPointerChildConfig;
-    
+
     // The XPointerProcessor
     protected XPointerProcessor fXPtrProcessor = null;
 
@@ -278,7 +281,7 @@ public class XIncludeHandler
     protected XMLErrorReporter fErrorReporter;
     protected XMLEntityResolver fEntityResolver;
     protected SecurityManager fSecurityManager;
-    
+
     // these are needed for text include processing
     protected XIncludeTextReader fXInclude10TextReader;
     protected XIncludeTextReader fXInclude11TextReader;
@@ -289,7 +292,7 @@ public class XIncludeHandler
     protected Stack fBaseURI;
     protected Stack fLiteralSystemID;
     protected Stack fExpandedSystemID;
-    
+
     // these are needed for Language Fixup
     protected IntStack fLanguageScope;
     protected Stack fLanguageStack;
@@ -301,7 +304,7 @@ public class XIncludeHandler
     // The current element depth.  We start at depth 0 (before we've reached any elements).
     // The first element is at depth 1.
     private int fDepth;
-    
+
     // The current element depth of the result infoset.
     private int fResultDepth;
 
@@ -325,7 +328,7 @@ public class XIncludeHandler
     // buffering the necessary DTD events
     private ArrayList fNotations;
     private ArrayList fUnparsedEntities;
-    
+
     // flags which control whether base URI or language fixup is performed.
     private boolean fFixupBaseURIs = true;
     private boolean fFixupLanguage = true;
@@ -339,10 +342,10 @@ public class XIncludeHandler
 
     // track whether a DTD is being parsed
     private boolean fInDTD;
-    
+
     // track whether the root element of the result infoset has been processed
     private boolean fSeenRootElement;
-    
+
     // track whether the child config needs its features refreshed
     private boolean fNeedCopyFeatures = true;
 
@@ -362,7 +365,7 @@ public class XIncludeHandler
         fLiteralSystemID = new Stack();
         fExpandedSystemID = new Stack();
         fCurrentBaseURI = new XMLResourceIdentifierImpl();
-        
+
         fLanguageScope = new IntStack();
         fLanguageStack = new Stack();
         fCurrentLanguage = null;
@@ -404,15 +407,15 @@ public class XIncludeHandler
         for (int i = 0; i < fSawInclude.length; ++i) {
             fSawInclude[i] = false;
         }
-        
+
         try {
             if (!componentManager.getFeature(PARSER_SETTINGS)) {
                 // if parser settings have not changed return.
                 return;
             }
-        } 
+        }
         catch (XMLConfigurationException e) {}
-        
+
         // parser settings changed. Need to refresh features on child config.
         fNeedCopyFeatures = true;
 
@@ -427,7 +430,7 @@ public class XIncludeHandler
         }
         catch (XMLConfigurationException e) {
         }
-        
+
         try {
             fFixupBaseURIs =
                 componentManager.getFeature(XINCLUDE_FIXUP_BASE_URIS);
@@ -440,7 +443,7 @@ public class XIncludeHandler
         catch (XMLConfigurationException e) {
             fFixupBaseURIs = true;
         }
-        
+
         try {
             fFixupLanguage =
                 componentManager.getFeature(XINCLUDE_FIXUP_LANGUAGE);
@@ -453,7 +456,7 @@ public class XIncludeHandler
         catch (XMLConfigurationException e) {
             fFixupLanguage = true;
         }
-        
+
         // Get symbol table.
         try {
             SymbolTable value =
@@ -517,7 +520,7 @@ public class XIncludeHandler
         catch (XMLConfigurationException e) {
             fSecurityManager = null;
         }
-        
+
         // Get buffer size.
         try {
             Integer value =
@@ -531,30 +534,30 @@ public class XIncludeHandler
                 }
             }
             else {
-            	fBufferSize = ((Integer)getPropertyDefault(BUFFER_SIZE)).intValue();
+                fBufferSize = ((Integer)getPropertyDefault(BUFFER_SIZE)).intValue();
             }
         }
         catch (XMLConfigurationException e) {
-        	fBufferSize = ((Integer)getPropertyDefault(BUFFER_SIZE)).intValue();
+                fBufferSize = ((Integer)getPropertyDefault(BUFFER_SIZE)).intValue();
         }
-        
+
         // Reset XML 1.0 text reader.
         if (fXInclude10TextReader != null) {
-        	fXInclude10TextReader.setBufferSize(fBufferSize);
+                fXInclude10TextReader.setBufferSize(fBufferSize);
         }
         // Reset XML 1.1 text reader.
         if (fXInclude11TextReader != null) {
-            fXInclude11TextReader.setBufferSize(fBufferSize);   
+            fXInclude11TextReader.setBufferSize(fBufferSize);
         }
 
         fSettings = new ParserConfigurationSettings();
         copyFeatures(componentManager, fSettings);
-        
+
         // We don't want a schema validator on the new pipeline,
         // so if it was enabled, we set the feature to false. If
         // the validation feature was also enabled we turn on
         // dynamic validation, so that DTD validation is performed
-        // on the included documents only if they have a DOCTYPE. 
+        // on the included documents only if they have a DOCTYPE.
         // This is consistent with the behaviour on the main pipeline.
         try {
             if (componentManager.getFeature(SCHEMA_VALIDATION)) {
@@ -565,7 +568,7 @@ public class XIncludeHandler
             }
         }
         catch (XMLConfigurationException e) {}
-        
+
         // Don't reset fChildConfig -- we don't want it to share the same components.
         // It will be reset when it is actually used to parse something.
     } // reset(XMLComponentManager)
@@ -767,7 +770,7 @@ public class XIncludeHandler
             augs = new AugmentationsImpl();
         }
         augs.putItem(CURRENT_BASE_URI, fCurrentBaseURI);
-        
+
         // initialize the current language
         fCurrentLanguage = XMLSymbols.EMPTY_STRING;
         saveLanguage(fCurrentLanguage);
@@ -895,7 +898,7 @@ public class XIncludeHandler
                     augs = modifyAugmentations(augs);
                     attributes = processAttributes(attributes);
                     fDocumentHandler.startElement(element, attributes, augs);
-                }            
+                }
             }
         }
         else if (getState() == STATE_NORMAL_PROCESSING) {
@@ -906,7 +909,7 @@ public class XIncludeHandler
                 augs = modifyAugmentations(augs);
                 attributes = processAttributes(attributes);
                 fDocumentHandler.startElement(element, attributes, augs);
-            }            
+            }
         }
     }
 
@@ -1024,13 +1027,13 @@ public class XIncludeHandler
             // pop the values from the stack
             restoreBaseURI();
         }
-        
+
         // check if an xml:lang has gone out of scope
         if (fLanguageScope.size() > 0 && fDepth == fLanguageScope.peek()) {
             // pop the language from the stack
             fCurrentLanguage = restoreLanguage();
         }
-        
+
         fDepth--;
     }
 
@@ -1405,7 +1408,7 @@ public class XIncludeHandler
             }
             reportFatalError("FallbackParent");
         }
-        
+
         setSawInclude(fDepth, false);
         fNamespaceContext.setContextInvalid();
 
@@ -1440,13 +1443,13 @@ public class XIncludeHandler
         // TODO: figure out what section 4.1.1 of the XInclude spec is talking about
         //       has to do with disallowed ASCII character escaping
         //       this ties in with the above IURI section, but I suspect Java already does it
-        
+
         String href = attributes.getValue(XINCLUDE_ATTR_HREF);
         String parse = attributes.getValue(XINCLUDE_ATTR_PARSE);
         String xpointer =  attributes.getValue(XPOINTER);
         String accept = attributes.getValue(XINCLUDE_ATTR_ACCEPT);
         String acceptLanguage = attributes.getValue(XINCLUDE_ATTR_ACCEPT_LANGUAGE);
-        
+
         if (parse == null) {
             parse = XINCLUDE_PARSE_XML;
         }
@@ -1458,7 +1461,7 @@ public class XIncludeHandler
                 reportFatalError("XpointerMissing");
             }
             else {
-                // When parse="xml" and an xpointer is specified treat 
+                // When parse="xml" and an xpointer is specified treat
                 // all absences of the href attribute as a resource error.
                 Locale locale = (fErrorReporter != null) ? fErrorReporter.getLocale() : null;
                 String reason = fXIncludeMessageFormatter.formatMessage(locale, "XPointerStreamability", null);
@@ -1468,7 +1471,7 @@ public class XIncludeHandler
         }
 
         URI hrefURI = null;
-        
+
         // Check whether href is correct and perform escaping as per section 4.1.1 of the XInclude spec.
         // Report fatal error if the href value contains a fragment identifier or if the value after
         // escaping is a syntactically invalid URI or IRI.
@@ -1496,7 +1499,7 @@ public class XIncludeHandler
                 reportFatalError("HrefSyntacticallyInvalid", new Object[] {href});
             }
         }
-        
+
         // Verify that if an accept and/or an accept-language attribute exist
         // that the value(s) don't contain disallowed characters.
         if (accept != null && !isValidInHTTPHeader(accept)) {
@@ -1523,14 +1526,14 @@ public class XIncludeHandler
 
                 includedSource =
                     fEntityResolver.resolveEntity(resourceIdentifier);
-                
+
                 if (includedSource != null &&
                     !(includedSource instanceof HTTPInputSource) &&
                     (accept != null || acceptLanguage != null) &&
                     includedSource.getCharacterStream() == null &&
                     includedSource.getByteStream() == null) {
-                    
-                    includedSource = createInputSource(includedSource.getPublicId(), includedSource.getSystemId(), 
+
+                    includedSource = createInputSource(includedSource.getPublicId(), includedSource.getSystemId(),
                         includedSource.getBaseSystemId(), accept, acceptLanguage);
                 }
             }
@@ -1551,16 +1554,16 @@ public class XIncludeHandler
                 includedSource = new XMLInputSource(null, href, fCurrentBaseURI.getExpandedSystemId());
             }
         }
-        
+
         if (parse.equals(XINCLUDE_PARSE_XML)) {
             // Instead of always creating a new configuration, the first one can be reused
-            if ((xpointer != null && fXPointerChildConfig == null) 
-            		|| (xpointer == null && fXIncludeChildConfig == null) ) {
-            	
-            	String parserName = XINCLUDE_DEFAULT_CONFIGURATION;
-            	if (xpointer != null)
-            		parserName = "com.sun.org.apache.xerces.internal.parsers.XPointerParserConfiguration";
-            	
+            if ((xpointer != null && fXPointerChildConfig == null)
+                        || (xpointer == null && fXIncludeChildConfig == null) ) {
+
+                String parserName = XINCLUDE_DEFAULT_CONFIGURATION;
+                if (xpointer != null)
+                        parserName = "com.sun.org.apache.xerces.internal.parsers.XPointerParserConfiguration";
+
                 fChildConfig =
                     (XMLParserConfiguration)ObjectFactory.newInstance(
                         parserName,
@@ -1573,7 +1576,7 @@ public class XIncludeHandler
                 if (fEntityResolver != null) fChildConfig.setProperty(ENTITY_RESOLVER, fEntityResolver);
                 fChildConfig.setProperty(SECURITY_MANAGER, fSecurityManager);
                 fChildConfig.setProperty(BUFFER_SIZE, new Integer(fBufferSize));
-                
+
                 // features must be copied to child configuration
                 fNeedCopyFeatures = true;
 
@@ -1590,20 +1593,20 @@ public class XIncludeHandler
                 fChildConfig.setFeature(
                             XINCLUDE_FIXUP_LANGUAGE,
                             fFixupLanguage);
-                
-               
+
+
                 // If the xpointer attribute is present
                 if (xpointer != null ) {
-                	
+
                     XPointerHandler newHandler =
                         (XPointerHandler)fChildConfig.getProperty(
                             Constants.XERCES_PROPERTY_PREFIX
                                 + Constants.XPOINTER_HANDLER_PROPERTY);
 
-                	fXPtrProcessor = newHandler;
+                        fXPtrProcessor = newHandler;
 
-                	// ???
-                	((XPointerHandler)fXPtrProcessor).setProperty(
+                        // ???
+                        ((XPointerHandler)fXPtrProcessor).setProperty(
                             Constants.XERCES_PROPERTY_PREFIX
                             + Constants.NAMESPACE_CONTEXT_PROPERTY,
                         fNamespaceContext);
@@ -1614,21 +1617,21 @@ public class XIncludeHandler
                     ((XPointerHandler)fXPtrProcessor).setProperty(
                             XINCLUDE_FIXUP_LANGUAGE,
                             new Boolean (fFixupLanguage));
-                    
-                    if (fErrorReporter != null) 
-                    	((XPointerHandler)fXPtrProcessor).setProperty(ERROR_REPORTER, fErrorReporter);
-                	// ???
-                    
-                    newHandler.setParent(this); 
+
+                    if (fErrorReporter != null)
+                        ((XPointerHandler)fXPtrProcessor).setProperty(ERROR_REPORTER, fErrorReporter);
+                        // ???
+
+                    newHandler.setParent(this);
                     newHandler.setDocumentHandler(this.getDocumentHandler());
-                    fXPointerChildConfig = fChildConfig;                       
+                    fXPointerChildConfig = fChildConfig;
                 } else {
                     XIncludeHandler newHandler =
                         (XIncludeHandler)fChildConfig.getProperty(
                             Constants.XERCES_PROPERTY_PREFIX
                                 + Constants.XINCLUDE_HANDLER_PROPERTY);
 
-                	newHandler.setParent(this);
+                        newHandler.setParent(this);
                     newHandler.setDocumentHandler(this.getDocumentHandler());
                     fXIncludeChildConfig = fChildConfig;
                 }
@@ -1636,12 +1639,12 @@ public class XIncludeHandler
 
             // If an xpointer attribute is present
             if (xpointer != null ) {
-            	fChildConfig = fXPointerChildConfig ;
-            	
+                fChildConfig = fXPointerChildConfig ;
+
                 // Parse the XPointer expression
                 try {
                     ((XPointerProcessor)fXPtrProcessor).parseXPointer(xpointer);
-                    
+
                 } catch (XNIException ex) {
                     // report the XPointer error as a resource error
                     reportResourceError(
@@ -1650,7 +1653,7 @@ public class XIncludeHandler
                         return false;
                 }
             } else {
-            	fChildConfig = fXIncludeChildConfig;
+                fChildConfig = fXIncludeChildConfig;
             }
 
             // set all features on parserConfig to match this parser configuration
@@ -1669,15 +1672,15 @@ public class XIncludeHandler
                 }
 
                 // If the xpointer attribute is present
-                if (xpointer != null ) { 
-                	// and it was not resolved
-                	if (!((XPointerProcessor)fXPtrProcessor).isXPointerResolved()) {
+                if (xpointer != null ) {
+                        // and it was not resolved
+                        if (!((XPointerProcessor)fXPtrProcessor).isXPointerResolved()) {
                         Locale locale = (fErrorReporter != null) ? fErrorReporter.getLocale() : null;
                         String reason = fXIncludeMessageFormatter.formatMessage(locale, "XPointerResolutionUnsuccessful", null);
                         reportResourceError("XMLResourceError", new Object[] {href, reason});
-                		// use the fallback
-                		return false;
-                	}
+                                // use the fallback
+                                return false;
+                        }
                 }
             }
             catch (XNIException e) {
@@ -1709,7 +1712,7 @@ public class XIncludeHandler
             String encoding = attributes.getValue(XINCLUDE_ATTR_ENCODING);
             includedSource.setEncoding(encoding);
             XIncludeTextReader textReader = null;
-            
+
             try {
                 // Setup the appropriate text reader.
                 if (!fIsXML11) {
@@ -1735,7 +1738,7 @@ public class XIncludeHandler
             }
             // encoding errors
             catch (MalformedByteSequenceException ex) {
-                fErrorReporter.reportError(ex.getDomain(), ex.getKey(), 
+                fErrorReporter.reportError(ex.getDomain(), ex.getKey(),
                     ex.getArguments(), XMLErrorReporter.SEVERITY_FATAL_ERROR);
             }
             catch (CharConversionException e) {
@@ -1790,7 +1793,7 @@ public class XIncludeHandler
      * @see #hasXIncludeNamespace(QName)
      */
     protected boolean isIncludeElement(QName element) {
-        return element.localpart.equals(XINCLUDE_INCLUDE) && 
+        return element.localpart.equals(XINCLUDE_INCLUDE) &&
             hasXIncludeNamespace(element);
     }
 
@@ -1829,7 +1832,7 @@ public class XIncludeHandler
         //       The decision also affects whether we output the file name of the URI, or just the path.
         return parentBaseURI != null && parentBaseURI.equals(baseURI);
     }
-    
+
     /**
      * Returns true if the current [language] is equivalent to the [language] that
      * was in effect on the include parent, taking case-insensitivity into account
@@ -1838,7 +1841,7 @@ public class XIncludeHandler
      * of a fallback element, or the root elements in an included document.
      * The "include parent" is the element which, in the result infoset, will be the
      * direct parent of the current element.
-     * 
+     *
      * @return true if the [language] properties have the same value
      * taking case-insensitivity into account as per [RFC 3066].
      */
@@ -1945,7 +1948,7 @@ public class XIncludeHandler
                         uri);
                 attributes.setSpecified(index, true);
             }
-            
+
             // Modify attributes to perform language-fixup (spec 4.5.6).
             // We only do it to top level included elements, which have a different
             // [language] than their include parent.
@@ -1983,7 +1986,7 @@ public class XIncludeHandler
                             ns.prefix = null;
                             ns.localpart = XMLSymbols.PREFIX_XMLNS;
                             ns.rawname = XMLSymbols.PREFIX_XMLNS;
-                            int index = 
+                            int index =
                                 attributes.addAttribute(
                                     ns,
                                     XMLSymbols.fCDATASymbol,
@@ -2005,7 +2008,7 @@ public class XIncludeHandler
                         QName ns = (QName)NEW_NS_ATTR_QNAME.clone();
                         ns.localpart = prefix;
                         ns.rawname += prefix;
-                        ns.rawname = (fSymbolTable != null) ? 
+                        ns.rawname = (fSymbolTable != null) ?
                             fSymbolTable.addSymbol(ns.rawname) :
                             ns.rawname.intern();
                         int index =
@@ -2015,7 +2018,7 @@ public class XIncludeHandler
                                 uri != null ? uri : XMLSymbols.EMPTY_STRING);
                         attributes.setSpecified(index, true);
                         // Need to re-declare this prefix in the current context
-                        // in order for the SAX parser to report the appropriate 
+                        // in order for the SAX parser to report the appropriate
                         // start and end prefix mapping events. -- mrglavas
                         fNamespaceContext.declarePrefix(prefix, uri);
                     }
@@ -2083,22 +2086,22 @@ public class XIncludeHandler
 
                 URI base = new URI(fParentRelativeURI, true);
                 URI uri = new URI(base, relativeURI);
-                
+
                 /** Check whether the scheme components are equal. */
                 final String baseScheme = base.getScheme();
                 final String literalScheme = uri.getScheme();
                 if (!isEqual(baseScheme, literalScheme)) {
                     return relativeURI;
                 }
-                
+
                 /** Check whether the authority components are equal. */
                 final String baseAuthority = base.getAuthority();
                 final String literalAuthority = uri.getAuthority();
                 if (!isEqual(baseAuthority, literalAuthority)) {
                     return uri.getSchemeSpecificPart();
                 }
-                
-                /** 
+
+                /**
                  * The scheme and authority components are equal,
                  * return the path and the possible query and/or
                  * fragment which follow.
@@ -2142,10 +2145,10 @@ public class XIncludeHandler
             return this.getBaseURI(depth);
         }
     }
-    
+
     /**
      * Returns the [language] of the include parent.
-     * 
+     *
      * @return the language property of the include parent.
      */
     private String getIncludeParentLanguage() {
@@ -2184,8 +2187,8 @@ public class XIncludeHandler
         // a fallback element
         return 0;
     }
-    
-    /** 
+
+    /**
      * Returns the current element depth of the result infoset.
      */
     private int getResultDepth() {
@@ -2503,10 +2506,10 @@ public class XIncludeHandler
             fParentXIncludeHandler.checkAndSendNotation(not);
         }
     }
-    
+
     /**
      * Checks whether the string only contains white space characters.
-     * 
+     *
      * @param value the text to check
      */
     private void checkWhitespace(XMLString value) {
@@ -2518,7 +2521,7 @@ public class XIncludeHandler
             }
         }
     }
-    
+
     /**
      * Checks whether the root element has already been processed.
      */
@@ -2528,7 +2531,7 @@ public class XIncludeHandler
         }
         setRootElementProcessed(true);
     }
-    
+
     /**
      * Sets whether the root element has been processed.
      */
@@ -2539,7 +2542,7 @@ public class XIncludeHandler
         }
         fParentXIncludeHandler.setRootElementProcessed(seenRoot);
     }
-    
+
     /**
      * Returns whether the root element has been processed.
      */
@@ -2632,9 +2635,9 @@ public class XIncludeHandler
         // from 4.5.2
         // Notation items with the same [name], [system identifier],
         // [public identifier], and [declaration base URI] are considered
-        // to be duplicate. An application may also be able to detect that 
-        // notations are duplicate through other means. For instance, the URI 
-        // resulting from combining the system identifier and the declaration 
+        // to be duplicate. An application may also be able to detect that
+        // notations are duplicate through other means. For instance, the URI
+        // resulting from combining the system identifier and the declaration
         // base URI is the same.
         public boolean isDuplicate(Object obj) {
             if (obj != null && obj instanceof Notation) {
@@ -2645,7 +2648,7 @@ public class XIncludeHandler
             }
             return false;
         }
-        
+
         private boolean isEqual(String one, String two) {
             return (one == two || (one != null && one.equals(two)));
         }
@@ -2678,9 +2681,9 @@ public class XIncludeHandler
         // from 4.5.1:
         // Unparsed entity items with the same [name], [system identifier],
         // [public identifier], [declaration base URI], [notation name], and
-        // [notation] are considered to be duplicate. An application may also 
-        // be able to detect that unparsed entities are duplicate through other 
-        // means. For instance, the URI resulting from combining the system 
+        // [notation] are considered to be duplicate. An application may also
+        // be able to detect that unparsed entities are duplicate through other
+        // means. For instance, the URI resulting from combining the system
         // identifier and the declaration base URI is the same.
         public boolean isDuplicate(Object obj) {
             if (obj != null && obj instanceof UnparsedEntity) {
@@ -2692,7 +2695,7 @@ public class XIncludeHandler
             }
             return false;
         }
-        
+
         private boolean isEqual(String one, String two) {
             return (one == two || (one != null && one.equals(two)));
         }
@@ -2722,19 +2725,19 @@ public class XIncludeHandler
         fCurrentBaseURI.setLiteralSystemId((String)fLiteralSystemID.peek());
         fCurrentBaseURI.setExpandedSystemId((String)fExpandedSystemID.peek());
     }
-    
+
     // The following methods are used for language processing
-    
+
     /**
      * Saves the given language on the top of the stack.
-     * 
+     *
      * @param lanaguage the language to push onto the stack.
      */
     protected void saveLanguage(String language) {
         fLanguageScope.push(fDepth);
         fLanguageStack.push(language);
     }
-    
+
     /**
      * Discards the language at the top of the stack, and returns the one beneath it.
      */
@@ -2753,7 +2756,7 @@ public class XIncludeHandler
         int scope = scopeOfBaseURI(depth);
         return (String)fExpandedSystemID.elementAt(scope);
     }
-    
+
     /**
      * Gets the language that was in use at that depth.
      * @param depth
@@ -2799,7 +2802,7 @@ public class XIncludeHandler
         // we should never get here, because 0 was put on the stack in startDocument()
         return -1;
     }
-    
+
     private int scopeOfLanguage(int depth) {
         for (int i = fLanguageScope.size() - 1; i >= 0; i--) {
             if (fLanguageScope.elementAt(i) <= depth)
@@ -2836,9 +2839,9 @@ public class XIncludeHandler
             }
         }
     }
-    
+
     /**
-     * Search for a xml:lang attribute, and if one is found, put the new 
+     * Search for a xml:lang attribute, and if one is found, put the new
      * [language] into effect.
      */
     protected void processXMLLangAttributes(XMLAttributes attributes) {
@@ -2848,11 +2851,11 @@ public class XIncludeHandler
             saveLanguage(fCurrentLanguage);
         }
     }
-    
+
     /**
-     * Returns <code>true</code> if the given string 
+     * Returns <code>true</code> if the given string
      * would be valid in an HTTP header.
-     * 
+     *
      * @param value string to check
      * @return <code>true</code> if the given string
      * would be valid in an HTTP header
@@ -2867,12 +2870,12 @@ public class XIncludeHandler
         }
         return true;
     }
-    
+
     /**
      * Returns a new <code>XMLInputSource</code> from the given parameters.
      */
-    private XMLInputSource createInputSource(String publicId, 
-            String systemId, String baseSystemId, 
+    private XMLInputSource createInputSource(String publicId,
+            String systemId, String baseSystemId,
             String accept, String acceptLanguage) {
 
         HTTPInputSource httpSource = new HTTPInputSource(publicId, systemId, baseSystemId);
@@ -2884,11 +2887,11 @@ public class XIncludeHandler
         }
         return httpSource;
     }
-    
+
     private boolean isEqual(String one, String two) {
         return (one == two || (one != null && one.equals(two)));
     }
-    
+
     // which ASCII characters need to be escaped
     private static boolean gNeedEscaping[] = new boolean[128];
     // the first hex character if a character needs to be escaped
@@ -2909,7 +2912,7 @@ public class XIncludeHandler
             gAfterEscaping2[ch] = gHexChs[ch & 0xf];
         }
     }
-    
+
     //
     // Escape an href value according to (4.1.1):
     //
@@ -2954,7 +2957,7 @@ public class XIncludeHandler
             // check if remainder of href contains any illegal characters before proceeding
             for (int j = i; j < len; ++j) {
                 ch = href.charAt(j);
-                if ((ch >= 0x20 && ch <= 0x7E) || 
+                if ((ch >= 0x20 && ch <= 0x7E) ||
                     (ch >= 0xA0 && ch <= 0xD7FF) ||
                     (ch >= 0xF900 && ch <= 0xFDCF) ||
                     (ch >= 0xFDF0 && ch <= 0xFFEF)) {
@@ -2972,7 +2975,7 @@ public class XIncludeHandler
                 // abort: href does not allow this character
                 return href;
             }
-            
+
             // get UTF-8 bytes for the remaining sub-string
             byte[] bytes = null;
             byte b;

@@ -1,8 +1,26 @@
 /*
- * @(#)ORBTypeComponentImpl.java	1.21 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.ior.iiop;
@@ -18,48 +36,48 @@ import org.omg.CORBA_2_3.portable.OutputStream ;
 /**
  * @author Ken Cavanaugh
  */
-public class ORBTypeComponentImpl extends TaggedComponentBase 
+public class ORBTypeComponentImpl extends TaggedComponentBase
     implements ORBTypeComponent
 {
     private int ORBType;
-   
+
     public boolean equals( Object obj )
     {
-	if (!(obj instanceof ORBTypeComponentImpl))
-	    return false ;
+        if (!(obj instanceof ORBTypeComponentImpl))
+            return false ;
 
-	ORBTypeComponentImpl other = (ORBTypeComponentImpl)obj ;
+        ORBTypeComponentImpl other = (ORBTypeComponentImpl)obj ;
 
-	return ORBType == other.ORBType ;
+        return ORBType == other.ORBType ;
     }
 
     public int hashCode()
     {
-	return ORBType ;
+        return ORBType ;
     }
 
     public String toString()
     {
-	return "ORBTypeComponentImpl[ORBType=" + ORBType + "]" ;
+        return "ORBTypeComponentImpl[ORBType=" + ORBType + "]" ;
     }
 
-    public ORBTypeComponentImpl(int ORBType) 
+    public ORBTypeComponentImpl(int ORBType)
     {
-	this.ORBType = ORBType ;
+        this.ORBType = ORBType ;
     }
-    
-    public int getId() 
+
+    public int getId()
     {
-	return TAG_ORB_TYPE.value ; // 0 in CORBA 2.3.1 13.6.3
+        return TAG_ORB_TYPE.value ; // 0 in CORBA 2.3.1 13.6.3
     }
-    
-    public int getORBType() 
+
+    public int getORBType()
     {
-	return ORBType ;
+        return ORBType ;
     }
-    
-    public void writeContents(OutputStream os) 
+
+    public void writeContents(OutputStream os)
     {
-	os.write_ulong( ORBType ) ;
+        os.write_ulong( ORBType ) ;
     }
 }

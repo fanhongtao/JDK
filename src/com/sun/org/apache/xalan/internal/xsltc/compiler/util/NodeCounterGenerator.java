@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +28,9 @@ import com.sun.org.apache.bcel.internal.generic.Instruction;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.Stylesheet;
 
 /**
- * This class implements auxiliary classes needed to compile 
+ * This class implements auxiliary classes needed to compile
  * patterns in <tt>xsl:number</tt>. These classes inherit from
- * {Any,Single,Multiple}NodeCounter and override the 
+ * {Any,Single,Multiple}NodeCounter and override the
  * <tt>matchFrom</tt> and <tt>matchCount</tt> methods.
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
@@ -34,14 +38,14 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.Stylesheet;
 public final class NodeCounterGenerator extends ClassGenerator {
     private Instruction _aloadTranslet;
 
-    public NodeCounterGenerator(String className, 
-				String superClassName,
-			        String fileName,
-			        int accessFlags, 
-				String[] interfaces,
-			        Stylesheet stylesheet) {
-	super(className, superClassName, fileName,
-	      accessFlags, interfaces, stylesheet);
+    public NodeCounterGenerator(String className,
+                                String superClassName,
+                                String fileName,
+                                int accessFlags,
+                                String[] interfaces,
+                                Stylesheet stylesheet) {
+        super(className, superClassName, fileName,
+              accessFlags, interfaces, stylesheet);
     }
 
     /**
@@ -49,7 +53,7 @@ public final class NodeCounterGenerator extends ClassGenerator {
      * the translet) is stored.
      */
     public void setTransletIndex(int index) {
-	_aloadTranslet = new ALOAD(index);
+        _aloadTranslet = new ALOAD(index);
     }
 
     /**
@@ -58,14 +62,14 @@ public final class NodeCounterGenerator extends ClassGenerator {
      * Overridden from ClassGenerator.
      */
     public Instruction loadTranslet() {
-	return _aloadTranslet;
+        return _aloadTranslet;
     }
-    
+
     /**
      * Returns <tt>true</tt> since this class is external to the
      * translet.
      */
     public boolean isExternal() {
-	return true;
+        return true;
     }
 }

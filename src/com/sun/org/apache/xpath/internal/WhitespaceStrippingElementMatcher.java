@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +27,7 @@ import javax.xml.transform.TransformerException;
 import org.w3c.dom.Element;
 
 /**
- * A class that implements this interface can tell if a given element should 
+ * A class that implements this interface can tell if a given element should
  * strip whitespace nodes from it's children.
  */
 public interface WhitespaceStrippingElementMatcher
@@ -41,7 +45,7 @@ public interface WhitespaceStrippingElementMatcher
    */
   public boolean shouldStripWhiteSpace(
           XPathContext support, Element targetElement) throws TransformerException;
-  
+
   /**
    * Get information about whether or not whitespace can be stripped.
    * @see <a href="http://www.w3.org/TR/xslt#strip">strip in XSLT Specification</a>

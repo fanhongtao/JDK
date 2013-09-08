@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +34,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
  * @author Elena Litani
  * @author Gopal Sharma, SUN Microsystem Inc.
  *
- * @version $Id: YearMonthDV.java,v 1.2.6.1 2005/09/06 11:43:10 neerajbj Exp $
+ * @version $Id: YearMonthDV.java,v 1.7 2010-11-01 04:39:47 joehw Exp $
  */
 public class YearMonthDV extends AbstractDateTimeDV{
 
@@ -71,7 +75,7 @@ public class YearMonthDV extends AbstractDateTimeDV{
 
         //save unnormalized values
         saveUnnormalized(date);
-        
+
         if ( date.utc!=0 && date.utc!='Z' ) {
             normalize(date);
         }
@@ -87,10 +91,12 @@ public class YearMonthDV extends AbstractDateTimeDV{
         append(message, (char)date.utc, 0);
         return message.toString();
     }
-    
+
     protected XMLGregorianCalendar getXMLGregorianCalendar(DateTimeData date) {
-        return factory.newXMLGregorianCalendar(date.unNormYear, date.unNormMonth, DatatypeConstants.FIELD_UNDEFINED
-                , DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, date.timezoneHr * 60 + date.timezoneMin);
+        return datatypeFactory.newXMLGregorianCalendar(date.unNormYear, date.unNormMonth, DatatypeConstants.FIELD_UNDEFINED,
+                DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED,
+                DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED,
+                date.hasTimeZone() ? date.timezoneHr * 60 + date.timezoneMin : DatatypeConstants.FIELD_UNDEFINED);
     }
 }
 

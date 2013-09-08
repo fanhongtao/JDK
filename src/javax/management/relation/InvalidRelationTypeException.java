@@ -1,8 +1,26 @@
 /*
- * @(#)InvalidRelationTypeException.java	1.16 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.relation;
@@ -25,7 +43,7 @@ public class InvalidRelationTypeException extends RelationException {
      * Default constructor, no message put in exception.
      */
     public InvalidRelationTypeException() {
-	super();
+        super();
     }
 
     /**
@@ -34,6 +52,6 @@ public class InvalidRelationTypeException extends RelationException {
      * @param message the detail message.
      */
     public InvalidRelationTypeException(String message) {
-	super(message);
+        super(message);
     }
 }

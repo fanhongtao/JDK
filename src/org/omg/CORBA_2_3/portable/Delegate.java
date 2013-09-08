@@ -1,28 +1,43 @@
 /*
- * @(#)Delegate.java	1.14 05/11/17
+ * Copyright (c) 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 /*
  * Licensed Materials - Property of IBM
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package org.omg.CORBA_2_3.portable;
 
-/** 
+/**
  * Delegate class provides the ORB vendor specific implementation
  * of CORBA object.  It extends org.omg.CORBA.portable.Delegate and
  * provides new methods that were defined by CORBA 2.3.
  *
  * @see org.omg.CORBA.portable.Delegate
  * @author  OMG
- * @version 1.14 11/17/05
  * @since   JDK1.2
  */
 

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +18,7 @@
  * limitations under the License.
  */
 /*
- * $Id: DTMNodeProxy.java,v 
+ * $Id: DTMNodeProxy.java,v
  */
 package com.sun.org.apache.xml.internal.dtm.ref;
 
@@ -67,10 +71,10 @@ public class DTMNodeProxy
 
   /** The DTM node handle. */
   int node;
-  
+
   /** The return value as Empty String. */
   private static final String EMPTYSTRING = "";
-        
+
   /** The DOMImplementation object */
   static final DOMImplementation implementation=new DTMNodeProxyImplementation();
 
@@ -174,7 +178,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final String getNodeName()
@@ -193,7 +197,7 @@ public class DTMNodeProxy
    * <p>
    * Note that getNodeName is aliased to getTarget.
    *
-   * 
+   *
    */
   public final String getTarget()
   {
@@ -202,7 +206,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node as of DOM Level 2
    */
   public final String getLocalName()
@@ -233,7 +237,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node as of DOM Level 2
    */
   public final String getNamespaceURI()
@@ -246,7 +250,7 @@ public class DTMNodeProxy
    * read-only subset -- so arguably we should always return false.
    * Or we could say that we support DOM Core Level 2 but all nodes
    * are read-only. Unclear which answer is least misleading.
-   * 
+   *
    * NON-DOM method. This was present in early drafts of DOM Level 2,
    * but was renamed isSupported. It's present here only because it's
    * cheap, harmless, and might help some poor fool who is still trying
@@ -281,7 +285,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Node
@@ -290,15 +294,15 @@ public class DTMNodeProxy
   {
     return dtm.getNodeValue(node);
   }
-  
+
   /**
    * @return The string value of the node
-   * 
+   *
    * @throws DOMException
    */
   public final String getStringValue() throws DOMException
   {
-  	return dtm.getStringValue(node).toString();
+        return dtm.getStringValue(node).toString();
   }
 
   /**
@@ -315,7 +319,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final short getNodeType()
@@ -325,7 +329,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final Node getParentNode()
@@ -341,7 +345,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final Node getOwnerNode()
@@ -354,12 +358,12 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final NodeList getChildNodes()
   {
-                
+
     // Annoyingly, AxisIterators do not currently implement DTMIterator, so
     // we can't just wap DTMNodeList around an Axis.CHILD iterator.
     // Instead, we've created a special-case operating mode for that object.
@@ -370,7 +374,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final Node getFirstChild()
@@ -383,7 +387,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final Node getLastChild()
@@ -396,7 +400,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final Node getPreviousSibling()
@@ -409,7 +413,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final Node getNextSibling()
@@ -428,7 +432,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final NamedNodeMap getAttributes()
@@ -465,13 +469,13 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final Document getOwnerDocument()
   {
-  	// Note that this uses the DOM-compatable version of the call
-	return (Document)(dtm.getNode(dtm.getOwnerDocument(node)));
+        // Note that this uses the DOM-compatable version of the call
+        return (Document)(dtm.getNode(dtm.getOwnerDocument(node)));
   }
 
   /**
@@ -479,7 +483,7 @@ public class DTMNodeProxy
    * @param newChild
    * @param refChild
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Node -- DTMNodeProxy is read-only
@@ -495,7 +499,7 @@ public class DTMNodeProxy
    * @param newChild
    * @param oldChild
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Node -- DTMNodeProxy is read-only
@@ -510,7 +514,7 @@ public class DTMNodeProxy
    *
    * @param oldChild
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Node -- DTMNodeProxy is read-only
@@ -524,7 +528,7 @@ public class DTMNodeProxy
    *
    * @param newChild
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Node -- DTMNodeProxy is read-only
@@ -536,7 +540,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Node
    */
   public final boolean hasChildNodes()
@@ -548,7 +552,7 @@ public class DTMNodeProxy
    *
    * @param deep
    *
-   * 
+   *
    * @see org.w3c.dom.Node -- DTMNodeProxy is read-only
    */
   public final Node cloneNode(boolean deep)
@@ -558,7 +562,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Document
    */
   public final DocumentType getDoctype()
@@ -568,7 +572,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Document
    */
   public final DOMImplementation getImplementation()
@@ -579,53 +583,53 @@ public class DTMNodeProxy
   /** This is a bit of a problem in DTM, since a DTM may be a Document
    * Fragment and hence not have a clear-cut Document Element. We can
    * make it work in the well-formed cases but would that be confusing for others?
-   * 
-   * 
+   *
+   *
    * @see org.w3c.dom.Document
    */
   public final Element getDocumentElement()
   {
-		int dochandle=dtm.getDocument();
-		int elementhandle=DTM.NULL;
-		for(int kidhandle=dtm.getFirstChild(dochandle);
-				kidhandle!=DTM.NULL;
-				kidhandle=dtm.getNextSibling(kidhandle))
-		{
-			switch(dtm.getNodeType(kidhandle))
-			{
-			case Node.ELEMENT_NODE:
-				if(elementhandle!=DTM.NULL) 
-				{
-					elementhandle=DTM.NULL; // More than one; ill-formed.
-					kidhandle=dtm.getLastChild(dochandle); // End loop
-				}
-				else
-					elementhandle=kidhandle;
-				break;
-				
-			// These are harmless; document is still wellformed
-			case Node.COMMENT_NODE:
-			case Node.PROCESSING_INSTRUCTION_NODE:
-			case Node.DOCUMENT_TYPE_NODE:
-				break;
-					
-			default:
-				elementhandle=DTM.NULL; // ill-formed
-				kidhandle=dtm.getLastChild(dochandle); // End loop
-				break;
-			}
-		}
-		if(elementhandle==DTM.NULL)
-			throw new DTMDOMException(DOMException.NOT_SUPPORTED_ERR);
-		else
-			return (Element)(dtm.getNode(elementhandle));
+                int dochandle=dtm.getDocument();
+                int elementhandle=DTM.NULL;
+                for(int kidhandle=dtm.getFirstChild(dochandle);
+                                kidhandle!=DTM.NULL;
+                                kidhandle=dtm.getNextSibling(kidhandle))
+                {
+                        switch(dtm.getNodeType(kidhandle))
+                        {
+                        case Node.ELEMENT_NODE:
+                                if(elementhandle!=DTM.NULL)
+                                {
+                                        elementhandle=DTM.NULL; // More than one; ill-formed.
+                                        kidhandle=dtm.getLastChild(dochandle); // End loop
+                                }
+                                else
+                                        elementhandle=kidhandle;
+                                break;
+
+                        // These are harmless; document is still wellformed
+                        case Node.COMMENT_NODE:
+                        case Node.PROCESSING_INSTRUCTION_NODE:
+                        case Node.DOCUMENT_TYPE_NODE:
+                                break;
+
+                        default:
+                                elementhandle=DTM.NULL; // ill-formed
+                                kidhandle=dtm.getLastChild(dochandle); // End loop
+                                break;
+                        }
+                }
+                if(elementhandle==DTM.NULL)
+                        throw new DTMDOMException(DOMException.NOT_SUPPORTED_ERR);
+                else
+                        return (Element)(dtm.getNode(elementhandle));
   }
 
   /**
    *
    * @param tagName
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Document
@@ -637,7 +641,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Document
    */
   public final DocumentFragment createDocumentFragment()
@@ -649,7 +653,7 @@ public class DTMNodeProxy
    *
    * @param data
    *
-   * 
+   *
    * @see org.w3c.dom.Document
    */
   public final Text createTextNode(String data)
@@ -661,7 +665,7 @@ public class DTMNodeProxy
    *
    * @param data
    *
-   * 
+   *
    * @see org.w3c.dom.Document
    */
   public final Comment createComment(String data)
@@ -673,7 +677,7 @@ public class DTMNodeProxy
    *
    * @param data
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Document
@@ -689,7 +693,7 @@ public class DTMNodeProxy
    * @param target
    * @param data
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Document
@@ -704,7 +708,7 @@ public class DTMNodeProxy
    *
    * @param name
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Document
@@ -718,7 +722,7 @@ public class DTMNodeProxy
    *
    * @param name
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Document
@@ -735,17 +739,17 @@ public class DTMNodeProxy
    *
    * @see org.w3c.dom.Document
    */
-  public final NodeList getElementsByTagName(String tagname) 
+  public final NodeList getElementsByTagName(String tagname)
   {
        Vector listVector = new Vector();
        Node retNode = dtm.getNode(node);
-       if (retNode != null) 
+       if (retNode != null)
        {
          boolean isTagNameWildCard = "*".equals(tagname);
-         if (DTM.ELEMENT_NODE == retNode.getNodeType()) 
+         if (DTM.ELEMENT_NODE == retNode.getNodeType())
          {
            NodeList nodeList = retNode.getChildNodes();
-           for (int i = 0; i < nodeList.getLength(); i++) 
+           for (int i = 0; i < nodeList.getLength(); i++)
            {
              traverseChildren(listVector, nodeList.item(i), tagname,
                               isTagNameWildCard);
@@ -757,21 +761,21 @@ public class DTMNodeProxy
        }
        int size = listVector.size();
        NodeSet nodeSet = new NodeSet(size);
-       for (int i = 0; i < size; i++) 
+       for (int i = 0; i < size; i++)
        {
          nodeSet.addNode((Node) listVector.elementAt(i));
        }
        return (NodeList) nodeSet;
   }
-  
+
   /**
-   * 
+   *
    * @param listVector
    * @param tempNode
    * @param tagname
    * @param isTagNameWildCard
-   * 
-   * 
+   *
+   *
    * Private method to be used for recursive iterations to obtain elements by tag name.
    */
   private final void traverseChildren
@@ -780,12 +784,12 @@ public class DTMNodeProxy
     Node tempNode,
     String tagname,
     boolean isTagNameWildCard) {
-    if (tempNode == null) 
+    if (tempNode == null)
     {
       return;
-    } 
+    }
     else
-    { 
+    {
       if (tempNode.getNodeType() == DTM.ELEMENT_NODE
             && (isTagNameWildCard || tempNode.getNodeName().equals(tagname)))
       {
@@ -810,7 +814,7 @@ public class DTMNodeProxy
    * @param importedNode
    * @param deep
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Document as of DOM Level 2 -- DTMNodeProxy is read-only
@@ -826,7 +830,7 @@ public class DTMNodeProxy
    * @param namespaceURI
    * @param qualifiedName
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Document as of DOM Level 2
@@ -842,7 +846,7 @@ public class DTMNodeProxy
    * @param namespaceURI
    * @param qualifiedName
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Document as of DOM Level 2
@@ -867,12 +871,12 @@ public class DTMNodeProxy
     Vector listVector = new Vector();
     Node retNode = dtm.getNode(node);
     if (retNode != null)
-    {               
+    {
       boolean isNamespaceURIWildCard = "*".equals(namespaceURI);
       boolean isLocalNameWildCard    = "*".equals(localName);
       if (DTM.ELEMENT_NODE == retNode.getNodeType())
       {
-        NodeList nodeList = retNode.getChildNodes();                    
+        NodeList nodeList = retNode.getChildNodes();
         for(int i = 0; i < nodeList.getLength(); i++)
         {
           traverseChildren(listVector, nodeList.item(i), namespaceURI, localName, isNamespaceURIWildCard, isLocalNameWildCard);
@@ -892,47 +896,47 @@ public class DTMNodeProxy
     return (NodeList) nodeSet;
   }
   /**
-   * 
+   *
    * @param listVector
    * @param tempNode
    * @param namespaceURI
    * @param localname
    * @param isNamespaceURIWildCard
    * @param isLocalNameWildCard
-   * 
-   * Private method to be used for recursive iterations to obtain elements by tag name 
+   *
+   * Private method to be used for recursive iterations to obtain elements by tag name
    * and namespaceURI.
    */
   private final void traverseChildren
   (
-   Vector listVector, 
-   Node tempNode, 
-   String namespaceURI, 
+   Vector listVector,
+   Node tempNode,
+   String namespaceURI,
    String localname,
    boolean isNamespaceURIWildCard,
-   boolean isLocalNameWildCard) 
+   boolean isLocalNameWildCard)
    {
     if (tempNode == null)
     {
       return;
     }
-    else 
+    else
     {
       if (tempNode.getNodeType() == DTM.ELEMENT_NODE
               && (isLocalNameWildCard
                       || tempNode.getLocalName().equals(localname)))
-      {         
+      {
         String nsURI = tempNode.getNamespaceURI();
         if ((namespaceURI == null && nsURI == null)
                || isNamespaceURIWildCard
                || (namespaceURI != null && namespaceURI.equals(nsURI)))
-        {     
-          listVector.add(tempNode); 
-        } 
+        {
+          listVector.add(tempNode);
+        }
       }
       if(tempNode.hasChildNodes())
       {
-        NodeList nl = tempNode.getChildNodes();                 
+        NodeList nl = tempNode.getChildNodes();
         for(int i = 0; i < nl.getLength(); i++)
         {
           traverseChildren(listVector, nl.item(i), namespaceURI, localname,
@@ -957,7 +961,7 @@ public class DTMNodeProxy
    *
    * @param offset
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Text
@@ -969,7 +973,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.CharacterData
@@ -993,7 +997,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.CharacterData
    */
   public final int getLength()
@@ -1007,7 +1011,7 @@ public class DTMNodeProxy
    * @param offset
    * @param count
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.CharacterData
@@ -1072,7 +1076,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Element
    */
   public final String getTagName()
@@ -1084,7 +1088,7 @@ public class DTMNodeProxy
    *
    * @param name
    *
-   * 
+   *
    * @see org.w3c.dom.Element
    */
   public final String getAttribute(String name)
@@ -1124,7 +1128,7 @@ public class DTMNodeProxy
    *
    * @param name
    *
-   * 
+   *
    * @see org.w3c.dom.Element
    */
   public final Attr getAttributeNode(String name)
@@ -1138,7 +1142,7 @@ public class DTMNodeProxy
    *
    * @param newAttr
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Element
@@ -1152,7 +1156,7 @@ public class DTMNodeProxy
    *
    * @param oldAttr
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Element
@@ -1165,7 +1169,7 @@ public class DTMNodeProxy
   /**
    * Introduced in DOM Level 2.
    *
-   * 
+   *
    */
   public boolean hasAttributes()
   {
@@ -1183,7 +1187,7 @@ public class DTMNodeProxy
    * @param namespaceURI
    * @param localName
    *
-   * 
+   *
    * @see org.w3c.dom.Element
    */
   public final String getAttributeNS(String namespaceURI, String localName)
@@ -1230,7 +1234,7 @@ public class DTMNodeProxy
    * @param namespaceURI
    * @param localName
    *
-   * 
+   *
    * @see org.w3c.dom.Element
    */
   public final Attr getAttributeNodeNS(String namespaceURI, String localName)
@@ -1247,7 +1251,7 @@ public class DTMNodeProxy
    *
    * @param newAttr
    *
-   * 
+   *
    *
    * @throws DOMException
    * @see org.w3c.dom.Element
@@ -1259,7 +1263,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Attr
    */
   public final String getName()
@@ -1269,7 +1273,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Attr
    */
   public final boolean getSpecified()
@@ -1283,7 +1287,7 @@ public class DTMNodeProxy
 
   /**
    *
-   * 
+   *
    * @see org.w3c.dom.Attr
    */
   public final String getValue()
@@ -1304,7 +1308,7 @@ public class DTMNodeProxy
   /**
    * Get the owner element of an attribute.
    *
-   * 
+   *
    * @see org.w3c.dom.Attr as of DOM Level 2
    */
   public final Element getOwnerElement()
@@ -1318,7 +1322,7 @@ public class DTMNodeProxy
   }
 
   /**
-   * NEEDSDOC Method adoptNode 
+   * NEEDSDOC Method adoptNode
    *
    *
    * NEEDSDOC @param source
@@ -1472,8 +1476,8 @@ public class DTMNodeProxy
   {
     throw new DTMDOMException(DOMException.NOT_SUPPORTED_ERR);
   }
-        
-        
+
+
   /** Inner class to support getDOMImplementation.
    */
   static class DTMNodeProxyImplementation implements DOMImplementation
@@ -1482,13 +1486,13 @@ public class DTMNodeProxy
     {
       throw new DTMDOMException(DOMException.NOT_SUPPORTED_ERR);
     }
-    public Document createDocument(String namespaceURI,String qualfiedName,DocumentType doctype)                        
+    public Document createDocument(String namespaceURI,String qualfiedName,DocumentType doctype)
     {
       // Could create a DTM... but why, when it'd have to be permanantly empty?
-      throw new DTMDOMException(DOMException.NOT_SUPPORTED_ERR);        
+      throw new DTMDOMException(DOMException.NOT_SUPPORTED_ERR);
     }
     /** Ask whether we support a given DOM feature.
-     * 
+     *
      * In fact, we do not _fully_ support any DOM feature -- we're a
      * read-only subset -- so arguably we should always return false.
      * On the other hand, it may be more practically useful to return
@@ -1498,8 +1502,8 @@ public class DTMNodeProxy
      */
     public boolean hasFeature(String feature,String version)
     {
-      if( ("CORE".equals(feature.toUpperCase()) || "XML".equals(feature.toUpperCase())) 
-					&& 
+      if( ("CORE".equals(feature.toUpperCase()) || "XML".equals(feature.toUpperCase()))
+                                        &&
           ("1.0".equals(version) || "2.0".equals(version)))
         return true;
       return false;
@@ -1537,7 +1541,7 @@ public class DTMNodeProxy
 
 
 //RAMESH : Pending proper implementation of DOM Level 3
-    
+
     public Object setUserData(String key,
                               Object data,
                               UserDataHandler handler) {
@@ -1555,7 +1559,7 @@ public class DTMNodeProxy
      */
     public Object getUserData(String key) {
         return getOwnerDocument().getUserData( key);
-    } 
+    }
 
       /**
      *  This method returns a specialized object which implements the
@@ -1741,12 +1745,12 @@ public class DTMNodeProxy
                         }
                     }
                 }
-		/*
+                /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.lookupNamespaceURI(specifiedPrefix);
                 }
-		*/
+                */
 
                 return null;
 
@@ -1771,7 +1775,7 @@ public class DTMNodeProxy
                 return null;
             }
         default:{
-	   /*
+           /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.lookupNamespaceURI(specifiedPrefix);
@@ -1783,9 +1787,9 @@ public class DTMNodeProxy
         }
     }
 
-    
+
     /**
-     *  DOM Level 3 
+     *  DOM Level 3
      *  This method checks if the specified <code>namespaceURI</code> is the
      *  default namespace or not.
      *  @param namespaceURI The namespace URI to look for.
@@ -1844,7 +1848,7 @@ public class DTMNodeProxy
                 }
                 return false;
             }
-        default:{  
+        default:{
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
                     return ancestor.isDefaultNamespace(namespaceURI);
@@ -1902,7 +1906,7 @@ public class DTMNodeProxy
                 }
                 return null;
             }
-        default:{ 
+        default:{
 /*
                 NodeImpl ancestor = (NodeImpl)getElementAncestor(this);
                 if (ancestor != null) {
@@ -2082,12 +2086,12 @@ public class DTMNodeProxy
         return n;
     }
 
-    
+
     /**
      *  DOM Level 3
      *  Normalize document.
      */
-    public void normalizeDocument(){   
+    public void normalizeDocument(){
 
     }
     /**
@@ -2099,7 +2103,7 @@ public class DTMNodeProxy
        return null;
     }
 
-    
+
     /** DOM Level 3 feature: documentURI */
     protected String fDocumentURI;
 
@@ -2107,7 +2111,7 @@ public class DTMNodeProxy
      * DOM Level 3
      */
     public void setDocumentURI(String documentURI){
-        
+
         fDocumentURI= documentURI;
     }
 
@@ -2254,7 +2258,7 @@ public class DTMNodeProxy
         //PENDING
     }
 
-       
+
     /**
      * DOM Level 3: register the given attribute node as an ID attribute
      */

@@ -1,8 +1,26 @@
 /*
- * @(#)Element.java	1.24 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -11,7 +29,6 @@ package javax.swing.text;
  * is intended to capture the spirit of an SGML element.
  *
  * @author  Timothy Prinzing
- * @version 1.24 11/17/05
  */
 public interface Element {
 
@@ -69,7 +86,7 @@ public interface Element {
      * <code>AbstractDocument</code> models an implied break at the end of
      * the document. As a result of this, it is possible for this to
      * return a value greater than the length of the document.
-     * 
+     *
      * @return the ending offset > getStartOffset() and
      *     <= getDocument().getLength() + 1
      * @see Document
@@ -120,4 +137,3 @@ public interface Element {
 
 
 }
-

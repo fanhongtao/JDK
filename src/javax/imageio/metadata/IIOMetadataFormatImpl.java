@@ -1,8 +1,26 @@
 /*
- * @(#)IIOMetadataFormatImpl.java	1.29 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.metadata;
@@ -55,7 +73,6 @@ import com.sun.imageio.plugins.common.StandardMetadataFormat;
  *
  * @see ResourceBundle#getBundle(String,Locale)
  *
- * @version 0.5
  */
 public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
 
@@ -95,7 +112,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
 
         ObjectValue objectValue;
     }
-    
+
     class Attribute {
         String attrName;
 
@@ -123,7 +140,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
 
         // Meaningful only if valueType == VALUE_ENUMERATION
         List enumeratedValues = null;
-        
+
         // Meaningful only if valueType == VALUE_RANGE
         Comparable minValue = null;
         Comparable maxValue = null;
@@ -390,7 +407,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      */
     protected void removeElement(String elementName) {
         Element element = getElement(elementName, false);
-        if (element != null) {            
+        if (element != null) {
             Iterator iter = element.parentList.iterator();
             while (iter.hasNext()) {
                 String parentName = (String)iter.next();
@@ -667,7 +684,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
         List values = new ArrayList();
         values.add("TRUE");
         values.add("FALSE");
-        
+
         String dval = null;
         if (hasDefaultValue) {
             dval = defaultValue ? "TRUE" : "FALSE";
@@ -712,14 +729,14 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * @param required <code>true</code> if an object value must be present.
      * @param defaultValue the default value for the
      * <code>Object</code> reference, or <code>null</code>.
-     * 
+     *
      * @exception IllegalArgumentException if <code>elementName</code>
      * is <code>null</code>, or is not a legal element name for this format.
      */
     protected <T> void addObjectValue(String elementName,
-				      Class<T> classType,
-				      boolean required,
-				      T defaultValue)
+                                      Class<T> classType,
+                                      boolean required,
+                                      T defaultValue)
     {
         Element element = getElement(elementName);
         ObjectValue obj = new ObjectValue();
@@ -748,7 +765,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * @param enumeratedValues a <code>List</code> of
      * <code>Object</code>s containing the legal values for the
      * object reference.
-     * 
+     *
      * @exception IllegalArgumentException if <code>elementName</code>
      * is <code>null</code>, or is not a legal element name for this format.
      * @exception IllegalArgumentException if
@@ -762,10 +779,10 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * or is <code>null</code>.
      */
     protected <T> void addObjectValue(String elementName,
-				      Class<T> classType,
-				      boolean required,
-				      T defaultValue,
-				      List<? extends T> enumeratedValues)
+                                      Class<T> classType,
+                                      boolean required,
+                                      T defaultValue,
+                                      List<? extends T> enumeratedValues)
     {
         Element element = getElement(elementName);
         if (enumeratedValues == null) {
@@ -814,7 +831,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * object value, as a <code>String</code>.
      * @param maxValue the largest (inclusive or exclusive depending
      * on the value of <code>minInclusive</code>) legal value for the
-     * object value, as a <code>String</code>. 
+     * object value, as a <code>String</code>.
      * @param minInclusive <code>true</code> if <code>minValue</code>
      * is inclusive.
      * @param maxInclusive <code>true</code> if <code>maxValue</code>
@@ -825,13 +842,13 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * format.
      */
     protected <T extends Object & Comparable<? super T>> void
-	addObjectValue(String elementName,
-		       Class<T> classType,
-		       T defaultValue,
-		       Comparable<? super T> minValue,
-		       Comparable<? super T> maxValue,
-		       boolean minInclusive,
-		       boolean maxInclusive)
+        addObjectValue(String elementName,
+                       Class<T> classType,
+                       T defaultValue,
+                       Comparable<? super T> minValue,
+                       Comparable<? super T> maxValue,
+                       boolean minInclusive,
+                       boolean maxInclusive)
     {
         Element element = getElement(elementName);
         ObjectValue obj = new ObjectValue();
@@ -889,7 +906,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * nodes implementing the named element.
      *
      * @param elementName the name of the element.
-     * 
+     *
      * @exception IllegalArgumentException if <code>elementName</code> is
      * not a legal element name for this format.
      */
@@ -983,7 +1000,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * used as a key to its <code>getString</code> method, and the
      * result returned.  If no <code>ResourceBundle</code> is found,
      * or no such key is present, <code>null</code> will be returned.
-     * 
+     *
      * <p> If <code>locale</code> is <code>null</code>, the current
      * default <code>Locale</code> returned by <code>Locale.getLocale</code>
      * will be used.
@@ -1034,8 +1051,8 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
         Attribute attr = getAttribute(elementName, attrName);
         return attr.valueType;
     }
-    
-    public int getAttributeDataType(String elementName, String attrName) { 
+
+    public int getAttributeDataType(String elementName, String attrName) {
         Attribute attr = getAttribute(elementName, attrName);
         return attr.dataType;
     }
@@ -1058,7 +1075,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
             throw new IllegalArgumentException
                 ("Attribute not an enumeration!");
         }
-        
+
         List values = attr.enumeratedValues;
         Iterator iter = values.iterator();
         String[] result = new String[values.size()];
@@ -1123,7 +1140,7 @@ public abstract class IIOMetadataFormatImpl implements IIOMetadataFormat {
      * key to its <code>getString</code> method, and the result
      * returned.  If no <code>ResourceBundle</code> is found, or no
      * such key is present, <code>null</code> will be returned.
-     * 
+     *
      * <p> If <code>locale</code> is <code>null</code>, the current
      * default <code>Locale</code> returned by <code>Locale.getLocale</code>
      * will be used.

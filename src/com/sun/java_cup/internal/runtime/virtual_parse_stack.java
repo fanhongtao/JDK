@@ -1,21 +1,45 @@
+/*
+ * Copyright (c) 2003, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 
 package com.sun.java_cup.internal.runtime;
 
 import java.util.Stack;
 
-/** This class implements a temporary or "virtual" parse stack that 
- *  replaces the top portion of the actual parse stack (the part that 
+/** This class implements a temporary or "virtual" parse stack that
+ *  replaces the top portion of the actual parse stack (the part that
  *  has been changed by some set of operations) while maintaining its
- *  original contents.  This data structure is used when the parse needs 
- *  to "parse ahead" to determine if a given error recovery attempt will 
- *  allow the parse to continue far enough to consider it successful.  Once 
- *  success or failure of parse ahead is determined the system then 
- *  reverts to the original parse stack (which has not actually been 
+ *  original contents.  This data structure is used when the parse needs
+ *  to "parse ahead" to determine if a given error recovery attempt will
+ *  allow the parse to continue far enough to consider it successful.  Once
+ *  success or failure of parse ahead is determined the system then
+ *  reverts to the original parse stack (which has not actually been
  *  modified).  Since parse ahead does not execute actions, only parse
  *  state is maintained on the virtual stack, not full Symbol objects.
  *
  * @see     com.sun.java_cup.internal.runtime.lr_parser
- * @version last updated: 7/3/96
  * @author  Frank Flannery
  */
 
@@ -29,8 +53,8 @@ public class virtual_parse_stack {
     {
       /* sanity check */
       if (shadowing_stack == null)
-	throw new Exception(
-	  "Internal parser error: attempt to create null virtual stack");
+        throw new Exception(
+          "Internal parser error: attempt to create null virtual stack");
 
       /* set up our internals */
       real_stack = shadowing_stack;
@@ -44,7 +68,7 @@ public class virtual_parse_stack {
   /*-----------------------------------------------------------*/
   /*--- (Access to) Instance Variables ------------------------*/
   /*-----------------------------------------------------------*/
-       
+
   /** The real stack that we shadow.  This is accessed when we move off
    *  the bottom of the virtual portion of the stack, but is always left
    *  unmodified.
@@ -55,7 +79,7 @@ public class virtual_parse_stack {
 
   /** Top of stack indicator for where we leave off in the real stack.
    *  This is measured from top of stack, so 0 would indicate that no
-   *  elements have been "moved" from the real to virtual stack. 
+   *  elements have been "moved" from the real to virtual stack.
    */
   protected int real_next;
 
@@ -64,8 +88,8 @@ public class virtual_parse_stack {
   /** The virtual top portion of the stack.  This stack contains Integer
    *  objects with state numbers.  This stack shadows the top portion
    *  of the real stack within the area that has been modified (via operations
-   *  on the virtual stack).  When this portion of the stack becomes empty we 
-   *  transfer elements from the underlying stack onto this stack. 
+   *  on the virtual stack).  When this portion of the stack becomes empty we
+   *  transfer elements from the underlying stack onto this stack.
    */
   protected Stack vstack;
 
@@ -73,8 +97,8 @@ public class virtual_parse_stack {
   /*--- General Methods ---------------------------------------*/
   /*-----------------------------------------------------------*/
 
-  /** Transfer an element from the real to the virtual stack.  This assumes 
-   *  that the virtual stack is currently empty.  
+  /** Transfer an element from the real to the virtual stack.  This assumes
+   *  that the virtual stack is currently empty.
    */
   protected void get_from_real()
     {
@@ -98,19 +122,19 @@ public class virtual_parse_stack {
   /** Indicate whether the stack is empty. */
   public boolean empty()
     {
-      /* if vstack is empty then we were unable to transfer onto it and 
-	 the whole thing is empty. */
+      /* if vstack is empty then we were unable to transfer onto it and
+         the whole thing is empty. */
       return vstack.empty();
     }
 
   /*. . . . . . . . . . . . . . . . . . . . . . . . . . . . . .*/
-      
+
   /** Return value on the top of the stack (without popping it). */
   public int top() throws java.lang.Exception
     {
       if (vstack.empty())
-	throw new Exception(
-		  "Internal parser error: top() called on empty virtual stack");
+        throw new Exception(
+                  "Internal parser error: top() called on empty virtual stack");
 
       return ((Integer)vstack.peek()).intValue();
     }
@@ -121,8 +145,8 @@ public class virtual_parse_stack {
   public void pop() throws java.lang.Exception
     {
       if (vstack.empty())
-	throw new Exception(
-		  "Internal parser error: pop from empty virtual stack");
+        throw new Exception(
+                  "Internal parser error: pop from empty virtual stack");
 
       /* pop it */
       vstack.pop();

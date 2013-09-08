@@ -1,21 +1,39 @@
 /*
- * @(#)CertPathBuilderResult.java	1.7 05/11/17
+ * Copyright (c) 2000, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security.cert;
 
 /**
- * A specification of the result of a certification path builder algorithm. 
- * All results returned by the {@link CertPathBuilder#build 
+ * A specification of the result of a certification path builder algorithm.
+ * All results returned by the {@link CertPathBuilder#build
  * CertPathBuilder.build} method must implement this interface.
  * <p>
- * At a minimum, a <code>CertPathBuilderResult</code> contains the 
- * <code>CertPath</code> built by the <code>CertPathBuilder</code> instance. 
- * Implementations of this interface may add methods to return implementation 
- * or algorithm specific information, such as debugging information or 
+ * At a minimum, a <code>CertPathBuilderResult</code> contains the
+ * <code>CertPath</code> built by the <code>CertPathBuilder</code> instance.
+ * Implementations of this interface may add methods to return implementation
+ * or algorithm specific information, such as debugging information or
  * certification path validation results.
  * <p>
  * <b>Concurrent Access</b>
@@ -28,9 +46,8 @@ package java.security.cert;
  *
  * @see CertPathBuilder
  *
- * @version 	1.7 11/17/05
- * @since	1.4
- * @author	Sean Mullan
+ * @since       1.4
+ * @author      Sean Mullan
  */
 public interface CertPathBuilderResult extends Cloneable {
 

@@ -1,8 +1,26 @@
 /*
- * @(#)DefaultColorSelectionModel.java	1.16 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.colorchooser;
@@ -15,7 +33,6 @@ import java.io.Serializable;
 /**
  * A generic implementation of <code>ColorSelectionModel</code>.
  *
- * @version 1.16 11/17/05
  * @author Steve Wilson
  *
  * @see java.awt.Color
@@ -67,7 +84,7 @@ public class DefaultColorSelectionModel implements ColorSelectionModel, Serializ
 
     /**
      * Sets the selected color to <code>color</code>.
-     * Note that setting the color to <code>null</code> 
+     * Note that setting the color to <code>null</code>
      * is undefined and may have unpredictable results.
      * This method fires a state changed event if it sets the
      * current color to a new non-<code>null</code> color;
@@ -90,7 +107,7 @@ public class DefaultColorSelectionModel implements ColorSelectionModel, Serializ
      * @param l the <code>ChangeListener</code> to be added
      */
     public void addChangeListener(ChangeListener l) {
-	listenerList.add(ChangeListener.class, l);
+        listenerList.add(ChangeListener.class, l);
     }
 
     /**
@@ -98,7 +115,7 @@ public class DefaultColorSelectionModel implements ColorSelectionModel, Serializ
      * @param l the <code>ChangeListener</code> to be removed
      */
     public void removeChangeListener(ChangeListener l) {
-	listenerList.remove(ChangeListener.class, l);
+        listenerList.remove(ChangeListener.class, l);
     }
 
     /**
@@ -111,8 +128,7 @@ public class DefaultColorSelectionModel implements ColorSelectionModel, Serializ
      * @since 1.4
      */
     public ChangeListener[] getChangeListeners() {
-        return (ChangeListener[])listenerList.getListeners(
-                ChangeListener.class);
+        return listenerList.getListeners(ChangeListener.class);
     }
 
     /**

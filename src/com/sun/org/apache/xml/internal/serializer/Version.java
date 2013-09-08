@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +26,7 @@ package com.sun.org.apache.xml.internal.serializer;
  * Administrative class to keep track of the version number of
  * the Serializer release.
  * <P>This class implements the upcoming standard of having
- * org.apache.project-name.Version.getVersion() be a standard way 
+ * org.apache.project-name.Version.getVersion() be a standard way
  * to get version information.</P>
  * @xsl.usage general
  */
@@ -31,7 +35,7 @@ public final class Version
 
   /**
    * Get the basic version string for the current Serializer.
-   * Version String formatted like 
+   * Version String formatted like
    * <CODE>"<B>Serializer</B> <B>Java</B> v.r[.dd| <B>D</B>nn]"</CODE>.
    *
    * Futurework: have this read version info from jar manifest.
@@ -42,8 +46,8 @@ public final class Version
   {
      return getProduct()+" "+getImplementationLanguage()+" "
            +getMajorVersionNum()+"."+getReleaseVersionNum()+"."
-           +( (getDevelopmentVersionNum() > 0) ? 
-               ("D"+getDevelopmentVersionNum()) : (""+getMaintenanceVersionNum()));  
+           +( (getDevelopmentVersionNum() > 0) ?
+               ("D"+getDevelopmentVersionNum()) : (""+getMaintenanceVersionNum()));
   }
 
   /**
@@ -55,7 +59,7 @@ public final class Version
   {
     System.out.println(getVersion());
   }
-  
+
   /**
    * Name of product: Serializer.
    */
@@ -71,8 +75,8 @@ public final class Version
   {
     return "Java";
   }
-  
-  
+
+
   /**
    * Major version number.
    * Version number. This changes only when there is a
@@ -87,8 +91,8 @@ public final class Version
   public static int getMajorVersionNum()
   {
     return 2;
-    
-  }  
+
+  }
 
   /**
    * Release Number.
@@ -102,7 +106,7 @@ public final class Version
   {
     return 7;
   }
-  
+
   /**
    * Maintenance Drop Number.
    * Optional identifier used to designate maintenance
@@ -135,14 +139,14 @@ public final class Version
    *          the final releases.
    */
   public static int getDevelopmentVersionNum()
-  { 
-    try {   
+  {
+    try {
         if ((new String("")).length() == 0)
           return 0;
-        else  
+        else
           return Integer.parseInt("");
     } catch (NumberFormatException nfe) {
            return 0;
-    }    
-  }      
+    }
+  }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)DocumentEvent.java	1.24 05/11/17
+ * Copyright (c) 1997, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.event;
 
@@ -18,7 +36,6 @@ import javax.swing.text.*;
  * removed).
  *
  * @author  Timothy Prinzing
- * @version 1.24 11/17/05
  * @see javax.swing.text.Document
  * @see DocumentListener
  */
@@ -54,7 +71,7 @@ public interface DocumentEvent {
     public EventType getType();
 
     /**
-     * Gets the change information for the given element. 
+     * Gets the change information for the given element.
      * The change information describes what elements were
      * added and removed and the location.  If there were
      * no changes, null is returned.
@@ -79,7 +96,7 @@ public interface DocumentEvent {
      * not report change.
      *
      * @param elem the element
-     * @return the change information, or null if the 
+     * @return the change information, or null if the
      *   element was not modified
      */
     public ElementChange getChange(Element elem);
@@ -90,23 +107,23 @@ public interface DocumentEvent {
     public static final class EventType {
 
         private EventType(String s) {
-	    typeString = s;
-	}
+            typeString = s;
+        }
 
         /**
          * Insert type.
          */
-	public static final EventType INSERT = new EventType("INSERT");
+        public static final EventType INSERT = new EventType("INSERT");
 
         /**
          * Remove type.
          */
-	public static final EventType REMOVE = new EventType("REMOVE");
+        public static final EventType REMOVE = new EventType("REMOVE");
 
         /**
          * Change type.
          */
-	public static final EventType CHANGE = new EventType("CHANGE");
+        public static final EventType CHANGE = new EventType("CHANGE");
 
         /**
          * Converts the type to a string.
@@ -114,10 +131,10 @@ public interface DocumentEvent {
          * @return the string
          */
         public String toString() {
-	    return typeString;
-	}
+            return typeString;
+        }
 
-	private String typeString;
+        private String typeString;
     }
 
     /**
@@ -125,41 +142,41 @@ public interface DocumentEvent {
      */
     public interface ElementChange {
 
-	/**
-	 * Returns the element represented.  This is the element
-	 * that was changed.
+        /**
+         * Returns the element represented.  This is the element
+         * that was changed.
          *
          * @return the element
-	 */
-	public Element getElement();
+         */
+        public Element getElement();
 
-	/**
-	 * Fetches the index within the element represented.
-	 * This is the location that children were added
-	 * and/or removed.
+        /**
+         * Fetches the index within the element represented.
+         * This is the location that children were added
+         * and/or removed.
          *
          * @return the index >= 0
-	 */
-	public int getIndex();
+         */
+        public int getIndex();
 
-	/**
-	 * Gets the child elements that were removed from the
-	 * given parent element.  The element array returned is 
-	 * sorted in the order that the elements used to lie in 
-	 * the document, and must be contiguous.
-	 *
-	 * @return the child elements
-	 */
+        /**
+         * Gets the child elements that were removed from the
+         * given parent element.  The element array returned is
+         * sorted in the order that the elements used to lie in
+         * the document, and must be contiguous.
+         *
+         * @return the child elements
+         */
         public Element[] getChildrenRemoved();
 
-	/**
-	 * Gets the child elements that were added to the given
-	 * parent element.  The element array returned is in the 
-	 * order that the elements lie in the document, and must
-	 * be contiguous.
-	 *
-	 * @return the child elements
-	 */
+        /**
+         * Gets the child elements that were added to the given
+         * parent element.  The element array returned is in the
+         * order that the elements lie in the document, and must
+         * be contiguous.
+         *
+         * @return the child elements
+         */
         public Element[] getChildrenAdded();
 
     }

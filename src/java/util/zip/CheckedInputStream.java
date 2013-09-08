@@ -1,8 +1,26 @@
 /*
- * @(#)CheckedInputStream.java	1.22 06/04/07
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.zip;
@@ -15,9 +33,8 @@ import java.io.IOException;
  * An input stream that also maintains a checksum of the data being read.
  * The checksum can then be used to verify the integrity of the input data.
  *
- * @see		Checksum
- * @version 	1.22, 04/07/06
- * @author 	David Connelly
+ * @see         Checksum
+ * @author      David Connelly
  */
 public
 class CheckedInputStream extends FilterInputStream {
@@ -29,8 +46,8 @@ class CheckedInputStream extends FilterInputStream {
      * @param cksum the Checksum
      */
     public CheckedInputStream(InputStream in, Checksum cksum) {
-	super(in);
-	this.cksum = cksum;
+        super(in);
+        this.cksum = cksum;
     }
 
     /**
@@ -39,11 +56,11 @@ class CheckedInputStream extends FilterInputStream {
      * @exception IOException if an I/O error has occurred
      */
     public int read() throws IOException {
-	int b = in.read();
-	if (b != -1) {
-	    cksum.update(b);
-	}
-	return b;
+        int b = in.read();
+        if (b != -1) {
+            cksum.update(b);
+        }
+        return b;
     }
 
     /**
@@ -54,19 +71,19 @@ class CheckedInputStream extends FilterInputStream {
      * @param off the start offset in the destination array <code>b</code>
      * @param len the maximum number of bytes read
      * @return    the actual number of bytes read, or -1 if the end
-     *		  of the stream is reached.
+     *            of the stream is reached.
      * @exception  NullPointerException If <code>buf</code> is <code>null</code>.
-     * @exception  IndexOutOfBoundsException If <code>off</code> is negative, 
-     * <code>len</code> is negative, or <code>len</code> is greater than 
+     * @exception  IndexOutOfBoundsException If <code>off</code> is negative,
+     * <code>len</code> is negative, or <code>len</code> is greater than
      * <code>buf.length - off</code>
      * @exception IOException if an I/O error has occurred
      */
     public int read(byte[] buf, int off, int len) throws IOException {
-	len = in.read(buf, off, len);
-	if (len != -1) {
-	    cksum.update(buf, off, len);
-	}
-	return len;
+        len = in.read(buf, off, len);
+        if (len != -1) {
+            cksum.update(buf, off, len);
+        }
+        return len;
     }
 
     /**
@@ -76,17 +93,17 @@ class CheckedInputStream extends FilterInputStream {
      * @exception IOException if an I/O error has occurred
      */
     public long skip(long n) throws IOException {
-	byte[] buf = new byte[512];
-	long total = 0;
-	while (total < n) {
-	    long len = n - total;
-	    len = read(buf, 0, len < buf.length ? (int)len : buf.length);
-	    if (len == -1) {
-		return total;
-	    }
-	    total += len;
-	}
-	return total;
+        byte[] buf = new byte[512];
+        long total = 0;
+        while (total < n) {
+            long len = n - total;
+            len = read(buf, 0, len < buf.length ? (int)len : buf.length);
+            if (len == -1) {
+                return total;
+            }
+            total += len;
+        }
+        return total;
     }
 
     /**
@@ -94,6 +111,6 @@ class CheckedInputStream extends FilterInputStream {
      * @return the Checksum value
      */
     public Checksum getChecksum() {
-	return cksum;
+        return cksum;
     }
 }

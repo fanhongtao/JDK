@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,17 +34,16 @@ import java.util.Enumeration;
  * The Augmentations content is volatile, and maybe modified by any method in
  * any component in the pipeline. Therefore, methods passed this structure
  * should not save any reference to the structure.
- * 
+ *
  * @author Elena Litani, IBM
- * @version $Id: Augmentations.java,v 1.2.6.1 2005/09/06 08:49:28 neerajbj Exp $
  */
 
 public interface Augmentations {
-    
-    
+
+
     /**
      * Add additional information identified by a key to the Augmentations structure.
-     * 
+     *
      * @param key    Identifier, can't be <code>null</code>
      * @param item   Additional information
      *
@@ -52,25 +55,25 @@ public interface Augmentations {
 
     /**
      * Get information identified by a key from the Augmentations structure
-     * 
+     *
      * @param key    Identifier, can't be <code>null</code>
      *
      * @return the value to which the key is mapped in the Augmentations structure;
      *         <code>null</code> if the key is not mapped to any value.
      */
     public Object getItem(String key);
-    
-    
+
+
     /**
      * Remove additional info from the Augmentations structure
-     * 
+     *
      * @param key    Identifier, can't be <code>null</code>
      * @return the previous value of the specified key in the Augmentations structure,
      *         or <code>null</code> if it did not have one.
      */
     public Object removeItem (String key);
 
-    
+
     /**
      * Returns an enumeration of the keys in the Augmentations structure
      *

@@ -1,8 +1,26 @@
 /*
- * @(#)CodeSetServiceContext.java	1.16 05/11/17
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.servicecontext;
@@ -18,34 +36,34 @@ import com.sun.corba.se.impl.encoding.CodeSetComponentInfo  ;
 public class CodeSetServiceContext extends ServiceContext {
     public CodeSetServiceContext( CodeSetComponentInfo.CodeSetContext csc )
     {
-	this.csc = csc ;
+        this.csc = csc ;
     }
 
     public CodeSetServiceContext(InputStream is, GIOPVersion gv)
     {
-	super(is, gv) ;
-	csc = new CodeSetComponentInfo.CodeSetContext() ;
-	csc.read( (MarshalInputStream)in ) ;
+        super(is, gv) ;
+        csc = new CodeSetComponentInfo.CodeSetContext() ;
+        csc.read( (MarshalInputStream)in ) ;
     }
 
     // Required SERVICE_CONTEXT_ID and getId definitions
     public static final int SERVICE_CONTEXT_ID = 1 ;
     public int getId() { return SERVICE_CONTEXT_ID ; }
 
-    public void writeData( OutputStream os ) throws SystemException 
+    public void writeData( OutputStream os ) throws SystemException
     {
-	csc.write( (MarshalOutputStream)os ) ;
+        csc.write( (MarshalOutputStream)os ) ;
     }
-    
-    public CodeSetComponentInfo.CodeSetContext getCodeSetContext() 
+
+    public CodeSetComponentInfo.CodeSetContext getCodeSetContext()
     {
-	return csc ;
+        return csc ;
     }
 
     private CodeSetComponentInfo.CodeSetContext csc ;
 
-    public String toString() 
+    public String toString()
     {
-	return "CodeSetServiceContext[ csc=" + csc + " ]" ;
+        return "CodeSetServiceContext[ csc=" + csc + " ]" ;
     }
 }

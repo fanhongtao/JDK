@@ -1,8 +1,26 @@
 /*
- * @(#)AnnotationProcessor.java	1.3 05/11/17
+ * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.apt;
@@ -32,12 +50,17 @@ import java.util.Collection;
  * annotations of those types.  It may freely examine any other program
  * elements in the course of its processing.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  The replacement for the
+ * functionality of this interface is {@link
+ * javax.annotation.processing.Processor}.
+ *
  * @author Joseph D. Darcy
  * @author Scott Seligman
- * @version 1.3 05/11/17
  * @since 1.5
  */
-
+@Deprecated
+@SuppressWarnings("deprecation")
 public interface AnnotationProcessor {
 
     /**

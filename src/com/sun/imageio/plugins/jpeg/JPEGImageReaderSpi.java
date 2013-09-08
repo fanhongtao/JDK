@@ -1,8 +1,26 @@
 /*
- * @(#)JPEGImageReaderSpi.java	1.11 09/04/29
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.jpeg;
@@ -18,7 +36,7 @@ import javax.imageio.IIOException;
 
 public class JPEGImageReaderSpi extends ImageReaderSpi {
 
-    private static String [] writerSpiNames = 
+    private static String [] writerSpiNames =
         {"com.sun.imageio.plugins.jpeg.JPEGImageWriterSpi"};
 
     public JPEGImageReaderSpi() {
@@ -61,8 +79,8 @@ public class JPEGImageReaderSpi extends ImageReaderSpi {
         }
         return false;
     }
-    
-    public ImageReader createReaderInstance(Object extension) 
+
+    public ImageReader createReaderInstance(Object extension)
         throws IIOException {
         return new JPEGImageReader(this);
     }

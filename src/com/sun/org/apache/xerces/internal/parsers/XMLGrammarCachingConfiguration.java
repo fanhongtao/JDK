@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -58,7 +62,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLInputSource;
  *
  * @author Neil Graham, IBM
  *
- * @version $Id: XMLGrammarCachingConfiguration.java,v 1.2.6.1 2005/09/07 07:46:55 sunithareddy Exp $
+ * @version $Id: XMLGrammarCachingConfiguration.java,v 1.6 2010-11-01 04:40:10 joehw Exp $
  */
 public class XMLGrammarCachingConfiguration 
     extends XIncludeAwareParserConfiguration {
@@ -239,46 +243,6 @@ public class XMLGrammarCachingConfiguration
     // Protected methods
     //
     
-    // features and properties
-
-    /**
-     * Check a feature. If feature is known and supported, this method simply
-     * returns. Otherwise, the appropriate exception is thrown.
-     *
-     * @param featureId The unique identifier (URI) of the feature.
-     *
-     * @throws XMLConfigurationException Thrown for configuration error.
-     *                                   In general, components should
-     *                                   only throw this exception if
-     *                                   it is <strong>really</strong>
-     *                                   a critical error.
-     */
-    protected void checkFeature(String featureId)
-        throws XMLConfigurationException {
-
-        super.checkFeature(featureId);
-
-    } // checkFeature(String)
-
-    /**
-     * Check a property. If the property is known and supported, this method
-     * simply returns. Otherwise, the appropriate exception is thrown.
-     *
-     * @param propertyId The unique identifier (URI) of the property
-     *                   being set.
-     *
-     * @throws XMLConfigurationException Thrown for configuration error.
-     *                                   In general, components should
-     *                                   only throw this exception if
-     *                                   it is <strong>really</strong>
-     *                                   a critical error.
-     */
-    protected void checkProperty(String propertyId)
-        throws XMLConfigurationException {
-        super.checkProperty(propertyId);
-
-    } // checkProperty(String)
-
     // package-protected methods
 
     /* This method parses an XML Schema document.  

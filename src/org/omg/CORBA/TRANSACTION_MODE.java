@@ -1,15 +1,33 @@
 /*
- * @(#)TRANSACTION_MODE.java	1.4 06/04/21
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
  * The CORBA <code>TRANSACTION_MODE</code> exception is thrown
- * by the client ORB if it detects a mismatch between the 
+ * by the client ORB if it detects a mismatch between the
  * InvocationPolicy in the IOR and the chosen invocation path
  * (i.e, direct or routed invocation).
  * It contains a minor code, which gives information about
@@ -19,22 +37,21 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.0 10/22/2000
  */
 
 public final class TRANSACTION_MODE extends SystemException {
     /**
-     * Constructs a <code>TRANSACTION_MODE</code> exception with a default 
+     * Constructs a <code>TRANSACTION_MODE</code> exception with a default
      * minor code of 0, a completion state of CompletionStatus.COMPLETED_NO,
      * and a null description.
      */
     public TRANSACTION_MODE() {
-	this("");
+        this("");
     }
 
     /**
      * Constructs a <code>TRANSACTION_MODE</code> exception with the specified
-     * description message, a minor code of 0, and a completion state of 
+     * description message, a minor code of 0, and a completion state of
      * COMPLETED_NO.
      * @param s the String containing a detail message
      */

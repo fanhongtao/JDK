@@ -1,8 +1,26 @@
 /*
- * @(#)ConstructorProperties.java	1.1 06/02/27
+ * Copyright (c) 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.beans;
@@ -21,16 +39,16 @@ import static java.lang.annotation.RetentionPolicy.*;
    public class Point {
        &#64;ConstructorProperties({"x", "y"})
        public Point(int x, int y) {
-       	   this.x = x;
+           this.x = x;
            this.y = y;
        }
 
        public int getX() {
-       	   return x;
+           return x;
        }
 
        public int getY() {
-       	   return y;
+           return y;
        }
 
        private final int x, y;

@@ -1,8 +1,26 @@
 /*
- * @(#)LabelView.java	1.70 06/04/07
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -16,7 +34,6 @@ import javax.swing.event.*;
  * used for rendering.
  *
  * @author Timothy Prinzing
- * @version 1.70 04/07/06
  */
 public class LabelView extends GlyphView implements TabableView {
 
@@ -26,20 +43,20 @@ public class LabelView extends GlyphView implements TabableView {
      * @param elem the element
      */
     public LabelView(Element elem) {
-	super(elem);
+        super(elem);
     }
 
     /**
      * Synchronize the view's cached values with the model.
-     * This causes the font, metrics, color, etc to be 
+     * This causes the font, metrics, color, etc to be
      * re-cached if the cache has been invalidated.
      */
     final void sync() {
-	if (font == null) {
-	    setPropertiesFromAttributes();
-	}
+        if (font == null) {
+            setPropertiesFromAttributes();
+        }
     }
-    
+
     /**
      * Sets whether or not the view is underlined.
      * Note that this setter is protected and is really
@@ -51,7 +68,7 @@ public class LabelView extends GlyphView implements TabableView {
      * @see #isUnderline
      */
     protected void setUnderline(boolean u) {
-	underline = u;
+        underline = u;
     }
 
     /**
@@ -66,12 +83,12 @@ public class LabelView extends GlyphView implements TabableView {
      * @see #isStrikeThrough
      */
     protected void setStrikeThrough(boolean s) {
-	strike = s;
+        strike = s;
     }
 
 
     /**
-     * Sets whether or not the view represents a 
+     * Sets whether or not the view represents a
      * superscript.
      * Note that this setter is protected and is really
      * only meant if you need to update some additional
@@ -82,11 +99,11 @@ public class LabelView extends GlyphView implements TabableView {
      * @see #isSuperscript
      */
     protected void setSuperscript(boolean s) {
-	superscript = s;
+        superscript = s;
     }
 
     /**
-     * Sets whether or not the view represents a 
+     * Sets whether or not the view represents a
      * subscript.
      * Note that this setter is protected and is really
      * only meant if you need to update some additional
@@ -97,7 +114,7 @@ public class LabelView extends GlyphView implements TabableView {
      * @see #isSubscript
      */
     protected void setSubscript(boolean s) {
-	subscript = s;
+        subscript = s;
     }
 
     /**
@@ -115,31 +132,31 @@ public class LabelView extends GlyphView implements TabableView {
     protected void setBackground(Color bg) {
         this.bg = bg;
     }
-    
+
     /**
      * Sets the cached properties from the attributes.
      */
     protected void setPropertiesFromAttributes() {
-	AttributeSet attr = getAttributes();
-	if (attr != null) {
+        AttributeSet attr = getAttributes();
+        if (attr != null) {
             Document d = getDocument();
-	    if (d instanceof StyledDocument) {
-		StyledDocument doc = (StyledDocument) d;
-		font = doc.getFont(attr);
-		fg = doc.getForeground(attr);
-		if (attr.isDefined(StyleConstants.Background)) {
-		    bg = doc.getBackground(attr);
-		} else {
-		    bg = null;
-		}
-		setUnderline(StyleConstants.isUnderline(attr));
-		setStrikeThrough(StyleConstants.isStrikeThrough(attr));
-		setSuperscript(StyleConstants.isSuperscript(attr));
-		setSubscript(StyleConstants.isSubscript(attr));
-	    } else {
-		throw new StateInvariantError("LabelView needs StyledDocument");
-	    }
-	}
+            if (d instanceof StyledDocument) {
+                StyledDocument doc = (StyledDocument) d;
+                font = doc.getFont(attr);
+                fg = doc.getForeground(attr);
+                if (attr.isDefined(StyleConstants.Background)) {
+                    bg = doc.getBackground(attr);
+                } else {
+                    bg = null;
+                }
+                setUnderline(StyleConstants.isUnderline(attr));
+                setStrikeThrough(StyleConstants.isStrikeThrough(attr));
+                setSuperscript(StyleConstants.isSuperscript(attr));
+                setSubscript(StyleConstants.isSubscript(attr));
+            } else {
+                throw new StateInvariantError("LabelView needs StyledDocument");
+            }
+        }
      }
 
     /**
@@ -149,7 +166,7 @@ public class LabelView extends GlyphView implements TabableView {
      */
     @Deprecated
     protected FontMetrics getFontMetrics() {
-	sync();
+        sync();
         Container c = getContainer();
         return (c != null) ? c.getFontMetrics(font) :
             Toolkit.getDefaultToolkit().getFontMetrics(font);
@@ -164,8 +181,8 @@ public class LabelView extends GlyphView implements TabableView {
      * @since 1.3
      */
     public Color getBackground() {
-	sync();
-	return bg;
+        sync();
+        return bg;
     }
 
     /**
@@ -177,8 +194,8 @@ public class LabelView extends GlyphView implements TabableView {
      * @since 1.3
      */
     public Color getForeground() {
-	sync();
-	return fg;
+        sync();
+        return fg;
     }
 
     /**
@@ -188,8 +205,8 @@ public class LabelView extends GlyphView implements TabableView {
      * @return the cached font
      */
      public Font getFont() {
-	sync();
-	return font;
+        sync();
+        return font;
     }
 
     /**
@@ -208,8 +225,8 @@ public class LabelView extends GlyphView implements TabableView {
      * @since 1.3
      */
     public boolean isUnderline() {
-	sync();
-	return underline;
+        sync();
+        return underline;
     }
 
     /**
@@ -229,8 +246,8 @@ public class LabelView extends GlyphView implements TabableView {
      * @since 1.3
      */
     public boolean isStrikeThrough() {
-	sync();
-	return strike;
+        sync();
+        return strike;
     }
 
     /**
@@ -248,8 +265,8 @@ public class LabelView extends GlyphView implements TabableView {
      * @since 1.3
      */
     public boolean isSubscript() {
-	sync();
-	return subscript;
+        sync();
+        return subscript;
     }
 
     /**
@@ -266,8 +283,8 @@ public class LabelView extends GlyphView implements TabableView {
      * @since 1.3
      */
     public boolean isSuperscript() {
-	sync();
-	return superscript;
+        sync();
+        return superscript;
     }
 
     // --- View methods ---------------------------------------------
@@ -282,7 +299,7 @@ public class LabelView extends GlyphView implements TabableView {
      * @see View#changedUpdate
      */
     public void changedUpdate(DocumentEvent e, Shape a, ViewFactory f) {
-	font = null;
+        font = null;
         super.changedUpdate(e, a, f);
     }
 
@@ -297,4 +314,3 @@ public class LabelView extends GlyphView implements TabableView {
     private boolean subscript;
 
 }
-

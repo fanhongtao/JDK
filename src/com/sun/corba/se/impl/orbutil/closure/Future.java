@@ -1,8 +1,26 @@
 /*
- * @(#)Future.java	1.10 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.orbutil.closure ;
@@ -16,18 +34,18 @@ public class Future implements Closure {
 
     public Future( Closure value )
     {
-	this.evaluated = false ;
-	this.closure = (Closure)value ;
-	this.value = null ;
+        this.evaluated = false ;
+        this.closure = (Closure)value ;
+        this.value = null ;
     }
-    
-    public synchronized Object evaluate() 
-    {
-	if (!evaluated) {
-	    evaluated = true ;
-	    value = closure.evaluate() ;
-	}
 
-	return value ;
+    public synchronized Object evaluate()
+    {
+        if (!evaluated) {
+            evaluated = true ;
+            value = closure.evaluate() ;
+        }
+
+        return value ;
     }
 }

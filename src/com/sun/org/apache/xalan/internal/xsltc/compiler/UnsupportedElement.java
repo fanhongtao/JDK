@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,8 +50,8 @@ final class UnsupportedElement extends SyntaxTreeNode {
      * Basic consutrcor - stores element uri/prefix/localname
      */
     public UnsupportedElement(String uri, String prefix, String local, boolean isExtension) {
-	super(uri, prefix, local);
-	_isExtension = isExtension;
+        super(uri, prefix, local);
+        _isExtension = isExtension;
     }
 
     /**
@@ -60,17 +64,17 @@ final class UnsupportedElement extends SyntaxTreeNode {
      * the element belongs in.
      */
     public void setErrorMessage(ErrorMsg message) {
-	_message = message;
+        _message = message;
     }
 
     /**
      * Displays the contents of this element
      */
     public void display(int indent) {
-	indent(indent);
-	Util.println("Unsupported element = " + _qname.getNamespace() +
-		     ":" + _qname.getLocalPart());
-	displayContents(indent + IndentIncrement);
+        indent(indent);
+        Util.println("Unsupported element = " + _qname.getNamespace() +
+                     ":" + _qname.getLocalPart());
+        displayContents(indent + IndentIncrement);
     }
 
 
@@ -79,70 +83,70 @@ final class UnsupportedElement extends SyntaxTreeNode {
      */
     private void processFallbacks(Parser parser) {
 
-	Vector children = getContents();
-	if (children != null) {
-	    final int count = children.size();
-	    for (int i = 0; i < count; i++) {
-		SyntaxTreeNode child = (SyntaxTreeNode)children.elementAt(i);
-		if (child instanceof Fallback) {
-		    Fallback fallback = (Fallback)child;
-		    fallback.activate();
-		    fallback.parseContents(parser);
-		    if (_fallbacks == null) {
-		    	_fallbacks = new Vector();
-		    }
-		    _fallbacks.addElement(child);
-		}
-	    }
-	}
+        Vector children = getContents();
+        if (children != null) {
+            final int count = children.size();
+            for (int i = 0; i < count; i++) {
+                SyntaxTreeNode child = (SyntaxTreeNode)children.elementAt(i);
+                if (child instanceof Fallback) {
+                    Fallback fallback = (Fallback)child;
+                    fallback.activate();
+                    fallback.parseContents(parser);
+                    if (_fallbacks == null) {
+                        _fallbacks = new Vector();
+                    }
+                    _fallbacks.addElement(child);
+                }
+            }
+        }
     }
 
     /**
      * Find any fallback in the descendant nodes; then activate & parse it
      */
     public void parseContents(Parser parser) {
-    	processFallbacks(parser);
+        processFallbacks(parser);
     }
 
     /**
      * Run type check on the fallback element (if any).
      */
-    public Type typeCheck(SymbolTable stable) throws TypeCheckError {	
-	if (_fallbacks != null) {
-	    int count = _fallbacks.size();
-	    for (int i = 0; i < count; i++) {
-	        Fallback fallback = (Fallback)_fallbacks.elementAt(i);
-	        fallback.typeCheck(stable);
-	    }
-	}
-	return Type.Void;
+    public Type typeCheck(SymbolTable stable) throws TypeCheckError {
+        if (_fallbacks != null) {
+            int count = _fallbacks.size();
+            for (int i = 0; i < count; i++) {
+                Fallback fallback = (Fallback)_fallbacks.elementAt(i);
+                fallback.typeCheck(stable);
+            }
+        }
+        return Type.Void;
     }
 
     /**
      * Translate the fallback element (if any).
      */
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	if (_fallbacks != null) {
-	    int count = _fallbacks.size();
-	    for (int i = 0; i < count; i++) {
-	        Fallback fallback = (Fallback)_fallbacks.elementAt(i);
-	        fallback.translate(classGen, methodGen);
-	    }
-	}
-	// We only go into the else block in forward-compatibility mode, when
-	// the unsupported element has no fallback.
-	else {		
-	    // If the unsupported element does not have any fallback child, then
-	    // at runtime, a runtime error should be raised when the unsupported
-	    // element is instantiated. Otherwise, no error is thrown.
-	    ConstantPoolGen cpg = classGen.getConstantPool();
-	    InstructionList il = methodGen.getInstructionList();
-	    
-	    final int unsupportedElem = cpg.addMethodref(BASIS_LIBRARY_CLASS, "unsupported_ElementF",
-                                                         "(" + STRING_SIG + "Z)V");	 
-	    il.append(new PUSH(cpg, getQName().toString()));
-	    il.append(new PUSH(cpg, _isExtension));
-	    il.append(new INVOKESTATIC(unsupportedElem));		
-	}
+        if (_fallbacks != null) {
+            int count = _fallbacks.size();
+            for (int i = 0; i < count; i++) {
+                Fallback fallback = (Fallback)_fallbacks.elementAt(i);
+                fallback.translate(classGen, methodGen);
+            }
+        }
+        // We only go into the else block in forward-compatibility mode, when
+        // the unsupported element has no fallback.
+        else {
+            // If the unsupported element does not have any fallback child, then
+            // at runtime, a runtime error should be raised when the unsupported
+            // element is instantiated. Otherwise, no error is thrown.
+            ConstantPoolGen cpg = classGen.getConstantPool();
+            InstructionList il = methodGen.getInstructionList();
+
+            final int unsupportedElem = cpg.addMethodref(BASIS_LIBRARY_CLASS, "unsupported_ElementF",
+                                                         "(" + STRING_SIG + "Z)V");
+            il.append(new PUSH(cpg, getQName().toString()));
+            il.append(new PUSH(cpg, _isExtension));
+            il.append(new INVOKESTATIC(unsupportedElem));
+        }
     }
 }

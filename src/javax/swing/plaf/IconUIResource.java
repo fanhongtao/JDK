@@ -1,8 +1,26 @@
 /*
- * @(#)IconUIResource.java	1.16 06/04/07
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf;
@@ -31,7 +49,6 @@ import javax.swing.plaf.UIResource;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see javax.swing.plaf.UIResource
- * @version 1.16 04/07/06
  * @author Amy Fowler
  *
  */
@@ -51,7 +68,7 @@ public class IconUIResource implements Icon, UIResource, Serializable
         this.delegate = delegate;
     }
 
-    public void paintIcon(Component c, Graphics g, int x, int y) {        
+    public void paintIcon(Component c, Graphics g, int x, int y) {
         delegate.paintIcon(c, g, x, y);
     }
 
@@ -62,5 +79,5 @@ public class IconUIResource implements Icon, UIResource, Serializable
     public int getIconHeight() {
         return delegate.getIconHeight();
     }
- 
+
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)DimensionUIResource.java	1.13 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf;
@@ -25,11 +43,10 @@ import javax.swing.plaf.UIResource;
  * of all JavaBeans<sup><font size="-2">TM</font></sup>
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
- * 
+ *
  * @see javax.swing.plaf.UIResource
- * @version 1.13 11/17/05
  * @author Amy Fowler
- * 
+ *
  */
 public class DimensionUIResource extends Dimension implements UIResource
 {

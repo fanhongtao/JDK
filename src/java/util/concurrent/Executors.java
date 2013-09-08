@@ -1,8 +1,36 @@
 /*
- * @(#)Executors.java	1.14 06/04/05
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
+ * Written by Doug Lea with assistance from members of JCP JSR-166
+ * Expert Group and released to the public domain, as explained at
+ * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
 package java.util.concurrent;
@@ -12,7 +40,9 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
+import java.security.PrivilegedActionException;
 import java.security.AccessControlException;
+import sun.security.util.SecurityConstants;
 
 /**
  * Factory and utility methods for {@link Executor}, {@link
@@ -53,7 +83,7 @@ public class Executors {
      *
      * @param nThreads the number of threads in the pool
      * @return the newly created thread pool
-     * @throws IllegalArgumentException if <tt>nThreads &lt;= 0</tt>
+     * @throws IllegalArgumentException if {@code nThreads <= 0}
      */
     public static ExecutorService newFixedThreadPool(int nThreads) {
         return new ThreadPoolExecutor(nThreads, nThreads,
@@ -78,7 +108,7 @@ public class Executors {
      * @param threadFactory the factory to use when creating new threads
      * @return the newly created thread pool
      * @throws NullPointerException if threadFactory is null
-     * @throws IllegalArgumentException if <tt>nThreads &lt;= 0</tt>
+     * @throws IllegalArgumentException if {@code nThreads <= 0}
      */
     public static ExecutorService newFixedThreadPool(int nThreads, ThreadFactory threadFactory) {
         return new ThreadPoolExecutor(nThreads, nThreads,
@@ -212,7 +242,7 @@ public class Executors {
      * @param corePoolSize the number of threads to keep in the pool,
      * even if they are idle.
      * @return a newly created scheduled thread pool
-     * @throws IllegalArgumentException if <tt>corePoolSize &lt; 0</tt>
+     * @throws IllegalArgumentException if {@code corePoolSize < 0}
      */
     public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) {
         return new ScheduledThreadPoolExecutor(corePoolSize);
@@ -226,7 +256,7 @@ public class Executors {
      * @param threadFactory the factory to use when the executor
      * creates a new thread.
      * @return a newly created scheduled thread pool
-     * @throws IllegalArgumentException if <tt>corePoolSize &lt; 0</tt>
+     * @throws IllegalArgumentException if {@code corePoolSize < 0}
      * @throws NullPointerException if threadFactory is null
      */
     public static ScheduledExecutorService newScheduledThreadPool(
@@ -363,7 +393,7 @@ public class Executors {
         if (action == null)
             throw new NullPointerException();
         return new Callable<Object>() {
-	    public Object call() { return action.run(); }};
+            public Object call() { return action.run(); }};
     }
 
     /**
@@ -377,8 +407,8 @@ public class Executors {
     public static Callable<Object> callable(final PrivilegedExceptionAction<?> action) {
         if (action == null)
             throw new NullPointerException();
-	return new Callable<Object>() {
-	    public Object call() throws Exception { return action.run(); }};
+        return new Callable<Object>() {
+            public Object call() throws Exception { return action.run(); }};
     }
 
     /**
@@ -433,7 +463,7 @@ public class Executors {
     static final class RunnableAdapter<T> implements Callable<T> {
         final Runnable task;
         final T result;
-        RunnableAdapter(Runnable  task, T result) {
+        RunnableAdapter(Runnable task, T result) {
             this.task = task;
             this.result = result;
         }
@@ -447,30 +477,25 @@ public class Executors {
      * A callable that runs under established access control settings
      */
     static final class PrivilegedCallable<T> implements Callable<T> {
-        private final AccessControlContext acc;
         private final Callable<T> task;
-        private T result;
-        private Exception exception;
+        private final AccessControlContext acc;
+
         PrivilegedCallable(Callable<T> task) {
             this.task = task;
             this.acc = AccessController.getContext();
         }
 
         public T call() throws Exception {
-            AccessController.doPrivileged(new PrivilegedAction<T>() {
-                    public T run() {
-                        try {
-                            result = task.call();
-                        } catch (Exception ex) {
-                            exception = ex;
+            try {
+                return AccessController.doPrivileged(
+                    new PrivilegedExceptionAction<T>() {
+                        public T run() throws Exception {
+                            return task.call();
                         }
-                        return null;
-                    }
-                }, acc);
-            if (exception != null)
-                throw exception;
-            else
-                return result;
+                    }, acc);
+            } catch (PrivilegedActionException e) {
+                throw e.getException();
+            }
         }
     }
 
@@ -479,44 +504,50 @@ public class Executors {
      * current ClassLoader
      */
     static final class PrivilegedCallableUsingCurrentClassLoader<T> implements Callable<T> {
-        private final ClassLoader ccl;
-        private final AccessControlContext acc;
         private final Callable<T> task;
-        private T result;
-        private Exception exception;
+        private final AccessControlContext acc;
+        private final ClassLoader ccl;
+
         PrivilegedCallableUsingCurrentClassLoader(Callable<T> task) {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                // Calls to getContextClassLoader from this class
+                // never trigger a security check, but we check
+                // whether our callers have this permission anyways.
+                sm.checkPermission(SecurityConstants.GET_CLASSLOADER_PERMISSION);
+
+                // Whether setContextClassLoader turns out to be necessary
+                // or not, we fail fast if permission is not available.
+                sm.checkPermission(new RuntimePermission("setContextClassLoader"));
+            }
             this.task = task;
-            this.ccl = Thread.currentThread().getContextClassLoader();
             this.acc = AccessController.getContext();
-            acc.checkPermission(new RuntimePermission("getContextClassLoader"));
-            acc.checkPermission(new RuntimePermission("setContextClassLoader"));
+            this.ccl = Thread.currentThread().getContextClassLoader();
         }
 
         public T call() throws Exception {
-            AccessController.doPrivileged(new PrivilegedAction<T>() {
-                    public T run() {
-                        ClassLoader savedcl = null;
-                        Thread t = Thread.currentThread();
-                        try {
-                            ClassLoader cl = t.getContextClassLoader();
-                            if (ccl != cl) {
-                                t.setContextClassLoader(ccl);
-                                savedcl = cl;
+            try {
+                return AccessController.doPrivileged(
+                    new PrivilegedExceptionAction<T>() {
+                        public T run() throws Exception {
+                            ClassLoader savedcl = null;
+                            Thread t = Thread.currentThread();
+                            try {
+                                ClassLoader cl = t.getContextClassLoader();
+                                if (ccl != cl) {
+                                    t.setContextClassLoader(ccl);
+                                    savedcl = cl;
+                                }
+                                return task.call();
+                            } finally {
+                                if (savedcl != null)
+                                    t.setContextClassLoader(savedcl);
                             }
-                            result = task.call();
-                        } catch (Exception ex) {
-                            exception = ex;
-                        } finally {
-                            if (savedcl != null)
-                                t.setContextClassLoader(savedcl);
                         }
-                        return null;
-                    }
-                }, acc);
-            if (exception != null)
-                throw exception;
-            else
-                return result;
+                    }, acc);
+            } catch (PrivilegedActionException e) {
+                throw e.getException();
+            }
         }
     }
 
@@ -524,15 +555,15 @@ public class Executors {
      * The default thread factory
      */
     static class DefaultThreadFactory implements ThreadFactory {
-        static final AtomicInteger poolNumber = new AtomicInteger(1);
-        final ThreadGroup group;
-        final AtomicInteger threadNumber = new AtomicInteger(1);
-        final String namePrefix;
+        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix;
 
         DefaultThreadFactory() {
             SecurityManager s = System.getSecurityManager();
-            group = (s != null)? s.getThreadGroup() :
-                                 Thread.currentThread().getThreadGroup();
+            group = (s != null) ? s.getThreadGroup() :
+                                  Thread.currentThread().getThreadGroup();
             namePrefix = "pool-" +
                           poolNumber.getAndIncrement() +
                          "-thread-";
@@ -551,24 +582,33 @@ public class Executors {
     }
 
     /**
-     *  Thread factory capturing access control and class loader
+     * Thread factory capturing access control context and class loader
      */
     static class PrivilegedThreadFactory extends DefaultThreadFactory {
-        private final ClassLoader ccl;
         private final AccessControlContext acc;
+        private final ClassLoader ccl;
 
         PrivilegedThreadFactory() {
             super();
-            this.ccl = Thread.currentThread().getContextClassLoader();
+            SecurityManager sm = System.getSecurityManager();
+            if (sm != null) {
+                // Calls to getContextClassLoader from this class
+                // never trigger a security check, but we check
+                // whether our callers have this permission anyways.
+                sm.checkPermission(SecurityConstants.GET_CLASSLOADER_PERMISSION);
+
+                // Fail fast
+                sm.checkPermission(new RuntimePermission("setContextClassLoader"));
+            }
             this.acc = AccessController.getContext();
-            acc.checkPermission(new RuntimePermission("setContextClassLoader"));
+            this.ccl = Thread.currentThread().getContextClassLoader();
         }
 
         public Thread newThread(final Runnable r) {
             return super.newThread(new Runnable() {
                 public void run() {
-                    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                        public Object run() {
+                    AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                        public Void run() {
                             Thread.currentThread().setContextClassLoader(ccl);
                             r.run();
                             return null;
@@ -577,7 +617,6 @@ public class Executors {
                 }
             });
         }
-
     }
 
     /**
@@ -626,13 +665,13 @@ public class Executors {
     }
 
     static class FinalizableDelegatedExecutorService
-	extends DelegatedExecutorService {
-	FinalizableDelegatedExecutorService(ExecutorService executor) {
-	    super(executor);
-	}
-	protected void finalize()  {
-	    super.shutdown();
-	}
+        extends DelegatedExecutorService {
+        FinalizableDelegatedExecutorService(ExecutorService executor) {
+            super(executor);
+        }
+        protected void finalize() {
+            super.shutdown();
+        }
     }
 
     /**

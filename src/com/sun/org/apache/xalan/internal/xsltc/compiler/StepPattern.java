@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,113 +79,113 @@ class StepPattern extends RelativePathPattern {
     private double  _priority = Double.MAX_VALUE;
 
     public StepPattern(int axis, int nodeType, Vector predicates) {
-	_axis = axis;
-	_nodeType = nodeType;
-	_predicates = predicates;
+        _axis = axis;
+        _nodeType = nodeType;
+        _predicates = predicates;
     }
 
     public void setParser(Parser parser) {
-	super.setParser(parser);
-	if (_predicates != null) {
-	    final int n = _predicates.size();
-	    for (int i = 0; i < n; i++) {
-		final Predicate exp = (Predicate)_predicates.elementAt(i);
-		exp.setParser(parser);
-		exp.setParent(this);
-	    }
-	}
+        super.setParser(parser);
+        if (_predicates != null) {
+            final int n = _predicates.size();
+            for (int i = 0; i < n; i++) {
+                final Predicate exp = (Predicate)_predicates.elementAt(i);
+                exp.setParser(parser);
+                exp.setParent(this);
+            }
+        }
     }
 
     public int getNodeType() {
-	return _nodeType;
+        return _nodeType;
     }
 
     public void setPriority(double priority) {
-	_priority = priority;
+        _priority = priority;
     }
-    
+
     public StepPattern getKernelPattern() {
-	return this;
+        return this;
     }
-	
+
     public boolean isWildcard() {
-	return _isEpsilon && hasPredicates() == false;
+        return _isEpsilon && hasPredicates() == false;
     }
 
     public StepPattern setPredicates(Vector predicates) {
-	_predicates = predicates;
-	return(this);
+        _predicates = predicates;
+        return(this);
     }
-    
+
     protected boolean hasPredicates() {
-	return _predicates != null && _predicates.size() > 0;
+        return _predicates != null && _predicates.size() > 0;
     }
 
     public double getDefaultPriority() {
-	if (_priority != Double.MAX_VALUE) {
-	    return _priority;
-	}
+        if (_priority != Double.MAX_VALUE) {
+            return _priority;
+        }
 
-	if (hasPredicates()) {
-	    return 0.5;
-	}
-	else {
-	    switch(_nodeType) {
-	    case -1:
-		return -0.5;	// node()
-	    case 0:
-		return 0.0;
-	    default:
-		return (_nodeType >= NodeTest.GTYPE) ? 0.0 : -0.5;
-	    }
-	}
+        if (hasPredicates()) {
+            return 0.5;
+        }
+        else {
+            switch(_nodeType) {
+            case -1:
+                return -0.5;    // node()
+            case 0:
+                return 0.0;
+            default:
+                return (_nodeType >= NodeTest.GTYPE) ? 0.0 : -0.5;
+            }
+        }
     }
-    
+
     public int getAxis() {
-	return _axis;
+        return _axis;
     }
 
     public void reduceKernelPattern() {
-	_isEpsilon = true;
+        _isEpsilon = true;
     }
-	
+
     public String toString() {
-	final StringBuffer buffer = new StringBuffer("stepPattern(\"");
+        final StringBuffer buffer = new StringBuffer("stepPattern(\"");
     buffer.append(Axis.getNames(_axis))
-	    .append("\", ")
-	    .append(_isEpsilon ? 
-			("epsilon{" + Integer.toString(_nodeType) + "}") :
-			 Integer.toString(_nodeType));
-	if (_predicates != null)
-	    buffer.append(", ").append(_predicates.toString());
-	return buffer.append(')').toString();
+            .append("\", ")
+            .append(_isEpsilon ?
+                        ("epsilon{" + Integer.toString(_nodeType) + "}") :
+                         Integer.toString(_nodeType));
+        if (_predicates != null)
+            buffer.append(", ").append(_predicates.toString());
+        return buffer.append(')').toString();
     }
-    
+
     private int analyzeCases() {
-	boolean noContext = true;
-	final int n = _predicates.size();
+        boolean noContext = true;
+        final int n = _predicates.size();
 
-	for (int i = 0; i < n && noContext; i++) {
-	    Predicate pred = (Predicate) _predicates.elementAt(i);
-            if (pred.isNthPositionFilter() || 
-                pred.hasPositionCall() || 
-                pred.hasLastCall()) 
+        for (int i = 0; i < n && noContext; i++) {
+            Predicate pred = (Predicate) _predicates.elementAt(i);
+            if (pred.isNthPositionFilter() ||
+                pred.hasPositionCall() ||
+                pred.hasLastCall())
             {
-		noContext = false;
-	    }
-	}
+                noContext = false;
+            }
+        }
 
-	if (noContext) {
-	    return NO_CONTEXT;
-	}
-	else if (n == 1) {
-	    return SIMPLE_CONTEXT;
-	}
-	return GENERAL_CONTEXT;
+        if (noContext) {
+            return NO_CONTEXT;
+        }
+        else if (n == 1) {
+            return SIMPLE_CONTEXT;
+        }
+        return GENERAL_CONTEXT;
     }
 
     private String getNextFieldName() {
-	return  "__step_pattern_iter_" + getXSLTC().nextStepPatternSerial();
+        return  "__step_pattern_iter_" + getXSLTC().nextStepPatternSerial();
     }
 
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
@@ -215,7 +219,7 @@ class StepPattern extends RelativePathPattern {
 
                 step = new Step(_axis, _nodeType, _predicates);
             }
-            
+
             if (step != null) {
                 step.setParser(getParser());
                 step.typeCheck(stable);
@@ -225,121 +229,121 @@ class StepPattern extends RelativePathPattern {
         return _axis == Axis.CHILD ? Type.Element : Type.Attribute;
     }
 
-    private void translateKernel(ClassGenerator classGen, 
-				 MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
-	
-	if (_nodeType == DTM.ELEMENT_NODE) {
-	    final int check = cpg.addInterfaceMethodref(DOM_INTF,
-							"isElement", "(I)Z");
-	    il.append(methodGen.loadDOM());
-	    il.append(SWAP);
-	    il.append(new INVOKEINTERFACE(check, 2));
-	
-	    // Need to allow for long jumps here
-	    final BranchHandle icmp = il.append(new IFNE(null));
-	    _falseList.add(il.append(new GOTO_W(null)));
-	    icmp.setTarget(il.append(NOP));
-	}
-	else if (_nodeType == DTM.ATTRIBUTE_NODE) {
-	    final int check = cpg.addInterfaceMethodref(DOM_INTF,
-							"isAttribute", "(I)Z");
-	    il.append(methodGen.loadDOM());
-	    il.append(SWAP);
-	    il.append(new INVOKEINTERFACE(check, 2));
-	
-	    // Need to allow for long jumps here
-	    final BranchHandle icmp = il.append(new IFNE(null));
-	    _falseList.add(il.append(new GOTO_W(null)));
-	    icmp.setTarget(il.append(NOP));
-	}
-	else {
-	    // context node is on the stack
-	    final int getEType = cpg.addInterfaceMethodref(DOM_INTF,
-							  "getExpandedTypeID",
+    private void translateKernel(ClassGenerator classGen,
+                                 MethodGenerator methodGen) {
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
+
+        if (_nodeType == DTM.ELEMENT_NODE) {
+            final int check = cpg.addInterfaceMethodref(DOM_INTF,
+                                                        "isElement", "(I)Z");
+            il.append(methodGen.loadDOM());
+            il.append(SWAP);
+            il.append(new INVOKEINTERFACE(check, 2));
+
+            // Need to allow for long jumps here
+            final BranchHandle icmp = il.append(new IFNE(null));
+            _falseList.add(il.append(new GOTO_W(null)));
+            icmp.setTarget(il.append(NOP));
+        }
+        else if (_nodeType == DTM.ATTRIBUTE_NODE) {
+            final int check = cpg.addInterfaceMethodref(DOM_INTF,
+                                                        "isAttribute", "(I)Z");
+            il.append(methodGen.loadDOM());
+            il.append(SWAP);
+            il.append(new INVOKEINTERFACE(check, 2));
+
+            // Need to allow for long jumps here
+            final BranchHandle icmp = il.append(new IFNE(null));
+            _falseList.add(il.append(new GOTO_W(null)));
+            icmp.setTarget(il.append(NOP));
+        }
+        else {
+            // context node is on the stack
+            final int getEType = cpg.addInterfaceMethodref(DOM_INTF,
+                                                          "getExpandedTypeID",
                                                           "(I)I");
-	    il.append(methodGen.loadDOM());
-	    il.append(SWAP);
-	    il.append(new INVOKEINTERFACE(getEType, 2));
-	    il.append(new PUSH(cpg, _nodeType));
-	
-	    // Need to allow for long jumps here
-	    final BranchHandle icmp = il.append(new IF_ICMPEQ(null));
-	    _falseList.add(il.append(new GOTO_W(null)));
-	    icmp.setTarget(il.append(NOP));
-	}
+            il.append(methodGen.loadDOM());
+            il.append(SWAP);
+            il.append(new INVOKEINTERFACE(getEType, 2));
+            il.append(new PUSH(cpg, _nodeType));
+
+            // Need to allow for long jumps here
+            final BranchHandle icmp = il.append(new IF_ICMPEQ(null));
+            _falseList.add(il.append(new GOTO_W(null)));
+            icmp.setTarget(il.append(NOP));
+        }
     }
 
-    private void translateNoContext(ClassGenerator classGen, 
-				    MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+    private void translateNoContext(ClassGenerator classGen,
+                                    MethodGenerator methodGen) {
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// Push current node on the stack
-	il.append(methodGen.loadCurrentNode());
-	il.append(SWAP);
+        // Push current node on the stack
+        il.append(methodGen.loadCurrentNode());
+        il.append(SWAP);
 
-	// Overwrite current node with matching node
-	il.append(methodGen.storeCurrentNode());
+        // Overwrite current node with matching node
+        il.append(methodGen.storeCurrentNode());
 
-	// If pattern not reduced then check kernel
-	if (!_isEpsilon) {
-	    il.append(methodGen.loadCurrentNode());
-	    translateKernel(classGen, methodGen);
-	}
+        // If pattern not reduced then check kernel
+        if (!_isEpsilon) {
+            il.append(methodGen.loadCurrentNode());
+            translateKernel(classGen, methodGen);
+        }
 
-	// Compile the expressions within the predicates
-	final int n = _predicates.size();
-	for (int i = 0; i < n; i++) {
-	    Predicate pred = (Predicate)_predicates.elementAt(i);
-	    Expression exp = pred.getExpr();
-	    exp.translateDesynthesized(classGen, methodGen);
-	    _trueList.append(exp._trueList);
-	    _falseList.append(exp._falseList);
-	}
+        // Compile the expressions within the predicates
+        final int n = _predicates.size();
+        for (int i = 0; i < n; i++) {
+            Predicate pred = (Predicate)_predicates.elementAt(i);
+            Expression exp = pred.getExpr();
+            exp.translateDesynthesized(classGen, methodGen);
+            _trueList.append(exp._trueList);
+            _falseList.append(exp._falseList);
+        }
 
-	// Backpatch true list and restore current iterator/node
-	InstructionHandle restore;
-	restore = il.append(methodGen.storeCurrentNode());
-	backPatchTrueList(restore);
-	BranchHandle skipFalse = il.append(new GOTO(null));
+        // Backpatch true list and restore current iterator/node
+        InstructionHandle restore;
+        restore = il.append(methodGen.storeCurrentNode());
+        backPatchTrueList(restore);
+        BranchHandle skipFalse = il.append(new GOTO(null));
 
-	// Backpatch false list and restore current iterator/node
-	restore = il.append(methodGen.storeCurrentNode());
-	backPatchFalseList(restore);
-	_falseList.add(il.append(new GOTO(null)));
+        // Backpatch false list and restore current iterator/node
+        restore = il.append(methodGen.storeCurrentNode());
+        backPatchFalseList(restore);
+        _falseList.add(il.append(new GOTO(null)));
 
-	// True list falls through
-	skipFalse.setTarget(il.append(NOP));
+        // True list falls through
+        skipFalse.setTarget(il.append(NOP));
     }
 
-    private void translateSimpleContext(ClassGenerator classGen, 
-					MethodGenerator methodGen) {
-	int index;
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+    private void translateSimpleContext(ClassGenerator classGen,
+                                        MethodGenerator methodGen) {
+        int index;
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	// Store matching node into a local variable
-	LocalVariableGen match;
-	match = methodGen.addLocalVariable("step_pattern_tmp1", 
-					   Util.getJCRefType(NODE_SIG),
-					   il.getEnd(), null);
-	il.append(new ISTORE(match.getIndex()));
+        // Store matching node into a local variable
+        LocalVariableGen match;
+        match = methodGen.addLocalVariable("step_pattern_tmp1",
+                                           Util.getJCRefType(NODE_SIG),
+                                           il.getEnd(), null);
+        il.append(new ISTORE(match.getIndex()));
 
-	// If pattern not reduced then check kernel
-	if (!_isEpsilon) {
-	    il.append(new ILOAD(match.getIndex()));
- 	    translateKernel(classGen, methodGen);
-	}
+        // If pattern not reduced then check kernel
+        if (!_isEpsilon) {
+            il.append(new ILOAD(match.getIndex()));
+            translateKernel(classGen, methodGen);
+        }
 
-	// Push current iterator and current node on the stack
-	il.append(methodGen.loadCurrentNode());
-	il.append(methodGen.loadIterator());
+        // Push current iterator and current node on the stack
+        il.append(methodGen.loadCurrentNode());
+        il.append(methodGen.loadIterator());
 
-	// Create a new matching iterator using the matching node
-	index = cpg.addMethodref(MATCHING_ITERATOR, "<init>", 
-				 "(I" + NODE_ITERATOR_SIG + ")V");
+        // Create a new matching iterator using the matching node
+        index = cpg.addMethodref(MATCHING_ITERATOR, "<init>",
+                                 "(I" + NODE_ITERATOR_SIG + ")V");
 
         // Backwards branches are prohibited if an uninitialized object is
         // on the stack by section 4.9.4 of the JVM Specification, 2nd Ed.
@@ -350,174 +354,174 @@ class StepPattern extends RelativePathPattern {
         // in temporary variables, create the object and reload the
         // arguments from the temporaries to avoid the problem.
 
-	_step.translate(classGen, methodGen);
+        _step.translate(classGen, methodGen);
         LocalVariableGen stepIteratorTemp =
                 methodGen.addLocalVariable("step_pattern_tmp2",
                                            Util.getJCRefType(NODE_ITERATOR_SIG),
                                            il.getEnd(), null);
         il.append(new ASTORE(stepIteratorTemp.getIndex()));
 
-	il.append(new NEW(cpg.addClass(MATCHING_ITERATOR)));
-	il.append(DUP);
-	il.append(new ILOAD(match.getIndex()));
+        il.append(new NEW(cpg.addClass(MATCHING_ITERATOR)));
+        il.append(DUP);
+        il.append(new ILOAD(match.getIndex()));
         il.append(new ALOAD(stepIteratorTemp.getIndex()));
-	il.append(new INVOKESPECIAL(index));
+        il.append(new INVOKESPECIAL(index));
 
-	// Get the parent of the matching node
-	il.append(methodGen.loadDOM());
-	il.append(new ILOAD(match.getIndex()));
-	index = cpg.addInterfaceMethodref(DOM_INTF, GET_PARENT, GET_PARENT_SIG);
-	il.append(new INVOKEINTERFACE(index, 2));
+        // Get the parent of the matching node
+        il.append(methodGen.loadDOM());
+        il.append(new ILOAD(match.getIndex()));
+        index = cpg.addInterfaceMethodref(DOM_INTF, GET_PARENT, GET_PARENT_SIG);
+        il.append(new INVOKEINTERFACE(index, 2));
 
-	// Start the iterator with the parent 
-	il.append(methodGen.setStartNode());
+        // Start the iterator with the parent
+        il.append(methodGen.setStartNode());
 
-	// Overwrite current iterator and current node
-	il.append(methodGen.storeIterator());
-	il.append(new ILOAD(match.getIndex()));
-	il.append(methodGen.storeCurrentNode());
+        // Overwrite current iterator and current node
+        il.append(methodGen.storeIterator());
+        il.append(new ILOAD(match.getIndex()));
+        il.append(methodGen.storeCurrentNode());
 
-	// Translate the expression of the predicate 
-	Predicate pred = (Predicate) _predicates.elementAt(0);
-	Expression exp = pred.getExpr();
-	exp.translateDesynthesized(classGen, methodGen);
+        // Translate the expression of the predicate
+        Predicate pred = (Predicate) _predicates.elementAt(0);
+        Expression exp = pred.getExpr();
+        exp.translateDesynthesized(classGen, methodGen);
 
-	// Backpatch true list and restore current iterator/node
-	InstructionHandle restore = il.append(methodGen.storeIterator());
-	il.append(methodGen.storeCurrentNode());
-	exp.backPatchTrueList(restore);
-	BranchHandle skipFalse = il.append(new GOTO(null));
+        // Backpatch true list and restore current iterator/node
+        InstructionHandle restore = il.append(methodGen.storeIterator());
+        il.append(methodGen.storeCurrentNode());
+        exp.backPatchTrueList(restore);
+        BranchHandle skipFalse = il.append(new GOTO(null));
 
-	// Backpatch false list and restore current iterator/node
-	restore = il.append(methodGen.storeIterator());
-	il.append(methodGen.storeCurrentNode());
-	exp.backPatchFalseList(restore);
-	_falseList.add(il.append(new GOTO(null)));
+        // Backpatch false list and restore current iterator/node
+        restore = il.append(methodGen.storeIterator());
+        il.append(methodGen.storeCurrentNode());
+        exp.backPatchFalseList(restore);
+        _falseList.add(il.append(new GOTO(null)));
 
-	// True list falls through
-	skipFalse.setTarget(il.append(NOP));
+        // True list falls through
+        skipFalse.setTarget(il.append(NOP));
     }
 
-    private void translateGeneralContext(ClassGenerator classGen, 
-					 MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+    private void translateGeneralContext(ClassGenerator classGen,
+                                         MethodGenerator methodGen) {
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	int iteratorIndex = 0;
-	BranchHandle ifBlock = null;
-	LocalVariableGen iter, node, node2;
-	final String iteratorName = getNextFieldName();
+        int iteratorIndex = 0;
+        BranchHandle ifBlock = null;
+        LocalVariableGen iter, node, node2;
+        final String iteratorName = getNextFieldName();
 
-	// Store node on the stack into a local variable
-	node = methodGen.addLocalVariable("step_pattern_tmp1", 
-					  Util.getJCRefType(NODE_SIG),
-					  il.getEnd(), null);
-	il.append(new ISTORE(node.getIndex()));
+        // Store node on the stack into a local variable
+        node = methodGen.addLocalVariable("step_pattern_tmp1",
+                                          Util.getJCRefType(NODE_SIG),
+                                          il.getEnd(), null);
+        il.append(new ISTORE(node.getIndex()));
 
-	// Create a new local to store the iterator
-	iter = methodGen.addLocalVariable("step_pattern_tmp2", 
-					  Util.getJCRefType(NODE_ITERATOR_SIG),
-					  il.getEnd(), null);
+        // Create a new local to store the iterator
+        iter = methodGen.addLocalVariable("step_pattern_tmp2",
+                                          Util.getJCRefType(NODE_ITERATOR_SIG),
+                                          il.getEnd(), null);
 
-	// Add a new private field if this is the main class
-	if (!classGen.isExternal()) {
-	    final Field iterator =
-		new Field(ACC_PRIVATE, 
-			  cpg.addUtf8(iteratorName),
-			  cpg.addUtf8(NODE_ITERATOR_SIG),
-			  null, cpg.getConstantPool());
-	    classGen.addField(iterator);
-	    iteratorIndex = cpg.addFieldref(classGen.getClassName(), 
-					    iteratorName,
-					    NODE_ITERATOR_SIG);
+        // Add a new private field if this is the main class
+        if (!classGen.isExternal()) {
+            final Field iterator =
+                new Field(ACC_PRIVATE,
+                          cpg.addUtf8(iteratorName),
+                          cpg.addUtf8(NODE_ITERATOR_SIG),
+                          null, cpg.getConstantPool());
+            classGen.addField(iterator);
+            iteratorIndex = cpg.addFieldref(classGen.getClassName(),
+                                            iteratorName,
+                                            NODE_ITERATOR_SIG);
 
-	    il.append(classGen.loadTranslet());
-	    il.append(new GETFIELD(iteratorIndex));
-	    il.append(DUP);
-	    il.append(new ASTORE(iter.getIndex()));
-	    ifBlock = il.append(new IFNONNULL(null));
-	    il.append(classGen.loadTranslet());
-	}	
+            il.append(classGen.loadTranslet());
+            il.append(new GETFIELD(iteratorIndex));
+            il.append(DUP);
+            il.append(new ASTORE(iter.getIndex()));
+            ifBlock = il.append(new IFNONNULL(null));
+            il.append(classGen.loadTranslet());
+        }
 
-	// Compile the step created at type checking time
-	_step.translate(classGen, methodGen);
-	il.append(new ASTORE(iter.getIndex()));
+        // Compile the step created at type checking time
+        _step.translate(classGen, methodGen);
+        il.append(new ASTORE(iter.getIndex()));
 
-	// If in the main class update the field too
-	if (!classGen.isExternal()) {
-	    il.append(new ALOAD(iter.getIndex()));
-	    il.append(new PUTFIELD(iteratorIndex));
-	    ifBlock.setTarget(il.append(NOP));
-	}
+        // If in the main class update the field too
+        if (!classGen.isExternal()) {
+            il.append(new ALOAD(iter.getIndex()));
+            il.append(new PUTFIELD(iteratorIndex));
+            ifBlock.setTarget(il.append(NOP));
+        }
 
-	// Get the parent of the node on the stack
-	il.append(methodGen.loadDOM());
-	il.append(new ILOAD(node.getIndex()));
-	int index = cpg.addInterfaceMethodref(DOM_INTF,
-					      GET_PARENT, GET_PARENT_SIG);
-	il.append(new INVOKEINTERFACE(index, 2));
+        // Get the parent of the node on the stack
+        il.append(methodGen.loadDOM());
+        il.append(new ILOAD(node.getIndex()));
+        int index = cpg.addInterfaceMethodref(DOM_INTF,
+                                              GET_PARENT, GET_PARENT_SIG);
+        il.append(new INVOKEINTERFACE(index, 2));
 
-	// Initialize the iterator with the parent
-	il.append(new ALOAD(iter.getIndex()));
-	il.append(SWAP);
-	il.append(methodGen.setStartNode());
+        // Initialize the iterator with the parent
+        il.append(new ALOAD(iter.getIndex()));
+        il.append(SWAP);
+        il.append(methodGen.setStartNode());
 
-	/* 
-	 * Inline loop:
-	 *
-	 * int node2;
-	 * while ((node2 = iter.next()) != NodeIterator.END 
-	 *		  && node2 < node);
-	 * return node2 == node; 
-	 */
-	BranchHandle skipNext;
-	InstructionHandle begin, next;
-	node2 = methodGen.addLocalVariable("step_pattern_tmp3", 
-					   Util.getJCRefType(NODE_SIG),
-					   il.getEnd(), null);
+        /*
+         * Inline loop:
+         *
+         * int node2;
+         * while ((node2 = iter.next()) != NodeIterator.END
+         *                && node2 < node);
+         * return node2 == node;
+         */
+        BranchHandle skipNext;
+        InstructionHandle begin, next;
+        node2 = methodGen.addLocalVariable("step_pattern_tmp3",
+                                           Util.getJCRefType(NODE_SIG),
+                                           il.getEnd(), null);
 
-	skipNext = il.append(new GOTO(null));
-	next = il.append(new ALOAD(iter.getIndex()));
-	begin = il.append(methodGen.nextNode());
-	il.append(DUP);
-	il.append(new ISTORE(node2.getIndex()));
-	_falseList.add(il.append(new IFLT(null)));	// NodeIterator.END
+        skipNext = il.append(new GOTO(null));
+        next = il.append(new ALOAD(iter.getIndex()));
+        begin = il.append(methodGen.nextNode());
+        il.append(DUP);
+        il.append(new ISTORE(node2.getIndex()));
+        _falseList.add(il.append(new IFLT(null)));      // NodeIterator.END
 
-	il.append(new ILOAD(node2.getIndex()));
-	il.append(new ILOAD(node.getIndex()));
-	il.append(new IF_ICMPLT(next));
+        il.append(new ILOAD(node2.getIndex()));
+        il.append(new ILOAD(node.getIndex()));
+        il.append(new IF_ICMPLT(next));
 
-	il.append(new ILOAD(node2.getIndex()));
-	il.append(new ILOAD(node.getIndex()));
-	_falseList.add(il.append(new IF_ICMPNE(null)));
+        il.append(new ILOAD(node2.getIndex()));
+        il.append(new ILOAD(node.getIndex()));
+        _falseList.add(il.append(new IF_ICMPNE(null)));
 
-	skipNext.setTarget(begin);
+        skipNext.setTarget(begin);
     }
-	
+
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
-	if (hasPredicates()) {
-	    switch (_contextCase) {
-	    case NO_CONTEXT:
-		translateNoContext(classGen, methodGen);
-		break;
-		
-	    case SIMPLE_CONTEXT:
-		translateSimpleContext(classGen, methodGen);
-		break;
-		
-	    default:
-		translateGeneralContext(classGen, methodGen);
-		break;
-	    }
-	}
-	else if (isWildcard()) {
-	    il.append(POP); 	// true list falls through
-	}
-	else {
-	    translateKernel(classGen, methodGen);
-	}
+        if (hasPredicates()) {
+            switch (_contextCase) {
+            case NO_CONTEXT:
+                translateNoContext(classGen, methodGen);
+                break;
+
+            case SIMPLE_CONTEXT:
+                translateSimpleContext(classGen, methodGen);
+                break;
+
+            default:
+                translateGeneralContext(classGen, methodGen);
+                break;
+            }
+        }
+        else if (isWildcard()) {
+            il.append(POP);     // true list falls through
+        }
+        else {
+            translateKernel(classGen, methodGen);
+        }
     }
 }

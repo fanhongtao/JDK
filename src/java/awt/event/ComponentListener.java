@@ -1,8 +1,26 @@
 /*
- * @(#)ComponentListener.java	1.18 06/04/13
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -16,7 +34,7 @@ import java.util.EventListener;
  * contains) or extends the abstract <code>ComponentAdapter</code> class
  * (overriding only the methods of interest).
  * The listener object created from that class is then registered with a
- * component using the component's <code>addComponentListener</code> 
+ * component using the component's <code>addComponentListener</code>
  * method. When the component's size, location, or visibility
  * changes, the relevant method in the listener object is invoked,
  * and the <code>ComponentEvent</code> is passed to it.
@@ -31,7 +49,6 @@ import java.util.EventListener;
  * @see <a href="http://java.sun.com/docs/books/tutorial/post1.0/ui/componentlistener.html">Tutorial: Writing a Component Listener</a>
  *
  * @author Carl Quinn
- * @version 1.18 04/13/06
  * @since 1.1
  */
 public interface ComponentListener extends EventListener {
@@ -42,7 +59,7 @@ public interface ComponentListener extends EventListener {
 
     /**
      * Invoked when the component's position changes.
-     */    
+     */
     public void componentMoved(ComponentEvent e);
 
     /**

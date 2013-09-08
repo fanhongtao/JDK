@@ -1,8 +1,26 @@
 /*
- * @(#)PrefixParserAction.java	1.18 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.orb ;
@@ -27,13 +45,13 @@ public class PrefixParserAction extends ParserActionBase {
     private Class componentType ;
     private ORBUtilSystemException wrapper ;
 
-    public PrefixParserAction( String propertyName, 
-	Operation operation, String fieldName, Class componentType )
+    public PrefixParserAction( String propertyName,
+        Operation operation, String fieldName, Class componentType )
     {
-	super( propertyName, true, operation, fieldName ) ;
-	this.componentType = componentType ;
-	this.wrapper = ORBUtilSystemException.get( 
-	    CORBALogDomains.ORB_LIFECYCLE ) ;
+        super( propertyName, true, operation, fieldName ) ;
+        this.componentType = componentType ;
+        this.wrapper = ORBUtilSystemException.get(
+            CORBALogDomains.ORB_LIFECYCLE ) ;
     }
 
     /** For each String s that matches the prefix given by getPropertyName(),
@@ -42,63 +60,63 @@ public class PrefixParserAction extends ParserActionBase {
      * which forms the result of apply.  Returns null if there are no
      * matches.
      */
-    public Object apply( Properties props ) 
+    public Object apply( Properties props )
     {
-	String prefix = getPropertyName() ;
-	int prefixLength = prefix.length() ;
-	if (prefix.charAt( prefixLength - 1 ) != '.') {
-	    prefix += '.' ;
-	    prefixLength++ ;
-	}
-	    
-	List matches = new LinkedList() ;
+        String prefix = getPropertyName() ;
+        int prefixLength = prefix.length() ;
+        if (prefix.charAt( prefixLength - 1 ) != '.') {
+            prefix += '.' ;
+            prefixLength++ ;
+        }
 
-	// Find all keys in props that start with propertyName
-	Iterator iter = props.keySet().iterator() ;
-	while (iter.hasNext()) {
-	    String key = (String)(iter.next()) ;
-	    if (key.startsWith( prefix )) {
-		String suffix = key.substring( prefixLength ) ;
-		String value = props.getProperty( key ) ;
-		StringPair data = new StringPair( suffix, value ) ;
-		Object result = getOperation().operate( data ) ;
-		matches.add( result ) ;
-	    }
-	}
+        List matches = new LinkedList() ;
 
-	int size = matches.size() ;
-	if (size > 0) {
-	    // Convert the list into an array of the proper type.
-	    // An Object[] as a result does NOT work.  Also report
-	    // any errors carefully, as errors here or in parsers that
-	    // use this Operation often show up at ORB.init().
-	    Object result = null ;
-	    try {
-		result = Array.newInstance( componentType, size ) ;
-	    } catch (Throwable thr) {
-		throw wrapper.couldNotCreateArray( thr,
-		    getPropertyName(), componentType,
-		    new Integer( size ) ) ;
-	    }
+        // Find all keys in props that start with propertyName
+        Iterator iter = props.keySet().iterator() ;
+        while (iter.hasNext()) {
+            String key = (String)(iter.next()) ;
+            if (key.startsWith( prefix )) {
+                String suffix = key.substring( prefixLength ) ;
+                String value = props.getProperty( key ) ;
+                StringPair data = new StringPair( suffix, value ) ;
+                Object result = getOperation().operate( data ) ;
+                matches.add( result ) ;
+            }
+        }
 
-	    Iterator iter2 = matches.iterator() ;
-	    int ctr = 0 ;
-	    while (iter2.hasNext()) {
-		Object obj = iter2.next() ;
+        int size = matches.size() ;
+        if (size > 0) {
+            // Convert the list into an array of the proper type.
+            // An Object[] as a result does NOT work.  Also report
+            // any errors carefully, as errors here or in parsers that
+            // use this Operation often show up at ORB.init().
+            Object result = null ;
+            try {
+                result = Array.newInstance( componentType, size ) ;
+            } catch (Throwable thr) {
+                throw wrapper.couldNotCreateArray( thr,
+                    getPropertyName(), componentType,
+                    new Integer( size ) ) ;
+            }
 
-		try {
-		    Array.set( result, ctr, obj ) ;
-		} catch (Throwable thr) {
-		    throw wrapper.couldNotSetArray( thr,
-			getPropertyName(), new Integer(ctr), 
-			componentType, new Integer(size),
-			ObjectUtility.compactObjectToString( obj )) ;
-		}
-		ctr++ ;
-	    }
+            Iterator iter2 = matches.iterator() ;
+            int ctr = 0 ;
+            while (iter2.hasNext()) {
+                Object obj = iter2.next() ;
 
-	    return result ;
-	} else 
-	    return null ;
+                try {
+                    Array.set( result, ctr, obj ) ;
+                } catch (Throwable thr) {
+                    throw wrapper.couldNotSetArray( thr,
+                        getPropertyName(), new Integer(ctr),
+                        componentType, new Integer(size),
+                        obj.toString() ) ;
+                }
+                ctr++ ;
+            }
+
+            return result ;
+        } else
+            return null ;
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)RenderableImageProducer.java	1.12 05/11/17
+ * Copyright (c) 1998, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /* ********************************************************************
@@ -28,7 +46,7 @@ import java.awt.image.SampleModel;
 import java.util.Enumeration;
 import java.util.Vector;
 
-/** 
+/**
  * An adapter class that implements ImageProducer to allow the
  * asynchronous production of a RenderableImage.  The size of the
  * ImageConsumer is determined by the scale factor of the usr2dev
@@ -144,13 +162,13 @@ public class RenderableImageProducer implements ImageProducer, Runnable {
         } else {
             rdrdImage = rdblImage.createDefaultRendering();
         }
-        
+
         // And its ColorModel
         ColorModel colorModel = rdrdImage.getColorModel();
         Raster raster = rdrdImage.getData();
         SampleModel sampleModel = raster.getSampleModel();
         DataBuffer dataBuffer = raster.getDataBuffer();
-        
+
         if (colorModel == null) {
             colorModel = ColorModel.getRGBdefault();
         }
@@ -158,7 +176,7 @@ public class RenderableImageProducer implements ImageProducer, Runnable {
         int minY = raster.getMinY();
         int width = raster.getWidth();
         int height = raster.getHeight();
-        
+
         Enumeration icList;
         ImageConsumer ic;
         // Set up the ImageConsumers
@@ -171,7 +189,7 @@ public class RenderableImageProducer implements ImageProducer, Runnable {
                         ImageConsumer.SINGLEPASS |
                         ImageConsumer.SINGLEFRAME);
         }
-        
+
         // Get RGB pixels from the raster scanline by scanline and
         // send to consumers.
         int pix[] = new int[width];

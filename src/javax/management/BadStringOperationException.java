@@ -1,8 +1,26 @@
 /*
- * @(#)BadStringOperationException.java	4.17 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -13,7 +31,7 @@ package javax.management;
  *
  * @since 1.5
  */
-public class BadStringOperationException extends Exception   { 
+public class BadStringOperationException extends Exception   {
 
 
     /* Serial version */
@@ -30,16 +48,16 @@ public class BadStringOperationException extends Exception   {
      *
      * @param message the detail message.
      */
-    public BadStringOperationException(String message) { 
-	this.op = message;
-    } 
- 
-   
+    public BadStringOperationException(String message) {
+        this.op = message;
+    }
+
+
     /**
      * Returns the string representing the object.
      */
-    public String toString()  { 
-	return "BadStringOperationException: " + op;
-    } 
-      
+    public String toString()  {
+        return "BadStringOperationException: " + op;
+    }
+
  }

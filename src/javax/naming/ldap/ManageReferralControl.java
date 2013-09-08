@@ -1,8 +1,26 @@
 /*
- * @(#)ManageReferralControl.java	1.4 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.naming.ldap;
@@ -35,15 +53,15 @@ final public class ManageReferralControl extends BasicControl {
      * Constructs a critical ManageReferral control.
      */
     public ManageReferralControl() {
-	super(OID, true, null);
+        super(OID, true, null);
     }
 
     /**
      * Constructs a ManageReferral control.
      *
-     * @param	criticality The control's criticality setting.
+     * @param   criticality The control's criticality setting.
      */
     public ManageReferralControl(boolean criticality) {
-	super(OID, criticality, null);
+        super(OID, criticality, null);
     }
 }

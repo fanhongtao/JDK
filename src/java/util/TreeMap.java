@@ -1,8 +1,26 @@
 /*
- * @(#)TreeMap.java	1.77 08/05/15
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -14,25 +32,26 @@ package java.util;
  * creation time, depending on which constructor is used.
  *
  * <p>This implementation provides guaranteed log(n) time cost for the
- * <tt>containsKey</tt>, <tt>get</tt>, <tt>put</tt> and <tt>remove</tt>
+ * {@code containsKey}, {@code get}, {@code put} and {@code remove}
  * operations.  Algorithms are adaptations of those in Cormen, Leiserson, and
- * Rivest's <I>Introduction to Algorithms</I>.
+ * Rivest's <em>Introduction to Algorithms</em>.
  *
- * <p>Note that the ordering maintained by a sorted map (whether or not an
- * explicit comparator is provided) must be <i>consistent with equals</i> if
- * this sorted map is to correctly implement the <tt>Map</tt> interface.  (See
- * <tt>Comparable</tt> or <tt>Comparator</tt> for a precise definition of
- * <i>consistent with equals</i>.)  This is so because the <tt>Map</tt>
- * interface is defined in terms of the equals operation, but a map performs
- * all key comparisons using its <tt>compareTo</tt> (or <tt>compare</tt>)
- * method, so two keys that are deemed equal by this method are, from the
- * standpoint of the sorted map, equal.  The behavior of a sorted map
- * <i>is</i> well-defined even if its ordering is inconsistent with equals; it
- * just fails to obey the general contract of the <tt>Map</tt> interface.
+ * <p>Note that the ordering maintained by a tree map, like any sorted map, and
+ * whether or not an explicit comparator is provided, must be <em>consistent
+ * with {@code equals}</em> if this sorted map is to correctly implement the
+ * {@code Map} interface.  (See {@code Comparable} or {@code Comparator} for a
+ * precise definition of <em>consistent with equals</em>.)  This is so because
+ * the {@code Map} interface is defined in terms of the {@code equals}
+ * operation, but a sorted map performs all key comparisons using its {@code
+ * compareTo} (or {@code compare}) method, so two keys that are deemed equal by
+ * this method are, from the standpoint of the sorted map, equal.  The behavior
+ * of a sorted map <em>is</em> well-defined even if its ordering is
+ * inconsistent with {@code equals}; it just fails to obey the general contract
+ * of the {@code Map} interface.
  *
  * <p><strong>Note that this implementation is not synchronized.</strong>
  * If multiple threads access a map concurrently, and at least one of the
- * threads modifies the map structurally, it <i>must</i> be synchronized
+ * threads modifies the map structurally, it <em>must</em> be synchronized
  * externally.  (A structural modification is any operation that adds or
  * deletes one or more mappings; merely changing the value associated
  * with an existing key is not a structural modification.)  This is
@@ -44,11 +63,11 @@ package java.util;
  * unsynchronized access to the map: <pre>
  *   SortedMap m = Collections.synchronizedSortedMap(new TreeMap(...));</pre>
  *
- * <p>The iterators returned by the <tt>iterator</tt> method of the collections
+ * <p>The iterators returned by the {@code iterator} method of the collections
  * returned by all of this class's "collection view methods" are
- * <i>fail-fast</i>: if the map is structurally modified at any time after the
- * iterator is created, in any way except through the iterator's own
- * <tt>remove</tt> method, the iterator will throw a {@link
+ * <em>fail-fast</em>: if the map is structurally modified at any time after
+ * the iterator is created, in any way except through the iterator's own
+ * {@code remove} method, the iterator will throw a {@link
  * ConcurrentModificationException}.  Thus, in the face of concurrent
  * modification, the iterator fails quickly and cleanly, rather than risking
  * arbitrary, non-deterministic behavior at an undetermined time in the future.
@@ -56,16 +75,16 @@ package java.util;
  * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
  * as it is, generally speaking, impossible to make any hard guarantees in the
  * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
+ * throw {@code ConcurrentModificationException} on a best-effort basis.
  * Therefore, it would be wrong to write a program that depended on this
- * exception for its correctness:   <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
+ * exception for its correctness:   <em>the fail-fast behavior of iterators
+ * should be used only to detect bugs.</em>
  *
- * <p>All <tt>Map.Entry</tt> pairs returned by methods in this class
+ * <p>All {@code Map.Entry} pairs returned by methods in this class
  * and its views represent snapshots of mappings at the time they were
- * produced. They do <em>not</em> support the <tt>Entry.setValue</tt>
+ * produced. They do <strong>not</strong> support the {@code Entry.setValue}
  * method. (Note however that it is possible to change mappings in the
- * associated map using <tt>put</tt>.)
+ * associated map using {@code put}.)
  *
  * <p>This class is a member of the
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
@@ -75,7 +94,6 @@ package java.util;
  * @param <V> the type of mapped values
  *
  * @author  Josh Bloch and Doug Lea
- * @version 1.73, 05/10/06
  * @see Map
  * @see HashMap
  * @see Hashtable
@@ -113,13 +131,13 @@ public class TreeMap<K,V>
      * Constructs a new, empty tree map, using the natural ordering of its
      * keys.  All keys inserted into the map must implement the {@link
      * Comparable} interface.  Furthermore, all such keys must be
-     * <i>mutually comparable</i>: <tt>k1.compareTo(k2)</tt> must not throw
-     * a <tt>ClassCastException</tt> for any keys <tt>k1</tt> and
-     * <tt>k2</tt> in the map.  If the user attempts to put a key into the
+     * <em>mutually comparable</em>: {@code k1.compareTo(k2)} must not throw
+     * a {@code ClassCastException} for any keys {@code k1} and
+     * {@code k2} in the map.  If the user attempts to put a key into the
      * map that violates this constraint (for example, the user attempts to
      * put a string key into a map whose keys are integers), the
-     * <tt>put(Object key, Object value)</tt> call will throw a
-     * <tt>ClassCastException</tt>.
+     * {@code put(Object key, Object value)} call will throw a
+     * {@code ClassCastException}.
      */
     public TreeMap() {
         comparator = null;
@@ -127,16 +145,16 @@ public class TreeMap<K,V>
 
     /**
      * Constructs a new, empty tree map, ordered according to the given
-     * comparator.  All keys inserted into the map must be <i>mutually
-     * comparable</i> by the given comparator: <tt>comparator.compare(k1,
-     * k2)</tt> must not throw a <tt>ClassCastException</tt> for any keys
-     * <tt>k1</tt> and <tt>k2</tt> in the map.  If the user attempts to put
-     * a key into the map that violates this constraint, the <tt>put(Object
-     * key, Object value)</tt> call will throw a
-     * <tt>ClassCastException</tt>.
+     * comparator.  All keys inserted into the map must be <em>mutually
+     * comparable</em> by the given comparator: {@code comparator.compare(k1,
+     * k2)} must not throw a {@code ClassCastException} for any keys
+     * {@code k1} and {@code k2} in the map.  If the user attempts to put
+     * a key into the map that violates this constraint, the {@code put(Object
+     * key, Object value)} call will throw a
+     * {@code ClassCastException}.
      *
      * @param comparator the comparator that will be used to order this map.
-     *        If <tt>null</tt>, the {@linkplain Comparable natural
+     *        If {@code null}, the {@linkplain Comparable natural
      *        ordering} of the keys will be used.
      */
     public TreeMap(Comparator<? super K> comparator) {
@@ -145,12 +163,12 @@ public class TreeMap<K,V>
 
     /**
      * Constructs a new tree map containing the same mappings as the given
-     * map, ordered according to the <i>natural ordering</i> of its keys.
+     * map, ordered according to the <em>natural ordering</em> of its keys.
      * All keys inserted into the new map must implement the {@link
      * Comparable} interface.  Furthermore, all such keys must be
-     * <i>mutually comparable</i>: <tt>k1.compareTo(k2)</tt> must not throw
-     * a <tt>ClassCastException</tt> for any keys <tt>k1</tt> and
-     * <tt>k2</tt> in the map.  This method runs in n*log(n) time.
+     * <em>mutually comparable</em>: {@code k1.compareTo(k2)} must not throw
+     * a {@code ClassCastException} for any keys {@code k1} and
+     * {@code k2} in the map.  This method runs in n*log(n) time.
      *
      * @param  m the map whose mappings are to be placed in this map
      * @throws ClassCastException if the keys in m are not {@link Comparable},
@@ -193,11 +211,11 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns <tt>true</tt> if this map contains a mapping for the specified
+     * Returns {@code true} if this map contains a mapping for the specified
      * key.
      *
      * @param key key whose presence in this map is to be tested
-     * @return <tt>true</tt> if this map contains a mapping for the
+     * @return {@code true} if this map contains a mapping for the
      *         specified key
      * @throws ClassCastException if the specified key cannot be compared
      *         with the keys currently in the map
@@ -210,16 +228,16 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns <tt>true</tt> if this map maps one or more keys to the
-     * specified value.  More formally, returns <tt>true</tt> if and only if
-     * this map contains at least one mapping to a value <tt>v</tt> such
-     * that <tt>(value==null ? v==null : value.equals(v))</tt>.  This
+     * Returns {@code true} if this map maps one or more keys to the
+     * specified value.  More formally, returns {@code true} if and only if
+     * this map contains at least one mapping to a value {@code v} such
+     * that {@code (value==null ? v==null : value.equals(v))}.  This
      * operation will probably require time linear in the map size for
      * most implementations.
      *
      * @param value value whose presence in this map is to be tested
-     * @return <tt>true</tt> if a mapping to <tt>value</tt> exists;
-     *	       <tt>false</tt> otherwise
+     * @return {@code true} if a mapping to {@code value} exists;
+     *         {@code false} otherwise
      * @since 1.2
      */
     public boolean containsValue(Object value) {
@@ -239,7 +257,7 @@ public class TreeMap<K,V>
      * method returns {@code v}; otherwise it returns {@code null}.
      * (There can be at most one such mapping.)
      *
-     * <p>A return value of {@code null} does not <i>necessarily</i>
+     * <p>A return value of {@code null} does not <em>necessarily</em>
      * indicate that the map contains no mapping for the key; it's also
      * possible that the map explicitly maps the key to {@code null}.
      * The {@link #containsKey containsKey} operation may be used to
@@ -291,24 +309,24 @@ public class TreeMap<K,V>
         if (size==0 && mapSize!=0 && map instanceof SortedMap) {
             Comparator c = ((SortedMap)map).comparator();
             if (c == comparator || (c != null && c.equals(comparator))) {
-		++modCount;
-		try {
-		    buildFromSorted(mapSize, map.entrySet().iterator(),
-				    null, null);
-		} catch (java.io.IOException cannotHappen) {
-		} catch (ClassNotFoundException cannotHappen) {
-		}
-		return;
+                ++modCount;
+                try {
+                    buildFromSorted(mapSize, map.entrySet().iterator(),
+                                    null, null);
+                } catch (java.io.IOException cannotHappen) {
+                } catch (ClassNotFoundException cannotHappen) {
+                }
+                return;
             }
         }
         super.putAll(map);
     }
 
     /**
-     * Returns this map's entry for the given key, or <tt>null</tt> if the map
+     * Returns this map's entry for the given key, or {@code null} if the map
      * does not contain an entry for the key.
      *
-     * @return this map's entry for the given key, or <tt>null</tt> if the map
+     * @return this map's entry for the given key, or {@code null} if the map
      *         does not contain an entry for the key
      * @throws ClassCastException if the specified key cannot be compared
      *         with the keys currently in the map
@@ -322,7 +340,7 @@ public class TreeMap<K,V>
             return getEntryUsingComparator(key);
         if (key == null)
             throw new NullPointerException();
-	Comparable<? super K> k = (Comparable<? super K>) key;
+        Comparable<? super K> k = (Comparable<? super K>) key;
         Entry<K,V> p = root;
         while (p != null) {
             int cmp = k.compareTo(p.key);
@@ -343,7 +361,7 @@ public class TreeMap<K,V>
      * worthwhile here.)
      */
     final Entry<K,V> getEntryUsingComparator(Object key) {
-	K k = (K) key;
+        K k = (K) key;
         Comparator<? super K> cpr = comparator;
         if (cpr != null) {
             Entry<K,V> p = root;
@@ -364,7 +382,7 @@ public class TreeMap<K,V>
      * Gets the entry corresponding to the specified key; if no such entry
      * exists, returns the entry for the least key greater than the specified
      * key; if no such entry exists (i.e., the greatest key in the Tree is less
-     * than the specified key), returns <tt>null</tt>.
+     * than the specified key), returns {@code null}.
      */
     final Entry<K,V> getCeilingEntry(K key) {
         Entry<K,V> p = root;
@@ -396,7 +414,7 @@ public class TreeMap<K,V>
     /**
      * Gets the entry corresponding to the specified key; if no such entry
      * exists, returns the entry for the greatest key less than the specified
-     * key; if no such entry exists, returns <tt>null</tt>.
+     * key; if no such entry exists, returns {@code null}.
      */
     final Entry<K,V> getFloorEntry(K key) {
         Entry<K,V> p = root;
@@ -430,7 +448,7 @@ public class TreeMap<K,V>
      * Gets the entry for the least key greater than the specified
      * key; if no such entry exists, returns the entry for the least
      * key greater than the specified key; if no such entry exists
-     * returns <tt>null</tt>.
+     * returns {@code null}.
      */
     final Entry<K,V> getHigherEntry(K key) {
         Entry<K,V> p = root;
@@ -461,7 +479,7 @@ public class TreeMap<K,V>
     /**
      * Returns the entry for the greatest key less than the specified key; if
      * no such entry exists (i.e., the least key in the Tree is greater than
-     * the specified key), returns <tt>null</tt>.
+     * the specified key), returns {@code null}.
      */
     final Entry<K,V> getLowerEntry(K key) {
         Entry<K,V> p = root;
@@ -497,10 +515,10 @@ public class TreeMap<K,V>
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      *
-     * @return the previous value associated with <tt>key</tt>, or
-     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
-     *         (A <tt>null</tt> return can also indicate that the map
-     *         previously associated <tt>null</tt> with <tt>key</tt>.)
+     * @return the previous value associated with {@code key}, or
+     *         {@code null} if there was no mapping for {@code key}.
+     *         (A {@code null} return can also indicate that the map
+     *         previously associated {@code null} with {@code key}.)
      * @throws ClassCastException if the specified key cannot be compared
      *         with the keys currently in the map
      * @throws NullPointerException if the specified key is null
@@ -510,12 +528,9 @@ public class TreeMap<K,V>
     public V put(K key, V value) {
         Entry<K,V> t = root;
         if (t == null) {
-	    // TBD:
-	    // 5045147: (coll) Adding null to an empty TreeSet should
-	    // throw NullPointerException
-	    //
-	    // compare(key, key); // type check
-            root = new Entry<K,V>(key, value, null);
+            compare(key, key); // type (and possibly null) check
+
+            root = new Entry<>(key, value, null);
             size = 1;
             modCount++;
             return null;
@@ -551,7 +566,7 @@ public class TreeMap<K,V>
                     return t.setValue(value);
             } while (t != null);
         }
-        Entry<K,V> e = new Entry<K,V>(key, value, parent);
+        Entry<K,V> e = new Entry<>(key, value, parent);
         if (cmp < 0)
             parent.left = e;
         else
@@ -566,10 +581,10 @@ public class TreeMap<K,V>
      * Removes the mapping for this key from this TreeMap if present.
      *
      * @param  key key for which mapping should be removed
-     * @return the previous value associated with <tt>key</tt>, or
-     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
-     *         (A <tt>null</tt> return can also indicate that the map
-     *         previously associated <tt>null</tt> with <tt>key</tt>.)
+     * @return the previous value associated with {@code key}, or
+     *         {@code null} if there was no mapping for {@code key}.
+     *         (A {@code null} return can also indicate that the map
+     *         previously associated {@code null} with {@code key}.)
      * @throws ClassCastException if the specified key cannot be compared
      *         with the keys currently in the map
      * @throws NullPointerException if the specified key is null
@@ -597,7 +612,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns a shallow copy of this <tt>TreeMap</tt> instance. (The keys and
+     * Returns a shallow copy of this {@code TreeMap} instance. (The keys and
      * values themselves are not cloned.)
      *
      * @return a shallow copy of this map
@@ -771,12 +786,12 @@ public class TreeMap<K,V>
      * The set is backed by the map, so changes to the map are
      * reflected in the set, and vice-versa.  If the map is modified
      * while an iteration over the set is in progress (except through
-     * the iterator's own <tt>remove</tt> operation), the results of
+     * the iterator's own {@code remove} operation), the results of
      * the iteration are undefined.  The set supports element removal,
      * which removes the corresponding mapping from the map, via the
-     * <tt>Iterator.remove</tt>, <tt>Set.remove</tt>,
-     * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt>
-     * operations.  It does not support the <tt>add</tt> or <tt>addAll</tt>
+     * {@code Iterator.remove}, {@code Set.remove},
+     * {@code removeAll}, {@code retainAll}, and {@code clear}
+     * operations.  It does not support the {@code add} or {@code addAll}
      * operations.
      */
     public Set<K> keySet() {
@@ -805,13 +820,13 @@ public class TreeMap<K,V>
      * The collection is backed by the map, so changes to the map are
      * reflected in the collection, and vice-versa.  If the map is
      * modified while an iteration over the collection is in progress
-     * (except through the iterator's own <tt>remove</tt> operation),
+     * (except through the iterator's own {@code remove} operation),
      * the results of the iteration are undefined.  The collection
      * supports element removal, which removes the corresponding
-     * mapping from the map, via the <tt>Iterator.remove</tt>,
-     * <tt>Collection.remove</tt>, <tt>removeAll</tt>,
-     * <tt>retainAll</tt> and <tt>clear</tt> operations.  It does not
-     * support the <tt>add</tt> or <tt>addAll</tt> operations.
+     * mapping from the map, via the {@code Iterator.remove},
+     * {@code Collection.remove}, {@code removeAll},
+     * {@code retainAll} and {@code clear} operations.  It does not
+     * support the {@code add} or {@code addAll} operations.
      */
     public Collection<V> values() {
         Collection<V> vs = values;
@@ -824,14 +839,14 @@ public class TreeMap<K,V>
      * The set is backed by the map, so changes to the map are
      * reflected in the set, and vice-versa.  If the map is modified
      * while an iteration over the set is in progress (except through
-     * the iterator's own <tt>remove</tt> operation, or through the
-     * <tt>setValue</tt> operation on a map entry returned by the
+     * the iterator's own {@code remove} operation, or through the
+     * {@code setValue} operation on a map entry returned by the
      * iterator) the results of the iteration are undefined.  The set
      * supports element removal, which removes the corresponding
-     * mapping from the map, via the <tt>Iterator.remove</tt>,
-     * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt> and
-     * <tt>clear</tt> operations.  It does not support the
-     * <tt>add</tt> or <tt>addAll</tt> operations.
+     * mapping from the map, via the {@code Iterator.remove},
+     * {@code Set.remove}, {@code removeAll}, {@code retainAll} and
+     * {@code clear} operations.  It does not support the
+     * {@code add} or {@code addAll} operations.
      */
     public Set<Map.Entry<K,V>> entrySet() {
         EntrySet es = entrySet;
@@ -851,7 +866,7 @@ public class TreeMap<K,V>
 
     /**
      * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException if <tt>fromKey</tt> or <tt>toKey</tt> is
+     * @throws NullPointerException if {@code fromKey} or {@code toKey} is
      *         null and this map uses natural ordering, or its comparator
      *         does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
@@ -866,7 +881,7 @@ public class TreeMap<K,V>
 
     /**
      * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException if <tt>toKey</tt> is null
+     * @throws NullPointerException if {@code toKey} is null
      *         and this map uses natural ordering, or its comparator
      *         does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
@@ -880,7 +895,7 @@ public class TreeMap<K,V>
 
     /**
      * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException if <tt>fromKey</tt> is null
+     * @throws NullPointerException if {@code fromKey} is null
      *         and this map uses natural ordering, or its comparator
      *         does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
@@ -894,7 +909,7 @@ public class TreeMap<K,V>
 
     /**
      * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException if <tt>fromKey</tt> or <tt>toKey</tt> is
+     * @throws NullPointerException if {@code fromKey} or {@code toKey} is
      *         null and this map uses natural ordering, or its comparator
      *         does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
@@ -905,7 +920,7 @@ public class TreeMap<K,V>
 
     /**
      * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException if <tt>toKey</tt> is null
+     * @throws NullPointerException if {@code toKey} is null
      *         and this map uses natural ordering, or its comparator
      *         does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
@@ -916,7 +931,7 @@ public class TreeMap<K,V>
 
     /**
      * @throws ClassCastException       {@inheritDoc}
-     * @throws NullPointerException if <tt>fromKey</tt> is null
+     * @throws NullPointerException if {@code fromKey} is null
      *         and this map uses natural ordering, or its comparator
      *         does not permit null keys
      * @throws IllegalArgumentException {@inheritDoc}
@@ -1038,11 +1053,11 @@ public class TreeMap<K,V>
         public Comparator<? super E> comparator() { return m.comparator(); }
         public E pollFirst() {
             Map.Entry<E,Object> e = m.pollFirstEntry();
-            return e == null? null : e.getKey();
+            return (e == null) ? null : e.getKey();
         }
         public E pollLast() {
             Map.Entry<E,Object> e = m.pollLastEntry();
-            return e == null? null : e.getKey();
+            return (e == null) ? null : e.getKey();
         }
         public boolean remove(Object o) {
             int oldSize = size();
@@ -1051,14 +1066,14 @@ public class TreeMap<K,V>
         }
         public NavigableSet<E> subSet(E fromElement, boolean fromInclusive,
                                       E toElement,   boolean toInclusive) {
-            return new TreeSet<E>(m.subMap(fromElement, fromInclusive,
-                                           toElement,   toInclusive));
+            return new KeySet<>(m.subMap(fromElement, fromInclusive,
+                                          toElement,   toInclusive));
         }
         public NavigableSet<E> headSet(E toElement, boolean inclusive) {
-            return new TreeSet<E>(m.headMap(toElement, inclusive));
+            return new KeySet<>(m.headMap(toElement, inclusive));
         }
         public NavigableSet<E> tailSet(E fromElement, boolean inclusive) {
-            return new TreeSet<E>(m.tailMap(fromElement, inclusive));
+            return new KeySet<>(m.tailMap(fromElement, inclusive));
         }
         public SortedSet<E> subSet(E fromElement, E toElement) {
             return subSet(fromElement, true, toElement, false);
@@ -1070,7 +1085,7 @@ public class TreeMap<K,V>
             return tailSet(fromElement, true);
         }
         public NavigableSet<E> descendingSet() {
-            return new TreeSet(m.descendingMap());
+            return new KeySet(m.descendingMap());
         }
     }
 
@@ -1092,7 +1107,7 @@ public class TreeMap<K,V>
             return next != null;
         }
 
-	final Entry<K,V> nextEntry() {
+        final Entry<K,V> nextEntry() {
             Entry<K,V> e = next;
             if (e == null)
                 throw new NoSuchElementException();
@@ -1176,9 +1191,9 @@ public class TreeMap<K,V>
 
     /**
      * Test two values for equality.  Differs from o1.equals(o2) only in
-     * that it copes with <tt>null</tt> o1 properly.
+     * that it copes with {@code null} o1 properly.
      */
-    final static boolean valEquals(Object o1, Object o2) {
+    static final boolean valEquals(Object o1, Object o2) {
         return (o1==null ? o2==null : o1.equals(o2));
     }
 
@@ -1186,15 +1201,15 @@ public class TreeMap<K,V>
      * Return SimpleImmutableEntry for entry, or null if null
      */
     static <K,V> Map.Entry<K,V> exportEntry(TreeMap.Entry<K,V> e) {
-        return e == null? null :
-            new AbstractMap.SimpleImmutableEntry<K,V>(e);
+        return (e == null) ? null :
+            new AbstractMap.SimpleImmutableEntry<>(e);
     }
 
     /**
      * Return key for entry, or null if null
      */
     static <K,V> K keyOrNull(TreeMap.Entry<K,V> e) {
-        return e == null? null : e.key;
+        return (e == null) ? null : e.key;
     }
 
     /**
@@ -1211,9 +1226,15 @@ public class TreeMap<K,V>
     // SubMaps
 
     /**
+     * Dummy value serving as unmatchable fence key for unbounded
+     * SubMapIterators
+     */
+    private static final Object UNBOUNDED = new Object();
+
+    /**
      * @serial include
      */
-    static abstract class NavigableSubMap<K,V> extends AbstractMap<K,V>
+    abstract static class NavigableSubMap<K,V> extends AbstractMap<K,V>
         implements NavigableMap<K,V>, java.io.Serializable {
         /**
          * The backing map.
@@ -1294,7 +1315,7 @@ public class TreeMap<K,V>
          */
 
         final TreeMap.Entry<K,V> absLowest() {
-	    TreeMap.Entry<K,V> e =
+            TreeMap.Entry<K,V> e =
                 (fromStart ?  m.getFirstEntry() :
                  (loInclusive ? m.getCeilingEntry(lo) :
                                 m.getHigherEntry(lo)));
@@ -1302,7 +1323,7 @@ public class TreeMap<K,V>
         }
 
         final TreeMap.Entry<K,V> absHighest() {
-	    TreeMap.Entry<K,V> e =
+            TreeMap.Entry<K,V> e =
                 (toEnd ?  m.getLastEntry() :
                  (hiInclusive ?  m.getFloorEntry(hi) :
                                  m.getLowerEntry(hi)));
@@ -1312,28 +1333,28 @@ public class TreeMap<K,V>
         final TreeMap.Entry<K,V> absCeiling(K key) {
             if (tooLow(key))
                 return absLowest();
-	    TreeMap.Entry<K,V> e = m.getCeilingEntry(key);
+            TreeMap.Entry<K,V> e = m.getCeilingEntry(key);
             return (e == null || tooHigh(e.key)) ? null : e;
         }
 
         final TreeMap.Entry<K,V> absHigher(K key) {
             if (tooLow(key))
                 return absLowest();
-	    TreeMap.Entry<K,V> e = m.getHigherEntry(key);
+            TreeMap.Entry<K,V> e = m.getHigherEntry(key);
             return (e == null || tooHigh(e.key)) ? null : e;
         }
 
         final TreeMap.Entry<K,V> absFloor(K key) {
             if (tooHigh(key))
                 return absHighest();
-	    TreeMap.Entry<K,V> e = m.getFloorEntry(key);
+            TreeMap.Entry<K,V> e = m.getFloorEntry(key);
             return (e == null || tooLow(e.key)) ? null : e;
         }
 
         final TreeMap.Entry<K,V> absLower(K key) {
             if (tooHigh(key))
                 return absHighest();
-	    TreeMap.Entry<K,V> e = m.getLowerEntry(key);
+            TreeMap.Entry<K,V> e = m.getLowerEntry(key);
             return (e == null || tooLow(e.key)) ? null : e;
         }
 
@@ -1388,11 +1409,11 @@ public class TreeMap<K,V>
         }
 
         public final V get(Object key) {
-            return !inRange(key)? null :  m.get(key);
+            return !inRange(key) ? null :  m.get(key);
         }
 
         public final V remove(Object key) {
-            return !inRange(key)? null  : m.remove(key);
+            return !inRange(key) ? null : m.remove(key);
         }
 
         public final Map.Entry<K,V> ceilingEntry(K key) {
@@ -1444,7 +1465,7 @@ public class TreeMap<K,V>
         }
 
         public final Map.Entry<K,V> pollFirstEntry() {
-	    TreeMap.Entry<K,V> e = subLowest();
+            TreeMap.Entry<K,V> e = subLowest();
             Map.Entry<K,V> result = exportEntry(e);
             if (e != null)
                 m.deleteEntry(e);
@@ -1452,7 +1473,7 @@ public class TreeMap<K,V>
         }
 
         public final Map.Entry<K,V> pollLastEntry() {
-	    TreeMap.Entry<K,V> e = subHighest();
+            TreeMap.Entry<K,V> e = subHighest();
             Map.Entry<K,V> result = exportEntry(e);
             if (e != null)
                 m.deleteEntry(e);
@@ -1535,7 +1556,8 @@ public class TreeMap<K,V>
                 if (!inRange(key))
                     return false;
                 TreeMap.Entry<K,V> node = m.getEntry(key);
-                if (node!=null && valEquals(node.getValue(),entry.getValue())){
+                if (node!=null && valEquals(node.getValue(),
+                                            entry.getValue())) {
                     m.deleteEntry(node);
                     return true;
                 }
@@ -1549,7 +1571,7 @@ public class TreeMap<K,V>
         abstract class SubMapIterator<T> implements Iterator<T> {
             TreeMap.Entry<K,V> lastReturned;
             TreeMap.Entry<K,V> next;
-            final K fenceKey;
+            final Object fenceKey;
             int expectedModCount;
 
             SubMapIterator(TreeMap.Entry<K,V> first,
@@ -1557,7 +1579,7 @@ public class TreeMap<K,V>
                 expectedModCount = m.modCount;
                 lastReturned = null;
                 next = first;
-                fenceKey = fence == null ? null : fence.key;
+                fenceKey = fence == null ? UNBOUNDED : fence.key;
             }
 
             public final boolean hasNext() {
@@ -1571,7 +1593,7 @@ public class TreeMap<K,V>
                 if (m.modCount != expectedModCount)
                     throw new ConcurrentModificationException();
                 next = successor(e);
-		lastReturned = e;
+                lastReturned = e;
                 return e;
             }
 
@@ -1582,7 +1604,7 @@ public class TreeMap<K,V>
                 if (m.modCount != expectedModCount)
                     throw new ConcurrentModificationException();
                 next = predecessor(e);
-		lastReturned = e;
+                lastReturned = e;
                 return e;
             }
 
@@ -1700,7 +1722,7 @@ public class TreeMap<K,V>
                                        false,     toKey, inclusive);
         }
 
-        public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive){
+        public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive) {
             if (!inRange(fromKey, inclusive))
                 throw new IllegalArgumentException("fromKey out of range");
             return new AscendingSubMap(m,
@@ -1781,7 +1803,7 @@ public class TreeMap<K,V>
                                         toEnd, hi,    hiInclusive);
         }
 
-        public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive){
+        public NavigableMap<K,V> tailMap(K fromKey, boolean inclusive) {
             if (!inRange(fromKey, inclusive))
                 throw new IllegalArgumentException("fromKey out of range");
             return new DescendingSubMap(m,
@@ -1835,7 +1857,7 @@ public class TreeMap<K,V>
      * @serial include
      */
     private class SubMap extends AbstractMap<K,V>
-	implements SortedMap<K,V>, java.io.Serializable {
+        implements SortedMap<K,V>, java.io.Serializable {
         private static final long serialVersionUID = -6520786458950516097L;
         private boolean fromStart = false, toEnd = false;
         private K fromKey, toKey;
@@ -1865,7 +1887,7 @@ public class TreeMap<K,V>
      */
 
     static final class Entry<K,V> implements Map.Entry<K,V> {
-	K key;
+        K key;
         V value;
         Entry<K,V> left = null;
         Entry<K,V> right = null;
@@ -1874,7 +1896,7 @@ public class TreeMap<K,V>
 
         /**
          * Make a new cell with given key, value, and parent, and with
-         * <tt>null</tt> child links, and BLACK color.
+         * {@code null} child links, and BLACK color.
          */
         Entry(K key, V value, Entry<K,V> parent) {
             this.key = key;
@@ -2020,7 +2042,7 @@ public class TreeMap<K,V>
 
     private static <K,V> void setColor(Entry<K,V> p, boolean c) {
         if (p != null)
-	    p.color = c;
+            p.color = c;
     }
 
     private static <K,V> Entry<K,V> leftOf(Entry<K,V> p) {
@@ -2119,7 +2141,7 @@ public class TreeMap<K,V>
         // If strictly internal, copy successor's element to p and then make p
         // point to successor.
         if (p.left != null && p.right != null) {
-            Entry<K,V> s = successor (p);
+            Entry<K,V> s = successor(p);
             p.key = s.key;
             p.value = s.value;
             p = s;
@@ -2226,10 +2248,10 @@ public class TreeMap<K,V>
     private static final long serialVersionUID = 919286545866124006L;
 
     /**
-     * Save the state of the <tt>TreeMap</tt> instance to a stream (i.e.,
+     * Save the state of the {@code TreeMap} instance to a stream (i.e.,
      * serialize it).
      *
-     * @serialData The <i>size</i> of the TreeMap (the number of key-value
+     * @serialData The <em>size</em> of the TreeMap (the number of key-value
      *             mappings) is emitted (int), followed by the key (Object)
      *             and value (Object) for each key-value mapping represented
      *             by the TreeMap. The key-value mappings are emitted in
@@ -2254,7 +2276,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Reconstitute the <tt>TreeMap</tt> instance from a stream (i.e.,
+     * Reconstitute the {@code TreeMap} instance from a stream (i.e.,
      * deserialize it).
      */
     private void readObject(final java.io.ObjectInputStream s)
@@ -2276,11 +2298,11 @@ public class TreeMap<K,V>
 
     /** Intended to be called only from TreeSet.addAll */
     void addAllForTreeSet(SortedSet<? extends K> set, V defaultVal) {
-	try {
-	    buildFromSorted(set.size(), set.iterator(), null, defaultVal);
-	} catch (java.io.IOException cannotHappen) {
-	} catch (ClassNotFoundException cannotHappen) {
-	}
+        try {
+            buildFromSorted(set.size(), set.iterator(), null, defaultVal);
+        } catch (java.io.IOException cannotHappen) {
+        } catch (ClassNotFoundException cannotHappen) {
+        }
     }
 
 
@@ -2315,12 +2337,12 @@ public class TreeMap<K,V>
      *         This cannot occur if str is null.
      */
     private void buildFromSorted(int size, Iterator it,
-				 java.io.ObjectInputStream str,
-				 V defaultVal)
+                                 java.io.ObjectInputStream str,
+                                 V defaultVal)
         throws  java.io.IOException, ClassNotFoundException {
         this.size = size;
         root = buildFromSorted(0, 0, size-1, computeRedLevel(size),
-			       it, str, defaultVal);
+                               it, str, defaultVal);
     }
 
     /**
@@ -2338,10 +2360,10 @@ public class TreeMap<K,V>
      *        Must be equal to computeRedLevel for tree of this size.
      */
     private final Entry<K,V> buildFromSorted(int level, int lo, int hi,
-					     int redLevel,
-					     Iterator it,
-					     java.io.ObjectInputStream str,
-					     V defaultVal)
+                                             int redLevel,
+                                             Iterator it,
+                                             java.io.ObjectInputStream str,
+                                             V defaultVal)
         throws  java.io.IOException, ClassNotFoundException {
         /*
          * Strategy: The root is the middlemost element. To get to it, we
@@ -2357,12 +2379,12 @@ public class TreeMap<K,V>
 
         if (hi < lo) return null;
 
-        int mid = (lo + hi) / 2;
+        int mid = (lo + hi) >>> 1;
 
         Entry<K,V> left  = null;
         if (lo < mid)
             left = buildFromSorted(level+1, lo, mid - 1, redLevel,
-				   it, str, defaultVal);
+                                   it, str, defaultVal);
 
         // extract key and/or value from iterator or stream
         K key;
@@ -2381,7 +2403,7 @@ public class TreeMap<K,V>
             value = (defaultVal != null ? defaultVal : (V) str.readObject());
         }
 
-        Entry<K,V> middle =  new Entry<K,V>(key, value, null);
+        Entry<K,V> middle =  new Entry<>(key, value, null);
 
         // color nodes in non-full bottommost level red
         if (level == redLevel)
@@ -2394,7 +2416,7 @@ public class TreeMap<K,V>
 
         if (mid < hi) {
             Entry<K,V> right = buildFromSorted(level+1, mid+1, hi, redLevel,
-					       it, str, defaultVal);
+                                               it, str, defaultVal);
             middle.right = right;
             right.parent = middle;
         }

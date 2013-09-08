@@ -1,8 +1,26 @@
 /*
- * @(#)Processor.java	1.13 06/08/28
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.annotation.processing;
@@ -40,7 +58,7 @@ import javax.lang.model.SourceVersion;
  *
  * <li>Next, the tool calls the {@link #init init} method with
  * an appropriate {@code ProcessingEnvironment}.
- * 
+ *
  * <li>Afterwards, the tool calls {@link #getSupportedAnnotationTypes
  * getSupportedAnnotationTypes}, {@link #getSupportedOptions
  * getSupportedOptions}, and {@link #getSupportedSourceVersion
@@ -107,7 +125,7 @@ import javax.lang.model.SourceVersion;
  * processors that access environmental resources, either {@linkplain
  * RoundEnvironment per round} or {@linkplain ProcessingEnvironment
  * cross-round}, in a multi-threaded fashion.
- * 
+ *
  * <p>If the methods that return configuration information about the
  * annotation processor return {@code null}, return other invalid
  * input, or throw an exception, the tool infrastructure must treat
@@ -138,11 +156,10 @@ import javax.lang.model.SourceVersion;
  * <p>Note that implementors of this interface may find it convenient
  * to extend {@link AbstractProcessor} rather than implementing this
  * interface directly.
- * 
+ *
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.13 06/08/28
  * @since 1.6
  */
 public interface Processor {
@@ -175,7 +192,7 @@ public interface Processor {
      * options provided by a user are unrecognized by any processor,
      * in which case it may wish to report a warning.
      *
-     * @return the options recognized by this processor or an 
+     * @return the options recognized by this processor or an
      *         empty collection if none
      * @see javax.annotation.processing.SupportedOptions
      */
@@ -192,7 +209,7 @@ public interface Processor {
      * including the empty set.  Note that a processor should not
      * claim {@code "*"} unless it is actually processing all files;
      * claiming unnecessary annotations may cause a performance
-     * slowdown in some environments. 
+     * slowdown in some environments.
      *
      * <p>Each string returned in the set must be accepted by the
      * following grammar:
@@ -208,12 +225,13 @@ public interface Processor {
      * </dl>
      * </blockquote>
      *
-     * where <i>TypeName</i> is as defined in the <i>Java Language Specification</i>.
-     * 
+     * where <i>TypeName</i> is as defined in
+     * <cite>The Java&trade; Language Specification</cite>.
+     *
      * @return the names of the annotation types supported by this processor
      * @see javax.annotation.processing.SupportedAnnotationTypes
-     * @jls3 3.8 Identifiers
-     * @jls3 6.5.5 Meaning of Type Names
+     * @jls 3.8 Identifiers
+     * @jls 6.5.5 Meaning of Type Names
      */
     Set<String> getSupportedAnnotationTypes();
 
@@ -230,7 +248,7 @@ public interface Processor {
 
     /**
      * Initializes the processor with the processing environment.
-     * 
+     *
      * @param processingEnv environment for facilities the tool framework
      * provides to the processor
      */
@@ -256,7 +274,7 @@ public interface Processor {
      * @return whether or not the set of annotations are claimed by this processor
      */
     boolean process(Set<? extends TypeElement> annotations,
-		    RoundEnvironment roundEnv);
+                    RoundEnvironment roundEnv);
 
    /**
     * Returns to the tool infrastructure an iterable of suggested
@@ -386,8 +404,7 @@ public interface Processor {
     * @return suggested completions to the annotation
     */
     Iterable<? extends Completion> getCompletions(Element element,
-						  AnnotationMirror annotation,
-						  ExecutableElement member,
-						  String userText);
+                                                  AnnotationMirror annotation,
+                                                  ExecutableElement member,
+                                                  String userText);
 }
-

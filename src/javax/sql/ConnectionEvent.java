@@ -1,8 +1,26 @@
 /*
- * @(#)ConnectionEvent.java	1.11 06/04/16
+ * Copyright (c) 2000, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.sql;
@@ -35,12 +53,12 @@ public class ConnectionEvent extends java.util.EventObject {
    * @throws IllegalArgumentException if <code>con</code> is null.
    */
   public ConnectionEvent(PooledConnection con) {
-    super(con);         
+    super(con);
   }
 
   /**
    * <P>Constructs a <code>ConnectionEvent</code> object initialized with
-   * the given <code>PooledConnection</code> object and 
+   * the given <code>PooledConnection</code> object and
    * <code>SQLException</code> object.
    *
    * @param con the pooled connection that is the source of the event
@@ -48,10 +66,10 @@ public class ConnectionEvent extends java.util.EventObject {
    * @throws IllegalArgumentException if <code>con</code> is null.
    */
   public ConnectionEvent(PooledConnection con, SQLException ex) {
-    super(con);  
+    super(con);
     this.ex = ex;
   }
- 
+
   /**
    * <P>Retrieves the <code>SQLException</code> for this
    * <code>ConnectionEvent</code> object. May be <code>null</code>.
@@ -74,9 +92,4 @@ public class ConnectionEvent extends java.util.EventObject {
    */
   static final long serialVersionUID = -4843217645290030002L;
 
- } 
-
-
-
-
-
+ }

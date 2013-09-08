@@ -1,8 +1,26 @@
 /*
- * @(#)InputStreamReader.java	1.47 05/11/17
+ * Copyright (c) 1996, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.io;
@@ -37,7 +55,6 @@ import sun.nio.cs.StreamDecoder;
  * @see InputStream
  * @see java.nio.charset.Charset
  *
- * @version     1.47, 05/11/17
  * @author      Mark Reinhold
  * @since       JDK1.1
  */
@@ -52,13 +69,13 @@ public class InputStreamReader extends Reader {
      * @param  in   An InputStream
      */
     public InputStreamReader(InputStream in) {
-	super(in);
+        super(in);
         try {
-	    sd = StreamDecoder.forInputStreamReader(in, this, (String)null); // ## check lock object
+            sd = StreamDecoder.forInputStreamReader(in, this, (String)null); // ## check lock object
         } catch (UnsupportedEncodingException e) {
-	    // The default encoding should always be available
-	    throw new Error(e);
-	}
+            // The default encoding should always be available
+            throw new Error(e);
+        }
     }
 
     /**
@@ -77,10 +94,10 @@ public class InputStreamReader extends Reader {
     public InputStreamReader(InputStream in, String charsetName)
         throws UnsupportedEncodingException
     {
-	super(in);
-	if (charsetName == null)
-	    throw new NullPointerException("charsetName");
-	sd = StreamDecoder.forInputStreamReader(in, this, charsetName);
+        super(in);
+        if (charsetName == null)
+            throw new NullPointerException("charsetName");
+        sd = StreamDecoder.forInputStreamReader(in, this, charsetName);
     }
 
     /**
@@ -94,9 +111,9 @@ public class InputStreamReader extends Reader {
      */
     public InputStreamReader(InputStream in, Charset cs) {
         super(in);
-	if (cs == null)
-	    throw new NullPointerException("charset");
-	sd = StreamDecoder.forInputStreamReader(in, this, cs);
+        if (cs == null)
+            throw new NullPointerException("charset");
+        sd = StreamDecoder.forInputStreamReader(in, this, cs);
     }
 
     /**
@@ -110,9 +127,9 @@ public class InputStreamReader extends Reader {
      */
     public InputStreamReader(InputStream in, CharsetDecoder dec) {
         super(in);
-	if (dec == null)
-	    throw new NullPointerException("charset decoder");
-	sd = StreamDecoder.forInputStreamReader(in, this, dec);
+        if (dec == null)
+            throw new NullPointerException("charset decoder");
+        sd = StreamDecoder.forInputStreamReader(in, this, dec);
     }
 
     /**
@@ -136,7 +153,7 @@ public class InputStreamReader extends Reader {
      * @spec JSR-51
      */
     public String getEncoding() {
-	return sd.getEncoding();
+        return sd.getEncoding();
     }
 
     /**
@@ -158,13 +175,13 @@ public class InputStreamReader extends Reader {
      * @param      offset   Offset at which to start storing characters
      * @param      length   Maximum number of characters to read
      *
-     * @return     The number of characters read, or -1 if the end of the 
+     * @return     The number of characters read, or -1 if the end of the
      *             stream has been reached
      *
      * @exception  IOException  If an I/O error occurs
      */
     public int read(char cbuf[], int offset, int length) throws IOException {
-	return sd.read(cbuf, offset, length);
+        return sd.read(cbuf, offset, length);
     }
 
     /**
@@ -175,10 +192,10 @@ public class InputStreamReader extends Reader {
      * @exception  IOException  If an I/O error occurs
      */
     public boolean ready() throws IOException {
-	return sd.ready();
+        return sd.ready();
     }
 
     public void close() throws IOException {
-	sd.close();
+        sd.close();
     }
 }

@@ -1,8 +1,26 @@
 /*
- * @(#)TreeCellEditor.java	1.17 06/04/11
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.tree;
@@ -17,7 +35,6 @@ import javax.swing.JTree;
   *
   * @see javax.swing.JTree
   *
-  * @version 1.17 04/11/06
   * @author Scott Violet
   */
 
@@ -32,17 +49,17 @@ public interface TreeCellEditor extends CellEditor
      * Component hierarchy.  Once installed in the client's hierarchy
      * this component will then be able to draw and receive user input.
      *
-     * @param	tree		the JTree that is asking the editor to edit;
-     *				this parameter can be null
-     * @param	value		the value of the cell to be edited
-     * @param	isSelected	true if the cell is to be rendered with
-     *				selection highlighting
-     * @param	expanded	true if the node is expanded
-     * @param	leaf		true if the node is a leaf node
-     * @param	row		the row index of the node being edited
-     * @return	the component for editing
+     * @param   tree            the JTree that is asking the editor to edit;
+     *                          this parameter can be null
+     * @param   value           the value of the cell to be edited
+     * @param   isSelected      true if the cell is to be rendered with
+     *                          selection highlighting
+     * @param   expanded        true if the node is expanded
+     * @param   leaf            true if the node is a leaf node
+     * @param   row             the row index of the node being edited
+     * @return  the component for editing
      */
     Component getTreeCellEditorComponent(JTree tree, Object value,
-					 boolean isSelected, boolean expanded,
-					 boolean leaf, int row);
+                                         boolean isSelected, boolean expanded,
+                                         boolean leaf, int row);
 }

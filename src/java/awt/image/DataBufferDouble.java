@@ -1,17 +1,51 @@
 /*
- * @(#)DataBufferDouble.java	1.7 05/11/17
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.image;
 
+import static sun.java2d.StateTrackable.State.*;
+
 /**
  * This class extends <code>DataBuffer</code> and stores data internally
  * in <code>double</code> form.
+ * <p>
+ * <a name="optimizations">
+ * Note that some implementations may function more efficiently
+ * if they can maintain control over how the data for an image is
+ * stored.
+ * For example, optimizations such as caching an image in video
+ * memory require that the implementation track all modifications
+ * to that data.
+ * Other implementations may operate better if they can store the
+ * data in locations other than a Java array.
+ * To maintain optimum compatibility with various optimizations
+ * it is best to avoid constructors and methods which expose the
+ * underlying storage as a Java array as noted below in the
+ * documentation for those methods.
+ * </a>
  *
- * @see DataBuffer
  * @since 1.4
  */
 
@@ -30,7 +64,7 @@ public final class DataBufferDouble extends DataBuffer {
      * @param size The number of elements in the <code>DataBuffer</code>.
      */
     public DataBufferDouble(int size) {
-        super(TYPE_DOUBLE, size);
+        super(STABLE, TYPE_DOUBLE, size);
         data = new double[size];
         bankdata = new double[1][];
         bankdata[0] = data;
@@ -46,7 +80,7 @@ public final class DataBufferDouble extends DataBuffer {
      * @param numBanks The number of banks in the <code>DataBuffer</code>.
      */
     public DataBufferDouble(int size, int numBanks) {
-        super(TYPE_DOUBLE, size, numBanks);
+        super(STABLE, TYPE_DOUBLE, size, numBanks);
         bankdata = new double[numBanks][];
         for (int i= 0; i < numBanks; i++) {
             bankdata[i] = new double[size];
@@ -60,13 +94,18 @@ public final class DataBufferDouble extends DataBuffer {
      * <code>size</code> elements are available for use by this
      * <code>DataBuffer</code>.  The array must be large enough to
      * hold <code>size</code> elements.
+     * <p>
+     * Note that {@code DataBuffer} objects created by this constructor
+     * may be incompatible with <a href="#optimizations">performance
+     * optimizations</a> used by some implementations (such as caching
+     * an associated image in video memory).
      *
      * @param dataArray An array of <code>double</code>s to be used as the
      *                  first and only bank of this <code>DataBuffer</code>.
      * @param size The number of elements of the array to be used.
      */
     public DataBufferDouble(double dataArray[], int size) {
-        super(TYPE_DOUBLE, size);
+        super(UNTRACKABLE, TYPE_DOUBLE, size);
         data = dataArray;
         bankdata = new double[1][];
         bankdata[0] = data;
@@ -78,6 +117,11 @@ public final class DataBufferDouble extends DataBuffer {
      * <code>offset</code> and <code>offset + size - 1</code> are
      * available for use by this <code>DataBuffer</code>.  The array
      * must be large enough to hold <code>offset + size</code> elements.
+     * <p>
+     * Note that {@code DataBuffer} objects created by this constructor
+     * may be incompatible with <a href="#optimizations">performance
+     * optimizations</a> used by some implementations (such as caching
+     * an associated image in video memory).
      *
      * @param dataArray An array of <code>double</code>s to be used as the
      *                  first and only bank of this <code>DataBuffer</code>.
@@ -86,7 +130,7 @@ public final class DataBufferDouble extends DataBuffer {
      *               that will be used.
      */
     public DataBufferDouble(double dataArray[], int size, int offset) {
-        super(TYPE_DOUBLE, size, 1, offset);
+        super(UNTRACKABLE, TYPE_DOUBLE, size, 1, offset);
         data = dataArray;
         bankdata = new double[1][];
         bankdata[0] = data;
@@ -98,13 +142,18 @@ public final class DataBufferDouble extends DataBuffer {
      * <code>size</code> elements of each array are available for use
      * by this <code>DataBuffer</code>.  The number of banks will be
      * equal <code>to dataArray.length</code>.
+     * <p>
+     * Note that {@code DataBuffer} objects created by this constructor
+     * may be incompatible with <a href="#optimizations">performance
+     * optimizations</a> used by some implementations (such as caching
+     * an associated image in video memory).
      *
      * @param dataArray An array of arrays of <code>double</code>s to be
      *        used as the banks of this <code>DataBuffer</code>.
      * @param size The number of elements of each array to be used.
      */
     public DataBufferDouble(double dataArray[][], int size) {
-        super(TYPE_DOUBLE, size, dataArray.length);
+        super(UNTRACKABLE, TYPE_DOUBLE, size, dataArray.length);
         bankdata = (double[][]) dataArray.clone();
         data = bankdata[0];
     }
@@ -116,6 +165,11 @@ public final class DataBufferDouble extends DataBuffer {
      * must be at least as large as <code>size</code> plus the
      * corresponding offset.  There must be an entry in the
      * <code>offsets</code> array for each data array.
+     * <p>
+     * Note that {@code DataBuffer} objects created by this constructor
+     * may be incompatible with <a href="#optimizations">performance
+     * optimizations</a> used by some implementations (such as caching
+     * an associated image in video memory).
      *
      * @param dataArray An array of arrays of <code>double</code>s to be
      *        used as the banks of this <code>DataBuffer</code>.
@@ -123,36 +177,57 @@ public final class DataBufferDouble extends DataBuffer {
      * @param offsets An array of integer offsets, one for each bank.
      */
     public DataBufferDouble(double dataArray[][], int size, int offsets[]) {
-        super(TYPE_DOUBLE, size, dataArray.length, offsets);
+        super(UNTRACKABLE, TYPE_DOUBLE, size, dataArray.length, offsets);
         bankdata = (double[][]) dataArray.clone();
         data = bankdata[0];
     }
 
-    /** 
-     * Returns the default (first) <code>double</code> data array. 
+    /**
+     * Returns the default (first) <code>double</code> data array.
+     * <p>
+     * Note that calling this method may cause this {@code DataBuffer}
+     * object to be incompatible with <a href="#optimizations">performance
+     * optimizations</a> used by some implementations (such as caching
+     * an associated image in video memory).
+     *
      * @return the first double data array.
      */
     public double[] getData() {
+        theTrackable.setUntrackable();
         return data;
     }
 
-    /** 
-     * Returns the data array for the specified bank. 
+    /**
+     * Returns the data array for the specified bank.
+     * <p>
+     * Note that calling this method may cause this {@code DataBuffer}
+     * object to be incompatible with <a href="#optimizations">performance
+     * optimizations</a> used by some implementations (such as caching
+     * an associated image in video memory).
+     *
      * @param bank the data array
      * @return the data array specified by <code>bank</code>.
      */
     public double[] getData(int bank) {
+        theTrackable.setUntrackable();
         return bankdata[bank];
     }
 
-    /** 
-     * Returns the data array for all banks. 
+    /**
+     * Returns the data array for all banks.
+     * <p>
+     * Note that calling this method may cause this {@code DataBuffer}
+     * object to be incompatible with <a href="#optimizations">performance
+     * optimizations</a> used by some implementations (such as caching
+     * an associated image in video memory).
+     *
      * @return all data arrays from this data buffer.
      */
     public double[][] getBankData() {
+        theTrackable.setUntrackable();
         return (double[][]) bankdata.clone();
     }
-    
+
     /**
      * Returns the requested data array element from the first
      * (default) bank as an <code>int</code>.
@@ -192,6 +267,7 @@ public final class DataBufferDouble extends DataBuffer {
      */
     public void setElem(int i, int val) {
         data[i+offset] = (double)val;
+        theTrackable.markDirty();
     }
 
     /**
@@ -206,6 +282,7 @@ public final class DataBufferDouble extends DataBuffer {
      */
     public void setElem(int bank, int i, int val) {
         bankdata[bank][i+offsets[bank]] = (double)val;
+        theTrackable.markDirty();
     }
 
     /**
@@ -221,7 +298,7 @@ public final class DataBufferDouble extends DataBuffer {
     public float getElemFloat(int i) {
         return (float)data[i+offset];
     }
- 
+
     /**
      * Returns the requested data array element from the specified
      * bank as a <code>float</code>.
@@ -236,7 +313,7 @@ public final class DataBufferDouble extends DataBuffer {
     public float getElemFloat(int bank, int i) {
         return (float)bankdata[bank][i+offsets[bank]];
     }
- 
+
     /**
      * Sets the requested data array element in the first (default)
      * bank to the given <code>float</code>.
@@ -248,8 +325,9 @@ public final class DataBufferDouble extends DataBuffer {
      */
     public void setElemFloat(int i, float val) {
         data[i+offset] = (double)val;
+        theTrackable.markDirty();
     }
- 
+
     /**
      * Sets the requested data array element in the specified bank to
      * the given <code>float</code>.
@@ -257,11 +335,12 @@ public final class DataBufferDouble extends DataBuffer {
      * @param bank The bank number.
      * @param i The desired data array element.
      * @param val The value to be set.
-     * @see #getElemFloat(int)       
+     * @see #getElemFloat(int)
      * @see #getElemFloat(int, int)
      */
     public void setElemFloat(int bank, int i, float val) {
         bankdata[bank][i+offsets[bank]] = (double)val;
+        theTrackable.markDirty();
     }
 
     /**
@@ -271,13 +350,13 @@ public final class DataBufferDouble extends DataBuffer {
      * @param i The desired data array element.
      *
      * @return The data entry as a <code>double</code>.
-     * @see #setElemDouble(int, double)  
+     * @see #setElemDouble(int, double)
      * @see #setElemDouble(int, int, double)
      */
     public double getElemDouble(int i) {
         return data[i+offset];
     }
- 
+
     /**
      * Returns the requested data array element from the specified
      * bank as a <code>double</code>.
@@ -292,7 +371,7 @@ public final class DataBufferDouble extends DataBuffer {
     public double getElemDouble(int bank, int i) {
         return bankdata[bank][i+offsets[bank]];
     }
- 
+
     /**
      * Sets the requested data array element in the first (default)
      * bank to the given <code>double</code>.
@@ -304,8 +383,9 @@ public final class DataBufferDouble extends DataBuffer {
      */
     public void setElemDouble(int i, double val) {
         data[i+offset] = val;
+        theTrackable.markDirty();
     }
- 
+
     /**
      * Sets the requested data array element in the specified bank to
      * the given <code>double</code>.
@@ -313,10 +393,11 @@ public final class DataBufferDouble extends DataBuffer {
      * @param bank The bank number.
      * @param i The desired data array element.
      * @param val The value to be set.
-     * @see #getElemDouble(int)        
+     * @see #getElemDouble(int)
      * @see #getElemDouble(int, int)
      */
     public void setElemDouble(int bank, int i, double val) {
         bankdata[bank][i+offsets[bank]] = val;
+        theTrackable.markDirty();
     }
 }

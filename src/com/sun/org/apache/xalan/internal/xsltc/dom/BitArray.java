@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,25 +45,25 @@ public class BitArray implements Externalizable {
     // This table is used to prevent expensive shift operations
     // (These operations are inexpensive on CPUs but very expensive on JVMs.)
     private final static int[] _masks = {
-	0x80000000, 0x40000000, 0x20000000, 0x10000000,
-	0x08000000, 0x04000000, 0x02000000, 0x01000000,
-	0x00800000, 0x00400000, 0x00200000, 0x00100000,
-	0x00080000, 0x00040000, 0x00020000, 0x00010000,
-	0x00008000, 0x00004000, 0x00002000, 0x00001000,
-	0x00000800, 0x00000400, 0x00000200, 0x00000100,
-	0x00000080, 0x00000040, 0x00000020, 0x00000010,
-	0x00000008, 0x00000004, 0x00000002, 0x00000001 };
+        0x80000000, 0x40000000, 0x20000000, 0x10000000,
+        0x08000000, 0x04000000, 0x02000000, 0x01000000,
+        0x00800000, 0x00400000, 0x00200000, 0x00100000,
+        0x00080000, 0x00040000, 0x00020000, 0x00010000,
+        0x00008000, 0x00004000, 0x00002000, 0x00001000,
+        0x00000800, 0x00000400, 0x00000200, 0x00000100,
+        0x00000080, 0x00000040, 0x00000020, 0x00000010,
+        0x00000008, 0x00000004, 0x00000002, 0x00000001 };
 
     private final static boolean DEBUG_ASSERTIONS = false;
-    
+
     /**
      * Constructor. Defines the initial size of the bit array (in bits).
      */
     public BitArray() {
-	this(32);
+        this(32);
     }
 
-    public BitArray(int size) {        
+    public BitArray(int size) {
         if (size < 32) size = 32;
         _bitSize = size;
         _intSize = (_bitSize >>> 5) + 1;
@@ -67,32 +71,32 @@ public class BitArray implements Externalizable {
     }
 
     public BitArray(int size, int[] bits) {
-	if (size < 32) size = 32;
-	_bitSize = size;
-	_intSize = (_bitSize >>> 5) + 1;
-	_bits = bits;
+        if (size < 32) size = 32;
+        _bitSize = size;
+        _intSize = (_bitSize >>> 5) + 1;
+        _bits = bits;
     }
 
     /**
      * Set the mask for this bit array. The upper 8 bits of this mask
      * indicate the DOM in which the nodes in this array belong.
-     */    
+     */
     public void setMask(int mask) {
-	_mask = mask;
+        _mask = mask;
     }
 
     /**
      * See setMask()
      */
     public int getMask() {
-	return(_mask);
+        return(_mask);
     }
 
     /**
      * Returns the size of this bit array (in bits).
      */
     public final int size() {
-	return(_bitSize);
+        return(_bitSize);
     }
 
     /**
@@ -140,38 +144,38 @@ public class BitArray implements Externalizable {
 
     public final int getBitNumber(int pos) {
 
-	// Return last node if position we're looking for is the same
-	if (pos == _pos) return(_node);
-	
-	// Start from beginning of position we're looking for is before
-	// the point where we left off the last time.
-	if (pos < _pos) {
-	    _int = _bit = _pos = 0;
-	}
+        // Return last node if position we're looking for is the same
+        if (pos == _pos) return(_node);
 
-	// Scan through the bit array - skip integers that have no bits set
-	for ( ; _int <= _intSize; _int++) {
-	    int bits = _bits[_int];
-	    if (bits != 0) { // Any bits set?
-		for ( ; _bit < 32; _bit++) {
-		    if ((bits & _masks[_bit]) != 0) {
-			if (++_pos == pos) {
-			    _node = ((_int << 5) + _bit) - 1;
-			    return (_node);
-			}
-		    }
-		}
-		_bit = 0;
-	    }
-	}
-	return(0);
+        // Start from beginning of position we're looking for is before
+        // the point where we left off the last time.
+        if (pos < _pos) {
+            _int = _bit = _pos = 0;
+        }
+
+        // Scan through the bit array - skip integers that have no bits set
+        for ( ; _int <= _intSize; _int++) {
+            int bits = _bits[_int];
+            if (bits != 0) { // Any bits set?
+                for ( ; _bit < 32; _bit++) {
+                    if ((bits & _masks[_bit]) != 0) {
+                        if (++_pos == pos) {
+                            _node = ((_int << 5) + _bit) - 1;
+                            return (_node);
+                        }
+                    }
+                }
+                _bit = 0;
+            }
+        }
+        return(0);
     }
 
     /**
      * Returns the integer array in which the bit array is contained
      */
     public final int[] data() {
-	return(_bits);
+        return(_bits);
     }
 
     int _first = Integer.MAX_VALUE; // The index where first set bit is
@@ -200,65 +204,65 @@ public class BitArray implements Externalizable {
      * a single DOM (because there is only one _mask per array).
      */
     public final BitArray merge(BitArray other) {
-	// Take other array's bits if we have node set
-	if (_last == -1) {
-	    _bits = other._bits;
-	}
-	// Only merge if other array has any bits set
-	else if (other._last != -1) {
-	    int start = (_first < other._first) ? _first : other._first;
-	    int stop  = (_last > other._last) ? _last : other._last;
+        // Take other array's bits if we have node set
+        if (_last == -1) {
+            _bits = other._bits;
+        }
+        // Only merge if other array has any bits set
+        else if (other._last != -1) {
+            int start = (_first < other._first) ? _first : other._first;
+            int stop  = (_last > other._last) ? _last : other._last;
 
-	    // Merge these bits into other array if other array is larger
-	    if (other._intSize > _intSize) {
-		if (stop > _intSize) stop = _intSize;
-		for (int i=start; i<=stop; i++)
-		    other._bits[i] |= _bits[i];
-		_bits = other._bits;
-	    }
-	    // Merge other bits into this array if this arrai is large/equal.
-	    else {
-		if (stop > other._intSize) stop = other._intSize;
-		for (int i=start; i<=stop; i++)
-		    _bits[i] |= other._bits[i];
-	    }
-	}
-	return(this);
+            // Merge these bits into other array if other array is larger
+            if (other._intSize > _intSize) {
+                if (stop > _intSize) stop = _intSize;
+                for (int i=start; i<=stop; i++)
+                    other._bits[i] |= _bits[i];
+                _bits = other._bits;
+            }
+            // Merge other bits into this array if this arrai is large/equal.
+            else {
+                if (stop > other._intSize) stop = other._intSize;
+                for (int i=start; i<=stop; i++)
+                    _bits[i] |= other._bits[i];
+            }
+        }
+        return(this);
     }
 
     /**
      * Resizes the bit array - try to avoid using this method!!!
      */
     public final void resize(int newSize) {
-	if (newSize > _bitSize) {
-	    _intSize = (newSize >>> 5) + 1;
-	    final int[] newBits = new int[_intSize + 1];
-	    System.arraycopy(_bits, 0, newBits, 0, (_bitSize>>>5) + 1);
-	    _bits = newBits;
-	    _bitSize = newSize;
-	}
+        if (newSize > _bitSize) {
+            _intSize = (newSize >>> 5) + 1;
+            final int[] newBits = new int[_intSize + 1];
+            System.arraycopy(_bits, 0, newBits, 0, (_bitSize>>>5) + 1);
+            _bits = newBits;
+            _bitSize = newSize;
+        }
     }
 
     public BitArray cloneArray() {
-	return(new BitArray(_intSize, _bits));
+        return(new BitArray(_intSize, _bits));
     }
 
     public void writeExternal(ObjectOutput out) throws IOException {
-	out.writeInt(_bitSize);
-	out.writeInt(_mask);
-	out.writeObject(_bits);
-	out.flush();
+        out.writeInt(_bitSize);
+        out.writeInt(_mask);
+        out.writeObject(_bits);
+        out.flush();
     }
 
     /**
      * Read the whole tree from a file (serialized)
      */
     public void readExternal(ObjectInput in)
-	throws IOException, ClassNotFoundException {
-	_bitSize = in.readInt();
-	_intSize = (_bitSize >>> 5) + 1;
-	_mask    = in.readInt();
-	_bits    = (int[])in.readObject();
+        throws IOException, ClassNotFoundException {
+        _bitSize = in.readInt();
+        _intSize = (_bitSize >>> 5) + 1;
+        _mask    = in.readInt();
+        _bits    = (int[])in.readObject();
     }
 
 }

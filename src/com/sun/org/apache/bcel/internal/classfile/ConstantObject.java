@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -54,11 +58,10 @@ package com.sun.org.apache.bcel.internal.classfile;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * This interface denotes those constants that have a "natural" value,
  * such as ConstantLong, ConstantString, etc..
  *
- * @version $Id: ConstantObject.java,v 1.1.2.1 2005/07/31 23:46:25 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  * @see     Constant
  */

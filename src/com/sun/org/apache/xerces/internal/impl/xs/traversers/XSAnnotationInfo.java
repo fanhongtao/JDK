@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,36 +26,35 @@ import com.sun.org.apache.xerces.internal.impl.xs.opti.ElementImpl;
  * Objects of this class contain the textual representation of
  * an XML schema annotation as well as information on the location
  * of the annotation in the document it originated from.
- * 
+ *
  * @xerces.internal
- * 
+ *
  * @author Michael Glavassevich, IBM
- * @version $Id: XSAnnotationInfo.java,v 1.1.4.1 2005/09/09 07:48:53 sunithareddy Exp $
  */
 final class XSAnnotationInfo {
 
     /** Textual representation of annotation. **/
     String fAnnotation;
-    
+
     /** Line number of &lt;annotation&gt; element. **/
     int fLine;
-    
+
     /** Column number of &lt;annotation&gt; element. **/
     int fColumn;
-    
+
     /** Character offset of &lt;annotation&gt; element. **/
     int fCharOffset;
-    
+
     /** Next annotation. **/
     XSAnnotationInfo next;
-    
+
     XSAnnotationInfo(String annotation, int line, int column, int charOffset) {
         fAnnotation = annotation;
         fLine = line;
         fColumn = column;
         fCharOffset = charOffset;
     }
-    
+
     XSAnnotationInfo(String annotation, Element annotationDecl) {
         fAnnotation = annotation;
         if (annotationDecl instanceof ElementImpl) {

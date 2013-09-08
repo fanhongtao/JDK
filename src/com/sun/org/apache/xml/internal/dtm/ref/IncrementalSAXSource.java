@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +31,7 @@ import org.xml.sax.SAXException;
  * SAX events each time a request is made from a "controller"
  * coroutine.  See IncrementalSAXFilter and IncrementalSAXFilter_Xerces
  * for examples.
- * 
+ *
  * Note that interaction is via the deliverMoreNodes
  * method, and therefore coroutine support is not exposed
  * here.</p>
@@ -83,5 +87,5 @@ public interface IncrementalSAXSource
    * or parsing can not be started.
    * */
   public void startParse(InputSource source) throws SAXException;
-    
+
 } // class IncrementalSAXSource

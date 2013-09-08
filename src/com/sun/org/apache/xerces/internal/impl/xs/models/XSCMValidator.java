@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,6 +25,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.SubstitutionGroupHandler;
 import com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaException;
 
 import java.util.Vector;
+import java.util.ArrayList;
 
 /**
  * Note: State of the content model is stored in the validator
@@ -29,7 +34,7 @@ import java.util.Vector;
  *
  * @author Sandy Gao, IBM
  * @author Elena Litani, IBM
- * @version $Id: XSCMValidator.java,v 1.3 2005/09/26 13:02:40 sunithareddy Exp $
+ * @version $Id: XSCMValidator.java,v 1.6 2009/07/28 15:18:12 spericas Exp $
  */
 public interface XSCMValidator {
 
@@ -87,17 +92,20 @@ public interface XSCMValidator {
      *               either XSWildcardDecl or XSElementDecl.
      */
     public Vector whatCanGoHere(int[] state);
-    
+
     /**
-     * Allows the user to get arbitrary data originally set on the content 
-     * model node used to create this validator.
+     * Used by constant space algorithm for a{n,m} for n > 1 and
+     * m <= unbounded. Called by a validator if validation of
+     * countent model succeeds after subsuming a{n,m} to a*
+     * (or a+) to check the n and m bounds.
+     * Returns <code>null</code> if validation of bounds is
+     * successful. Returns a list of strings with error info
+     * if not. Even entries in list returned are error codes
+     * (used to look up properties) and odd entries are parameters
+     * to be passed when formatting error message. Each parameter
+     * is associated with the error code that preceeds it in
+     * the list.
      */
-    public Object getUserData();
-    
-    /**
-     * Return the number of times the <code>oneTransition()</code> method 
-     * was called, resulting on the validator to move into a non-error state. 
-     */ 
-    public int getOneTransitionCounter();
+    public ArrayList checkMinMaxBounds();
     
 } // XSCMValidator

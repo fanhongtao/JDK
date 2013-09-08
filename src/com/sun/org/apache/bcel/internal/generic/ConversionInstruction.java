@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,7 +61,6 @@ import com.sun.org.apache.bcel.internal.Constants;
 /**
  * Super class for the x2y family of instructions.
  *
- * @version $Id: ConversionInstruction.java,v 1.1.2.1 2005/07/31 23:45:47 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class ConversionInstruction extends Instruction
@@ -80,7 +83,7 @@ public abstract class ConversionInstruction extends Instruction
   public Type getType(ConstantPoolGen cp) {
     switch(opcode) {
     case Constants.D2I: case Constants.F2I: case Constants.L2I:
-      return Type.INT;   
+      return Type.INT;
     case Constants.D2F: case Constants.I2F: case Constants.L2F:
       return Type.FLOAT;
     case Constants.D2L: case Constants.F2L: case Constants.I2L:
@@ -93,10 +96,9 @@ public abstract class ConversionInstruction extends Instruction
       return Type.CHAR;
     case Constants.I2S:
       return Type.SHORT;
- 
+
     default: // Never reached
       throw new ClassGenException("Unknown type " + opcode);
     }
   }
 }
-

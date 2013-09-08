@@ -1,8 +1,26 @@
 /*
- * @(#)MonitoringFactories.java	1.4 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.corba.se.spi.monitoring;
 
@@ -16,22 +34,22 @@ import com.sun.corba.se.impl.monitoring.MonitoringManagerFactoryImpl;
  * @author Hemanth Puttaswamy
  * </p>
  * <p>
- *  This is used for getting the default factories for 
+ *  This is used for getting the default factories for
  *  MonitoredObject, MonitoredAttributeInfo and MonitoringManager. We do not
  *  expect users to use the MonitoredAttributeInfo factory most of the time
  *  because the Info is automatically built by StringMonitoredAttributeBase
- *  and LongMonitoredAttributeBase. 
+ *  and LongMonitoredAttributeBase.
  *  </p>
- */   
+ */
 public class MonitoringFactories {
     ///////////////////////////////////////
     // attributes
     private static final MonitoredObjectFactoryImpl monitoredObjectFactory =
         new MonitoredObjectFactoryImpl( );
-    private static final MonitoredAttributeInfoFactoryImpl 
-        monitoredAttributeInfoFactory = 
+    private static final MonitoredAttributeInfoFactoryImpl
+        monitoredAttributeInfoFactory =
         new MonitoredAttributeInfoFactoryImpl( );
-    private static final MonitoringManagerFactoryImpl monitoringManagerFactory = 
+    private static final MonitoringManagerFactoryImpl monitoringManagerFactory =
         new MonitoringManagerFactoryImpl( );
 
 
@@ -40,11 +58,11 @@ public class MonitoringFactories {
 
 /**
  * <p>
- * Gets the MonitoredObjectFactory 
+ * Gets the MonitoredObjectFactory
  * </p>
  * <p>
  *
- * @return a MonitoredObjectFactory 
+ * @return a MonitoredObjectFactory
  * </p>
  */
     public static MonitoredObjectFactory getMonitoredObjectFactory( ) {
@@ -54,21 +72,21 @@ public class MonitoringFactories {
 /**
  * <p>
  * Gets the MonitoredAttributeInfoFactory. The user is not expected to use this
- * Factory, since the MonitoredAttributeInfo is internally created by 
- * StringMonitoredAttributeBase, LongMonitoredAttributeBase and 
+ * Factory, since the MonitoredAttributeInfo is internally created by
+ * StringMonitoredAttributeBase, LongMonitoredAttributeBase and
  * StatisticMonitoredAttribute. If User wants to create a MonitoredAttribute
  * of some other special type like a DoubleMonitoredAttribute, they can
  * build a DoubleMonitoredAttributeBase like LongMonitoredAttributeBase
- * and build a MonitoredAttributeInfo required by MonitoredAttributeBase 
- * internally by using this Factory. 
+ * and build a MonitoredAttributeInfo required by MonitoredAttributeBase
+ * internally by using this Factory.
  * </p>
  * <p>
  *
  * @return a MonitoredAttributeInfoFactory
  * </p>
  */
-    public static MonitoredAttributeInfoFactory 
-        getMonitoredAttributeInfoFactory( ) 
+    public static MonitoredAttributeInfoFactory
+        getMonitoredAttributeInfoFactory( )
     {
         return monitoredAttributeInfoFactory;
     }
@@ -76,8 +94,8 @@ public class MonitoringFactories {
 /**
  * <p>
  * Gets the MonitoredManagerFactory. The user is not expected to use this
- * Factory, since the ORB will be automatically initialized with the 
- * MonitoringManager. 
+ * Factory, since the ORB will be automatically initialized with the
+ * MonitoringManager.
  *
  * User can get hold of MonitoringManager associated with ORB by calling
  * orb.getMonitoringManager( )

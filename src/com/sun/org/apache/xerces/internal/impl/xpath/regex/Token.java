@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,11 +28,11 @@ import java.util.Hashtable;
  * 
  * @xerces.internal
  *
- * @version $Id: Token.java,v 1.2.6.1 2005/09/06 11:46:35 neerajbj Exp $
+ * @version $Id: Token.java,v 1.7 2010/07/27 05:02:34 joehw Exp $
  */
 class Token implements java.io.Serializable {
 
-    private static final long serialVersionUID = 4049923761862293040L;
+    private static final long serialVersionUID = 8484976002585487481L;
 
     static final boolean COUNTTOKENS = true;
     static int tokens = 0;
@@ -56,7 +60,7 @@ class Token implements java.io.Serializable {
 
     static final int UTF16_MAX = 0x10ffff;
 
-    int type;
+    final int type;
 
     static Token token_dot;
     static Token token_0to9;
@@ -437,35 +441,15 @@ class Token implements java.io.Serializable {
             }
             return FC_TERMINAL;
 
-          case DOT:                             // ****
-            if (isSet(options, RegularExpression.SINGLE_LINE)) {
-                return FC_CONTINUE;             // **** We can not optimize.
-            } else {
-                return FC_CONTINUE;
-                /*
-                result.addRange(0, RegularExpression.LINE_FEED-1);
-                result.addRange(RegularExpression.LINE_FEED+1, RegularExpression.CARRIAGE_RETURN-1);
-                result.addRange(RegularExpression.CARRIAGE_RETURN+1,
-                                RegularExpression.LINE_SEPARATOR-1);
-                result.addRange(RegularExpression.PARAGRAPH_SEPARATOR+1, UTF16_MAX);
-                return 1;
-                */
-            }
+          case DOT:
+              return FC_ANY;
 
           case RANGE:
-            if (isSet(options, RegularExpression.IGNORE_CASE)) {
-                result.mergeRanges(((RangeToken)this).getCaseInsensitiveToken());
-            } else {
-                result.mergeRanges(this);
-            }
+            result.mergeRanges(this);
             return FC_TERMINAL;
 
           case NRANGE:                          // ****
-            if (isSet(options, RegularExpression.IGNORE_CASE)) {
-                result.mergeRanges(Token.complementRanges(((RangeToken)this).getCaseInsensitiveToken()));
-            } else {
-                result.mergeRanges(Token.complementRanges(this));
-            }
+            result.mergeRanges(Token.complementRanges(this));
             return FC_TERMINAL;
 
           case INDEPENDENT:
@@ -609,7 +593,7 @@ class Token implements java.io.Serializable {
         "L", "M", "N", "Z", "C", "P", "S",      // 31-37
     };
 
-    // Schema Rec. {Datatypes} - Punctuation 
+    // Schema Rec. {Datatypes} - Punctuation
     static final int CHAR_INIT_QUOTE  = 29;     // Pi - initial quote
     static final int CHAR_FINAL_QUOTE = 30;     // Pf - final quote
     static final int CHAR_LETTER = 31;
@@ -619,8 +603,8 @@ class Token implements java.io.Serializable {
     static final int CHAR_OTHER = 35;
     static final int CHAR_PUNCTUATION = 36;
     static final int CHAR_SYMBOL = 37;
-    
-    //blockNames in UNICODE 3.1 that supported by XML Schema REC             
+
+    //blockNames in UNICODE 3.1 that supported by XML Schema REC
     private static final String[] blockNames = {
         /*0000..007F;*/ "Basic Latin",
         /*0080..00FF;*/ "Latin-1 Supplement",
@@ -634,7 +618,7 @@ class Token implements java.io.Serializable {
         /*0530..058F;*/ "Armenian",
         /*0590..05FF;*/ "Hebrew",
         /*0600..06FF;*/ "Arabic",
-        /*0700..074F;*/ "Syriac",  
+        /*0700..074F;*/ "Syriac",
         /*0780..07BF;*/ "Thaana",
         /*0900..097F;*/ "Devanagari",
         /*0980..09FF;*/ "Bengali",
@@ -649,7 +633,7 @@ class Token implements java.io.Serializable {
         /*0E00..0E7F;*/ "Thai",
         /*0E80..0EFF;*/ "Lao",
         /*0F00..0FFF;*/ "Tibetan",
-        /*1000..109F;*/ "Myanmar", 
+        /*1000..109F;*/ "Myanmar",
         /*10A0..10FF;*/ "Georgian",
         /*1100..11FF;*/ "Hangul Jamo",
         /*1200..137F;*/ "Ethiopic",
@@ -722,8 +706,8 @@ class Token implements java.io.Serializable {
     //ADD THOSE MANUALLY
     //F0000..FFFFD; "Private Use",
     //100000..10FFFD; "Private Use"
-    //FFF0..FFFD; "Specials", 
-    static final String blockRanges = 
+    //FFF0..FFFD; "Specials",
+    static final String blockRanges =
        "\u0000\u007F\u0080\u00FF\u0100\u017F\u0180\u024F\u0250\u02AF\u02B0\u02FF\u0300\u036F"
         +"\u0370\u03FF\u0400\u04FF\u0530\u058F\u0590\u05FF\u0600\u06FF\u0700\u074F\u0780\u07BF"
         +"\u0900\u097F\u0980\u09FF\u0A00\u0A7F\u0A80\u0AFF\u0B00\u0B7F\u0B80\u0BFF\u0C00\u0C7F\u0C80\u0CFF"
@@ -758,7 +742,7 @@ class Token implements java.io.Serializable {
                 int type;
                 for (int i = 0;  i < 0x10000;  i ++) {
                     type = Character.getType((char)i);
-                    if (type == Character.START_PUNCTUATION || 
+                    if (type == Character.START_PUNCTUATION ||
                         type == Character.END_PUNCTUATION) {
                         //build table of Pi values
                         if (i == 0x00AB || i == 0x2018 || i == 0x201B || i == 0x201C ||
@@ -817,7 +801,7 @@ class Token implements java.io.Serializable {
                         type = CHAR_SYMBOL;
                         break;
                       default:
-                        throw new RuntimeException("com.sun.org.apache.xerces.internal.utils.regex.Token#getRange(): Unknown Unicode category: "+type);
+                        throw new RuntimeException("org.apache.xerces.utils.regex.Token#getRange(): Unknown Unicode category: "+type);
                     }
                     ranges[type].addRange(i, i);
                 } // for all characters
@@ -1044,8 +1028,7 @@ class Token implements java.io.Serializable {
         base_char.subtractRanges(Token.getRange("C", true));
 
         Token virama = Token.createRange();
-        for (int i = 0;  i < Token.viramaString.length();  i ++) {
-            int ch = viramaString.charAt(i);
+        for (int i = 0;  i < Token.viramaString.length(); i++) {
             virama.addRange(i, i);
         }
 
@@ -1092,10 +1075,10 @@ class Token implements java.io.Serializable {
      */
     static class StringToken extends Token implements java.io.Serializable {
 
-        private static final long serialVersionUID = 3257288015452780086L;
-        
+        private static final long serialVersionUID = -4614366944218504172L;
+
         String string;
-        int refNumber;
+        final int refNumber;
 
         StringToken(int type, String str, int n) {
             super(type);
@@ -1109,7 +1092,7 @@ class Token implements java.io.Serializable {
         String getString() {                    // for STRING
             return this.string;
         }
-        
+
         public String toString(int options) {
             if (this.type == BACKREFERENCE)
                 return "\\"+this.refNumber;
@@ -1123,11 +1106,11 @@ class Token implements java.io.Serializable {
      */
     static class ConcatToken extends Token implements java.io.Serializable {
 
-        private static final long serialVersionUID = 4050760502994940212L;
-        
-        Token child;
-        Token child2;
-        
+        private static final long serialVersionUID = 8717321425541346381L;
+
+        final Token child;
+        final Token child2;
+
         ConcatToken(Token t1, Token t2) {
             super(Token.CONCAT);
             this.child = t1;
@@ -1158,9 +1141,9 @@ class Token implements java.io.Serializable {
      */
     static class CharToken extends Token implements java.io.Serializable {
 
-        private static final long serialVersionUID = 3257284751277569842L;
-        
-        int chardata;
+        private static final long serialVersionUID = -4394272816279496989L;
+
+        final int chardata;
 
         CharToken(int type, int ch) {
             super(type);
@@ -1199,7 +1182,7 @@ class Token implements java.io.Serializable {
               case ANCHOR:
                 if (this == Token.token_linebeginning || this == Token.token_lineend)
                     ret = ""+(char)this.chardata;
-                else 
+                else
                     ret = "\\"+(char)this.chardata;
                 break;
 
@@ -1222,11 +1205,11 @@ class Token implements java.io.Serializable {
      */
     static class ClosureToken extends Token implements java.io.Serializable {
 
-        private static final long serialVersionUID = 3545230349706932537L;
-        
+        private static final long serialVersionUID = 1308971930673997452L;
+
         int min;
         int max;
-        Token child;
+        final Token child;
 
         ClosureToken(int type, Token tok) {
             super(type);
@@ -1291,10 +1274,10 @@ class Token implements java.io.Serializable {
      */
     static class ParenToken extends Token implements java.io.Serializable {
 
-        private static final long serialVersionUID = 3257572797621219636L;
-        
-        Token child;
-        int parennumber;
+        private static final long serialVersionUID = -5938014719827987704L;
+
+        final Token child;
+        final int parennumber;
 
         ParenToken(int type, Token tok, int paren) {
             super(type);
@@ -1349,12 +1332,12 @@ class Token implements java.io.Serializable {
      */
     static class ConditionToken extends Token implements java.io.Serializable {
 
-        private static final long serialVersionUID = 3761408607870399794L;
-        
-        int refNumber;
-        Token condition;
-        Token yes;
-        Token no;
+        private static final long serialVersionUID = 4353765277910594411L;
+
+        final int refNumber;
+        final Token condition;
+        final Token yes;
+        final Token no;
         ConditionToken(int refno, Token cond, Token yespat, Token nopat) {
             super(Token.CONDITION);
             this.refNumber = refno;
@@ -1395,11 +1378,11 @@ class Token implements java.io.Serializable {
      */
     static class ModifierToken extends Token implements java.io.Serializable {
 
-        private static final long serialVersionUID = 3258689892778324790L;
-        
-        Token child;
-        int add;
-        int mask;
+        private static final long serialVersionUID = -9114536559696480356L;
+
+        final Token child;
+        final int add;
+        final int mask;
 
         ModifierToken(Token tok, int add, int mask) {
             super(Token.MODIFIERGROUP);
@@ -1438,8 +1421,8 @@ class Token implements java.io.Serializable {
      */
     static class UnionToken extends Token implements java.io.Serializable {
 
-        private static final long serialVersionUID = 3256723987530003507L;
-        
+        private static final long serialVersionUID = -2568843945989489861L;
+
         Vector children;
 
         UnionToken(int type) {
@@ -1470,7 +1453,7 @@ class Token implements java.io.Serializable {
                 this.children.addElement(tok);
                 return;
             }
-            
+
             //System.err.println("Merge '"+previous+"' and '"+tok+"'.");
 
             StringBuffer buffer;

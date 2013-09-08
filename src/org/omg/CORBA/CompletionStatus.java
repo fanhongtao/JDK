@@ -1,8 +1,26 @@
 /*
- * @(#)CompletionStatus.java	1.23 05/11/17
+ * Copyright (c) 1996, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package org.omg.CORBA;
 
@@ -28,7 +46,6 @@ package org.omg.CORBA;
  * <bold>from_int</bold>(int i)</code> --
  * for creating an instance from one of the <code>int</code> members
  * </UL>
- * @version %I, %G
  * @see     org.omg.CORBA.SystemException
  * @since   JDK1.2
  */
@@ -45,13 +62,13 @@ public final class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  * The constant indicating that a method had not completed running
  * when a <code>SystemException</code> was thrown.
  */
-	_COMPLETED_NO = 1,
+        _COMPLETED_NO = 1,
 
 /**
  * The constant indicating that it is unknown whether a method had
  * completed running when a <code>SystemException</code> was thrown.
  */
-	_COMPLETED_MAYBE = 2;
+        _COMPLETED_MAYBE = 2;
 
 
 /**
@@ -88,7 +105,7 @@ public final class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  * @param i  one of <code>_COMPLETED_YES</code>, <code>_COMPLETED_NO</code>, or
  *          <code>_COMPLETED_MAYBE</code>
  *
- * @return  one of the possible <code>CompletionStatus</code> objects 
+ * @return  one of the possible <code>CompletionStatus</code> objects
  *          with values:
  *          <code>_COMPLETED_YES</code>, <code>_COMPLETED_NO</code>, or
  *          <code>_COMPLETED_MAYBE</code>
@@ -97,16 +114,16 @@ public final class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  *            <code>int</code> constants defined in <code>CompletionStatus</code>
  */
     public static CompletionStatus from_int(int i)  {
-	switch (i) {
-	case _COMPLETED_YES:
-	    return COMPLETED_YES;
-	case _COMPLETED_NO:
-	    return COMPLETED_NO;
-	case _COMPLETED_MAYBE:
-	    return COMPLETED_MAYBE;
-	default:
-	    throw new org.omg.CORBA.BAD_PARAM();
-	}
+        switch (i) {
+        case _COMPLETED_YES:
+            return COMPLETED_YES;
+        case _COMPLETED_NO:
+            return COMPLETED_NO;
+        case _COMPLETED_MAYBE:
+            return COMPLETED_MAYBE;
+        default:
+            throw new org.omg.CORBA.BAD_PARAM();
+        }
     }
 
 
@@ -118,7 +135,7 @@ public final class CompletionStatus implements org.omg.CORBA.portable.IDLEntity
  *
  */
     private CompletionStatus(int _value) {
-	this._value = _value;
+        this._value = _value;
     }
 
     private int _value;

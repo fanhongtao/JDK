@@ -1,8 +1,26 @@
 /*
- * @(#)BooleanValueExp.java	4.18 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 1999, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management;
@@ -15,39 +33,39 @@ package javax.management;
  *
  * @since 1.5
  */
-class BooleanValueExp extends QueryEval implements ValueExp { 
+class BooleanValueExp extends QueryEval implements ValueExp {
 
     /* Serial version */
     private static final long serialVersionUID = 7754922052666594581L;
 
-    /** 
-     * @serial The boolean value 
+    /**
+     * @serial The boolean value
      */
     private boolean val = false;
 
 
     /** Creates a new BooleanValueExp representing the boolean literal <val>.*/
     BooleanValueExp(boolean val) {
-	this.val = val;
+        this.val = val;
     }
-  
-    /**Creates a new BooleanValueExp representing the Boolean object <val>.*/    
+
+    /**Creates a new BooleanValueExp representing the Boolean object <val>.*/
     BooleanValueExp(Boolean val) {
-	this.val = val.booleanValue();
+        this.val = val.booleanValue();
     }
 
 
     /** Returns the  Boolean object representing the value of the BooleanValueExp object.*/
-    public Boolean getValue()  { 
-	return new Boolean(val);
-    } 
+    public Boolean getValue()  {
+        return Boolean.valueOf(val);
+    }
 
     /**
      * Returns the string representing the object.
-     */   
-    public String toString()  { 
-	return String.valueOf(val);
-    }     
+     */
+    public String toString()  {
+        return String.valueOf(val);
+    }
 
     /**
      * Applies the ValueExp on a MBean.
@@ -58,12 +76,18 @@ class BooleanValueExp extends QueryEval implements ValueExp {
      *
      * @exception BadStringOperationException
      * @exception BadBinaryOpValueExpException
-     * @exception BadAttributeValueExpException 
+     * @exception BadAttributeValueExpException
      * @exception InvalidApplicationException
-     */   
+     */
     public ValueExp apply(ObjectName name) throws BadStringOperationException, BadBinaryOpValueExpException,
-	BadAttributeValueExpException, InvalidApplicationException  { 
-	return this;
-    } 
+        BadAttributeValueExpException, InvalidApplicationException  {
+        return this;
+    }
+
+    @Deprecated
+    public void setMBeanServer(MBeanServer s) {
+        super.setMBeanServer(s);
+    }
+
 
  }

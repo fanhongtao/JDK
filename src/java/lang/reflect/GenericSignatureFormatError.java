@@ -1,8 +1,26 @@
 /*
- * @(#)GenericSignatureFormatError.java	1.3 05/11/17
+ * Copyright (c) 2003, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.reflect;
@@ -15,4 +33,6 @@ package java.lang.reflect;
  *
  * @since 1.5
  */
-public class GenericSignatureFormatError extends ClassFormatError{}
+public class GenericSignatureFormatError extends ClassFormatError {
+    private static final long serialVersionUID = 6709919147137911034L;
+}

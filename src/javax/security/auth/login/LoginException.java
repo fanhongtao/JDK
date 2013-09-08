@@ -1,8 +1,26 @@
 /*
- * @(#)LoginException.java	1.17 05/11/17
+ * Copyright (c) 1998, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.security.auth.login;
@@ -10,7 +28,6 @@ package javax.security.auth.login;
 /**
  * This is the basic login exception.
  *
- * @version 1.17, 11/17/05
  * @see javax.security.auth.login.LoginContext
  */
 
@@ -23,7 +40,7 @@ public class LoginException extends java.security.GeneralSecurityException {
      * message is a String that describes this particular exception.
      */
     public LoginException() {
-	super();
+        super();
     }
 
     /**
@@ -33,9 +50,9 @@ public class LoginException extends java.security.GeneralSecurityException {
      *
      * <p>
      *
-     * @param msg the detail message.  
+     * @param msg the detail message.
      */
     public LoginException(String msg) {
-	super(msg);
+        super(msg);
     }
 }

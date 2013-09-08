@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,11 +32,10 @@ package com.sun.org.apache.xerces.internal.impl.dv.util;
  * data. You need the data that you will encode/decode
  * already on a byte arrray.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Jeffrey Rodriguez
  * @author Sandy Gao
- * @version $Id: Base64.java,v 1.2.6.1 2005/09/06 11:44:40 neerajbj Exp $
  */
 public final class  Base64 {
 
@@ -112,7 +115,7 @@ public final class  Base64 {
         if (lengthDataBits == 0) {
             return "";
         }
-        
+
         int      fewerThan24bits   = lengthDataBits%TWENTYFOURBITGROUP;
         int      numberTriplets    = lengthDataBits/TWENTYFOURBITGROUP;
         int      numberQuartet     = fewerThan24bits != 0 ? numberTriplets+1 : numberTriplets;
@@ -202,7 +205,7 @@ public final class  Base64 {
         char[] base64Data = encoded.toCharArray();
         // remove white spaces
         int len = removeWhiteSpace(base64Data);
-        
+
         if (len%FOURBYTE != 0) {
             return null;//should be divisible by four
         }
@@ -284,7 +287,7 @@ public final class  Base64 {
 
     /**
      * remove WhiteSpace from MIME containing encoded Base64 data.
-     * 
+     *
      * @param data  the byte array of base64 data (with WS)
      * @return      the new length
      */

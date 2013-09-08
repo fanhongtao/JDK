@@ -1,8 +1,12 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
- * Copyright (c) 1999-2002 The Apache Software Foundation.  
+ * Copyright (c) 1999-2002 The Apache Software Foundation.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +14,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -18,7 +22,7 @@
  *    distribution.
  *
  * 3. The end-user documentation included with the redistribution,
- *    if any, must include the following acknowledgment:  
+ *    if any, must include the following acknowledgment:
  *       "This product includes software developed by the
  *        Apache Software Foundation (http://www.apache.org/)."
  *    Alternately, this acknowledgment may appear in the software itself,
@@ -26,7 +30,7 @@
  *
  * 4. The names "Xerces" and "Apache Software Foundation" must
  *    not be used to endorse or promote products derived from this
- *    software without prior written permission. For written 
+ *    software without prior written permission. For written
  *    permission, please contact apache@apache.org.
  *
  * 5. Products derived from this software may not be called "Apache",
@@ -57,12 +61,15 @@
 
 package com.sun.org.apache.xerces.internal.impl.dtd;
 
+import com.sun.org.apache.xerces.internal.impl.Constants;
+import com.sun.org.apache.xerces.internal.impl.XML11DTDScannerImpl;
+import com.sun.org.apache.xerces.internal.impl.XMLDTDScannerImpl;
+import com.sun.org.apache.xerces.internal.impl.XMLEntityManager;
 import com.sun.org.apache.xerces.internal.impl.XMLErrorReporter;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.util.XML11Char;
 import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLEntityResolver;
-
 
 /**
  * This class extends XMLDTDProcessor by giving it
@@ -94,7 +101,7 @@ public class XML11DTDProcessor extends XMLDTDLoader{
     } // init(SymbolTable, XMLGrammarPool)
 
     XML11DTDProcessor(SymbolTable symbolTable,
-                XMLGrammarPool grammarPool, XMLErrorReporter errorReporter, 
+                XMLGrammarPool grammarPool, XMLErrorReporter errorReporter,
                 XMLEntityResolver entityResolver) {
         super(symbolTable, grammarPool, errorReporter, entityResolver);
     } // init(SymbolTable, XMLGrammarPool, XMLErrorReporter, XMLEntityResolver)
@@ -104,9 +111,18 @@ public class XML11DTDProcessor extends XMLDTDLoader{
     protected boolean isValidNmtoken(String nmtoken) {
         return XML11Char.isXML11ValidNmtoken(nmtoken);
     } // isValidNmtoken(String):  boolean
-    
+
     protected boolean isValidName(String name) {
         return XML11Char.isXML11ValidName(name);
     } // isValidNmtoken(String):  boolean
-    
+
+    protected XMLDTDScannerImpl createDTDScanner(SymbolTable symbolTable,
+            XMLErrorReporter errorReporter, XMLEntityManager entityManager) {
+        return new XML11DTDScannerImpl(symbolTable, errorReporter, entityManager);
+    } // createDTDScanner(SymbolTable, XMLErrorReporter, XMLEntityManager) : XMLDTDScannerImpl
+
+    protected short getScannerVersion() {
+        return Constants.XML_VERSION_1_1;
+    } // getScannerVersion() : short
+
 } // class XML11DTDProcessor

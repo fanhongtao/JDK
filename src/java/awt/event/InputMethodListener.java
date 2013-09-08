@@ -1,8 +1,26 @@
 /*
- * @(#)InputMethodListener.java	1.12 05/11/17
+ * Copyright (c) 1997, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt.event;
@@ -18,7 +36,6 @@ import java.util.EventListener;
  * The text editing component also has to provide an instance of InputMethodRequests.
  *
  * @author JavaSoft Asia/Pacific
- * @version 1.12 11/17/05
  * @see InputMethodEvent
  * @see java.awt.im.InputMethodRequests
  * @since 1.2

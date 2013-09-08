@@ -1,8 +1,26 @@
 /*
- * @(#)List.java	1.49 06/04/21
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -71,9 +89,10 @@ package java.util;
  * <a href="{@docRoot}/../technotes/guides/collections/index.html">
  * Java Collections Framework</a>.
  *
+ * @param <E> the type of elements in this list
+ *
  * @author  Josh Bloch
  * @author  Neal Gafter
- * @version 1.49, 04/21/06
  * @see Collection
  * @see Set
  * @see ArrayList
@@ -115,9 +134,11 @@ public interface List<E> extends Collection<E> {
      * @param o element whose presence in this list is to be tested
      * @return <tt>true</tt> if this list contains the specified element
      * @throws ClassCastException if the type of the specified element
-     *         is incompatible with this list (optional)
+     *         is incompatible with this list
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         list does not permit null elements (optional)
+     *         list does not permit null elements
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      */
     boolean contains(Object o);
 
@@ -226,9 +247,11 @@ public interface List<E> extends Collection<E> {
      * @param o element to be removed from this list, if present
      * @return <tt>true</tt> if this list contained the specified element
      * @throws ClassCastException if the type of the specified element
-     *         is incompatible with this list (optional)
+     *         is incompatible with this list
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         list does not permit null elements (optional)
+     *         list does not permit null elements
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws UnsupportedOperationException if the <tt>remove</tt> operation
      *         is not supported by this list
      */
@@ -246,10 +269,13 @@ public interface List<E> extends Collection<E> {
      *         specified collection
      * @throws ClassCastException if the types of one or more elements
      *         in the specified collection are incompatible with this
-     *         list (optional)
+     *         list
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified collection contains one
      *         or more null elements and this list does not permit null
-     *         elements (optional), or if the specified collection is null
+     *         elements
+     *         (<a href="Collection.html#optional-restrictions">optional</a>),
+     *         or if the specified collection is null
      * @see #contains(Object)
      */
     boolean containsAll(Collection<?> c);
@@ -315,9 +341,11 @@ public interface List<E> extends Collection<E> {
      * @throws UnsupportedOperationException if the <tt>removeAll</tt> operation
      *         is not supported by this list
      * @throws ClassCastException if the class of an element of this list
-     *         is incompatible with the specified collection (optional)
+     *         is incompatible with the specified collection
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if this list contains a null element and the
-     *         specified collection does not permit null elements (optional),
+     *         specified collection does not permit null elements
+     *         (<a href="Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
      * @see #remove(Object)
      * @see #contains(Object)
@@ -327,17 +355,19 @@ public interface List<E> extends Collection<E> {
     /**
      * Retains only the elements in this list that are contained in the
      * specified collection (optional operation).  In other words, removes
-     * from this list all the elements that are not contained in the specified
-     * collection.
+     * from this list all of its elements that are not contained in the
+     * specified collection.
      *
      * @param c collection containing elements to be retained in this list
      * @return <tt>true</tt> if this list changed as a result of the call
      * @throws UnsupportedOperationException if the <tt>retainAll</tt> operation
      *         is not supported by this list
      * @throws ClassCastException if the class of an element of this list
-     *         is incompatible with the specified collection (optional)
+     *         is incompatible with the specified collection
+     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if this list contains a null element and the
-     *         specified collection does not permit null elements (optional),
+     *         specified collection does not permit null elements
+     *         (<a href="Collection.html#optional-restrictions">optional</a>),
      *         or if the specified collection is null
      * @see #remove(Object)
      * @see #contains(Object)
@@ -377,11 +407,8 @@ public interface List<E> extends Collection<E> {
      * is defined to be the result of the following calculation:
      * <pre>
      *  int hashCode = 1;
-     *  Iterator&lt;E&gt; i = list.iterator();
-     *  while (i.hasNext()) {
-     *      E obj = i.next();
-     *      hashCode = 31*hashCode + (obj==null ? 0 : obj.hashCode());
-     *  }
+     *  for (E e : list)
+     *      hashCode = 31*hashCode + (e==null ? 0 : e.hashCode());
      * </pre>
      * This ensures that <tt>list1.equals(list2)</tt> implies that
      * <tt>list1.hashCode()==list2.hashCode()</tt> for any two lists,
@@ -477,9 +504,11 @@ public interface List<E> extends Collection<E> {
      * @return the index of the first occurrence of the specified element in
      *         this list, or -1 if this list does not contain the element
      * @throws ClassCastException if the type of the specified element
-     *         is incompatible with this list (optional)
+     *         is incompatible with this list
+     *         (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         list does not permit null elements (optional)
+     *         list does not permit null elements
+     *         (<a href="Collection.html#optional-restrictions">optional</a>)
      */
     int indexOf(Object o);
 
@@ -494,9 +523,11 @@ public interface List<E> extends Collection<E> {
      * @return the index of the last occurrence of the specified element in
      *         this list, or -1 if this list does not contain the element
      * @throws ClassCastException if the type of the specified element
-     *         is incompatible with this list (optional)
+     *         is incompatible with this list
+     *         (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
-     *         list does not permit null elements (optional)
+     *         list does not permit null elements
+     *         (<a href="Collection.html#optional-restrictions">optional</a>)
      */
     int lastIndexOf(Object o);
 
@@ -513,19 +544,19 @@ public interface List<E> extends Collection<E> {
     ListIterator<E> listIterator();
 
     /**
-     * Returns a list iterator of the elements in this list (in proper
-     * sequence), starting at the specified position in this list.
+     * Returns a list iterator over the elements in this list (in proper
+     * sequence), starting at the specified position in the list.
      * The specified index indicates the first element that would be
      * returned by an initial call to {@link ListIterator#next next}.
      * An initial call to {@link ListIterator#previous previous} would
      * return the element with the specified index minus one.
      *
-     * @param index index of first element to be returned from the
-     *              list iterator (by a call to the <tt>next</tt> method)
-     * @return a list iterator of the elements in this list (in proper
-     *         sequence), starting at the specified position in this list
+     * @param index index of the first element to be returned from the
+     *        list iterator (by a call to {@link ListIterator#next next})
+     * @return a list iterator over the elements in this list (in proper
+     *         sequence), starting at the specified position in the list
      * @throws IndexOutOfBoundsException if the index is out of range
-     *         (<tt>index &lt; 0 || index &gt; size()</tt>)
+     *         ({@code index < 0 || index > size()})
      */
     ListIterator<E> listIterator(int index);
 
@@ -541,7 +572,7 @@ public interface List<E> extends Collection<E> {
      * by this list.<p>
      *
      * This method eliminates the need for explicit range operations (of
-     * the sort that commonly exist for arrays).   Any operation that expects
+     * the sort that commonly exist for arrays).  Any operation that expects
      * a list can be used as a range operation by passing a subList view
      * instead of a whole list.  For example, the following idiom
      * removes a range of elements from a list:

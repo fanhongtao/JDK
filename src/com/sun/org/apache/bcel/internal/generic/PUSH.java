@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -56,11 +60,10 @@ package com.sun.org.apache.bcel.internal.generic;
 import com.sun.org.apache.bcel.internal.Constants;
 import java.io.*;
 
-/** 
+/**
  * Wrapper class for push operations, which are implemented either as BIPUSH,
  * LDC or xCONST_n instructions.
  *
- * @version $Id: PUSH.java,v 1.1.2.1 2005/07/31 23:44:54 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class PUSH
@@ -69,10 +72,10 @@ public final class PUSH
   private Instruction instruction;
 
   /**
-   * This constructor also applies for values of type short, char, byte 
+   * This constructor also applies for values of type short, char, byte
    *
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, int value) {
     if((value >= -1) && (value <= 5)) // Use ICONST_n
@@ -87,7 +90,7 @@ public final class PUSH
 
   /**
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, boolean value) {
     instruction = INSTRUCTIONS[Constants.ICONST_0 + (value? 1 : 0)];
@@ -95,7 +98,7 @@ public final class PUSH
 
   /**
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, float value) {
     if(value == 0.0)
@@ -110,7 +113,7 @@ public final class PUSH
 
   /**
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, long value) {
     if(value == 0)
@@ -123,7 +126,7 @@ public final class PUSH
 
   /**
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, double value) {
     if(value == 0.0)
@@ -136,7 +139,7 @@ public final class PUSH
 
   /**
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, String value) {
     if(value == null)
@@ -147,7 +150,7 @@ public final class PUSH
 
   /**
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, Number value) {
     if((value instanceof Integer) || (value instanceof Short) || (value instanceof Byte))
@@ -164,7 +167,7 @@ public final class PUSH
 
   /**
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, Character value) {
     this(cp, (int)value.charValue());
@@ -172,7 +175,7 @@ public final class PUSH
 
   /**
    * @param cp Constant pool
-   * @param value to be pushed 
+   * @param value to be pushed
    */
   public PUSH(ConstantPoolGen cp, Boolean value) {
     this(cp, value.booleanValue());
@@ -193,4 +196,3 @@ public final class PUSH
     return instruction.toString() + " (PUSH)";
   }
 }
-

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2002,2003-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +20,12 @@
 
 package com.sun.org.apache.xerces.internal.impl.xs;
 
-import com.sun.org.apache.xerces.internal.xs.*;
 import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
+import com.sun.org.apache.xerces.internal.xs.XSAnnotation;
+import com.sun.org.apache.xerces.internal.xs.XSConstants;
+import com.sun.org.apache.xerces.internal.xs.XSModelGroup;
+import com.sun.org.apache.xerces.internal.xs.XSNamespaceItem;
+import com.sun.org.apache.xerces.internal.xs.XSObjectList;
 
 /**
  * Store schema model group declaration.
@@ -26,7 +34,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.util.XSObjectListImpl;
  *
  * @author Sandy Gao, IBM
  *
- * @version $Id: XSModelGroupImpl.java,v 1.2.6.1 2005/09/09 07:30:57 sunithareddy Exp $
+ * @version $Id: XSModelGroupImpl.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */
 public class XSModelGroupImpl implements XSModelGroup {
 
@@ -45,8 +53,8 @@ public class XSModelGroupImpl implements XSModelGroup {
     public XSParticleDecl[] fParticles = null;
     public int fParticleCount = 0;
 
-    // this particle's optional annotation
-    public XSAnnotationImpl fAnnotation;
+    // this particle's optional annotations
+    public XSObjectList fAnnotations = null;
 
     // whether this model group contains nothing
     public boolean isEmpty() {
@@ -167,7 +175,7 @@ public class XSModelGroupImpl implements XSModelGroup {
         fParticles = null;
         fParticleCount = 0;
         fDescription = null;
-        fAnnotation = null;
+        fAnnotations = null;
     }
 
     /**
@@ -218,11 +226,18 @@ public class XSModelGroupImpl implements XSModelGroup {
      * Optional. Annotation.
      */
     public XSAnnotation getAnnotation() {
-        return fAnnotation;
+        return (fAnnotations != null) ? (XSAnnotation) fAnnotations.item(0) : null;
     }
 
     /**
-     * @see com.sun.org.apache.xerces.internal.xs.XSObject#getNamespaceItem()
+     * Optional. Annotations.
+     */
+    public XSObjectList getAnnotations() {
+        return (fAnnotations != null) ? fAnnotations : XSObjectListImpl.EMPTY_LIST;
+    }
+
+    /**
+     * @see org.apache.xerces.xs.XSObject#getNamespaceItem()
      */
     public XSNamespaceItem getNamespaceItem() {
         return null;

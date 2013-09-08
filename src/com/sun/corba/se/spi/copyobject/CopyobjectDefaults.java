@@ -1,8 +1,26 @@
 /*
- * @(#)CopyobjectDefaults.java	1.10 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.copyobject ;
@@ -23,42 +41,42 @@ public abstract class CopyobjectDefaults
      * within a single call to copy.  The others copiers all preserve aliasing across
      * all calls to copy (on the same ObjectCopier instance).
      */
-    public static ObjectCopierFactory makeORBStreamObjectCopierFactory( final ORB orb ) 
+    public static ObjectCopierFactory makeORBStreamObjectCopierFactory( final ORB orb )
     {
-	return new ObjectCopierFactory() {
-	    public ObjectCopier make( )
-	    {
-		return new ORBStreamObjectCopierImpl( orb ) ;
-	    }
-	} ;
+        return new ObjectCopierFactory() {
+            public ObjectCopier make( )
+            {
+                return new ORBStreamObjectCopierImpl( orb ) ;
+            }
+        } ;
     }
 
-    public static ObjectCopierFactory makeJavaStreamObjectCopierFactory( final ORB orb ) 
+    public static ObjectCopierFactory makeJavaStreamObjectCopierFactory( final ORB orb )
     {
-	return new ObjectCopierFactory() {
-	    public ObjectCopier make( )
-	    {
-		return new JavaStreamObjectCopierImpl( orb ) ;
-	    }
-	} ;
+        return new ObjectCopierFactory() {
+            public ObjectCopier make( )
+            {
+                return new JavaStreamObjectCopierImpl( orb ) ;
+            }
+        } ;
     }
 
     private static final ObjectCopier referenceObjectCopier = new ReferenceObjectCopierImpl() ;
 
-    private static ObjectCopierFactory referenceObjectCopierFactory = 
-	new ObjectCopierFactory() {
-	    public ObjectCopier make() 
-	    {
-		return referenceObjectCopier ;
-	    }
-	} ;
+    private static ObjectCopierFactory referenceObjectCopierFactory =
+        new ObjectCopierFactory() {
+            public ObjectCopier make()
+            {
+                return referenceObjectCopier ;
+            }
+        } ;
 
     /** Obtain the reference object "copier".  This does no copies: it just
      * returns whatever is passed to it.
      */
     public static ObjectCopierFactory getReferenceObjectCopierFactory()
     {
-	return referenceObjectCopierFactory ;
+        return referenceObjectCopierFactory ;
     }
 
     /** Create a fallback copier factory from the two ObjectCopierFactory
@@ -67,16 +85,16 @@ public abstract class CopyobjectDefaults
      * created from f1, then tries one created from f2, if the first
      * throws a ReflectiveCopyException.
      */
-    public static ObjectCopierFactory makeFallbackObjectCopierFactory( 
-	final ObjectCopierFactory f1, final ObjectCopierFactory f2 )
+    public static ObjectCopierFactory makeFallbackObjectCopierFactory(
+        final ObjectCopierFactory f1, final ObjectCopierFactory f2 )
     {
-	return new ObjectCopierFactory() {
-	    public ObjectCopier make() 
-	    {
-		ObjectCopier c1 = f1.make() ;
-		ObjectCopier c2 = f2.make() ;
-		return new FallbackObjectCopierImpl( c1, c2 ) ;
-	    }
-	} ;
+        return new ObjectCopierFactory() {
+            public ObjectCopier make()
+            {
+                ObjectCopier c1 = f1.make() ;
+                ObjectCopier c2 = f2.make() ;
+                return new FallbackObjectCopierImpl( c1, c2 ) ;
+            }
+        } ;
     }
 }

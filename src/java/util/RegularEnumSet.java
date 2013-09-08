@@ -1,8 +1,26 @@
 /*
- * @(#)RegularEnumSet.java	1.8 06/01/27
+ * Copyright (c) 2003, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util;
@@ -16,6 +34,7 @@ package java.util;
  * @serial exclude
  */
 class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
+    private static final long serialVersionUID = 3411599620347842686L;
     /**
      * Bit vector representation of this set.  The 2^k bit indicates the
      * presence of universe[k] in this set.
@@ -53,7 +72,7 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
      * @return an iterator over the elements contained in this set
      */
     public Iterator<E> iterator() {
-        return new EnumSetIterator<E>();
+        return new EnumSetIterator<>();
     }
 
     private class EnumSetIterator<E extends Enum<E>> implements Iterator<E> {
@@ -88,7 +107,7 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
         public void remove() {
             if (lastReturned == 0)
                 throw new IllegalStateException();
-            elements -= lastReturned;
+            elements &= ~lastReturned;
             lastReturned = 0;
         }
     }
@@ -246,7 +265,7 @@ class RegularEnumSet<E extends Enum<E>> extends EnumSet<E> {
 
         RegularEnumSet<?> es = (RegularEnumSet<?>)c;
         if (es.elementType != elementType) {
-	    boolean changed = (elements != 0);
+            boolean changed = (elements != 0);
             elements = 0;
             return changed;
         }

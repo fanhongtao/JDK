@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,20 +30,25 @@ import org.w3c.dom.Element;
 /**
  * Class SignatureElementProxy
  *
- * @author $Author: raul $
- * @version $Revision: 1.7 $
+ * @author $Author: mullan $
+ * @version $Revision: 1.5 $
  */
 public abstract class SignatureElementProxy extends ElementProxy {
-
+        protected SignatureElementProxy() {
+        };
    /**
     * Constructor SignatureElementProxy
     *
     * @param doc
     */
    public SignatureElementProxy(Document doc) {
-      super(doc);
-      //this._constructionElement.setAttributeNS(Constants.NamespaceSpecNS,"xmlns:ds",
-        //          Constants.SignatureSpecNS);
+              if (doc == null) {
+                 throw new RuntimeException("Document is null");
+              }
+
+              this._doc = doc;
+              this._constructionElement =  XMLUtils.createElementInSignatureSpace(this._doc,
+                           this.getBaseLocalName());
    }
 
    /**

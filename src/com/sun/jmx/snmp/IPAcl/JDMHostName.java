@@ -1,11 +1,25 @@
 /*
- * @(#)file      JDMHostName.java
- * @(#)author    Sun Microsystems, Inc.
- * @(#)version   4.10
- * @(#)date      06/11/29
+ * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  *
  */
 
@@ -16,11 +30,9 @@ package com.sun.jmx.snmp.IPAcl;
 
 import java.net.UnknownHostException;
 
-/** 
- * @version     4.10     11/17/05 
- * @author      Sun Microsystems, Inc. 
- */ 
 class JDMHostName extends Host {
+  private static final long serialVersionUID = -9120082068923591122L;
+
   protected StringBuffer name = new StringBuffer();
 
   JDMHostName(int id) {
@@ -38,13 +50,13 @@ class JDMHostName extends Host {
   public static Node jjtCreate(Parser p, int id) {
       return new JDMHostName(p, id);
   }
-  
+
   protected String getHname() {
-	return name.toString();
+        return name.toString();
   }
-  
-  protected PrincipalImpl createAssociatedPrincipal() 
-    throws UnknownHostException { 
+
+  protected PrincipalImpl createAssociatedPrincipal()
+    throws UnknownHostException {
       return new PrincipalImpl(name.toString());
   }
 }

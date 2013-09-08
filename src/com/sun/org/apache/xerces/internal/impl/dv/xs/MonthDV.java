@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2002,2004,2005 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +34,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
  * @author Elena Litani
  * @author Gopal Sharma, SUN Microsystem Inc.
  *
- * @version $Id: MonthDV.java,v 1.3 2005/09/26 13:02:25 sunithareddy Exp $
+ * @version $Id: MonthDV.java,v 1.8 2010-11-01 04:39:47 joehw Exp $
  */
 
 public class MonthDV extends AbstractDateTimeDV {
@@ -70,7 +74,6 @@ public class MonthDV extends AbstractDateTimeDV {
         int stop = 4;
         date.month=parseInt(str,2,stop);
 
-        /*
         // REVISIT: allow both --MM and --MM-- now.
         // need to remove the following 4 lines to disallow --MM--
         // when the errata is offically in the rec.
@@ -78,7 +81,6 @@ public class MonthDV extends AbstractDateTimeDV {
             str.charAt(stop) == '-' && str.charAt(stop+1) == '-') {
             stop += 2;
         }
-        */
         if (stop < len) {
             if (!isNextCharUTCSign(str, stop, len)) {
                 throw new SchemaDateTimeException ("Error in month parsing: "+str);
@@ -92,7 +94,7 @@ public class MonthDV extends AbstractDateTimeDV {
 
         //save unnormalized values
         saveUnnormalized(date);
-        
+
         if ( date.utc!=0 && date.utc!='Z' ) {
             normalize(date);
         }
@@ -156,9 +158,11 @@ public class MonthDV extends AbstractDateTimeDV {
         append(message, (char)date.utc, 0);
         return message.toString();
     }
-    
+
     protected XMLGregorianCalendar getXMLGregorianCalendar(DateTimeData date) {
-        return factory.newXMLGregorianCalendar(DatatypeConstants.FIELD_UNDEFINED, date.unNormMonth, DatatypeConstants.FIELD_UNDEFINED
-                , DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, date.timezoneHr * 60 + date.timezoneMin);
+        return datatypeFactory.newXMLGregorianCalendar(DatatypeConstants.FIELD_UNDEFINED, date.unNormMonth,
+                DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED,
+                DatatypeConstants.FIELD_UNDEFINED, DatatypeConstants.FIELD_UNDEFINED,
+                date.hasTimeZone() ? date.timezoneHr * 60 + date.timezoneMin : DatatypeConstants.FIELD_UNDEFINED);
     }
 }

@@ -1,15 +1,32 @@
 /*
- * @(#)InvalidValue.java	1.14 05/11/17
+ * Copyright (c) 1998, 2000, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA.DynAnyPackage;
 
 /**
  * @author unattributed
- * @version 1.14 11/17/05
  *
  * Dynamic Any insert operations raise the <code>InvalidValue</code>
  * exception if the value inserted is not consistent with the type
@@ -22,7 +39,7 @@ public final class InvalidValue
      * Constructs an <code>InvalidValue</code> object.
      */
     public InvalidValue() {
-	super();
+        super();
     }
 
     /**
@@ -31,6 +48,6 @@ public final class InvalidValue
      * regarding the exception.
      */
     public InvalidValue(String reason) {
-	super(reason);
+        super(reason);
     }
 }

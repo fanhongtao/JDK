@@ -1,8 +1,26 @@
 /*
- * @(#)PreferencesFactory.java	1.6 05/11/17
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.util.prefs;
@@ -12,7 +30,7 @@ import java.util.*;
  * A factory object that generates Preferences objects.  Providers of
  * new {@link Preferences} implementations should provide corresponding
  * <tt>PreferencesFactory</tt> implementations so that the new
- * <tt>Preferences</tt> implementation can be installed in place of the 
+ * <tt>Preferences</tt> implementation can be installed in place of the
  * platform-specific default implementation.
  *
  * <p><strong>This class is for <tt>Preferences</tt> implementers only.
@@ -20,7 +38,6 @@ import java.util.*;
  * consult this documentation.</strong>
  *
  * @author  Josh Bloch
- * @version 1.6, 11/17/05
  * @see     Preferences
  * @since   1.4
  */

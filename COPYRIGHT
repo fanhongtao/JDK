@@ -1,74 +1,70 @@
-Copyright © 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
-California 95054, U.S.A.  All rights reserved.
+Copyright © 1993, 2011, Oracle and/or its affiliates. 
+All rights reserved.
 
-Sun Microsystems, Inc.  has intellectual property rights relating to
-technology embodied in the product that is described in this document.
-In particular, and without limitation, these intellectual property
-rights may include one or more of the U.S.  patents listed at
-http://www.sun.com/patents and one or more additional patents or pending
-patent applications in the U.S.  and in other countries.
+This software and related documentation are provided under a
+license agreement containing restrictions on use and
+disclosure and are protected by intellectual property laws.
+Except as expressly permitted in your license agreement or
+allowed by law, you may not use, copy, reproduce, translate,
+broadcast, modify, license, transmit, distribute, exhibit,
+perform, publish, or display any part, in any form, or by
+any means.  Reverse engineering, disassembly, or
+decompilation of this software, unless required by law for
+interoperability, is prohibited.
 
-THIS PRODUCT CONTAINS CONFIDENTIAL INFORMATION AND TRADE SECRETS OF SUN
-MICROSYSTEMS, INC.  USE, DISCLOSURE OR REPRODUCTION IS PROHIBITED
-WITHOUT THE PRIOR EXPRESS WRITTEN PERMISSION OF SUN MICROSYSTEMS, INC.
+The information contained herein is subject to change
+without notice and is not warranted to be error-free.  If
+you find any errors, please report them to us in writing.
 
-U.S.  Government Rights - Commercial software.  Government users are
-subject to the Sun Microsystems, Inc.  standard license agreement and
-applicable provisions of the FAR and its supplements.
+If this is software or related software documentation that
+is delivered to the U.S.  Government or anyone licensing it
+on behalf of the U.S.  Government, the following notice is
+applicable:
 
-Use is subject to license terms.
+U.S.  GOVERNMENT RIGHTS Programs, software, databases, and
+related documentation and technical data delivered to U.S.
+Government customers are "commercial computer software" or
+"commercial technical data" pursuant to the applicable
+Federal Acquisition Regulation and agency-specific
+supplemental regulations.  As such, the use, duplication,
+disclosure, modification, and adaptation shall be subject to
+the restrictions and license terms set forth in the
+applicable Government contract, and, to the extent
+applicable by the terms of the Government contract, the
+additional rights set forth in FAR 52.227-19, Commercial
+Computer Software License (December 2007).  Oracle America,
+Inc., 500 Oracle Parkway, Redwood City, CA 94065.
 
-This distribution may include materials developed by third parties.
+This software or hardware is developed for general use in a
+variety of information management applications.  It is not
+developed or intended for use in any inherently dangerous
+applications, including applications which may create a risk
+of personal injury.  If you use this software or hardware in
+dangerous applications, then you shall be responsible to
+take all appropriate fail-safe, backup, redundancy, and
+other measures to ensure its safe use.  Oracle Corporation
+and its affiliates disclaim any liability for any damages
+caused by use of this software or hardware in dangerous
+applications.
 
-Sun, Sun Microsystems, the Sun logo, Java and Java SE are trademarks or
-registered trademarks of Sun Microsystems, Inc.  in the U.S.  and other
-countries.
+Oracle and Java are registered trademarks of Oracle and/or
+its affiliates.  Other names may be trademarks of their
+respective owners.
 
-This product is covered and controlled by U.S.  Export Control laws and
-may be subject to the export or import laws in other countries.
-Nuclear, missile, chemical biological weapons or nuclear maritime end
-uses or end users, whether direct or indirect, are strictly prohibited.
-Export or reexport to countries subject to U.S.  embargo or to entities
-identified on U.S.  export exclusion lists, including, but not limited
-to, the denied persons and specially designated nationals lists is
-strictly prohibited.
+AMD, Opteron, the AMD logo, and the AMD Opteron logo are
+trademarks or registered trademarks of Advanced Micro
+Devices.  Intel and Intel Xeon are trademarks or registered
+trademarks of Intel Corporation.  All SPARC trademarks are
+used under license and are trademarks or registered
+trademarks of SPARC International, Inc.  UNIX is a
+registered trademark licensed through X/Open Company, Ltd.
 
-Copyright © 2009 Sun Microsystems, Inc., 4150 Network Circle, Santa Clara,
-California 95054, Etats-Unis.  Tous droits rservs.
-
-Sun Microsystems, Inc.  dtient les droits de proprit intellectuele
-relatifs la technologie incorpore dans le produit qui est dcrit dans ce
-document.  En particulier, et ce sans limitation, ces droits de proprit
-intellectuelle peuvent inclure un ou plusieurs des brevets amricains
-lists l'adresse suivante:  http://www.sun.com/patents et un ou
-plusieures de brevet en attente aux Etats - Unis et dans les autres
-pays.
-
-CE PRODUIT CONTIENT DES INFORMATIONS CONFIDENTIELLES ET DES SECRETS
-COMMERCIAUX DE SUN MICROSYSTEMS, INC.  SON UTILISATION, SA DIVULGATION
-ET SA REPRODUCTION SONT INTERDITES SANS L AUTORISATION EXPRESSE, ECRITE
-ET PREALABLE DE SUN MICROSYSTEMS, INC.
-
-L'utilisation est soumise aux termes du contract de licence.
-
-Cette distributions peut inclure des elements dvelopps par des tiers.
-
-Sun, Sun Microsystems, le logo Sun, Java et Java SE sont des marques de
-fabrique ou des marques dposes de Sun Microsystems, Inc.  aux Etats-Unis
-et dans d'autres pays.
-
-Ce produit est soumis la lgislation amricaine en matire de contrle des
-exportations et peut tre soumis la rglementation en vigueur dans
-d'autres pays dans le domaine des exportations et importations.  Les
-utilisations finales, ou utilisateurs finaux, pour des armes
-nuclaires,des missiles, des armes biologiques et chimiques ou du
-nuclaire maritime, directement ou indirectement, sont strictement
-interdites.  Les exportations ou rexportations vers les pays sous
-embargo amricain, ou vers des entits figurant sur les listes d'exclusion
-d'exportation des produits ou des services qui sont regis parla
-legislation amricaines, y compris, mais de manire non exhaustive, la
-liste de personnes qui font objet d'un ordre de ne pas participer, d'une
-faon directe ou indirecte, aux exportations des produits ou des services
-qui sont rgis par la lgislation amricaine sur le contrle des
-exportations et la liste de ressortissants spcifiquement dsigns, sont
-rigoureusement interdites.
+This software or hardware and documentation may provide
+access to or information on content, products, and services
+from third parties.  Oracle Corporation and its affiliates
+are not responsible for and expressly disclaim all
+warranties of any kind with respect to third-party content,
+products, and services.  Oracle Corporation and its
+affiliates will not be responsible for any loss, costs, or
+damages incurred due to your access to or use of third-party
+content, products, or services.

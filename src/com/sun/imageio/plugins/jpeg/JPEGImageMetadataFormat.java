@@ -1,8 +1,26 @@
 /*
- * @(#)JPEGImageMetadataFormat.java	1.13 05/11/17
+ * Copyright (c) 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.jpeg;
@@ -26,11 +44,11 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
         super(JPEG.nativeImageMetadataFormatName,
               CHILD_POLICY_ALL);
 
-        addElement("JPEGvariety", 
+        addElement("JPEGvariety",
                    JPEG.nativeImageMetadataFormatName,
                    CHILD_POLICY_CHOICE);
 
-        addElement("markerSequence", 
+        addElement("markerSequence",
                    JPEG.nativeImageMetadataFormatName,
                    CHILD_POLICY_SEQUENCE);
 
@@ -50,15 +68,15 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
 
         addElement("app2ICC", "app0JFIF", CHILD_POLICY_EMPTY);
 
-        addAttribute("app0JFIF", 
-                     "majorVersion", 
+        addAttribute("app0JFIF",
+                     "majorVersion",
                      DATATYPE_INTEGER,
                      false,
                      "1",
                      "0", "255",
                      true, true);
-        addAttribute("app0JFIF", 
-                     "minorVersion", 
+        addAttribute("app0JFIF",
+                     "minorVersion",
                      DATATYPE_INTEGER,
                      false,
                      "2",
@@ -68,34 +86,34 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
         resUnits.add("0");
         resUnits.add("1");
         resUnits.add("2");
-        addAttribute("app0JFIF", 
+        addAttribute("app0JFIF",
                      "resUnits",
                      DATATYPE_INTEGER,
                      false,
                      "0",
                      resUnits);
-        addAttribute("app0JFIF", 
+        addAttribute("app0JFIF",
                      "Xdensity",
                      DATATYPE_INTEGER,
                      false,
                      "1",
                      "1", "65535",
                      true, true);
-        addAttribute("app0JFIF", 
+        addAttribute("app0JFIF",
                      "Ydensity",
                      DATATYPE_INTEGER,
                      false,
                      "1",
                      "1", "65535",
                      true, true);
-        addAttribute("app0JFIF", 
+        addAttribute("app0JFIF",
                      "thumbWidth",
                      DATATYPE_INTEGER,
                      false,
                      "0",
                      "0", "255",
                      true, true);
-        addAttribute("app0JFIF", 
+        addAttribute("app0JFIF",
                      "thumbHeight",
                      DATATYPE_INTEGER,
                      false,
@@ -111,8 +129,8 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
         codes.add("16"); // Hex 10
         codes.add("17"); // Hex 11
         codes.add("19"); // Hex 13
-        addAttribute("app0JFXX", 
-                     "extensionCode", 
+        addAttribute("app0JFXX",
+                     "extensionCode",
                      DATATYPE_INTEGER,
                      false,
                      null,
@@ -120,14 +138,14 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
 
         addChildElement("markerSequence", "JFIFthumbJPEG");
 
-        addAttribute("JFIFthumbPalette", 
+        addAttribute("JFIFthumbPalette",
                      "thumbWidth",
                      DATATYPE_INTEGER,
                      false,
                      null,
                      "0", "255",
                      true, true);
-        addAttribute("JFIFthumbPalette", 
+        addAttribute("JFIFthumbPalette",
                      "thumbHeight",
                      DATATYPE_INTEGER,
                      false,
@@ -135,14 +153,14 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
                      "0", "255",
                      true, true);
 
-        addAttribute("JFIFthumbRGB", 
+        addAttribute("JFIFthumbRGB",
                      "thumbWidth",
                      DATATYPE_INTEGER,
                      false,
                      null,
                      "0", "255",
                      true, true);
-        addAttribute("JFIFthumbRGB", 
+        addAttribute("JFIFthumbRGB",
                      "thumbHeight",
                      DATATYPE_INTEGER,
                      false,
@@ -152,21 +170,21 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
 
         addObjectValue("app2ICC", ICC_Profile.class, false, null);
 
-        addAttribute("app14Adobe", 
-                     "version", 
+        addAttribute("app14Adobe",
+                     "version",
                      DATATYPE_INTEGER,
                      false,
                      "100",
                      "100", "255",
                      true, true);
-        addAttribute("app14Adobe", 
+        addAttribute("app14Adobe",
                      "flags0",
                      DATATYPE_INTEGER,
                      false,
                      "0",
                      "0", "65535",
                      true, true);
-        addAttribute("app14Adobe", 
+        addAttribute("app14Adobe",
                      "flags1",
                      DATATYPE_INTEGER,
                      false,
@@ -178,7 +196,7 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
         transforms.add("0");
         transforms.add("1");
         transforms.add("2");
-        addAttribute("app14Adobe", 
+        addAttribute("app14Adobe",
                      "transform",
                      DATATYPE_INTEGER,
                      true,
@@ -191,8 +209,8 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
         procs.add("0");
         procs.add("1");
         procs.add("2");
-        addAttribute("sof", 
-                     "process", 
+        addAttribute("sof",
+                     "process",
                      DATATYPE_INTEGER,
                      false,
                      null,
@@ -263,7 +281,7 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
 
         addElement("scanComponentSpec", "sos", CHILD_POLICY_EMPTY);
 
-        addAttribute("sos", 
+        addAttribute("sos",
                      "numScanComponents",
                      DATATYPE_INTEGER,
                      true,
@@ -330,11 +348,11 @@ public class JPEGImageMetadataFormat extends JPEGMetadataFormat {
 
         // If it is an element in the app0jfif subtree, just check
         // that the image type is JFIF compliant.
-        if ((isInSubtree(elementName, "app0JFIF")) 
+        if ((isInSubtree(elementName, "app0JFIF"))
             && JPEG.isJFIFcompliant(imageType, true)) {
             return true;
         }
-        
+
         return false;
     }
 

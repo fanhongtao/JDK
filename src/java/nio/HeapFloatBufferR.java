@@ -1,8 +1,26 @@
 /*
- * @(#)Heap-X-Buffer.java	1.29 05/11/17
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 // -- This file was mechanically generated: Do not edit! -- //
@@ -34,7 +52,7 @@ class HeapFloatBufferR
 
     */
 
-    HeapFloatBufferR(int cap, int lim) {		// package-private
+    HeapFloatBufferR(int cap, int lim) {            // package-private
 
 
 
@@ -42,8 +60,8 @@ class HeapFloatBufferR
 
 
 
-	super(cap, lim);
-	this.isReadOnly = true;
+        super(cap, lim);
+        this.isReadOnly = true;
 
     }
 
@@ -55,14 +73,14 @@ class HeapFloatBufferR
 
 
 
-	super(buf, off, len);
-	this.isReadOnly = true;
+        super(buf, off, len);
+        this.isReadOnly = true;
 
     }
 
     protected HeapFloatBufferR(float[] buf,
-				   int mark, int pos, int lim, int cap,
-				   int off)
+                                   int mark, int pos, int lim, int cap,
+                                   int off)
     {
 
 
@@ -71,27 +89,27 @@ class HeapFloatBufferR
 
 
 
-	super(buf, mark, pos, lim, cap, off);
-	this.isReadOnly = true;
+        super(buf, mark, pos, lim, cap, off);
+        this.isReadOnly = true;
 
     }
 
     public FloatBuffer slice() {
-	return new HeapFloatBufferR(hb,
-					-1,
-					0,
-					this.remaining(),
-					this.remaining(),
-					this.position() + offset);
+        return new HeapFloatBufferR(hb,
+                                        -1,
+                                        0,
+                                        this.remaining(),
+                                        this.remaining(),
+                                        this.position() + offset);
     }
 
     public FloatBuffer duplicate() {
-	return new HeapFloatBufferR(hb,
-					this.markValue(),
-					this.position(),
-					this.limit(),
-					this.capacity(),
-					offset);
+        return new HeapFloatBufferR(hb,
+                                        this.markValue(),
+                                        this.position(),
+                                        this.limit(),
+                                        this.capacity(),
+                                        offset);
     }
 
     public FloatBuffer asReadOnlyBuffer() {
@@ -103,7 +121,7 @@ class HeapFloatBufferR
 
 
 
-	return duplicate();
+        return duplicate();
 
     }
 
@@ -137,7 +155,7 @@ class HeapFloatBufferR
 
 
     public boolean isReadOnly() {
-	return true;
+        return true;
     }
 
     public FloatBuffer put(float x) {
@@ -145,7 +163,7 @@ class HeapFloatBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -154,7 +172,7 @@ class HeapFloatBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -167,7 +185,7 @@ class HeapFloatBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -195,7 +213,7 @@ class HeapFloatBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+        throw new ReadOnlyBufferException();
 
     }
 
@@ -206,11 +224,11 @@ class HeapFloatBufferR
 
 
 
-	throw new ReadOnlyBufferException();
+
+        throw new ReadOnlyBufferException();
 
     }
 
-
 
 
 
@@ -534,7 +552,11 @@ class HeapFloatBufferR
 
 
 
-
+
+
+
+
+
 
 
 
@@ -565,7 +587,7 @@ class HeapFloatBufferR
 
 
     public ByteOrder order() {
-	return ByteOrder.nativeOrder();
+        return ByteOrder.nativeOrder();
     }
 
 

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -57,10 +61,9 @@ import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.Repository;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 
-/** 
+/**
  * Denotes reference such as java.lang.String.
  *
- * @version $Id: ObjectType.java,v 1.1.2.1 2005/07/31 23:45:07 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public final class ObjectType extends ReferenceType {
@@ -68,7 +71,7 @@ public final class ObjectType extends ReferenceType {
 
   /**
    * @param class_name fully qualified class name, e.g. java.lang.String
-   */ 
+   */
   public ObjectType(String class_name) {
     super(Constants.T_REFERENCE, "L" + class_name.replace('.', '/') + ";");
     this.class_name = class_name.replace('/', '.');
@@ -100,7 +103,7 @@ public final class ObjectType extends ReferenceType {
     else
       return jc.isClass();
   }
-  
+
   /**
    * If "this" doesn't reference an interface, it references a class
    * or a non-existant entity.

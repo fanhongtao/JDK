@@ -1,8 +1,26 @@
 /*
- * @(#)TCKind.java	1.29 05/11/17
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -199,12 +217,12 @@ public class TCKind {
     /**
      * The <code>int</code> constant for the IDL data type <code>value</code>.
      */
-    public static final int _tk_value = 29;		// orbos 98-01-18: Objects By Value
+    public static final int _tk_value = 29;             // orbos 98-01-18: Objects By Value
 
     /**
      * The <code>int</code> constant for the IDL data type <code>value_box</code>.
      */
-    public static final int _tk_value_box = 30;	// orbos 98-01-18: Objects By Value
+    public static final int _tk_value_box = 30; // orbos 98-01-18: Objects By Value
 
     /**
      * The <code>int</code> constant for the IDL data type <code>native</code>.
@@ -405,13 +423,13 @@ public class TCKind {
      */
     public static final TCKind tk_value_box = new TCKind(_tk_value_box);
     // orbos 98-01-18: Objects By Value -- end
-    
+
     /**
      * The <code>TCKind</code> constant whose <code>value</code> field is
      * initialized with <code>TCKind._tk_native</code>.
      */
     public static final TCKind tk_native = new TCKind(_tk_native);
-    
+
     /**
      * The <code>TCKind</code> constant whose <code>value</code> field is
      * initialized with <code>TCKind._tk_abstract_interface</code>.
@@ -428,7 +446,7 @@ public class TCKind {
      * IDL data type for this <code>TCKind</code> instance
      */
     public int value() {
-	return _value;
+        return _value;
     }
 
     /**
@@ -445,76 +463,76 @@ public class TCKind {
      * any <code>TCKind</code> instance
      */
     public static TCKind from_int(int i) {
-	switch (i) {
-	case _tk_null:
-	    return tk_null;
-	case _tk_void:
-	    return tk_void;
-	case _tk_short:
-	    return tk_short;
-	case _tk_long:
-	    return tk_long;
-	case _tk_ushort:
-	    return tk_ushort;
-	case _tk_ulong:
-	    return tk_ulong;
-	case _tk_float:
-	    return tk_float;
-	case _tk_double:
-	    return tk_double;
-	case _tk_boolean:
-	    return tk_boolean;
-	case _tk_char:
-	    return tk_char;
-	case _tk_octet:
-	    return tk_octet;
-	case _tk_any:
-	    return tk_any;
-	case _tk_TypeCode:
-	    return tk_TypeCode;
-	case _tk_Principal:
-	    return tk_Principal;
-	case _tk_objref:
-	    return tk_objref;
-	case _tk_struct:
-	    return tk_struct;
-	case _tk_union:
-	    return tk_union;
-	case _tk_enum:
-	    return tk_enum;
-	case _tk_string:
-	    return tk_string;
-	case _tk_sequence:
-	    return tk_sequence;
-	case _tk_array:
-	    return tk_array;
-	case _tk_alias:
-	    return tk_alias;
-	case _tk_except:
-	    return tk_except;
-	case _tk_longlong:
-	    return tk_longlong;
-	case _tk_ulonglong:
-	    return tk_ulonglong;
-	case _tk_longdouble:
-	    return tk_longdouble;
-	case _tk_wchar:
-	    return tk_wchar;
-	case _tk_wstring:
-	    return tk_wstring;
-	case _tk_fixed:
-	    return tk_fixed;
-	case _tk_value:		// orbos 98-01-18: Objects By Value
-	    return tk_value;
-	case _tk_value_box:	// orbos 98-01-18: Objects By Value
-	    return tk_value_box;
+        switch (i) {
+        case _tk_null:
+            return tk_null;
+        case _tk_void:
+            return tk_void;
+        case _tk_short:
+            return tk_short;
+        case _tk_long:
+            return tk_long;
+        case _tk_ushort:
+            return tk_ushort;
+        case _tk_ulong:
+            return tk_ulong;
+        case _tk_float:
+            return tk_float;
+        case _tk_double:
+            return tk_double;
+        case _tk_boolean:
+            return tk_boolean;
+        case _tk_char:
+            return tk_char;
+        case _tk_octet:
+            return tk_octet;
+        case _tk_any:
+            return tk_any;
+        case _tk_TypeCode:
+            return tk_TypeCode;
+        case _tk_Principal:
+            return tk_Principal;
+        case _tk_objref:
+            return tk_objref;
+        case _tk_struct:
+            return tk_struct;
+        case _tk_union:
+            return tk_union;
+        case _tk_enum:
+            return tk_enum;
+        case _tk_string:
+            return tk_string;
+        case _tk_sequence:
+            return tk_sequence;
+        case _tk_array:
+            return tk_array;
+        case _tk_alias:
+            return tk_alias;
+        case _tk_except:
+            return tk_except;
+        case _tk_longlong:
+            return tk_longlong;
+        case _tk_ulonglong:
+            return tk_ulonglong;
+        case _tk_longdouble:
+            return tk_longdouble;
+        case _tk_wchar:
+            return tk_wchar;
+        case _tk_wstring:
+            return tk_wstring;
+        case _tk_fixed:
+            return tk_fixed;
+        case _tk_value:         // orbos 98-01-18: Objects By Value
+            return tk_value;
+        case _tk_value_box:     // orbos 98-01-18: Objects By Value
+            return tk_value_box;
         case _tk_native:
             return tk_native;
         case _tk_abstract_interface:
             return tk_abstract_interface;
-	default:
-	    throw new org.omg.CORBA.BAD_PARAM();
-	}
+        default:
+            throw new org.omg.CORBA.BAD_PARAM();
+        }
     }
 
 
@@ -527,12 +545,10 @@ public class TCKind {
     * @param  _value the <code>int</code> to convert.  It must be one of
     *         the <code>int</code> constants in the class
     *         <code>TCKind</code>.
-    * @return  a new <code>TCKind</code> instance whose <code>value</code>
-    * field matches the given <code>int</code>
     */
     @Deprecated
     protected TCKind(int _value){
-	this._value = _value;
+        this._value = _value;
     }
     private int _value;
 }

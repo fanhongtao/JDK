@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -61,15 +65,14 @@ import org.w3c.dom.Text;
 
 /**
  * <p>DOM result builder.</p>
- * 
+ *
  * @author Michael Glavassevich, IBM
- * @version $Id: DOMResultBuilder.java,v 1.1.4.1 2005/09/05 11:37:27 sunithareddy Exp $
  */
 final class DOMResultBuilder implements DOMDocumentHandler {
 
     /** Table for quick check of child insertion. */
     private final static int[] kidOK;
-    
+
     static {
         kidOK = new int[13];
         kidOK[Node.DOCUMENT_NODE] =
@@ -90,33 +93,33 @@ final class DOMResultBuilder implements DOMDocumentHandler {
         kidOK[Node.CDATA_SECTION_NODE] = 0;
         kidOK[Node.NOTATION_NODE] = 0;
     } // static
-    
+
     //
     // Data
     //
-    
+
     private Document fDocument;
     private CoreDocumentImpl fDocumentImpl;
     private boolean fStorePSVI;
-    
+
     private Node fTarget;
     private Node fNextSibling;
-    
+
     private Node fCurrentNode;
     private Node fFragmentRoot;
-    
+
     private final ArrayList fTargetChildren = new ArrayList();
-    
+
     private boolean fIgnoreChars;
-    
+
     private final QName fAttributeQName = new QName();
-    
+
     public DOMResultBuilder() {}
 
     /*
      * DOMDocumentHandler methods
      */
-    
+
     public void setDOMResult(DOMResult result) {
         fCurrentNode = null;
         fFragmentRoot = null;
@@ -136,7 +139,7 @@ final class DOMResultBuilder implements DOMDocumentHandler {
         fDocumentImpl = null;
         fStorePSVI = false;
     }
-    
+
     public void doctypeDecl(DocumentType node) throws XNIException {
         /** Create new DocumentType node for the target. */
         if (fDocumentImpl != null) {
@@ -172,12 +175,12 @@ final class DOMResultBuilder implements DOMDocumentHandler {
             append(docType);
         }
     }
-    
+
     public void characters(Text node) throws XNIException {
         /** Create new Text node for the target. */
         append(fDocument.createTextNode(node.getNodeValue()));
     }
-    
+
     public void cdata(CDATASection node) throws XNIException {
         /** Create new CDATASection node for the target. */
         append(fDocument.createCDATASection(node.getNodeValue()));
@@ -193,11 +196,11 @@ final class DOMResultBuilder implements DOMDocumentHandler {
         /** Create new ProcessingInstruction node for the target. */
         append(fDocument.createProcessingInstruction(node.getTarget(), node.getData()));
     }
-    
+
     public void setIgnoringCharacters(boolean ignore) {
         fIgnoreChars = ignore;
     }
-    
+
     /*
      * XMLDocumentHandler methods
      */
@@ -233,10 +236,10 @@ final class DOMResultBuilder implements DOMDocumentHandler {
             elem = fDocumentImpl.createElementNS(element.uri, element.rawname, element.localpart);
             for (int i = 0; i < attrCount; ++i) {
                 attributes.getName(i, fAttributeQName);
-                AttrImpl attr = (AttrImpl) fDocumentImpl.createAttributeNS(fAttributeQName.uri, 
+                AttrImpl attr = (AttrImpl) fDocumentImpl.createAttributeNS(fAttributeQName.uri,
                         fAttributeQName.rawname, fAttributeQName.localpart);
                 attr.setValue(attributes.getValue(i));
-                
+
                 // write type information to this attribute
                 AttributePSVI attrPSVI = (AttributePSVI) attributes.getAugmentations(i).getItem (Constants.ATTRIBUTE_PSVI);
                 if (attrPSVI != null) {
@@ -315,7 +318,7 @@ final class DOMResultBuilder implements DOMDocumentHandler {
                 ((ElementNSImpl)fCurrentNode).setType(type);
             }
         }
-        
+
         // adjust current node reference
         if (fCurrentNode == fFragmentRoot) {
             fCurrentNode = null;
@@ -340,7 +343,7 @@ final class DOMResultBuilder implements DOMDocumentHandler {
             for (int i = 0; i < length; ++i) {
                 fTarget.insertBefore((Node) fTargetChildren.get(i), fNextSibling);
             }
-        }  
+        }
     }
 
     public void setDocumentSource(XMLDocumentSource source) {}
@@ -348,11 +351,11 @@ final class DOMResultBuilder implements DOMDocumentHandler {
     public XMLDocumentSource getDocumentSource() {
         return null;
     }
-    
+
     /*
      * Other methods
      */
-    
+
     private void append(Node node) throws XNIException {
         if (fCurrentNode != null) {
             fCurrentNode.appendChild(node);

@@ -1,12 +1,16 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2000-2002,2004,2005 The Apache Software Foundation.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,10 +40,9 @@ import com.sun.org.apache.xerces.internal.xs.XSConstants;
  * nil, specified, normalized value, member type, validity, error codes,
  * default
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Elena Litani IBM
- * @version $Id: ElementPSVImpl.java,v 1.2.6.1 2005/09/09 07:30:49 sunithareddy Exp $
  */
 public class ElementPSVImpl implements ElementPSVI {
 
@@ -49,12 +52,12 @@ public class ElementPSVImpl implements ElementPSVI {
     /** type of element, could be xsi:type */
     protected XSTypeDefinition fTypeDecl = null;
 
-    /** true if clause 3.2 of Element Locally Valid (Element) (3.3.4) 
-      * is satisfied, otherwise false 
+    /** true if clause 3.2 of Element Locally Valid (Element) (3.3.4)
+      * is satisfied, otherwise false
       */
     protected boolean fNil = false;
 
-    /** true if the element value was provided by the schema; false otherwise. 
+    /** true if the element value was provided by the schema; false otherwise.
      */
     protected boolean fSpecified = false;
 
@@ -87,13 +90,13 @@ public class ElementPSVImpl implements ElementPSVI {
 
     /** validation context: could be QName or XPath expression*/
     protected String fValidationContext = null;
-    
+
     /** deferred XSModel **/
     protected SchemaGrammar[] fGrammars = null;
 
     /** the schema information property */
     protected XSModel fSchemaInformation = null;
-    
+
     //
     // ElementPSVI methods
     //
@@ -120,7 +123,7 @@ public class ElementPSVImpl implements ElementPSVI {
     }
 
     /**
-     * [schema specified] 
+     * [schema specified]
      * @see <a href="http://www.w3.org/TR/xmlschema-1/#e-schema_specified">XML Schema Part 1: Structures [schema specified]</a>
      * @return true - value was specified in schema, false - value comes from the infoset
      */
@@ -177,9 +180,9 @@ public class ElementPSVImpl implements ElementPSVI {
     }
 
     /**
-     * [notation] 
+     * [notation]
      * @see <a href="http://www.w3.org/TR/xmlschema-1/#e-notation>XML Schema Part 1: Structures [notation]</a>
-     * @return The notation declaration. 
+     * @return The notation declaration.
      */
     public XSNotationDeclaration getNotation() {
         return fNotation;
@@ -187,20 +190,20 @@ public class ElementPSVImpl implements ElementPSVI {
 
     /**
      * An item isomorphic to the type definition used to validate this element.
-     * 
+     *
      * @return  a type declaration
      */
     public XSTypeDefinition getTypeDefinition() {
         return fTypeDecl;
     }
-    
+
     /**
      * If and only if that type definition is a simple type definition
      * with {variety} union, or a complex type definition whose {content type}
      * is a simple thype definition with {variety} union, then an item isomorphic
      * to that member of the union's {member type definitions} which actually
      * validated the element item's normalized value.
-     * 
+     *
      * @return  a simple type declaration
      */
     public XSSimpleTypeDefinition getMemberTypeDefinition() {
@@ -210,7 +213,7 @@ public class ElementPSVImpl implements ElementPSVI {
     /**
      * An item isomorphic to the element declaration used to validate
      * this element.
-     * 
+     *
      * @return  an element declaration
      */
     public XSElementDeclaration getElementDeclaration() {
@@ -229,7 +232,7 @@ public class ElementPSVImpl implements ElementPSVI {
         }
         return fSchemaInformation;
     }
-    
+
     /* (non-Javadoc)
      * @see com.sun.org.apache.xerces.internal.xs.ItemPSVI#getActualNormalizedValue()
      */

@@ -1,8 +1,26 @@
 /*
- * @(#)IntHolder.java	1.25 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -12,7 +30,7 @@ import org.omg.CORBA.portable.InputStream;
 import org.omg.CORBA.portable.OutputStream;
 
 /**
- * The Holder for <tt>Int</tt>.  For more information on 
+ * The Holder for <tt>Int</tt>.  For more information on
  * Holder files, see <a href="doc-files/generatedfiles.html#holder">
  * "Generated Files: Holder Files"</a>.<P>
  * A Holder class for an <code>int</code>
@@ -29,7 +47,6 @@ import org.omg.CORBA.portable.OutputStream;
  * the value stored in its <code>value</code> field can be accessed with
  * <code>myIntHolder.value</code>.
  *
- * @version	1.14, 09/09/97
  * @since       JDK1.2
  */
 public final class IntHolder implements Streamable {
@@ -56,18 +73,18 @@ public final class IntHolder implements Streamable {
      *                <code>IntHolder</code> object
      */
     public IntHolder(int initial) {
-	value = initial;
+        value = initial;
     }
 
     /**
      * Reads unmarshalled data from <code>input</code> and assigns it to
      * the <code>value</code> field in this <code>IntHolder</code> object.
      *
-     * @param input the <code>InputStream</code> object containing CDR 
+     * @param input the <code>InputStream</code> object containing CDR
      *              formatted data from the wire
      */
     public void _read(InputStream input) {
-	value = input.read_long();
+        value = input.read_long();
     }
 
     /**
@@ -78,9 +95,9 @@ public final class IntHolder implements Streamable {
      *               the CDR formatted data
      */
     public void _write(OutputStream output) {
-	output.write_long(value);
+        output.write_long(value);
     }
-    
+
     /**
      * Retrieves the <code>TypeCode</code> object that corresponds
      * to the value held in this <code>IntHolder</code> object's
@@ -90,6 +107,6 @@ public final class IntHolder implements Streamable {
      *            object
      */
     public org.omg.CORBA.TypeCode _type() {
-	return ORB.init().get_primitive_tc(TCKind.tk_long);
+        return ORB.init().get_primitive_tc(TCKind.tk_long);
     }
 }

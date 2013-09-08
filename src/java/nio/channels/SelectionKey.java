@@ -1,12 +1,31 @@
 /*
- * @(#)SelectionKey.java	1.26 06/06/28
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.nio.channels;
 
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.io.IOException;
 
 
@@ -82,7 +101,6 @@ import java.io.IOException;
  *
  * @author Mark Reinhold
  * @author JSR-51 Expert Group
- * @version 1.26, 06/06/28
  * @since 1.4
  *
  * @see SelectableChannel
@@ -141,7 +159,7 @@ public abstract class SelectionKey {
      */
     public abstract void cancel();
 
-
+
     // -- Operation-set accessors --
 
     /**
@@ -173,7 +191,7 @@ public abstract class SelectionKey {
      * @throws  IllegalArgumentException
      *          If a bit in the set does not correspond to an operation that
      *          is supported by this key's channel, that is, if
-     *          <tt>set & ~(channel().validOps()) != 0</tt>
+     *          <tt>(ops & ~channel().validOps()) != 0</tt>
      *
      * @throws  CancelledKeyException
      *          If this key has been cancelled
@@ -193,7 +211,7 @@ public abstract class SelectionKey {
      */
     public abstract int readyOps();
 
-
+
     // -- Operation bits and bit-testing convenience methods --
 
     /**
@@ -268,7 +286,7 @@ public abstract class SelectionKey {
      *          If this key has been cancelled
      */
     public final boolean isReadable() {
-	return (readyOps() & OP_READ) != 0;
+        return (readyOps() & OP_READ) != 0;
     }
 
     /**
@@ -291,7 +309,7 @@ public abstract class SelectionKey {
      *          If this key has been cancelled
      */
     public final boolean isWritable() {
-	return (readyOps() & OP_WRITE) != 0;
+        return (readyOps() & OP_WRITE) != 0;
     }
 
     /**
@@ -315,7 +333,7 @@ public abstract class SelectionKey {
      *          If this key has been cancelled
      */
     public final boolean isConnectable() {
-	return (readyOps() & OP_CONNECT) != 0;
+        return (readyOps() & OP_CONNECT) != 0;
     }
 
     /**
@@ -339,13 +357,18 @@ public abstract class SelectionKey {
      *          If this key has been cancelled
      */
     public final boolean isAcceptable() {
-	return (readyOps() & OP_ACCEPT) != 0;
+        return (readyOps() & OP_ACCEPT) != 0;
     }
 
-
+
     // -- Attachments --
 
     private volatile Object attachment = null;
+
+    private static final AtomicReferenceFieldUpdater<SelectionKey,Object>
+        attachmentUpdater = AtomicReferenceFieldUpdater.newUpdater(
+            SelectionKey.class, Object.class, "attachment"
+        );
 
     /**
      * Attaches the given object to this key.
@@ -362,9 +385,7 @@ public abstract class SelectionKey {
      *          otherwise <tt>null</tt>
      */
     public final Object attach(Object ob) {
-	Object a = attachment;
-	attachment = ob;
-	return a;
+        return attachmentUpdater.getAndSet(this, ob);
     }
 
     /**
@@ -374,7 +395,7 @@ public abstract class SelectionKey {
      *          or <tt>null</tt> if there is no attachment
      */
     public final Object attachment() {
-	return attachment;
+        return attachment;
     }
 
 }

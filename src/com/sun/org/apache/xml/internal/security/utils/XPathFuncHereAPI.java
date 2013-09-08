@@ -1,4 +1,7 @@
-
+/*
+ * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 /*
  * Copyright  1999-2004 The Apache Software Foundation.
  *
@@ -49,7 +52,7 @@ import org.w3c.dom.traversal.NodeIterator;
  * XPaths using the low-level API, and then just use the XPaths
  * over and over.
  *
- * @author $Author: raul $
+ * @author $Author: mullan $
  * @see <a href="http://www.w3.org/TR/xpath">XPath Specification</a>
  */
 public class XPathFuncHereAPI {

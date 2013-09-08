@@ -1,8 +1,26 @@
 /*
- * @(#)DigitList.java	1.34 06/01/26
+ * Copyright (c) 1996, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -50,7 +68,6 @@ import java.math.RoundingMode;
  * @see  DecimalFormat
  * @see  ChoiceFormat
  * @see  MessageFormat
- * @version      1.34 01/26/06
  * @author       Mark Davis, Alan Liu
  */
 final class DigitList implements Cloneable {
@@ -554,7 +571,7 @@ final class DigitList implements Cloneable {
      * in source, the representation will be rounded.  Ignored if <= 0.
      */
     final void set(boolean isNegative, BigInteger source, int maximumDigits) {
-	this.isNegative = isNegative;
+        this.isNegative = isNegative;
         String s = source.toString();
         int len = s.length();
         extendDigits(len);

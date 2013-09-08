@@ -1,8 +1,26 @@
 /*
- * @(#)ORBVersionServiceContext.java	1.11 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.servicecontext;
@@ -27,18 +45,18 @@ public class ORBVersionServiceContext extends ServiceContext {
 
     public ORBVersionServiceContext( ORBVersion ver )
     {
-	this.version = ver ;
+        this.version = ver ;
     }
 
     public ORBVersionServiceContext(InputStream is, GIOPVersion gv)
     {
-	super(is, gv) ;
-	// pay particular attention to where the version is being read from!
-	// is contains an encapsulation, ServiceContext reads off the
-	// encapsulation and leaves the pointer in the variable "in",
-	// which points to the long value.
+        super(is, gv) ;
+        // pay particular attention to where the version is being read from!
+        // is contains an encapsulation, ServiceContext reads off the
+        // encapsulation and leaves the pointer in the variable "in",
+        // which points to the long value.
 
-	version = ORBVersionFactory.create( in ) ;
+        version = ORBVersionFactory.create( in ) ;
     }
 
     // Required SERVICE_CONTEXT_ID and getId definitions
@@ -47,19 +65,19 @@ public class ORBVersionServiceContext extends ServiceContext {
 
     public void writeData( OutputStream os ) throws SystemException
     {
-	version.write( os ) ;
+        version.write( os ) ;
     }
 
-    public ORBVersion getVersion() 
+    public ORBVersion getVersion()
     {
-	return version ;
+        return version ;
     }
 
     // current ORB Version
     private ORBVersion version = ORBVersionFactory.getORBVersion() ;
 
-    public String toString() 
+    public String toString()
     {
-	return "ORBVersionServiceContext[ version=" + version + " ]" ;
+        return "ORBVersionServiceContext[ version=" + version + " ]" ;
     }
 }

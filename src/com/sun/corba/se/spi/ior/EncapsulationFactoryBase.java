@@ -1,8 +1,26 @@
 /*
- * @(#)EncapsulationFactoryBase.java	1.8 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.ior ;
@@ -14,20 +32,20 @@ import com.sun.corba.se.impl.ior.EncapsulationUtility ;
 public abstract class EncapsulationFactoryBase implements IdentifiableFactory {
     private int id ;
 
-    public int getId() 
+    public int getId()
     {
-	return id ;
+        return id ;
     }
 
     public EncapsulationFactoryBase( int id )
     {
-	this.id = id ;
+        this.id = id ;
     }
 
-    public final Identifiable create( InputStream in ) 
+    public final Identifiable create( InputStream in )
     {
-	InputStream is = EncapsulationUtility.getEncapsulationStream( in ) ;
-	return readContents( is ) ;
+        InputStream is = EncapsulationUtility.getEncapsulationStream( in ) ;
+        return readContents( is ) ;
     }
 
     protected abstract Identifiable readContents( InputStream is ) ;

@@ -1,8 +1,26 @@
 /*
- * @(#)OpenMBeanConstructorInfo.java	3.20 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -32,11 +50,8 @@ import javax.management.MBeanParameterInfo;
  * (typically {@link OpenMBeanParameterInfoSupport}).</p>
  *
  *
- * @version     3.20  05/11/17
- * @author      Sun Microsystems, Inc.
  *
  * @since 1.5
- * @since.unbundled JMX 1.1
  */
 public interface OpenMBeanConstructorInfo {
 
@@ -44,7 +59,7 @@ public interface OpenMBeanConstructorInfo {
     // (methods will be removed when MBeanConstructorInfo is made a parent interface of this interface)
 
     /**
-     * Returns a human readable description of the constructor 
+     * Returns a human readable description of the constructor
      * described by this <tt>OpenMBeanConstructorInfo</tt> instance.
      *
      * @return the description.
@@ -73,7 +88,7 @@ public interface OpenMBeanConstructorInfo {
     //
 
     /**
-     * Compares the specified <var>obj</var> parameter with this <code>OpenMBeanConstructorInfo</code> instance for equality. 
+     * Compares the specified <var>obj</var> parameter with this <code>OpenMBeanConstructorInfo</code> instance for equality.
      * <p>
      * Returns <tt>true</tt> if and only if all of the following statements are true:
      * <ul>
@@ -86,21 +101,21 @@ public interface OpenMBeanConstructorInfo {
      * different implementations of the <code>OpenMBeanConstructorInfo</code> interface.
      * <br>&nbsp;
      * @param  obj  the object to be compared for equality with this <code>OpenMBeanConstructorInfo</code> instance;
-     * 
+     *
      * @return  <code>true</code> if the specified object is equal to this <code>OpenMBeanConstructorInfo</code> instance.
      */
     public boolean equals(Object obj);
 
     /**
-     * Returns the hash code value for this <code>OpenMBeanConstructorInfo</code> instance. 
+     * Returns the hash code value for this <code>OpenMBeanConstructorInfo</code> instance.
      * <p>
      * The hash code of an <code>OpenMBeanConstructorInfo</code> instance is the sum of the hash codes
-     * of all elements of information used in <code>equals</code> comparisons 
-     * (ie: its name and signature, where the signature hashCode is calculated by a call to 
-     *  <tt>java.util.Arrays.asList(this.getSignature).hashCode()</tt>). 
+     * of all elements of information used in <code>equals</code> comparisons
+     * (ie: its name and signature, where the signature hashCode is calculated by a call to
+     *  <tt>java.util.Arrays.asList(this.getSignature).hashCode()</tt>).
      * <p>
-     * This ensures that <code> t1.equals(t2) </code> implies that <code> t1.hashCode()==t2.hashCode() </code> 
-     * for any two <code>OpenMBeanConstructorInfo</code> instances <code>t1</code> and <code>t2</code>, 
+     * This ensures that <code> t1.equals(t2) </code> implies that <code> t1.hashCode()==t2.hashCode() </code>
+     * for any two <code>OpenMBeanConstructorInfo</code> instances <code>t1</code> and <code>t2</code>,
      * as required by the general contract of the method
      * {@link Object#hashCode() Object.hashCode()}.
      * <p>
@@ -110,11 +125,11 @@ public interface OpenMBeanConstructorInfo {
     public int hashCode();
 
     /**
-     * Returns a string representation of this <code>OpenMBeanConstructorInfo</code> instance. 
+     * Returns a string representation of this <code>OpenMBeanConstructorInfo</code> instance.
      * <p>
-     * The string representation consists of the name of this class (ie <code>javax.management.openmbean.OpenMBeanConstructorInfo</code>), 
+     * The string representation consists of the name of this class (ie <code>javax.management.openmbean.OpenMBeanConstructorInfo</code>),
      * and the name and signature of the described constructor.
-     * 
+     *
      * @return  a string representation of this <code>OpenMBeanConstructorInfo</code> instance
      */
     public String toString();

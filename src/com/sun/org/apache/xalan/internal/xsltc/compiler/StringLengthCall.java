@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,20 +38,20 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
  */
 final class StringLengthCall extends FunctionCall {
     public StringLengthCall(QName fname, Vector arguments) {
-	super(fname, arguments);
+        super(fname, arguments);
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
-	if (argumentCount() > 0) {
-	    argument().translate(classGen, methodGen);
-	}
-	else {
-	    il.append(methodGen.loadContextNode());
-	    Type.Node.translateTo(classGen, methodGen, Type.String);
-	}
-	il.append(new INVOKEVIRTUAL(cpg.addMethodref(STRING_CLASS,
-						     "length", "()I")));
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
+        if (argumentCount() > 0) {
+            argument().translate(classGen, methodGen);
+        }
+        else {
+            il.append(methodGen.loadContextNode());
+            Type.Node.translateTo(classGen, methodGen, Type.String);
+        }
+        il.append(new INVOKEVIRTUAL(cpg.addMethodref(STRING_CLASS,
+                                                     "length", "()I")));
     }
 }

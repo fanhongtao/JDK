@@ -1,8 +1,26 @@
 /*
- * @(#)ServerRuntimeException.java	1.19 05/11/17
+ * Copyright (c) 1996, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi;
@@ -20,8 +38,7 @@ package java.rmi;
  *
  * <p>A <code>ServerRuntimeException</code> is not thrown from servers
  * executing on the Java 2 platform v1.2 or later versions.
- * 
- * @version 1.19, 11/17/05
+ *
  * @author  Ann Wollrath
  * @since   JDK1.1
  * @deprecated no replacement
@@ -43,6 +60,6 @@ public class ServerRuntimeException extends RemoteException {
      */
     @Deprecated
     public ServerRuntimeException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

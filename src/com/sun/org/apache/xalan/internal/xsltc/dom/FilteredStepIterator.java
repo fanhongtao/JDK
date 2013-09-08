@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +26,7 @@ package com.sun.org.apache.xalan.internal.xsltc.dom;
 import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
 
 /**
- * Extends a StepIterator by adding the ability to filter nodes. It 
+ * Extends a StepIterator by adding the ability to filter nodes. It
  * uses filters similar to those of a FilterIterator.
  * @author Jacek Ambroziak
  * @author Santiago Pericas-Geertsen
@@ -33,20 +37,20 @@ public final class FilteredStepIterator extends StepIterator {
     private Filter _filter;
 
     public FilteredStepIterator(DTMAxisIterator source,
-				DTMAxisIterator iterator,
-				Filter filter) {
-	super(source, iterator);
-	_filter = filter;
+                                DTMAxisIterator iterator,
+                                Filter filter) {
+        super(source, iterator);
+        _filter = filter;
     }
 
     public int next() {
-	int node;
-	while ((node = super.next()) != END) {
-	    if (_filter.test(node)) {
-		return returnNode(node);
-	    }
-	}
-	return node;
+        int node;
+        while ((node = super.next()) != END) {
+            if (_filter.test(node)) {
+                return returnNode(node);
+            }
+        }
+        return node;
     }
 
 }

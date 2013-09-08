@@ -1,10 +1,28 @@
 /*
- * @(#)X509CRL.java	1.30 05/11/17
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
- 
+
 package java.security.cert;
 
 import java.security.NoSuchAlgorithmException;
@@ -27,8 +45,8 @@ import sun.security.x509.X509CRLImpl;
  * Abstract class for an X.509 Certificate Revocation List (CRL).
  * A CRL is a time-stamped list identifying revoked certificates.
  * It is signed by a Certificate Authority (CA) and made freely
- * available in a public repository.  
- * 
+ * available in a public repository.
+ *
  * <p>Each revoked certificate is
  * identified in a CRL by its certificate serial number. When a
  * certificate-using system uses a certificate (e.g., for verifying a
@@ -49,10 +67,9 @@ import sun.security.x509.X509CRLImpl;
  *     signature            BIT STRING  }
  * </pre>
  * <p>
- * More information can be found in RFC 2459,
- * "Internet X.509 Public Key Infrastructure Certificate and CRL
- * Profile" at <A HREF="http://www.ietf.org/rfc/rfc2459.txt">
- * http://www.ietf.org/rfc/rfc2459.txt </A>.    
+ * More information can be found in
+ * <a href="http://www.ietf.org/rfc/rfc3280.txt">RFC 3280: Internet X.509
+ * Public Key Infrastructure Certificate and CRL Profile</a>.
  * <p>
  * The ASN.1 definition of <code>tbsCertList</code> is:
  * <pre>
@@ -76,16 +93,21 @@ import sun.security.x509.X509CRLImpl;
  * <p>
  * CRLs are instantiated using a certificate factory. The following is an
  * example of how to instantiate an X.509 CRL:
- * <pre><code> 
- * InputStream inStream = new FileInputStream("fileName-of-crl");
- * CertificateFactory cf = CertificateFactory.getInstance("X.509");
- * X509CRL crl = (X509CRL)cf.generateCRL(inStream);
- * inStream.close();
+ * <pre><code>
+ * InputStream inStream = null;
+ * try {
+ *     inStream = new FileInputStream("fileName-of-crl");
+ *     CertificateFactory cf = CertificateFactory.getInstance("X.509");
+ *     X509CRL crl = (X509CRL)cf.generateCRL(inStream);
+ * } finally {
+ *     if (inStream != null) {
+ *         inStream.close();
+ *     }
+ * }
  * </code></pre>
  *
  * @author Hemma Prafullchandra
  *
- * @version 1.30, 11/17/05
  *
  * @see CRL
  * @see CertificateFactory
@@ -100,35 +122,35 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * Constructor for X.509 CRLs.
      */
     protected X509CRL() {
-	super("X.509");
+        super("X.509");
     }
 
     /**
-     * Compares this CRL for equality with the given 
-     * object. If the <code>other</code> object is an 
+     * Compares this CRL for equality with the given
+     * object. If the <code>other</code> object is an
      * <code>instanceof</code> <code>X509CRL</code>, then
      * its encoded form is retrieved and compared with the
      * encoded form of this CRL.
-     * 
+     *
      * @param other the object to test for equality with this CRL.
-     * 
+     *
      * @return true iff the encoded forms of the two CRLs
      * match, false otherwise.
-     */  
+     */
     public boolean equals(Object other) {
         if (this == other) {
             return true;
-	}
+        }
         if (!(other instanceof X509CRL)) {
             return false;
-	}
+        }
         try {
             byte[] thisCRL = X509CRLImpl.getEncodedInternal(this);
             byte[] otherCRL = X509CRLImpl.getEncodedInternal((X509CRL)other);
-	    
-	    return Arrays.equals(thisCRL, otherCRL);
+
+            return Arrays.equals(thisCRL, otherCRL);
         } catch (CRLException e) {
-	    return false;
+            return false;
         }
     }
 
@@ -137,7 +159,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * encoded form.
      *
      * @return the hashcode value.
-     */  
+     */
     public int hashCode() {
         int retval = 0;
         try {
@@ -161,7 +183,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
         throws CRLException;
 
     /**
-     * Verifies that this CRL was signed using the 
+     * Verifies that this CRL was signed using the
      * private key that corresponds to the given public key.
      *
      * @param key the PublicKey used to carry out the verification.
@@ -172,28 +194,28 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * @exception NoSuchProviderException if there's no default provider.
      * @exception SignatureException on signature errors.
      * @exception CRLException on encoding errors.
-     */  
+     */
     public abstract void verify(PublicKey key)
         throws CRLException,  NoSuchAlgorithmException,
         InvalidKeyException, NoSuchProviderException,
         SignatureException;
 
     /**
-     * Verifies that this CRL was signed using the 
+     * Verifies that this CRL was signed using the
      * private key that corresponds to the given public key.
      * This method uses the signature verification engine
      * supplied by the given provider.
      *
      * @param key the PublicKey used to carry out the verification.
      * @param sigProvider the name of the signature provider.
-     * 
+     *
      * @exception NoSuchAlgorithmException on unsupported signature
      * algorithms.
      * @exception InvalidKeyException on incorrect key.
      * @exception NoSuchProviderException on incorrect provider.
      * @exception SignatureException on signature errors.
      * @exception CRLException on encoding errors.
-     */  
+     */
     public abstract void verify(PublicKey key, String sigProvider)
         throws CRLException, NoSuchAlgorithmException,
         InvalidKeyException, NoSuchProviderException,
@@ -221,10 +243,10 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * relied upon by portable code.
      *
      * <p>
-     * Gets the <code>issuer</code> (issuer distinguished name) value from 
+     * Gets the <code>issuer</code> (issuer distinguished name) value from
      * the CRL. The issuer name identifies the entity that signed (and
-     * issued) the CRL. 
-     * 
+     * issued) the CRL.
+     *
      * <p>The issuer name field contains an
      * X.500 distinguished name (DN).
      * The ASN.1 definition for this is:
@@ -246,11 +268,11 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * attributes,
      * such as country name, and corresponding values, such as US.
      * The type of the <code>AttributeValue</code> component is determined by
-     * the <code>AttributeType</code>; in general it will be a 
-     * <code>directoryString</code>. A <code>directoryString</code> is usually 
+     * the <code>AttributeType</code>; in general it will be a
+     * <code>directoryString</code>. A <code>directoryString</code> is usually
      * one of <code>PrintableString</code>,
      * <code>TeletexString</code> or <code>UniversalString</code>.
-     * 
+     *
      * @return a Principal whose name is the issuer distinguished name.
      */
     public abstract Principal getIssuerDN();
@@ -262,14 +284,14 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * It is recommended that subclasses override this method.
      *
      * @return an <code>X500Principal</code> representing the issuer
-     *		distinguished name
+     *          distinguished name
      * @since 1.4
      */
     public X500Principal getIssuerX500Principal() {
-	if (issuerPrincipal == null) {
-	    issuerPrincipal = X509CRLImpl.getIssuerX500Principal(this);
-	}
-	return issuerPrincipal;
+        if (issuerPrincipal == null) {
+            issuerPrincipal = X509CRLImpl.getIssuerX500Principal(this);
+        }
+        return issuerPrincipal;
     }
 
     /**
@@ -305,7 +327,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
      */
     public abstract X509CRLEntry
         getRevokedCertificate(BigInteger serialNumber);
-  
+
     /**
      * Get the CRL entry, if any, for the given certificate.
      *
@@ -315,7 +337,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * certificates issued by the CRL issuer. Subclasses that wish to
      * support indirect CRLs should override this method.
      *
-     * @param certificate the certificate for which a CRL entry is to be looked 
+     * @param certificate the certificate for which a CRL entry is to be looked
      *   up
      * @return the entry for the given certificate, or null if no such entry
      *   exists in this CRL.
@@ -324,14 +346,14 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * @since 1.5
      */
     public X509CRLEntry getRevokedCertificate(X509Certificate certificate) {
-	X500Principal certIssuer = certificate.getIssuerX500Principal();
-	X500Principal crlIssuer = getIssuerX500Principal();
-	if (certIssuer.equals(crlIssuer) == false) {
-	    return null;
-	}
-	return getRevokedCertificate(certificate.getSerialNumber());
+        X500Principal certIssuer = certificate.getIssuerX500Principal();
+        X500Principal crlIssuer = getIssuerX500Principal();
+        if (certIssuer.equals(crlIssuer) == false) {
+            return null;
+        }
+        return getRevokedCertificate(certificate.getSerialNumber());
     }
-  
+
     /**
      * Gets all the entries from this CRL.
      * This returns a Set of X509CRLEntry objects.
@@ -340,7 +362,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * @see X509CRLEntry
      */
     public abstract Set<? extends X509CRLEntry> getRevokedCertificates();
-  
+
     /**
      * Gets the DER-encoded CRL information, the
      * <code>tbsCertList</code> from this CRL.
@@ -352,11 +374,11 @@ public abstract class X509CRL extends CRL implements X509Extension {
     public abstract byte[] getTBSCertList() throws CRLException;
 
     /**
-     * Gets the <code>signature</code> value (the raw signature bits) from 
+     * Gets the <code>signature</code> value (the raw signature bits) from
      * the CRL.
      * The ASN.1 definition for this is:
      * <pre>
-     * signature     BIT STRING  
+     * signature     BIT STRING
      * </pre>
      *
      * @return the signature.
@@ -365,7 +387,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
 
     /**
      * Gets the signature algorithm name for the CRL
-     * signature algorithm. An example is the string "SHA-1/DSA".
+     * signature algorithm. An example is the string "SHA256withRSA".
      * The ASN.1 definition for this is:
      * <pre>
      * signatureAlgorithm   AlgorithmIdentifier<p>
@@ -376,7 +398,7 @@ public abstract class X509CRL extends CRL implements X509Extension {
      *                             -- registered for use with the
      *                             -- algorithm object identifier value
      * </pre>
-     * 
+     *
      * <p>The algorithm name is determined from the <code>algorithm</code>
      * OID string.
      *
@@ -389,9 +411,12 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * An OID is represented by a set of nonnegative whole numbers separated
      * by periods.
      * For example, the string "1.2.840.10040.4.3" identifies the SHA-1
-     * with DSA signature algorithm, as per RFC 2459.
-     * 
-     * <p>See {@link #getSigAlgName() getSigAlgName} for 
+     * with DSA signature algorithm defined in
+     * <a href="http://www.ietf.org/rfc/rfc3279.txt">RFC 3279: Algorithms and
+     * Identifiers for the Internet X.509 Public Key Infrastructure Certificate
+     * and CRL Profile</a>.
+     *
+     * <p>See {@link #getSigAlgName() getSigAlgName} for
      * relevant ASN.1 definitions.
      *
      * @return the signature algorithm OID string.
@@ -407,8 +432,8 @@ public abstract class X509CRL extends CRL implements X509Extension {
      * {@link java.security.AlgorithmParameters AlgorithmParameters}
      * and instantiate with the name returned by
      * {@link #getSigAlgName() getSigAlgName}.
-     * 
-     * <p>See {@link #getSigAlgName() getSigAlgName} for 
+     *
+     * <p>See {@link #getSigAlgName() getSigAlgName} for
      * relevant ASN.1 definitions.
      *
      * @return the DER-encoded signature algorithm parameters, or

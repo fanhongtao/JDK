@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,16 +42,16 @@ public class CharKey extends Object
   {
     m_char = key;
   }
-  
+
   /**
    * Default constructor for a CharKey.
    */
   public CharKey()
   {
   }
-  
+
   /**
-   * Get the hash value of the character.  
+   * Get the hash value of the character.
    *
    * @return hash value of the character.
    */
@@ -59,7 +63,7 @@ public class CharKey extends Object
 
 
   /**
-   * Get the hash value of the character.  
+   * Get the hash value of the character.
    *
    * @return hash value of the character.
    */
@@ -69,11 +73,11 @@ public class CharKey extends Object
   }
 
   /**
-   * Override of equals() for this object 
+   * Override of equals() for this object
    *
    * @param obj to compare to
    *
-   * @return True if this object equals this string value 
+   * @return True if this object equals this string value
    */
   public final boolean equals(Object obj)
   {

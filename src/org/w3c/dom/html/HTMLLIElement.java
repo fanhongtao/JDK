@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2000 World Wide Web Consortium,
  * (Massachusetts Institute of Technology, Institut National de
  * Recherche en Informatique et en Automatique, Keio University). All
@@ -18,19 +47,18 @@ package org.w3c.dom.html;
  */
 public interface HTMLLIElement extends HTMLElement {
     /**
-     *  List item bullet style. See the  type attribute definition in HTML 
+     *  List item bullet style. See the  type attribute definition in HTML
      * 4.0. This attribute is deprecated in HTML 4.0.
      */
     public String getType();
     public void setType(String type);
 
     /**
-     *  Reset sequence number when used in <code>OL</code> . See the  value 
-     * attribute definition in HTML 4.0. This attribute is deprecated in HTML 
+     *  Reset sequence number when used in <code>OL</code> . See the  value
+     * attribute definition in HTML 4.0. This attribute is deprecated in HTML
      * 4.0.
      */
     public int getValue();
     public void setValue(int value);
 
 }
-

@@ -1,12 +1,29 @@
 /*
- * @(#)Panel.java	1.37 06/04/07
+ * Copyright (c) 1995, 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt;
 
-import java.awt.peer.PanelPeer;
 import javax.accessibility.*;
 
 /**
@@ -17,8 +34,7 @@ import javax.accessibility.*;
  * The default layout manager for a panel is the
  * <code>FlowLayout</code> layout manager.
  *
- * @version 	1.37, 04/07/06
- * @author 	Sami Shaio
+ * @author      Sami Shaio
  * @see     java.awt.FlowLayout
  * @since   JDK1.0
  */
@@ -37,7 +53,7 @@ public class Panel extends Container implements Accessible {
      * <code>FlowLayout</code> class.
      */
     public Panel() {
-	this(new FlowLayout());
+        this(new FlowLayout());
     }
 
     /**
@@ -46,7 +62,7 @@ public class Panel extends Container implements Accessible {
      * @since JDK1.1
      */
     public Panel(LayoutManager layout) {
-	setLayout(layout);
+        setLayout(layout);
     }
 
     /**
@@ -54,9 +70,9 @@ public class Panel extends Container implements Accessible {
      * name is null.
      */
     String constructComponentName() {
-        synchronized (getClass()) {
-	    return base + nameCounter++;
-	}
+        synchronized (Panel.class) {
+            return base + nameCounter++;
+        }
     }
 
     /**
@@ -66,10 +82,10 @@ public class Panel extends Container implements Accessible {
 
     public void addNotify() {
         synchronized (getTreeLock()) {
-	    if (peer == null)
-	        peer = getToolkit().createPanel(this);
-	    super.addNotify();
-	}
+            if (peer == null)
+                peer = getToolkit().createPanel(this);
+            super.addNotify();
+        }
     }
 
 /////////////////
@@ -77,12 +93,12 @@ public class Panel extends Container implements Accessible {
 ////////////////
 
     /**
-     * Gets the AccessibleContext associated with this Panel. 
-     * For panels, the AccessibleContext takes the form of an 
-     * AccessibleAWTPanel. 
+     * Gets the AccessibleContext associated with this Panel.
+     * For panels, the AccessibleContext takes the form of an
+     * AccessibleAWTPanel.
      * A new AccessibleAWTPanel instance is created if necessary.
      *
-     * @return an AccessibleAWTPanel that serves as the 
+     * @return an AccessibleAWTPanel that serves as the
      *         AccessibleContext of this Panel
      * @since 1.3
      */
@@ -94,8 +110,8 @@ public class Panel extends Container implements Accessible {
     }
 
     /**
-     * This class implements accessibility support for the 
-     * <code>Panel</code> class.  It provides an implementation of the 
+     * This class implements accessibility support for the
+     * <code>Panel</code> class.  It provides an implementation of the
      * Java Accessibility API appropriate to panel user-interface elements.
      * @since 1.3
      */
@@ -106,7 +122,7 @@ public class Panel extends Container implements Accessible {
         /**
          * Get the role of this object.
          *
-         * @return an instance of AccessibleRole describing the role of the 
+         * @return an instance of AccessibleRole describing the role of the
          * object
          */
         public AccessibleRole getAccessibleRole() {

@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +84,7 @@ public class NodeSortRecordFactory {
              if (_class == null) {
                  _class = ObjectFactory.findProviderClass(
                       className, ObjectFactory.findClassLoader(), true);
-             } 
+             }
 
              int levels = order.length;
              int[] iOrder = new int[levels];
@@ -131,32 +135,32 @@ public class NodeSortRecordFactory {
             throw new TransletException(e);
         }
     }
-    
-    
+
+
 
     /**
      * Create an instance of a sub-class of NodeSortRecord. The name of this
      * sub-class is passed to us in the constructor.
      */
     public NodeSortRecord makeNodeSortRecord(int node, int last)
-	throws ExceptionInInitializerError,
-	       LinkageError,
-	       IllegalAccessException,
-	       InstantiationException,
-	       SecurityException,
-	       TransletException {
+        throws ExceptionInInitializerError,
+               LinkageError,
+               IllegalAccessException,
+               InstantiationException,
+               SecurityException,
+               TransletException {
 
-	final NodeSortRecord sortRecord =
-	    (NodeSortRecord)_class.newInstance();
-	sortRecord.initialize(node, last, _dom, _sortSettings);
-	return sortRecord;
+        final NodeSortRecord sortRecord =
+            (NodeSortRecord)_class.newInstance();
+        sortRecord.initialize(node, last, _dom, _sortSettings);
+        return sortRecord;
     }
 
     public String getClassName() {
-	return _className;
+        return _className;
     }
-    
+
    private final void setLang(final String lang[]){
-        
+
     }
 }

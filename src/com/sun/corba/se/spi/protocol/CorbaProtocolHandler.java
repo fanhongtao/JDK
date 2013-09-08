@@ -1,8 +1,26 @@
 /*
- * @(#)CorbaProtocolHandler.java	1.7 05/11/17
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.spi.protocol;
@@ -26,11 +44,11 @@ import com.sun.corba.se.impl.protocol.giopmsgheaders.RequestMessage;
 public interface CorbaProtocolHandler
     extends ProtocolHandler
 {
-    public void handleRequest(RequestMessage header, 
-			      CorbaMessageMediator messageMediator);
+    public void handleRequest(RequestMessage header,
+                              CorbaMessageMediator messageMediator);
 
-    public void handleRequest(LocateRequestMessage header, 
-			      CorbaMessageMediator messageMediator);
+    public void handleRequest(LocateRequestMessage header,
+                              CorbaMessageMediator messageMediator);
 
     public CorbaMessageMediator createResponse(
         CorbaMessageMediator messageMediator,
@@ -44,16 +62,16 @@ public interface CorbaProtocolHandler
     public CorbaMessageMediator createSystemExceptionResponse(
         CorbaMessageMediator messageMediator,
         SystemException ex,
-	ServiceContexts svc);
+        ServiceContexts svc);
     public CorbaMessageMediator createLocationForward(
         CorbaMessageMediator messageMediator,
-        IOR ior, 
-	ServiceContexts svc);
+        IOR ior,
+        ServiceContexts svc);
 
-    public void handleThrowableDuringServerDispatch( 
-        CorbaMessageMediator request, 
-	Throwable exception,
-	CompletionStatus completionStatus);
+    public void handleThrowableDuringServerDispatch(
+        CorbaMessageMediator request,
+        Throwable exception,
+        CompletionStatus completionStatus);
 
 }
 

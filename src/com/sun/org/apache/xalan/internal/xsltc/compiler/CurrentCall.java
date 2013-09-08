@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,10 +32,10 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
  */
 final class CurrentCall extends FunctionCall {
     public CurrentCall(QName fname) {
-	super(fname);
+        super(fname);
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	methodGen.getInstructionList().append(methodGen.loadCurrentNode());
+        methodGen.getInstructionList().append(methodGen.loadCurrentNode());
     }
 }

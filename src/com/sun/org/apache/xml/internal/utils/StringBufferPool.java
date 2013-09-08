@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +24,7 @@ package com.sun.org.apache.xml.internal.utils;
 
 /**
  * This class pools string buffers, since they are reused so often.
- * String buffers are good candidates for pooling, because of 
+ * String buffers are good candidates for pooling, because of
  * their supporting character arrays.
  * @xsl.usage internal
  */
@@ -32,7 +36,7 @@ public class StringBufferPool
     new ObjectPool(com.sun.org.apache.xml.internal.utils.FastStringBuffer.class);
 
   /**
-   * Get the first free instance of a string buffer, or create one 
+   * Get the first free instance of a string buffer, or create one
    * if there are no free instances.
    *
    * @return A string buffer ready for use.
@@ -49,7 +53,7 @@ public class StringBufferPool
    */
   public synchronized static void free(FastStringBuffer sb)
   {
-    // Since this isn't synchronized, setLength must be 
+    // Since this isn't synchronized, setLength must be
     // done before the instance is freed.
     // Fix attributed to Peter Speck <speck@ruc.dk>.
     sb.setLength(0);

@@ -1,8 +1,26 @@
 /*
- * @(#)BindingIteratorImpl.java	1.42 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.naming.cosnaming;
@@ -46,47 +64,47 @@ public abstract class BindingIteratorImpl extends BindingIteratorPOA
      * Create a binding iterator servant.
      * runs the super constructor.
      * @param orb an ORB object.
-     * @exception java.lang.Exception a Java exception.   
+     * @exception java.lang.Exception a Java exception.
      */
-    public BindingIteratorImpl(ORB orb) 
-        throws java.lang.Exception 
+    public BindingIteratorImpl(ORB orb)
+        throws java.lang.Exception
     {
-	super();
-	this.orb = orb ;
+        super();
+        this.orb = orb ;
     }
-  
+
     /**
      * Return the next binding. It also returns true or false, indicating
      * whether there were more bindings.
      * @param b The Binding as an out parameter.
      * @return true if there were more bindings.
-     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA 
+     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA
      * system exceptions.
      * @see NextOne
      */
     public synchronized boolean next_one(org.omg.CosNaming.BindingHolder b)
     {
-	// NextOne actually returns the next one
-	return NextOne(b);
+        // NextOne actually returns the next one
+        return NextOne(b);
     }
-  
+
     /**
      * Return the next n bindings. It also returns true or false, indicating
      * whether there were more bindings.
      * @param how_many The number of requested bindings in the BindingList.
      * @param bl The BindingList as an out parameter.
      * @return true if there were more bindings.
-     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA 
+     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA
      * system exceptions.
      * @see NextOne
      */
-    public synchronized boolean next_n(int how_many, 
+    public synchronized boolean next_n(int how_many,
         org.omg.CosNaming.BindingListHolder blh)
     {
         if( how_many == 0 ) {
             throw new BAD_PARAM( " 'how_many' parameter is set to 0 which is" +
             " invalid" );
-        }  
+        }
         return list( how_many, blh );
     }
 
@@ -99,31 +117,31 @@ public abstract class BindingIteratorImpl extends BindingIteratorPOA
      * @param bl The BindingList as an out parameter.
      * @return true if there were more bindings.
      */
-    public boolean list( int how_many, org.omg.CosNaming.BindingListHolder blh) 
+    public boolean list( int how_many, org.omg.CosNaming.BindingListHolder blh)
     {
-	// Take the smallest of what's left and what's being asked for
-	int numberToGet = Math.min(RemainingElements(),how_many);
-    
-        // Create a resulting BindingList
-	Binding[] bl = new Binding[numberToGet];
-	BindingHolder bh = new BindingHolder();
-	int i = 0;
-	// Keep iterating as long as there are entries
-	while (i < numberToGet && this.NextOne(bh) == true) {
-	    bl[i] = bh.value;
-	    i++;
-	}
-	// Found any at all?
-	if (i == 0) {
-	    // No
-	    blh.value = new Binding[0];
-	    return false;
-	}
+        // Take the smallest of what's left and what's being asked for
+        int numberToGet = Math.min(RemainingElements(),how_many);
 
-	// Set into holder
-	blh.value = bl;
-    
-	return true;
+        // Create a resulting BindingList
+        Binding[] bl = new Binding[numberToGet];
+        BindingHolder bh = new BindingHolder();
+        int i = 0;
+        // Keep iterating as long as there are entries
+        while (i < numberToGet && this.NextOne(bh) == true) {
+            bl[i] = bh.value;
+            i++;
+        }
+        // Found any at all?
+        if (i == 0) {
+            // No
+            blh.value = new Binding[0];
+            return false;
+        }
+
+        // Set into holder
+        blh.value = bl;
+
+        return true;
     }
 
 
@@ -132,14 +150,14 @@ public abstract class BindingIteratorImpl extends BindingIteratorPOA
     /**
      * Destroy this BindingIterator object. The object corresponding to this
      * object reference is destroyed.
-     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA 
+     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA
      * system exceptions.
      * @see Destroy
-     */ 
+     */
     public synchronized void destroy()
     {
-	// Destroy actually destroys
-	this.Destroy();
+        // Destroy actually destroys
+        this.Destroy();
     }
 
     /**
@@ -147,14 +165,14 @@ public abstract class BindingIteratorImpl extends BindingIteratorPOA
      * for which this BindingIterator was created.
      * @param b The Binding as an out parameter.
      * @return true if there were more bindings.
-     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA 
+     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA
      * system exceptions.
      */
     protected abstract boolean NextOne(org.omg.CosNaming.BindingHolder b);
 
     /**
      * Abstract method for destroying this BindingIterator.
-     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA 
+     * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA
      * system exceptions.
      */
     protected abstract void Destroy();

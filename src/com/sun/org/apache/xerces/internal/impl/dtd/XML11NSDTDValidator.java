@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * The Apache Software License, Version 1.1
  *
  *
@@ -89,7 +93,7 @@ import com.sun.org.apache.xerces.internal.xni.XNIException;
  *  <li>http://apache.org/xml/properties/internal/grammar-pool</li>
  *  <li>http://apache.org/xml/properties/internal/datatype-validator-factory</li>
  * </ul>
- * 
+ *
  * @xerces.internal
  *
  * @author Elena Litani, IBM
@@ -171,9 +175,9 @@ public class XML11NSDTDValidator extends XML11DTDValidator {
 
                 prefix = localpart != XMLSymbols.PREFIX_XMLNS ? localpart : XMLSymbols.EMPTY_STRING;
 
-				// Declare prefix in context. Removing the association between a prefix and a 
-				// namespace name is permitted in XML 1.1, so if the uri value is the empty string, 
-				// the prefix is being unbound. -- mrglavas
+                                // Declare prefix in context. Removing the association between a prefix and a
+                                // namespace name is permitted in XML 1.1, so if the uri value is the empty string,
+                                // the prefix is being unbound. -- mrglavas
                 fNamespaceContext.declarePrefix(prefix, uri.length() != 0 ? uri : null);
             }
         }

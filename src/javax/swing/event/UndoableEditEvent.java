@@ -1,8 +1,26 @@
 /*
- * @(#)UndoableEditEvent.java	1.19 05/11/17
+ * Copyright (c) 1997, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.event;
@@ -21,7 +39,6 @@ import javax.swing.undo.*;
  * has been added to the <code>java.beans</code> package.
  * Please see {@link java.beans.XMLEncoder}.
  *
- * @version 1.19 11/17/05
  * @author Ray Ryan
  */
 public class UndoableEditEvent extends java.util.EventObject {
@@ -35,16 +52,16 @@ public class UndoableEditEvent extends java.util.EventObject {
      * @param edit    an UndoableEdit object
      */
     public UndoableEditEvent(Object source, UndoableEdit edit) {
-	super(source);
-	myEdit = edit;
+        super(source);
+        myEdit = edit;
     }
-    
+
     /**
      * Returns the edit value.
      *
      * @return the UndoableEdit object encapsulating the edit
      */
     public UndoableEdit getEdit() {
-	return myEdit;
+        return myEdit;
     }
 }

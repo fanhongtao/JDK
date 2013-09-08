@@ -1,8 +1,26 @@
 /*
- * @(#)PrivateKey.java	1.30 05/11/17
+ * Copyright (c) 1996, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -24,14 +42,13 @@ package java.security;
  * @see java.security.interfaces.RSAPrivateKey
  * @see java.security.interfaces.RSAPrivateCrtKey
  *
- * @version 1.30 05/11/17
  * @author Benjamin Renaud
  * @author Josh Bloch
  */
 
 public interface PrivateKey extends Key {
     // Declare serialVersionUID to be compatible with JDK1.1
-    /** 
+    /**
      * The class fingerprint that is set to indicate serialization
      * compatibility with a previous version of the class.
      */

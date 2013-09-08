@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,10 +32,10 @@ import com.sun.org.apache.xpath.internal.axes.OneStepIterator;
 
 public class XObjectFactory
 {
-  
+
   /**
-   * Create the right XObject based on the type of the object passed.  This 
-   * function can not make an XObject that exposes DOM Nodes, NodeLists, and 
+   * Create the right XObject based on the type of the object passed.  This
+   * function can not make an XObject that exposes DOM Nodes, NodeLists, and
    * NodeIterators to the XSLT stylesheet as node-sets.
    *
    * @param val The java object which this object will wrap.
@@ -66,10 +70,10 @@ public class XObjectFactory
 
     return result;
   }
-  
+
   /**
    * Create the right XObject based on the type of the object passed.
-   * This function <emph>can</emph> make an XObject that exposes DOM Nodes, NodeLists, and 
+   * This function <emph>can</emph> make an XObject that exposes DOM Nodes, NodeLists, and
    * NodeIterators to the XSLT stylesheet as node-sets.
    *
    * @param val The java object which this object will wrap.
@@ -133,13 +137,13 @@ public class XObjectFactory
     {
       result = new XNodeSet((DTMIterator) val);
     }
-    // This next three instanceofs are a little worrysome, since a NodeList 
+    // This next three instanceofs are a little worrysome, since a NodeList
     // might also implement a Node!
     else if (val instanceof org.w3c.dom.Node)
     {
       result = new XNodeSetForDOM((org.w3c.dom.Node)val, xctxt);
     }
-    // This must come after org.w3c.dom.Node, since many Node implementations 
+    // This must come after org.w3c.dom.Node, since many Node implementations
     // also implement NodeList.
     else if (val instanceof org.w3c.dom.NodeList)
     {

@@ -1,18 +1,36 @@
 /*
- * @(#)IMP_LIMIT.java	1.34 06/04/21
+ * Copyright (c) 1995, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * This exception indicates that an implementation limit was 
- * exceeded in the ORB run time. For example, an ORB may reach 
- * the maximum number of references it can hold simultaneously 
- * in an address space, the size of a parameter may have 
- * exceeded the allowed maximum, or an ORB may impose a maximum 
+ * This exception indicates that an implementation limit was
+ * exceeded in the ORB run time. For example, an ORB may reach
+ * the maximum number of references it can hold simultaneously
+ * in an address space, the size of a parameter may have
+ * exceeded the allowed maximum, or an ORB may impose a maximum
  * on the number of clients or servers that can run simultaneously.<P>
  * It contains a minor code, which gives more detailed information about
  * what caused the exception, and a completion status. It may also contain
@@ -20,14 +38,13 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.16, 09/09/97
  * @since       JDK1.2
  */
 
 
 public final class IMP_LIMIT extends SystemException {
     /**
-     * Constructs an <code>IMP_LIMIT</code> exception with a default 
+     * Constructs an <code>IMP_LIMIT</code> exception with a default
      * minor code of 0 and a completion state of COMPLETED_NO.
      */
     public IMP_LIMIT() {

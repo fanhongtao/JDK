@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // SAXCatalogReader.java - Read XML Catalog files
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -74,7 +78,6 @@ import com.sun.org.apache.xml.internal.resolver.helpers.Debug;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class SAXCatalogReader implements CatalogReader, ContentHandler, DocumentHandler {
   /** The SAX Parser Factory */
@@ -156,8 +159,8 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
      * element type.
      */
   public void setCatalogParser(String namespaceURI,
-			       String rootElement,
-			       String parserClass) {
+                               String rootElement,
+                               String parserClass) {
     if (namespaceURI == null) {
       namespaceMap.put(rootElement, parserClass);
     } else {
@@ -169,7 +172,7 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
      * element type.
      */
   public String getCatalogParser(String namespaceURI,
-				 String rootElement) {
+                                 String rootElement) {
     if (namespaceURI == null) {
       return (String) namespaceMap.get(rootElement);
     } else {
@@ -188,7 +191,7 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
    */
   public void readCatalog(Catalog catalog, String fileUrl)
     throws MalformedURLException, IOException,
-	   CatalogException {
+           CatalogException {
 
     URL url = null;
 
@@ -205,7 +208,7 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
       readCatalog(catalog, urlCon.getInputStream());
     } catch (FileNotFoundException e) {
       catalog.getCatalogManager().debug.message(1, "Failed to load catalog, file not found",
-		    url.toString());
+                    url.toString());
     }
   }
 
@@ -219,7 +222,7 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
    * @throws IOException Error reading catalog file
    * @throws CatalogException A Catalog exception
    */
-  public void readCatalog(Catalog catalog, InputStream is) 
+  public void readCatalog(Catalog catalog, InputStream is)
     throws IOException, CatalogException {
 
     // Create an instance of the parser
@@ -235,20 +238,20 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
 
     try {
       if (parserFactory != null) {
-	SAXParser parser = parserFactory.newSAXParser();
-	SAXParserHandler spHandler = new SAXParserHandler();
-	spHandler.setContentHandler(this);
-	if (bResolver != null) {
-	  spHandler.setEntityResolver(bResolver);
-	}
-	parser.parse(new InputSource(is), spHandler);
+        SAXParser parser = parserFactory.newSAXParser();
+        SAXParserHandler spHandler = new SAXParserHandler();
+        spHandler.setContentHandler(this);
+        if (bResolver != null) {
+          spHandler.setEntityResolver(bResolver);
+        }
+        parser.parse(new InputSource(is), spHandler);
       } else {
-	Parser parser = (Parser) Class.forName(parserClass).newInstance();
-	parser.setDocumentHandler(this);
-	if (bResolver != null) {
-	  parser.setEntityResolver(bResolver);
-	}
-	parser.parse(new InputSource(is));
+        Parser parser = (Parser) Class.forName(parserClass).newInstance();
+        parser.setDocumentHandler(this);
+        if (bResolver != null) {
+          parser.setEntityResolver(bResolver);
+        }
+        parser.parse(new InputSource(is));
       }
     } catch (ClassNotFoundException cnfe) {
       throw new CatalogException(CatalogException.UNPARSEABLE);
@@ -264,13 +267,13 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
       UnknownHostException uhe = new UnknownHostException();
       FileNotFoundException fnfe = new FileNotFoundException();
       if (e != null) {
-	if (e.getClass() == uhe.getClass()) {
-	  throw new CatalogException(CatalogException.PARSE_FAILED,
-				     e.toString());
-	} else if (e.getClass() == fnfe.getClass()) {
-	  throw new CatalogException(CatalogException.PARSE_FAILED,
-				     e.toString());
-	}
+        if (e.getClass() == uhe.getClass()) {
+          throw new CatalogException(CatalogException.PARSE_FAILED,
+                                     e.toString());
+        } else if (e.getClass() == fnfe.getClass()) {
+          throw new CatalogException(CatalogException.PARSE_FAILED,
+                                     e.toString());
+        }
       }
       throw new CatalogException(se);
     }
@@ -307,7 +310,7 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
    * first element encountered in the catalog.</p>
    */
   public void startElement (String name,
-			    AttributeList atts)
+                            AttributeList atts)
     throws SAXException {
 
     if (abandonHope) {
@@ -317,59 +320,59 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
     if (saxParser == null) {
       String prefix = "";
       if (name.indexOf(':') > 0) {
-	prefix = name.substring(0, name.indexOf(':'));
+        prefix = name.substring(0, name.indexOf(':'));
       }
 
       String localName = name;
       if (localName.indexOf(':') > 0) {
-	localName = localName.substring(localName.indexOf(':')+1);
+        localName = localName.substring(localName.indexOf(':')+1);
       }
 
       String namespaceURI = null;
       if (prefix.equals("")) {
-	namespaceURI = atts.getValue("xmlns");
+        namespaceURI = atts.getValue("xmlns");
       } else {
-	namespaceURI = atts.getValue("xmlns:" + prefix);
+        namespaceURI = atts.getValue("xmlns:" + prefix);
       }
 
       String saxParserClass = getCatalogParser(namespaceURI,
-					       localName);
+                                               localName);
 
       if (saxParserClass == null) {
-	abandonHope = true;
-	if (namespaceURI == null) {
-	  debug.message(2, "No Catalog parser for " + name);
-	} else {
-	  debug.message(2, "No Catalog parser for "
-			+ "{" + namespaceURI + "}"
-			+ name);
-	}
-	return;
+        abandonHope = true;
+        if (namespaceURI == null) {
+          debug.message(2, "No Catalog parser for " + name);
+        } else {
+          debug.message(2, "No Catalog parser for "
+                        + "{" + namespaceURI + "}"
+                        + name);
+        }
+        return;
       }
 
       try {
-	saxParser = (SAXCatalogParser)
-	  Class.forName(saxParserClass).newInstance();
+        saxParser = (SAXCatalogParser)
+          Class.forName(saxParserClass).newInstance();
 
-	saxParser.setCatalog(catalog);
-	saxParser.startDocument();
-	saxParser.startElement(name, atts);
+        saxParser.setCatalog(catalog);
+        saxParser.startDocument();
+        saxParser.startElement(name, atts);
       } catch (ClassNotFoundException cnfe) {
-	saxParser = null;
-	abandonHope = true;
-	debug.message(2, cnfe.toString());
+        saxParser = null;
+        abandonHope = true;
+        debug.message(2, cnfe.toString());
       } catch (InstantiationException ie) {
-	saxParser = null;
-	abandonHope = true;
-	debug.message(2, ie.toString());
+        saxParser = null;
+        abandonHope = true;
+        debug.message(2, ie.toString());
       } catch (IllegalAccessException iae) {
-	saxParser = null;
-	abandonHope = true;
-	debug.message(2, iae.toString());
+        saxParser = null;
+        abandonHope = true;
+        debug.message(2, iae.toString());
       } catch (ClassCastException cce ) {
-	saxParser = null;
-	abandonHope = true;
-	debug.message(2, cce.toString());
+        saxParser = null;
+        abandonHope = true;
+        debug.message(2, cce.toString());
       }
     } else {
       saxParser.startElement(name, atts);
@@ -383,9 +386,9 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
    * first element encountered in the catalog.</p>
    */
   public void startElement (String namespaceURI,
-			    String localName,
-			    String qName,
-			    Attributes atts)
+                            String localName,
+                            String qName,
+                            Attributes atts)
     throws SAXException {
 
     if (abandonHope) {
@@ -394,43 +397,43 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
 
     if (saxParser == null) {
       String saxParserClass = getCatalogParser(namespaceURI,
-					       localName);
+                                               localName);
 
       if (saxParserClass == null) {
-	abandonHope = true;
-	if (namespaceURI == null) {
-	  debug.message(2, "No Catalog parser for " + localName);
-	} else {
-	  debug.message(2, "No Catalog parser for "
-			+ "{" + namespaceURI + "}"
-			+ localName);
-	}
-	return;
+        abandonHope = true;
+        if (namespaceURI == null) {
+          debug.message(2, "No Catalog parser for " + localName);
+        } else {
+          debug.message(2, "No Catalog parser for "
+                        + "{" + namespaceURI + "}"
+                        + localName);
+        }
+        return;
       }
 
       try {
-	saxParser = (SAXCatalogParser)
-	  Class.forName(saxParserClass).newInstance();
+        saxParser = (SAXCatalogParser)
+          Class.forName(saxParserClass).newInstance();
 
-	saxParser.setCatalog(catalog);
-	saxParser.startDocument();
-	saxParser.startElement(namespaceURI, localName, qName, atts);
+        saxParser.setCatalog(catalog);
+        saxParser.startDocument();
+        saxParser.startElement(namespaceURI, localName, qName, atts);
       } catch (ClassNotFoundException cnfe) {
-	saxParser = null;
-	abandonHope = true;
-	debug.message(2, cnfe.toString());
+        saxParser = null;
+        abandonHope = true;
+        debug.message(2, cnfe.toString());
       } catch (InstantiationException ie) {
-	saxParser = null;
-	abandonHope = true;
-	debug.message(2, ie.toString());
+        saxParser = null;
+        abandonHope = true;
+        debug.message(2, ie.toString());
       } catch (IllegalAccessException iae) {
-	saxParser = null;
-	abandonHope = true;
-	debug.message(2, iae.toString());
+        saxParser = null;
+        abandonHope = true;
+        debug.message(2, iae.toString());
       } catch (ClassCastException cce ) {
-	saxParser = null;
-	abandonHope = true;
-	debug.message(2, cce.toString());
+        saxParser = null;
+        abandonHope = true;
+        debug.message(2, cce.toString());
       }
     } else {
       saxParser.startElement(namespaceURI, localName, qName, atts);
@@ -446,8 +449,8 @@ public class SAXCatalogReader implements CatalogReader, ContentHandler, Document
 
   /** The SAX2 <code>endElement</code> method. Does nothing. */
   public void endElement (String namespaceURI,
-			  String localName,
-			  String qName) throws SAXException {
+                          String localName,
+                          String qName) throws SAXException {
     if (saxParser != null) {
       saxParser.endElement(namespaceURI, localName, qName);
     }

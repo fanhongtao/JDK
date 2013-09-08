@@ -1,11 +1,31 @@
 /*
- * @(#)UnknownTypeException.java	1.3 06/07/31
+ * Copyright (c) 2005, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.lang.model.type;
+
+import javax.lang.model.UnknownEntityException;
 
 /**
  * Indicates that an unknown kind of type was encountered.  This can
@@ -17,11 +37,10 @@ package javax.lang.model.type;
  * @author Joseph D. Darcy
  * @author Scott Seligman
  * @author Peter von der Ah&eacute;
- * @version 1.3 06/07/31
  * @see TypeVisitor#visitUnknown
  * @since 1.6
  */
-public class UnknownTypeException extends RuntimeException {
+public class UnknownTypeException extends UnknownEntityException {
 
     private static final long serialVersionUID = 269L;
 
@@ -39,9 +58,9 @@ public class UnknownTypeException extends RuntimeException {
      * @param p an additional parameter, may be {@code null}
      */
     public UnknownTypeException(TypeMirror t, Object p) {
-	super("Unknown type: " + t);
-	type = t;
-	this.parameter = p;
+        super("Unknown type: " + t);
+        type = t;
+        this.parameter = p;
     }
 
     /**
@@ -52,7 +71,7 @@ public class UnknownTypeException extends RuntimeException {
      * @return the unknown type, or {@code null} if unavailable
      */
     public TypeMirror getUnknownType() {
-	return type;
+        return type;
     }
 
     /**
@@ -61,6 +80,6 @@ public class UnknownTypeException extends RuntimeException {
      * @return the additional argument
      */
     public Object getArgument() {
-	return parameter;
+        return parameter;
     }
 }

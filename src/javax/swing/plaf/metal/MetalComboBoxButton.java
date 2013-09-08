@@ -1,8 +1,26 @@
 /*
- * @(#)MetalComboBoxButton.java	1.40 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -28,7 +46,6 @@ import java.io.Serializable;
  * Please see {@link java.beans.XMLEncoder}.
  *
  * @see MetalComboBoxButton
- * @version 1.40 11/17/05
  * @author Tom Santos
  */
 public class MetalComboBoxButton extends JButton {
@@ -57,7 +74,7 @@ public class MetalComboBoxButton extends JButton {
         setModel( model );
     }
 
-    public MetalComboBoxButton( JComboBox cb, Icon i, 
+    public MetalComboBoxButton( JComboBox cb, Icon i,
                                 CellRendererPane pane, JList list ) {
         this();
         comboBox = cb;
@@ -74,20 +91,20 @@ public class MetalComboBoxButton extends JButton {
     }
 
     public boolean isFocusTraversable() {
-	return false;
+        return false;
     }
 
     public void setEnabled(boolean enabled) {
-	super.setEnabled(enabled);
+        super.setEnabled(enabled);
 
-	// Set the background and foreground to the combobox colors.
-	if (enabled) {
-	    setBackground(comboBox.getBackground());
-	    setForeground(comboBox.getForeground());
-	} else {
-	    setBackground(UIManager.getColor("ComboBox.disabledBackground"));
-	    setForeground(UIManager.getColor("ComboBox.disabledForeground"));
-	}	    
+        // Set the background and foreground to the combobox colors.
+        if (enabled) {
+            setBackground(comboBox.getBackground());
+            setForeground(comboBox.getForeground());
+        } else {
+            setBackground(UIManager.getColor("ComboBox.disabledBackground"));
+            setForeground(UIManager.getColor("ComboBox.disabledForeground"));
+        }
     }
 
     public void paintComponent( Graphics g ) {
@@ -124,12 +141,12 @@ public class MetalComboBoxButton extends JButton {
                 iconTop = (getHeight() / 2) - (iconHeight / 2);
             }
             else {
-	        if (leftToRight) {
-		    iconLeft = (left + (width - 1)) - iconWidth;
-		}
-		else {
-		    iconLeft = left;
-		}
+                if (leftToRight) {
+                    iconLeft = (left + (width - 1)) - iconWidth;
+                }
+                else {
+                    iconLeft = left;
+                }
                 iconTop = (top + ((bottom - top) / 2)) - (iconHeight / 2);
             }
 
@@ -179,29 +196,29 @@ public class MetalComboBoxButton extends JButton {
 
 
             int cWidth = width - (insets.right + iconWidth);
-            
+
             // Fix for 4238829: should lay out the JPanel.
             boolean shouldValidate = false;
             if (c instanceof JPanel)  {
                 shouldValidate = true;
             }
-            
-	    if (leftToRight) {
-	        rendererPane.paintComponent( g, c, this, 
-					     left, top, cWidth, height, shouldValidate );
-	    }
-	    else {
-	        rendererPane.paintComponent( g, c, this, 
-					     left + iconWidth, top, cWidth, height, shouldValidate );
-	    }
+
+            if (leftToRight) {
+                rendererPane.paintComponent( g, c, this,
+                                             left, top, cWidth, height, shouldValidate );
+            }
+            else {
+                rendererPane.paintComponent( g, c, this,
+                                             left + iconWidth, top, cWidth, height, shouldValidate );
+            }
         }
     }
-    
+
     public Dimension getMinimumSize() {
         Dimension ret = new Dimension();
         Insets insets = getInsets();
         ret.width = insets.left + getComboIcon().getIconWidth() + insets.right;
         ret.height = insets.bottom + getComboIcon().getIconHeight() + insets.top;
-        return ret;        
+        return ret;
     }
 }

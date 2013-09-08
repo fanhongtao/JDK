@@ -1,13 +1,33 @@
 /*
- * Copyright 2005 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.xml.ws.handler;
 
 import javax.xml.namespace.QName;
 
-/** 
+/**
  *  The <code>PortInfo</code> interface is used by a
  *  <code>HandlerResolver</code> to query information about
  *  the port it is being asked to create a handler chain for.
@@ -19,7 +39,7 @@ import javax.xml.namespace.QName;
 **/
 public interface PortInfo {
 
-  /** 
+  /**
    *  Gets the qualified name of the WSDL service name containing
    *  the port being accessed.
    *
@@ -27,14 +47,14 @@ public interface PortInfo {
   **/
   public QName getServiceName();
 
-  /** 
+  /**
    *  Gets the qualified name of the WSDL port being accessed.
    *
    *  @return javax.xml.namespace.QName The qualified name of the WSDL port.
   **/
   public QName getPortName();
 
-  /** 
+  /**
    *  Gets the URI identifying the binding used by the port being accessed.
    *
    *  @return String The binding identifier for the port.

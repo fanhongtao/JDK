@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -60,7 +64,6 @@ package com.sun.org.apache.bcel.internal.classfile;
  * method. These factory objects should implement this interface.
 
  * @see Attribute
- * @version $Id: AttributeReader.java,v 1.1.2.1 2005/07/31 23:46:22 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public interface AttributeReader {
@@ -90,8 +93,8 @@ public interface AttributeReader {
 
      @see Attribute#addAttributeReader( String, AttributeReader )
   */
-  public Attribute createAttribute(int name_index, 
-				   int length,
-				   java.io.DataInputStream file,
-				   ConstantPool constant_pool);
+  public Attribute createAttribute(int name_index,
+                                   int length,
+                                   java.io.DataInputStream file,
+                                   ConstantPool constant_pool);
 }

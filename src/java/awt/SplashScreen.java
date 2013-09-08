@@ -1,8 +1,26 @@
-/**
- * @(#)SplashScreen.java	1.13 06/11/21
+/*
+ * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package java.awt;
 
@@ -11,30 +29,21 @@ import java.awt.image.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.io.File;
-
+import sun.util.logging.PlatformLogger;
+import sun.awt.image.SunWritableRaster;
 
 /**
- * The splash screen can be created at application startup, before the 
- * Java Virtual Machine (JVM) starts. The splash screen is displayed as an 
- * undecorated window containing an image. You can use GIF, JPEG, and PNG files
- * for the image. Animation (for GIF) and transparency (for GIF, PNG) are
- * supported. The window is positioned at the center of the screen (the
- * position on multi-monitor systems is not specified - it is platform and 
- * implementation dependent).
- * The window is closed automatically as soon as the first window is displayed by
- * Swing/AWT (may be also closed manually using the Java API, see below).
+ * The splash screen can be displayed at application startup, before the
+ * Java Virtual Machine (JVM) starts. The splash screen is displayed as an
+ * undecorated window containing an image. You can use GIF, JPEG, or PNG files
+ * for the image. Animation is supported for the GIF format, while transparency
+ * is supported both for GIF and PNG.  The window is positioned at the center
+ * of the screen. The position on multi-monitor systems is not specified. It is
+ * platform and implementation dependent.  The splash screen window is closed
+ * automatically as soon as the first window is displayed by Swing/AWT (may be
+ * also closed manually using the Java API, see below).
  * <P>
- * There are two ways to show the native splash screen:
- * <P>
- * <UL>
- * <LI>If your application is run from the command line or from a shortcut,
- * use the "-splash:" Java application  launcher option to show a splash screen.
- * <BR>
- * For example: 
- * <PRE>
- * java -splash:filename.gif Test
- * </PRE>
- * <LI>If your application is packaged in a jar file, you can use the
+ * If your application is packaged in a jar file, you can use the
  * "SplashScreen-Image" option in a manifest file to show a splash screen.
  * Place the image in the jar archive and specify the path in the option.
  * The path should not have a leading slash.
@@ -45,18 +54,39 @@ import java.io.File;
  * Main-Class: Test
  * SplashScreen-Image: filename.gif
  * </PRE>
- * The command line interface has higher precedence over the manifest 
+ * <P>
+ * If the Java implementation provides the command-line interface and you run
+ * your application by using the command line or a shortcut, use the Java
+ * application launcher option to show a splash screen. The Oracle reference
+ * implementation allows you to specify the splash screen image location with
+ * the {@code -splash:} option.
+ * <BR>
+ * For example:
+ * <PRE>
+ * java -splash:filename.gif Test
+ * </PRE>
+ * The command line interface has higher precedence over the manifest
  * setting.
- * </UL>
  * <p>
- * The {@code SplashScreen} class provides the API for controlling the splash 
+ * The splash screen will be displayed as faithfully as possible to present the
+ * whole splash screen image given the limitations of the target platform and
+ * display.
+ * <p>
+ * It is implied that the specified image is presented on the screen "as is",
+ * i.e. preserving the exact color values as specified in the image file. Under
+ * certain circumstances, though, the presented image may differ, e.g. when
+ * applying color dithering to present a 32 bits per pixel (bpp) image on a 16
+ * or 8 bpp screen. The native platform display configuration may also affect
+ * the colors of the displayed image (e.g.  color profiles, etc.)
+ * <p>
+ * The {@code SplashScreen} class provides the API for controlling the splash
  * screen. This class may be used to close the splash screen, change the splash
- * screen image, get the image position/size and paint in the splash screen. It
- * cannot be used to create the splash screen; you should use the command line or manifest
- * file option for that.
+ * screen image, get the splash screen native window position/size, and paint
+ * in the splash screen. It cannot be used to create the splash screen. You
+ * should use the options provided by the Java implementation for that.
  * <p>
  * This class cannot be instantiated. Only a single instance of this class
- * can exist, and it may be obtained using the {@link #getSplashScreen()}
+ * can exist, and it may be obtained by using the {@link #getSplashScreen()}
  * static method. In case the splash screen has not been created at
  * application startup via the command line or manifest file option,
  * the <code>getSplashScreen</code> method returns <code>null</code>.
@@ -68,12 +98,11 @@ public final class SplashScreen {
 
     SplashScreen(long ptr) { // non-public constructor
         splashPtr = ptr;
-        wasClosed = false;
     }
 
     /**
      * Returns the {@code SplashScreen} object used for
-     * Java startup splash screen control.
+     * Java startup splash screen control on systems that support display.
      *
      * @throws UnsupportedOperationException if the splash screen feature is not
      *         supported by the current toolkit
@@ -82,24 +111,22 @@ public final class SplashScreen {
      * @return the {@link SplashScreen} instance, or <code>null</code> if there is
      *         none or it has already been closed
      */
-    public static synchronized SplashScreen getSplashScreen() {
-        if (GraphicsEnvironment.isHeadless()) {
-            throw new HeadlessException();
-        }
-        // SplashScreen class is now a singleton
-        if (SplashScreen.theInstance == null) {
-            java.security.AccessController.doPrivileged( 
-                    new sun.security.action.LoadLibraryAction("splashscreen"));
-            long ptr = _getInstance();
-            if (ptr == 0) {
-                return null;
+    public static  SplashScreen getSplashScreen() {
+        synchronized (SplashScreen.class) {
+            if (GraphicsEnvironment.isHeadless()) {
+                throw new HeadlessException();
             }
-            if (!_isVisible(ptr)) {
-                return null;
+            // SplashScreen class is now a singleton
+            if (!wasClosed && theInstance == null) {
+                java.security.AccessController.doPrivileged(
+                        new sun.security.action.LoadLibraryAction("splashscreen"));
+                long ptr = _getInstance();
+                if (ptr != 0 && _isVisible(ptr)) {
+                    theInstance = new SplashScreen(ptr);
+                }
             }
-            SplashScreen.theInstance = new SplashScreen(ptr);
+            return theInstance;
         }
-        return (theInstance.isVisible() ? theInstance : null);
     }
 
     /**
@@ -151,7 +178,8 @@ public final class SplashScreen {
             }
             off += result;
         }
-        synchronized(this) {
+        synchronized(SplashScreen.class) {
+            checkVisible();
             if (!_setImageData(splashPtr, buf)) {
                 throw new IOException("Bad image format or i/o error when loading image");
             }
@@ -170,25 +198,29 @@ public final class SplashScreen {
      * @return URL for the current splash screen image file
      * @throws IllegalStateException if the splash screen has already been closed
      */
-    public synchronized URL getImageURL() throws IllegalStateException {
-        checkVisible();
-        if (imageURL == null) {
-            try {
-                String fileName = _getImageFileName(splashPtr);
-                String jarName = _getImageJarName(splashPtr);
-                if (fileName != null) {
-                    if (jarName != null) {
-                        imageURL = new URL("jar:"+(new File(jarName).toURL().toString())+"!/"+fileName);
-                    } else {
-                        imageURL = new File(fileName).toURL();
+    public URL getImageURL() throws IllegalStateException {
+        synchronized (SplashScreen.class) {
+            checkVisible();
+            if (imageURL == null) {
+                try {
+                    String fileName = _getImageFileName(splashPtr);
+                    String jarName = _getImageJarName(splashPtr);
+                    if (fileName != null) {
+                        if (jarName != null) {
+                            imageURL = new URL("jar:"+(new File(jarName).toURL().toString())+"!/"+fileName);
+                        } else {
+                            imageURL = new File(fileName).toURL();
+                        }
+                    }
+                }
+                catch(java.net.MalformedURLException e) {
+                    if (log.isLoggable(PlatformLogger.FINE)) {
+                        log.fine("MalformedURLException caught in the getImageURL() method", e);
                     }
                 }
             }
-            catch(java.net.MalformedURLException e) {
-                // we'll just return null in this case
-            }
+            return imageURL;
         }
-        return imageURL;
     }
 
     /**
@@ -198,22 +230,30 @@ public final class SplashScreen {
      * <p>
      * You cannot control the size or position of the splash screen.
      * The splash screen size is adjusted automatically when the image changes.
+     * <p>
+     * The image may contain transparent areas, and thus the reported bounds may
+     * be larger than the visible splash screen image on the screen.
      *
      * @return a {@code Rectangle} containing the splash screen bounds
      * @throws IllegalStateException if the splash screen has already been closed
      */
     public Rectangle getBounds() throws IllegalStateException {
-        checkVisible();
-        return _getBounds(splashPtr);
+        synchronized (SplashScreen.class) {
+            checkVisible();
+            return _getBounds(splashPtr);
+        }
     }
 
     /**
-     * Returns the size of the splash screen window as a {@link Dimension}. 
+     * Returns the size of the splash screen window as a {@link Dimension}.
      * This may be useful if, for example,
      * you want to draw on the splash screen overlay surface.
      * <p>
      * You cannot control the size or position of the splash screen.
      * The splash screen size is adjusted automatically when the image changes.
+     * <p>
+     * The image may contain transparent areas, and thus the reported size may
+     * be larger than the visible splash screen image on the screen.
      *
      * @return a {@link Dimension} object indicating the splash screen size
      * @throws IllegalStateException if the splash screen has already been closed
@@ -231,27 +271,37 @@ public final class SplashScreen {
      * screen window. You should call {@code update()} on the
      * <code>SplashScreen</code> when you want the splash screen to be
      * updated immediately.
+     * <p>
+     * The pixel (0, 0) in the coordinate space of the graphics context
+     * corresponds to the origin of the splash screen native window bounds (see
+     * {@link #getBounds()}).
      *
      * @return graphics context for the splash screen overlay surface
      * @throws IllegalStateException if the splash screen has already been closed
      */
     public Graphics2D createGraphics() throws IllegalStateException {
-        if (image==null) {
-            Dimension dim = getSize();
-            image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
+        synchronized (SplashScreen.class) {
+            if (image==null) {
+                Dimension dim = getSize();
+                image = new BufferedImage(dim.width, dim.height, BufferedImage.TYPE_INT_ARGB);
+            }
+            return image.createGraphics();
         }
-        return image.createGraphics();
     }
 
     /**
      * Updates the splash window with current contents of the overlay image.
      *
-     * @throws IllegalStateException if the overlay image does not exist; 
+     * @throws IllegalStateException if the overlay image does not exist;
      *         for example, if {@code createGraphics} has never been called,
      *         or if the splash screen has already been closed
      */
     public void update() throws IllegalStateException {
-        checkVisible();
+        BufferedImage image;
+        synchronized (SplashScreen.class) {
+            checkVisible();
+            image = this.image;
+        }
         if (image == null) {
             throw new IllegalStateException("no overlay image available");
         }
@@ -269,8 +319,13 @@ public final class SplashScreen {
         SinglePixelPackedSampleModel sm = (SinglePixelPackedSampleModel)image.getSampleModel();
         int scanlineStride = sm.getScanlineStride();
         Rectangle rect = image.getRaster().getBounds();
-        int[] data = ((DataBufferInt)buf).getData();
-        _update(splashPtr, data, rect.x, rect.y, rect.width, rect.height, scanlineStride);
+        // Note that we steal the data array here, but just for reading
+        // so we do not need to mark the DataBuffer dirty...
+        int[] data = SunWritableRaster.stealData((DataBufferInt)buf, 0);
+        synchronized(SplashScreen.class) {
+            checkVisible();
+            _update(splashPtr, data, rect.x, rect.y, rect.width, rect.height, scanlineStride);
+        }
     }
 
     /**
@@ -279,14 +334,20 @@ public final class SplashScreen {
      *
      * @throws IllegalStateException if the splash screen has already been closed
      */
-    public synchronized void close() throws IllegalStateException {
-        checkVisible();
-        _close(splashPtr);
-        image = null;
-        wasClosed = true;
-        // There should be resetting the theInstance to null to prevent memory 
-        // leak. But it brings some more problems with the bug 6382748, so we 
-        // let the limited leak to stay.
+    public void close() throws IllegalStateException {
+        synchronized (SplashScreen.class) {
+            checkVisible();
+            _close(splashPtr);
+            image = null;
+            SplashScreen.markClosed();
+        }
+    }
+
+    static void markClosed() {
+        synchronized (SplashScreen.class) {
+            wasClosed = true;
+            theInstance = null;
+        }
     }
 
 
@@ -294,18 +355,25 @@ public final class SplashScreen {
      * Determines whether the splash screen is visible. The splash screen may
      * be hidden using {@link #close()}, it is also hidden automatically when
      * the first AWT/Swing window is made visible.
+     * <p>
+     * Note that the native platform may delay presenting the splash screen
+     * native window on the screen. The return value of {@code true} for this
+     * method only guarantees that the conditions to hide the splash screen
+     * window have not occurred yet.
      *
      * @return true if the splash screen is visible (has not been closed yet),
      *         false otherwise
      */
     public boolean isVisible() {
-        return !wasClosed && _isVisible(splashPtr);
+        synchronized (SplashScreen.class) {
+            return !wasClosed && _isVisible(splashPtr);
+        }
     }
 
     private BufferedImage image; // overlay image
 
-    private long splashPtr; // pointer to native Splash structure
-    private boolean wasClosed;
+    private final long splashPtr; // pointer to native Splash structure
+    private static boolean wasClosed = false;
 
     private URL imageURL;
 
@@ -318,6 +386,8 @@ public final class SplashScreen {
      */
     private static SplashScreen theInstance = null;
 
+    private static final PlatformLogger log = PlatformLogger.getLogger("java.awt.SplashScreen");
+
     private native static void _update(long splashPtr, int[] data, int x, int y, int width, int height, int scanlineStride);
     private native static boolean _isVisible(long splashPtr);
     private native static Rectangle _getBounds(long splashPtr);
@@ -328,4 +398,3 @@ public final class SplashScreen {
     private native static boolean _setImageData(long SplashPtr, byte[] data);
 
 };
-

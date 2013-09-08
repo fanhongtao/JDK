@@ -1,8 +1,26 @@
 /*
- * @(#)Target.java	1.6 05/11/17
+ * Copyright (c) 2003, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.annotation;
@@ -20,14 +38,14 @@ package java.lang.annotation;
  * <pre>
  *    &#064;Target(ElementType.ANNOTATION_TYPE)
  *    public &#064;interface MetaAnnotationType {
- *        ... 
+ *        ...
  *    }
  * </pre>
  * This meta-annotation indicates that the declared type is intended solely
  * for use as a member type in complex annotation type declarations.  It
  * cannot be used to annotate anything directly:
  * <pre>
- *    &#064;Target({}) 
+ *    &#064;Target({})
  *    public &#064;interface MemberType {
  *        ...
  *    }

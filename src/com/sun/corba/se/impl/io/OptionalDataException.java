@@ -1,8 +1,26 @@
 /*
- * @(#)OptionalDataException.java	1.22 05/11/17
+ * Copyright (c) 1998, 2002, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -10,8 +28,6 @@
  * RMI-IIOP v1.0
  * Copyright IBM Corp. 1998 1999  All Rights Reserved
  *
- * US Government Users Restricted Rights - Use, duplication or
- * disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
  */
 
 package com.sun.corba.se.impl.io;
@@ -26,7 +42,6 @@ package com.sun.corba.se.impl.io;
  * The count field contains the number of bytes available to read.
  *
  * @author  unascribed
- * @version 1.7, 11/02/98
  * @since   JDK1.1
  */
 public class OptionalDataException extends java.io.IOException {
@@ -34,8 +49,8 @@ public class OptionalDataException extends java.io.IOException {
      * Create an <code>OptionalDataException</code> with a length.
      */
     OptionalDataException(int len) {
-	eof = false;
-	length = len;
+        eof = false;
+        length = len;
     }
 
     /*
@@ -43,8 +58,8 @@ public class OptionalDataException extends java.io.IOException {
      * more primitive data is available.
      */
     OptionalDataException(boolean end) {
-	length = 0;
-	eof = end;
+        length = 0;
+        eof = end;
     }
 
     /**

@@ -1,16 +1,34 @@
 /*
- * @(#)TRANSACTION_ROLLEDBACK.java	1.22 06/04/21
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
 
 /**
- * Exception  thrown when the transaction associated with the request has 
- * already been rolled back or marked to roll back. Thus, the requested 
- * operation either could not be performed or was not performed because 
+ * Exception  thrown when the transaction associated with the request has
+ * already been rolled back or marked to roll back. Thus, the requested
+ * operation either could not be performed or was not performed because
  * further computation on behalf of the transaction would be fruitless.<P>
  * See the OMG Transaction
  * Service specification for details.
@@ -20,7 +38,6 @@ package org.omg.CORBA;
  *
  * @see <A href="../../../../technotes/guides/idl/jidlExceptions.html">documentation on
  * Java&nbsp;IDL exceptions</A>
- * @version     1.5 09/09/97
  */
 
 public final class TRANSACTION_ROLLEDBACK extends SystemException {
@@ -30,7 +47,7 @@ public final class TRANSACTION_ROLLEDBACK extends SystemException {
      * and a null description.
      */
     public TRANSACTION_ROLLEDBACK() {
-	this("");
+        this("");
     }
 
     /**

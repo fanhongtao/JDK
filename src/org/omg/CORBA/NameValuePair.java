@@ -1,8 +1,26 @@
 /*
- * @(#)NameValuePair.java	1.16 05/11/17
+ * Copyright (c) 1998, 2001, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 
@@ -31,7 +49,7 @@ public final class NameValuePair implements org.omg.CORBA.portable.IDLEntity {
      * of this object have to be accessed individually.
      */
     public NameValuePair() { }
-	
+
     /**
      * Constructs a <code>NameValuePair</code> object that associates
      * the given name with the given <code>org.omg.CORBA.Any</code> object.
@@ -39,7 +57,7 @@ public final class NameValuePair implements org.omg.CORBA.portable.IDLEntity {
      * @param __value the <code>Any</code> object to be associated with the given name
      */
     public NameValuePair(String __id, org.omg.CORBA.Any __value) {
-	id = __id;
-	value = __value;
+        id = __id;
+        value = __value;
     }
 }

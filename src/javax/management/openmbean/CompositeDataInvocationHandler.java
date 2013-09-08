@@ -1,14 +1,34 @@
 /*
- * @(#)CompositeDataInvocationHandler.java	1.6 05/11/17
+ * Copyright (c) 2005, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.openmbean;
 
 import com.sun.jmx.mbeanserver.MXBeanLookup;
-import com.sun.jmx.mbeanserver.OpenConverter;
+import com.sun.jmx.mbeanserver.MXBeanMapping;
+import com.sun.jmx.mbeanserver.MXBeanMappingFactory;
+import com.sun.jmx.mbeanserver.DefaultMXBeanMappingFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -39,9 +59,9 @@ import java.lang.reflect.Proxy;
    <pre>
    CompositeData cd =
        new {@link CompositeDataSupport}(
-       	   someCompositeType,
-	   new String[] {"number", "name"},
-	   new Object[] {<b>5</b>, "five"}
+           someCompositeType,
+           new String[] {"number", "name"},
+           new Object[] {<b>5</b>, "five"}
        );
    </pre>
    </blockquote>
@@ -55,8 +75,8 @@ import java.lang.reflect.Proxy;
        new CompositeDataInvocationHandler(cd);
    NamedNumber nn = (NamedNumber)
        Proxy.newProxyInstance(NamedNumber.class.getClassLoader(),
-       	       	       	      new Class[] {NamedNumber.class},
-			      handler);
+                              new Class[] {NamedNumber.class},
+                              handler);
    </pre>
    </blockquote>
 
@@ -99,11 +119,11 @@ public class CompositeDataInvocationHandler implements InvocationHandler {
     public CompositeDataInvocationHandler(CompositeData compositeData) {
         this(compositeData, null);
     }
-    
+
     /**
        <p>Construct a handler backed by the given {@code
        CompositeData}.</p>
-      
+
        @param mbsc the {@code MBeanServerConnection} related to this
        {@code CompositeData}.  This is only relevant if a method in
        the interface for which this is an invocation handler returns
@@ -114,15 +134,15 @@ public class CompositeDataInvocationHandler implements InvocationHandler {
 
        @throws IllegalArgumentException if {@code compositeData}
        is null.
-    */    
+    */
     CompositeDataInvocationHandler(CompositeData compositeData,
                                    MXBeanLookup lookup) {
-	if (compositeData == null)
-	    throw new IllegalArgumentException("compositeData");
-	this.compositeData = compositeData;
+        if (compositeData == null)
+            throw new IllegalArgumentException("compositeData");
+        this.compositeData = compositeData;
         this.lookup = lookup;
     }
-    
+
     /**
        Return the {@code CompositeData} that was supplied to the
        constructor.
@@ -130,59 +150,60 @@ public class CompositeDataInvocationHandler implements InvocationHandler {
        by.  This is never null.
     */
     public CompositeData getCompositeData() {
-	assert compositeData != null;
+        assert compositeData != null;
         return compositeData;
     }
 
     public Object invoke(Object proxy, Method method, Object[] args)
-	    throws Throwable {
-	final String methodName = method.getName();
+            throws Throwable {
+        final String methodName = method.getName();
 
-	// Handle the methods from java.lang.Object
-	if (method.getDeclaringClass() == Object.class) {
-	    if (methodName.equals("toString") && args == null)
-		return "Proxy[" + compositeData + "]";
-	    else if (methodName.equals("hashCode") && args == null)
-		return compositeData.hashCode() + 0x43444948;
-	    else if (methodName.equals("equals") && args.length == 1
-		&& method.getParameterTypes()[0] == Object.class)
-		return equals(proxy, args[0]);
-	    else {
-		/* Either someone is calling invoke by hand, or
-		   it is a non-final method from Object overriden
-		   by the generated Proxy.  At the time of writing,
-		   the only non-final methods in Object that are not
-		   handled above are finalize and clone, and these
-		   are not overridden in generated proxies.  */
-		return method.invoke(this, args);
-	    }
-	}
+        // Handle the methods from java.lang.Object
+        if (method.getDeclaringClass() == Object.class) {
+            if (methodName.equals("toString") && args == null)
+                return "Proxy[" + compositeData + "]";
+            else if (methodName.equals("hashCode") && args == null)
+                return compositeData.hashCode() + 0x43444948;
+            else if (methodName.equals("equals") && args.length == 1
+                && method.getParameterTypes()[0] == Object.class)
+                return equals(proxy, args[0]);
+            else {
+                /* Either someone is calling invoke by hand, or
+                   it is a non-final method from Object overriden
+                   by the generated Proxy.  At the time of writing,
+                   the only non-final methods in Object that are not
+                   handled above are finalize and clone, and these
+                   are not overridden in generated proxies.  */
+                return method.invoke(this, args);
+            }
+        }
 
-	String propertyName = OpenConverter.propertyName(method);
-	if (propertyName == null) {
-	    throw new IllegalArgumentException("Method is not getter: " +
-					       method.getName());
-	}
-	Object openValue;
-	if (compositeData.containsKey(propertyName))
-	    openValue = compositeData.get(propertyName);
-	else {
-	    String decap = OpenConverter.decapitalize(propertyName);
-	    if (compositeData.containsKey(decap))
-		openValue = compositeData.get(decap);
-	    else {
-		final String msg =
-		    "No CompositeData item " + propertyName +
-		    (decap.equals(propertyName) ? "" : " or " + decap) +
-		    " to match " + methodName;
-		throw new IllegalArgumentException(msg);
-	    }
-	}
-        OpenConverter converter =
-            OpenConverter.toConverter(method.getGenericReturnType());
-	return converter.fromOpenValue(lookup, openValue);
+        String propertyName = DefaultMXBeanMappingFactory.propertyName(method);
+        if (propertyName == null) {
+            throw new IllegalArgumentException("Method is not getter: " +
+                                               method.getName());
+        }
+        Object openValue;
+        if (compositeData.containsKey(propertyName))
+            openValue = compositeData.get(propertyName);
+        else {
+            String decap = DefaultMXBeanMappingFactory.decapitalize(propertyName);
+            if (compositeData.containsKey(decap))
+                openValue = compositeData.get(decap);
+            else {
+                final String msg =
+                    "No CompositeData item " + propertyName +
+                    (decap.equals(propertyName) ? "" : " or " + decap) +
+                    " to match " + methodName;
+                throw new IllegalArgumentException(msg);
+            }
+        }
+        MXBeanMapping mapping =
+            MXBeanMappingFactory.DEFAULT.mappingForType(method.getGenericReturnType(),
+                                   MXBeanMappingFactory.DEFAULT);
+        return mapping.fromOpenValue(openValue);
     }
-    
+
     /* This method is called when equals(Object) is
      * called on our proxy and hence forwarded to us.  For example, if we
      * are a proxy for an interface like this:
@@ -210,16 +231,16 @@ public class CompositeDataInvocationHandler implements InvocationHandler {
         if (other == null)
             return false;
 
-        final Class proxyClass = proxy.getClass();
-        final Class otherClass = other.getClass();
-	if (proxyClass != otherClass)
-	    return false;
-	InvocationHandler otherih = Proxy.getInvocationHandler(other);
-	if (!(otherih instanceof CompositeDataInvocationHandler))
-	    return false;
-	CompositeDataInvocationHandler othercdih =
-	    (CompositeDataInvocationHandler) otherih;
-	return compositeData.equals(othercdih.compositeData);
+        final Class<?> proxyClass = proxy.getClass();
+        final Class<?> otherClass = other.getClass();
+        if (proxyClass != otherClass)
+            return false;
+        InvocationHandler otherih = Proxy.getInvocationHandler(other);
+        if (!(otherih instanceof CompositeDataInvocationHandler))
+            return false;
+        CompositeDataInvocationHandler othercdih =
+            (CompositeDataInvocationHandler) otherih;
+        return compositeData.equals(othercdih.compositeData);
     }
 
     private final CompositeData compositeData;

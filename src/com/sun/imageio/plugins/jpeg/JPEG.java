@@ -1,8 +1,26 @@
 /*
- * @(#)JPEG.java	1.18 09/02/27
+ * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.imageio.plugins.jpeg;
@@ -19,7 +37,7 @@ import java.awt.color.ColorSpace;
 import java.awt.color.ICC_ColorSpace;
 
 /**
- * A class containing JPEG-related constants, definitions, and 
+ * A class containing JPEG-related constants, definitions, and
  * static methods.  This class and its constants must be public so that
  * <code>JPEGImageWriteParam</code> can see it.
  */
@@ -43,7 +61,7 @@ public class JPEG {
     public static final int SOF3 = 0xC3;
 
     /** Define Huffman Tables */
-    public static final int DHT = 0xC4;    
+    public static final int DHT = 0xC4;
 
     // SOF markers for Differential Huffman coding
     /** Differential Sequential DCT */
@@ -151,19 +169,19 @@ public class JPEG {
     public static final int ADOBE_YCCK = 2;
 
     // Spi initialization stuff
-    public static final String vendor = "Sun Microsystems, Inc.";
+    public static final String vendor = "Oracle Corporation";
     public static final String version = "0.5";
     // Names of the formats we can read or write
     public static final String [] names = {"JPEG", "jpeg", "JPG", "jpg"};
     public static final String [] suffixes = {"jpg", "jpeg"};
     public static final String [] MIMETypes = {"image/jpeg"};
-    public static final String nativeImageMetadataFormatName = 
+    public static final String nativeImageMetadataFormatName =
         "javax_imageio_jpeg_image_1.0";
-    public static final String nativeImageMetadataFormatClassName = 
+    public static final String nativeImageMetadataFormatClassName =
         "com.sun.imageio.plugins.jpeg.JPEGImageMetadataFormat";
-    public static final String nativeStreamMetadataFormatName = 
+    public static final String nativeStreamMetadataFormatName =
         "javax_imageio_jpeg_stream_1.0";
-    public static final String nativeStreamMetadataFormatClassName = 
+    public static final String nativeStreamMetadataFormatClassName =
         "com.sun.imageio.plugins.jpeg.JPEGStreamMetadataFormat";
 
     // IJG Color codes.
@@ -178,14 +196,14 @@ public class JPEG {
     // 8 and 9 were old "Legacy" codes which the old code never identified
     // on reading anyway.  Support for writing them is being dropped, too.
     public static final int JCS_YCCA = 10;         // PhotoYCC-Alpha
-    public static final int JCS_YCCK = 11;         // Y/Cb/Cr/K 
+    public static final int JCS_YCCK = 11;         // Y/Cb/Cr/K
 
     public static final int NUM_JCS_CODES = JCS_YCCK+1;
 
     /** IJG can handle up to 4-channel JPEGs */
-    public static final int [] [] bandOffsets = {{0}, 
-                                          {0, 1}, 
-                                          {0, 1, 2}, 
+    public static final int [] [] bandOffsets = {{0},
+                                          {0, 1},
+                                          {0, 1, 2},
                                           {0, 1, 2, 3}};
 
     public static final int [] bOffsRGB = { 2, 1, 0 };
@@ -195,8 +213,7 @@ public class JPEG {
      * (e.g. do not init CMM on the request for jpeg mime types)
      */
     public static class JCS {
-
-        public static final ColorSpace sRGB = 
+        public static final ColorSpace sRGB =
             ColorSpace.getInstance(ColorSpace.CS_sRGB);
 
         private static ColorSpace YCC = null;
@@ -215,14 +232,14 @@ public class JPEG {
             return YCC;
         }
     }
-     
+
     // Default value for ImageWriteParam
     public static final float DEFAULT_QUALITY = 0.75F;
 
     /**
      * Returns <code>true</code> if the given <code>ColorSpace</code>
      * object is an instance of ICC_ColorSpace but is not one of the
-     * standard <code>ColorSpaces</code> returned by 
+     * standard <code>ColorSpaces</code> returned by
      * <code>ColorSpace.getInstance()</code>.
      */
     static boolean isNonStandardICC(ColorSpace cs) {
@@ -257,12 +274,12 @@ public class JPEG {
         if (numComponents == 1) {
             return true;
         }
-        
+
         // If it isn't gray, it must have 3 channels
         if (numComponents != 3) {
             return false;
         }
-        
+
         if (input) {
             // Must be RGB
             if (cm.getColorSpace().getType() == ColorSpace.TYPE_RGB) {
@@ -279,7 +296,7 @@ public class JPEG {
     }
 
     /**
-     * Given an image type, return the Adobe transform corresponding to 
+     * Given an image type, return the Adobe transform corresponding to
      * that type, or ADOBE_IMPOSSIBLE if the image type is incompatible
      * with an Adobe marker segment.  If <code>input</code> is true, then
      * the image type is considered before colorspace conversion.
@@ -312,11 +329,11 @@ public class JPEG {
         if (quality <= 0.0F) {
             quality = 0.01F;
         }
-        
+
         if (quality > 1.00F) {
             quality = 1.00F;
         }
-        
+
         if (quality < 0.5F) {
             quality = 0.5F / quality;
         } else {

@@ -1,29 +1,52 @@
 /*
- * @(#)MBeanServerNotificationFilter.java	1.37 05/12/01
- * 
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.management.relation;
+
+import static com.sun.jmx.mbeanserver.Util.cast;
+import static com.sun.jmx.defaults.JmxProperties.RELATION_LOGGER;
+import com.sun.jmx.mbeanserver.GetPropertyAction;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamField;
 import java.security.AccessController;
-import java.security.PrivilegedAction;
-
-import javax.management.Notification;
-import javax.management.NotificationFilterSupport;
-import javax.management.MBeanServerNotification;
-import javax.management.ObjectName;
 
 import java.util.List;
 import java.util.Vector;
 
-import com.sun.jmx.mbeanserver.GetPropertyAction;
-import com.sun.jmx.trace.Trace;
+import javax.management.MBeanServerNotification;
+
+import javax.management.Notification;
+import javax.management.NotificationFilterSupport;
+import javax.management.ObjectName;
+
+import java.util.List;
+import java.util.logging.Level;
+import java.util.Vector;
 
 /**
  * Filter for {@link MBeanServerNotification}.
@@ -33,9 +56,10 @@ import com.sun.jmx.trace.Trace;
  * types).
  *
  * <p>The <b>serialVersionUID</b> of this class is <code>2605900539589789736L</code>.
- * 
+ *
  * @since 1.5
  */
+@SuppressWarnings("serial")  // serialVersionUID must be constant
 public class MBeanServerNotificationFilter extends NotificationFilterSupport {
 
     // Serialization compatibility stuff:
@@ -44,21 +68,21 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
     //  - "1.0" for JMX 1.0
     //  - any other value for JMX 1.1 and higher
     //
-    // Serial version for old serial form 
+    // Serial version for old serial form
     private static final long oldSerialVersionUID = 6001782699077323605L;
     //
-    // Serial version for new serial form 
+    // Serial version for new serial form
     private static final long newSerialVersionUID = 2605900539589789736L;
     //
     // Serializable fields in old serial form
-    private static final ObjectStreamField[] oldSerialPersistentFields = 
+    private static final ObjectStreamField[] oldSerialPersistentFields =
     {
       new ObjectStreamField("mySelectObjNameList", Vector.class),
       new ObjectStreamField("myDeselectObjNameList", Vector.class)
     };
     //
     // Serializable fields in new serial form
-    private static final ObjectStreamField[] newSerialPersistentFields = 
+    private static final ObjectStreamField[] newSerialPersistentFields =
     {
       new ObjectStreamField("selectedNames", List.class),
       new ObjectStreamField("deselectedNames", List.class)
@@ -75,28 +99,28 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      *         </ul>
      * @serialField deselectedNames List List of {@link ObjectName}s with no interest
      *         <ul>
-     *         <li><code>null</code> means that all {@link ObjectName}s are implicitly deselected 
+     *         <li><code>null</code> means that all {@link ObjectName}s are implicitly deselected
      *         (check for explicit selections))</li>
      *         <li>Empty vector means that no {@link ObjectName} is explicitly deselected</li>
      *         </ul>
      */
     private static final ObjectStreamField[] serialPersistentFields;
-    private static boolean compat = false;  
+    private static boolean compat = false;
     static {
-	try {
-	    GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
-	    String form = AccessController.doPrivileged(act);
-	    compat = (form != null && form.equals("1.0"));
-	} catch (Exception e) {
-	    // OK : Too bad, no compat with 1.0
-	}
-	if (compat) {
-	    serialPersistentFields = oldSerialPersistentFields;
-	    serialVersionUID = oldSerialVersionUID;
-	} else {
-	    serialPersistentFields = newSerialPersistentFields;
-	    serialVersionUID = newSerialVersionUID;
-	}
+        try {
+            GetPropertyAction act = new GetPropertyAction("jmx.serial.form");
+            String form = AccessController.doPrivileged(act);
+            compat = (form != null && form.equals("1.0"));
+        } catch (Exception e) {
+            // OK : Too bad, no compat with 1.0
+        }
+        if (compat) {
+            serialPersistentFields = oldSerialPersistentFields;
+            serialVersionUID = oldSerialVersionUID;
+        } else {
+            serialPersistentFields = newSerialPersistentFields;
+            serialVersionUID = newSerialVersionUID;
+        }
     }
     //
     // END Serialization compatibility stuff
@@ -118,13 +142,13 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
     /**
      * @serial List of {@link ObjectName}s with no interest
      *         <ul>
-     *         <li><code>null</code> means that all {@link ObjectName}s are implicitly deselected 
+     *         <li><code>null</code> means that all {@link ObjectName}s are implicitly deselected
      *         (check for explicit selections))</li>
      *         <li>Empty vector means that no {@link ObjectName} is explicitly deselected</li>
      *         </ul>
      */
     private List<ObjectName> deselectedNames = null;
-  
+
     //
     // Constructor
     //
@@ -135,17 +159,16 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      */
     public MBeanServerNotificationFilter() {
 
-	super();
+        super();
+        RELATION_LOGGER.entering(MBeanServerNotificationFilter.class.getName(),
+                "MBeanServerNotificationFilter");
 
-        if (isTraceOn())
-            trace("Constructor: entering", null);
+        enableType(MBeanServerNotification.REGISTRATION_NOTIFICATION);
+        enableType(MBeanServerNotification.UNREGISTRATION_NOTIFICATION);
 
-	enableType(MBeanServerNotification.REGISTRATION_NOTIFICATION);
-	enableType(MBeanServerNotification.UNREGISTRATION_NOTIFICATION);
-
-        if (isTraceOn())
-            trace("Constructor: exiting", null);
-	return;
+        RELATION_LOGGER.exiting(MBeanServerNotificationFilter.class.getName(),
+                "MBeanServerNotificationFilter");
+        return;
     }
 
     //
@@ -158,15 +181,15 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      */
     public synchronized void disableAllObjectNames() {
 
-        if (isTraceOn())
-            trace("disableAllObjectNames: entering", null);
+        RELATION_LOGGER.entering(MBeanServerNotificationFilter.class.getName(),
+                "disableAllObjectNames");
 
-	selectedNames = new Vector<ObjectName>();
-	deselectedNames = null;
+        selectedNames = new Vector<ObjectName>();
+        deselectedNames = null;
 
-        if (isTraceOn())
-            trace("disableAllObjectNames: exiting", null);
-	return;
+        RELATION_LOGGER.exiting(MBeanServerNotificationFilter.class.getName(),
+                "disableAllObjectNames");
+        return;
     }
 
     /**
@@ -177,35 +200,35 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * @exception IllegalArgumentException  if the given ObjectName is null
      */
     public synchronized void disableObjectName(ObjectName objectName)
-	throws IllegalArgumentException {
+        throws IllegalArgumentException {
 
-	if (objectName == null) {
-	    String excMsg = "Invalid parameter.";
-	    throw new IllegalArgumentException(excMsg);
-	}
+        if (objectName == null) {
+            String excMsg = "Invalid parameter.";
+            throw new IllegalArgumentException(excMsg);
+        }
 
-	if (isTraceOn())
-            trace("disableObjectName: entering", objectName.toString());
+        RELATION_LOGGER.entering(MBeanServerNotificationFilter.class.getName(),
+                "disableObjectName", objectName);
 
-	// Removes from selected ObjectNames, if present
-	if (selectedNames != null) {
-	    if (selectedNames.size() != 0) {
-		selectedNames.remove(objectName);
-	    }
-	}
+        // Removes from selected ObjectNames, if present
+        if (selectedNames != null) {
+            if (selectedNames.size() != 0) {
+                selectedNames.remove(objectName);
+            }
+        }
 
-	// Adds it in deselected ObjectNames
-	if (deselectedNames != null) {
-	    // If all are deselected, no need to do anything :)
-	    if (!(deselectedNames.contains(objectName))) {
-		// ObjectName was not already deselected
-		deselectedNames.add(objectName);
-	    }
-	}
+        // Adds it in deselected ObjectNames
+        if (deselectedNames != null) {
+            // If all are deselected, no need to do anything :)
+            if (!(deselectedNames.contains(objectName))) {
+                // ObjectName was not already deselected
+                deselectedNames.add(objectName);
+            }
+        }
 
-        if (isTraceOn())
-            trace("disableObjectName: exiting", null);
-	return;
+        RELATION_LOGGER.exiting(MBeanServerNotificationFilter.class.getName(),
+                "disableObjectName");
+        return;
     }
 
     /**
@@ -213,15 +236,15 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      */
     public synchronized void enableAllObjectNames() {
 
-	if (isTraceOn())
-            trace("enableAllObjectNames: entering", null);
+        RELATION_LOGGER.entering(MBeanServerNotificationFilter.class.getName(),
+                "enableAllObjectNames");
 
-    	selectedNames = null;
-	deselectedNames = new Vector<ObjectName>();
+        selectedNames = null;
+        deselectedNames = new Vector<ObjectName>();
 
-        if (isTraceOn())
-            trace("enableAllObjectNames: exiting", null);
-	return;
+        RELATION_LOGGER.exiting(MBeanServerNotificationFilter.class.getName(),
+                "enableAllObjectNames");
+        return;
     }
 
     /**
@@ -232,37 +255,37 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * @exception IllegalArgumentException  if the given ObjectName is null
      */
     public synchronized void enableObjectName(ObjectName objectName)
-	throws IllegalArgumentException {
+        throws IllegalArgumentException {
 
-	if (objectName == null) {
-	    String excMsg = "Invalid parameter.";
-	    throw new IllegalArgumentException(excMsg);
-	}
+        if (objectName == null) {
+            String excMsg = "Invalid parameter.";
+            throw new IllegalArgumentException(excMsg);
+        }
 
-	if (isTraceOn())
-            trace("enableObjectName: entering", objectName.toString());
+        RELATION_LOGGER.entering(MBeanServerNotificationFilter.class.getName(),
+                "enableObjectName", objectName);
 
-	// Removes from deselected ObjectNames, if present
-	if (deselectedNames != null) {
-	    if (deselectedNames.size() != 0) {
-		deselectedNames.remove(objectName);
-	    }
-	}
+        // Removes from deselected ObjectNames, if present
+        if (deselectedNames != null) {
+            if (deselectedNames.size() != 0) {
+                deselectedNames.remove(objectName);
+            }
+        }
 
-	// Adds it in selected ObjectNames
-	if (selectedNames != null) {
-	    // If all are selected, no need to do anything :)
-	    if (!(selectedNames.contains(objectName))) {
-		// ObjectName was not already selected
-		selectedNames.add(objectName);
-	    }
-	}
+        // Adds it in selected ObjectNames
+        if (selectedNames != null) {
+            // If all are selected, no need to do anything :)
+            if (!(selectedNames.contains(objectName))) {
+                // ObjectName was not already selected
+                selectedNames.add(objectName);
+            }
+        }
 
-        if (isTraceOn())
-            trace("enableObjectName: exiting", null);
-	return;
+        RELATION_LOGGER.exiting(MBeanServerNotificationFilter.class.getName(),
+                "enableObjectName");
+        return;
     }
-		
+
     /**
      * Gets all the ObjectNames enabled.
      *
@@ -273,11 +296,11 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * selected.
      */
     public synchronized Vector<ObjectName> getEnabledObjectNames() {
-	if (selectedNames != null) {
-	    return new Vector<ObjectName>(selectedNames);
-	} else {
-	    return null;
-	}
+        if (selectedNames != null) {
+            return new Vector<ObjectName>(selectedNames);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -290,11 +313,11 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * deselected.
      */
     public synchronized Vector<ObjectName> getDisabledObjectNames() {
-	if (deselectedNames != null) {
-	    return new Vector<ObjectName>(deselectedNames);
-	} else {
-	    return null;
-	}
+        if (deselectedNames != null) {
+            return new Vector<ObjectName>(deselectedNames);
+        } else {
+            return null;
+        }
     }
 
     //
@@ -319,142 +342,105 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * @exception IllegalArgumentException  if null parameter
      */
     public synchronized boolean isNotificationEnabled(Notification notif)
-	throws IllegalArgumentException {
+        throws IllegalArgumentException {
 
-	if (notif == null) {
-	    String excMsg = "Invalid parameter.";
-	    throw new IllegalArgumentException(excMsg);
-	}
+        if (notif == null) {
+            String excMsg = "Invalid parameter.";
+            throw new IllegalArgumentException(excMsg);
+        }
 
-	if (isTraceOn())
-            trace("isNotificationEnabled: entering", notif.toString());
+        RELATION_LOGGER.entering(MBeanServerNotificationFilter.class.getName(),
+                "isNotificationEnabled", notif);
 
-	// Checks the type first
-	String ntfType = notif.getType();
-	Vector enabledTypes = getEnabledTypes();
-	if (!(enabledTypes.contains(ntfType))) {
+        // Checks the type first
+        String ntfType = notif.getType();
+        Vector<String> enabledTypes = getEnabledTypes();
+        if (!(enabledTypes.contains(ntfType))) {
+            RELATION_LOGGER.logp(Level.FINER,
+                    MBeanServerNotificationFilter.class.getName(),
+                    "isNotificationEnabled",
+                    "Type not selected, exiting");
+            return false;
+        }
 
-	    if (isTraceOn())
-		trace("isNotificationEnabled: type not selected, exiting", null);
-	    return false;
-	}
+        // We have a MBeanServerNotification: downcasts it
+        MBeanServerNotification mbsNtf = (MBeanServerNotification)notif;
 
-	// We have a MBeanServerNotification: downcasts it
-	MBeanServerNotification mbsNtf = (MBeanServerNotification)notif;
+        // Checks the ObjectName
+        ObjectName objName = mbsNtf.getMBeanName();
+        // Is it selected?
+        boolean isSelectedFlg = false;
+        if (selectedNames != null) {
+            // Not all are implicitly selected:
+            // checks for explicit selection
+            if (selectedNames.size() == 0) {
+                // All are explicitly not selected
+                RELATION_LOGGER.logp(Level.FINER,
+                        MBeanServerNotificationFilter.class.getName(),
+                        "isNotificationEnabled",
+                        "No ObjectNames selected, exiting");
+                return false;
+            }
 
-	// Checks the ObjectName
-	ObjectName objName = mbsNtf.getMBeanName();
-	// Is it selected?
-	boolean isSelectedFlg = false;
-	if (selectedNames != null) {
-	    // Not all are implicitly selected:
-	    // checks for explicit selection
-	    if (selectedNames.size() == 0) {
-		// All are explicitly not selected
-		if (isTraceOn())
-		    trace("isNotificationEnabled: no ObjectNames selected, exiting", null);
-		return false;
-	    }
+            isSelectedFlg = selectedNames.contains(objName);
+            if (!isSelectedFlg) {
+                // Not in the explicit selected list
+                RELATION_LOGGER.logp(Level.FINER,
+                        MBeanServerNotificationFilter.class.getName(),
+                        "isNotificationEnabled",
+                        "ObjectName not in selected list, exiting");
+                return false;
+            }
+        }
 
-	    isSelectedFlg = selectedNames.contains(objName);
-	    if (!isSelectedFlg) {
-		// Not in the explicit selected list
-		if (isTraceOn())
-		    trace("isNotificationEnabled: ObjectName not in selected list, exiting", null);
-		return false;
-	    }
-	}
+        if (!isSelectedFlg) {
+            // Not explicitly selected: is it deselected?
 
-	if (!isSelectedFlg) {
-	    // Not explicitly selected: is it deselected?
+            if (deselectedNames == null) {
+                // All are implicitly deselected and it is not explicitly
+                // selected
+                RELATION_LOGGER.logp(Level.FINER,
+                        MBeanServerNotificationFilter.class.getName(),
+                        "isNotificationEnabled",
+                        "ObjectName not selected, and all " +
+                        "names deselected, exiting");
+                return false;
 
-	    if (deselectedNames == null) {
-		// All are implicitly deselected and it is not explicitly
-		// selected
-		if (isTraceOn())
-		    trace("isNotificationEnabled: ObjectName not selected and all deselectedm, exiting", null);
-		return false;
+            } else if (deselectedNames.contains(objName)) {
+                // Explicitly deselected
+                RELATION_LOGGER.logp(Level.FINER,
+                        MBeanServerNotificationFilter.class.getName(),
+                        "isNotificationEnabled",
+                        "ObjectName explicitly not selected, exiting");
+                return false;
+            }
+        }
 
-	    } else if (deselectedNames.contains(objName)) {
-		// Explicitly deselected
-		if (isTraceOn())
-		    trace("isNotificationEnabled: ObjectName explicitly not selected, exiting", null);
-		return false;
-	    }
-	}
-
-	if (isTraceOn())
-	    trace("isNotificationEnabled: ObjectName selected, exiting", null);
-	return true;
+        RELATION_LOGGER.logp(Level.FINER,
+                MBeanServerNotificationFilter.class.getName(),
+                "isNotificationEnabled",
+                "ObjectName selected, exiting");
+        return true;
     }
 
-    // stuff for Tracing
-
-    private static String localClassName = "MBeanServerNotificationFilter";
-
-    // trace level
-    private boolean isTraceOn() {
-        return Trace.isSelected(Trace.LEVEL_TRACE, Trace.INFO_RELATION);
-    }
-
-//    private void trace(String className, String methodName, String info) {
-//        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_RELATION, className, methodName, info);
-//    }
-
-    private void trace(String methodName, String info) {
-        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_RELATION, localClassName, methodName, info);
-	Trace.send(Trace.LEVEL_TRACE, Trace.INFO_RELATION, "", "", "\n");
-    }
-
-//    private void trace(String className, String methodName, Exception e) {
-//        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_RELATION, className, methodName, e);
-//    }
-
-//    private void trace(String methodName, Exception e) {
-//        Trace.send(Trace.LEVEL_TRACE, Trace.INFO_RELATION, localClassName, methodName, e);
-//    }
-
-    // debug level
-    private boolean isDebugOn() {
-        return Trace.isSelected(Trace.LEVEL_DEBUG, Trace.INFO_RELATION);
-    }
-
-//    private void debug(String className, String methodName, String info) {
-//        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_RELATION, className, methodName, info);
-//    }
-
-    private void debug(String methodName, String info) {
-        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_RELATION, localClassName, methodName, info);
-	Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_RELATION, "", "", "\n");
-    }
-
-//    private void debug(String className, String methodName, Exception e) {
-//        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_RELATION, className, methodName, e);
-//    }
-
-//    private void debug(String methodName, Exception e) {
-//        Trace.send(Trace.LEVEL_DEBUG, Trace.INFO_RELATION, localClassName, methodName, e);
-//    }
 
     /**
      * Deserializes an {@link MBeanServerNotificationFilter} from an {@link ObjectInputStream}.
      */
     private void readObject(ObjectInputStream in)
-	    throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
       if (compat)
       {
         // Read an object serialized in the old serial form
         //
         ObjectInputStream.GetField fields = in.readFields();
-	selectedNames =
-	    (List<ObjectName>) fields.get("mySelectObjNameList", null);
-	if (fields.defaulted("mySelectObjNameList"))
+        selectedNames = cast(fields.get("mySelectObjNameList", null));
+        if (fields.defaulted("mySelectObjNameList"))
         {
           throw new NullPointerException("mySelectObjNameList");
         }
-	deselectedNames =
-	    (List<ObjectName>) fields.get("myDeselectObjNameList", null);
-	if (fields.defaulted("myDeselectObjNameList"))
+        deselectedNames = cast(fields.get("myDeselectObjNameList", null));
+        if (fields.defaulted("myDeselectObjNameList"))
         {
           throw new NullPointerException("myDeselectObjNameList");
         }
@@ -472,15 +458,15 @@ public class MBeanServerNotificationFilter extends NotificationFilterSupport {
      * Serializes an {@link MBeanServerNotificationFilter} to an {@link ObjectOutputStream}.
      */
     private void writeObject(ObjectOutputStream out)
-	    throws IOException {
+            throws IOException {
       if (compat)
       {
         // Serializes this instance in the old serial form
         //
         ObjectOutputStream.PutField fields = out.putFields();
-	fields.put("mySelectObjNameList", (Vector)selectedNames);
-	fields.put("myDeselectObjNameList", (Vector)deselectedNames);
-	out.writeFields();
+        fields.put("mySelectObjNameList", selectedNames);
+        fields.put("myDeselectObjNameList", deselectedNames);
+        out.writeFields();
       }
       else
       {

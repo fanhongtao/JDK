@@ -1,12 +1,29 @@
 /*
- * @(#)GTKPainter.java	1.84 07/03/15
+ * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.java.swing.plaf.gtk;
 
-import sun.swing.plaf.synth.SynthUI;
 import sun.awt.UNIXToolkit;
 
 import javax.swing.plaf.synth.*;
@@ -23,7 +40,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * @version 1.84, 03/15/07
  * @author Joshua Outwater
  * @author Scott Violet
  */
@@ -34,19 +50,19 @@ import java.lang.reflect.Method;
 // focus-line-width: Integer giving size of focus border
 // focus-padding: Integer giving padding between border and focus
 //        indicator.
-// focus-line-pattern: 
+// focus-line-pattern:
 //
 class GTKPainter extends SynthPainter {
     private static final PositionType[] POSITIONS = {
         PositionType.BOTTOM, PositionType.RIGHT,
         PositionType.TOP, PositionType.LEFT
     };
-    
+
     private static final ShadowType SHADOWS[] = {
         ShadowType.NONE, ShadowType.IN, ShadowType.OUT,
         ShadowType.ETCHED_IN, ShadowType.OUT
     };
-    
+
     private final static GTKEngine ENGINE = GTKEngine.INSTANCE;
     final static GTKPainter INSTANCE = new GTKPainter();
 
@@ -130,7 +146,7 @@ class GTKPainter extends SynthPainter {
                                      int w, int h) {
         paintTextBackground(context, g, x, y, w, h);
     }
-    
+
     //
     // TEXT_FIELD
     //
@@ -190,27 +206,38 @@ class GTKPainter extends SynthPainter {
         }
     }
 
-    // 
+    //
     // LABEL
     //
     public void paintLabelBackground(SynthContext context,
                                      Graphics g, int x, int y,
                                      int w, int h) {
         String name = getName(context);
+        JComponent c = context.getComponent();
+        Container  container = c.getParent();
+
         if (name == "TableHeader.renderer" ||
             name == "GTKFileChooser.directoryListLabel" ||
             name == "GTKFileChooser.fileListLabel") {
-            
+
             paintButtonBackgroundImpl(context, g, Region.BUTTON, "button",
                     x, y, w, h, true, false, false, false);
-        } else if (name == "ComboBox.renderer") {
+        }
+        /*
+         * If the label is a ListCellRenderer and it's in a container
+         * (CellRendererPane) which is in a JComboBox then we paint the label
+         * as a TextField like a gtk_entry for a combobox.
+         */
+        else if (c instanceof ListCellRenderer &&
+                 container != null &&
+                 container.getParent() instanceof JComboBox ) {
             paintTextBackground(context, g, x, y, w, h);
         }
     }
 
     //
     // INTERNAL_FRAME
-    // 
+    //
     public void paintInternalFrameBorder(SynthContext context,
                                       Graphics g, int x, int y,
                                       int w, int h) {
@@ -271,10 +298,10 @@ class GTKPainter extends SynthPainter {
             // Paint the default indicator
             GTKStyle style = (GTKStyle)context.getStyle();
             if (defaultCapable && !toolButton) {
-                Insets defaultInsets = (Insets)style.getClassSpecificInsetsValue(
+                Insets defaultInsets = style.getClassSpecificInsetsValue(
                         context, "default-border",
                         GTKStyle.BUTTON_DEFAULT_BORDER_INSETS);
-            
+
                 if (paintBackground && (state & SynthConstants.DEFAULT) != 0) {
                     ENGINE.paintBox(g, context, id, SynthConstants.ENABLED,
                             ShadowType.IN, "buttondefault", x, y, w, h);
@@ -291,7 +318,7 @@ class GTKPainter extends SynthPainter {
                     context, "focus-line-width",1);
             int focusPad = style.getClassSpecificIntValue(
                     context, "focus-padding", 1);
-            
+
             int totalFocusSize = focusSize + focusPad;
             int xThickness = style.getXThickness();
             int yThickness = style.getYThickness();
@@ -304,7 +331,7 @@ class GTKPainter extends SynthPainter {
                 w -= 2 * totalFocusSize;
                 h -= 2 * totalFocusSize;
             }
-        
+
             int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
             boolean paintBg;
             if (toolButton) {
@@ -329,7 +356,7 @@ class GTKPainter extends SynthPainter {
                 ENGINE.paintBox(g, context, id, gtkState,
                         shadowType, detail, x, y, w, h);
             }
-            
+
             // focus
             if (paintFocus && (state & SynthConstants.FOCUSED) != 0) {
                 if (interiorFocus) {
@@ -372,7 +399,7 @@ class GTKPainter extends SynthPainter {
         }
 
         String detail = "arrow";
-        if (name == "ScrollBar.button") {
+        if ((name == "ScrollBar.button") || (name == "TabbedPane.button")) {
             if (arrowType == ArrowType.UP || arrowType == ArrowType.DOWN) {
                 detail = "vscrollbar";
             } else {
@@ -382,9 +409,9 @@ class GTKPainter extends SynthPainter {
                    name == "Spinner.previousButton") {
             detail = "spinbutton";
         } else if (name != "ComboBox.arrowButton") {
-            assert false;
+            assert false : "unexpected name: " + name;
         }
-        
+
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
                 id, context.getComponentState());
         ShadowType shadowType = (gtkState == SynthConstants.PRESSED ?
@@ -409,39 +436,39 @@ class GTKPainter extends SynthPainter {
         String name = button.getName();
         String detail = "button";
         int direction = SwingConstants.CENTER;
-        if (name == "ScrollBar.button") {
-            Integer prop = (Integer) 
-                button.getClientProperty("__arrow_direction__"); 
-            direction = (prop != null) ? 
-                prop.intValue() : SwingConstants.WEST; 
-            switch (direction) { 
-            default: 
-            case SwingConstants.EAST: 
-            case SwingConstants.WEST: 
-                detail = "hscrollbar"; 
-                break; 
-            case SwingConstants.NORTH: 
-            case SwingConstants.SOUTH: 
-                detail = "vscrollbar"; 
-                break; 
+        if ((name == "ScrollBar.button") || (name == "TabbedPane.button")) {
+            Integer prop = (Integer)
+                button.getClientProperty("__arrow_direction__");
+            direction = (prop != null) ?
+                prop.intValue() : SwingConstants.WEST;
+            switch (direction) {
+            default:
+            case SwingConstants.EAST:
+            case SwingConstants.WEST:
+                detail = "hscrollbar";
+                break;
+            case SwingConstants.NORTH:
+            case SwingConstants.SOUTH:
+                detail = "vscrollbar";
+                break;
             }
         } else if (name == "Spinner.previousButton") {
             detail = "spinbutton_down";
         } else if (name == "Spinner.nextButton") {
             detail = "spinbutton_up";
-        } else if (name != "ComboBox.arrowButton") { 
-            assert false;
+        } else if (name != "ComboBox.arrowButton") {
+            assert false : "unexpected name: " + name;
         }
 
-        int state = context.getComponentState(); 
-        synchronized (UNIXToolkit.GTK_LOCK) { 
-            if (ENGINE.paintCachedImage(g, x, y, w, h, id, 
-                                        state, detail, direction)) 
-            { 
-                return; 
-            } 
-            ENGINE.startPainting(g, x, y, w, h, id, 
-                                 state, detail, direction); 
+        int state = context.getComponentState();
+        synchronized (UNIXToolkit.GTK_LOCK) {
+            if (ENGINE.paintCachedImage(g, x, y, w, h, id,
+                                        state, detail, direction))
+            {
+                return;
+            }
+            ENGINE.startPainting(g, x, y, w, h, id,
+                                 state, detail, direction);
 
             if (detail.startsWith("spin")) {
                 /*
@@ -460,17 +487,18 @@ class GTKPainter extends SynthPainter {
                                 x, mody, w, modh);
             }
 
-            int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state); 
-            ShadowType shadowType = ShadowType.OUT; 
-            if ((gtkState & (SynthConstants.PRESSED | 
-                             SynthConstants.SELECTED)) != 0) 
-            { 
-                shadowType = ShadowType.IN; 
-            } 
-            ENGINE.paintBox(g, context, id, gtkState, 
-                            shadowType, detail, x, y, w, h); 
- 
-            ENGINE.finishPainting(); 
+            int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
+            ShadowType shadowType = ShadowType.OUT;
+            if ((gtkState & (SynthConstants.PRESSED |
+                             SynthConstants.SELECTED)) != 0)
+            {
+                shadowType = ShadowType.IN;
+            }
+            ENGINE.paintBox(g, context, id, gtkState,
+                            shadowType, detail,
+                            x, y, w, h);
+
+            ENGINE.finishPainting();
         }
     }
 
@@ -483,7 +511,7 @@ class GTKPainter extends SynthPainter {
         // Does not call into ENGINE for better performance
         fillArea(context, g, x, y, w, h, GTKColorType.TEXT_BACKGROUND);
     }
-    
+
     public void paintMenuBarBackground(SynthContext context, Graphics g,
                                        int x, int y, int w, int h) {
         Region id = context.getRegion();
@@ -577,12 +605,17 @@ class GTKPainter extends SynthPainter {
                                             int orientation) {
         Region id = context.getRegion();
         synchronized (UNIXToolkit.GTK_LOCK) {
-            if (! ENGINE.paintCachedImage(g, x, y, w, h, id, "fg")) {
-                ENGINE.startPainting(g, x, y, w, h, id, "fg");
-                ENGINE.paintBox(g, context, id, SynthConstants.MOUSE_OVER,
-                        ShadowType.OUT, "bar", x, y, w, h);
-                ENGINE.finishPainting();
+            // Note that we don't call paintCachedImage() here.  Since the
+            // progress bar foreground is painted differently for each value
+            // it would be wasteful to try to cache an image for each state,
+            // so instead we simply avoid caching in this case.
+            if (w <= 0 || h <= 0) {
+                return;
             }
+            ENGINE.startPainting(g, x, y, w, h, id, "fg");
+            ENGINE.paintBox(g, context, id, SynthConstants.MOUSE_OVER,
+                            ShadowType.OUT, "bar", x, y, w, h);
+            ENGINE.finishPainting(false); // don't bother caching the image
         }
     }
 
@@ -597,11 +630,6 @@ class GTKPainter extends SynthPainter {
                 ENGINE.finishPainting();
             }
         }
-    }
-
-    public void paintScrollPaneBorder(SynthContext context, Graphics g,
-                                           int x, int y, int w, int h) {
-        paintViewportBorder(context, g, x, y, w, h);
     }
 
     public void paintSeparatorBackground(SynthContext context,
@@ -712,20 +740,34 @@ class GTKPainter extends SynthPainter {
             h += focusSize * 2;
         }
 
-        synchronized (UNIXToolkit.GTK_LOCK) {
-            if (! ENGINE.paintCachedImage(g, x, y, w, h, id, state)) {
-                ENGINE.startPainting(g, x, y, w, h, id, state);
-                int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
-                ENGINE.paintBox(g, context, id, gtkState, ShadowType.IN,
-                        "trough", x + focusSize, y + focusSize,
-                        w - 2 * focusSize, h - 2 * focusSize);
+        // The ubuntulooks engine paints slider troughs differently depending
+        // on the current slider value and its component orientation.
+        JSlider slider = (JSlider)context.getComponent();
+        double value = slider.getValue();
+        double min = slider.getMinimum();
+        double max = slider.getMaximum();
+        double visible = 20; // not used for sliders; any value will work
 
-                if (focused) {
-                    ENGINE.paintFocus(g, context, id, SynthConstants.ENABLED,
-                            "trough", x, y, w, h);
-                }
-                ENGINE.finishPainting();
+        synchronized (UNIXToolkit.GTK_LOCK) {
+            // Note that we don't call paintCachedImage() here.  Since some
+            // engines (e.g. ubuntulooks) paint the slider background
+            // differently for any given slider value, it would be wasteful
+            // to try to cache an image for each state, so instead we simply
+            // avoid caching in this case.
+            if (w <= 0 || h <= 0) {
+                return;
             }
+            ENGINE.startPainting(g, x, y, w, h, id, state, value);
+            int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
+            ENGINE.setRangeValue(context, id, value, min, max, visible);
+            ENGINE.paintBox(g, context, id, gtkState, ShadowType.IN,
+                            "trough", x + focusSize, y + focusSize,
+                            w - 2 * focusSize, h - 2 * focusSize);
+            if (focused) {
+                ENGINE.paintFocus(g, context, id, SynthConstants.ENABLED,
+                                  "trough", x, y, w, h);
+            }
+            ENGINE.finishPainting(false); // don't bother caching the image
         }
     }
 
@@ -801,12 +843,12 @@ class GTKPainter extends SynthPainter {
 
             if (placement == PositionType.TOP ||
                 placement == PositionType.BOTTOM) {
-                
-                gapStart = tabBounds.x - 1;
+
+                gapStart = tabBounds.x - x;
                 gapSize = tabBounds.width;
             }
             else {
-                gapStart = tabBounds.y - 1;
+                gapStart = tabBounds.y - y;
                 gapSize = tabBounds.height;
             }
         }
@@ -825,7 +867,7 @@ class GTKPainter extends SynthPainter {
             }
         }
     }
-    
+
     public void paintTabbedPaneTabBackground(SynthContext context,
                                            Graphics g,
                                            int x, int y, int w, int h,
@@ -851,6 +893,22 @@ class GTKPainter extends SynthPainter {
     }
 
     //
+    // TEXT_PANE
+    //
+    public void paintTextPaneBackground(SynthContext context, Graphics g,
+                                        int x, int y, int w, int h) {
+        paintTextAreaBackground(context, g, x, y, w, h);
+    }
+
+    //
+    // EDITOR_PANE
+    //
+    public void paintEditorPaneBackground(SynthContext context, Graphics g,
+                                          int x, int y, int w, int h) {
+        paintTextAreaBackground(context, g, x, y, w, h);
+    }
+
+    //
     // TEXT_AREA
     //
     public void paintTextAreaBackground(SynthContext context, Graphics g,
@@ -869,14 +927,13 @@ class GTKPainter extends SynthPainter {
         // Text is odd in that it uses the TEXT_BACKGROUND vs BACKGROUND.
         JComponent c = context.getComponent();
         GTKStyle style = (GTKStyle)context.getStyle();
-
         Region id = context.getRegion();
         int state = context.getComponentState();
         synchronized (UNIXToolkit.GTK_LOCK) {
             if (ENGINE.paintCachedImage(g, x, y, w, h, id, state)) {
                 return;
             }
-            
+
             int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
             int focusSize = 0;
             boolean interiorFocus = style.getClassSpecificBoolValue(
@@ -889,20 +946,20 @@ class GTKPainter extends SynthPainter {
                 w -= 2 * focusSize;
                 h -= 2 * focusSize;
             }
-                
+
             int xThickness = style.getXThickness();
             int yThickness = style.getYThickness();
-                
+
             ENGINE.startPainting(g, x, y, w, h, id, state);
             ENGINE.paintShadow(g, context, id, gtkState,
-                    ShadowType.IN, "entry", x, y, w, h);
+                               ShadowType.IN, "entry", x, y, w, h);
             ENGINE.paintFlatBox(g, context, id,
-                                gtkState, ShadowType.NONE, "entry_bg", 
-                                x + xThickness, 
-                                y + yThickness, 
-                                w - (2 * xThickness), 
-                                h - (2 * yThickness), 
-                                ColorType.TEXT_BACKGROUND); 
+                                gtkState, ShadowType.NONE, "entry_bg",
+                                x + xThickness,
+                                y + yThickness,
+                                w - (2 * xThickness),
+                                h - (2 * yThickness),
+                                ColorType.TEXT_BACKGROUND);
 
             if (focusSize > 0) {
                 x -= focusSize;
@@ -915,7 +972,7 @@ class GTKPainter extends SynthPainter {
             ENGINE.finishPainting();
         }
     }
-            
+
     private void paintTreeCellEditorBackground(SynthContext context, Graphics g,
                                                int x, int y, int w, int h) {
         Region id = context.getRegion();
@@ -940,7 +997,7 @@ class GTKPainter extends SynthPainter {
         // Does not call into ENGINE for better performance
         fillArea(context, g, x, y, w, h, GTKColorType.BACKGROUND);
     }
-    
+
     //
     // TOGGLE_BUTTON
     //
@@ -966,7 +1023,7 @@ class GTKPainter extends SynthPainter {
                                           Graphics g,
                                           int x, int y, int w,int h) {
         Region id = context.getRegion();
-        boolean focused = 
+        boolean focused =
                 (context.getComponentState() & SynthConstants.FOCUSED) != 0;
         synchronized (UNIXToolkit.GTK_LOCK) {
             if (ENGINE.paintCachedImage(g, x, y, w, h, id, focused)) {
@@ -981,20 +1038,20 @@ class GTKPainter extends SynthPainter {
             // the trough border and the scrollbar content itself.
             Insets insets = context.getComponent().getInsets();
             GTKStyle style = (GTKStyle)context.getStyle();
-            int troughBorder = 
-                style.getClassSpecificIntValue(context, "trough-border", 1); 
-            insets.left   -= troughBorder; 
-            insets.right  -= troughBorder; 
-            insets.top    -= troughBorder; 
-            insets.bottom -= troughBorder; 
-            
+            int troughBorder =
+                style.getClassSpecificIntValue(context, "trough-border", 1);
+            insets.left   -= troughBorder;
+            insets.right  -= troughBorder;
+            insets.top    -= troughBorder;
+            insets.bottom -= troughBorder;
+
             ENGINE.paintBox(g, context, id, SynthConstants.PRESSED,
-                            ShadowType.IN, "trough", 
-                            x + insets.left, 
-                            y + insets.top, 
-                            w - insets.left - insets.right, 
+                            ShadowType.IN, "trough",
+                            x + insets.left,
+                            y + insets.top,
+                            w - insets.left - insets.right,
                             h - insets.top - insets.bottom);
-            
+
             if (focused) {
                 ENGINE.paintFocus(g, context, id,
                         SynthConstants.ENABLED, "trough", x, y, w, h);
@@ -1012,11 +1069,49 @@ class GTKPainter extends SynthPainter {
         Region id = context.getRegion();
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
                 id, context.getComponentState());
+
+        // The clearlooks engine paints scrollbar thumbs differently
+        // depending on the current scroll value (specifically, it will avoid
+        // rendering a certain line when the thumb is at the starting or
+        // ending position).  Therefore, we normalize the current value to
+        // the range [0,100] here and then pass it down to setRangeValue()
+        // so that the native widget is configured appropriately.  Note that
+        // there are really only four values that matter (min, middle, max,
+        // or fill) so we restrict to one of those four values to avoid
+        // blowing out the image cache.
+        JScrollBar sb = (JScrollBar)context.getComponent();
+        boolean rtl =
+            sb.getOrientation() == JScrollBar.HORIZONTAL &&
+            !sb.getComponentOrientation().isLeftToRight();
+        double min = 0;
+        double max = 100;
+        double visible = 20;
+        double value;
+        if (sb.getMaximum() - sb.getMinimum() == sb.getVisibleAmount()) {
+            // In this case, the thumb fills the entire track, so it is
+            // touching both ends at the same time
+            value = 0;
+            visible = 100;
+        } else if (sb.getValue() == sb.getMinimum()) {
+            // At minimum
+            value = rtl ? 100 : 0;
+        } else if (sb.getValue() >= sb.getMaximum() - sb.getVisibleAmount()) {
+            // At maximum
+            value = rtl ? 0 : 100;
+        } else {
+            // Somewhere in between
+            value = 50;
+        }
+
         synchronized (UNIXToolkit.GTK_LOCK) {
-            if (! ENGINE.paintCachedImage(g, x, y, w, h, id, gtkState, dir)) {
-                ENGINE.startPainting(g, x, y, w, h, id, gtkState, dir);
+            if (! ENGINE.paintCachedImage(g, x, y, w, h, id, gtkState,
+                                          dir, value, visible, rtl))
+            {
+                ENGINE.startPainting(g, x, y, w, h, id, gtkState,
+                                     dir, value, visible, rtl);
                 Orientation orientation = (dir == JScrollBar.HORIZONTAL ?
                     Orientation.HORIZONTAL : Orientation.VERTICAL);
+                ENGINE.setRangeValue(context, id, value, min, max, visible);
                 ENGINE.paintSlider(g, context, id, gtkState,
                         ShadowType.OUT, "slider", x, y, w, h, orientation);
                 ENGINE.finishPainting();
@@ -1115,11 +1210,11 @@ class GTKPainter extends SynthPainter {
                 if (detail == "metacity-arrow") {
                     ENGINE.paintArrow(g, context, Region.INTERNAL_FRAME_TITLE_PANE,
                             gtkState, shadow, direction, "", x, y, w, h);
-                    
+
                 } else if (detail == "metacity-box") {
                     ENGINE.paintBox(g, context, Region.INTERNAL_FRAME_TITLE_PANE,
                             gtkState, shadow, "", x, y, w, h);
-                    
+
                 } else if (detail == "metacity-vline") {
                     ENGINE.paintVline(g, context, Region.INTERNAL_FRAME_TITLE_PANE,
                             gtkState, "", x, y, w, h);
@@ -1169,7 +1264,7 @@ class GTKPainter extends SynthPainter {
     }
 
     // All icon painting methods are called from under GTK_LOCK
-    
+
     public void paintTreeExpandedIcon(SynthContext context,
             Graphics g, int state, int x, int y, int w, int h) {
         ENGINE.paintExpander(g, context, Region.TREE,
@@ -1186,32 +1281,28 @@ class GTKPainter extends SynthPainter {
 
     public void paintCheckBoxIcon(SynthContext context,
             Graphics g, int state, int x, int y, int w, int h) {
-        ShadowType shadowType = ShadowType.OUT;
-        if (((JCheckBox)context.getComponent()).isSelected()) {
-            shadowType = ShadowType.IN;
-        }
-        ENGINE.paintCheck(g, context, Region.CHECK_BOX,
-                GTKLookAndFeel.synthStateToGTKState(context.getRegion(), state),
-                shadowType, "checkbutton", x, y, w, h);
+        GTKStyle style = (GTKStyle)context.getStyle();
+        int size = style.getClassSpecificIntValue(context,
+                        "indicator-size", GTKIconFactory.DEFAULT_ICON_SIZE);
+        int offset = style.getClassSpecificIntValue(context,
+                        "indicator-spacing", GTKIconFactory.DEFAULT_ICON_SPACING);
+
+        ENGINE.paintCheck(g, context, Region.CHECK_BOX, "checkbutton",
+                x+offset, y+offset, size, size);
     }
-    
+
     public void paintRadioButtonIcon(SynthContext context,
             Graphics g, int state, int x, int y, int w, int h) {
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(
-                context.getRegion(), state);
-        ShadowType shadowType = ShadowType.OUT;
-        // RadioButton painting appears to be special cased to pass
-        // SELECTED into the ENGINE even though text colors are PRESSED.
-        if ((state & SynthConstants.SELECTED) != 0) {
-            gtkState = SynthConstants.SELECTED;
-        }
-        if (gtkState == SynthConstants.SELECTED) {
-            shadowType = ShadowType.IN;
-        }
-        ENGINE.paintOption(g, context, Region.RADIO_BUTTON, gtkState,
-                shadowType, "radiobutton", x, y, w, h);
+        GTKStyle style = (GTKStyle)context.getStyle();
+        int size = style.getClassSpecificIntValue(context,
+                        "indicator-size", GTKIconFactory.DEFAULT_ICON_SIZE);
+        int offset = style.getClassSpecificIntValue(context,
+                        "indicator-spacing", GTKIconFactory.DEFAULT_ICON_SPACING);
+
+        ENGINE.paintOption(g, context, Region.RADIO_BUTTON, "radiobutton",
+                x+offset, y+offset, size, size);
     }
-    
+
     public void paintMenuArrowIcon(SynthContext context, Graphics g,
             int state, int x, int y, int w, int h, ArrowType dir) {
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
@@ -1223,55 +1314,33 @@ class GTKPainter extends SynthPainter {
         ENGINE.paintArrow(g, context, Region.MENU_ITEM, gtkState, shadow,
                 dir, "menuitem", x + 3, y + 3, 7, 7);
     }
-    
-    public void paintMenuItemArrowIcon(SynthContext context,
-            Graphics g, int state, int x, int y, int w, int h) {
-        // Don't paint anything.  We are just reserving space so we align the
-        // menu items correctly.
-    }
-    
-    public void paintCheckBoxMenuItemArrowIcon(SynthContext context,
-            Graphics g, int state, int x, int y, int w, int h) {
-        // Don't paint anything.  We are just reserving space so we align the
-        // menu items correctly.
-    }
-    
-    public void paintRadioButtonMenuItemArrowIcon(SynthContext context,
-            Graphics g, int state, int x, int y, int w, int h) {
-        // Don't paint anything.  We are just reserving space so we align the
-        // menu items correctly.
-    }
-    
+
     public void paintCheckBoxMenuItemCheckIcon(SynthContext context,
             Graphics g, int state, int x, int y, int w, int h) {
-        ShadowType shadowType = ShadowType.OUT;
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(
-                context.getRegion(), state);
-        if ((state & SynthConstants.MOUSE_OVER) != 0) {
-            gtkState = SynthConstants.MOUSE_OVER;
-        }
-        if ((state & SynthConstants.SELECTED) != 0) {
-            shadowType = ShadowType.IN;
-        }
-        ENGINE.paintCheck(g, context, Region.CHECK_BOX_MENU_ITEM,
-                gtkState, shadowType, "check", x, y, w, h);
+
+        GTKStyle style = (GTKStyle)context.getStyle();
+        int size = style.getClassSpecificIntValue(context,"indicator-size",
+                GTKIconFactory.DEFAULT_TOGGLE_MENU_ITEM_SIZE);
+
+        ENGINE.paintCheck(g, context, Region.CHECK_BOX_MENU_ITEM, "check",
+                x + GTKIconFactory.CHECK_ICON_EXTRA_INSET,
+                y + GTKIconFactory.CHECK_ICON_EXTRA_INSET,
+                size, size);
     }
-    
+
     public void paintRadioButtonMenuItemCheckIcon(SynthContext context,
             Graphics g, int state, int x, int y, int w, int h) {
-        int gtkState = GTKLookAndFeel.synthStateToGTKState(
-                context.getRegion(), state);
-        if ((state & SynthConstants.MOUSE_OVER) != 0) {
-            gtkState = SynthConstants.MOUSE_OVER;
-        }
-        ShadowType shadowType = ShadowType.OUT;
-        if ((state & SynthConstants.SELECTED) != 0) {
-            shadowType = ShadowType.IN;
-        }
-        ENGINE.paintOption(g, context, Region.RADIO_BUTTON_MENU_ITEM,
-                gtkState, shadowType, "option", x, y, w, h);
+
+        GTKStyle style = (GTKStyle)context.getStyle();
+        int size = style.getClassSpecificIntValue(context,"indicator-size",
+                GTKIconFactory.DEFAULT_TOGGLE_MENU_ITEM_SIZE);
+
+        ENGINE.paintOption(g, context, Region.RADIO_BUTTON_MENU_ITEM, "option",
+                x + GTKIconFactory.CHECK_ICON_EXTRA_INSET,
+                y + GTKIconFactory.CHECK_ICON_EXTRA_INSET,
+                size, size);
     }
-    
+
     public void paintToolBarHandleIcon(SynthContext context, Graphics g,
             int state, int x, int y, int w, int h, Orientation orientation) {
         int gtkState = GTKLookAndFeel.synthStateToGTKState(
@@ -1288,13 +1357,13 @@ class GTKPainter extends SynthPainter {
         ENGINE.paintHandle(g, context, Region.TOOL_BAR, gtkState,
                 ShadowType.OUT, "handlebox", x, y, w, h, orientation);
     }
-    
+
     public void paintAscendingSortIcon(SynthContext context,
             Graphics g, int state, int x, int y, int w, int h) {
         ENGINE.paintArrow(g, context, Region.TABLE, SynthConstants.ENABLED,
                 ShadowType.IN, ArrowType.UP, "arrow", x, y, w, h);
     }
-    
+
     public void paintDescendingSortIcon(SynthContext context,
             Graphics g, int state, int x, int y, int w, int h) {
         ENGINE.paintArrow(g, context, Region.TABLE, SynthConstants.ENABLED,
@@ -1312,7 +1381,7 @@ class GTKPainter extends SynthPainter {
             int gtkState = GTKLookAndFeel.synthStateToGTKState(id,
                     context.getComponentState());
             GTKStyle style = (GTKStyle)context.getStyle();
-            
+
             g.setColor(style.getGTKColor(context, gtkState, colorType));
             g.fillRect(x, y, w, h);
         }
@@ -1323,86 +1392,106 @@ class GTKPainter extends SynthPainter {
                           UIResource {
 
         private boolean selectedCell;
+        private boolean focusedCell;
 
         public static ListTableFocusBorder getSelectedCellBorder() {
-            return new ListTableFocusBorder(true); 
+            return new ListTableFocusBorder(true, true);
         }
-        
+
         public static ListTableFocusBorder getUnselectedCellBorder() {
-            return new ListTableFocusBorder(false); 
+            return new ListTableFocusBorder(false, true);
         }
-        
-        public ListTableFocusBorder(boolean selectedCell) {
+
+        public static ListTableFocusBorder getNoFocusCellBorder() {
+            return new ListTableFocusBorder(false, false);
+        }
+
+        public ListTableFocusBorder(boolean selectedCell, boolean focusedCell) {
             this.selectedCell = selectedCell;
+            this.focusedCell = focusedCell;
         }
 
         private SynthContext getContext(Component c) {
             SynthContext context = null;
-            
-            Component parent = c;
-            while(parent != null && 
-                    !(parent instanceof JTable) && 
-                    !(parent instanceof JList)) {
-                parent = parent.getParent();
-            }
-             
+
             ComponentUI ui = null;
-            if (parent instanceof JTable) {
-                ui = ((JTable)parent).getUI();
-            } else if (parent instanceof JList) {
-                ui = ((JList)parent).getUI();
+            if (c instanceof JLabel) {
+                ui = ((JLabel)c).getUI();
             }
-            
+
             if (ui instanceof SynthUI) {
-                context = ((SynthUI)ui).getContext((JComponent)parent);
+                context = ((SynthUI)ui).getContext((JComponent)c);
             }
-            
+
             return context;
         }
-        
+
         public void paintBorder(Component c, Graphics g, int x, int y,
                                 int w, int h) {
-            SynthContext context = getContext(c);
-            int state = (selectedCell? SynthConstants.SELECTED:
-                         SynthConstants.FOCUSED | SynthConstants.ENABLED);
+            if (focusedCell) {
+                SynthContext context = getContext(c);
+                int state = (selectedCell? SynthConstants.SELECTED:
+                             SynthConstants.FOCUSED | SynthConstants.ENABLED);
 
-            if (context != null) {
-                GTKPainter.INSTANCE.paintFocus(context, g,
-                        Region.TABLE, state, "", x, y, w, h);
-            } else {
-                if (ENGINE instanceof GTKDefaultEngine) {
-                    g.setColor(Color.BLACK);
-                    ((GTKDefaultEngine)ENGINE)._paintFocus(
-                            g, x, y, w, h,
-                            GTKDefaultEngine.DEFAULT_FOCUS_PATTERN, 1);
+                if (context != null) {
+                    GTKPainter.INSTANCE.paintFocus(context, g,
+                            Region.TABLE, state, "", x, y, w, h);
                 }
             }
         }
-        
-        public Insets getBorderInsets(Component c) {
-            int size = 1;
-            SynthContext context = getContext(c);
-            if (context != null) {
-                size = ((GTKStyle)context.getStyle()).getClassSpecificIntValue(
-                    context, "focus-line-width", 1);   
-            }
-            return new Insets(size, size, size, size);
-        }
-        
+
         public Insets getBorderInsets(Component c, Insets i) {
-            Insets ins = getBorderInsets(c);
-            if (i == null) {
-                return ins; 
+            SynthContext context = getContext(c);
+
+            if (context != null) {
+                i = context.getStyle().getInsets(context, i);
             }
-            i.left = ins.left;
-            i.right = ins.right;
-            i.top = ins.top;
-            i.bottom = ins.bottom;
+
             return i;
         }
-        
+
         public boolean isBorderOpaque() {
             return true;
+        }
+    }
+
+    // TitledBorder implementation for GTK L&F
+    static class TitledBorder extends AbstractBorder implements UIResource {
+
+        public void paintBorder(Component c, Graphics g, int x, int y,
+                                int w, int h) {
+            SynthContext context = getContext((JComponent)c);
+            Region id = context.getRegion();
+            int state = context.getComponentState();
+            int gtkState = GTKLookAndFeel.synthStateToGTKState(id, state);
+
+            synchronized (UNIXToolkit.GTK_LOCK) {
+                if (! ENGINE.paintCachedImage(g, x, y, w, h, id)) {
+                    ENGINE.startPainting(g, x, y, w, h, id);
+                    ENGINE.paintShadow(g, context, id, gtkState, ShadowType.ETCHED_IN,
+                                      "frame", x, y, w, h);
+                    ENGINE.finishPainting();
+                }
+            }
+        }
+
+        public Insets getBorderInsets(Component c, Insets i) {
+            SynthContext context = getContext((JComponent)c);
+            return context.getStyle().getInsets(context, i);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
+        }
+
+        private SynthStyle getStyle(JComponent c) {
+            return SynthLookAndFeel.getStyle(c, GTKEngine.CustomRegion.TITLED_BORDER);
+        }
+
+        private SynthContext getContext(JComponent c) {
+            int state = SynthConstants.DEFAULT;
+            return new SynthContext(c, GTKEngine.CustomRegion.TITLED_BORDER,
+                                    getStyle(c), state);
         }
     }
 }

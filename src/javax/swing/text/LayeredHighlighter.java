@@ -1,8 +1,26 @@
 /*
- * @(#)LayeredHighlighter.java	1.8 05/11/17
+ * Copyright (c) 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text;
 
@@ -10,10 +28,9 @@ import java.awt.Graphics;
 import java.awt.Shape;
 
 /**
- * 
+ *
  * @author  Scott Violet
  * @author  Timothy Prinzing
- * @version 1.8 11/17/05
  * @see     Highlighter
  */
 public abstract class LayeredHighlighter implements Highlighter {
@@ -30,17 +47,17 @@ public abstract class LayeredHighlighter implements Highlighter {
      * @param view View instance being rendered
      */
     public abstract void paintLayeredHighlights(Graphics g, int p0, int p1,
-						Shape viewBounds,
-						JTextComponent editor,
-						View view);
+                                                Shape viewBounds,
+                                                JTextComponent editor,
+                                                View view);
 
 
     /**
      * Layered highlight renderer.
      */
     static public abstract class LayerPainter implements Highlighter.HighlightPainter {
-	public abstract Shape paintLayer(Graphics g, int p0, int p1,
-					Shape viewBounds,JTextComponent editor,
-					View view);
+        public abstract Shape paintLayer(Graphics g, int p0, int p1,
+                                        Shape viewBounds,JTextComponent editor,
+                                        View view);
     }
 }

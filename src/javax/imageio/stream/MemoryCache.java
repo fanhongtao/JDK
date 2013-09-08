@@ -1,8 +1,26 @@
 /*
- * @(#)MemoryCache.java	1.16 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio.stream;
@@ -13,13 +31,13 @@ import java.io.OutputStream;
 import java.io.IOException;
 
 /**
- * Package-visible class consolidating common code for 
+ * Package-visible class consolidating common code for
  * <code>MemoryCacheImageInputStream</code> and
  * <code>MemoryCacheImageOutputStream</code>.
  * This class keeps an <code>ArrayList</code> of 8K blocks,
  * loaded sequentially.  Blocks may only be disposed of
  * from the index 0 forward.  As blocks are freed, the
- * corresponding entries in the array list are set to 
+ * corresponding entries in the array list are set to
  * <code>null</code>, but no compacting is performed.
  * This allows the index for each block to never change,
  * and the length of the cache is always the same as the
@@ -65,7 +83,7 @@ class MemoryCache {
      * is equal to the smaller of <code>pos</code> and the
      * length of the source.
      */
-    public long loadFromStream(InputStream stream, long pos) 
+    public long loadFromStream(InputStream stream, long pos)
         throws IOException {
         // We've already got enough data cached
         if (pos < length) {
@@ -123,10 +141,10 @@ class MemoryCache {
      *
      * @exception IndexOutOfBoundsException if any portion of
      * the requested data is not in the cache (including if <code>pos</code>
-     * is in a block already disposed), or if either <code>pos</code> or 
+     * is in a block already disposed), or if either <code>pos</code> or
      * <code>len</code> is < 0.
      */
-    public void writeToStream(OutputStream stream, long pos, long len) 
+    public void writeToStream(OutputStream stream, long pos, long len)
         throws IOException {
         if (pos + len > length) {
             throw new IndexOutOfBoundsException("Argument out of cache");
@@ -188,7 +206,7 @@ class MemoryCache {
      * <code>len</code>, or <code>pos</code> are negative,
      * or if <code>off+len > b.length</code>.
      */
-    public void write(byte[] b, int off, int len, long pos) 
+    public void write(byte[] b, int off, int len, long pos)
         throws IOException {
         if (b == null) {
             throw new NullPointerException("b == null!");
@@ -249,7 +267,7 @@ class MemoryCache {
     }
 
     /**
-     * Returns the total length of data that has been cached, 
+     * Returns the total length of data that has been cached,
      * regardless of whether any early blocks have been disposed.
      * This value will only ever increase.
      */
@@ -258,7 +276,7 @@ class MemoryCache {
     }
 
     /**
-     * Returns the single byte at the given position, as an 
+     * Returns the single byte at the given position, as an
      * <code>int</code>.  Returns -1 if this position has
      * not been cached or has been disposed.
      */
@@ -277,7 +295,7 @@ class MemoryCache {
 
     /**
      * Copy <code>len</code> bytes from the cache, starting
-     * at cache position <code>pos</code>, into the array 
+     * at cache position <code>pos</code>, into the array
      * <code>b</code> at offset <code>off</code>.
      *
      * @exception NullPointerException if b is <code>null</code>
@@ -300,7 +318,7 @@ class MemoryCache {
         if (pos + len > length) {
             throw new IndexOutOfBoundsException();
         }
-        
+
         long index = pos/BUFFER_LENGTH;
         int offset = (int)pos % BUFFER_LENGTH;
         while (len > 0) {
@@ -317,7 +335,7 @@ class MemoryCache {
     /**
      * Free the blocks up to the position <code>pos</code>.
      * The byte at <code>pos</code> remains available.
-     * 
+     *
      * @exception IndexOutOfBoundsException if <code>pos</code>
      * is in a block that has already been disposed.
      */

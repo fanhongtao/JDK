@@ -1,8 +1,26 @@
 /*
- * @(#)ApplicationException.java	1.15 05/11/17
+ * Copyright (c) 1998, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA.portable;
@@ -19,9 +37,9 @@ public class ApplicationException extends Exception {
      * @param ins the stream which contains the user exception data
      */
     public ApplicationException(String id,
-				InputStream ins) {
-	this.id = id;
-	this.ins = ins;
+                                InputStream ins) {
+        this.id = id;
+        this.ins = ins;
     }
 
     /**
@@ -30,7 +48,7 @@ public class ApplicationException extends Exception {
      * @return The CORBA repository ID of this exception
      */
     public String getId() {
-	return id;
+        return id;
     }
 
     /**
@@ -38,7 +56,7 @@ public class ApplicationException extends Exception {
      * @return The stream which contains the user exception data
      */
     public InputStream getInputStream() {
-	return ins;
+        return ins;
     }
 
     private String id;

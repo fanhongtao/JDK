@@ -1,15 +1,19 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 // OASISXMLCatalogReader.java - Read XML Catalog files
 
 /*
  * Copyright 2001-2004 The Apache Software Foundation or its licensors,
  * as applicable.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +35,7 @@ import org.xml.sax.*;
 import org.w3c.dom.*;
 
 /**
- * Parse OASIS Entity Resolution Technical Committee 
+ * Parse OASIS Entity Resolution Technical Committee
  * XML Catalog files.
  *
  * @see Catalog
@@ -39,7 +43,6 @@ import org.w3c.dom.*;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
- * @version 1.0
  */
 public class OASISXMLCatalogReader extends SAXCatalogReader implements SAXCatalogParser {
   /** The catalog object needs to be stored by the object so that
@@ -81,10 +84,10 @@ public class OASISXMLCatalogReader extends SAXCatalogReader implements SAXCatalo
     while (!inExtension && elements.hasMoreElements()) {
       String ns = (String) elements.nextElement();
       if (ns == null) {
-	inExtension = true;
+        inExtension = true;
       } else {
-	inExtension = (!ns.equals(tr9401NamespaceName)
-		       && !ns.equals(namespaceName));
+        inExtension = (!ns.equals(tr9401NamespaceName)
+                       && !ns.equals(namespaceName));
       }
     }
 
@@ -126,9 +129,9 @@ public class OASISXMLCatalogReader extends SAXCatalogReader implements SAXCatalo
    * @see CatalogEntry
    */
   public void startElement (String namespaceURI,
-			    String localName,
-			    String qName,
-			    Attributes atts)
+                            String localName,
+                            String qName,
+                            Attributes atts)
     throws SAXException {
 
     int entryType = -1;
@@ -139,276 +142,276 @@ public class OASISXMLCatalogReader extends SAXCatalogReader implements SAXCatalo
     boolean inExtension = inExtensionNamespace();
 
     if (namespaceURI != null && namespaceName.equals(namespaceURI)
-	&& !inExtension) {
+        && !inExtension) {
       // This is an XML Catalog entry
 
       if (atts.getValue("xml:base") != null) {
-	String baseURI = atts.getValue("xml:base");
-	entryType = Catalog.BASE;
-	entryArgs.add(baseURI);
-	baseURIStack.push(baseURI);
+        String baseURI = atts.getValue("xml:base");
+        entryType = Catalog.BASE;
+        entryArgs.add(baseURI);
+        baseURIStack.push(baseURI);
 
-	debug.message(4, "xml:base", baseURI);
+        debug.message(4, "xml:base", baseURI);
 
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry (base)", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry (base)", localName);
+          }
+        }
 
-	entryType = -1;
-	entryArgs = new Vector();
+        entryType = -1;
+        entryArgs = new Vector();
 
       } else {
-	baseURIStack.push(baseURIStack.peek());
+        baseURIStack.push(baseURIStack.peek());
       }
 
       if ((localName.equals("catalog") || localName.equals("group"))
-	  && atts.getValue("prefer") != null) {
-	String override = atts.getValue("prefer");
+          && atts.getValue("prefer") != null) {
+        String override = atts.getValue("prefer");
 
-	if (override.equals("public")) {
-	  override = "yes";
-	} else if (override.equals("system")) {
-	  override = "no";
-	} else {
-	  debug.message(1,
-			"Invalid prefer: must be 'system' or 'public'",
-			localName);
-	  override = catalog.getDefaultOverride();
-	}
+        if (override.equals("public")) {
+          override = "yes";
+        } else if (override.equals("system")) {
+          override = "no";
+        } else {
+          debug.message(1,
+                        "Invalid prefer: must be 'system' or 'public'",
+                        localName);
+          override = catalog.getDefaultOverride();
+        }
 
-	entryType = Catalog.OVERRIDE;
-	entryArgs.add(override);
-	overrideStack.push(override);
+        entryType = Catalog.OVERRIDE;
+        entryArgs.add(override);
+        overrideStack.push(override);
 
-	debug.message(4, "override", override);
+        debug.message(4, "override", override);
 
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry (override)", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry (override)", localName);
+          }
+        }
 
-	entryType = -1;
-	entryArgs = new Vector();
+        entryType = -1;
+        entryArgs = new Vector();
 
       } else {
-	overrideStack.push(overrideStack.peek());
+        overrideStack.push(overrideStack.peek());
       }
 
       if (localName.equals("delegatePublic")) {
-	if (checkAttributes(atts, "publicIdStartString", "catalog")) {
-	  entryType = Catalog.DELEGATE_PUBLIC;
-	  entryArgs.add(atts.getValue("publicIdStartString"));
-	  entryArgs.add(atts.getValue("catalog"));
+        if (checkAttributes(atts, "publicIdStartString", "catalog")) {
+          entryType = Catalog.DELEGATE_PUBLIC;
+          entryArgs.add(atts.getValue("publicIdStartString"));
+          entryArgs.add(atts.getValue("catalog"));
 
-	  debug.message(4, "delegatePublic",
-			PublicId.normalize(atts.getValue("publicIdStartString")),
-			atts.getValue("catalog"));
-	}
+          debug.message(4, "delegatePublic",
+                        PublicId.normalize(atts.getValue("publicIdStartString")),
+                        atts.getValue("catalog"));
+        }
       } else if (localName.equals("delegateSystem")) {
-	if (checkAttributes(atts, "systemIdStartString", "catalog")) {
-	  entryType = Catalog.DELEGATE_SYSTEM;
-	  entryArgs.add(atts.getValue("systemIdStartString"));
-	  entryArgs.add(atts.getValue("catalog"));
+        if (checkAttributes(atts, "systemIdStartString", "catalog")) {
+          entryType = Catalog.DELEGATE_SYSTEM;
+          entryArgs.add(atts.getValue("systemIdStartString"));
+          entryArgs.add(atts.getValue("catalog"));
 
-	  debug.message(4, "delegateSystem",
-			atts.getValue("systemIdStartString"),
-			atts.getValue("catalog"));
-	}
+          debug.message(4, "delegateSystem",
+                        atts.getValue("systemIdStartString"),
+                        atts.getValue("catalog"));
+        }
       } else if (localName.equals("delegateURI")) {
-	if (checkAttributes(atts, "uriStartString", "catalog")) {
-	  entryType = Catalog.DELEGATE_URI;
-	  entryArgs.add(atts.getValue("uriStartString"));
-	  entryArgs.add(atts.getValue("catalog"));
+        if (checkAttributes(atts, "uriStartString", "catalog")) {
+          entryType = Catalog.DELEGATE_URI;
+          entryArgs.add(atts.getValue("uriStartString"));
+          entryArgs.add(atts.getValue("catalog"));
 
-	  debug.message(4, "delegateURI",
-			atts.getValue("uriStartString"),
-			atts.getValue("catalog"));
-	}
+          debug.message(4, "delegateURI",
+                        atts.getValue("uriStartString"),
+                        atts.getValue("catalog"));
+        }
       } else if (localName.equals("rewriteSystem")) {
-	if (checkAttributes(atts, "systemIdStartString", "rewritePrefix")) {
-	  entryType = Catalog.REWRITE_SYSTEM;
-	  entryArgs.add(atts.getValue("systemIdStartString"));
-	  entryArgs.add(atts.getValue("rewritePrefix"));
+        if (checkAttributes(atts, "systemIdStartString", "rewritePrefix")) {
+          entryType = Catalog.REWRITE_SYSTEM;
+          entryArgs.add(atts.getValue("systemIdStartString"));
+          entryArgs.add(atts.getValue("rewritePrefix"));
 
-	  debug.message(4, "rewriteSystem",
-			atts.getValue("systemIdStartString"),
-			atts.getValue("rewritePrefix"));
-	}
+          debug.message(4, "rewriteSystem",
+                        atts.getValue("systemIdStartString"),
+                        atts.getValue("rewritePrefix"));
+        }
       } else if (localName.equals("systemSuffix")) {
-	if (checkAttributes(atts, "systemIdSuffix", "uri")) {
-	  entryType = Catalog.SYSTEM_SUFFIX;
-	  entryArgs.add(atts.getValue("systemIdSuffix"));
-	  entryArgs.add(atts.getValue("uri"));
+        if (checkAttributes(atts, "systemIdSuffix", "uri")) {
+          entryType = Catalog.SYSTEM_SUFFIX;
+          entryArgs.add(atts.getValue("systemIdSuffix"));
+          entryArgs.add(atts.getValue("uri"));
 
-	  debug.message(4, "systemSuffix",
-			atts.getValue("systemIdSuffix"),
-			atts.getValue("uri"));
-	}
+          debug.message(4, "systemSuffix",
+                        atts.getValue("systemIdSuffix"),
+                        atts.getValue("uri"));
+        }
       } else if (localName.equals("rewriteURI")) {
-	if (checkAttributes(atts, "uriStartString", "rewritePrefix")) {
-	  entryType = Catalog.REWRITE_URI;
-	  entryArgs.add(atts.getValue("uriStartString"));
-	  entryArgs.add(atts.getValue("rewritePrefix"));
+        if (checkAttributes(atts, "uriStartString", "rewritePrefix")) {
+          entryType = Catalog.REWRITE_URI;
+          entryArgs.add(atts.getValue("uriStartString"));
+          entryArgs.add(atts.getValue("rewritePrefix"));
 
-	  debug.message(4, "rewriteURI",
-			atts.getValue("uriStartString"),
-			atts.getValue("rewritePrefix"));
-	}
+          debug.message(4, "rewriteURI",
+                        atts.getValue("uriStartString"),
+                        atts.getValue("rewritePrefix"));
+        }
       } else if (localName.equals("uriSuffix")) {
-	if (checkAttributes(atts, "uriSuffix", "uri")) {
-	  entryType = Catalog.URI_SUFFIX;
-	  entryArgs.add(atts.getValue("uriSuffix"));
-	  entryArgs.add(atts.getValue("uri"));
+        if (checkAttributes(atts, "uriSuffix", "uri")) {
+          entryType = Catalog.URI_SUFFIX;
+          entryArgs.add(atts.getValue("uriSuffix"));
+          entryArgs.add(atts.getValue("uri"));
 
-	  debug.message(4, "uriSuffix",
-			atts.getValue("uriSuffix"),
-			atts.getValue("uri"));
-	}
+          debug.message(4, "uriSuffix",
+                        atts.getValue("uriSuffix"),
+                        atts.getValue("uri"));
+        }
       } else if (localName.equals("nextCatalog")) {
-	if (checkAttributes(atts, "catalog")) {
-	  entryType = Catalog.CATALOG;
-	  entryArgs.add(atts.getValue("catalog"));
+        if (checkAttributes(atts, "catalog")) {
+          entryType = Catalog.CATALOG;
+          entryArgs.add(atts.getValue("catalog"));
 
-	  debug.message(4, "nextCatalog", atts.getValue("catalog"));
-	}
+          debug.message(4, "nextCatalog", atts.getValue("catalog"));
+        }
       } else if (localName.equals("public")) {
-	if (checkAttributes(atts, "publicId", "uri")) {
-	  entryType = Catalog.PUBLIC;
-	  entryArgs.add(atts.getValue("publicId"));
-	  entryArgs.add(atts.getValue("uri"));
+        if (checkAttributes(atts, "publicId", "uri")) {
+          entryType = Catalog.PUBLIC;
+          entryArgs.add(atts.getValue("publicId"));
+          entryArgs.add(atts.getValue("uri"));
 
-	  debug.message(4, "public",
-			PublicId.normalize(atts.getValue("publicId")),
-			atts.getValue("uri"));
-	}
+          debug.message(4, "public",
+                        PublicId.normalize(atts.getValue("publicId")),
+                        atts.getValue("uri"));
+        }
       } else if (localName.equals("system")) {
-	if (checkAttributes(atts, "systemId", "uri")) {
-	  entryType = Catalog.SYSTEM;
-	  entryArgs.add(atts.getValue("systemId"));
-	  entryArgs.add(atts.getValue("uri"));
+        if (checkAttributes(atts, "systemId", "uri")) {
+          entryType = Catalog.SYSTEM;
+          entryArgs.add(atts.getValue("systemId"));
+          entryArgs.add(atts.getValue("uri"));
 
-	  debug.message(4, "system",
-			atts.getValue("systemId"),
-			atts.getValue("uri"));
-	}
+          debug.message(4, "system",
+                        atts.getValue("systemId"),
+                        atts.getValue("uri"));
+        }
       } else if (localName.equals("uri")) {
-	if (checkAttributes(atts, "name", "uri")) {
-	  entryType = Catalog.URI;
-	  entryArgs.add(atts.getValue("name"));
-	  entryArgs.add(atts.getValue("uri"));
+        if (checkAttributes(atts, "name", "uri")) {
+          entryType = Catalog.URI;
+          entryArgs.add(atts.getValue("name"));
+          entryArgs.add(atts.getValue("uri"));
 
-	  debug.message(4, "uri",
-			atts.getValue("name"),
-			atts.getValue("uri"));
-	}
+          debug.message(4, "uri",
+                        atts.getValue("name"),
+                        atts.getValue("uri"));
+        }
       } else if (localName.equals("catalog")) {
-	// nop, start of catalog
+        // nop, start of catalog
       } else if (localName.equals("group")) {
-	// nop, a group
+        // nop, a group
       } else {
-	// This is equivalent to an invalid catalog entry type
-	debug.message(1, "Invalid catalog entry type", localName);
+        // This is equivalent to an invalid catalog entry type
+        debug.message(1, "Invalid catalog entry type", localName);
       }
 
       if (entryType >= 0) {
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry", localName);
+          }
+        }
       }
     }
 
     if (namespaceURI != null && tr9401NamespaceName.equals(namespaceURI)
-	&& !inExtension) {
+        && !inExtension) {
       // This is a TR9401 Catalog entry
 
       if (atts.getValue("xml:base") != null) {
-	String baseURI = atts.getValue("xml:base");
-	entryType = Catalog.BASE;
-	entryArgs.add(baseURI);
-	baseURIStack.push(baseURI);
+        String baseURI = atts.getValue("xml:base");
+        entryType = Catalog.BASE;
+        entryArgs.add(baseURI);
+        baseURIStack.push(baseURI);
 
-	debug.message(4, "xml:base", baseURI);
+        debug.message(4, "xml:base", baseURI);
 
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry (base)", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry (base)", localName);
+          }
+        }
 
-	entryType = -1;
-	entryArgs = new Vector();
+        entryType = -1;
+        entryArgs = new Vector();
 
       } else {
-	baseURIStack.push(baseURIStack.peek());
+        baseURIStack.push(baseURIStack.peek());
       }
 
       if (localName.equals("doctype")) {
-	entryType = catalog.DOCTYPE;
-	entryArgs.add(atts.getValue("name"));
-	entryArgs.add(atts.getValue("uri"));
+        entryType = catalog.DOCTYPE;
+        entryArgs.add(atts.getValue("name"));
+        entryArgs.add(atts.getValue("uri"));
       } else if (localName.equals("document")) {
-	entryType = catalog.DOCUMENT;
-	entryArgs.add(atts.getValue("uri"));
+        entryType = catalog.DOCUMENT;
+        entryArgs.add(atts.getValue("uri"));
       } else if (localName.equals("dtddecl")) {
-	entryType = catalog.DTDDECL;
-	entryArgs.add(atts.getValue("publicId"));
-	entryArgs.add(atts.getValue("uri"));
+        entryType = catalog.DTDDECL;
+        entryArgs.add(atts.getValue("publicId"));
+        entryArgs.add(atts.getValue("uri"));
       } else if (localName.equals("entity")) {
-	entryType = Catalog.ENTITY;
-	entryArgs.add(atts.getValue("name"));
-	entryArgs.add(atts.getValue("uri"));
+        entryType = Catalog.ENTITY;
+        entryArgs.add(atts.getValue("name"));
+        entryArgs.add(atts.getValue("uri"));
       } else if (localName.equals("linktype")) {
-	entryType = Catalog.LINKTYPE;
-	entryArgs.add(atts.getValue("name"));
-	entryArgs.add(atts.getValue("uri"));
+        entryType = Catalog.LINKTYPE;
+        entryArgs.add(atts.getValue("name"));
+        entryArgs.add(atts.getValue("uri"));
       } else if (localName.equals("notation")) {
-	entryType = Catalog.NOTATION;
-	entryArgs.add(atts.getValue("name"));
-	entryArgs.add(atts.getValue("uri"));
+        entryType = Catalog.NOTATION;
+        entryArgs.add(atts.getValue("name"));
+        entryArgs.add(atts.getValue("uri"));
       } else if (localName.equals("sgmldecl")) {
-	entryType = Catalog.SGMLDECL;
-	entryArgs.add(atts.getValue("uri"));
+        entryType = Catalog.SGMLDECL;
+        entryArgs.add(atts.getValue("uri"));
       } else {
-	// This is equivalent to an invalid catalog entry type
-	debug.message(1, "Invalid catalog entry type", localName);
+        // This is equivalent to an invalid catalog entry type
+        debug.message(1, "Invalid catalog entry type", localName);
       }
 
       if (entryType >= 0) {
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry", localName);
+          }
+        }
       }
     }
   }
@@ -423,16 +426,16 @@ public class OASISXMLCatalogReader extends SAXCatalogReader implements SAXCatalo
   }
 
   public boolean checkAttributes (Attributes atts,
-				  String attName1,
-				  String attName2) {
+                                  String attName1,
+                                  String attName2) {
     return checkAttributes(atts, attName1)
       && checkAttributes(atts, attName2);
   }
 
   /** The SAX <code>endElement</code> method does nothing. */
   public void endElement (String namespaceURI,
-			  String localName,
-			  String qName)
+                          String localName,
+                          String qName)
     throws SAXException {
 
     int entryType = -1;
@@ -441,56 +444,56 @@ public class OASISXMLCatalogReader extends SAXCatalogReader implements SAXCatalo
     boolean inExtension = inExtensionNamespace();
 
     if (namespaceURI != null
-	&& !inExtension
-	&& (namespaceName.equals(namespaceURI)
-	    || tr9401NamespaceName.equals(namespaceURI))) {
+        && !inExtension
+        && (namespaceName.equals(namespaceURI)
+            || tr9401NamespaceName.equals(namespaceURI))) {
 
       String popURI = (String) baseURIStack.pop();
       String baseURI = (String) baseURIStack.peek();
 
       if (!baseURI.equals(popURI)) {
-	entryType = catalog.BASE;
-	entryArgs.add(baseURI);
+        entryType = catalog.BASE;
+        entryArgs.add(baseURI);
 
-	debug.message(4, "(reset) xml:base", baseURI);
+        debug.message(4, "(reset) xml:base", baseURI);
 
-	try {
-	  CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	  catalog.addEntry(ce);
-	} catch (CatalogException cex) {
-	  if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	    debug.message(1, "Invalid catalog entry type", localName);
-	  } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	    debug.message(1, "Invalid catalog entry (rbase)", localName);
-	  }
-	}
+        try {
+          CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+          catalog.addEntry(ce);
+        } catch (CatalogException cex) {
+          if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+            debug.message(1, "Invalid catalog entry type", localName);
+          } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+            debug.message(1, "Invalid catalog entry (rbase)", localName);
+          }
+        }
       }
     }
 
     if (namespaceURI != null && namespaceName.equals(namespaceURI)
-	&& !inExtension) {
+        && !inExtension) {
       if (localName.equals("catalog") || localName.equals("group")) {
-	String popOverride = (String) overrideStack.pop();
-	String override = (String) overrideStack.peek();
+        String popOverride = (String) overrideStack.pop();
+        String override = (String) overrideStack.peek();
 
-	if (!override.equals(popOverride)) {
-	  entryType = catalog.OVERRIDE;
-	  entryArgs.add(override);
-	  overrideStack.push(override);
+        if (!override.equals(popOverride)) {
+          entryType = catalog.OVERRIDE;
+          entryArgs.add(override);
+          overrideStack.push(override);
 
-	  debug.message(4, "(reset) override", override);
+          debug.message(4, "(reset) override", override);
 
-	  try {
-	    CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
-	    catalog.addEntry(ce);
-	  } catch (CatalogException cex) {
-	    if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
-	      debug.message(1, "Invalid catalog entry type", localName);
-	    } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
-	      debug.message(1, "Invalid catalog entry (roverride)", localName);
-	    }
-	  }
-	}
+          try {
+            CatalogEntry ce = new CatalogEntry(entryType, entryArgs);
+            catalog.addEntry(ce);
+          } catch (CatalogException cex) {
+            if (cex.getExceptionType() == CatalogException.INVALID_ENTRY_TYPE) {
+              debug.message(1, "Invalid catalog entry type", localName);
+            } else if (cex.getExceptionType() == CatalogException.INVALID_ENTRY) {
+              debug.message(1, "Invalid catalog entry (roverride)", localName);
+            }
+          }
+        }
       }
     }
 

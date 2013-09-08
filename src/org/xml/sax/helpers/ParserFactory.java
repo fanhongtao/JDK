@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2000, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 // SAX parser factory.
 // http://www.saxproject.org
 // No warranty; no copyright -- use this as you will.
@@ -44,19 +69,18 @@ import org.xml.sax.Parser;
  *             interface.
  * @since SAX 1.0
  * @author David Megginson
- * @version 2.0.1 (sax2r2)
  */
 public class ParserFactory {
-    
-    
+
+
     /**
      * Private null constructor.
      */
     private ParserFactory ()
     {
     }
-    
-    
+
+
     /**
      * Create a new SAX parser using the `org.xml.sax.parser' system property.
      *
@@ -79,21 +103,21 @@ public class ParserFactory {
      * @see org.xml.sax.Parser
      */
     public static Parser makeParser ()
-	throws ClassNotFoundException,
-	IllegalAccessException, 
-	InstantiationException,
-	NullPointerException,
-	ClassCastException
+        throws ClassNotFoundException,
+        IllegalAccessException,
+        InstantiationException,
+        NullPointerException,
+        ClassCastException
     {
-	String className = System.getProperty("org.xml.sax.parser");
-	if (className == null) {
-	    throw new NullPointerException("No value for sax.parser property");
-	} else {
-	    return makeParser(className);
-	}
+        String className = System.getProperty("org.xml.sax.parser");
+        if (className == null) {
+            throw new NullPointerException("No value for sax.parser property");
+        } else {
+            return makeParser(className);
+        }
     }
-    
-    
+
+
     /**
      * Create a new SAX parser object using the class name provided.
      *
@@ -116,14 +140,13 @@ public class ParserFactory {
      * @see org.xml.sax.Parser
      */
     public static Parser makeParser (String className)
-	throws ClassNotFoundException,
-	IllegalAccessException, 
-	InstantiationException,
-	ClassCastException
+        throws ClassNotFoundException,
+        IllegalAccessException,
+        InstantiationException,
+        ClassCastException
     {
-	return (Parser) NewInstance.newInstance (
-		NewInstance.getClassLoader (), className);
+        return (Parser) NewInstance.newInstance (
+                NewInstance.getClassLoader (), className);
     }
-    
-}
 
+}

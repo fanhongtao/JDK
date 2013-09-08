@@ -1,24 +1,52 @@
 /*
- * @(#)JComponent.java	2.288 09/08/07
+ * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing;
 
 
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Vector;
 import java.util.EventListener;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.VolatileImage;
+import java.awt.Graphics2D;
 import java.awt.peer.LightweightPeer;
-import java.beans.*;
+import java.awt.dnd.DropTarget;
+import java.awt.font.FontRenderContext;
+import java.beans.PropertyChangeListener;
+import java.beans.VetoableChangeListener;
+import java.beans.VetoableChangeSupport;
+import java.beans.Transient;
 
 import java.applet.Applet;
 
@@ -32,6 +60,7 @@ import java.io.InvalidObjectException;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
+import static javax.swing.ClientPropertyKey.*;
 import javax.accessibility.*;
 
 import sun.swing.SwingUtilities2;
@@ -43,7 +72,7 @@ import sun.swing.UIClientPropertyKey;
  * you must place the component in a containment hierarchy
  * whose root is a top-level Swing container.
  * Top-level Swing containers --
- * such as <code>JFrame</code>, <code>JDialog</code>, 
+ * such as <code>JFrame</code>, <code>JDialog</code>,
  * and <code>JApplet</code> --
  * are specialized components
  * that provide a place for other Swing components to paint themselves.
@@ -59,7 +88,7 @@ import sun.swing.UIClientPropertyKey;
  *     that use the Swing architecture.
  * <li>A "pluggable look and feel" (L&F) that can be specified by the
  *     programmer or (optionally) selected by the user at runtime.
- *     The look and feel for each component is provided by a 
+ *     The look and feel for each component is provided by a
  *     <em>UI delegate</em> -- an object that descends from
  *     {@link javax.swing.plaf.ComponentUI}.
  *     See <a
@@ -101,7 +130,7 @@ import sun.swing.UIClientPropertyKey;
  *     both of which are sections in <em>The Java Tutorial</em>.
  * </ul>
  * For more information on these subjects, see the
- * <a href="package-summary.html#package_description">Swing package description</a> 
+ * <a href="package-summary.html#package_description">Swing package description</a>
  * and <em>The Java Tutorial</em> section
  * <a href="http://java.sun.com/docs/books/tutorial/uiswing/components/jcomponent.html">The JComponent Class</a>.
  * <p>
@@ -148,7 +177,6 @@ import sun.swing.UIClientPropertyKey;
  * @see #setToolTipText
  * @see #setAutoscrolls
  *
- * @version 2.288, 08/07/09
  * @author Hans Muller
  * @author Arnaud Weber
  */
@@ -162,24 +190,10 @@ public abstract class JComponent extends Container implements Serializable,
     private static final String uiClassID = "ComponentUI";
 
     /**
-     * Key used in client properties for the AncestorNotifier.
-     */
-    private static final Object ANCESTOR_NOTIFIER_KEY = new Object(); // AncestorNotifier
-
-    /**
-     * Key used in client properties for the TransferHandler.
-     */
-    private static final Object TRANSFER_HANDLER_KEY = new Object(); // TransferHandler
-
-    /**
-     * Key used in client properties for the InputVerifier.
-     */
-    private static final Object INPUT_VERIFIER_KEY = new Object(); // InputVerifier
-
-    /**
      * @see #readObject
-     */ 
-    private static final Hashtable readObjectCallbacks = new Hashtable(1);
+     */
+    private static final Hashtable<ObjectInputStream, ReadObjectCallback> readObjectCallbacks =
+            new Hashtable<ObjectInputStream, ReadObjectCallback>(1);
 
     /**
      * Keys to use for forward focus traversal when the JComponent is
@@ -204,13 +218,14 @@ public abstract class JComponent extends Container implements Serializable,
     static boolean DEBUG_GRAPHICS_LOADED;
 
     /**
-     * Key used to look up a value from the AppContext to determine the 
+     * Key used to look up a value from the AppContext to determine the
      * JComponent the InputVerifier is running for. That is, if
      * AppContext.get(INPUT_VERIFIER_SOURCE_KEY) returns non-null, it
      * indicates the EDT is calling into the InputVerifier from the
      * returned component.
      */
-    private static final Object INPUT_VERIFIER_SOURCE_KEY = new Object(); // InputVerifierSourceKey
+    private static final Object INPUT_VERIFIER_SOURCE_KEY =
+            new StringBuilder("InputVerifierSourceKey");
 
     /* The following fields support set methods for the corresponding
      * java.awt.Component properties.
@@ -243,12 +258,12 @@ public abstract class JComponent extends Container implements Serializable,
 
     private boolean verifyInputWhenFocusTarget = true;
 
-    /** 
+    /**
      * Set in <code>_paintImmediately</code>.
      * Will indicate the child that initiated the painting operation.
      * If <code>paintingChild</code> is opaque, no need to paint
      * any child components after <code>paintingChild</code>.
-     * Test used in <code>paintChildren</code>. 
+     * Test used in <code>paintChildren</code>.
      */
     transient Component         paintingChild;
 
@@ -330,18 +345,19 @@ public abstract class JComponent extends Container implements Serializable,
     private static final int RESERVED_5                               = 19;
     private static final int RESERVED_6                               = 20;
     private static final int WRITE_OBJ_COUNTER_LAST                   = 21;
-    
+
     private static final int REQUEST_FOCUS_DISABLED                   = 22;
     private static final int INHERITS_POPUP_MENU                      = 23;
     private static final int OPAQUE_SET                               = 24;
     private static final int AUTOSCROLLS_SET                          = 25;
     private static final int FOCUS_TRAVERSAL_KEYS_FORWARD_SET         = 26;
     private static final int FOCUS_TRAVERSAL_KEYS_BACKWARD_SET        = 27;
+    private static final int REVALIDATE_RUNNABLE_SCHEDULED            = 28;
 
     /**
      * Temporary rectangles.
      */
-    private static java.util.List tempRectangles = new java.util.ArrayList(11);
+    private static java.util.List<Rectangle> tempRectangles = new java.util.ArrayList<Rectangle>(11);
 
     /** Used for <code>WHEN_FOCUSED</code> bindings. */
     private InputMap focusInputMap;
@@ -357,7 +373,8 @@ public abstract class JComponent extends Container implements Serializable,
     private static final String defaultLocale = "JComponent.defaultLocale";
 
     private static Component componentObtainingGraphicsFrom;
-    private static Object componentObtainingGraphicsFromLock = new Object(); // componentObtainingGraphicsFrom
+    private static Object componentObtainingGraphicsFromLock = new
+            StringBuilder("componentObtainingGraphicsFrom");
 
     /**
      * AA text hints.
@@ -435,7 +452,7 @@ public abstract class JComponent extends Container implements Serializable,
             Rectangle rect;
             int size = tempRectangles.size();
             if (size > 0) {
-                rect = (Rectangle)tempRectangles.remove(size - 1);
+                rect = tempRectangles.remove(size - 1);
             }
             else {
                 rect = new Rectangle(0, 0, 0, 0);
@@ -557,28 +574,28 @@ public abstract class JComponent extends Container implements Serializable,
 
     /**
      * Default <code>JComponent</code> constructor.  This constructor does
-     * very little initialization beyond calling the <code>Container</code> 
-     * constructor.  For example, the initial layout manager is 
-     * <code>null</code>. It does, however, set the component's locale 
-     * property to the value returned by 
+     * very little initialization beyond calling the <code>Container</code>
+     * constructor.  For example, the initial layout manager is
+     * <code>null</code>. It does, however, set the component's locale
+     * property to the value returned by
      * <code>JComponent.getDefaultLocale</code>.
      *
      * @see #getDefaultLocale
      */
     public JComponent() {
         super();
-	// We enable key events on all JComponents so that accessibility
-	// bindings will work everywhere. This is a partial fix to BugID
-	// 4282211.
+        // We enable key events on all JComponents so that accessibility
+        // bindings will work everywhere. This is a partial fix to BugID
+        // 4282211.
         enableEvents(AWTEvent.KEY_EVENT_MASK);
-	if (isManagingFocus()) {
+        if (isManagingFocus()) {
             LookAndFeel.installProperty(this,
-                                        "focusTraversalKeysForward", 
-				  getManagingFocusForwardTraversalKeys());
+                                        "focusTraversalKeysForward",
+                                  getManagingFocusForwardTraversalKeys());
             LookAndFeel.installProperty(this,
-                                        "focusTraversalKeysBackward", 
-				  getManagingFocusBackwardTraversalKeys());
-	}
+                                        "focusTraversalKeysBackward",
+                                  getManagingFocusBackwardTraversalKeys());
+        }
 
         super.setLocale( JComponent.getDefaultLocale() );
     }
@@ -635,26 +652,12 @@ public abstract class JComponent extends Container implements Serializable,
          * same UI instance *with different default settings*
          * to be installed.
          */
-        if (ui != null) {
-            ui.uninstallUI(this);
-            //clean UIClientPropertyKeys from client properties
-            if (clientProperties != null) {
-                synchronized(clientProperties) {
-                    Object[] clientPropertyKeys = 
-                        clientProperties.getKeys(null);
-                    if (clientPropertyKeys != null) {
-                        for (Object key : clientPropertyKeys) {
-                            if (key instanceof UIClientPropertyKey) {
-                                putClientProperty(key, null);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+
+        uninstallUIAndProperties();
+
         // aaText shouldn't persist between look and feels, reset it.
-         aaTextInfo =
-	     UIManager.getDefaults().get(SwingUtilities2.AA_TEXT_PROPERTY_KEY);
+        aaTextInfo =
+            UIManager.getDefaults().get(SwingUtilities2.AA_TEXT_PROPERTY_KEY);
         ComponentUI oldUI = ui;
         ui = newUI;
         if (ui != null) {
@@ -666,6 +669,30 @@ public abstract class JComponent extends Container implements Serializable,
         repaint();
     }
 
+    /**
+     * Uninstalls the UI, if any, and any client properties designated
+     * as being specific to the installed UI - instances of
+     * {@code UIClientPropertyKey}.
+     */
+    private void uninstallUIAndProperties() {
+        if (ui != null) {
+            ui.uninstallUI(this);
+            //clean UIClientPropertyKeys from client properties
+            if (clientProperties != null) {
+                synchronized(clientProperties) {
+                    Object[] clientPropertyKeys =
+                        clientProperties.getKeys(null);
+                    if (clientPropertyKeys != null) {
+                        for (Object key : clientPropertyKeys) {
+                            if (key instanceof UIClientPropertyKey) {
+                                putClientProperty(key, null);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Returns the <code>UIDefaults</code> key used to
@@ -678,7 +705,7 @@ public abstract class JComponent extends Container implements Serializable,
      * <code>ComponentUI</code> subclass that defines their look and feel.
      *
      * @return the <code>UIDefaults</code> key for a
-     *		<code>ComponentUI</code> subclass
+     *          <code>ComponentUI</code> subclass
      * @see UIDefaults#getUI
      * @beaninfo
      *      expert: true
@@ -768,8 +795,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @see java.awt.Container#paint
      */
     protected void paintChildren(Graphics g) {
-        boolean isJComponent;
-	Graphics sg = g;
+        Graphics sg = g;
 
         synchronized(getTreeLock()) {
             int i = getComponentCount() - 1;
@@ -780,7 +806,7 @@ public abstract class JComponent extends Container implements Serializable,
             // its index.
             if (paintingChild != null &&
                 (paintingChild instanceof JComponent) &&
-                ((JComponent)paintingChild).isOpaque()) {
+                paintingChild.isOpaque()) {
                 for (; i >= 0; i--) {
                     if (getComponent(i) == paintingChild){
                         break;
@@ -799,12 +825,21 @@ public abstract class JComponent extends Container implements Serializable,
                 }
             }
             boolean printing = getFlag(IS_PRINTING);
+            final Window window = SwingUtilities.getWindowAncestor(this);
+            final boolean isWindowOpaque = window == null || window.isOpaque();
             for (; i >= 0 ; i--) {
                 Component comp = getComponent(i);
-                isJComponent = (comp instanceof JComponent);
-                if (comp != null &&
-                    (isJComponent || isLightweightComponent(comp)) && 
-                    (comp.isVisible() == true)) {
+                if (comp == null) {
+                    continue;
+                }
+
+                final boolean isJComponent = comp instanceof JComponent;
+
+                // Enable painting of heavyweights in non-opaque windows.
+                // See 6884960
+                if ((!isWindowOpaque || isJComponent ||
+                            isLightweightComponent(comp)) && comp.isVisible())
+                {
                     Rectangle cr;
 
                     cr = comp.getBounds(tmpRect);
@@ -849,7 +884,7 @@ public abstract class JComponent extends Container implements Serializable,
                                     shouldSetFlagBack = true;
                                 }
                                 if(!printing) {
-                                    ((JComponent)comp).paint(cg);
+                                    comp.paint(cg);
                                 }
                                 else {
                                     if (!getFlag(IS_PRINTING_ALL)) {
@@ -860,6 +895,8 @@ public abstract class JComponent extends Container implements Serializable,
                                     }
                                 }
                             } else {
+                                // The component is either lightweight, or
+                                // heavyweight in a non-opaque window
                                 if (!printing) {
                                     comp.paint(cg);
                                 }
@@ -871,7 +908,7 @@ public abstract class JComponent extends Container implements Serializable,
                                         comp.printAll(cg);
                                     }
                                 }
-			    }
+                            }
                         } finally {
                             cg.dispose();
                             if(shouldSetFlagBack) {
@@ -914,7 +951,7 @@ public abstract class JComponent extends Container implements Serializable,
 
     /**
      * Calls <code>paint</code>.  Doesn't clear the background but see
-     * <code>ComponentUI.update</code>, which is called by 
+     * <code>ComponentUI.update</code>, which is called by
      * <code>paintComponent</code>.
      *
      * @param g the <code>Graphics</code> context in which to paint
@@ -953,7 +990,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #repaint
      */
     public void paint(Graphics g) {
-	boolean shouldClearPaintFlags = false;
+        boolean shouldClearPaintFlags = false;
 
         if ((getWidth() <= 0) || (getHeight() <= 0)) {
             return;
@@ -963,21 +1000,21 @@ public abstract class JComponent extends Container implements Serializable,
         Graphics co = componentGraphics.create();
         try {
             RepaintManager repaintManager = RepaintManager.currentManager(this);
-	    Rectangle clipRect = co.getClipBounds();
+            Rectangle clipRect = co.getClipBounds();
             int clipX;
             int clipY;
             int clipW;
             int clipH;
-	    if (clipRect == null) {
+            if (clipRect == null) {
                 clipX = clipY = 0;
-		clipW = getWidth();
-		clipH = getHeight();
+                clipW = getWidth();
+                clipH = getHeight();
             }
-	    else {
-	        clipX = clipRect.x;
-		clipY = clipRect.y;
-		clipW = clipRect.width;
-		clipH = clipRect.height;
+            else {
+                clipX = clipRect.x;
+                clipY = clipRect.y;
+                clipW = clipRect.width;
+                clipH = clipRect.height;
             }
 
             if(clipW > getWidth()) {
@@ -992,12 +1029,12 @@ public abstract class JComponent extends Container implements Serializable,
                 shouldClearPaintFlags = true;
             }
 
-	    int bw,bh;
-	    boolean printing = getFlag(IS_PRINTING);
-            boolean repainting = getFlag(IS_REPAINTING);
-            if(!printing && repaintManager.isDoubleBufferingEnabled() &&
-               !getFlag(ANCESTOR_USING_BUFFER) && isDoubleBuffered() &&
-                    (repaintManager.isPainting() || repainting)) {
+            int bw,bh;
+            boolean printing = getFlag(IS_PRINTING);
+            if (!printing && repaintManager.isDoubleBufferingEnabled() &&
+                !getFlag(ANCESTOR_USING_BUFFER) && isDoubleBuffered() &&
+                (getFlag(IS_REPAINTING) || repaintManager.isPainting()))
+            {
                 repaintManager.beginPaint();
                 try {
                     repaintManager.paint(this, this, co, clipX, clipY, clipW,
@@ -1005,29 +1042,29 @@ public abstract class JComponent extends Container implements Serializable,
                 } finally {
                     repaintManager.endPaint();
                 }
-            } 
+            }
             else {
-		// Will ocassionaly happen in 1.2, especially when printing.
-		if (clipRect == null) {
-		    co.setClip(clipX, clipY, clipW, clipH);
-		}
+                // Will ocassionaly happen in 1.2, especially when printing.
+                if (clipRect == null) {
+                    co.setClip(clipX, clipY, clipW, clipH);
+                }
 
                 if (!rectangleIsObscured(clipX,clipY,clipW,clipH)) {
-		    if (!printing) {
-			paintComponent(co);
-			paintBorder(co);
-		    }
-		    else {
-			printComponent(co);
-			printBorder(co);
-		    }
+                    if (!printing) {
+                        paintComponent(co);
+                        paintBorder(co);
+                    }
+                    else {
+                        printComponent(co);
+                        printBorder(co);
+                    }
                 }
-		if (!printing) {
-		    paintChildren(co);
-		}
-		else {
-		    printChildren(co);
-		}
+                if (!printing) {
+                    paintChildren(co);
+                }
+                else {
+                    printChildren(co);
+                }
             }
         } finally {
             co.dispose();
@@ -1041,7 +1078,7 @@ public abstract class JComponent extends Container implements Serializable,
     }
 
     // paint forcing use of the double buffer.  This is used for historical
-    // reasons: JViewport, when scrolling, previously directly invoked paint 
+    // reasons: JViewport, when scrolling, previously directly invoked paint
     // while turning off double buffering at the RepaintManager level, this
     // codes simulates that.
     void paintForceDoubleBuffered(Graphics g) {
@@ -1072,25 +1109,25 @@ public abstract class JComponent extends Container implements Serializable,
         }
         return false;
     }
-    
+
     private void adjustPaintFlags() {
-	JComponent jparent = null;
-	Container parent;
-	for(parent = getParent() ; parent != null ; parent =
-	    parent.getParent()) {
-	    if(parent instanceof JComponent) {
-		jparent = (JComponent) parent;
-		if(jparent.getFlag(ANCESTOR_USING_BUFFER))
-		  setFlag(ANCESTOR_USING_BUFFER, true);
-		if(jparent.getFlag(IS_PAINTING_TILE))
-		  setFlag(IS_PAINTING_TILE, true);
-		if(jparent.getFlag(IS_PRINTING))
-		  setFlag(IS_PRINTING, true);
-		if(jparent.getFlag(IS_PRINTING_ALL))
-		  setFlag(IS_PRINTING_ALL, true);
-		break;
-	    }
-	}
+        JComponent jparent;
+        Container parent;
+        for(parent = getParent() ; parent != null ; parent =
+            parent.getParent()) {
+            if(parent instanceof JComponent) {
+                jparent = (JComponent) parent;
+                if(jparent.getFlag(ANCESTOR_USING_BUFFER))
+                  setFlag(ANCESTOR_USING_BUFFER, true);
+                if(jparent.getFlag(IS_PAINTING_TILE))
+                  setFlag(IS_PAINTING_TILE, true);
+                if(jparent.getFlag(IS_PRINTING))
+                  setFlag(IS_PRINTING, true);
+                if(jparent.getFlag(IS_PRINTING_ALL))
+                  setFlag(IS_PRINTING_ALL, true);
+                break;
+            }
+        }
     }
 
     /**
@@ -1104,13 +1141,13 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #printChildren
      */
     public void printAll(Graphics g) {
-	setFlag(IS_PRINTING_ALL, true);
-	try {
-	    print(g);
-	}
-	finally {
-	    setFlag(IS_PRINTING_ALL, false);
-	}
+        setFlag(IS_PRINTING_ALL, true);
+        try {
+            print(g);
+        }
+        finally {
+            setFlag(IS_PRINTING_ALL, false);
+        }
     }
 
     /**
@@ -1157,17 +1194,17 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #isPaintingForPrint
      */
     public void print(Graphics g) {
-	setFlag(IS_PRINTING, true);
+        setFlag(IS_PRINTING, true);
         firePropertyChange("paintingForPrint", false, true);
-	try {
-	    paint(g);
-	}
-	finally {
-	    setFlag(IS_PRINTING, false);
+        try {
+            paint(g);
+        }
+        finally {
+            setFlag(IS_PRINTING, false);
             firePropertyChange("paintingForPrint", true, false);
-	}
+        }
     }
-    
+
     /**
      * This is invoked during a printing operation. This is implemented to
      * invoke <code>paintComponent</code> on the component. Override this
@@ -1178,7 +1215,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @since 1.3
      */
     protected void printComponent(Graphics g) {
-	paintComponent(g);
+        paintComponent(g);
     }
 
     /**
@@ -1191,7 +1228,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @since 1.3
      */
     protected void printChildren(Graphics g) {
-	paintChildren(g);
+        paintChildren(g);
     }
 
     /**
@@ -1204,7 +1241,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @since 1.3
      */
     protected void printBorder(Graphics g) {
-	paintBorder(g);
+        paintBorder(g);
     }
 
     /**
@@ -1215,7 +1252,7 @@ public abstract class JComponent extends Container implements Serializable,
      *  Use this method to keep some state you might need between tiles.
      *
      *  @return  true if the component is currently painting a tile,
-     *		false otherwise
+     *          false otherwise
      */
     public boolean isPaintingTile() {
         return getFlag(IS_PAINTING_TILE);
@@ -1271,46 +1308,46 @@ public abstract class JComponent extends Container implements Serializable,
      */
     @Deprecated
     public boolean isManagingFocus() {
-	return false;
+        return false;
     }
-  
+
     private void registerNextFocusableComponent() {
-	registerNextFocusableComponent(getNextFocusableComponent());
+        registerNextFocusableComponent(getNextFocusableComponent());
     }
 
     private void registerNextFocusableComponent(Component
-						nextFocusableComponent) {
-	if (nextFocusableComponent == null) {
-	    return;
-	}
-  
-	Container nearestRoot =
-	    (isFocusCycleRoot()) ? this : getFocusCycleRootAncestor();
-	FocusTraversalPolicy policy = nearestRoot.getFocusTraversalPolicy();
-	if (!(policy instanceof LegacyGlueFocusTraversalPolicy)) {
-	    policy = new LegacyGlueFocusTraversalPolicy(policy);
-	    nearestRoot.setFocusTraversalPolicy(policy);
-	}
-	((LegacyGlueFocusTraversalPolicy)policy).
-	    setNextFocusableComponent(this, nextFocusableComponent);
+                                                nextFocusableComponent) {
+        if (nextFocusableComponent == null) {
+            return;
+        }
+
+        Container nearestRoot =
+            (isFocusCycleRoot()) ? this : getFocusCycleRootAncestor();
+        FocusTraversalPolicy policy = nearestRoot.getFocusTraversalPolicy();
+        if (!(policy instanceof LegacyGlueFocusTraversalPolicy)) {
+            policy = new LegacyGlueFocusTraversalPolicy(policy);
+            nearestRoot.setFocusTraversalPolicy(policy);
+        }
+        ((LegacyGlueFocusTraversalPolicy)policy).
+            setNextFocusableComponent(this, nextFocusableComponent);
     }
 
     private void deregisterNextFocusableComponent() {
-	Component nextFocusableComponent = getNextFocusableComponent();
-	if (nextFocusableComponent == null) {
-	    return;
-	}
+        Component nextFocusableComponent = getNextFocusableComponent();
+        if (nextFocusableComponent == null) {
+            return;
+        }
 
-	Container nearestRoot =
-	    (isFocusCycleRoot()) ? this : getFocusCycleRootAncestor();
-	if (nearestRoot == null) {
-	    return;
-	}
-	FocusTraversalPolicy policy = nearestRoot.getFocusTraversalPolicy();
-	if (policy instanceof LegacyGlueFocusTraversalPolicy) {
-	    ((LegacyGlueFocusTraversalPolicy)policy).
-		unsetNextFocusableComponent(this, nextFocusableComponent);
-	}
+        Container nearestRoot =
+            (isFocusCycleRoot()) ? this : getFocusCycleRootAncestor();
+        if (nearestRoot == null) {
+            return;
+        }
+        FocusTraversalPolicy policy = nearestRoot.getFocusTraversalPolicy();
+        if (policy instanceof LegacyGlueFocusTraversalPolicy) {
+            ((LegacyGlueFocusTraversalPolicy)policy).
+                unsetNextFocusableComponent(this, nextFocusableComponent);
+        }
     }
 
     /**
@@ -1336,16 +1373,16 @@ public abstract class JComponent extends Container implements Serializable,
      */
     @Deprecated
     public void setNextFocusableComponent(Component aComponent) {
-	boolean displayable = isDisplayable();
-	if (displayable) {
-	    deregisterNextFocusableComponent();
-	}
-	putClientProperty(NEXT_FOCUS, aComponent);
-	if (displayable) {
-	    registerNextFocusableComponent(aComponent);
-	}
+        boolean displayable = isDisplayable();
+        if (displayable) {
+            deregisterNextFocusableComponent();
+        }
+        putClientProperty(NEXT_FOCUS, aComponent);
+        if (displayable) {
+            registerNextFocusableComponent(aComponent);
+        }
     }
-  
+
     /**
      * In release 1.4, the focus subsystem was rearchitected.
      * For more information, see
@@ -1366,9 +1403,9 @@ public abstract class JComponent extends Container implements Serializable,
      */
     @Deprecated
     public Component getNextFocusableComponent() {
-	return (Component)getClientProperty(NEXT_FOCUS);
+        return (Component)getClientProperty(NEXT_FOCUS);
     }
-  
+
     /**
      * Provides a hint as to whether or not this <code>JComponent</code>
      * should get focus. This is only a hint, and it is up to consumers that
@@ -1386,7 +1423,7 @@ public abstract class JComponent extends Container implements Serializable,
      * How to Use the Focus Subsystem</a>,
      * a section in <em>The Java Tutorial</em>,
      * for more information.
-     * 
+     *
      * @param requestFocusEnabled indicates whether you want this
      *        <code>JComponent</code> to be focusable or not
      * @see <a href="../../java/awt/doc-files/FocusSpec.html">Focus Specification</a>
@@ -1395,7 +1432,7 @@ public abstract class JComponent extends Container implements Serializable,
     public void setRequestFocusEnabled(boolean requestFocusEnabled) {
         setFlag(REQUEST_FOCUS_DISABLED, !requestFocusEnabled);
     }
-  
+
     /**
      * Returns <code>true</code> if this <code>JComponent</code> should
      * get focus; otherwise returns <code>false</code>.
@@ -1405,7 +1442,7 @@ public abstract class JComponent extends Container implements Serializable,
      * How to Use the Focus Subsystem</a>,
      * a section in <em>The Java Tutorial</em>,
      * for more information.
-     * 
+     *
      * @return <code>true</code> if this component should get focus,
      *     otherwise returns <code>false</code>
      * @see #setRequestFocusEnabled
@@ -1459,7 +1496,7 @@ public abstract class JComponent extends Container implements Serializable,
      *         fail; <code>true</code> if it is likely to succeed
      * @see java.awt.Component#requestFocusInWindow()
      * @see java.awt.Component#requestFocusInWindow(boolean)
-     * @since 1.4     
+     * @since 1.4
      */
     public boolean requestFocus(boolean temporary) {
         return super.requestFocus(temporary);
@@ -1521,10 +1558,10 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #requestFocusInWindow()
      */
     public void grabFocus() {
-	requestFocus();
+        requestFocus();
     }
-  
-    /** 
+
+    /**
      * Sets the value to indicate whether input verifier for the
      * current focus owner will be called before this component requests
      * focus. The default is true. Set to false on components such as a
@@ -1546,22 +1583,22 @@ public abstract class JComponent extends Container implements Serializable,
      *              focus.
      */
     public void setVerifyInputWhenFocusTarget(boolean
-					      verifyInputWhenFocusTarget) {
-	boolean oldVerifyInputWhenFocusTarget =
-	    this.verifyInputWhenFocusTarget;
+                                              verifyInputWhenFocusTarget) {
+        boolean oldVerifyInputWhenFocusTarget =
+            this.verifyInputWhenFocusTarget;
         this.verifyInputWhenFocusTarget = verifyInputWhenFocusTarget;
-	firePropertyChange("verifyInputWhenFocusTarget",
-			   oldVerifyInputWhenFocusTarget,
-			   verifyInputWhenFocusTarget);
+        firePropertyChange("verifyInputWhenFocusTarget",
+                           oldVerifyInputWhenFocusTarget,
+                           verifyInputWhenFocusTarget);
     }
 
-    /** 
-     * Returns the value that indicates whether the input verifier for the 
+    /**
+     * Returns the value that indicates whether the input verifier for the
      * current focus owner will be called before this component requests
      * focus.
-     *          
+     *
      * @return value of the <code>verifyInputWhenFocusTarget</code> property
-     *   
+     *
      * @see InputVerifier
      * @see #setInputVerifier
      * @see #getInputVerifier
@@ -1586,7 +1623,7 @@ public abstract class JComponent extends Container implements Serializable,
     public FontMetrics getFontMetrics(Font font) {
         return SwingUtilities2.getFontMetrics(this, font);
     }
- 
+
 
     /**
      * Sets the preferred size of this component.
@@ -1613,6 +1650,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #setPreferredSize
      * @see ComponentUI
      */
+    @Transient
     public Dimension getPreferredSize() {
         if (isPreferredSizeSet()) {
             return super.getPreferredSize();
@@ -1632,8 +1670,8 @@ public abstract class JComponent extends Container implements Serializable,
      * to compute it.  Setting the maximum size to <code>null</code>
      * restores the default behavior.
      *
-     * @param maximumSize a <code>Dimension</code> containing the 
-     *		desired maximum allowable size
+     * @param maximumSize a <code>Dimension</code> containing the
+     *          desired maximum allowable size
      * @see #getMaximumSize
      * @beaninfo
      *       bound: true
@@ -1654,6 +1692,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #setMaximumSize
      * @see ComponentUI
      */
+    @Transient
     public Dimension getMaximumSize() {
         if (isMaximumSizeSet()) {
             return super.getMaximumSize();
@@ -1693,6 +1732,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #setMinimumSize
      * @see ComponentUI
      */
+    @Transient
     public Dimension getMinimumSize() {
         if (isMinimumSizeSet()) {
             return super.getMinimumSize();
@@ -1730,7 +1770,7 @@ public abstract class JComponent extends Container implements Serializable,
      * Although technically you can set the border on any object
      * that inherits from <code>JComponent</code>, the look and
      * feel implementation of many standard Swing components
-     * doesn't work well with user-set borders.  In general, 
+     * doesn't work well with user-set borders.  In general,
      * when you want to set a border on a standard Swing
      * component other than <code>JPanel</code> or <code>JLabel</code>,
      * we recommend that you put the component in a <code>JPanel</code>
@@ -1756,13 +1796,13 @@ public abstract class JComponent extends Container implements Serializable,
             if (border == null || oldBorder == null ||
                 !(border.getBorderInsets(this).equals(oldBorder.getBorderInsets(this)))) {
                 revalidate();
-            } 
+            }
             repaint();
         }
     }
 
     /**
-     * Returns the border of this component or <code>null</code> if no 
+     * Returns the border of this component or <code>null</code> if no
      * border is currently set.
      *
      * @return the border object for this component
@@ -1888,10 +1928,10 @@ public abstract class JComponent extends Container implements Serializable,
      * description: The component's input verifier.
      */
     public void setInputVerifier(InputVerifier inputVerifier) {
-	InputVerifier oldInputVerifier = (InputVerifier)getClientProperty(
-                                         INPUT_VERIFIER_KEY);
-        putClientProperty(INPUT_VERIFIER_KEY, inputVerifier);
-	firePropertyChange("inputVerifier", oldInputVerifier, inputVerifier);
+        InputVerifier oldInputVerifier = (InputVerifier)getClientProperty(
+                                         JComponent_INPUT_VERIFIER);
+        putClientProperty(JComponent_INPUT_VERIFIER, inputVerifier);
+        firePropertyChange("inputVerifier", oldInputVerifier, inputVerifier);
     }
 
     /**
@@ -1902,7 +1942,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @see InputVerifier
      */
     public InputVerifier getInputVerifier() {
-        return (InputVerifier)getClientProperty(INPUT_VERIFIER_KEY);
+        return (InputVerifier)getClientProperty(JComponent_INPUT_VERIFIER);
     }
 
     /**
@@ -1925,14 +1965,14 @@ public abstract class JComponent extends Container implements Serializable,
       * operation performed within the component or one of its children.
       *
       * @param debugOptions  determines how the component should display
-      *		the information;  one of the following options:
+      *         the information;  one of the following options:
       * <ul>
       * <li>DebugGraphics.LOG_OPTION - causes a text message to be printed.
       * <li>DebugGraphics.FLASH_OPTION - causes the drawing to flash several
       * times.
       * <li>DebugGraphics.BUFFERED_OPTION - creates an
-      *		<code>ExternalWindow</code> that displays the operations
-      * 	performed on the View's offscreen buffer.
+      *         <code>ExternalWindow</code> that displays the operations
+      *         performed on the View's offscreen buffer.
       * <li>DebugGraphics.NONE_OPTION disables debugging.
       * <li>A value of 0 causes no changes to the debugging options.
       * </ul>
@@ -1958,8 +1998,8 @@ public abstract class JComponent extends Container implements Serializable,
       * <li>DebugGraphics.FLASH_OPTION - causes the drawing to flash several
       * times.
       * <li>DebugGraphics.BUFFERED_OPTION - creates an
-      *		<code>ExternalWindow</code> that displays the operations
-      * 	performed on the View's offscreen buffer.
+      *         <code>ExternalWindow</code> that displays the operations
+      *         performed on the View's offscreen buffer.
       * <li>DebugGraphics.NONE_OPTION disables debugging.
       * <li>A value of 0 causes no changes to the debugging options.
       * </ul>
@@ -2044,16 +2084,16 @@ public abstract class JComponent extends Container implements Serializable,
      */
     public void registerKeyboardAction(ActionListener anAction,String aCommand,KeyStroke aKeyStroke,int aCondition) {
 
-	InputMap inputMap = getInputMap(aCondition, true);
+        InputMap inputMap = getInputMap(aCondition, true);
 
-	if (inputMap != null) {
-	    ActionMap actionMap = getActionMap(true);
-	    ActionStandin action = new ActionStandin(anAction, aCommand);
-	    inputMap.put(aKeyStroke, action);
-	    if (actionMap != null) {
-		actionMap.put(action, action);
-	    }
-	}
+        if (inputMap != null) {
+            ActionMap actionMap = getActionMap(true);
+            ActionStandin action = new ActionStandin(anAction, aCommand);
+            inputMap.put(aKeyStroke, action);
+            if (actionMap != null) {
+                actionMap.put(action, action);
+            }
+        }
     }
 
     /**
@@ -2064,56 +2104,56 @@ public abstract class JComponent extends Container implements Serializable,
      * otherwise all actions are pushed to the <code>KeyboardManager</code>.
      *
      * @param onlyIfNew  if true, only actions that haven't been registered
-     *		are pushed to the <code>KeyboardManager</code>
+     *          are pushed to the <code>KeyboardManager</code>
      */
     private void registerWithKeyboardManager(boolean onlyIfNew) {
-	InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW, false);
-	KeyStroke[] strokes;
-	Hashtable registered = (Hashtable)getClientProperty
-	                        (WHEN_IN_FOCUSED_WINDOW_BINDINGS);
+        InputMap inputMap = getInputMap(WHEN_IN_FOCUSED_WINDOW, false);
+        KeyStroke[] strokes;
+        Hashtable<KeyStroke, KeyStroke> registered = (Hashtable)getClientProperty
+                                (WHEN_IN_FOCUSED_WINDOW_BINDINGS);
 
-	if (inputMap != null) {
-	    // Push any new KeyStrokes to the KeyboardManager.
-	    strokes = inputMap.allKeys();
-	    if (strokes != null) {
-		for (int counter = strokes.length - 1; counter >= 0;
-		     counter--) {
-		    if (!onlyIfNew || registered == null ||
-			registered.get(strokes[counter]) == null) {
-			registerWithKeyboardManager(strokes[counter]);
-		    }
-		    if (registered != null) {
-			registered.remove(strokes[counter]);
-		    }
-		}
-	    }
-	}
-	else {
-	    strokes = null;
-	}
-	// Remove any old ones.
-	if (registered != null && registered.size() > 0) {
-	    Enumeration keys = registered.keys();
+        if (inputMap != null) {
+            // Push any new KeyStrokes to the KeyboardManager.
+            strokes = inputMap.allKeys();
+            if (strokes != null) {
+                for (int counter = strokes.length - 1; counter >= 0;
+                     counter--) {
+                    if (!onlyIfNew || registered == null ||
+                        registered.get(strokes[counter]) == null) {
+                        registerWithKeyboardManager(strokes[counter]);
+                    }
+                    if (registered != null) {
+                        registered.remove(strokes[counter]);
+                    }
+                }
+            }
+        }
+        else {
+            strokes = null;
+        }
+        // Remove any old ones.
+        if (registered != null && registered.size() > 0) {
+            Enumeration<KeyStroke> keys = registered.keys();
 
-	    while (keys.hasMoreElements()) {
-		KeyStroke ks = (KeyStroke)keys.nextElement();
-		unregisterWithKeyboardManager(ks);
-	    }
-	    registered.clear();
-	}
-	// Updated the registered Hashtable.
-	if (strokes != null && strokes.length > 0) {
-	    if (registered == null) {
-		registered = new Hashtable(strokes.length);
-		putClientProperty(WHEN_IN_FOCUSED_WINDOW_BINDINGS, registered);
-	    }
-	    for (int counter = strokes.length - 1; counter >= 0; counter--) {
-		registered.put(strokes[counter], strokes[counter]);
-	    }
-	}
-	else {
-	    putClientProperty(WHEN_IN_FOCUSED_WINDOW_BINDINGS, null);
-	}
+            while (keys.hasMoreElements()) {
+                KeyStroke ks = keys.nextElement();
+                unregisterWithKeyboardManager(ks);
+            }
+            registered.clear();
+        }
+        // Updated the registered Hashtable.
+        if (strokes != null && strokes.length > 0) {
+            if (registered == null) {
+                registered = new Hashtable<KeyStroke, KeyStroke>(strokes.length);
+                putClientProperty(WHEN_IN_FOCUSED_WINDOW_BINDINGS, registered);
+            }
+            for (int counter = strokes.length - 1; counter >= 0; counter--) {
+                registered.put(strokes[counter], strokes[counter]);
+            }
+        }
+        else {
+            putClientProperty(WHEN_IN_FOCUSED_WINDOW_BINDINGS, null);
+        }
     }
 
     /**
@@ -2121,18 +2161,18 @@ public abstract class JComponent extends Container implements Serializable,
      * <code>WHEN_IN_FOCUSED_WINDOW</code> <code>KeyStroke</code> bindings.
      */
     private void unregisterWithKeyboardManager() {
-	Hashtable registered = (Hashtable)getClientProperty
-	                        (WHEN_IN_FOCUSED_WINDOW_BINDINGS);
+        Hashtable registered = (Hashtable)getClientProperty
+                                (WHEN_IN_FOCUSED_WINDOW_BINDINGS);
 
-	if (registered != null && registered.size() > 0) {
-	    Enumeration keys = registered.keys();
+        if (registered != null && registered.size() > 0) {
+            Enumeration keys = registered.keys();
 
-	    while (keys.hasMoreElements()) {
-		KeyStroke ks = (KeyStroke)keys.nextElement();
-		unregisterWithKeyboardManager(ks);
-	    }
-	}
-	putClientProperty(WHEN_IN_FOCUSED_WINDOW_BINDINGS, null);
+            while (keys.hasMoreElements()) {
+                KeyStroke ks = (KeyStroke)keys.nextElement();
+                unregisterWithKeyboardManager(ks);
+            }
+        }
+        putClientProperty(WHEN_IN_FOCUSED_WINDOW_BINDINGS, null);
     }
 
     /**
@@ -2144,23 +2184,23 @@ public abstract class JComponent extends Container implements Serializable,
      * @param inputMap the map containing the new bindings
      */
     void componentInputMapChanged(ComponentInputMap inputMap) {
-	InputMap km = getInputMap(WHEN_IN_FOCUSED_WINDOW, false);
+        InputMap km = getInputMap(WHEN_IN_FOCUSED_WINDOW, false);
 
-	while (km != inputMap && km != null) {
-	    km = (ComponentInputMap)km.getParent();
-	}
-	if (km != null) {
-	    registerWithKeyboardManager(false);
-	}
+        while (km != inputMap && km != null) {
+            km = km.getParent();
+        }
+        if (km != null) {
+            registerWithKeyboardManager(false);
+        }
     }
 
     private void registerWithKeyboardManager(KeyStroke aKeyStroke) {
-	KeyboardManager.getCurrentManager().registerKeyStroke(aKeyStroke,this);
+        KeyboardManager.getCurrentManager().registerKeyStroke(aKeyStroke,this);
     }
 
     private void unregisterWithKeyboardManager(KeyStroke aKeyStroke) {
-	KeyboardManager.getCurrentManager().unregisterKeyStroke(aKeyStroke,
-								this);
+        KeyboardManager.getCurrentManager().unregisterKeyStroke(aKeyStroke,
+                                                                this);
     }
 
     /**
@@ -2187,18 +2227,18 @@ public abstract class JComponent extends Container implements Serializable,
      * (if it exists) as well as the <code>InputMap</code>s.
      */
     public void unregisterKeyboardAction(KeyStroke aKeyStroke) {
-	ActionMap am = getActionMap(false);
-	for (int counter = 0; counter < 3; counter++) {
-	    InputMap km = getInputMap(counter, false);
-	    if (km != null) {
-		Object actionID = km.get(aKeyStroke);
+        ActionMap am = getActionMap(false);
+        for (int counter = 0; counter < 3; counter++) {
+            InputMap km = getInputMap(counter, false);
+            if (km != null) {
+                Object actionID = km.get(aKeyStroke);
 
-		if (am != null && actionID != null) {
-		    am.remove(actionID);
-		}
-		km.remove(aKeyStroke);
-	    }
-	}
+                if (am != null && actionID != null) {
+                    am.remove(actionID);
+                }
+                km.remove(aKeyStroke);
+            }
+        }
     }
 
     /**
@@ -2209,25 +2249,25 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #registerKeyboardAction
      */
     public KeyStroke[] getRegisteredKeyStrokes() {
-	int[] counts = new int[3];
-	KeyStroke[][] strokes = new KeyStroke[3][];
+        int[] counts = new int[3];
+        KeyStroke[][] strokes = new KeyStroke[3][];
 
-	for (int counter = 0; counter < 3; counter++) {
-	    InputMap km = getInputMap(counter, false);
-	    strokes[counter] = (km != null) ? km.allKeys() : null;
-	    counts[counter] = (strokes[counter] != null) ?
-		               strokes[counter].length : 0;
-	}
-	KeyStroke[] retValue = new KeyStroke[counts[0] + counts[1] +
-					    counts[2]];
-	for (int counter = 0, last = 0; counter < 3; counter++) {
-	    if (counts[counter] > 0) {
-		System.arraycopy(strokes[counter], 0, retValue, last,
-				 counts[counter]);
-		last += counts[counter];
-	    }
-	}
-	return retValue;
+        for (int counter = 0; counter < 3; counter++) {
+            InputMap km = getInputMap(counter, false);
+            strokes[counter] = (km != null) ? km.allKeys() : null;
+            counts[counter] = (strokes[counter] != null) ?
+                               strokes[counter].length : 0;
+        }
+        KeyStroke[] retValue = new KeyStroke[counts[0] + counts[1] +
+                                            counts[2]];
+        for (int counter = 0, last = 0; counter < 3; counter++) {
+            if (counts[counter] > 0) {
+                System.arraycopy(strokes[counter], 0, retValue, last,
+                                 counts[counter]);
+                last += counts[counter];
+            }
+        }
+        return retValue;
     }
 
     /**
@@ -2243,13 +2283,13 @@ public abstract class JComponent extends Container implements Serializable,
      * @return the action-keystroke condition
      */
     public int getConditionForKeyStroke(KeyStroke aKeyStroke) {
-	for (int counter = 0; counter < 3; counter++) {
-	    InputMap inputMap = getInputMap(counter, false);
-	    if (inputMap != null && inputMap.get(aKeyStroke) != null) {
-		return counter;
-	    }
-	}
-	return UNDEFINED_CONDITION;
+        for (int counter = 0; counter < 3; counter++) {
+            InputMap inputMap = getInputMap(counter, false);
+            if (inputMap != null && inputMap.get(aKeyStroke) != null) {
+                return counter;
+            }
+        }
+        return UNDEFINED_CONDITION;
     }
 
     /**
@@ -2257,29 +2297,29 @@ public abstract class JComponent extends Container implements Serializable,
      * given keystroke.
      *
      * @return the <code>ActionListener</code>
-     *		object invoked when the keystroke occurs
+     *          object invoked when the keystroke occurs
      */
     public ActionListener getActionForKeyStroke(KeyStroke aKeyStroke) {
-	ActionMap am = getActionMap(false);
+        ActionMap am = getActionMap(false);
 
-	if (am == null) {
-	    return null;
-	}
-	for (int counter = 0; counter < 3; counter++) {
-	    InputMap inputMap = getInputMap(counter, false);
-	    if (inputMap != null) {
-		Object actionBinding = inputMap.get(aKeyStroke);
+        if (am == null) {
+            return null;
+        }
+        for (int counter = 0; counter < 3; counter++) {
+            InputMap inputMap = getInputMap(counter, false);
+            if (inputMap != null) {
+                Object actionBinding = inputMap.get(aKeyStroke);
 
-		if (actionBinding != null) {
-		    Action action = am.get(actionBinding);
-		    if (action instanceof ActionStandin) {
-			return ((ActionStandin)action).actionListener;
-		    }
-		    return action;
-		}
-	    }
-	}
-	return null;
+                if (actionBinding != null) {
+                    Action action = am.get(actionBinding);
+                    if (action instanceof ActionStandin) {
+                        return ((ActionStandin)action).actionListener;
+                    }
+                    return action;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -2290,21 +2330,21 @@ public abstract class JComponent extends Container implements Serializable,
      * (the UI is usually defined in the second tier) to persist.
      */
     public void resetKeyboardActions() {
-	// Keys
-	for (int counter = 0; counter < 3; counter++) {
-	    InputMap inputMap = getInputMap(counter, false);
+        // Keys
+        for (int counter = 0; counter < 3; counter++) {
+            InputMap inputMap = getInputMap(counter, false);
 
-	    if (inputMap != null) {
-		inputMap.clear();
-	    }
-	}
+            if (inputMap != null) {
+                inputMap.clear();
+            }
+        }
 
-	// Actions
-	ActionMap am = getActionMap(false);
+        // Actions
+        ActionMap am = getActionMap(false);
 
-	if (am != null) {
-	    am.clear();
-	}
+        if (am != null) {
+            am.clear();
+        }
     }
 
     /**
@@ -2319,42 +2359,42 @@ public abstract class JComponent extends Container implements Serializable,
      * <li><code>WHEN_FOCUSED</code>
      * <li><code>WHEN_ANCESTOR_OF_FOCUSED_COMPONENT</code>
      * </ul>
-     * If <code>condition</code> is <code>WHEN_IN_FOCUSED_WINDOW</code> 
+     * If <code>condition</code> is <code>WHEN_IN_FOCUSED_WINDOW</code>
      * and <code>map</code> is not a <code>ComponentInputMap</code>, an
      * <code>IllegalArgumentException</code> will be thrown.
-     * Similarly, if <code>condition</code> is not one of the values 
+     * Similarly, if <code>condition</code> is not one of the values
      * listed, an <code>IllegalArgumentException</code> will be thrown.
      *
      * @param condition one of the values listed above
      * @param map  the <code>InputMap</code> to use for the given condition
      * @exception IllegalArgumentException if <code>condition</code> is
-     *		<code>WHEN_IN_FOCUSED_WINDOW</code> and <code>map</code>
-     *		is not an instance of <code>ComponentInputMap</code>; or
-     *		if <code>condition</code> is not one of the legal values
-     *		specified above
+     *          <code>WHEN_IN_FOCUSED_WINDOW</code> and <code>map</code>
+     *          is not an instance of <code>ComponentInputMap</code>; or
+     *          if <code>condition</code> is not one of the legal values
+     *          specified above
      * @since 1.3
      */
     public final void setInputMap(int condition, InputMap map) {
-	switch (condition) {
-	case WHEN_IN_FOCUSED_WINDOW:
-	    if (map != null && !(map instanceof ComponentInputMap)) {
-		throw new IllegalArgumentException("WHEN_IN_FOCUSED_WINDOW InputMaps must be of type ComponentInputMap");
-	    }
-	    windowInputMap = (ComponentInputMap)map;
-	    setFlag(WIF_INPUTMAP_CREATED, true);
-	    registerWithKeyboardManager(false);
-	    break;
-	case WHEN_ANCESTOR_OF_FOCUSED_COMPONENT:
-	    ancestorInputMap = map;
-	    setFlag(ANCESTOR_INPUTMAP_CREATED, true);
-	    break;
-	case WHEN_FOCUSED:
-	    focusInputMap = map;
-	    setFlag(FOCUS_INPUTMAP_CREATED, true);
-	    break;
-	default:
-	    throw new IllegalArgumentException("condition must be one of JComponent.WHEN_IN_FOCUSED_WINDOW, JComponent.WHEN_FOCUSED or JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT");
-	}
+        switch (condition) {
+        case WHEN_IN_FOCUSED_WINDOW:
+            if (map != null && !(map instanceof ComponentInputMap)) {
+                throw new IllegalArgumentException("WHEN_IN_FOCUSED_WINDOW InputMaps must be of type ComponentInputMap");
+            }
+            windowInputMap = (ComponentInputMap)map;
+            setFlag(WIF_INPUTMAP_CREATED, true);
+            registerWithKeyboardManager(false);
+            break;
+        case WHEN_ANCESTOR_OF_FOCUSED_COMPONENT:
+            ancestorInputMap = map;
+            setFlag(ANCESTOR_INPUTMAP_CREATED, true);
+            break;
+        case WHEN_FOCUSED:
+            focusInputMap = map;
+            setFlag(FOCUS_INPUTMAP_CREATED, true);
+            break;
+        default:
+            throw new IllegalArgumentException("condition must be one of JComponent.WHEN_IN_FOCUSED_WINDOW, JComponent.WHEN_FOCUSED or JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT");
+        }
     }
 
     /**
@@ -2364,11 +2404,11 @@ public abstract class JComponent extends Container implements Serializable,
      * @param condition one of WHEN_IN_FOCUSED_WINDOW, WHEN_FOCUSED,
      *        WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
      * @return the <code>InputMap</code> for the specified
-     *		<code>condition</code>
+     *          <code>condition</code>
      * @since 1.3
      */
     public final InputMap getInputMap(int condition) {
-	return getInputMap(condition, true);
+        return getInputMap(condition, true);
     }
 
     /**
@@ -2380,20 +2420,20 @@ public abstract class JComponent extends Container implements Serializable,
      * @since 1.3
      */
     public final InputMap getInputMap() {
-	return getInputMap(WHEN_FOCUSED, true);
+        return getInputMap(WHEN_FOCUSED, true);
     }
 
     /**
      * Sets the <code>ActionMap</code> to <code>am</code>. This does not set
      * the parent of the <code>am</code> to be the <code>ActionMap</code>
      * from the UI (if there was one), it is up to the caller to have done this.
-     * 
+     *
      * @param am  the new <code>ActionMap</code>
      * @since 1.3
      */
     public final void setActionMap(ActionMap am) {
-	actionMap = am;
-	setFlag(ACTIONMAP_CREATED, true);
+        actionMap = am;
+        setFlag(ACTIONMAP_CREATED, true);
     }
 
     /**
@@ -2406,7 +2446,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @since 1.3
      */
     public final ActionMap getActionMap() {
-	return getActionMap(true);
+        return getActionMap(true);
     }
 
     /**
@@ -2422,74 +2462,74 @@ public abstract class JComponent extends Container implements Serializable,
      * <li>JComponent.WHEN_IN_FOCUSED_WINDOW
      * </ul>
      * @param create if true, create the <code>InputMap</code> if it
-     *		is not already created
+     *          is not already created
      * @return the <code>InputMap</code> for the given <code>condition</code>;
-     *		if <code>create</code> is false and the <code>InputMap</code>
-     *		hasn't been created, returns <code>null</code>
-     * @exception IllegalArgumentException if <code>condition</code> 
-     *		is not one of the legal values listed above
+     *          if <code>create</code> is false and the <code>InputMap</code>
+     *          hasn't been created, returns <code>null</code>
+     * @exception IllegalArgumentException if <code>condition</code>
+     *          is not one of the legal values listed above
      */
     final InputMap getInputMap(int condition, boolean create) {
-	switch (condition) {
-	case WHEN_FOCUSED:
-	    if (getFlag(FOCUS_INPUTMAP_CREATED)) {
-		return focusInputMap;
-	    }
-	    // Hasn't been created yet.
-	    if (create) {
-		InputMap km = new InputMap();
-		setInputMap(condition, km);
-		return km;
-	    }
-	    break;
-	case WHEN_ANCESTOR_OF_FOCUSED_COMPONENT:
-	    if (getFlag(ANCESTOR_INPUTMAP_CREATED)) {
-		return ancestorInputMap;
-	    }
-	    // Hasn't been created yet.
-	    if (create) {
-		InputMap km = new InputMap();
-		setInputMap(condition, km);
-		return km;
-	    }
-	    break;
-	case WHEN_IN_FOCUSED_WINDOW:
-	    if (getFlag(WIF_INPUTMAP_CREATED)) {
-		return windowInputMap;
-	    }
-	    // Hasn't been created yet.
-	    if (create) {
-		ComponentInputMap km = new ComponentInputMap(this);
-		setInputMap(condition, km);
-		return km;
-	    }
-	    break;
-	default:
-	    throw new IllegalArgumentException("condition must be one of JComponent.WHEN_IN_FOCUSED_WINDOW, JComponent.WHEN_FOCUSED or JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT");
-	}
-	return null;
+        switch (condition) {
+        case WHEN_FOCUSED:
+            if (getFlag(FOCUS_INPUTMAP_CREATED)) {
+                return focusInputMap;
+            }
+            // Hasn't been created yet.
+            if (create) {
+                InputMap km = new InputMap();
+                setInputMap(condition, km);
+                return km;
+            }
+            break;
+        case WHEN_ANCESTOR_OF_FOCUSED_COMPONENT:
+            if (getFlag(ANCESTOR_INPUTMAP_CREATED)) {
+                return ancestorInputMap;
+            }
+            // Hasn't been created yet.
+            if (create) {
+                InputMap km = new InputMap();
+                setInputMap(condition, km);
+                return km;
+            }
+            break;
+        case WHEN_IN_FOCUSED_WINDOW:
+            if (getFlag(WIF_INPUTMAP_CREATED)) {
+                return windowInputMap;
+            }
+            // Hasn't been created yet.
+            if (create) {
+                ComponentInputMap km = new ComponentInputMap(this);
+                setInputMap(condition, km);
+                return km;
+            }
+            break;
+        default:
+            throw new IllegalArgumentException("condition must be one of JComponent.WHEN_IN_FOCUSED_WINDOW, JComponent.WHEN_FOCUSED or JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT");
+        }
+        return null;
     }
 
     /**
      * Finds and returns the appropriate <code>ActionMap</code>.
-     * 
+     *
      * @param create if true, create the <code>ActionMap</code> if it
-     *		is not already created
+     *          is not already created
      * @return the <code>ActionMap</code> for this component; if the
-     *		<code>create</code> flag is false and there is no
-     *		current <code>ActionMap</code>, returns <code>null</code>
+     *          <code>create</code> flag is false and there is no
+     *          current <code>ActionMap</code>, returns <code>null</code>
      */
     final ActionMap getActionMap(boolean create) {
-	if (getFlag(ACTIONMAP_CREATED)) {
-	    return actionMap;
-	}
-	// Hasn't been created.
-	if (create) {
-	    ActionMap am = new ActionMap();
-	    setActionMap(am);
-	    return am;
-	}
-	return null;
+        if (getFlag(ACTIONMAP_CREATED)) {
+            return actionMap;
+        }
+        // Hasn't been created.
+        if (create) {
+            ActionMap am = new ActionMap();
+            setActionMap(am);
+            return am;
+        }
+        return null;
     }
 
     /**
@@ -2558,7 +2598,7 @@ public abstract class JComponent extends Container implements Serializable,
      * a section in <em>The Java Tutorial</em>.
      * <p>
      * Requests focus on this <code>JComponent</code>'s
-     * <code>FocusTraversalPolicy</code>'s default <code>Component</code>. 
+     * <code>FocusTraversalPolicy</code>'s default <code>Component</code>.
      * If this <code>JComponent</code> is a focus cycle root, then its
      * <code>FocusTraversalPolicy</code> is used. Otherwise, the
      * <code>FocusTraversalPolicy</code> of this <code>JComponent</code>'s
@@ -2570,27 +2610,27 @@ public abstract class JComponent extends Container implements Serializable,
      */
     @Deprecated
     public boolean requestDefaultFocus() {
-	Container nearestRoot =
-	    (isFocusCycleRoot()) ? this : getFocusCycleRootAncestor();
-	if (nearestRoot == null) {
-	    return false;
-	}
-	Component comp = nearestRoot.getFocusTraversalPolicy().
-	    getDefaultComponent(nearestRoot);
-	if (comp != null) {
-	    comp.requestFocus();
-	    return true;
-	} else {
-	    return false;
-	}
+        Container nearestRoot =
+            (isFocusCycleRoot()) ? this : getFocusCycleRootAncestor();
+        if (nearestRoot == null) {
+            return false;
+        }
+        Component comp = nearestRoot.getFocusTraversalPolicy().
+            getDefaultComponent(nearestRoot);
+        if (comp != null) {
+            comp.requestFocus();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
      * Makes the component visible or invisible.
      * Overrides <code>Component.setVisible</code>.
-     * 
+     *
      * @param aFlag  true to make the component visible; false to
-     *		make it invisible
+     *          make it invisible
      *
      * @beaninfo
      *    attribute: visualUpdate true
@@ -2603,19 +2643,19 @@ public abstract class JComponent extends Container implements Serializable,
                 Rectangle r = getBounds();
                 parent.repaint(r.x,r.y,r.width,r.height);
             }
-	    // Some (all should) LayoutManagers do not consider components
-	    // that are not visible. As such we need to revalidate when the
-	    // visible bit changes.
-	    revalidate();
+            // Some (all should) LayoutManagers do not consider components
+            // that are not visible. As such we need to revalidate when the
+            // visible bit changes.
+            revalidate();
         }
     }
 
     /**
      * Sets whether or not this component is enabled.
      * A component that is enabled may respond to user input,
-     * while a component that is not enabled cannot respond to 
+     * while a component that is not enabled cannot respond to
      * user input.  Some components may alter their visual
-     * representation when they are disabled in order to 
+     * representation when they are disabled in order to
      * provide feedback to the user that they cannot take input.
      * <p>Note: Disabling a component does not disable its children.
      *
@@ -2646,7 +2686,7 @@ public abstract class JComponent extends Container implements Serializable,
      * look and feel to honor this property, some may choose to ignore
      * it.
      *
-     * @param fg  the desired foreground <code>Color</code> 
+     * @param fg  the desired foreground <code>Color</code>
      * @see java.awt.Component#getForeground
      *
      * @beaninfo
@@ -2657,11 +2697,11 @@ public abstract class JComponent extends Container implements Serializable,
      */
     public void setForeground(Color fg) {
         Color oldFg = getForeground();
-	super.setForeground(fg);
-	if ((oldFg != null) ? !oldFg.equals(fg) : ((fg != null) && !fg.equals(oldFg))) {
-	    // foreground already bound in AWT1.2
-	    repaint();
-	}
+        super.setForeground(fg);
+        if ((oldFg != null) ? !oldFg.equals(fg) : ((fg != null) && !fg.equals(oldFg))) {
+            // foreground already bound in AWT1.2
+            repaint();
+        }
     }
 
     /**
@@ -2686,12 +2726,12 @@ public abstract class JComponent extends Container implements Serializable,
      *  description: The background color of the component.
      */
     public void setBackground(Color bg) {
-	Color oldBg = getBackground();
-	super.setBackground(bg);
-	if ((oldBg != null) ? !oldBg.equals(bg) : ((bg != null) && !bg.equals(oldBg))) {
-	    // background already bound in AWT1.2
-	    repaint();
-	}
+        Color oldBg = getBackground();
+        super.setBackground(bg);
+        if ((oldBg != null) ? !oldBg.equals(bg) : ((bg != null) && !bg.equals(oldBg))) {
+            // background already bound in AWT1.2
+            repaint();
+        }
     }
 
     /**
@@ -2712,16 +2752,16 @@ public abstract class JComponent extends Container implements Serializable,
         // font already bound in AWT1.2
         if (font != oldFont) {
             revalidate();
-	    repaint();
+            repaint();
         }
     }
-        
+
     /**
-     * Returns the default locale used to initialize each JComponent's 
+     * Returns the default locale used to initialize each JComponent's
      * locale property upon creation.
      *
-     * The default locale has "AppContext" scope so that applets (and 
-     * potentially multiple lightweight applications running in a single VM) 
+     * The default locale has "AppContext" scope so that applets (and
+     * potentially multiple lightweight applications running in a single VM)
      * can have their own setting. An applet can safely alter its default
      * locale because it will have no affect on other applets (or the browser).
      *
@@ -2747,8 +2787,8 @@ public abstract class JComponent extends Container implements Serializable,
      * Sets the default locale used to initialize each JComponent's locale
      * property upon creation.  The initial value is the VM's default locale.
      *
-     * The default locale has "AppContext" scope so that applets (and 
-     * potentially multiple lightweight applications running in a single VM) 
+     * The default locale has "AppContext" scope so that applets (and
+     * potentially multiple lightweight applications running in a single VM)
      * can have their own setting. An applet can safely alter its default
      * locale because it will have no affect on other applets (or the browser).
      *
@@ -2828,18 +2868,18 @@ public abstract class JComponent extends Container implements Serializable,
      * @since 1.3
      */
     protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
-					int condition, boolean pressed) {
-	InputMap map = getInputMap(condition, false);
-	ActionMap am = getActionMap(false);
+                                        int condition, boolean pressed) {
+        InputMap map = getInputMap(condition, false);
+        ActionMap am = getActionMap(false);
 
         if(map != null && am != null && isEnabled()) {
-	    Object binding = map.get(ks);
-	    Action action = (binding == null) ? null : am.get(binding);
-	    if (action != null) {
-		return SwingUtilities.notifyAction(action, ks, e, this,
-						   e.getModifiers());
-	    }
-	}
+            Object binding = map.get(ks);
+            Action action = (binding == null) ? null : am.get(binding);
+            if (action != null) {
+                return SwingUtilities.notifyAction(action, ks, e, this,
+                                                   e.getModifiers());
+            }
+        }
         return false;
     }
 
@@ -2860,19 +2900,31 @@ public abstract class JComponent extends Container implements Serializable,
           return false;
       }
       // Get the KeyStroke
+      // There may be two keystrokes associated with a low-level key event;
+      // in this case a keystroke made of an extended key code has a priority.
       KeyStroke ks;
+      KeyStroke ksE = null;
 
       if (e.getID() == KeyEvent.KEY_TYPED) {
           ks = KeyStroke.getKeyStroke(e.getKeyChar());
       }
       else {
-	  ks = KeyStroke.getKeyStroke(e.getKeyCode(),e.getModifiers(),
-				    (pressed ? false:true));
+          ks = KeyStroke.getKeyStroke(e.getKeyCode(),e.getModifiers(),
+                                    (pressed ? false:true));
+          if (e.getKeyCode() != e.getExtendedKeyCode()) {
+              ksE = KeyStroke.getKeyStroke(e.getExtendedKeyCode(),e.getModifiers(),
+                                    (pressed ? false:true));
+          }
       }
 
-      /* Do we have a key binding for e? */
+      // Do we have a key binding for e?
+      // If we have a binding by an extended code, use it.
+      // If not, check for regular code binding.
+      if(ksE != null && processKeyBinding(ksE, e, WHEN_FOCUSED, pressed)) {
+          return true;
+      }
       if(processKeyBinding(ks, e, WHEN_FOCUSED, pressed))
-	  return true;
+          return true;
 
       /* We have no key binding. Let's try the path from our parent to the
        * window excluded. We store the path components so we can avoid
@@ -2880,24 +2932,27 @@ public abstract class JComponent extends Container implements Serializable,
        */
       Container parent = this;
       while (parent != null && !(parent instanceof Window) &&
-	     !(parent instanceof Applet)) {
-	  if(parent instanceof JComponent) {
-	      if(((JComponent)parent).processKeyBinding(ks, e,
-			       WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, pressed))
-		  return true;
-	  }
-	  // This is done so that the children of a JInternalFrame are
-	  // given precedence for WHEN_IN_FOCUSED_WINDOW bindings before
-	  // other components WHEN_IN_FOCUSED_WINDOW bindings. This also gives
-	  // more precedence to the WHEN_IN_FOCUSED_WINDOW bindings of the
-	  // JInternalFrame's children vs the
-	  // WHEN_ANCESTOR_OF_FOCUSED_COMPONENT bindings of the parents.
-	  // maybe generalize from JInternalFrame (like isFocusCycleRoot).
-	  if ((parent instanceof JInternalFrame) &&
-	      JComponent.processKeyBindingsForAllComponents(e,parent,pressed)){
-	      return true;
-	  }
-	  parent = parent.getParent();
+             !(parent instanceof Applet)) {
+          if(parent instanceof JComponent) {
+              if(ksE != null && ((JComponent)parent).processKeyBinding(ksE, e,
+                               WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, pressed))
+                  return true;
+              if(((JComponent)parent).processKeyBinding(ks, e,
+                               WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, pressed))
+                  return true;
+          }
+          // This is done so that the children of a JInternalFrame are
+          // given precedence for WHEN_IN_FOCUSED_WINDOW bindings before
+          // other components WHEN_IN_FOCUSED_WINDOW bindings. This also gives
+          // more precedence to the WHEN_IN_FOCUSED_WINDOW bindings of the
+          // JInternalFrame's children vs the
+          // WHEN_ANCESTOR_OF_FOCUSED_COMPONENT bindings of the parents.
+          // maybe generalize from JInternalFrame (like isFocusCycleRoot).
+          if ((parent instanceof JInternalFrame) &&
+              JComponent.processKeyBindingsForAllComponents(e,parent,pressed)){
+              return true;
+          }
+          parent = parent.getParent();
       }
 
       /* No components between the focused component and the window is
@@ -2911,7 +2966,7 @@ public abstract class JComponent extends Container implements Serializable,
     }
 
     static boolean processKeyBindingsForAllComponents(KeyEvent e,
-				      Container container, boolean pressed) {
+                                      Container container, boolean pressed) {
         while (true) {
             if (KeyboardManager.getCurrentManager().fireKeyboardAction(
                                 e, pressed, container)) {
@@ -2946,9 +3001,9 @@ public abstract class JComponent extends Container implements Serializable,
         putClientProperty(TOOL_TIP_TEXT_KEY, text);
         ToolTipManager toolTipManager = ToolTipManager.sharedInstance();
         if (text != null) {
-	    if (oldText == null) {
+            if (oldText == null) {
                 toolTipManager.registerComponent(this);
-	    }
+            }
         } else {
             toolTipManager.unregisterComponent(this);
         }
@@ -2983,7 +3038,7 @@ public abstract class JComponent extends Container implements Serializable,
      * The default implementation returns <code>null</code>.
      *
      * @param event  the <code>MouseEvent</code> that caused the
-     *		<code>ToolTipManager</code> to show the tooltip
+     *          <code>ToolTipManager</code> to show the tooltip
      * @return always returns <code>null</code>
      */
     public Point getToolTipLocation(MouseEvent event) {
@@ -3126,24 +3181,35 @@ public abstract class JComponent extends Container implements Serializable,
     }
 
     /**
-     * Sets the <code>transferHandler</code> property,
-     * which is <code>null</code> if the component does
-     * not support data transfer operations.
+     * Sets the {@code TransferHandler}, which provides support for transfer
+     * of data into and out of this component via cut/copy/paste and drag
+     * and drop. This may be {@code null} if the component does not support
+     * data transfer operations.
      * <p>
-     * If <code>newHandler</code> is not <code>null</code>,
-     * and the system property
-     * <code>suppressSwingDropSupport</code> is not true, this will 
-     * install a <code>DropTarget</code> on the <code>JComponent</code>.
-     * The default for the system property is false, so that a
-     * <code>DropTarget</code> will be added.
+     * If the new {@code TransferHandler} is not {@code null}, this method
+     * also installs a <b>new</b> {@code DropTarget} on the component to
+     * activate drop handling through the {@code TransferHandler} and activate
+     * any built-in support (such as calculating and displaying potential drop
+     * locations). If you do not wish for this component to respond in any way
+     * to drops, you can disable drop support entirely either by removing the
+     * drop target ({@code setDropTarget(null)}) or by de-activating it
+     * ({@code getDropTaget().setActive(false)}).
+     * <p>
+     * If the new {@code TransferHandler} is {@code null}, this method removes
+     * the drop target.
+     * <p>
+     * Under two circumstances, this method does not modify the drop target:
+     * First, if the existing drop target on this component was explicitly
+     * set by the developer to a {@code non-null} value. Second, if the
+     * system property {@code suppressSwingDropSupport} is {@code true}. The
+     * default value for the system property is {@code false}.
      * <p>
      * Please see
      * <a href="http://java.sun.com/docs/books/tutorial/uiswing/misc/dnd.html">
      * How to Use Drag and Drop and Data Transfer</a>,
      * a section in <em>The Java Tutorial</em>, for more information.
-     * 
-     * @param newHandler  mechanism for transfer of data to
-     *    and from the component
+     *
+     * @param newHandler the new {@code TransferHandler}
      *
      * @see TransferHandler
      * @see #getTransferHandler
@@ -3154,9 +3220,9 @@ public abstract class JComponent extends Container implements Serializable,
      *  description: Mechanism for transfer of data to and from the component
      */
     public void setTransferHandler(TransferHandler newHandler) {
-	TransferHandler oldHandler = (TransferHandler)getClientProperty(
-                                      TRANSFER_HANDLER_KEY);
-        putClientProperty(TRANSFER_HANDLER_KEY, newHandler);
+        TransferHandler oldHandler = (TransferHandler)getClientProperty(
+                                      JComponent_TRANSFER_HANDLER);
+        putClientProperty(JComponent_TRANSFER_HANDLER, newHandler);
 
         SwingUtilities.installSwingDropTargetAsNecessary(this, newHandler);
         firePropertyChange("transferHandler", oldHandler, newHandler);
@@ -3172,7 +3238,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @since 1.4
      */
     public TransferHandler getTransferHandler() {
-	return (TransferHandler)getClientProperty(TRANSFER_HANDLER_KEY);
+        return (TransferHandler)getClientProperty(JComponent_TRANSFER_HANDLER);
     }
 
     /**
@@ -3254,7 +3320,7 @@ public abstract class JComponent extends Container implements Serializable,
         }
         super.processMouseEvent(e);
     }
-    
+
     /**
      * Processes mouse motion events, such as MouseEvent.MOUSE_DRAGGED.
      *
@@ -3286,7 +3352,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @param newValue true if the double buffer image was created from this component
      */
     void setCreatedDoubleBuffer(boolean newValue) {
-	setFlag(CREATED_DOUBLE_BUFFER, newValue);
+        setFlag(CREATED_DOUBLE_BUFFER, newValue);
     }
 
     /**
@@ -3296,7 +3362,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @return true if this component had a double buffer image, false otherwise
      */
     boolean getCreatedDoubleBuffer() {
-	return getFlag(CREATED_DOUBLE_BUFFER);
+        return getFlag(CREATED_DOUBLE_BUFFER);
     }
 
     /**
@@ -3305,38 +3371,38 @@ public abstract class JComponent extends Container implements Serializable,
      * added via <code>registerKeyboardAction</code>.
      */
     final class ActionStandin implements Action {
-	private final ActionListener actionListener;
-	private final String command;
-	// This will be non-null if actionListener is an Action.
-	private final Action action;
+        private final ActionListener actionListener;
+        private final String command;
+        // This will be non-null if actionListener is an Action.
+        private final Action action;
 
-	ActionStandin(ActionListener actionListener, String command) {
-	    this.actionListener = actionListener;
-	    if (actionListener instanceof Action) {
-		this.action = (Action)actionListener;
-	    }
-	    else {
-		this.action = null;
-	    }
-	    this.command = command;
-	}
+        ActionStandin(ActionListener actionListener, String command) {
+            this.actionListener = actionListener;
+            if (actionListener instanceof Action) {
+                this.action = (Action)actionListener;
+            }
+            else {
+                this.action = null;
+            }
+            this.command = command;
+        }
 
-	public Object getValue(String key) {
-	    if (key != null) {
-		if (key.equals(Action.ACTION_COMMAND_KEY)) {
-		    return command;
-		}
-		if (action != null) {
-		    return action.getValue(key);
-		}
-		if (key.equals(NAME)) {
-		    return "ActionStandin";
-		}
-	    }
-	    return null;
-	}
+        public Object getValue(String key) {
+            if (key != null) {
+                if (key.equals(Action.ACTION_COMMAND_KEY)) {
+                    return command;
+                }
+                if (action != null) {
+                    return action.getValue(key);
+                }
+                if (key.equals(NAME)) {
+                    return "ActionStandin";
+                }
+            }
+            return null;
+        }
 
-	public boolean isEnabled() {
+        public boolean isEnabled() {
             if (actionListener == null) {
                 // This keeps the old semantics where
                 // registerKeyboardAction(null) would essentialy remove
@@ -3345,29 +3411,29 @@ public abstract class JComponent extends Container implements Serializable,
                 // bindings to be accessed.
                 return false;
             }
-	    if (action == null) {
-		return true;
-	    }
-	    return action.isEnabled();
-	}
+            if (action == null) {
+                return true;
+            }
+            return action.isEnabled();
+        }
 
-	public void actionPerformed(ActionEvent ae) {
+        public void actionPerformed(ActionEvent ae) {
             if (actionListener != null) {
                 actionListener.actionPerformed(ae);
             }
-	}
+        }
 
-	// We don't allow any values to be added.
-	public void putValue(String key, Object value) {}
+        // We don't allow any values to be added.
+        public void putValue(String key, Object value) {}
 
-	// Does nothing, our enabledness is determiend from our asociated
-	// action.
-	public void setEnabled(boolean b) { }
+        // Does nothing, our enabledness is determiend from our asociated
+        // action.
+        public void setEnabled(boolean b) { }
 
-	public void addPropertyChangeListener
+        public void addPropertyChangeListener
                     (PropertyChangeListener listener) {}
-	public void removePropertyChangeListener
-	                  (PropertyChangeListener listener) {}
+        public void removePropertyChangeListener
+                          (PropertyChangeListener listener) {}
     }
 
 
@@ -3467,10 +3533,10 @@ public abstract class JComponent extends Container implements Serializable,
                 }
                 return true;
             case KeyEvent.KEY_RELEASED:
-		// We are forced to process VK_PRINTSCREEN separately because
-		// the Windows doesn't generate the key pressed event for
-		// printscreen and it block the processing of key release
-		// event for printscreen.
+                // We are forced to process VK_PRINTSCREEN separately because
+                // the Windows doesn't generate the key pressed event for
+                // printscreen and it block the processing of key release
+                // event for printscreen.
                 if (keyIsPressed(e.getKeyCode()) || e.getKeyCode()==KeyEvent.VK_PRINTSCREEN) {
                     registerKeyReleased(e.getKeyCode());
                     return true;
@@ -3553,7 +3619,7 @@ public abstract class JComponent extends Container implements Serializable,
             super.enable();
             if (accessibleContext != null) {
                 accessibleContext.firePropertyChange(
-                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY, 
+                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
                     null, AccessibleState.ENABLED);
             }
         }
@@ -3569,7 +3635,7 @@ public abstract class JComponent extends Container implements Serializable,
             super.disable();
             if (accessibleContext != null) {
                 accessibleContext.firePropertyChange(
-                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY, 
+                    AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
                     AccessibleState.ENABLED, null);
             }
         }
@@ -3585,11 +3651,11 @@ public abstract class JComponent extends Container implements Serializable,
      * Returns the <code>AccessibleContext</code> associated with this
      * <code>JComponent</code>.  The method implemented by this base
      * class returns null.  Classes that extend <code>JComponent</code>
-     * should implement this method to return the 
-     * <code>AccessibleContext</code> associated with the subclass. 
+     * should implement this method to return the
+     * <code>AccessibleContext</code> associated with the subclass.
      *
      * @return the <code>AccessibleContext</code> of this
-     *		<code>JComponent</code>
+     *          <code>JComponent</code>
      */
     public AccessibleContext getAccessibleContext() {
         return accessibleContext;
@@ -3613,122 +3679,122 @@ public abstract class JComponent extends Container implements Serializable,
     public abstract class AccessibleJComponent extends AccessibleAWTContainer
        implements AccessibleExtendedComponent
     {
-	/**
-	 * Though the class is abstract, this should be called by
-	 * all sub-classes. 
-	 */
-	protected AccessibleJComponent() {
+        /**
+         * Though the class is abstract, this should be called by
+         * all sub-classes.
+         */
+        protected AccessibleJComponent() {
             super();
         }
 
-	protected ContainerListener accessibleContainerHandler = null;
-    	protected FocusListener accessibleFocusHandler = null;
+        protected ContainerListener accessibleContainerHandler = null;
+        protected FocusListener accessibleFocusHandler = null;
 
-	/**
-	 * Fire PropertyChange listener, if one is registered,
-	 * when children added/removed.
-	 */
-	protected class AccessibleContainerHandler 
-	    implements ContainerListener {
-	    public void componentAdded(ContainerEvent e) {
-		Component c = e.getChild();
-		if (c != null && c instanceof Accessible) {
-		    AccessibleJComponent.this.firePropertyChange(
-			AccessibleContext.ACCESSIBLE_CHILD_PROPERTY, 
-			null, ((Accessible) c).getAccessibleContext());
-		}
-	    }
-	    public void componentRemoved(ContainerEvent e) {
-		Component c = e.getChild();
-		if (c != null && c instanceof Accessible) {
-		    AccessibleJComponent.this.firePropertyChange(
-			AccessibleContext.ACCESSIBLE_CHILD_PROPERTY, 
-			((Accessible) c).getAccessibleContext(), null); 
-		}
-	    }
-	}
+        /**
+         * Fire PropertyChange listener, if one is registered,
+         * when children added/removed.
+         */
+        protected class AccessibleContainerHandler
+            implements ContainerListener {
+            public void componentAdded(ContainerEvent e) {
+                Component c = e.getChild();
+                if (c != null && c instanceof Accessible) {
+                    AccessibleJComponent.this.firePropertyChange(
+                        AccessibleContext.ACCESSIBLE_CHILD_PROPERTY,
+                        null, c.getAccessibleContext());
+                }
+            }
+            public void componentRemoved(ContainerEvent e) {
+                Component c = e.getChild();
+                if (c != null && c instanceof Accessible) {
+                    AccessibleJComponent.this.firePropertyChange(
+                        AccessibleContext.ACCESSIBLE_CHILD_PROPERTY,
+                        c.getAccessibleContext(), null);
+                }
+            }
+        }
 
-	/**
-	 * Fire PropertyChange listener, if one is registered,
-	 * when focus events happen
-	 * @since 1.3
-	 */
-	protected class AccessibleFocusHandler implements FocusListener {
-	   public void focusGained(FocusEvent event) {
-	       if (accessibleContext != null) {
-		    accessibleContext.firePropertyChange(
-			AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-			null, AccessibleState.FOCUSED);
-		}
-	    }
-	    public void focusLost(FocusEvent event) {
-		if (accessibleContext != null) {
-		    accessibleContext.firePropertyChange(
-			AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
-			AccessibleState.FOCUSED, null);
-		}
-	    }
-	} // inner class AccessibleFocusHandler
-
-
-	/**
-	 * Adds a PropertyChangeListener to the listener list.
-	 *
-	 * @param listener  the PropertyChangeListener to be added
-	 */
-	public void addPropertyChangeListener(PropertyChangeListener listener) {
-	    if (accessibleFocusHandler == null) {
-		accessibleFocusHandler = new AccessibleFocusHandler();
-		JComponent.this.addFocusListener(accessibleFocusHandler);
-	    }
-	    if (accessibleContainerHandler == null) {
-		accessibleContainerHandler = new AccessibleContainerHandler();
-		JComponent.this.addContainerListener(accessibleContainerHandler);
-	    }
-	    super.addPropertyChangeListener(listener);
-	}
-
-	/**
-	 * Removes a PropertyChangeListener from the listener list.
-	 * This removes a PropertyChangeListener that was registered
-	 * for all properties.
-	 *
-	 * @param listener  the PropertyChangeListener to be removed
-	 */
-	public void removePropertyChangeListener(PropertyChangeListener listener) {
-	    if (accessibleFocusHandler != null) {
-		JComponent.this.removeFocusListener(accessibleFocusHandler);
-		accessibleFocusHandler = null;
-	    }
-	    super.removePropertyChangeListener(listener);
-	}
+        /**
+         * Fire PropertyChange listener, if one is registered,
+         * when focus events happen
+         * @since 1.3
+         */
+        protected class AccessibleFocusHandler implements FocusListener {
+           public void focusGained(FocusEvent event) {
+               if (accessibleContext != null) {
+                    accessibleContext.firePropertyChange(
+                        AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                        null, AccessibleState.FOCUSED);
+                }
+            }
+            public void focusLost(FocusEvent event) {
+                if (accessibleContext != null) {
+                    accessibleContext.firePropertyChange(
+                        AccessibleContext.ACCESSIBLE_STATE_PROPERTY,
+                        AccessibleState.FOCUSED, null);
+                }
+            }
+        } // inner class AccessibleFocusHandler
 
 
+        /**
+         * Adds a PropertyChangeListener to the listener list.
+         *
+         * @param listener  the PropertyChangeListener to be added
+         */
+        public void addPropertyChangeListener(PropertyChangeListener listener) {
+            if (accessibleFocusHandler == null) {
+                accessibleFocusHandler = new AccessibleFocusHandler();
+                JComponent.this.addFocusListener(accessibleFocusHandler);
+            }
+            if (accessibleContainerHandler == null) {
+                accessibleContainerHandler = new AccessibleContainerHandler();
+                JComponent.this.addContainerListener(accessibleContainerHandler);
+            }
+            super.addPropertyChangeListener(listener);
+        }
 
-	/**
+        /**
+         * Removes a PropertyChangeListener from the listener list.
+         * This removes a PropertyChangeListener that was registered
+         * for all properties.
+         *
+         * @param listener  the PropertyChangeListener to be removed
+         */
+        public void removePropertyChangeListener(PropertyChangeListener listener) {
+            if (accessibleFocusHandler != null) {
+                JComponent.this.removeFocusListener(accessibleFocusHandler);
+                accessibleFocusHandler = null;
+            }
+            super.removePropertyChangeListener(listener);
+        }
+
+
+
+        /**
          * Recursively search through the border hierarchy (if it exists)
-	 * for a TitledBorder with a non-null title.  This does a depth
+         * for a TitledBorder with a non-null title.  This does a depth
          * first search on first the inside borders then the outside borders.
          * The assumption is that titles make really pretty inside borders
          * but not very pretty outside borders in compound border situations.
-	 * It's rather arbitrary, but hopefully decent UI programmers will
+         * It's rather arbitrary, but hopefully decent UI programmers will
          * not create multiple titled borders for the same component.
-	 */
+         */
         protected String getBorderTitle(Border b) {
-	    String s;
-	    if (b instanceof TitledBorder) {
-	        return ((TitledBorder) b).getTitle();
-	    } else if (b instanceof CompoundBorder) {
-	        s = getBorderTitle(((CompoundBorder) b).getInsideBorder());
-		if (s == null) {
-		    s = getBorderTitle(((CompoundBorder) b).getOutsideBorder());
-		}
-		return s;
-	    } else {
-	        return null;
-	    }
-	}
-	        
+            String s;
+            if (b instanceof TitledBorder) {
+                return ((TitledBorder) b).getTitle();
+            } else if (b instanceof CompoundBorder) {
+                s = getBorderTitle(((CompoundBorder) b).getInsideBorder());
+                if (s == null) {
+                    s = getBorderTitle(((CompoundBorder) b).getOutsideBorder());
+                }
+                return s;
+            } else {
+                return null;
+            }
+        }
+
         // AccessibleContext methods
         //
         /**
@@ -3736,7 +3802,7 @@ public abstract class JComponent extends Container implements Serializable,
          * return java.awt.Component.getName(), as that generally isn't
          * a localized name, and doesn't have meaning for the user.  If the
          * object is fundamentally a text object (such as a menu item), the
-         * accessible name should be the text of the object (for example, 
+         * accessible name should be the text of the object (for example,
          * "save").
          * If the object has a tooltip, the tooltip text may also be an
          * appropriate String to return.
@@ -3746,7 +3812,7 @@ public abstract class JComponent extends Container implements Serializable,
          * @see AccessibleContext#setAccessibleName
          */
         public String getAccessibleName() {
-	    String name = accessibleName;
+            String name = accessibleName;
 
             // fallback to the client name property
             //
@@ -3754,24 +3820,24 @@ public abstract class JComponent extends Container implements Serializable,
                 name = (String)getClientProperty(AccessibleContext.ACCESSIBLE_NAME_PROPERTY);
             }
 
-	    // fallback to the titled border if it exists
-	    //
+            // fallback to the titled border if it exists
+            //
             if (name == null) {
-		name = getBorderTitle(getBorder());
+                name = getBorderTitle(getBorder());
             }
 
-	    // fallback to the label labeling us if it exists
-	    //
+            // fallback to the label labeling us if it exists
+            //
             if (name == null) {
-		Object o = getClientProperty(JLabel.LABELED_BY_PROPERTY);
-		if (o instanceof Accessible) {
-		    AccessibleContext ac = ((Accessible) o).getAccessibleContext();
-		    if (ac != null) {
-			name = ac.getAccessibleName();
-		    }
-		}
-	    }
-	    return name;
+                Object o = getClientProperty(JLabel.LABELED_BY_PROPERTY);
+                if (o instanceof Accessible) {
+                    AccessibleContext ac = ((Accessible) o).getAccessibleContext();
+                    if (ac != null) {
+                        name = ac.getAccessibleName();
+                    }
+                }
+            }
+            return name;
         }
 
         /**
@@ -3790,7 +3856,7 @@ public abstract class JComponent extends Container implements Serializable,
          * @see AccessibleContext#setAccessibleDescription
          */
         public String getAccessibleDescription() {
-	    String description = accessibleDescription;
+            String description = accessibleDescription;
 
             // fallback to the client description property
             //
@@ -3798,8 +3864,8 @@ public abstract class JComponent extends Container implements Serializable,
                 description = (String)getClientProperty(AccessibleContext.ACCESSIBLE_DESCRIPTION_PROPERTY);
             }
 
-	    // fallback to the tool tip text if it exists
-	    //
+            // fallback to the tool tip text if it exists
+            //
             if (description == null) {
                 try {
                     description = getToolTipText();
@@ -3816,19 +3882,19 @@ public abstract class JComponent extends Container implements Serializable,
                 }
             }
 
-	    // fallback to the label labeling us if it exists
-	    //
+            // fallback to the label labeling us if it exists
+            //
             if (description == null) {
-		Object o = getClientProperty(JLabel.LABELED_BY_PROPERTY);
-		if (o instanceof Accessible) {
-		    AccessibleContext ac = ((Accessible) o).getAccessibleContext();
-		    if (ac != null) {
-			description = ac.getAccessibleDescription();
-		    }
-		}
-	    }
+                Object o = getClientProperty(JLabel.LABELED_BY_PROPERTY);
+                if (o instanceof Accessible) {
+                    AccessibleContext ac = ((Accessible) o).getAccessibleContext();
+                    if (ac != null) {
+                        description = ac.getAccessibleDescription();
+                    }
+                }
+            }
 
-	    return description;
+            return description;
         }
 
         /**
@@ -3850,11 +3916,11 @@ public abstract class JComponent extends Container implements Serializable,
          * @see AccessibleState
          */
         public AccessibleStateSet getAccessibleStateSet() {
-	    AccessibleStateSet states = super.getAccessibleStateSet();
-	    if (JComponent.this.isOpaque()) {
-		states.add(AccessibleState.OPAQUE);
-	    }
-	    return states;
+            AccessibleStateSet states = super.getAccessibleStateSet();
+            if (JComponent.this.isOpaque()) {
+                states.add(AccessibleState.OPAQUE);
+            }
+            return states;
         }
 
         /**
@@ -3878,55 +3944,55 @@ public abstract class JComponent extends Container implements Serializable,
             return super.getAccessibleChild(i);
         }
 
-	// ----- AccessibleExtendedComponent
+        // ----- AccessibleExtendedComponent
 
-	/**
-	 * Returns the AccessibleExtendedComponent
-	 *
-	 * @return the AccessibleExtendedComponent
-	 */
-	AccessibleExtendedComponent getAccessibleExtendedComponent() {
-	    return this;
-	}
+        /**
+         * Returns the AccessibleExtendedComponent
+         *
+         * @return the AccessibleExtendedComponent
+         */
+        AccessibleExtendedComponent getAccessibleExtendedComponent() {
+            return this;
+        }
 
-	/**
-	 * Returns the tool tip text
-	 *
-	 * @return the tool tip text, if supported, of the object; 
-	 * otherwise, null
-	 * @since 1.4
-	 */
-	public String getToolTipText() {
-	    return JComponent.this.getToolTipText();
-	}
-	
-	/**
-	 * Returns the titled border text
-	 *
-	 * @return the titled border text, if supported, of the object; 
-	 * otherwise, null
-	 * @since 1.4
-	 */
-	public String getTitledBorderText() {
-	    Border border = JComponent.this.getBorder();
-	    if (border instanceof TitledBorder) {
-		return ((TitledBorder)border).getTitle();
-	    } else {
-		return null;
-	    }
-	}
-	    
-	/**
-	 * Returns key bindings associated with this object
-	 *
-	 * @return the key bindings, if supported, of the object; 
-	 * otherwise, null
-	 * @see AccessibleKeyBinding
-	 * @since 1.4
-	 */
-	public AccessibleKeyBinding getAccessibleKeyBinding() {
-	    return null;
-	}
+        /**
+         * Returns the tool tip text
+         *
+         * @return the tool tip text, if supported, of the object;
+         * otherwise, null
+         * @since 1.4
+         */
+        public String getToolTipText() {
+            return JComponent.this.getToolTipText();
+        }
+
+        /**
+         * Returns the titled border text
+         *
+         * @return the titled border text, if supported, of the object;
+         * otherwise, null
+         * @since 1.4
+         */
+        public String getTitledBorderText() {
+            Border border = JComponent.this.getBorder();
+            if (border instanceof TitledBorder) {
+                return ((TitledBorder)border).getTitle();
+            } else {
+                return null;
+            }
+        }
+
+        /**
+         * Returns key bindings associated with this object
+         *
+         * @return the key bindings, if supported, of the object;
+         * otherwise, null
+         * @see AccessibleKeyBinding
+         * @since 1.4
+         */
+        public AccessibleKeyBinding getAccessibleKeyBinding() {
+            return null;
+        }
     } // inner class AccessibleJComponent
 
 
@@ -3951,8 +4017,8 @@ public abstract class JComponent extends Container implements Serializable,
     /**
      * Returns the value of the property with the specified key.  Only
      * properties added with <code>putClientProperty</code> will return
-     * a non-<code>null</code> value.  
-     * 
+     * a non-<code>null</code> value.
+     *
      * @param key the being queried
      * @return the value of this property or <code>null</code>
      * @see #putClientProperty
@@ -3964,18 +4030,18 @@ public abstract class JComponent extends Container implements Serializable,
             return ui;
         }
          if(clientProperties == null) {
- 	    return null;
-	} else {
+            return null;
+        } else {
             synchronized(clientProperties) {
                 return clientProperties.get(key);
             }
-	}
+        }
     }
-    
+
     /**
      * Adds an arbitrary key/value "client property" to this component.
      * <p>
-     * The <code>get/putClientProperty</code> methods provide access to 
+     * The <code>get/putClientProperty</code> methods provide access to
      * a small per-instance hashtable. Callers can use get/putClientProperty
      * to annotate components that were created by another module.
      * For example, a
@@ -3987,16 +4053,16 @@ public abstract class JComponent extends Container implements Serializable,
      * Changes to client properties are reported with
      * <code>PropertyChange</code> events.
      * The name of the property (for the sake of PropertyChange
-     * events) is <code>key.toString()</code>.  
+     * events) is <code>key.toString()</code>.
      * <p>
      * The <code>clientProperty</code> dictionary is not intended to
-     * support large 
-     * scale extensions to JComponent nor should be it considered an 
+     * support large
+     * scale extensions to JComponent nor should be it considered an
      * alternative to subclassing when designing a new component.
-     * 
+     *
      * @param key the new client property key
      * @param value the new client property value; if <code>null</code>
-     *		this method will remove the property
+     *          this method will remove the property
      * @see #getClientProperty
      * @see #addPropertyChangeListener
      */
@@ -4058,7 +4124,7 @@ public abstract class JComponent extends Container implements Serializable,
         } else if (propertyName == "focusTraversalKeysForward") {
             if (!getFlag(FOCUS_TRAVERSAL_KEYS_FORWARD_SET)) {
                 super.setFocusTraversalKeys(KeyboardFocusManager.
-                                            FORWARD_TRAVERSAL_KEYS, 
+                                            FORWARD_TRAVERSAL_KEYS,
                                             (Set)value);
             }
         } else if (propertyName == "focusTraversalKeysBackward") {
@@ -4077,7 +4143,7 @@ public abstract class JComponent extends Container implements Serializable,
     /**
      * Sets the focus traversal keys for a given traversal operation for this
      * Component.
-     * Refer to 
+     * Refer to
      * {@link java.awt.Component#setFocusTraversalKeys}
      * for a complete description of this method.
      *
@@ -4101,7 +4167,7 @@ public abstract class JComponent extends Container implements Serializable,
      *       bound: true
      */
     public void
-	setFocusTraversalKeys(int id, Set<? extends AWTKeyStroke> keystrokes)
+        setFocusTraversalKeys(int id, Set<? extends AWTKeyStroke> keystrokes)
     {
         if (id == KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS) {
             setFlag(FOCUS_TRAVERSAL_KEYS_FORWARD_SET,true);
@@ -4155,8 +4221,8 @@ public abstract class JComponent extends Container implements Serializable,
      *
      * @param rv the return value, modified to the component's bounds
      * @return <code>rv</code>; if <code>rv</code> is <code>null</code>
-     *		return a newly created <code>Rectangle</code> with this
-     *		component's bounds
+     *          return a newly created <code>Rectangle</code> with this
+     *          component's bounds
      */
     public Rectangle getBounds(Rectangle rv) {
         if (rv == null) {
@@ -4280,7 +4346,7 @@ public abstract class JComponent extends Container implements Serializable,
     }
 
     /**
-     * If true the component paints every pixel within its bounds. 
+     * If true the component paints every pixel within its bounds.
      * Otherwise, the component may not paint some or all of its
      * pixels, allowing the underlying pixels to show through.
      * <p>
@@ -4336,10 +4402,10 @@ public abstract class JComponent extends Container implements Serializable,
                 y >= cy && (y + height) <= (cy + ch) && child.isVisible()) {
 
                 if(child instanceof JComponent) {
-//		    System.out.println("A) checking opaque: " + ((JComponent)child).isOpaque() + "  " + child);
-//		    System.out.print("B) ");
-//		    Thread.dumpStack();
-                    return ((JComponent)child).isOpaque();
+//                  System.out.println("A) checking opaque: " + ((JComponent)child).isOpaque() + "  " + child);
+//                  System.out.print("B) ");
+//                  Thread.dumpStack();
+                    return child.isOpaque();
                 } else {
                     /** Sometimes a heavy weight can have a bound larger than its peer size
                      *  so we should always draw under heavy weights
@@ -4361,9 +4427,9 @@ public abstract class JComponent extends Container implements Serializable,
      *
      * @param c  the component
      * @param visibleRect  a <code>Rectangle</code> computed as the
-     *		intersection of all visible rectangles for the component
-     *		<code>c</code> and all of its ancestors -- this is the
-     *		return value for this method
+     *          intersection of all visible rectangles for the component
+     *          <code>c</code> and all of its ancestors -- this is the
+     *          return value for this method
      * @see #getVisibleRect
      */
     static final void computeVisibleRect(Component c, Rectangle visibleRect) {
@@ -4387,10 +4453,10 @@ public abstract class JComponent extends Container implements Serializable,
      * and all of its ancestors.  The return value is stored in
      * <code>visibleRect</code>.
      *
-     * @param visibleRect a <code>Rectangle</code> computed as the 
-     *		intersection of all visible rectangles for this
-     *		component and all of its ancestors -- this is the return
-     *		value for this method
+     * @param visibleRect a <code>Rectangle</code> computed as the
+     *          intersection of all visible rectangles for this
+     *          component and all of its ancestors -- this is the return
+     *          value for this method
      * @see #getVisibleRect
      */
     public void computeVisibleRect(Rectangle visibleRect) {
@@ -4414,7 +4480,7 @@ public abstract class JComponent extends Container implements Serializable,
     }
 
     /**
-     * Support for reporting bound property changes for boolean properties. 
+     * Support for reporting bound property changes for boolean properties.
      * This method can be called when a bound property has changed and it will
      * send the appropriate PropertyChangeEvent to any registered
      * PropertyChangeListeners.
@@ -4424,13 +4490,13 @@ public abstract class JComponent extends Container implements Serializable,
      * @param newValue the property's new value
      */
     public void firePropertyChange(String propertyName,
-				   boolean oldValue, boolean newValue) {
-	super.firePropertyChange(propertyName, oldValue, newValue);
+                                   boolean oldValue, boolean newValue) {
+        super.firePropertyChange(propertyName, oldValue, newValue);
     }
-	
+
 
     /**
-     * Support for reporting bound property changes for integer properties. 
+     * Support for reporting bound property changes for integer properties.
      * This method can be called when a bound property has changed and it will
      * send the appropriate PropertyChangeEvent to any registered
      * PropertyChangeListeners.
@@ -4440,14 +4506,14 @@ public abstract class JComponent extends Container implements Serializable,
      * @param newValue the property's new value
      */
     public void firePropertyChange(String propertyName,
-				      int oldValue, int newValue) {
-	super.firePropertyChange(propertyName, oldValue, newValue);
+                                      int oldValue, int newValue) {
+        super.firePropertyChange(propertyName, oldValue, newValue);
     }
 
-    // XXX This method is implemented as a workaround to a JLS issue with ambiguous 
+    // XXX This method is implemented as a workaround to a JLS issue with ambiguous
     // methods. This should be removed once 4758654 is resolved.
     public void firePropertyChange(String propertyName, char oldValue, char newValue) {
-	super.firePropertyChange(propertyName, oldValue, newValue);
+        super.firePropertyChange(propertyName, oldValue, newValue);
     }
 
     /**
@@ -4460,7 +4526,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @param oldValue  the old value of the property
      * @param newValue  the new value of the property
      * @exception PropertyVetoException when the attempt to set the
-     *		property is vetoed by the component
+     *          property is vetoed by the component
      */
     protected void fireVetoableChange(String propertyName, Object oldValue, Object newValue)
         throws java.beans.PropertyVetoException
@@ -4502,7 +4568,7 @@ public abstract class JComponent extends Container implements Serializable,
 
 
     /**
-     * Returns an array of all the vetoable change listeners 
+     * Returns an array of all the vetoable change listeners
      * registered on this component.
      *
      * @return all of the component's <code>VetoableChangeListener</code>s
@@ -4529,7 +4595,7 @@ public abstract class JComponent extends Container implements Serializable,
      * been added to any container.
      *
      * @return the top-level <code>Container</code> that this component is in,
-     *		or <code>null</code> if not in any container
+     *          or <code>null</code> if not in any container
      */
     public Container getTopLevelAncestor() {
         for(Container p = this; p != null; p = p.getParent()) {
@@ -4541,7 +4607,8 @@ public abstract class JComponent extends Container implements Serializable,
     }
 
     private AncestorNotifier getAncestorNotifier() {
-        return (AncestorNotifier)getClientProperty(ANCESTOR_NOTIFIER_KEY);
+        return (AncestorNotifier)
+            getClientProperty(JComponent_ANCESTOR_NOTIFIER);
     }
 
     /**
@@ -4558,7 +4625,8 @@ public abstract class JComponent extends Container implements Serializable,
         AncestorNotifier ancestorNotifier = getAncestorNotifier();
         if (ancestorNotifier == null) {
             ancestorNotifier = new AncestorNotifier(this);
-            putClientProperty(ANCESTOR_NOTIFIER_KEY, ancestorNotifier);
+            putClientProperty(JComponent_ANCESTOR_NOTIFIER,
+                              ancestorNotifier);
         }
         ancestorNotifier.addAncestorListener(listener);
     }
@@ -4578,15 +4646,15 @@ public abstract class JComponent extends Container implements Serializable,
         ancestorNotifier.removeAncestorListener(listener);
         if (ancestorNotifier.listenerList.getListenerList().length == 0) {
             ancestorNotifier.removeAllListeners();
-            putClientProperty(ANCESTOR_NOTIFIER_KEY, null);
+            putClientProperty(JComponent_ANCESTOR_NOTIFIER, null);
         }
     }
 
     /**
-     * Returns an array of all the ancestor listeners 
+     * Returns an array of all the ancestor listeners
      * registered on this component.
-     * 
-     * @return all of the component's <code>AncestorListener</code>s 
+     *
+     * @return all of the component's <code>AncestorListener</code>s
      *         or an empty
      *         array if no ancestor listeners are currently registered
      *
@@ -4597,9 +4665,9 @@ public abstract class JComponent extends Container implements Serializable,
      */
     public AncestorListener[] getAncestorListeners() {
         AncestorNotifier ancestorNotifier = getAncestorNotifier();
-	if (ancestorNotifier == null) {
-	    return new AncestorListener[0];
-	}
+        if (ancestorNotifier == null) {
+            return new AncestorListener[0];
+        }
         return ancestorNotifier.getAncestorListeners();
     }
 
@@ -4607,65 +4675,67 @@ public abstract class JComponent extends Container implements Serializable,
      * Returns an array of all the objects currently registered
      * as <code><em>Foo</em>Listener</code>s
      * upon this <code>JComponent</code>.
-     * <code><em>Foo</em>Listener</code>s are registered using the 
+     * <code><em>Foo</em>Listener</code>s are registered using the
      * <code>add<em>Foo</em>Listener</code> method.
      *
      * <p>
-     * 
+     *
      * You can specify the <code>listenerType</code> argument
-     * with a class literal, 
-     * such as 
+     * with a class literal,
+     * such as
      * <code><em>Foo</em>Listener.class</code>.
-     * For example, you can query a  
+     * For example, you can query a
      * <code>JComponent</code> <code>c</code>
      * for its mouse listeners with the following code:
      * <pre>MouseListener[] mls = (MouseListener[])(c.getListeners(MouseListener.class));</pre>
      * If no such listeners exist, this method returns an empty array.
-     * 
+     *
      * @param listenerType the type of listeners requested; this parameter
-     *		should specify an interface that descends from
+     *          should specify an interface that descends from
      *          <code>java.util.EventListener</code>
-     * @return an array of all objects registered as 
-     *		<code><em>Foo</em>Listener</code>s on this component,
+     * @return an array of all objects registered as
+     *          <code><em>Foo</em>Listener</code>s on this component,
      *          or an empty array if no such
-     *		listeners have been added
-     * @exception ClassCastException if <code>listenerType</code> 
+     *          listeners have been added
+     * @exception ClassCastException if <code>listenerType</code>
      *          doesn't specify a class or interface that implements
-     *		<code>java.util.EventListener</code>
+     *          <code>java.util.EventListener</code>
      *
      * @since 1.3
-     * 
+     *
      * @see #getVetoableChangeListeners
      * @see #getAncestorListeners
      */
     public <T extends EventListener> T[] getListeners(Class<T> listenerType) {
-	T[] result;
-	if (listenerType == AncestorListener.class) {
-	    // AncestorListeners are handled by the AncestorNotifier
-	    result = (T[])getAncestorListeners();
-	} 
-	else if (listenerType == VetoableChangeListener.class) {
-	    // VetoableChangeListeners are handled by VetoableChangeSupport
-	    result = (T[])getVetoableChangeListeners();
-	} 
-	else if (listenerType == PropertyChangeListener.class) {
-	    // PropertyChangeListeners are handled by PropertyChangeSupport
-	    result = (T[])getPropertyChangeListeners();
-	} 
-	else {
-	    result = (T[])listenerList.getListeners(listenerType); 
-	}
+        T[] result;
+        if (listenerType == AncestorListener.class) {
+            // AncestorListeners are handled by the AncestorNotifier
+            result = (T[])getAncestorListeners();
+        }
+        else if (listenerType == VetoableChangeListener.class) {
+            // VetoableChangeListeners are handled by VetoableChangeSupport
+            result = (T[])getVetoableChangeListeners();
+        }
+        else if (listenerType == PropertyChangeListener.class) {
+            // PropertyChangeListeners are handled by PropertyChangeSupport
+            result = (T[])getPropertyChangeListeners();
+        }
+        else {
+            result = listenerList.getListeners(listenerType);
+        }
 
-	if (result.length == 0) { 
-	    return super.getListeners(listenerType); 
-	}
-	return result; 
+        if (result.length == 0) {
+            return super.getListeners(listenerType);
+        }
+        return result;
     }
 
     /**
      * Notifies this component that it now has a parent component.
      * When this method is invoked, the chain of parent components is
      * set up with <code>KeyboardAction</code> event listeners.
+     * This method is called by the toolkit internally and should
+     * not be called directly by programs.
      *
      * @see #registerKeyboardAction
      */
@@ -4673,8 +4743,8 @@ public abstract class JComponent extends Container implements Serializable,
         super.addNotify();
         firePropertyChange("ancestor", null, getParent());
 
-	registerWithKeyboardManager(false);
-	registerNextFocusableComponent();
+        registerWithKeyboardManager(false);
+        registerNextFocusableComponent();
     }
 
 
@@ -4682,6 +4752,8 @@ public abstract class JComponent extends Container implements Serializable,
      * Notifies this component that it no longer has a parent component.
      * When this method is invoked, any <code>KeyboardAction</code>s
      * set up in the the chain of parent components are removed.
+     * This method is called by the toolkit internally and should
+     * not be called directly by programs.
      *
      * @see #registerKeyboardAction
      */
@@ -4692,13 +4764,13 @@ public abstract class JComponent extends Container implements Serializable,
         // we only get notified before that happens
         firePropertyChange("ancestor", getParent(), null);
 
-	unregisterWithKeyboardManager();
-	deregisterNextFocusableComponent();
+        unregisterWithKeyboardManager();
+        deregisterNextFocusableComponent();
 
-	if (getCreatedDoubleBuffer()) {
-	    RepaintManager.currentManager(this).resetDoubleBuffer();
-	    setCreatedDoubleBuffer(false);
-	}
+        if (getCreatedDoubleBuffer()) {
+            RepaintManager.currentManager(this).resetDoubleBuffer();
+            setCreatedDoubleBuffer(false);
+        }
         if (autoscrolls) {
             Autoscroller.stop(this);
         }
@@ -4715,6 +4787,7 @@ public abstract class JComponent extends Container implements Serializable,
      * @param y  the y value of the dirty region
      * @param width  the width of the dirty region
      * @param height  the height of the dirty region
+     * @see #isPaintingOrigin()
      * @see java.awt.Component#isShowing
      * @see RepaintManager#addDirtyRegion
      */
@@ -4729,6 +4802,7 @@ public abstract class JComponent extends Container implements Serializable,
      * currently pending events have been dispatched.
      *
      * @param  r a <code>Rectangle</code> containing the dirty region
+     * @see #isPaintingOrigin()
      * @see java.awt.Component#isShowing
      * @see RepaintManager#addDirtyRegion
      */
@@ -4738,8 +4812,8 @@ public abstract class JComponent extends Container implements Serializable,
 
 
     /**
-     * Supports deferred automatic layout.  
-     * <p> 
+     * Supports deferred automatic layout.
+     * <p>
      * Calls <code>invalidate</code> and then adds this component's
      * <code>validateRoot</code> to a list of components that need to be
      * validated.  Validation will occur after all currently pending
@@ -4747,15 +4821,15 @@ public abstract class JComponent extends Container implements Serializable,
      * is called,  the first validateRoot (if any) found when walking
      * up the containment hierarchy of this component will be validated.
      * By default, <code>JRootPane</code>, <code>JScrollPane</code>,
-     * and <code>JTextField</code> return true 
+     * and <code>JTextField</code> return true
      * from <code>isValidateRoot</code>.
      * <p>
-     * This method will automatically be called on this component 
-     * when a property value changes such that size, location, or 
+     * This method will automatically be called on this component
+     * when a property value changes such that size, location, or
      * internal layout of this component has been affected.  This automatic
      * updating differs from the AWT because programs generally no
      * longer need to invoke <code>validate</code> to get the contents of the
-     * GUI to update. 
+     * GUI to update.
      * <p>
      *
      * @see java.awt.Component#invalidate
@@ -4778,8 +4852,20 @@ public abstract class JComponent extends Container implements Serializable,
             RepaintManager.currentManager(this).addInvalidComponent(this);
         }
         else {
+            // To avoid a flood of Runnables when constructing GUIs off
+            // the EDT, a flag is maintained as to whether or not
+            // a Runnable has been scheduled.
+            synchronized(this) {
+                if (getFlag(REVALIDATE_RUNNABLE_SCHEDULED)) {
+                    return;
+                }
+                setFlag(REVALIDATE_RUNNABLE_SCHEDULED, true);
+            }
             Runnable callRevalidate = new Runnable() {
                 public void run() {
+                    synchronized(JComponent.this) {
+                        setFlag(REVALIDATE_RUNNABLE_SCHEDULED, false);
+                    }
                     revalidate();
                 }
             };
@@ -4798,7 +4884,9 @@ public abstract class JComponent extends Container implements Serializable,
      * @see #revalidate
      * @see java.awt.Component#invalidate
      * @see java.awt.Container#validate
+     * @see java.awt.Container#isValidateRoot
      */
+    @Override
     public boolean isValidateRoot() {
         return false;
     }
@@ -4812,20 +4900,29 @@ public abstract class JComponent extends Container implements Serializable,
      * guarantee, such as <code>JLayeredPane</code>,
      * should override this method to return false.
      *
-     * @return always returns true 
+     * @return always returns true
      */
     public boolean isOptimizedDrawingEnabled() {
         return true;
     }
 
     /**
-     * Returns true if a paint triggered on a child component should cause
+     * Returns {@code true} if a paint triggered on a child component should cause
      * painting to originate from this Component, or one of its ancestors.
+     * <p/>
+     * Calling {@link #repaint} or {@link #paintImmediately(int, int, int, int)}
+     * on a Swing component will result in calling
+     * the {@link JComponent#paintImmediately(int, int, int, int)} method of
+     * the first ancestor which {@code isPaintingOrigin()} returns {@code true}, if there are any.
+     * <p/>
+     * {@code JComponent} subclasses that need to be painted when any of their
+     * children are repainted should override this method to return {@code true}.
      *
-     * @return true if painting should originate from this Component or
-     *         one of its ancestors.
+     * @return always returns {@code false}
+     *
+     * @see #paintImmediately(int, int, int, int)
      */
-    boolean isPaintingOrigin() {
+    protected boolean isPaintingOrigin() {
         return false;
     }
 
@@ -4838,12 +4935,16 @@ public abstract class JComponent extends Container implements Serializable,
      * and can collapse redundant requests into a single paint call.
      * This method is useful if one needs to update the display while
      * the current event is being dispatched.
+     * <p>
+     * This method is to be overridden when the dirty region needs to be changed
+     * for components that are painting origins.
      *
      * @param x  the x value of the region to be painted
      * @param y  the y value of the region to be painted
      * @param w  the width of the region to be painted
      * @param h  the height of the region to be painted
      * @see #repaint
+     * @see #isPaintingOrigin()
      */
     public void paintImmediately(int x,int y,int w, int h) {
         Component c = this;
@@ -4852,7 +4953,16 @@ public abstract class JComponent extends Container implements Serializable,
         if(!isShowing()) {
             return;
         }
-        while(!((JComponent)c).isOpaque()) {
+
+        JComponent paintingOigin = SwingUtilities.getPaintingOrigin(this);
+        if (paintingOigin != null) {
+            Rectangle rectangle = SwingUtilities.convertRectangle(
+                    c, new Rectangle(x, y, w, h), paintingOigin);
+            paintingOigin.paintImmediately(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+            return;
+        }
+
+        while(!c.isOpaque()) {
             parent = c.getParent();
             if(parent != null) {
                 x += c.getX();
@@ -4884,19 +4994,19 @@ public abstract class JComponent extends Container implements Serializable,
 
     /**
      * Returns whether this component should be guaranteed to be on top.
-     * For example, it would make no sense for <code>Menu</code>s to pop up 
+     * For example, it would make no sense for <code>Menu</code>s to pop up
      * under another component, so they would always return true.
      * Most components will want to return false, hence that is the default.
-     * 
+     *
      * @return always returns false
      */
     // package private
     boolean alwaysOnTop() {
-	return false;
+        return false;
     }
 
     void setPaintingChild(Component paintingChild) {
-	this.paintingChild = paintingChild;
+        this.paintingChild = paintingChild;
     }
 
     void _paintImmediately(int x, int y, int w, int h) {
@@ -4904,7 +5014,7 @@ public abstract class JComponent extends Container implements Serializable,
         Container c;
         Rectangle b;
 
-	int tmpX, tmpY, tmpWidth, tmpHeight;
+        int tmpX, tmpY, tmpWidth, tmpHeight;
         int offsetX=0,offsetY=0;
 
         boolean hasBuffer = false;
@@ -4913,15 +5023,15 @@ public abstract class JComponent extends Container implements Serializable,
         JComponent paintingComponent = this;
 
         RepaintManager repaintManager = RepaintManager.currentManager(this);
-	// parent Container's up to Window or Applet. First container is
-	// the direct parent. Note that in testing it was faster to 
-	// alloc a new Vector vs keeping a stack of them around, and gc
-	// seemed to have a minimal effect on this.
-	java.util.List<Component> path = new java.util.ArrayList<Component>(7);
-	int pIndex = -1;
-	int pCount = 0;
+        // parent Container's up to Window or Applet. First container is
+        // the direct parent. Note that in testing it was faster to
+        // alloc a new Vector vs keeping a stack of them around, and gc
+        // seemed to have a minimal effect on this.
+        java.util.List<Component> path = new java.util.ArrayList<Component>(7);
+        int pIndex = -1;
+        int pCount = 0;
 
-	tmpX = tmpY = tmpWidth = tmpHeight = 0;
+        tmpX = tmpY = tmpWidth = tmpHeight = 0;
 
         Rectangle paintImmediatelyClip = fetchRectangle();
         paintImmediatelyClip.x = x;
@@ -4929,10 +5039,10 @@ public abstract class JComponent extends Container implements Serializable,
         paintImmediatelyClip.width = w;
         paintImmediatelyClip.height = h;
 
-	
-	// System.out.println("1) ************* in _paintImmediately for " + this);
-	
-	boolean ontop = alwaysOnTop() && isOpaque();
+
+        // System.out.println("1) ************* in _paintImmediately for " + this);
+
+        boolean ontop = alwaysOnTop() && isOpaque();
         if (ontop) {
             SwingUtilities.computeIntersection(0, 0, getWidth(), getHeight(),
                                                paintImmediatelyClip);
@@ -4947,8 +5057,8 @@ public abstract class JComponent extends Container implements Serializable,
              child = c, c = c.getParent()) {
                 JComponent jc = (c instanceof JComponent) ? (JComponent)c :
                                 null;
-	        path.add(c);
-		if(!ontop && jc != null && !jc.isOptimizedDrawingEnabled()) {
+                path.add(c);
+                if(!ontop && jc != null && !jc.isOptimizedDrawingEnabled()) {
                     boolean resetPC;
 
                     // Children of c may overlap, three possible cases for the
@@ -4998,97 +5108,96 @@ public abstract class JComponent extends Container implements Serializable,
                         offsetX = offsetY = 0;
                         hasBuffer = false;
                     }
-		}
-		pCount++;
-		
-		// look to see if the parent (and therefor this component)
-		// is double buffered
-		if(repaintManager.isDoubleBufferingEnabled() && jc != null &&
-                                  jc.isDoubleBuffered()) {
-		    hasBuffer = true;
-		    bufferedComponent = jc;
-		}
+                }
+                pCount++;
 
-		// if we aren't on top, include the parent's clip 
-		if (!ontop) {
+                // look to see if the parent (and therefor this component)
+                // is double buffered
+                if(repaintManager.isDoubleBufferingEnabled() && jc != null &&
+                                  jc.isDoubleBuffered()) {
+                    hasBuffer = true;
+                    bufferedComponent = jc;
+                }
+
+                // if we aren't on top, include the parent's clip
+                if (!ontop) {
                     int bx = c.getX();
                     int by = c.getY();
-		    tmpWidth = c.getWidth();
-		    tmpHeight = c.getHeight();
-		    SwingUtilities.computeIntersection(tmpX,tmpY,tmpWidth,tmpHeight,paintImmediatelyClip);
-		    paintImmediatelyClip.x += bx;
-		    paintImmediatelyClip.y += by;
-		    offsetX += bx;
-		    offsetY += by;
-		}
-	}
-	
-	// If the clip width or height is negative, don't bother painting
+                    tmpWidth = c.getWidth();
+                    tmpHeight = c.getHeight();
+                    SwingUtilities.computeIntersection(tmpX,tmpY,tmpWidth,tmpHeight,paintImmediatelyClip);
+                    paintImmediatelyClip.x += bx;
+                    paintImmediatelyClip.y += by;
+                    offsetX += bx;
+                    offsetY += by;
+                }
+        }
+
+        // If the clip width or height is negative, don't bother painting
         if(c == null || c.getPeer() == null ||
                         paintImmediatelyClip.width <= 0 ||
                         paintImmediatelyClip.height <= 0) {
             recycleRectangle(paintImmediatelyClip);
-	    return;
-	}
+            return;
+        }
 
-	paintingComponent.setFlag(IS_REPAINTING, true);
+        paintingComponent.setFlag(IS_REPAINTING, true);
 
         paintImmediatelyClip.x -= offsetX;
         paintImmediatelyClip.y -= offsetY;
-	
-	// Notify the Components that are going to be painted of the
-	// child component to paint to.
-	if(paintingComponent != this) {
-	    Component comp;
-	    int i = pIndex;
-	    for(; i > 0 ; i--) {
-		comp = path.get(i);
-		if(comp instanceof JComponent) {
-		    ((JComponent)comp).setPaintingChild(path.get(i-1));
-		}
-	    }
-	}
 
-	try {
-            g = safelyGetGraphics(paintingComponent, c);
-	    try {
-                if (hasBuffer) {
-                    RepaintManager rm = RepaintManager.currentManager(
-                                               bufferedComponent);
-                    rm.beginPaint();
-                    try {
-                        rm.paint(paintingComponent, bufferedComponent, g,
-                                 paintImmediatelyClip.x, 
-                                 paintImmediatelyClip.y,
-                                 paintImmediatelyClip.width, 
-                                 paintImmediatelyClip.height);
-                    } finally {
-                        rm.endPaint();
+        // Notify the Components that are going to be painted of the
+        // child component to paint to.
+        if(paintingComponent != this) {
+            Component comp;
+            int i = pIndex;
+            for(; i > 0 ; i--) {
+                comp = path.get(i);
+                if(comp instanceof JComponent) {
+                    ((JComponent)comp).setPaintingChild(path.get(i-1));
+                }
+            }
+        }
+        try {
+            if ((g = safelyGetGraphics(paintingComponent, c)) != null) {
+                try {
+                    if (hasBuffer) {
+                        RepaintManager rm = RepaintManager.currentManager(
+                                bufferedComponent);
+                        rm.beginPaint();
+                        try {
+                            rm.paint(paintingComponent, bufferedComponent, g,
+                                    paintImmediatelyClip.x,
+                                    paintImmediatelyClip.y,
+                                    paintImmediatelyClip.width,
+                                    paintImmediatelyClip.height);
+                        } finally {
+                            rm.endPaint();
+                        }
+                    } else {
+                        g.setClip(paintImmediatelyClip.x, paintImmediatelyClip.y,
+                                paintImmediatelyClip.width, paintImmediatelyClip.height);
+                        paintingComponent.paint(g);
+                    }
+                } finally {
+                    g.dispose();
+                }
+            }
+        }
+        finally {
+            // Reset the painting child for the parent components.
+            if(paintingComponent != this) {
+                Component comp;
+                int i = pIndex;
+                for(; i > 0 ; i--) {
+                    comp = path.get(i);
+                    if(comp instanceof JComponent) {
+                        ((JComponent)comp).setPaintingChild(null);
                     }
                 }
-                else {
-		    g.setClip(paintImmediatelyClip.x,paintImmediatelyClip.y,
-		       paintImmediatelyClip.width,paintImmediatelyClip.height);
-		    paintingComponent.paint(g);
-		}
-	    } finally {
-		g.dispose();
-	    }
-	}
-	finally {
-	    // Reset the painting child for the parent components.
-	    if(paintingComponent != this) {
-		Component comp;
-		int i = pIndex;
-		for(; i > 0 ; i--) {
-		    comp = path.get(i);
-		    if(comp instanceof JComponent) {
-			((JComponent)comp).setPaintingChild(null);
-		    }
-		}
-	    }
-	    paintingComponent.setFlag(IS_REPAINTING, false);
-	}
+            }
+            paintingComponent.setFlag(IS_REPAINTING, false);
+        }
         recycleRectangle(paintImmediatelyClip);
     }
 
@@ -5107,7 +5216,7 @@ public abstract class JComponent extends Container implements Serializable,
                 setFlag(IS_PAINTING_TILE, true);
             }
             if (getFlag(IS_REPAINTING)) {
-                // Called from paintImmediately (RepaintManager) to fill 
+                // Called from paintImmediately (RepaintManager) to fill
                 // repaint request
                 paint(g);
             } else {
@@ -5138,32 +5247,32 @@ public abstract class JComponent extends Container implements Serializable,
         int retValue = NOT_OBSCURED;
         Rectangle tmpRect = fetchRectangle();
 
-	for (int i = compIndex - 1 ; i >= 0 ; i--) {
-	    Component sibling = getComponent(i);
-	    if (!sibling.isVisible()) {
-		continue;
+        for (int i = compIndex - 1 ; i >= 0 ; i--) {
+            Component sibling = getComponent(i);
+            if (!sibling.isVisible()) {
+                continue;
             }
             Rectangle siblingRect;
             boolean opaque;
-	    if (sibling instanceof JComponent) {
-                opaque = ((JComponent)sibling).isOpaque();
-		if (!opaque) {
+            if (sibling instanceof JComponent) {
+                opaque = sibling.isOpaque();
+                if (!opaque) {
                     if (retValue == PARTIALLY_OBSCURED) {
                         continue;
                     }
                 }
-	    }
-	    else {
+            }
+            else {
                 opaque = true;
-	    }
+            }
             siblingRect = sibling.getBounds(tmpRect);
-	    if (opaque && x >= siblingRect.x && (x + width) <=
-		     (siblingRect.x + siblingRect.width) &&
-		     y >= siblingRect.y && (y + height) <=
-		     (siblingRect.y + siblingRect.height)) {
+            if (opaque && x >= siblingRect.x && (x + width) <=
+                     (siblingRect.x + siblingRect.width) &&
+                     y >= siblingRect.y && (y + height) <=
+                     (siblingRect.y + siblingRect.height)) {
                 recycleRectangle(tmpRect);
-		return COMPLETELY_OBSCURED;
-	    }
+                return COMPLETELY_OBSCURED;
+            }
             else if (retValue == NOT_OBSCURED &&
                      !((x + width <= siblingRect.x) ||
                        (y + height <= siblingRect.y) ||
@@ -5171,21 +5280,21 @@ public abstract class JComponent extends Container implements Serializable,
                        (y >= siblingRect.y + siblingRect.height))) {
                 retValue = PARTIALLY_OBSCURED;
             }
-	}
+        }
         recycleRectangle(tmpRect);
-	return retValue;
+        return retValue;
     }
 
     /**
      * Returns true, which implies that before checking if a child should
-     * be painted it is first check that the child is not obscured by another 
+     * be painted it is first check that the child is not obscured by another
      * sibling. This is only checked if <code>isOptimizedDrawingEnabled</code>
      * returns false.
      *
      * @return always returns true
      */
     boolean checkIfChildObscuredBySibling() {
-	return true;
+        return true;
     }
 
 
@@ -5240,7 +5349,7 @@ public abstract class JComponent extends Container implements Serializable,
      * Returns the <code>JRootPane</code> ancestor for this component.
      *
      * @return the <code>JRootPane</code> that contains this component,
-     *		or <code>null</code> if no <code>JRootPane</code> is found
+     *          or <code>null</code> if no <code>JRootPane</code> is found
      */
     public JRootPane getRootPane() {
         return SwingUtilities.getRootPane(this);
@@ -5260,9 +5369,8 @@ public abstract class JComponent extends Container implements Serializable,
             return;
         }
 
-        if (ui != null) {
-	    ui.uninstallUI(this);
-	}
+        uninstallUIAndProperties();
+
         /* JTableHeader is in a separate package, which prevents it from
          * being able to override this package-private method the way the
          * other components can.  We don't want to make this method protected
@@ -5270,92 +5378,90 @@ public abstract class JComponent extends Container implements Serializable,
          * serialization scheme, so we compromise with this 'instanceof' hack
          * for now.
          */
-        if (getToolTipText() != null || 
+        if (getToolTipText() != null ||
             this instanceof javax.swing.table.JTableHeader) {
             ToolTipManager.sharedInstance().unregisterComponent(JComponent.this);
-        }            
+        }
     }
 
     /**
      * This object is the <code>ObjectInputStream</code> callback
      * that's called after a complete graph of objects (including at least
      * one <code>JComponent</code>) has been read.
-     *  It sets the UI property of each Swing component 
-     * that was read to the current default with <code>updateUI</code>.  
-     * <p> 
-     * As each  component is read in we keep track of the current set of 
-     * root components here, in the roots vector.  Note that there's only one 
+     *  It sets the UI property of each Swing component
+     * that was read to the current default with <code>updateUI</code>.
+     * <p>
+     * As each  component is read in we keep track of the current set of
+     * root components here, in the roots vector.  Note that there's only one
      * <code>ReadObjectCallback</code> per <code>ObjectInputStream</code>,
      * they're stored in the static <code>readObjectCallbacks</code>
      * hashtable.
-     * 
+     *
      * @see java.io.ObjectInputStream#registerValidation
      * @see SwingUtilities#updateComponentTreeUI
      */
-    private class ReadObjectCallback implements ObjectInputValidation 
+    private class ReadObjectCallback implements ObjectInputValidation
     {
-	private final Vector roots = new Vector(1);
-	private final ObjectInputStream inputStream;
+        private final Vector<JComponent> roots = new Vector<JComponent>(1);
+        private final ObjectInputStream inputStream;
 
-	ReadObjectCallback(ObjectInputStream s) throws Exception {
-	    inputStream = s;
-	    s.registerValidation(this, 0);
-	}
+        ReadObjectCallback(ObjectInputStream s) throws Exception {
+            inputStream = s;
+            s.registerValidation(this, 0);
+        }
 
-	/**
-	 * This is the method that's called after the entire graph
-	 * of objects has been read in.  It initializes
-	 * the UI property of all of the copmonents with
-	 * <code>SwingUtilities.updateComponentTreeUI</code>.
-	 */
-	public void validateObject() throws InvalidObjectException {
-	    try {
-		for(int i = 0; i < roots.size(); i++) {
-		    JComponent root = (JComponent)(roots.elementAt(i));
-		    SwingUtilities.updateComponentTreeUI(root);
-		}
-	    }
-	    finally {
-		readObjectCallbacks.remove(inputStream);
-	    }
-	}
+        /**
+         * This is the method that's called after the entire graph
+         * of objects has been read in.  It initializes
+         * the UI property of all of the copmonents with
+         * <code>SwingUtilities.updateComponentTreeUI</code>.
+         */
+        public void validateObject() throws InvalidObjectException {
+            try {
+                for (JComponent root : roots) {
+                    SwingUtilities.updateComponentTreeUI(root);
+                }
+            }
+            finally {
+                readObjectCallbacks.remove(inputStream);
+            }
+        }
 
-	/**
-	 * If <code>c</code> isn't a descendant of a component we've already
-	 * seen, then add it to the roots <code>Vector</code>.
+        /**
+         * If <code>c</code> isn't a descendant of a component we've already
+         * seen, then add it to the roots <code>Vector</code>.
          *
          * @param c the <code>JComponent</code> to add
-	 */
-	private void registerComponent(JComponent c)
+         */
+        private void registerComponent(JComponent c)
         {
-    	    /* If the Component c is a descendant of one of the
-	     * existing roots (or it IS an existing root), we're done.
-	     */
-	    for(int i = 0; i < roots.size(); i++) {
-		JComponent root = (JComponent)roots.elementAt(i);
-		for(Component p = c; p != null; p = p.getParent()) {
-		    if (p == root) {
-			return;
-		    }
-		}
-	    }
-	    
-	    /* Otherwise: if Component c is an ancestor of any of the 
-	     * existing roots then remove them and add c (the "new root") 
-	     * to the roots vector.
-	     */
-	    for(int i = 0; i < roots.size(); i++) {
-		JComponent root = (JComponent)roots.elementAt(i);
-		for(Component p = root.getParent(); p != null; p = p.getParent()) {
-		    if (p == c) {
-			roots.removeElementAt(i--); // !!
-			break;
-		    }
-		}
-	    }
-	    
-	    roots.addElement(c);
-	}
+            /* If the Component c is a descendant of one of the
+             * existing roots (or it IS an existing root), we're done.
+             */
+            for (JComponent root : roots) {
+                for(Component p = c; p != null; p = p.getParent()) {
+                    if (p == root) {
+                        return;
+                    }
+                }
+            }
+
+            /* Otherwise: if Component c is an ancestor of any of the
+             * existing roots then remove them and add c (the "new root")
+             * to the roots vector.
+             */
+            for(int i = 0; i < roots.size(); i++) {
+                JComponent root = roots.elementAt(i);
+                for(Component p = root.getParent(); p != null; p = p.getParent()) {
+                    if (p == c) {
+                        roots.removeElementAt(i--); // !!
+                        break;
+                    }
+                }
+            }
+
+            roots.addElement(c);
+        }
     }
 
 
@@ -5363,30 +5469,30 @@ public abstract class JComponent extends Container implements Serializable,
      * We use the <code>ObjectInputStream</code> "registerValidation"
      * callback to update the UI for the entire tree of components
      * after they've all been read in.
-     * 
+     *
      * @param s  the <code>ObjectInputStream</code> from which to read
      */
-    private void readObject(ObjectInputStream s) 
-	throws IOException, ClassNotFoundException 
+    private void readObject(ObjectInputStream s)
+        throws IOException, ClassNotFoundException
     {
         s.defaultReadObject();
 
-	/* If there's no ReadObjectCallback for this stream yet, that is, if
-	 * this is the first call to JComponent.readObject() for this
-	 * graph of objects, then create a callback and stash it
-	 * in the readObjectCallbacks table.  Note that the ReadObjectCallback
-	 * constructor takes care of calling s.registerValidation().
-	 */
-	ReadObjectCallback cb = (ReadObjectCallback)(readObjectCallbacks.get(s));
-	if (cb == null) {
-	    try {
-		readObjectCallbacks.put(s, cb = new ReadObjectCallback(s));
-	    }
-	    catch (Exception e) {
-		throw new IOException(e.toString());
-	    }
-	}
-	cb.registerComponent(this);
+        /* If there's no ReadObjectCallback for this stream yet, that is, if
+         * this is the first call to JComponent.readObject() for this
+         * graph of objects, then create a callback and stash it
+         * in the readObjectCallbacks table.  Note that the ReadObjectCallback
+         * constructor takes care of calling s.registerValidation().
+         */
+        ReadObjectCallback cb = readObjectCallbacks.get(s);
+        if (cb == null) {
+            try {
+                readObjectCallbacks.put(s, cb = new ReadObjectCallback(s));
+            }
+            catch (Exception e) {
+                throw new IOException(e.toString());
+            }
+        }
+        cb.registerComponent(this);
 
         // Read back the client properties.
         int cpCount = s.readInt();
@@ -5396,7 +5502,7 @@ public abstract class JComponent extends Container implements Serializable,
                 clientProperties.put(s.readObject(),
                                      s.readObject());
             }
-	}
+        }
         if (getToolTipText() != null) {
             ToolTipManager.sharedInstance().registerComponent(this);
         }
@@ -5411,7 +5517,7 @@ public abstract class JComponent extends Container implements Serializable,
      * the UI before any of the <code>JComponent</code>'s children
      * (or its <code>LayoutManager</code> etc.) are written,
      * and we don't want to restore the UI until the most derived
-     * <code>JComponent</code> subclass has been been stored.  
+     * <code>JComponent</code> subclass has been been stored.
      *
      * @param s the <code>ObjectOutputStream</code> in which to write
      */
@@ -5430,29 +5536,29 @@ public abstract class JComponent extends Container implements Serializable,
 
     /**
      * Returns a string representation of this <code>JComponent</code>.
-     * This method 
-     * is intended to be used only for debugging purposes, and the 
-     * content and format of the returned string may vary between      
-     * implementations. The returned string may be empty but may not 
+     * This method
+     * is intended to be used only for debugging purposes, and the
+     * content and format of the returned string may vary between
+     * implementations. The returned string may be empty but may not
      * be <code>null</code>.
-     * 
+     *
      * @return  a string representation of this <code>JComponent</code>
      */
     protected String paramString() {
         String preferredSizeString = (isPreferredSizeSet() ?
-				      getPreferredSize().toString() : "");
+                                      getPreferredSize().toString() : "");
         String minimumSizeString = (isMinimumSizeSet() ?
-				    getMinimumSize().toString() : "");
+                                    getMinimumSize().toString() : "");
         String maximumSizeString = (isMaximumSizeSet() ?
-				    getMaximumSize().toString() : "");
-        String borderString = (border != null ?
-			       border.toString() : "");
+                                    getMaximumSize().toString() : "");
+        String borderString = (border == null ? ""
+                               : (border == this ? "this" : border.toString()));
 
         return super.paramString() +
         ",alignmentX=" + alignmentX +
         ",alignmentY=" + alignmentY +
         ",border=" + borderString +
-	",flags=" + flags +             // should beef this up a bit
+        ",flags=" + flags +             // should beef this up a bit
         ",maximumSize=" + maximumSizeString +
         ",minimumSize=" + minimumSizeString +
         ",preferredSize=" + preferredSizeString;

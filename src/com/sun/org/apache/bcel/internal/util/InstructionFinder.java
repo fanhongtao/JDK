@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.util;
 
 /* ====================================================================
@@ -59,7 +63,7 @@ import com.sun.org.apache.bcel.internal.Constants;
 import com.sun.org.apache.bcel.internal.generic.*;
 import com.sun.org.apache.regexp.internal.*;
 
-/** 
+/**
  * InstructionFinder is a tool to search for given instructions patterns,
  * i.e., match sequences of instructions in an instruction list via
  * regular expressions. This can be used, e.g., in order to implement
@@ -73,7 +77,7 @@ import com.sun.org.apache.regexp.internal.*;
 <pre>
     InstructionFinder f   = new InstructionFinder(il);
     String            pat = "IfInstruction ICONST_0 GOTO ICONST_1 NOP (IFEQ|IFNE)";
-    
+
     for(Iterator i = f.search(pat, constraint); i.hasNext(); ) {
       InstructionHandle[] match = (InstructionHandle[])i.next();
       ...
@@ -81,7 +85,6 @@ import com.sun.org.apache.regexp.internal.*;
       ...
     }
 </pre>
- * @version $Id: InstructionFinder.java,v 1.1.2.1 2005/07/31 23:47:03 jeffsuttor Exp $
  * @author  <A HREF="http://www.berlin.de/~markus.dahm/">M. Dahm</A>
  * @see Instruction
  * @see InstructionList
@@ -133,7 +136,7 @@ public class InstructionFinder {
 
     for(short i=0; i < NO_OPCODES; i++)
       if(pattern.equals(Constants.OPCODE_NAMES[i]))
-	return "" + makeChar(i);
+        return "" + makeChar(i);
 
     throw new RuntimeException("Instruction unknown: " + pattern);
   }
@@ -152,24 +155,24 @@ public class InstructionFinder {
 
     for(int i=0; i < size; i++) {
       char ch = lower.charAt(i);
-      
+
       if(Character.isLetterOrDigit(ch)) {
-	StringBuffer name = new StringBuffer();
-	
-	while((Character.isLetterOrDigit(ch) || ch == '_') && i < size) {
-	  name.append(ch);
+        StringBuffer name = new StringBuffer();
 
-	  if(++i < size)
-	    ch = lower.charAt(i);
-	  else
-	    break;
-	}
-	
-	i--;
+        while((Character.isLetterOrDigit(ch) || ch == '_') && i < size) {
+          name.append(ch);
 
-	buf.append(mapName(name.toString()));
+          if(++i < size)
+            ch = lower.charAt(i);
+          else
+            break;
+        }
+
+        i--;
+
+        buf.append(mapName(name.toString()));
       } else if(!Character.isWhitespace(ch))
-	buf.append(ch);
+        buf.append(ch);
     }
 
     return buf.toString();
@@ -210,38 +213,38 @@ public class InstructionFinder {
    * @param constraint optional CodeConstraint to check the found code pattern for
    * user-defined constraints
    * @return iterator of matches where e.nextElement() returns an array of instruction handles
-   * describing the matched area 
+   * describing the matched area
    */
   public final Iterator search(String pattern, InstructionHandle from,
-			       CodeConstraint constraint)
+                               CodeConstraint constraint)
   {
     String search = compilePattern(pattern);
     int  start    = -1;
 
     for(int i=0; i < handles.length; i++) {
       if(handles[i] == from) {
-	start = i; // Where to start search from (index)
-	break;
+        start = i; // Where to start search from (index)
+        break;
       }
     }
 
     if(start == -1)
-      throw new ClassGenException("Instruction handle " + from + 
-				  " not found in instruction list.");
+      throw new ClassGenException("Instruction handle " + from +
+                                  " not found in instruction list.");
     try {
       RE regex = new RE(search);
       ArrayList matches = new ArrayList();
 
       while(start < il_string.length() && regex.match(il_string, start)) {
-	int startExpr = regex.getParenStart(0); 
-	int endExpr   = regex.getParenEnd(0);
-	int lenExpr   = regex.getParenLength(0);
-	
-	InstructionHandle[] match = getMatch(startExpr, lenExpr);
+        int startExpr = regex.getParenStart(0);
+        int endExpr   = regex.getParenEnd(0);
+        int lenExpr   = regex.getParenLength(0);
 
-	if((constraint == null) || constraint.checkCode(match))
-	  matches.add(match);
-	start = endExpr;
+        InstructionHandle[] match = getMatch(startExpr, lenExpr);
+
+        if((constraint == null) || constraint.checkCode(match))
+          matches.add(match);
+        start = endExpr;
       }
 
       return matches.iterator();
@@ -355,11 +358,11 @@ public class InstructionFinder {
     // Precompile some aliases first
     map.put("iconst", precompile(Constants.ICONST_0, Constants.ICONST_5, Constants.ICONST_M1));
     map.put("lconst", new String(new char[] { '(', makeChar(Constants.LCONST_0), '|',
-					      makeChar(Constants.LCONST_1), ')' }));
+                                              makeChar(Constants.LCONST_1), ')' }));
     map.put("dconst", new String(new char[] { '(', makeChar(Constants.DCONST_0), '|',
-					      makeChar(Constants.DCONST_1), ')' }));
+                                              makeChar(Constants.DCONST_1), ')' }));
     map.put("fconst", new String(new char[] { '(', makeChar(Constants.FCONST_0), '|',
-					      makeChar(Constants.FCONST_1), ')' }));
+                                              makeChar(Constants.FCONST_1), ')' }));
 
     map.put("iload", precompile(Constants.ILOAD_0, Constants.ILOAD_3, Constants.ILOAD));
     map.put("dload", precompile(Constants.DLOAD_0, Constants.DLOAD_3, Constants.DLOAD));
@@ -379,20 +382,20 @@ public class InstructionFinder {
 
       char ch = value.charAt(1); // Omit already precompiled patterns
       if(ch < OFFSET) {
-	map.put(key, compilePattern(value)); // precompile all patterns
+        map.put(key, compilePattern(value)); // precompile all patterns
       }
     }
 
     // Add instruction alias to match anything
 
     StringBuffer buf = new StringBuffer("(");
-    
+
     for(short i=0; i < NO_OPCODES; i++) {
       if(Constants.NO_OF_OPERANDS[i] != Constants.UNDEFINED) { // Not an invalid opcode
-	buf.append(makeChar(i));
+        buf.append(makeChar(i));
 
-	if(i < NO_OPCODES - 1)
-	  buf.append('|');
+        if(i < NO_OPCODES - 1)
+          buf.append('|');
       }
     }
     buf.append(')');
@@ -427,12 +430,12 @@ public class InstructionFinder {
       char ch = pattern.charAt(i);
 
       if(ch >= OFFSET) {
-	if(make_string)
-	  buf.append(Constants.OPCODE_NAMES[ch - OFFSET]);
-	else
-	  buf.append((int)(ch - OFFSET));
+        if(make_string)
+          buf.append(Constants.OPCODE_NAMES[ch - OFFSET]);
+        else
+          buf.append((int)(ch - OFFSET));
       } else
-	buf.append(ch);
+        buf.append(ch);
     }
 
     return buf.toString();

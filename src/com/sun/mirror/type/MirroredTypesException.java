@@ -1,8 +1,26 @@
 /*
- * @(#)MirroredTypesException.java	1.3 05/11/17
+ * Copyright (c) 2004, 2005, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc.  All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL.  Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.mirror.type;
@@ -20,15 +38,22 @@ import com.sun.mirror.declaration.Declaration;
  * Thrown when an application attempts to access a sequence of {@link Class}
  * objects each corresponding to a {@link TypeMirror}.
  *
+ * @deprecated All components of this API have been superseded by the
+ * standardized annotation processing API.  The replacement for the
+ * functionality of this exception is {@link
+ * javax.lang.model.type.MirroredTypesException}.
+ *
  * @see MirroredTypeException
  * @see Declaration#getAnnotation(Class)
  */
+@Deprecated
+@SuppressWarnings("deprecation")
 public class MirroredTypesException extends RuntimeException {
 
     private static final long serialVersionUID = 1;
 
-    private transient Collection<TypeMirror> types;	// cannot be serialized
-    private Collection<String> names;		// types' qualified "names"
+    private transient Collection<TypeMirror> types;     // cannot be serialized
+    private Collection<String> names;           // types' qualified "names"
 
     /**
      * Constructs a new MirroredTypesException for the specified types.
@@ -36,12 +61,12 @@ public class MirroredTypesException extends RuntimeException {
      * @param types  an ordered collection of the types being accessed
      */
     public MirroredTypesException(Collection<TypeMirror> types) {
-	super("Attempt to access Class objects for TypeMirrors " + types);
-	this.types = types;
-	names = new ArrayList<String>();
-	for (TypeMirror t : types) {
-	    names.add(t.toString());
-	}
+        super("Attempt to access Class objects for TypeMirrors " + types);
+        this.types = types;
+        names = new ArrayList<String>();
+        for (TypeMirror t : types) {
+            names.add(t.toString());
+        }
     }
 
     /**
@@ -52,9 +77,9 @@ public class MirroredTypesException extends RuntimeException {
      * @return the type mirrors in order, or <tt>null</tt> if unavailable
      */
     public Collection<TypeMirror> getTypeMirrors() {
-	return (types != null)
-		? Collections.unmodifiableCollection(types)
-		: null;
+        return (types != null)
+                ? Collections.unmodifiableCollection(types)
+                : null;
     }
 
     /**
@@ -64,9 +89,9 @@ public class MirroredTypesException extends RuntimeException {
      * the pseudo-type representing the type of <tt>void</tt>.
      *
      * @return the fully qualified names, in order, of the types being
-     *		accessed
+     *          accessed
      */
     public Collection<String> getQualifiedNames() {
-	return Collections.unmodifiableCollection(names);
+        return Collections.unmodifiableCollection(names);
     }
 }

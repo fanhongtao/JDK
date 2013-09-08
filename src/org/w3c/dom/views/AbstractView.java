@@ -1,4 +1,33 @@
 /*
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
+/*
+ *
+ *
+ *
+ *
+ *
  * Copyright (c) 2000 World Wide Web Consortium,
  * (Massachusetts Institute of Technology, Institut National de
  * Recherche en Informatique et en Automatique, Keio University). All
@@ -19,7 +48,7 @@ package org.w3c.dom.views;
  */
 public interface AbstractView {
     /**
-     * The source <code>DocumentView</code> of which this is an 
+     * The source <code>DocumentView</code> of which this is an
      * <code>AbstractView</code>.
      */
     public DocumentView getDocument();

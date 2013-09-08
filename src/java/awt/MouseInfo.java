@@ -1,8 +1,26 @@
 /*
- * @(#)MouseInfo.java	1.3 05/11/17
+ * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.awt;
@@ -12,7 +30,6 @@ import sun.security.util.SecurityConstants;
  * <code>MouseInfo</code>  provides methods for getting information about the mouse,
  * such as mouse pointer location and the number of mouse buttons.
  *
- * @version    1.3, 11/17/05
  * @author     Roman Poborchiy
  * @since 1.5
  */
@@ -59,7 +76,7 @@ public class MouseInfo {
 
         SecurityManager security = System.getSecurityManager();
         if (security != null) {
-            security.checkPermission(SecurityConstants.WATCH_MOUSE_PERMISSION);
+            security.checkPermission(SecurityConstants.AWT.WATCH_MOUSE_PERMISSION);
         }
 
         Point point = new Point(0, 0);
@@ -105,7 +122,7 @@ public class MouseInfo {
             throw new HeadlessException();
         }
         Object prop = Toolkit.getDefaultToolkit().
-                              getDesktopProperty("awt.mouse.numButtons"); 
+                              getDesktopProperty("awt.mouse.numButtons");
         if (prop instanceof Integer) {
             return ((Integer)prop).intValue();
         }

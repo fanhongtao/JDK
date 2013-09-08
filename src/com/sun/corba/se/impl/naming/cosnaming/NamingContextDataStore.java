@@ -1,8 +1,26 @@
 /*
- * @(#)NamingContextDataStore.java	1.21 05/11/17
+ * Copyright (c) 1997, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.naming.cosnaming;
@@ -24,7 +42,7 @@ import org.omg.PortableServer.POA;
  * "data store" associated with a NamingContext implementation.
  * It allows for different implementations of naming contexts that
  * support the same API but differ in storage mechanism.
- */  
+ */
 public interface NamingContextDataStore {
     /**
      * Method which implements binding a name to an object as
@@ -36,7 +54,7 @@ public interface NamingContextDataStore {
      * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA system exceptions.
      */
     void Bind(NameComponent n, org.omg.CORBA.Object obj, BindingType bt)
-	throws org.omg.CORBA.SystemException;
+        throws org.omg.CORBA.SystemException;
 
     /**
      * Method which implements resolving the specified name,
@@ -49,7 +67,7 @@ public interface NamingContextDataStore {
      * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA system exceptions.
      */
     org.omg.CORBA.Object Resolve(NameComponent n,BindingTypeHolder bth)
-	throws org.omg.CORBA.SystemException;
+        throws org.omg.CORBA.SystemException;
 
     /**
      * Method which implements unbinding a name.
@@ -57,7 +75,7 @@ public interface NamingContextDataStore {
      * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA system exceptions.
      */
     org.omg.CORBA.Object Unbind(NameComponent n)
-	throws org.omg.CORBA.SystemException;
+        throws org.omg.CORBA.SystemException;
 
     /**
      * Method which implements listing the contents of this
@@ -68,7 +86,7 @@ public interface NamingContextDataStore {
      * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA system exceptions.
      */
     void List(int how_many, BindingListHolder bl, BindingIteratorHolder bi)
-	throws org.omg.CORBA.SystemException;
+        throws org.omg.CORBA.SystemException;
 
     /**
      * Method which implements creating a new NamingContext.
@@ -77,15 +95,15 @@ public interface NamingContextDataStore {
      * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA system exceptions.
      */
     NamingContext NewContext()
-	throws org.omg.CORBA.SystemException;
+        throws org.omg.CORBA.SystemException;
 
     /**
      * Method which implements destroying this NamingContext.
      * @exception org.omg.CORBA.SystemException One of a fixed set of CORBA system exceptions.
      */
     void Destroy()
-	throws org.omg.CORBA.SystemException;
-  
+        throws org.omg.CORBA.SystemException;
+
     /**
      * Method which returns whether this NamingContext is empty
      * or not.

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.generic;
 
 /* ====================================================================
@@ -54,12 +58,11 @@ package com.sun.org.apache.bcel.internal.generic;
  * <http://www.apache.org/>.
  */
 
-/** 
+/**
  * ICONST - Push value between -1, ..., 5, other values cause an exception
  *
  * <PRE>Stack: ... -&gt; ..., </PRE>
  *
- * @version $Id: ICONST.java,v 1.1.2.1 2005/07/31 23:45:56 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public class ICONST extends Instruction
@@ -79,10 +82,10 @@ public class ICONST extends Instruction
       opcode = (short)(com.sun.org.apache.bcel.internal.Constants.ICONST_0 + i); // Even works for i == -1
     else
       throw new ClassGenException("ICONST can be used only for value between -1 and 5: " +
-				  i);
+                                  i);
     value = i;
   }
-  
+
   public Number getValue() { return new Integer(value); }
 
   /** @return Type.INT

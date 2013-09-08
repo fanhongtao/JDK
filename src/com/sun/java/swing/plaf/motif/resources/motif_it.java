@@ -7,22 +7,23 @@ public final class motif_it extends ListResourceBundle {
         return new Object[][] {
             { "FileChooser.acceptAllFileFilterText", "*" },
             { "FileChooser.cancelButtonText", "Annulla" },
-            { "FileChooser.cancelButtonToolTipText", "Finestra di dialogo Interrompi Selezione file." },
+            { "FileChooser.cancelButtonToolTipText", "Chiude la finestra di dialogo di selezione file." },
             { "FileChooser.enterFileNameLabelText", "Nome file:" },
+            { "FileChooser.enterFolderNameLabelText", "Nome cartella:" },
             { "FileChooser.filesLabelText", "File" },
             { "FileChooser.filterLabelText", "Filtro" },
             { "FileChooser.foldersLabelText", "Cartelle" },
             { "FileChooser.helpButtonText", "?" },
-            { "FileChooser.helpButtonToolTipText", "Guida di Selezione file." },
+            { "FileChooser.helpButtonToolTipText", "Guida FileChooser." },
             { "FileChooser.openButtonText", "OK" },
-            { "FileChooser.openButtonToolTipText", "Apri file selezionato." },
+            { "FileChooser.openButtonToolTipText", "Apre il file selezionato." },
             { "FileChooser.openDialogTitleText", "Apri" },
             { "FileChooser.pathLabelText", "Percorso o nome cartella:" },
             { "FileChooser.saveButtonText", "Salva" },
-            { "FileChooser.saveButtonToolTipText", "Salva file selezionato." },
+            { "FileChooser.saveButtonToolTipText", "Salva il file selezionato." },
             { "FileChooser.saveDialogTitleText", "Salva" },
             { "FileChooser.updateButtonText", "Aggiorna" },
-            { "FileChooser.updateButtonToolTipText", "Aggiorna elenco directory." },
+            { "FileChooser.updateButtonToolTipText", "Aggiorna lista directory." },
         };
     }
 }

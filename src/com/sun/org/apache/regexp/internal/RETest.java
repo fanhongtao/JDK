@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +40,6 @@ import java.io.IOException;
  * @author <a href="mailto:jonl@muppetlabs.com">Jonathan Locke</a>
  * @author <a href="mailto:jon@latchkey.com">Jon S. Stevens</a>
  * @author <a href="mailto:gholam@xtra.co.nz">Michael McCallum</a>
- * @version $Id: RETest.java,v 1.1.2.1 2005/08/01 00:02:57 jeffsuttor Exp $
  */
 public class RETest
 {

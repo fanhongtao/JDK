@@ -1,8 +1,26 @@
 /*
- * @(#)MotifTextAreaUI.java	1.23 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package com.sun.java.swing.plaf.motif;
 
@@ -24,7 +42,6 @@ import javax.swing.plaf.basic.BasicTextAreaUI;
  * long term persistence.
  *
  * @author  Timothy Prinzing
- * @version 1.23 11/17/05
  */
 public class MotifTextAreaUI extends BasicTextAreaUI {
 
@@ -47,7 +64,7 @@ public class MotifTextAreaUI extends BasicTextAreaUI {
      * @return the caret object
      */
     protected Caret createCaret() {
-	return MotifTextUI.createCaret();
+        return MotifTextUI.createCaret();
     }
 
 }

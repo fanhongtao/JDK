@@ -1,8 +1,26 @@
 /*
- * @(#)PermissionCollection.java	1.36 05/11/17
+ * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.security;
@@ -70,7 +88,6 @@ import java.util.*;
  * @see Permission
  * @see Permissions
  *
- * @version 1.36 05/11/17
  *
  * @author Roland Schemers
  */
@@ -89,6 +106,9 @@ public abstract class PermissionCollection implements java.io.Serializable {
      *
      * @exception SecurityException -  if this PermissionCollection object
      *                                 has been marked readonly
+     * @exception IllegalArgumentException - if this PermissionCollection
+     *                object is a homogeneous collection and the permission
+     *                is not of the correct type.
      */
     public abstract void add(Permission permission);
 
@@ -117,7 +137,7 @@ public abstract class PermissionCollection implements java.io.Serializable {
      * using <code>add</code>.
      */
     public void setReadOnly() {
-	readOnly = true;
+        readOnly = true;
     }
 
     /**
@@ -132,7 +152,7 @@ public abstract class PermissionCollection implements java.io.Serializable {
      * false otherwise.
      */
     public boolean isReadOnly() {
-	return readOnly;
+        return readOnly;
     }
 
     /**
@@ -158,19 +178,19 @@ public abstract class PermissionCollection implements java.io.Serializable {
      *
      */
     public String toString() {
-	Enumeration enum_ = elements();
-	StringBuilder sb = new StringBuilder();
-	sb.append(super.toString()+" (\n");
-	while (enum_.hasMoreElements()) {
-	    try {
-		sb.append(" ");
-		sb.append(enum_.nextElement().toString());
-		sb.append("\n");
-	    } catch (NoSuchElementException e){
-		// ignore
-	    }
-	}
-	sb.append(")\n");
-	return sb.toString();
+        Enumeration<Permission> enum_ = elements();
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString()+" (\n");
+        while (enum_.hasMoreElements()) {
+            try {
+                sb.append(" ");
+                sb.append(enum_.nextElement().toString());
+                sb.append("\n");
+            } catch (NoSuchElementException e){
+                // ignore
+            }
+        }
+        sb.append(")\n");
+        return sb.toString();
     }
 }

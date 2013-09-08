@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +30,10 @@ import org.w3c.dom.Node;
  * TransformState, but which as only the setters which have non Xalan
  * specific types in their signature, so that there are no dependancies
  * of the serializer on Xalan.
- * 
+ *
  * This interface is not a public API, it is only public because it is
  * used by Xalan.
- * 
+ *
  * @see com.sun.org.apache.xalan.internal.transformer.TransformState
  * @xsl.usage internal
  */

@@ -1,8 +1,26 @@
 /*
- * @(#)ExceptionList.java	1.26 05/11/17
+ * Copyright (c) 1996, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -30,7 +48,6 @@ package org.omg.CORBA;
  * items have been added, it is possible to call methods for accessing
  * or deleting an item at a designated index.
  *
- * @version 1.13, 09/09/97
  * @since   JDK1.2
  */
 
@@ -40,7 +57,7 @@ public abstract class ExceptionList {
      * Retrieves the number of <code>TypeCode</code> objects in this
      * <code>ExceptionList</code> object.
      *
-     * @return		the	number of <code>TypeCode</code> objects in this
+     * @return          the     number of <code>TypeCode</code> objects in this
      * <code>ExceptionList</code> object
      */
 
@@ -50,7 +67,7 @@ public abstract class ExceptionList {
      * Adds a <code>TypeCode</code> object describing an exception
      * to this <code>ExceptionList</code> object.
      *
-     * @param exc			the <code>TypeCode</code> object to be added
+     * @param exc                       the <code>TypeCode</code> object to be added
      */
 
     public abstract void add(TypeCode exc);
@@ -59,35 +76,35 @@ public abstract class ExceptionList {
      * Returns the <code>TypeCode</code> object at the given index.  The first
      * item is at index 0.
      *
-     * @param index		the index of the <code>TypeCode</code> object desired.
+     * @param index             the index of the <code>TypeCode</code> object desired.
      *                    This must be an <code>int</code> between 0 and the
      *                    number of <code>TypeCode</code> objects
      *                    minus one, inclusive.
-     * @return			the <code>TypeCode</code> object  at the given index
+     * @return                  the <code>TypeCode</code> object  at the given index
      * @exception org.omg.CORBA.Bounds   if the index given is greater than
-     *				or equal to the number of <code>TypeCode</code> objects
+     *                          or equal to the number of <code>TypeCode</code> objects
      *                in this <code>ExceptionList</code> object
      */
 
     public abstract TypeCode item(int index)
-	throws org.omg.CORBA.Bounds;
+        throws org.omg.CORBA.Bounds;
 
     /**
      * Removes the <code>TypeCode</code> object at the given index.
      * Note that the indices of all the <code>TypeCoded</code> objects
      * following the one deleted are shifted down by one.
      *
-     * @param index		the index of the <code>TypeCode</code> object to be
+     * @param index             the index of the <code>TypeCode</code> object to be
      *                    removed.
      *                    This must be an <code>int</code> between 0 and the
      *                    number of <code>TypeCode</code> objects
      *                    minus one, inclusive.
      *
      * @exception org.omg.CORBA.Bounds if the index is greater than
-     *				or equal to the number of <code>TypeCode</code> objects
+     *                          or equal to the number of <code>TypeCode</code> objects
      *                in this <code>ExceptionList</code> object
      */
 
     public abstract void remove(int index)
-	throws org.omg.CORBA.Bounds;
+        throws org.omg.CORBA.Bounds;
 }

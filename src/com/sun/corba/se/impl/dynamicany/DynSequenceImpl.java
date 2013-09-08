@@ -1,8 +1,26 @@
 /*
- * @(#)DynSequenceImpl.java	1.9 05/11/17
+ * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package com.sun.corba.se.impl.dynamicany;
@@ -110,7 +128,7 @@ public class DynSequenceImpl extends DynAnyCollectionImpl implements DynSequence
     // Returns the current length of the sequence
     public int get_length() {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         return (checkInitComponents() ? components.length : 0);
     }
@@ -141,7 +159,7 @@ public class DynSequenceImpl extends DynAnyCollectionImpl implements DynSequence
         throws org.omg.DynamicAny.DynAnyPackage.InvalidValue
     {
         if (status == STATUS_DESTROYED) {
-	    throw wrapper.dynAnyDestroyed() ;
+            throw wrapper.dynAnyDestroyed() ;
         }
         int bound = getBound();
         if (bound > 0 && len > bound) {
@@ -189,7 +207,7 @@ public class DynSequenceImpl extends DynAnyCollectionImpl implements DynSequence
             // ?f the current position is -1 before decreasing the length, it remains at -1.
             // ?f the current position indicates a valid element and that element is not removed
             // when the length is decreased, the current position remains unaffected.
-            // ?f the current position indicates a valid element and that element is removed, 
+            // ?f the current position indicates a valid element and that element is removed,
             // the current position is set to -1.
             if (len == 0 || index >= len) {
                 index = NO_INDEX;

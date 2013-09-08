@@ -1,8 +1,26 @@
 /*
- * @(#)ServerException.java	1.16 05/11/17
+ * Copyright (c) 1996, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.rmi;
@@ -12,11 +30,10 @@ package java.rmi;
  * invocation when a <code>RemoteException</code> is thrown while processing
  * the invocation on the server, either while unmarshalling the arguments or
  * executing the remote method itself.
- * 
+ *
  * A <code>ServerException</code> instance contains the original
  * <code>RemoteException</code> that occurred as its cause.
  *
- * @version 1.16, 11/17/05
  * @author  Ann Wollrath
  * @since   JDK1.1
  */
@@ -33,7 +50,7 @@ public class ServerException extends RemoteException {
      * @since JDK1.1
      */
     public ServerException(String s) {
-	super(s);
+        super(s);
     }
 
     /**
@@ -45,6 +62,6 @@ public class ServerException extends RemoteException {
      * @since JDK1.1
      */
     public ServerException(String s, Exception ex) {
-	super(s, ex);
+        super(s, ex);
     }
 }

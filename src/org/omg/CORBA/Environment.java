@@ -1,8 +1,26 @@
 /*
- * @(#)Environment.java	1.24 05/11/17
+ * Copyright (c) 1996, 1999, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package org.omg.CORBA;
@@ -13,7 +31,6 @@ package org.omg.CORBA;
  * <code>Environment</code> object is created with the <code>ORB</code>
  * method <code>create_environment</code>.
  *
- * @version 1.11, 09/09/97
  * @since   JDK1.2
  */
 
@@ -22,7 +39,7 @@ public abstract class Environment {
     /**
      * Retrieves the exception in this <code>Environment</code> object.
      *
-     * @return			the exception in this <code>Environment</code> object
+     * @return                  the exception in this <code>Environment</code> object
      */
 
     public abstract java.lang.Exception exception();
@@ -30,7 +47,7 @@ public abstract class Environment {
     /**
      * Inserts the given exception into this <code>Environment</code> object.
      *
-     * @param except		the exception to be set
+     * @param except            the exception to be set
      */
 
     public abstract void exception(java.lang.Exception except);

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
 package com.sun.org.apache.bcel.internal.classfile;
 
 /* ====================================================================
@@ -63,24 +67,23 @@ import java.util.zip.*;
 /**
  * Utility functions that do not really belong to any class in particular.
  *
- * @version $Id: Utility.java,v 1.1.2.1 2005/07/31 23:46:27 jeffsuttor Exp $
  * @author  <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
  */
 public abstract class Utility {
   private static int consumed_chars; /* How many chars have been consumed
-				      * during parsing in signatureToString().
-				      * Read by methodSignatureToString().
-				      * Set by side effect,but only internally.
-				      */
+                                      * during parsing in signatureToString().
+                                      * Read by methodSignatureToString().
+                                      * Set by side effect,but only internally.
+                                      */
   private static boolean wide=false; /* The `WIDE' instruction is used in the
-				      * byte code to allow 16-bit wide indices
-				      * for local variables. This opcode
-				      * precedes an `ILOAD', e.g.. The opcode
-				      * immediately following takes an extra
-				      * byte which is combined with the
-				      * following byte to form a
-				      * 16-bit value.
-				      */
+                                      * byte code to allow 16-bit wide indices
+                                      * for local variables. This opcode
+                                      * precedes an `ILOAD', e.g.. The opcode
+                                      * immediately following takes an extra
+                                      * byte which is combined with the
+                                      * following byte to form a
+                                      * 16-bit value.
+                                      */
   /**
    * Convert bit field of flags into string such as `static final'.
    *
@@ -97,14 +100,14 @@ public abstract class Utility {
    * Special case: Classes compiled with new compilers and with the
    * `ACC_SUPER' flag would be said to be "synchronized". This is
    * because SUN used the same value for the flags `ACC_SUPER' and
-   * `ACC_SYNCHRONIZED'. 
+   * `ACC_SYNCHRONIZED'.
    *
    * @param  access_flags Access flags
    * @param  for_class access flags are for class qualifiers ?
    * @return String representation of flags
    */
-  public static final String accessToString(int access_flags, 
-					    boolean for_class)
+  public static final String accessToString(int access_flags,
+                                            boolean for_class)
   {
     StringBuffer buf = new StringBuffer();
 
@@ -113,15 +116,15 @@ public abstract class Utility {
       p = pow2(i);
 
       if((access_flags & p) != 0) {
-	/* Special case: Classes compiled with new compilers and with the
-	 * `ACC_SUPER' flag would be said to be "synchronized". This is
-	 * because SUN used the same value for the flags `ACC_SUPER' and
-	 * `ACC_SYNCHRONIZED'.
-	 */
-	if(for_class && ((p == Constants.ACC_SUPER) || (p == Constants.ACC_INTERFACE)))
-	  continue;	    
+        /* Special case: Classes compiled with new compilers and with the
+         * `ACC_SUPER' flag would be said to be "synchronized". This is
+         * because SUN used the same value for the flags `ACC_SUPER' and
+         * `ACC_SYNCHRONIZED'.
+         */
+        if(for_class && ((p == Constants.ACC_SUPER) || (p == Constants.ACC_INTERFACE)))
+          continue;
 
-	buf.append(Constants.ACCESS_NAMES[i] + " ");
+        buf.append(Constants.ACCESS_NAMES[i] + " ");
       }
     }
 
@@ -136,7 +139,7 @@ public abstract class Utility {
   }
 
   /**
-   * Disassemble a byte array of JVM byte codes starting from code line 
+   * Disassemble a byte array of JVM byte codes starting from code line
    * `index' and return the disassembled string representation. Decode only
    * `num' opcodes (including their operands), use -1 if you want to
    * decompile everything.
@@ -149,22 +152,22 @@ public abstract class Utility {
    * @param  verbose be verbose, e.g. print constant pool index
    * @return String representation of byte codes
    */
-  public static final String codeToString(byte[] code, 
-					  ConstantPool constant_pool, 
-					  int index, int length, boolean verbose)
+  public static final String codeToString(byte[] code,
+                                          ConstantPool constant_pool,
+                                          int index, int length, boolean verbose)
   {
     StringBuffer buf    = new StringBuffer(code.length * 20); // Should be sufficient
     ByteSequence stream = new ByteSequence(code);
 
     try {
       for(int i=0; i < index; i++) // Skip `index' lines of code
-	codeToString(stream, constant_pool, verbose);
+        codeToString(stream, constant_pool, verbose);
 
       for(int i=0; stream.available() > 0; i++) {
-	if((length < 0) || (i < length)) {
-	  String indices = fillup(stream.getIndex() + ":", 6, true, ' ');
-	  buf.append(indices + codeToString(stream, constant_pool, verbose) + '\n');
-	}
+        if((length < 0) || (i < length)) {
+          String indices = fillup(stream.getIndex() + ":", 6, true, ' ');
+          buf.append(indices + codeToString(stream, constant_pool, verbose) + '\n');
+        }
       }
     } catch(IOException e) {
       System.out.println(buf.toString());
@@ -175,9 +178,9 @@ public abstract class Utility {
     return buf.toString();
   }
 
-  public static final String codeToString(byte[] code, 
-					  ConstantPool constant_pool, 
-					  int index, int length) {
+  public static final String codeToString(byte[] code,
+                                          ConstantPool constant_pool,
+                                          int index, int length) {
     return codeToString(code, constant_pool, index, length, true);
   }
 
@@ -191,7 +194,7 @@ public abstract class Utility {
    * @return String representation of byte code
    */
   public static final String codeToString(ByteSequence bytes,
-					  ConstantPool constant_pool, boolean verbose)
+                                          ConstantPool constant_pool, boolean verbose)
        throws IOException
   {
     short        opcode = (short)bytes.readUnsignedByte();
@@ -209,11 +212,11 @@ public abstract class Utility {
       no_pad_bytes  = (remainder == 0)? 0 : 4 - remainder;
 
       for(int i=0; i < no_pad_bytes; i++) {
-	byte b;
+        byte b;
 
-	if((b=bytes.readByte()) != 0)
-	  System.err.println("Warning: Padding byte != 0 in " +
-			     Constants.OPCODE_NAMES[opcode] + ":" + b);
+        if((b=bytes.readByte()) != 0)
+          System.err.println("Warning: Padding byte != 0 in " +
+                             Constants.OPCODE_NAMES[opcode] + ":" + b);
       }
 
       // Both cases have a field default_offset in common
@@ -230,16 +233,16 @@ public abstract class Utility {
       offset = bytes.getIndex() - 12 - no_pad_bytes - 1;
       default_offset += offset;
 
-      buf.append("\tdefault = " + default_offset + ", low = " + low + 
-		 ", high = " + high + "(");
+      buf.append("\tdefault = " + default_offset + ", low = " + low +
+                 ", high = " + high + "(");
 
       jump_table = new int[high - low + 1];
       for(int i=0; i < jump_table.length; i++) {
-	jump_table[i] = offset + bytes.readInt();
-	buf.append(jump_table[i]);
+        jump_table[i] = offset + bytes.readInt();
+        buf.append(jump_table[i]);
 
-	if(i < jump_table.length - 1)
-	  buf.append(", ");
+        if(i < jump_table.length - 1)
+          buf.append(", ");
       }
       buf.append(")");
 
@@ -251,23 +254,23 @@ public abstract class Utility {
 
       npairs = bytes.readInt();
       offset = bytes.getIndex() - 8 - no_pad_bytes - 1;
-	  
+
       match      = new int[npairs];
       jump_table = new int[npairs];
       default_offset += offset;
 
       buf.append("\tdefault = " + default_offset + ", npairs = " + npairs +
-		 " (");
+                 " (");
 
       for(int i=0; i < npairs; i++) {
-	match[i]      = bytes.readInt();
+        match[i]      = bytes.readInt();
 
-	jump_table[i] = offset + bytes.readInt();
+        jump_table[i] = offset + bytes.readInt();
 
-	buf.append("(" + match[i] + ", " + jump_table[i] + ")");
+        buf.append("(" + match[i] + ", " + jump_table[i] + ")");
 
-	if(i < npairs - 1)
-	  buf.append(", ");
+        if(i < npairs - 1)
+          buf.append(", ");
       }
       buf.append(")");
     }
@@ -283,7 +286,7 @@ public abstract class Utility {
     case Constants.IF_ICMPLE: case Constants.IF_ICMPLT: case Constants.IF_ICMPNE:
       buf.append("\t\t#" + ((bytes.getIndex() - 1) + bytes.readShort()));
       break;
-	  
+
       /* 32-bit wide jumps
        */
     case Constants.GOTO_W: case Constants.JSR_W:
@@ -294,13 +297,13 @@ public abstract class Utility {
        */
     case Constants.ALOAD:  case Constants.ASTORE: case Constants.DLOAD:  case Constants.DSTORE: case Constants.FLOAD:
     case Constants.FSTORE: case Constants.ILOAD:  case Constants.ISTORE: case Constants.LLOAD:  case Constants.LSTORE:
-    case Constants.RET: 
+    case Constants.RET:
       if(wide) {
-	vindex = bytes.readUnsignedShort();
-	wide=false; // Clear flag
+        vindex = bytes.readUnsignedShort();
+        wide=false; // Clear flag
       }
       else
-	vindex = bytes.readUnsignedByte();
+        vindex = bytes.readUnsignedByte();
 
       buf.append("\t\t%" + vindex);
       break;
@@ -326,10 +329,10 @@ public abstract class Utility {
     case Constants.GETFIELD: case Constants.GETSTATIC: case Constants.PUTFIELD: case Constants.PUTSTATIC:
       index = bytes.readUnsignedShort();
       buf.append("\t\t" +
-		 constant_pool.constantToString(index, Constants.CONSTANT_Fieldref) +
-		 (verbose? " (" + index + ")" : ""));
+                 constant_pool.constantToString(index, Constants.CONSTANT_Fieldref) +
+                 (verbose? " (" + index + ")" : ""));
       break;
-	  
+
       /* Operands are references to classes in constant pool
        */
     case Constants.NEW:
@@ -338,8 +341,8 @@ public abstract class Utility {
     case Constants.INSTANCEOF:
       index = bytes.readUnsignedShort();
       buf.append("\t<" + constant_pool.constantToString(index,
-							Constants.CONSTANT_Class) +
-		 ">" + (verbose? " (" + index + ")" : ""));
+                                                        Constants.CONSTANT_Class) +
+                 ">" + (verbose? " (" + index + ")" : ""));
       break;
 
       /* Operands are references to methods in constant pool
@@ -347,49 +350,49 @@ public abstract class Utility {
     case Constants.INVOKESPECIAL: case Constants.INVOKESTATIC: case Constants.INVOKEVIRTUAL:
       index = bytes.readUnsignedShort();
       buf.append("\t" + constant_pool.constantToString(index,
-						       Constants.CONSTANT_Methodref) +
-		 (verbose? " (" + index + ")" : ""));
+                                                       Constants.CONSTANT_Methodref) +
+                 (verbose? " (" + index + ")" : ""));
       break;
 
     case Constants.INVOKEINTERFACE:
       index = bytes.readUnsignedShort();
       int nargs = bytes.readUnsignedByte(); // historical, redundant
-      buf.append("\t" + 
-		 constant_pool.constantToString(index,
-						Constants.CONSTANT_InterfaceMethodref) +
-		 (verbose? " (" + index + ")\t" : "") + nargs + "\t" + 
-		 bytes.readUnsignedByte()); // Last byte is a reserved space
+      buf.append("\t" +
+                 constant_pool.constantToString(index,
+                                                Constants.CONSTANT_InterfaceMethodref) +
+                 (verbose? " (" + index + ")\t" : "") + nargs + "\t" +
+                 bytes.readUnsignedByte()); // Last byte is a reserved space
       break;
-	
+
       /* Operands are references to items in constant pool
        */
     case Constants.LDC_W: case Constants.LDC2_W:
       index = bytes.readUnsignedShort();
 
       buf.append("\t\t" + constant_pool.constantToString
-		 (index, constant_pool.getConstant(index).getTag()) +
-		 (verbose? " (" + index + ")" : ""));
+                 (index, constant_pool.getConstant(index).getTag()) +
+                 (verbose? " (" + index + ")" : ""));
       break;
 
     case Constants.LDC:
       index = bytes.readUnsignedByte();
 
-      buf.append("\t\t" + 
-		 constant_pool.constantToString
-		 (index, constant_pool.getConstant(index).getTag()) +
-		 (verbose? " (" + index + ")" : ""));
+      buf.append("\t\t" +
+                 constant_pool.constantToString
+                 (index, constant_pool.getConstant(index).getTag()) +
+                 (verbose? " (" + index + ")" : ""));
       break;
-	
+
       /* Array of references.
        */
     case Constants.ANEWARRAY:
       index = bytes.readUnsignedShort();
-	  
+
       buf.append("\t\t<" + compactClassName(constant_pool.getConstantString
-					  (index, Constants.CONSTANT_Class), false) +
-		 ">" + (verbose? " (" + index + ")": ""));
+                                          (index, Constants.CONSTANT_Class), false) +
+                 ">" + (verbose? " (" + index + ")": ""));
       break;
-	
+
       /* Multidimensional array of references.
        */
     case Constants.MULTIANEWARRAY: {
@@ -397,8 +400,8 @@ public abstract class Utility {
       int dimensions = bytes.readUnsignedByte();
 
       buf.append("\t<" + compactClassName(constant_pool.getConstantString
-					  (index, Constants.CONSTANT_Class), false) +
-		 ">\t" + dimensions + (verbose? " (" + index + ")" : ""));
+                                          (index, Constants.CONSTANT_Class), false) +
+                 ">\t" + dimensions + (verbose? " (" + index + ")" : ""));
     }
     break;
 
@@ -406,31 +409,31 @@ public abstract class Utility {
      */
     case Constants.IINC:
       if(wide) {
-	vindex   = bytes.readUnsignedShort();
-	constant = bytes.readShort();
-	wide     = false;
+        vindex   = bytes.readUnsignedShort();
+        constant = bytes.readShort();
+        wide     = false;
       }
       else {
-	vindex   = bytes.readUnsignedByte();
-	constant = bytes.readByte();
+        vindex   = bytes.readUnsignedByte();
+        constant = bytes.readByte();
       }
       buf.append("\t\t%" + vindex + "\t" + constant);
       break;
 
     default:
       if(Constants.NO_OF_OPERANDS[opcode] > 0) {
-	for(int i=0; i < Constants.TYPE_OF_OPERANDS[opcode].length; i++) {
-	  buf.append("\t\t");
-	  switch(Constants.TYPE_OF_OPERANDS[opcode][i]) {
-	  case Constants.T_BYTE:  buf.append(bytes.readByte()); break;
-	  case Constants.T_SHORT: buf.append(bytes.readShort());       break;
-	  case Constants.T_INT:   buf.append(bytes.readInt());         break;
-					      
-	  default: // Never reached
-	    System.err.println("Unreachable default case reached!");
-	    System.exit(-1);
-	  }
-	}
+        for(int i=0; i < Constants.TYPE_OF_OPERANDS[opcode].length; i++) {
+          buf.append("\t\t");
+          switch(Constants.TYPE_OF_OPERANDS[opcode][i]) {
+          case Constants.T_BYTE:  buf.append(bytes.readByte()); break;
+          case Constants.T_SHORT: buf.append(bytes.readShort());       break;
+          case Constants.T_INT:   buf.append(bytes.readInt());         break;
+
+          default: // Never reached
+            System.err.println("Unreachable default case reached!");
+            buf.setLength(0);
+          }
+        }
       }
     }
 
@@ -444,7 +447,7 @@ public abstract class Utility {
   }
 
   /**
-   * Shorten long class names, <em>java/lang/String</em> becomes 
+   * Shorten long class names, <em>java/lang/String</em> becomes
    * <em>String</em>.
    *
    * @param str The long class name
@@ -453,7 +456,7 @@ public abstract class Utility {
   public static final String compactClassName(String str) {
     return compactClassName(str, true);
   }
- 
+
   /**
    * Shorten long class name <em>str</em>, i.e., chop off the <em>prefix</em>,
    * if the
@@ -465,9 +468,9 @@ public abstract class Utility {
    * @param chopit Flag that determines whether chopping is executed or not
    * @return Compacted class name
    */
-  public static final String compactClassName(String str, 
-					      String prefix,
-					      boolean chopit)
+  public static final String compactClassName(String str,
+                                              String prefix,
+                                              boolean chopit)
   {
     int len = prefix.length();
 
@@ -476,15 +479,15 @@ public abstract class Utility {
     if(chopit) {
       // If string starts with `prefix' and contains no further dots
       if(str.startsWith(prefix) &&
-	 (str.substring(len).indexOf('.') == -1))
-	str = str.substring(len);
+         (str.substring(len).indexOf('.') == -1))
+        str = str.substring(len);
     }
-	
+
     return str;
   }
 
   /**
-   * Shorten long class names, <em>java/lang/String</em> becomes 
+   * Shorten long class names, <em>java/lang/String</em> becomes
    * <em>java.lang.String</em>,
    * e.g.. If <em>chopit</em> is <em>true</em> the prefix <em>java.lang</em>
    * is also removed.
@@ -495,31 +498,31 @@ public abstract class Utility {
    */
   public static final String compactClassName(String str, boolean chopit) {
     return compactClassName(str, "java.lang.", chopit);
-  }    
+  }
 
   private static final boolean is_digit(char ch) {
     return (ch >= '0') && (ch <= '9');
-  }    
-  
+  }
+
   private static final boolean is_space(char ch) {
     return (ch == ' ') || (ch == '\t') || (ch == '\r') || (ch == '\n');
-  }    
+  }
 
   /**
    * @return `flag' with bit `i' set to 1
    */
   public static final int setBit(int flag, int i) {
-    return flag | pow2(i); 
+    return flag | pow2(i);
   }
 
   /**
    * @return `flag' with bit `i' set to 0
    */
   public static final int clearBit(int flag, int i) {
-    int bit = pow2(i); 
-    return (flag & bit) == 0? flag : flag ^ bit; 
+    int bit = pow2(i);
+    return (flag & bit) == 0? flag : flag ^ bit;
   }
-   
+
   /**
    * @return true, if bit `i' in `flag' is set
    */
@@ -528,7 +531,7 @@ public abstract class Utility {
   }
 
   /**
-   * Converts string containing the method return and argument types 
+   * Converts string containing the method return and argument types
    * to a byte code method signature.
    *
    * @param  ret Return type of method
@@ -543,12 +546,12 @@ public abstract class Utility {
 
     if(argv != null)
       for(int i=0; i < argv.length; i++) {
-	str = getSignature(argv[i]);
+        str = getSignature(argv[i]);
 
-	if(str.endsWith("V")) // void can't be a method argument
-	  throw new ClassFormatException("Invalid type: " + argv[i]);
+        if(str.endsWith("V")) // void can't be a method argument
+          throw new ClassFormatException("Invalid type: " + argv[i]);
 
-	buf.append(str);
+        buf.append(str);
       }
 
     str = getSignature(ret);
@@ -561,22 +564,22 @@ public abstract class Utility {
   /**
    * @param  signature    Method signature
    * @return Array of argument types
-   * @throws  ClassFormatException  
+   * @throws  ClassFormatException
    */
   public static final String[] methodSignatureArgumentTypes(String signature)
-    throws ClassFormatException 
+    throws ClassFormatException
   {
     return methodSignatureArgumentTypes(signature, true);
-  }    
+  }
 
   /**
    * @param  signature    Method signature
    * @param chopit Shorten class names ?
    * @return Array of argument types
-   * @throws  ClassFormatException  
+   * @throws  ClassFormatException
    */
   public static final String[] methodSignatureArgumentTypes(String signature,
-							    boolean chopit)
+                                                            boolean chopit)
     throws ClassFormatException
   {
     ArrayList vec = new ArrayList();
@@ -585,40 +588,40 @@ public abstract class Utility {
 
     try { // Read all declarations between for `(' and `)'
       if(signature.charAt(0) != '(')
-	throw new ClassFormatException("Invalid method signature: " + signature);
+        throw new ClassFormatException("Invalid method signature: " + signature);
 
       index = 1; // current string position
 
       while(signature.charAt(index) != ')') {
-	vec.add(signatureToString(signature.substring(index), chopit));
-	index += consumed_chars; // update position
+        vec.add(signatureToString(signature.substring(index), chopit));
+        index += consumed_chars; // update position
       }
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
       throw new ClassFormatException("Invalid method signature: " + signature);
     }
-	
+
     types = new String[vec.size()];
     vec.toArray(types);
     return types;
-  }      
+  }
   /**
    * @param  signature    Method signature
    * @return return type of method
-   * @throws  ClassFormatException  
+   * @throws  ClassFormatException
    */
   public static final String methodSignatureReturnType(String signature)
-       throws ClassFormatException 
+       throws ClassFormatException
   {
     return methodSignatureReturnType(signature, true);
-  }    
+  }
   /**
    * @param  signature    Method signature
    * @param chopit Shorten class names ?
    * @return return type of method
-   * @throws  ClassFormatException  
+   * @throws  ClassFormatException
    */
   public static final String methodSignatureReturnType(String signature,
-						       boolean chopit)
+                                                       boolean chopit)
        throws ClassFormatException
   {
     int    index;
@@ -626,7 +629,7 @@ public abstract class Utility {
 
     try {
       // Read return type after `)'
-      index = signature.lastIndexOf(')') + 1; 
+      index = signature.lastIndexOf(')') + 1;
       type = signatureToString(signature.substring(index), chopit);
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
       throw new ClassFormatException("Invalid method signature: " + signature);
@@ -644,15 +647,15 @@ public abstract class Utility {
    * @return Human readable signature
    */
   public static final String methodSignatureToString(String signature,
-						     String name,
-						     String access) {
+                                                     String name,
+                                                     String access) {
     return methodSignatureToString(signature, name, access, true);
   }
 
   public static final String methodSignatureToString(String signature,
-						     String name,
-						     String access,
-						     boolean chopit) {
+                                                     String name,
+                                                     String access,
+                                                     boolean chopit) {
     return methodSignatureToString(signature, name, access, chopit, null);
   }
 
@@ -674,20 +677,20 @@ public abstract class Utility {
    * <arguments_signature>::= <argument_signature>*
    *
    * This method converts such a string into a Java type declaration like
-   * `void _main(String[])' and throws a `ClassFormatException' when the parsed 
+   * `void _main(String[])' and throws a `ClassFormatException' when the parsed
    * type is invalid.
    *
    * @param  signature    Method signature
    * @param  name         Method name
    * @param  access       Method access rights
    * @return Java type declaration
-   * @throws  ClassFormatException  
+   * @throws  ClassFormatException
    */
   public static final String methodSignatureToString(String signature,
-						     String name,
-						     String access,
-						     boolean chopit,
-						     LocalVariableTable vars)
+                                                     String name,
+                                                     String access,
+                                                     boolean chopit,
+                                                     LocalVariableTable vars)
     throws ClassFormatException
   {
     StringBuffer buf = new StringBuffer("(");
@@ -697,29 +700,29 @@ public abstract class Utility {
 
     try { // Read all declarations between for `(' and `)'
       if(signature.charAt(0) != '(')
-	throw new ClassFormatException("Invalid method signature: " + signature);
+        throw new ClassFormatException("Invalid method signature: " + signature);
 
       index = 1; // current string position
 
       while(signature.charAt(index) != ')') {
-	String param_type = signatureToString(signature.substring(index), chopit);
-	buf.append(param_type);
+        String param_type = signatureToString(signature.substring(index), chopit);
+        buf.append(param_type);
 
-	if(vars != null) {
-	  LocalVariable l = vars.getLocalVariable(var_index);
+        if(vars != null) {
+          LocalVariable l = vars.getLocalVariable(var_index);
 
-	  if(l != null)
-	    buf.append(" " + l.getName());
-	} else
-	  buf.append(" arg" + var_index);
+          if(l != null)
+            buf.append(" " + l.getName());
+        } else
+          buf.append(" arg" + var_index);
 
-	if("double".equals(param_type) || "long".equals(param_type))
-	  var_index += 2;
-	else
-	  var_index++;
+        if("double".equals(param_type) || "long".equals(param_type))
+          var_index += 2;
+        else
+          var_index++;
 
-	buf.append(", ");
-	index += consumed_chars; // update position
+        buf.append(", ");
+        index += consumed_chars; // update position
       }
 
       index++; // update position
@@ -744,7 +747,7 @@ public abstract class Utility {
   private static final int pow2(int n) {
     return 1 << n;
   }
-    
+
   /**
    * Replace all occurences of <em>old</em> in <em>str</em> with <em>new</em>.
    *
@@ -759,18 +762,18 @@ public abstract class Utility {
 
     try {
       if((index = str.indexOf(old)) != -1) { // `old' found in str
-	old_index = 0;                       // String start offset
-	  
-	// While we have something to replace
-	while((index = str.indexOf(old, old_index)) != -1) {
-	  buf.append(str.substring(old_index, index)); // append prefix
-	  buf.append(new_);                            // append replacement
-	      
-	  old_index = index + old.length(); // Skip `old'.length chars
-	}
+        old_index = 0;                       // String start offset
 
-	buf.append(str.substring(old_index)); // append rest of string
-	str = buf.toString();	
+        // While we have something to replace
+        while((index = str.indexOf(old, old_index)) != -1) {
+          buf.append(str.substring(old_index, index)); // append prefix
+          buf.append(new_);                            // append replacement
+
+          old_index = index + old.length(); // Skip `old'.length chars
+        }
+
+        buf.append(str.substring(old_index)); // append rest of string
+        str = buf.toString();
       }
     } catch(StringIndexOutOfBoundsException e) { // Should not occur
       System.err.println(e);
@@ -787,11 +790,11 @@ public abstract class Utility {
    */
   public static final String signatureToString(String signature) {
     return signatureToString(signature, true);
-  }    
+  }
 
   /**
-   * The field signature represents the value of an argument to a function or 
-   * the value of a variable. It is a series of bytes generated by the 
+   * The field signature represents the value of an argument to a function or
+   * the value of a variable. It is a series of bytes generated by the
    * following grammar:
    *
    * <PRE>
@@ -815,7 +818,7 @@ public abstract class Utility {
    * </PRE>
    *
    * This method converts this string into a Java type declaration such as
-   * `String[]' and throws a `ClassFormatException' when the parsed type is 
+   * `String[]' and throws a `ClassFormatException' when the parsed type is
    * invalid.
    *
    * @param  signature  Class signature
@@ -824,7 +827,7 @@ public abstract class Utility {
    * @throws ClassFormatException
    */
   public static final String signatureToString(String signature,
-					       boolean chopit)
+                                               boolean chopit)
   {
     consumed_chars = 1; // This is the default, read just one char like `B'
 
@@ -838,45 +841,45 @@ public abstract class Utility {
       case 'J' : return "long";
 
       case 'L' : { // Full class name
-	int    index = signature.indexOf(';'); // Look for closing `;'
+        int    index = signature.indexOf(';'); // Look for closing `;'
 
-	if(index < 0)
-	  throw new ClassFormatException("Invalid signature: " + signature);
-	
-	consumed_chars = index + 1; // "Lblabla;" `L' and `;' are removed
+        if(index < 0)
+          throw new ClassFormatException("Invalid signature: " + signature);
 
-	return compactClassName(signature.substring(1, index), chopit);
+        consumed_chars = index + 1; // "Lblabla;" `L' and `;' are removed
+
+        return compactClassName(signature.substring(1, index), chopit);
       }
 
       case 'S' : return "short";
       case 'Z' : return "boolean";
 
       case '[' : { // Array declaration
-	int          n;
-	StringBuffer buf, brackets;
-	String       type;
-	char         ch;
-	int          consumed_chars; // Shadows global var
+        int          n;
+        StringBuffer buf, brackets;
+        String       type;
+        char         ch;
+        int          consumed_chars; // Shadows global var
 
-	brackets = new StringBuffer(); // Accumulate []'s
+        brackets = new StringBuffer(); // Accumulate []'s
 
-	// Count opening brackets and look for optional size argument
-	for(n=0; signature.charAt(n) == '['; n++)
-	  brackets.append("[]");
+        // Count opening brackets and look for optional size argument
+        for(n=0; signature.charAt(n) == '['; n++)
+          brackets.append("[]");
 
-	consumed_chars = n; // Remember value
+        consumed_chars = n; // Remember value
 
-	// The rest of the string denotes a `<field_type>'
-	type = signatureToString(signature.substring(n), chopit);
-	
-	Utility.consumed_chars += consumed_chars;
-	return type + brackets.toString();
+        // The rest of the string denotes a `<field_type>'
+        type = signatureToString(signature.substring(n), chopit);
+
+        Utility.consumed_chars += consumed_chars;
+        return type + brackets.toString();
       }
 
       case 'V' : return "void";
 
       default  : throw new ClassFormatException("Invalid signature: `" +
-					    signature + "'");
+                                            signature + "'");
       }
     } catch(StringIndexOutOfBoundsException e) { // Should never occur
       throw new ClassFormatException("Invalid signature: " + e + ":" + signature);
@@ -899,21 +902,21 @@ public abstract class Utility {
     for(int i=0; i < chars.length; i++) {
       switch(chars[i]) {
       case ' ': case '\t': case '\n': case '\r': case '\f':
-	if(char_found)
-	  delim = true;
-	break;
+        if(char_found)
+          delim = true;
+        break;
 
       case '[':
-	if(!char_found)
-	  throw new RuntimeException("Illegal type: " + type);
+        if(!char_found)
+          throw new RuntimeException("Illegal type: " + type);
 
-	index = i;
-	break loop;
+        index = i;
+        break loop;
 
       default:
-	char_found = true;
-	if(!delim)
-	  buf.append(chars[i]);
+        char_found = true;
+        if(!delim)
+          buf.append(chars[i]);
       }
     }
 
@@ -932,11 +935,11 @@ public abstract class Utility {
 
     for(int i=Constants.T_BOOLEAN; (i <= Constants.T_VOID) && !found; i++) {
       if(Constants.TYPE_NAMES[i].equals(type)) {
-	found = true;
-	buf.append(Constants.SHORT_TYPE_NAMES[i]);
+        found = true;
+        buf.append(Constants.SHORT_TYPE_NAMES[i]);
       }
     }
-    
+
     if(!found) // Class name
       buf.append('L' + type.replace('.', '/') + ';');
 
@@ -951,20 +954,20 @@ public abstract class Utility {
     for(int i=0; i<chars.length; i++) {
       switch(chars[i]) {
       case '[':
-	if(open)
-	  throw new RuntimeException("Illegally nested brackets:" + brackets);
-	open = true;
-	break;
+        if(open)
+          throw new RuntimeException("Illegally nested brackets:" + brackets);
+        open = true;
+        break;
 
       case ']':
-	if(!open)
-	  throw new RuntimeException("Illegally nested brackets:" + brackets);
-	open = false;
-	count++;
-	break;
+        if(!open)
+          throw new RuntimeException("Illegally nested brackets:" + brackets);
+        open = false;
+        count++;
+        break;
 
       default:
-	// Don't care
+        // Don't care
       }
     }
 
@@ -988,7 +991,7 @@ public abstract class Utility {
 
     try {
       if(signature.charAt(0) != '(')
-	throw new ClassFormatException("Invalid method signature: " + signature);
+        throw new ClassFormatException("Invalid method signature: " + signature);
 
       index = signature.lastIndexOf(')') + 1;
       return typeOfSignature(signature.substring(index));
@@ -1020,8 +1023,8 @@ public abstract class Utility {
       case 'V' : return Constants.T_VOID;
       case 'Z' : return Constants.T_BOOLEAN;
       case 'S' : return Constants.T_SHORT;
-      default:  
-	throw new ClassFormatException("Invalid method signature: " + signature);
+      default:
+        throw new ClassFormatException("Invalid method signature: " + signature);
       }
     } catch(StringIndexOutOfBoundsException e) {
       throw new ClassFormatException("Invalid method signature: " + signature);
@@ -1035,8 +1038,8 @@ public abstract class Utility {
 
     for(short i=0; i < Constants.OPCODE_NAMES.length; i++)
       if(Constants.OPCODE_NAMES[i].equals(name))
-	return i;
-    
+        return i;
+
     return -1;
   }
 
@@ -1060,12 +1063,12 @@ public abstract class Utility {
       String hex = Integer.toString(b, 0x10);
 
       if(b < 0x10) // just one digit, prepend '0'
-	buf.append('0');
+        buf.append('0');
 
       buf.append(hex);
 
       if(i < bytes.length - 1)
-	buf.append(' ');
+        buf.append(' ');
     }
 
     return buf.toString();
@@ -1102,7 +1105,7 @@ public abstract class Utility {
       buf[j] = fill;
 
     if(left_justify)
-      return str + new String(buf);    
+      return str + new String(buf);
     else
       return new String(buf) + str;
   }
@@ -1115,7 +1118,7 @@ public abstract class Utility {
 
     for(int i=0; i < size; i++)
       if(a[i] != b[i])
-	return false;
+        return false;
 
     return true;
   }
@@ -1137,7 +1140,7 @@ public abstract class Utility {
   }
 
   public static final String printArray(Object[] obj, boolean braces,
-					boolean quote) {
+                                        boolean quote) {
     if(obj == null)
       return null;
 
@@ -1147,13 +1150,13 @@ public abstract class Utility {
 
     for(int i=0; i < obj.length; i++) {
       if(obj[i] != null) {
-	buf.append((quote? "\"" : "") + obj[i].toString() + (quote? "\"" : ""));
+        buf.append((quote? "\"" : "") + obj[i].toString() + (quote? "\"" : ""));
       } else {
-	buf.append("null");
+        buf.append("null");
       }
 
       if(i < obj.length - 1) {
-	buf.append(", ");
+        buf.append(", ");
       }
     }
 
@@ -1244,7 +1247,7 @@ public abstract class Utility {
       int    b;
 
       while((b = gis.read()) >= 0)
-	tmp[count++] = (byte)b;
+        tmp[count++] = (byte)b;
 
       bytes = new byte[count];
       System.arraycopy(tmp, 0, bytes, 0, count);
@@ -1293,32 +1296,32 @@ public abstract class Utility {
       int b = in.read();
 
       if(b != ESCAPE_CHAR) {
-	return b;
+        return b;
       } else {
-	int i = in.read();
+        int i = in.read();
 
-	if(i < 0)
-	  return -1;
+        if(i < 0)
+          return -1;
 
-	if(((i >= '0') && (i <= '9')) || ((i >= 'a') && (i <= 'f'))) { // Normal escape
-	  int j = in.read();
+        if(((i >= '0') && (i <= '9')) || ((i >= 'a') && (i <= 'f'))) { // Normal escape
+          int j = in.read();
 
-	  if(j < 0)
-	    return -1;
+          if(j < 0)
+            return -1;
 
-	  char[] tmp = { (char)i, (char)j };
-	  int    s   = Integer.parseInt(new String(tmp), 16);
+          char[] tmp = { (char)i, (char)j };
+          int    s   = Integer.parseInt(new String(tmp), 16);
 
-	  return s;
-	} else { // Special escape
-	  return MAP_CHAR[i];
-	}
+          return s;
+        } else { // Special escape
+          return MAP_CHAR[i];
+        }
       }
     }
 
     public int read(char[] cbuf, int off, int len) throws IOException {
       for(int i=0; i < len; i++)
-	cbuf[off + i] = (char)read();
+        cbuf[off + i] = (char)read();
 
       return len;
     }
@@ -1334,30 +1337,30 @@ public abstract class Utility {
 
     public void write(int b) throws IOException {
       if(isJavaIdentifierPart((char)b) && (b != ESCAPE_CHAR)) {
-	out.write(b);
+        out.write(b);
       } else {
-	out.write(ESCAPE_CHAR); // Escape character
+        out.write(ESCAPE_CHAR); // Escape character
 
-	// Special escape
-	if(b >= 0 && b < FREE_CHARS) {
-	  out.write(CHAR_MAP[b]);
-	} else { // Normal escape
-	  char[] tmp = Integer.toHexString(b).toCharArray();
+        // Special escape
+        if(b >= 0 && b < FREE_CHARS) {
+          out.write(CHAR_MAP[b]);
+        } else { // Normal escape
+          char[] tmp = Integer.toHexString(b).toCharArray();
 
-	  if(tmp.length == 1) {
-	    out.write('0');
-	    out.write(tmp[0]);
-	  } else {
-	    out.write(tmp[0]);
-	    out.write(tmp[1]);
-	  }
-	}
+          if(tmp.length == 1) {
+            out.write('0');
+            out.write(tmp[0]);
+          } else {
+            out.write(tmp[0]);
+            out.write(tmp[1]);
+          }
+        }
       }
     }
 
     public void write(char[] cbuf, int off, int len) throws IOException {
       for(int i=0; i < len; i++)
-	write(cbuf[off + i]);
+        write(cbuf[off + i]);
     }
 
     public void write(String str, int off, int len) throws IOException {
@@ -1375,17 +1378,17 @@ public abstract class Utility {
     for(int i=0; i < ch.length; i++) {
       switch(ch[i]) {
       case '\n':
-	buf.append("\\n"); break;
+        buf.append("\\n"); break;
       case '\r':
-	buf.append("\\r"); break;
+        buf.append("\\r"); break;
       case '\"':
-	buf.append("\\\""); break;
+        buf.append("\\\""); break;
       case '\'':
-	buf.append("\\'"); break;
+        buf.append("\\'"); break;
       case '\\':
-	buf.append("\\\\"); break;
+        buf.append("\\\\"); break;
       default:
-	buf.append(ch[i]); break;
+        buf.append(ch[i]); break;
       }
     }
 

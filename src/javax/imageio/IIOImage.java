@@ -1,8 +1,26 @@
 /*
- * @(#)IIOImage.java	1.22 05/11/17
+ * Copyright (c) 2000, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.imageio;
@@ -15,7 +33,7 @@ import javax.imageio.metadata.IIOMetadata;
 
 /**
  * A simple container class to aggregate an image, a set of
- * thumbnail (preview) images, and an object representing metadata 
+ * thumbnail (preview) images, and an object representing metadata
  * associated with the image.
  *
  * <p> The image data may take the form of either a
@@ -28,7 +46,7 @@ import javax.imageio.metadata.IIOMetadata;
  *
  * <p> Exactly one of <code>getRenderedImage</code> and
  * <code>getRaster</code> will return a non-<code>null</code> value.
- * Subclasses are responsible for ensuring this behavior. 
+ * Subclasses are responsible for ensuring this behavior.
  *
  * @see ImageReader#readAll(int, ImageReadParam)
  * @see ImageReader#readAll(java.util.Iterator)
@@ -38,7 +56,6 @@ import javax.imageio.metadata.IIOMetadata;
  * @see ImageWriter#writeToSequence(IIOImage, ImageWriteParam)
  * @see ImageWriter#writeInsert(int, IIOImage, ImageWriteParam)
  *
- * @version 0.5
  */
 public class IIOImage {
 
@@ -148,7 +165,7 @@ public class IIOImage {
      *
      * @exception IllegalArgumentException if <code>image</code> is
      * <code>null</code>.
-     * 
+     *
      * @see #getRenderedImage
      */
     public void setRenderedImage(RenderedImage image) {
@@ -198,7 +215,7 @@ public class IIOImage {
      *
      * @exception IllegalArgumentException if <code>raster</code> is
      * <code>null</code>.
-     * 
+     *
      * @see #getRaster
      */
     public void setRaster(Raster raster) {

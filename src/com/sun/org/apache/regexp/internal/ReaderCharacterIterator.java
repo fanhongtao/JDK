@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +27,6 @@ import java.io.IOException;
  * Encapsulates java.io.Reader as CharacterIterator
  *
  * @author <a href="mailto:ales.novak@netbeans.com">Ales Novak</a>
- * @version CVS $Id: ReaderCharacterIterator.java,v 1.1.2.1 2005/08/01 00:02:57 jeffsuttor Exp $
  */
 public final class ReaderCharacterIterator implements CharacterIterator
 {

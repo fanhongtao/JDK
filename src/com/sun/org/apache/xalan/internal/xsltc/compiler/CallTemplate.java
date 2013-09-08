@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 2001-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,31 +45,31 @@ import java.util.Vector;
  * @author Erwin Bolwidt <ejb@klomp.org>
  */
 final class CallTemplate extends Instruction {
-    
+
     /**
      * Name of template to call.
      */
     private QName _name;
-    
-    /** 
-     * The array of effective parameters in this CallTemplate. An object in 
-     * this array can be either a WithParam or a Param if no WithParam 
+
+    /**
+     * The array of effective parameters in this CallTemplate. An object in
+     * this array can be either a WithParam or a Param if no WithParam
      * exists for a particular parameter.
      */
     private Object[] _parameters = null;
-        
+
     /**
      * The corresponding template which this CallTemplate calls.
      */
     private Template _calleeTemplate = null;
-    
+
     public void display(int indent) {
 	indent(indent);
 	System.out.print("CallTemplate");
 	Util.println(" name " + _name);
 	displayContents(indent + IndentIncrement);
     }
-		
+
     public boolean hasWithParams() {
 	return elementCount() > 0;
     }
@@ -75,16 +79,16 @@ final class CallTemplate extends Instruction {
         if (name.length() > 0) {
             if (!XML11Char.isXML11ValidQName(name)) {
                 ErrorMsg err = new ErrorMsg(ErrorMsg.INVALID_QNAME_ERR, name, this);
-                parser.reportError(Constants.ERROR, err);           
-            }                
+                parser.reportError(Constants.ERROR, err);
+            }
             _name = parser.getQNameIgnoreDefaultNs(name);
         }
         else {
-            reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "name");		
+            reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "name");
         }
 	parseChildren(parser);
     }
-		
+
     /**
      * Verify that a template with this name exists.
      */
@@ -108,7 +112,7 @@ final class CallTemplate extends Instruction {
         // If there are Params in the stylesheet or WithParams in this call?
 	if (stylesheet.hasLocalParams() || hasContents()) {
 	    _calleeTemplate = getCalleeTemplate();
-	    
+
 	    // Build the parameter list if the called template is simple named
 	    if (_calleeTemplate != null) {
 	    	buildParameterList();
@@ -117,7 +121,7 @@ final class CallTemplate extends Instruction {
 	    // a simple named template.
 	    else {
 	        // Push parameter frame
-	        final int push = cpg.addMethodref(TRANSLET_CLASS, 
+	        final int push = cpg.addMethodref(TRANSLET_CLASS,
 					          PUSH_PARAM_FRAME,
 					          PUSH_PARAM_FRAME_SIG);
 	        il.append(classGen.loadTranslet());
@@ -136,20 +140,20 @@ final class CallTemplate extends Instruction {
 	il.append(methodGen.loadIterator());
 	il.append(methodGen.loadHandler());
 	il.append(methodGen.loadCurrentNode());
-        
+
         // Initialize prefix of method signature
-	StringBuffer methodSig = new StringBuffer("(" + DOM_INTF_SIG 
+	StringBuffer methodSig = new StringBuffer("(" + DOM_INTF_SIG
             + NODE_ITERATOR_SIG + TRANSLET_OUTPUT_SIG + NODE_SIG);
-	
+
         // If calling a simply named template, push actual arguments
 	if (_calleeTemplate != null) {
 	    Vector calleeParams = _calleeTemplate.getParameters();
 	    int numParams = _parameters.length;
-	    
+
 	    for (int i = 0; i < numParams; i++) {
 	        SyntaxTreeNode node = (SyntaxTreeNode)_parameters[i];
                 methodSig.append(OBJECT_SIG);   // append Object to signature
-                
+
                 // Push 'null' if Param to indicate no actual parameter specified
                 if (node instanceof Param) {
                     il.append(ACONST_NULL);
@@ -165,7 +169,7 @@ final class CallTemplate extends Instruction {
 	il.append(new INVOKEVIRTUAL(cpg.addMethodref(className,
 						     methodName,
 						     methodSig.toString())));
-	
+
 	// Do not need to call Translet.popParamFrame() if we are
 	// calling a simple named template.
 	if (_calleeTemplate == null && (stylesheet.hasLocalParams() || hasContents())) {
@@ -177,7 +181,7 @@ final class CallTemplate extends Instruction {
 	    il.append(new INVOKEVIRTUAL(pop));
 	}
     }
-    
+
     /**
      * Return the simple named template which this CallTemplate calls.
      * Return false if there is no matched template or the matched
@@ -189,14 +193,14 @@ final class CallTemplate extends Instruction {
 
         return foundTemplate.isSimpleNamedTemplate() ? foundTemplate : null;
     }
-    
+
     /**
      * Build the list of effective parameters in this CallTemplate.
      * The parameters of the called template are put into the array first.
      * Then we visit the WithParam children of this CallTemplate and replace
      * the Param with a corresponding WithParam having the same name.
      */
-    private void buildParameterList() {   	
+    private void buildParameterList() {
     	// Put the parameters from the called template into the array first.
     	// This is to ensure the order of the parameters.
     	Vector defaultParams = _calleeTemplate.getParameters();
@@ -205,35 +209,35 @@ final class CallTemplate extends Instruction {
     	for (int i = 0; i < numParams; i++) {
     	    _parameters[i] = defaultParams.elementAt(i);
     	}
-    		    	
+
     	// Replace a Param with a WithParam if they have the same name.
     	int count = elementCount();
     	for (int i = 0; i < count; i++) {
     	    Object node = elementAt(i);
-            
+
             // Ignore if not WithParam
     	    if (node instanceof WithParam) {
     	    	WithParam withParam = (WithParam)node;
     	    	QName name = withParam.getName();
-                
+
                 // Search for a Param with the same name
     	    	for (int k = 0; k < numParams; k++) {
     	    	    Object object = _parameters[k];
-    	    	    if (object instanceof Param 
-    	    	        && ((Param)object).getName() == name) {
+    	    	    if (object instanceof Param
+    	    	        && ((Param)object).getName().equals(name)) {
     	    	        withParam.setDoParameterOptimization(true);
     	    	        _parameters[k] = withParam;
     	    	        break;
     	    	    }
-    	    	    else if (object instanceof WithParam 
-    	    	        && ((WithParam)object).getName() == name) {
+    	    	    else if (object instanceof WithParam
+    	    	        && ((WithParam)object).getName().equals(name)) {
     	    	        withParam.setDoParameterOptimization(true);
-    	    	        _parameters[k] = withParam;    	    	        
+    	    	        _parameters[k] = withParam;
     	    	        break;
     	    	    }
-    	    	}    	    	
+    	    	}
     	    }
     	}
      }
 }
-    
+

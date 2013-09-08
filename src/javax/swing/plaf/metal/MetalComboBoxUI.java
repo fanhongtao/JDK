@@ -1,8 +1,26 @@
 /*
- * @(#)MetalComboBoxUI.java	1.53 05/11/17
+ * Copyright (c) 1998, 2010, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.metal;
@@ -31,7 +49,6 @@ import java.beans.*;
  *
  * @see MetalComboBoxEditor
  * @see MetalComboBoxButton
- * @version 1.53 11/17/05
  * @author Tom Santos
  */
 public class MetalComboBoxUI extends BasicComboBoxUI {
@@ -127,7 +144,7 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
      */
     public int getBaseline(JComponent c, int width, int height) {
         int baseline;
-        if (MetalLookAndFeel.usingOcean()) {
+        if (MetalLookAndFeel.usingOcean() && height >= 4) {
             height -= 4;
             baseline = super.getBaseline(c, width, height);
             if (baseline >= 0) {
@@ -182,10 +199,9 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
     }
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
-     */          
+     * Instantiate it only within subclasses of {@code MetalComboBoxUI}.
+     */
     public class MetalPropertyChangeListener extends BasicComboBoxUI.PropertyChangeHandler {
         public void propertyChange(PropertyChangeEvent e) {
             super.propertyChange( e );
@@ -193,17 +209,17 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
 
             if ( propertyName == "editable" ) {
                 if(arrowButton instanceof MetalComboBoxButton) {
-		            MetalComboBoxButton button = (MetalComboBoxButton)arrowButton;
-		            button.setIconOnly( comboBox.isEditable() ||
+                            MetalComboBoxButton button = (MetalComboBoxButton)arrowButton;
+                            button.setIconOnly( comboBox.isEditable() ||
                                     MetalLookAndFeel.usingOcean() );
                 }
-		        comboBox.repaint();
+                        comboBox.repaint();
                 updateButtonForOcean(arrowButton);
             } else if ( propertyName == "background" ) {
                 Color color = (Color)e.getNewValue();
                 arrowButton.setBackground(color);
                 listBox.setBackground(color);
-                
+
             } else if ( propertyName == "foreground" ) {
                 Color color = (Color)e.getNewValue();
                 arrowButton.setForeground(color);
@@ -227,10 +243,9 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
     }
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
-     */          
+     * Instantiate it only within subclasses of {@code MetalComboBoxUI}.
+     */
     public class MetalComboBoxLayoutManager extends BasicComboBoxUI.ComboBoxLayoutManager {
         public void layoutContainer( Container parent ) {
             layoutComboBox( parent, this );
@@ -240,7 +255,7 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
         }
     }
 
-    // This is here because of a bug in the compiler.  
+    // This is here because of a bug in the compiler.
     // When a protected-inner-class-savvy compiler comes out we
     // should move this into MetalComboBoxLayoutManager.
     public void layoutComboBox( Container parent, MetalComboBoxLayoutManager manager ) {
@@ -253,9 +268,9 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
             if (MetalLookAndFeel.usingOcean() ) {
                 Insets insets = comboBox.getInsets();
                 int buttonWidth = arrowButton.getMinimumSize().width;
-		arrowButton.setBounds(MetalUtils.isLeftToRight(comboBox)
-				? (comboBox.getWidth() - insets.right - buttonWidth)
-				: insets.left,
+                arrowButton.setBounds(MetalUtils.isLeftToRight(comboBox)
+                                ? (comboBox.getWidth() - insets.right - buttonWidth)
+                                : insets.left,
                             insets.top, buttonWidth,
                             comboBox.getHeight() - insets.top - insets.bottom);
             }
@@ -289,16 +304,16 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
     }
 
     // These two methods were overloaded and made public. This was probably a
-    // mistake in the implementation. The functionality that they used to 
-    // provide is no longer necessary and should be removed. However, 
+    // mistake in the implementation. The functionality that they used to
+    // provide is no longer necessary and should be removed. However,
     // removing them will create an uncompatible API change.
 
     public void configureEditor() {
-	super.configureEditor();
+        super.configureEditor();
     }
 
     public void unconfigureEditor() {
-	super.unconfigureEditor();
+        super.unconfigureEditor();
     }
 
     public Dimension getMinimumSize( JComponent c ) {
@@ -332,39 +347,36 @@ public class MetalComboBoxUI extends BasicComboBoxUI {
             size = super.getMinimumSize( c );
         }
 
-        cachedMinimumSize.setSize( size.width, size.height ); 
+        cachedMinimumSize.setSize( size.width, size.height );
         isMinimumSizeDirty = false;
 
         return new Dimension( cachedMinimumSize );
     }
 
     /**
-     * This inner class is marked &quot;public&quot; due to a compiler bug.
      * This class should be treated as a &quot;protected&quot; inner class.
-     * Instantiate it only within subclasses of <FooUI>.
+     * Instantiate it only within subclasses of {@code MetalComboBoxUI}.
      *
      * This class is now obsolete and doesn't do anything and
-     * is only included for backwards API compatibility. Do not call or 
+     * is only included for backwards API compatibility. Do not call or
      * override.
-     * 
+     *
      * @deprecated As of Java 2 platform v1.4.
-     */          
+     */
     @Deprecated
     public class MetalComboPopup extends BasicComboPopup {
 
-	public MetalComboPopup( JComboBox cBox) {
-	    super( cBox );
-	}
+        public MetalComboPopup( JComboBox cBox) {
+            super( cBox );
+        }
 
-	// This method was overloaded and made public. This was probably
-	// mistake in the implementation. The functionality that they used to 
-	// provide is no longer necessary and should be removed. However, 
-	// removing them will create an uncompatible API change.
+        // This method was overloaded and made public. This was probably
+        // mistake in the implementation. The functionality that they used to
+        // provide is no longer necessary and should be removed. However,
+        // removing them will create an uncompatible API change.
 
-	public void delegateFocus(MouseEvent e) {
-	    super.delegateFocus(e);
-	}
+        public void delegateFocus(MouseEvent e) {
+            super.delegateFocus(e);
+        }
     }
 }
-
-

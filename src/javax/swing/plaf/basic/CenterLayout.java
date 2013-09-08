@@ -1,8 +1,26 @@
 /*
- * @(#)CenterLayout.java	1.13 05/11/17
+ * Copyright (c) 1998, 2003, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf.basic;
@@ -13,7 +31,6 @@ import java.io.*;
 
 /**
   * Center-positioning layout manager.
-  * @version 1.13 11/17/05
   * @author Tom Santos
   * @author Steve Wilson
   */
@@ -22,21 +39,21 @@ class CenterLayout implements LayoutManager, Serializable {
     public void removeLayoutComponent(Component comp) { }
 
     public Dimension preferredLayoutSize( Container container ) {
-	Component c = container.getComponent( 0 );
-	if ( c != null ) {
+        Component c = container.getComponent( 0 );
+        if ( c != null ) {
             Dimension size = c.getPreferredSize();
             Insets insets = container.getInsets();
 
             return new Dimension(size.width + insets.left + insets.right,
                                  size.height + insets.top + insets.bottom);
-	}
-	else {
-	    return new Dimension( 0, 0 );
-	}
+        }
+        else {
+            return new Dimension( 0, 0 );
+        }
     }
 
     public Dimension minimumLayoutSize(Container cont) {
-    	return preferredLayoutSize(cont);
+        return preferredLayoutSize(cont);
     }
 
     public void layoutContainer(Container container) {

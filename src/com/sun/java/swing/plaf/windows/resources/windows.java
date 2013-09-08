@@ -15,6 +15,7 @@ public final class windows extends ListResourceBundle {
             { "FileChooser.fileSizeHeaderText", "Size" },
             { "FileChooser.fileTypeHeaderText", "Type" },
             { "FileChooser.filesOfTypeLabelText", "Files of type:" },
+            { "FileChooser.folderNameLabelText", "Folder name:" },
             { "FileChooser.homeFolderAccessibleName", "Home" },
             { "FileChooser.homeFolderToolTipText", "Home" },
             { "FileChooser.listViewActionLabelText", "List" },
@@ -28,6 +29,8 @@ public final class windows extends ListResourceBundle {
             { "FileChooser.saveInLabelText", "Save in:" },
             { "FileChooser.upFolderAccessibleName", "Up" },
             { "FileChooser.upFolderToolTipText", "Up One Level" },
+            { "FileChooser.viewMenuButtonAccessibleName", "View Menu" },
+            { "FileChooser.viewMenuButtonToolTipText", "View Menu" },
             { "FileChooser.viewMenuLabelText", "View" },
         };
     }

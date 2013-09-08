@@ -1,31 +1,27 @@
 /*
- * $Id: XMLStreamFilterImpl.java,v 1.5.2.3 2007/01/08 17:04:41 spericas Exp $
+ * Copyright (c) 2005, 2006, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
-
-/*
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License).  You may not use this file except in
- * compliance with the License.
- * 
- * You can obtain a copy of the license at
- * https://glassfish.dev.java.net/public/CDDLv1.0.html.
- * See the License for the specific language governing
- * permissions and limitations under the License.
- * 
- * When distributing Covered Code, include this CDDL
- * Header Notice in each file and include the License file
- * at https://glassfish.dev.java.net/public/CDDLv1.0.html.
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * you own identifying information:
- * "Portions Copyrighted [year] [name of copyright owner]"
- * 
- * [Name of File] [ver.__] [Date]
- * 
- * Copyright 2006 Sun Microsystems Inc. All Rights Reserved
- */
-
 
 package com.sun.org.apache.xerces.internal.impl;
 
@@ -40,34 +36,33 @@ import javax.xml.stream.events.XMLEvent;
 
 /**
  *
- * @author Joe Wang: 
- * This is a rewrite of the original class. The focus is on removing caching, and make the filtered 
- * stream reader more compatible with those in other implementations. Note however, that this version 
- * will not solve all the issues related to the undefined condition in the spec. The priority is 
- * to pass the TCK. Issues arising due to the requirement, that is, (1) should it initiate at BEGIN_DOCUMENT 
+ * @author Joe Wang:
+ * This is a rewrite of the original class. The focus is on removing caching, and make the filtered
+ * stream reader more compatible with those in other implementations. Note however, that this version
+ * will not solve all the issues related to the undefined condition in the spec. The priority is
+ * to pass the TCK. Issues arising due to the requirement, that is, (1) should it initiate at BEGIN_DOCUMENT
  * or an accepted event; (2) should hasNext() advance the underlining stream in order to find an acceptable
  * event, would have to wait until 1.1 of StAX in which the filtered stream reader would be defined more clearly.
  */
 
 public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
-    
+
     private StreamFilter fStreamFilter = null;
     private XMLStreamReader fStreamReader = null;
     private int fCurrentEvent;
     private boolean fEventAccepted = false;
-    
-    /**the very issue around a long discussion. but since we must pass the TCK, we have to allow 
+
+    /**the very issue around a long discussion. but since we must pass the TCK, we have to allow
      * hasNext() to advance the underlining stream in order to find the next acceptable event
      */
     private boolean fStreamAdvancedByHasNext = false;
-    
     /** Creates a new instance of XMLStreamFilterImpl */
-    
+
     public XMLStreamFilterImpl(XMLStreamReader reader,StreamFilter filter){
         fStreamReader = reader;
         this.fStreamFilter = filter;
-        
-        //this is debatable to initiate at an acceptable event, 
+
+        //this is debatable to initiate at an acceptable event,
         //but it's neccessary in order to pass the TCK and yet avoid skipping element
         try {
             if (fStreamFilter.accept(fStreamReader)) {
@@ -79,7 +74,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
             System.err.println("Error while creating a stream Filter"+xs);
         }
     }
-    
+
     /**
      *
      * @param sf
@@ -87,7 +82,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     protected void setStreamFilter(StreamFilter sf){
         this.fStreamFilter = sf;
     }
-    
+
     /**
      *
      * @return
@@ -102,7 +97,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
         if (event != -1) {
             return event;
         }
-        
+
         throw new IllegalStateException("The stream reader has reached the end of the document, or there are no more "+
                                     " items to return");
     }
@@ -112,12 +107,12 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
      * @return
      */
     public int nextTag() throws XMLStreamException {
-        if (fStreamAdvancedByHasNext && fEventAccepted && 
+        if (fStreamAdvancedByHasNext && fEventAccepted &&
                 (fCurrentEvent == XMLEvent.START_ELEMENT || fCurrentEvent == XMLEvent.START_ELEMENT)) {
             fStreamAdvancedByHasNext = false;
             return fCurrentEvent;
         }
-        
+
         int event = findNextTag();
         if (event != -1) {
             return event;
@@ -155,7 +150,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
             }
         }
         //although it seems that IllegalStateException should be thrown when next() is called
-        //on a stream that has no more items, we have to assume END_DOCUMENT is always accepted 
+        //on a stream that has no more items, we have to assume END_DOCUMENT is always accepted
         //in order to pass the TCK
         if (fCurrentEvent == XMLEvent.END_DOCUMENT)
             return fCurrentEvent;
@@ -183,7 +178,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public void close() throws XMLStreamException {
         fStreamReader.close();
     }
-    
+
     /**
      *
      * @return
@@ -191,7 +186,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public int getAttributeCount() {
         return fStreamReader.getAttributeCount();
     }
-    
+
     /**
      *
      * @param index
@@ -200,7 +195,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public QName getAttributeName(int index) {
         return fStreamReader.getAttributeName(index);
     }
-    
+
     /**
      *
      * @param index
@@ -209,7 +204,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getAttributeNamespace(int index) {
         return fStreamReader.getAttributeNamespace(index);
     }
-    
+
     /**
      *
      * @param index
@@ -218,7 +213,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getAttributePrefix(int index) {
         return fStreamReader.getAttributePrefix(index);
     }
-    
+
     /**
      *
      * @param index
@@ -227,7 +222,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getAttributeType(int index) {
         return fStreamReader.getAttributeType(index);
     }
-    
+
     /**
      *
      * @param index
@@ -236,7 +231,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getAttributeValue(int index) {
         return fStreamReader.getAttributeValue(index);
     }
-    
+
     /**
      *
      * @param namespaceURI
@@ -246,7 +241,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getAttributeValue(String namespaceURI, String localName) {
         return fStreamReader.getAttributeValue(namespaceURI,localName);
     }
-    
+
     /**
      *
      * @return
@@ -254,7 +249,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getCharacterEncodingScheme() {
         return fStreamReader.getCharacterEncodingScheme();
     }
-    
+
     /**
      *
      * @throws XMLStreamException
@@ -263,7 +258,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getElementText() throws XMLStreamException {
         return fStreamReader.getElementText();
     }
-    
+
     /**
      *
      * @return
@@ -271,7 +266,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getEncoding() {
         return fStreamReader.getEncoding();
     }
-    
+
     /**
      *
      * @return
@@ -279,7 +274,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public int getEventType() {
         return fStreamReader.getEventType();
     }
-    
+
     /**
      *
      * @return
@@ -287,7 +282,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getLocalName() {
         return fStreamReader.getLocalName();
     }
-    
+
     /**
      *
      * @return
@@ -295,7 +290,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public javax.xml.stream.Location getLocation() {
         return fStreamReader.getLocation();
     }
-    
+
     /**
      *
      * @return
@@ -303,7 +298,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public javax.xml.namespace.QName getName() {
         return fStreamReader.getName();
     }
-    
+
     /**
      *
      * @return
@@ -311,7 +306,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public javax.xml.namespace.NamespaceContext getNamespaceContext() {
         return fStreamReader.getNamespaceContext();
     }
-    
+
     /**
      *
      * @return
@@ -319,7 +314,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public int getNamespaceCount() {
         return fStreamReader.getNamespaceCount();
     }
-    
+
     /**
      *
      * @param index
@@ -328,7 +323,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getNamespacePrefix(int index) {
         return fStreamReader.getNamespacePrefix(index);
     }
-    
+
     /**
      *
      * @return
@@ -336,7 +331,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getNamespaceURI() {
         return fStreamReader.getNamespaceURI();
     }
-    
+
     /**
      *
      * @param index
@@ -345,7 +340,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getNamespaceURI(int index) {
         return fStreamReader.getNamespaceURI(index);
     }
-    
+
     /**
      *
      * @param prefix
@@ -354,7 +349,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getNamespaceURI(String prefix) {
         return fStreamReader.getNamespaceURI(prefix);
     }
-    
+
     /**
      *
      * @return
@@ -362,7 +357,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getPIData() {
         return fStreamReader.getPIData();
     }
-    
+
     /**
      *
      * @return
@@ -370,7 +365,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getPITarget() {
         return fStreamReader.getPITarget();
     }
-    
+
     /**
      *
      * @return
@@ -378,7 +373,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getPrefix() {
         return fStreamReader.getPrefix();
     }
-    
+
     /**
      *
      * @param name
@@ -388,7 +383,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public Object getProperty(java.lang.String name) throws java.lang.IllegalArgumentException {
         return fStreamReader.getProperty(name);
     }
-    
+
     /**
      *
      * @return
@@ -396,7 +391,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getText() {
         return fStreamReader.getText();
     }
-    
+
     /**
      *
      * @return
@@ -404,7 +399,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public char[] getTextCharacters() {
         return fStreamReader.getTextCharacters();
     }
-    
+
     /**
      *
      * @param sourceStart
@@ -417,7 +412,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public int getTextCharacters(int sourceStart, char[] target, int targetStart, int length) throws XMLStreamException {
         return fStreamReader.getTextCharacters(sourceStart, target,targetStart,length);
     }
-    
+
     /**
      *
      * @return
@@ -425,7 +420,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public int getTextLength() {
         return fStreamReader.getTextLength();
     }
-    
+
     /**
      *
      * @return
@@ -433,16 +428,15 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public int getTextStart() {
         return fStreamReader.getTextStart();
     }
-    
+
     /**
      *
      * @return
      */
     public String getVersion() {
         return fStreamReader.getVersion();
-        
     }
-    
+
     /**
      *
      * @return
@@ -450,7 +444,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean hasName() {
         return fStreamReader.hasName();
     }
-    
+
     /**
      *
      * @return
@@ -458,7 +452,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean hasText() {
         return fStreamReader.hasText();
     }
-    
+
     /**
      *
      * @return
@@ -467,7 +461,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean isAttributeSpecified(int index) {
         return fStreamReader.isAttributeSpecified(index);
     }
-    
+
     /**
      *
      * @return
@@ -475,7 +469,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean isCharacters() {
         return fStreamReader.isCharacters();
     }
-    
+
     /**
      *
      * @return
@@ -483,7 +477,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean isEndElement() {
         return fStreamReader.isEndElement();
     }
-    
+
     /**
      *
      * @return
@@ -491,7 +485,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean isStandalone() {
         return fStreamReader.isStandalone();
     }
-    
+
     /**
      *
      * @return
@@ -499,7 +493,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean isStartElement() {
         return fStreamReader.isStartElement();
     }
-    
+
     /**
      *
      * @return
@@ -507,8 +501,8 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean isWhiteSpace() {
         return fStreamReader.isWhiteSpace();
     }
-    
-        
+
+
     /**
      *
      * @param type
@@ -519,7 +513,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public void require(int type, String namespaceURI, String localName) throws XMLStreamException {
         fStreamReader.require(type,namespaceURI,localName);
     }
-    
+
     /**
      *
      * @return
@@ -527,7 +521,7 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public boolean standaloneSet() {
         return fStreamReader.standaloneSet();
     }
-    
+
     /**
      *
      * @param index
@@ -536,5 +530,4 @@ public class XMLStreamFilterImpl implements javax.xml.stream.XMLStreamReader {
     public String getAttributeLocalName(int index){
         return fStreamReader.getAttributeLocalName(index);
     }
-        
 }

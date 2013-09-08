@@ -1,8 +1,26 @@
 /*
- * @(#)BRView.java	1.12 05/11/17
+ * Copyright (c) 1998, 2004, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 package javax.swing.text.html;
 
@@ -12,7 +30,6 @@ import javax.swing.text.*;
  * Processes the &lt;BR&gt; tag.  In other words, forces a line break.
  *
  * @author Sunita Mani
- * @version 1.12 11/17/05
  */
 class BRView extends InlineView {
 
@@ -22,7 +39,7 @@ class BRView extends InlineView {
      * @param elem the element to create a view for
      */
     public BRView(Element elem) {
-	super(elem);
+        super(elem);
     }
 
     /**
@@ -31,10 +48,10 @@ class BRView extends InlineView {
      * @return View.ForcedBreakWeight
      */
     public int getBreakWeight(int axis, float pos, float len) {
-	if (axis == X_AXIS) {
-	    return ForcedBreakWeight;
-	} else {
-	    return super.getBreakWeight(axis, pos, len);
-	}
+        if (axis == X_AXIS) {
+            return ForcedBreakWeight;
+        } else {
+            return super.getBreakWeight(axis, pos, len);
+        }
     }
 }

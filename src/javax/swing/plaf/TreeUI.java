@@ -1,8 +1,26 @@
 /*
- * @(#)TreeUI.java	1.25 05/11/17
+ * Copyright (c) 1997, 1998, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package javax.swing.plaf;
@@ -14,7 +32,6 @@ import javax.swing.tree.TreePath;
 /**
  * Pluggable look and feel interface for JTree.
  *
- * @version 1.25 11/17/05
  * @author Rob Davis
  * @author Scott Violet
  */
@@ -53,7 +70,7 @@ public abstract class TreeUI extends ComponentUI
       * the returned path and test x, y against that.
       */
     public abstract TreePath getClosestPathForLocation(JTree tree, int x,
-						       int y);
+                                                       int y);
 
     /**
       * Returns true if the tree is being edited.  The item that is being

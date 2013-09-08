@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -121,28 +125,28 @@ public final class Axis
   public static final int ALLFROMNODE = 14;
 
   /**
-   * A non-xpath axis, traversing the the preceding and the ancestor nodes, 
+   * A non-xpath axis, traversing the the preceding and the ancestor nodes,
    * needed for inverseing select patterns to match patterns.
    */
   public static final int PRECEDINGANDANCESTOR = 15;
-  
+
   // ===========================================
   // All axis past this are absolute.
-  
+
   /**
-   * A non-xpath axis, returns all nodes in the tree from and including the 
+   * A non-xpath axis, returns all nodes in the tree from and including the
    * root.
    */
   public static final int ALL = 16;
 
   /**
-   * A non-xpath axis, returns all nodes that aren't namespaces or attributes, 
+   * A non-xpath axis, returns all nodes that aren't namespaces or attributes,
    * from and including the root.
    */
   public static final int DESCENDANTSFROMROOT = 17;
 
   /**
-   * A non-xpath axis, returns all nodes that aren't namespaces or attributes, 
+   * A non-xpath axis, returns all nodes that aren't namespaces or attributes,
    * from and including the root.
    */
   public static final int DESCENDANTSORSELFFROMROOT = 18;
@@ -206,13 +210,13 @@ public final class Axis
   public static boolean isReverse(int axis){
       return isReverse[axis];
   }
-    
+
     public static String getNames(int index){
-    	return names[index];    
+        return names[index];
     }
-    
+
     public static int getNamesLength(){
-    	return names.length;
+        return names.length;
     }
 
 }

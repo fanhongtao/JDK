@@ -1,8 +1,26 @@
 /*
- * @(#)Annotation.java	1.10 05/11/17
+ * Copyright (c) 2003, 2009, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
- * Copyright 2006 Sun Microsystems, Inc. All rights reserved.
- * SUN PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 package java.lang.annotation;
@@ -12,6 +30,9 @@ package java.lang.annotation;
  * interface that manually extends this one does <i>not</i> define
  * an annotation type.  Also note that this interface does not itself
  * define an annotation type.
+ *
+ * More information about annotation types can be found in section 9.6 of
+ * <cite>The Java&trade; Language Specification</cite>.
  *
  * @author  Josh Bloch
  * @since   1.5
@@ -32,7 +53,7 @@ public interface Annotation {
      *    are <tt>x</tt> and <tt>y</tt> are considered equal if
      *    <tt>Float.valueOf(x).equals(Float.valueOf(y))</tt>.
      *    (Unlike the <tt>==</tt> operator, NaN is considered equal
-     *    to itself, and <tt>0.0f</tt> unequal to <tt>-0.0f</tt>.) 
+     *    to itself, and <tt>0.0f</tt> unequal to <tt>-0.0f</tt>.)
      *
      *    <li>Two corresponding <tt>double</tt> members whose values
      *    are <tt>x</tt> and <tt>y</tt> are considered equal if

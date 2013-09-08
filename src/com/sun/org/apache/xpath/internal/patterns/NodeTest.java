@@ -1,4 +1,8 @@
 /*
+ * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+/*
  * Copyright 1999-2004 The Apache Software Foundation.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,13 +43,13 @@ public class NodeTest extends Expression
 
   /**
    * The namespace or local name for node tests with a wildcard.
-   *  @see <a href="http://www.w3.org/TR/xpath#NT-NameTest">the XPath NameTest production.</a> 
+   *  @see <a href="http://www.w3.org/TR/xpath#NT-NameTest">the XPath NameTest production.</a>
    */
   public static final String WILD = "*";
 
   /**
    * The URL to pass to the Node#supports method, to see if the
-   * DOM has already been stripped of whitespace nodes. 
+   * DOM has already been stripped of whitespace nodes.
    */
   public static final String SUPPORTS_PRE_STRIPPING =
     "http://xml.apache.org/xpath/features/whitespace-pre-stripping";
@@ -73,7 +77,7 @@ public class NodeTest extends Expression
   {
     return m_whatToShow;
   }
-  
+
   /**
    * This attribute determines which node types are accepted.
    * These constants are defined in the {@link org.w3c.dom.traversal.NodeFilter}
@@ -88,7 +92,7 @@ public class NodeTest extends Expression
 
   /**
    * The namespace to be tested for, which may be null.
-   *  @serial 
+   *  @serial
    */
   String m_namespace;
 
@@ -114,7 +118,7 @@ public class NodeTest extends Expression
 
   /**
    * The local name to be tested for.
-   *  @serial 
+   *  @serial
    */
   protected String m_name;
 
@@ -151,14 +155,14 @@ public class NodeTest extends Expression
 
   /**
    * The match score if the pattern consists of just a NodeTest.
-   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a> 
+   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a>
    */
   public static final XNumber SCORE_NODETEST =
     new XNumber(XPath.MATCH_SCORE_NODETEST);
 
   /**
    * The match score if the pattern pattern has the form NCName:*.
-   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a> 
+   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a>
    */
   public static final XNumber SCORE_NSWILD =
     new XNumber(XPath.MATCH_SCORE_NSWILD);
@@ -166,7 +170,7 @@ public class NodeTest extends Expression
   /**
    * The match score if the pattern has the form
    * of a QName optionally preceded by an @ character.
-   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a> 
+   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a>
    */
   public static final XNumber SCORE_QNAME =
     new XNumber(XPath.MATCH_SCORE_QNAME);
@@ -174,14 +178,14 @@ public class NodeTest extends Expression
   /**
    * The match score if the pattern consists of something
    * other than just a NodeTest or just a qname.
-   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a> 
+   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a>
    */
   public static final XNumber SCORE_OTHER =
     new XNumber(XPath.MATCH_SCORE_OTHER);
 
   /**
    * The match score if no match is made.
-   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a> 
+   *  @see <a href="http://www.w3.org/TR/xslt#conflict">XSLT Specification - 5.5 Conflict Resolution for Template Rules</a>
    */
   public static final XNumber SCORE_NONE =
     new XNumber(XPath.MATCH_SCORE_NONE);
@@ -209,44 +213,44 @@ public class NodeTest extends Expression
   {
     initNodeTest(whatToShow);
   }
-  
+
   /**
    * @see Expression#deepEquals(Expression)
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!isSameClass(expr))
-  		return false;
-  		
-  	NodeTest nt = (NodeTest)expr;
+        if(!isSameClass(expr))
+                return false;
 
-  	if(null != nt.m_name)
-  	{
-  		if(null == m_name)
-  			return false;
-  		else if(!nt.m_name.equals(m_name))
-  			return false;
-  	}
-  	else if(null != m_name)
-  		return false;
+        NodeTest nt = (NodeTest)expr;
 
-  	if(null != nt.m_namespace)
-  	{
-  		if(null == m_namespace)
-  			return false;
-  		else if(!nt.m_namespace.equals(m_namespace))
-  			return false;
-  	}
-  	else if(null != m_namespace)
-  		return false;
-  		  		
-  	if(m_whatToShow != nt.m_whatToShow)
-  		return false;
-  		
-  	if(m_isTotallyWild != nt.m_isTotallyWild)
-  		return false;
+        if(null != nt.m_name)
+        {
+                if(null == m_name)
+                        return false;
+                else if(!nt.m_name.equals(m_name))
+                        return false;
+        }
+        else if(null != m_name)
+                return false;
 
-	return true;
+        if(null != nt.m_namespace)
+        {
+                if(null == m_namespace)
+                        return false;
+                else if(!nt.m_namespace.equals(m_namespace))
+                        return false;
+        }
+        else if(null != m_namespace)
+                return false;
+
+        if(m_whatToShow != nt.m_whatToShow)
+                return false;
+
+        if(m_isTotallyWild != nt.m_isTotallyWild)
+                return false;
+
+        return true;
   }
 
   /**
@@ -291,10 +295,10 @@ public class NodeTest extends Expression
 
   /**
    * True if this test has a null namespace and a local name of {@link #WILD}.
-   *  @serial 
+   *  @serial
    */
   private boolean m_isTotallyWild;
-  
+
   /**
    * Get the static score for this node test.
    * @return Should be one of the SCORE_XXX constants.
@@ -303,7 +307,7 @@ public class NodeTest extends Expression
   {
     return m_score;
   }
-  
+
   /**
    * Set the static score for this node test.
    * @param score Should be one of the SCORE_XXX constants.
@@ -342,15 +346,15 @@ public class NodeTest extends Expression
   {
     return m_score.num();
   }
-  
+
   /**
    * Tell what node type to test, if not DTMFilter.SHOW_ALL.
    *
-   * @param whatToShow Bit set defined mainly by 
+   * @param whatToShow Bit set defined mainly by
    *        {@link com.sun.org.apache.xml.internal.dtm.DTMFilter}.
-   * @return the node type for the whatToShow.  Since whatToShow can specify 
-   *         multiple types, it will return the first bit tested that is on, 
-   *         so the caller of this function should take care that this is 
+   * @return the node type for the whatToShow.  Since whatToShow can specify
+   *         multiple types, it will return the first bit tested that is on,
+   *         so the caller of this function should take care that this is
    *         the function they really want to call.  If none of the known bits
    *         are set, this function will return zero.
    */
@@ -362,10 +366,10 @@ public class NodeTest extends Expression
 
     if (0 != (whatToShow & DTMFilter.SHOW_ATTRIBUTE))
       return DTM.ATTRIBUTE_NODE;
-      
+
     if (0 != (whatToShow & DTMFilter.SHOW_TEXT))
       return DTM.TEXT_NODE;
-      
+
     if (0 != (whatToShow & DTMFilter.SHOW_DOCUMENT))
       return DTM.DOCUMENT_NODE;
 
@@ -392,7 +396,7 @@ public class NodeTest extends Expression
 
     if (0 != (whatToShow & DTMFilter.SHOW_NOTATION))
       return DTM.NOTATION_NODE;
-      
+
     if (0 != (whatToShow & DTMFilter.SHOW_CDATA_SECTION))
       return DTM.CDATA_SECTION_NODE;
 
@@ -405,7 +409,7 @@ public class NodeTest extends Expression
    * Do a diagnostics dump of a whatToShow bit set.
    *
    *
-   * @param whatToShow Bit set defined mainly by 
+   * @param whatToShow Bit set defined mainly by
    *        {@link com.sun.org.apache.xml.internal.dtm.DTMFilter}.
    */
   public static void debugWhatToShow(int whatToShow)
@@ -415,7 +419,7 @@ public class NodeTest extends Expression
 
     if (0 != (whatToShow & DTMFilter.SHOW_ATTRIBUTE))
       v.addElement("SHOW_ATTRIBUTE");
-      
+
     if (0 != (whatToShow & DTMFilter.SHOW_NAMESPACE))
       v.addElement("SHOW_NAMESPACE");
 
@@ -542,7 +546,7 @@ public class NodeTest extends Expression
     case DTMFilter.SHOW_CDATA_SECTION :
     case DTMFilter.SHOW_TEXT :
 
-      // was: 
+      // was:
       // return (!xctxt.getDOMHelper().shouldStripSourceNode(context))
       //       ? m_score : SCORE_NONE;
       return m_score;
@@ -550,17 +554,17 @@ public class NodeTest extends Expression
       return subPartMatch(dtm.getNodeName(context), m_name)
              ? m_score : SCORE_NONE;
 
-    // From the draft: "Two expanded names are equal if they 
-    // have the same local part, and either both have no URI or 
+    // From the draft: "Two expanded names are equal if they
+    // have the same local part, and either both have no URI or
     // both have the same URI."
-    // "A node test * is true for any node of the principal node type. 
-    // For example, child::* will select all element children of the 
-    // context node, and attribute::* will select all attributes of 
+    // "A node test * is true for any node of the principal node type.
+    // For example, child::* will select all element children of the
+    // context node, and attribute::* will select all attributes of
     // the context node."
-    // "A node test can have the form NCName:*. In this case, the prefix 
-    // is expanded in the same way as with a QName using the context 
-    // namespace declarations. The node test will be true for any node 
-    // of the principal type whose expanded name has the URI to which 
+    // "A node test can have the form NCName:*. In this case, the prefix
+    // is expanded in the same way as with a QName using the context
+    // namespace declarations. The node test will be true for any node
+    // of the principal type whose expanded name has the URI to which
     // the prefix expands, regardless of the local part of the name."
     case DTMFilter.SHOW_NAMESPACE :
     {
@@ -578,7 +582,7 @@ public class NodeTest extends Expression
       return SCORE_NONE;
     }  // end switch(testType)
   }
-  
+
   /**
    * Tell what the test score is for the given node.
    *
@@ -594,7 +598,7 @@ public class NodeTest extends Expression
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public XObject execute(XPathContext xctxt, int context, 
+  public XObject execute(XPathContext xctxt, int context,
                          DTM dtm, int expType)
           throws javax.xml.transform.TransformerException
   {
@@ -602,7 +606,7 @@ public class NodeTest extends Expression
     if (m_whatToShow == DTMFilter.SHOW_ALL)
       return m_score;
 
-    int nodeBit = (m_whatToShow & (0x00000001 
+    int nodeBit = (m_whatToShow & (0x00000001
                    << ((dtm.getNodeType(context)) - 1)));
 
     switch (nodeBit)
@@ -615,7 +619,7 @@ public class NodeTest extends Expression
     case DTMFilter.SHOW_CDATA_SECTION :
     case DTMFilter.SHOW_TEXT :
 
-      // was: 
+      // was:
       // return (!xctxt.getDOMHelper().shouldStripSourceNode(context))
       //       ? m_score : SCORE_NONE;
       return m_score;
@@ -623,17 +627,17 @@ public class NodeTest extends Expression
       return subPartMatch(dtm.getNodeName(context), m_name)
              ? m_score : SCORE_NONE;
 
-    // From the draft: "Two expanded names are equal if they 
-    // have the same local part, and either both have no URI or 
+    // From the draft: "Two expanded names are equal if they
+    // have the same local part, and either both have no URI or
     // both have the same URI."
-    // "A node test * is true for any node of the principal node type. 
-    // For example, child::* will select all element children of the 
-    // context node, and attribute::* will select all attributes of 
+    // "A node test * is true for any node of the principal node type.
+    // For example, child::* will select all element children of the
+    // context node, and attribute::* will select all attributes of
     // the context node."
-    // "A node test can have the form NCName:*. In this case, the prefix 
-    // is expanded in the same way as with a QName using the context 
-    // namespace declarations. The node test will be true for any node 
-    // of the principal type whose expanded name has the URI to which 
+    // "A node test can have the form NCName:*. In this case, the prefix
+    // is expanded in the same way as with a QName using the context
+    // namespace declarations. The node test will be true for any node
+    // of the principal type whose expanded name has the URI to which
     // the prefix expands, regardless of the local part of the name."
     case DTMFilter.SHOW_NAMESPACE :
     {
@@ -670,7 +674,7 @@ public class NodeTest extends Expression
   {
     return execute(xctxt, xctxt.getCurrentNode());
   }
-  
+
   /**
    * Node tests by themselves do not need to fix up variables.
    */
@@ -684,7 +688,7 @@ public class NodeTest extends Expression
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	assertion(false, "callVisitors should not be called for this object!!!");  	
+        assertion(false, "callVisitors should not be called for this object!!!");
   }
 
 }
