@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -58,12 +58,13 @@ class DirectDoubleBufferU
     // NOTE: moved up to Buffer.java for speed in JNI GetDirectBufferAddress
     //    protected long address;
 
-    // If this buffer is a view of another buffer then we keep a reference to
-    // that buffer so that its memory isn't freed before we're done with it
-    protected Object viewedBuffer = null;
+    // An object attached to this buffer. If this buffer is a view of another
+    // buffer then we use this field to keep a reference to that buffer to
+    // ensure that its memory isn't freed before we are done with it.
+    private final Object att;
 
-    public Object viewedBuffer() {
-        return viewedBuffer;
+    public Object attachment() {
+        return att;
     }
 
 
@@ -171,6 +172,19 @@ class DirectDoubleBufferU
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     // For duplicates and slices
     //
     DirectDoubleBufferU(DirectBuffer db,         // package-private
@@ -180,10 +194,10 @@ class DirectDoubleBufferU
 
         super(mark, pos, lim, cap);
         address = db.address() + off;
-        viewedBuffer = db;
 
 
 
+        att = db;
 
 
 

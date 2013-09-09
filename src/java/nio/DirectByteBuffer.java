@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -58,12 +58,13 @@ class DirectByteBuffer
     // NOTE: moved up to Buffer.java for speed in JNI GetDirectBufferAddress
     //    protected long address;
 
-    // If this buffer is a view of another buffer then we keep a reference to
-    // that buffer so that its memory isn't freed before we're done with it
-    protected Object viewedBuffer = null;
+    // An object attached to this buffer. If this buffer is a view of another
+    // buffer then we use this field to keep a reference to that buffer to
+    // ensure that its memory isn't freed before we are done with it.
+    private final Object att;
 
-    public Object viewedBuffer() {
-        return viewedBuffer;
+    public Object attachment() {
+        return att;
     }
 
 
@@ -136,11 +137,23 @@ class DirectByteBuffer
             address = base;
         }
         cleaner = Cleaner.create(this, new Deallocator(base, size, cap));
+        att = null;
 
 
 
     }
 
+
+
+    // Invoked to construct a direct ByteBuffer referring to the block of
+    // memory. A given arbitrary object may also be attached to the buffer.
+    //
+    DirectByteBuffer(long addr, int cap, Object ob) {
+        super(-1, 0, cap, cap);
+        address = addr;
+        cleaner = null;
+        att = ob;
+    }
 
 
     // Invoked only by JNI: NewDirectByteBuffer(void*, long)
@@ -149,6 +162,7 @@ class DirectByteBuffer
         super(-1, 0, cap, cap);
         address = addr;
         cleaner = null;
+        att = null;
     }
 
 
@@ -162,8 +176,8 @@ class DirectByteBuffer
 
         super(-1, 0, cap, cap, fd);
         address = addr;
-        viewedBuffer = null;
         cleaner = Cleaner.create(this, unmapper);
+        att = null;
 
 
 
@@ -180,10 +194,10 @@ class DirectByteBuffer
 
         super(mark, pos, lim, cap);
         address = db.address() + off;
-        viewedBuffer = db;
 
         cleaner = null;
 
+        att = db;
 
 
 

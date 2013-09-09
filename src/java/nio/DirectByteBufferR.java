@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -111,6 +111,7 @@ class DirectByteBufferR
 
 
 
+
     // Primary constructor
     //
     DirectByteBufferR(int cap) {                   // package-private
@@ -137,9 +138,22 @@ class DirectByteBufferR
 
 
 
+
         super(cap);
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
