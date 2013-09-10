@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -195,6 +195,6 @@ abstract class DynAnyImpl extends org.omg.CORBA.LocalObject implements DynAny
     private String[] __ids = { "IDL:omg.org/DynamicAny/DynAny:1.0" };
 
     public String[] _ids() {
-        return __ids;
+        return (String[])__ids.clone();
     }
 }
