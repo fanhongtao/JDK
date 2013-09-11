@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -42,6 +42,7 @@ import com.sun.org.apache.xml.internal.utils.SystemIDResolver;
 import com.sun.org.apache.xalan.internal.xsltc.trax.DOM2SAX;
 import com.sun.org.apache.xalan.internal.xsltc.trax.StAXEvent2SAX;
 import com.sun.org.apache.xalan.internal.xsltc.trax.StAXStream2SAX;
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXNotRecognizedException;
@@ -102,9 +103,22 @@ public class XSLTCDTMManager extends DTMManagerDefault
      * The default is <code>com.sun.org.apache.xalan.internal.xsltc.dom.XSLTCDTMManager</code>.
      */
     public static Class getDTMManagerClass() {
-        Class mgrClass = ObjectFactory.lookUpFactoryClass(DEFAULT_PROP_NAME,
+        return getDTMManagerClass(true);
+    }
+
+    public static Class getDTMManagerClass(boolean useServicesMechanism) {
+        Class mgrClass = null;
+        if (useServicesMechanism) {
+            mgrClass = ObjectFactory.lookUpFactoryClass(DEFAULT_PROP_NAME,
                                                           null,
                                                           DEFAULT_CLASS_NAME);
+        } else {
+            try {
+                mgrClass = ObjectFactory.findProviderClass(DEFAULT_CLASS_NAME, true);
+            } catch (Exception e) {
+                //will not happen
+            }
+        }
         // If no class found, default to this one.  (This should never happen -
         // the ObjectFactory has already been told that the current class is
         // the default).

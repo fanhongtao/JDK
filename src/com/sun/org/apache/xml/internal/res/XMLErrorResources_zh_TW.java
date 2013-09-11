@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -92,7 +92,7 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
   public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
 
 
-  /* 
+  /*
    * Message keys
    */
   public static final String ER_FUNCTION_NOT_SUPPORTED = "ER_FUNCTION_NOT_SUPPORTED";
@@ -148,14 +148,14 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
   public static final String ER_SYSTEMID_UNKNOWN = "ER_SYSTEMID_UNKNOWN";
   public static final String ER_LOCATION_UNKNOWN = "ER_LOCATION_UNKNOWN";
   public static final String ER_PREFIX_MUST_RESOLVE = "ER_PREFIX_MUST_RESOLVE";
-  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";  
+  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";
   public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT";
-  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";  
-  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";  
-  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";  
-  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";  
-  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";  
-  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";  
+  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";
+  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";
+  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";
+  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";
+  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";
+  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";
   public static final String ER_NAME_CANT_START_WITH_COLON = "ER_NAME_CANT_START_WITH_COLON";
 
   // Message keys used by the serializer
@@ -186,8 +186,8 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
 
   /** Error message ID that has a null message, but takes in a single object.    */
     {"ER0000" , "{0}" },
- 
-    { ER_FUNCTION_NOT_SUPPORTED, 
+
+    { ER_FUNCTION_NOT_SUPPORTED,
       "\u4E0D\u652F\u63F4\u51FD\u6578\uFF01"},
 
     { ER_CANNOT_OVERWRITE_CAUSE,
@@ -204,7 +204,7 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
 
     { ER_COROUTINE_NOT_AVAIL,
       "\u6C92\u6709\u53EF\u7528\u7684\u5171\u540C\u5E38\u5F0F\uFF0Cid={0}"},
-    
+
     { ER_COROUTINE_CO_EXIT,
       "CoroutineManager \u6536\u5230 co_exit() \u8981\u6C42"},
 
@@ -240,7 +240,7 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
 
     { ER_NOT_SUPPORTED,
       "\u4E0D\u652F\u63F4: {0}"},
-    
+
     { ER_NODE_NON_NULL,
       "\u7BC0\u9EDE\u5FC5\u9808\u662F\u975E\u7A7A\u503C\u7684 getDTMHandleFromNode"},
 
@@ -264,7 +264,7 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
 
     { ER_SCHEME_REQUIRED,
        "\u914D\u7F6E\u662F\u5FC5\u8981\u7684\uFF01"},
-    
+
     { ER_NO_SCHEME_IN_URI,
        "\u5728 URI \u4E2D\u627E\u4E0D\u5230\u914D\u7F6E: {0}"},
 
@@ -303,7 +303,7 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
 
     { ER_CANNOT_CHANGE_WHILE_PARSING,
       "\u5256\u6790\u6642\u7121\u6CD5\u8B8A\u66F4 {0} {1}"},
-   
+
     { ER_SELF_CAUSATION_NOT_PERMITTED,
       "\u4E0D\u5141\u8A31\u81EA\u884C\u5F15\u767C"},
 
@@ -313,18 +313,18 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
     { ER_NO_PORT_IF_NO_HOST,
       "\u5982\u679C\u6C92\u6709\u6307\u5B9A\u4E3B\u6A5F\uFF0C\u4E0D\u53EF\u6307\u5B9A\u9023\u63A5\u57E0"},
 
-    { ER_NO_QUERY_STRING_IN_PATH, 
+    { ER_NO_QUERY_STRING_IN_PATH,
       "\u5728\u8DEF\u5F91\u53CA\u67E5\u8A62\u5B57\u4E32\u4E2D\u4E0D\u53EF\u6307\u5B9A\u67E5\u8A62\u5B57\u4E32"},
 
     { ER_NO_FRAGMENT_STRING_IN_PATH,
       "\u8DEF\u5F91\u548C\u7247\u6BB5\u4E0D\u80FD\u540C\u6642\u6307\u5B9A\u7247\u6BB5"},
 
-    { ER_CANNOT_INIT_URI_EMPTY_PARMS, 
+    { ER_CANNOT_INIT_URI_EMPTY_PARMS,
       "\u7121\u6CD5\u4EE5\u7A7A\u767D\u53C3\u6578\u8D77\u59CB\u8A2D\u5B9A URI"},
 
     { ER_METHOD_NOT_SUPPORTED,
       "\u5C1A\u4E0D\u652F\u63F4\u65B9\u6CD5"},
-    
+
     { ER_INCRSAXSRCFILTER_NOT_RESTARTABLE,
       "IncrementalSAXSource_Filter \u76EE\u524D\u7121\u6CD5\u91CD\u65B0\u555F\u52D5"},
 
@@ -363,7 +363,7 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
 
     { ER_ARG_LOCALNAME_NULL,
        "\u5F15\u6578 'localName' \u70BA\u7A7A\u503C"},
- 
+
     // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
     // The localname is the portion after the optional colon; the message indicates
     // that there is a problem with that part of the QNAME.
@@ -375,33 +375,33 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
     // that there is a problem with that part of the QNAME.
     { ER_ARG_PREFIX_INVALID,
        "QNAME \u4E2D\u7684\u524D\u7F6E\u78BC\u61C9\u70BA\u6709\u6548\u7684 NCName"},
-       
+
     { ER_NAME_CANT_START_WITH_COLON,
       "\u540D\u7A31\u4E0D\u80FD\u4EE5\u5192\u865F\u70BA\u958B\u982D"},
-       
+
     { "BAD_CODE", "createMessage \u7684\u53C3\u6578\u8D85\u51FA\u7BC4\u570D"},
     { "FORMAT_FAILED", "messageFormat \u547C\u53EB\u671F\u9593\u767C\u751F\u7570\u5E38\u72C0\u6CC1"},
     { "line", "\u884C\u865F"},
     { "column","\u8CC7\u6599\u6B04\u7DE8\u865F"},
-    
+
     {ER_SERIALIZER_NOT_CONTENTHANDLER,
       "serializer \u985E\u5225 ''{0}'' \u4E0D\u5BE6\u884C org.xml.sax.ContentHandler\u3002"},
-    
+
     {ER_RESOURCE_COULD_NOT_FIND,
       "\u627E\u4E0D\u5230\u8CC7\u6E90 [ {0} ]\u3002\n{1}" },
-    
+
     {ER_RESOURCE_COULD_NOT_LOAD,
       "\u7121\u6CD5\u8F09\u5165\u8CC7\u6E90 [ {0} ]: {1} \n {2} \t {3}" },
-    
+
     {ER_BUFFER_SIZE_LESSTHAN_ZERO,
       "\u7DE9\u885D\u5340\u5927\u5C0F <=0" },
-    
+
     {ER_INVALID_UTF16_SURROGATE,
       "\u5075\u6E2C\u5230\u7121\u6548\u7684 UTF-16 \u4EE3\u7406: {0}\uFF1F" },
-    
+
     {ER_OIERROR,
       "IO \u932F\u8AA4" },
-    
+
     {ER_ILLEGAL_ATTRIBUTE_POSITION,
       "\u5728\u7522\u751F\u5B50\u9805\u7BC0\u9EDE\u4E4B\u5F8C\uFF0C\u6216\u5728\u7522\u751F\u5143\u7D20\u4E4B\u524D\uFF0C\u4E0D\u53EF\u65B0\u589E\u5C6C\u6027 {0}\u3002\u5C6C\u6027\u6703\u88AB\u5FFD\u7565\u3002"},
 
@@ -436,11 +436,11 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
 
     { ER_ILLEGAL_CHARACTER,
        "\u5617\u8A66\u8F38\u51FA\u6574\u6578\u503C {0} \u7684\u5B57\u5143\uFF0C\u4F46\u662F\u5B83\u4E0D\u662F\u4EE5\u6307\u5B9A\u7684 {1} \u8F38\u51FA\u7DE8\u78BC\u5448\u73FE\u3002"},
-    
+
     {ER_COULD_NOT_LOAD_METHOD_PROPERTY,
       "\u7121\u6CD5\u8F09\u5165\u8F38\u51FA\u65B9\u6CD5 ''{1}'' \u7684\u5C6C\u6027\u6A94 ''{0}'' (\u6AA2\u67E5 CLASSPATH)" }
-    
-  
+
+
   };
 
   /**
@@ -448,7 +448,7 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
    *
    * @return The association list.
    */
- 
+
     protected Object[][] getContents() {
         return _contents;
     }
@@ -515,5 +515,5 @@ public class XMLErrorResources_zh_TW extends ListResourceBundle
 
     return suffix;
   }
-  
+
 }

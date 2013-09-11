@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -30,8 +30,8 @@ import com.sun.org.apache.xerces.internal.impl.dv.xs.XSSimpleTypeDecl;
  * declarations to the pool.
  * Note: The cashing mechanism is not implemented yet.
  *
- * @xerces.internal 
- * 
+ * @xerces.internal
+ *
  * @author Elena Litani, IBM
  * @version $Id: XSDeclarationPool.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */

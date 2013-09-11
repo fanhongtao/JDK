@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -27,10 +27,10 @@ import com.sun.org.apache.xerces.internal.xs.datatypes.ByteList;
 /**
  * Implementation of <code>com.sun.org.apache.xerces.internal.xs.datatypes.ByteList</code>.
  *
- * @xerces.internal 
- * 
+ * @xerces.internal
+ *
  * @author Ankit Pasricha, IBM
- * 
+ *
  * @version $Id: ByteListImpl.java,v 1.7 2010-11-01 04:39:46 joehw Exp $
  */
 public class ByteListImpl extends AbstractList implements ByteList {
@@ -104,4 +104,3 @@ public class ByteListImpl extends AbstractList implements ByteList {
         return getLength();
     }
 }
-

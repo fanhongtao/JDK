@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -75,7 +75,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
  *  <li>http://apache.org/xml/properties/internal/grammar-pool</li>
  *  <li>http://apache.org/xml/properties/internal/datatype-validator-factory</li>
  * </ul>
- * 
+ *
  * @xerces.internal
  *
  * @author Eric Ye, IBM
@@ -119,8 +119,8 @@ public class XMLDTDValidator
     protected static final String WARN_ON_DUPLICATE_ATTDEF =
         Constants.XERCES_FEATURE_PREFIX + Constants.WARN_ON_DUPLICATE_ATTDEF_FEATURE;
 
-	protected static final String PARSER_SETTINGS =
-		Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
+        protected static final String PARSER_SETTINGS =
+                Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
 
 
 
@@ -432,18 +432,18 @@ public class XMLDTDValidator
 
         fRootElement.clear();
 
-		fValidationState.resetIDTables();
+                fValidationState.resetIDTables();
 
-		fGrammarBucket.clear();
-		fElementDepth = -1;
-		fElementChildrenLength = 0;
+                fGrammarBucket.clear();
+                fElementDepth = -1;
+                fElementChildrenLength = 0;
 
         boolean parser_settings = componentManager.getFeature(PARSER_SETTINGS, true);
 
         if (!parser_settings){
-        	// parser settings have not been changed
-			fValidationManager.addValidationState(fValidationState);
-        	return;
+                // parser settings have not been changed
+                        fValidationManager.addValidationState(fValidationState);
+                return;
         }
 
         // sax features
@@ -469,7 +469,7 @@ public class XMLDTDValidator
         fGrammarPool= (XMLGrammarPool)componentManager.getProperty(GRAMMAR_POOL, null);
 
         fDatatypeValidatorFactory = (DTDDVFactory)componentManager.getProperty(Constants.XERCES_PROPERTY_PREFIX + Constants.DATATYPE_VALIDATOR_FACTORY_PROPERTY);
-		init();
+                init();
 
     } // reset(XMLComponentManager)
 

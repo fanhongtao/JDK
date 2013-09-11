@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -39,30 +39,30 @@ import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
  * This is the implementation specific class for the
  * <code>javax.xml.parsers.SAXParserFactory</code>. This is the platform
  * default implementation for the platform.
- * 
+ *
  * @author Rajiv Mordani
  * @author Edwin Goei
- * 
+ *
  * @version $Id: SAXParserFactoryImpl.java,v 1.7 2009/07/28 23:48:32 joehw Exp $
  */
 public class SAXParserFactoryImpl extends SAXParserFactory {
-    
+
     /** Feature identifier: validation. */
     private static final String VALIDATION_FEATURE =
         Constants.SAX_FEATURE_PREFIX + Constants.VALIDATION_FEATURE;
-    
+
     /** Feature identifier: namespaces. */
     private static final String NAMESPACES_FEATURE =
         Constants.SAX_FEATURE_PREFIX + Constants.NAMESPACES_FEATURE;
-    
+
     /** Feature identifier: XInclude processing */
-    private static final String XINCLUDE_FEATURE = 
+    private static final String XINCLUDE_FEATURE =
         Constants.XERCES_FEATURE_PREFIX + Constants.XINCLUDE_FEATURE;
-    
+
     private Hashtable features;
     private Schema grammar;
     private boolean isXIncludeAware;
-    
+
     /**
      * State of the secure processing feature, initially <code>false</code>
      */
@@ -83,14 +83,14 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
             // Translate to ParserConfigurationException
             throw new ParserConfigurationException(se.getMessage());
         }
-	return saxParserImpl;
+        return saxParserImpl;
     }
 
     /**
      * Common code for translating exceptions
      */
     private SAXParserImpl newSAXParserImpl()
-        throws ParserConfigurationException, SAXNotRecognizedException, 
+        throws ParserConfigurationException, SAXNotRecognizedException,
         SAXNotSupportedException
     {
         SAXParserImpl saxParserImpl;
@@ -107,12 +107,12 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
     }
 
     /**
-     * Sets the particular feature in the underlying implementation of 
+     * Sets the particular feature in the underlying implementation of
      * org.xml.sax.XMLReader.
      */
     public void setFeature(String name, boolean value)
-        throws ParserConfigurationException, SAXNotRecognizedException, 
-		SAXNotSupportedException {
+        throws ParserConfigurationException, SAXNotRecognizedException,
+                SAXNotSupportedException {
         if (name == null) {
             throw new NullPointerException();
         }
@@ -120,13 +120,13 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
         if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
             if (System.getSecurityManager() != null && (!value)) {
                 throw new ParserConfigurationException(
-                        SAXMessageFormatter.formatMessage(null, 
+                        SAXMessageFormatter.formatMessage(null,
                         "jaxp-secureprocessing-feature", null));
             }
             fSecureProcess = value;
             return;
         }
-        
+
         // XXX This is ugly.  We have to collect the features and then
         // later create an XMLReader to verify the features.
         putInFeatures(name, value);
@@ -143,12 +143,12 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
     }
 
     /**
-     * returns the particular property requested for in the underlying 
+     * returns the particular property requested for in the underlying
      * implementation of org.xml.sax.XMLReader.
      */
     public boolean getFeature(String name)
         throws ParserConfigurationException, SAXNotRecognizedException,
-		SAXNotSupportedException {
+                SAXNotSupportedException {
         if (name == null) {
             throw new NullPointerException();
         }
@@ -159,7 +159,7 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
         // feature value
         return newSAXParserImpl().getXMLReader().getFeature(name);
     }
-    
+
     public Schema getSchema() {
         return grammar;
     }
@@ -175,23 +175,23 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
     public void setXIncludeAware(boolean state) {
         putInFeatures(XINCLUDE_FEATURE, state);
     }
-    
-    
+
+
     public void setValidating(boolean validating) {
         putInFeatures(VALIDATION_FEATURE, validating);
     }
-    
+
     public boolean isValidating() {
          return getFromFeatures(VALIDATION_FEATURE);
     }
-     
+
     private void putInFeatures(String name, boolean value){
          if (features == null) {
             features = new Hashtable();
         }
         features.put(name, value ? Boolean.TRUE : Boolean.FALSE);
     }
-     
+
     private boolean getFromFeatures(String name){
          if (features == null){
             return false;
@@ -201,11 +201,11 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
              return (value == null) ? false : Boolean.valueOf(value.toString()).booleanValue();
          }
     }
-   
+
     public boolean isNamespaceAware() {
         return getFromFeatures(NAMESPACES_FEATURE);
     }
-     
+
     public void setNamespaceAware(boolean awareness) {
        putInFeatures(NAMESPACES_FEATURE, awareness);
     }

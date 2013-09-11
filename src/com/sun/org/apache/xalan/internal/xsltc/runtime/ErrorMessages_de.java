@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -269,7 +269,7 @@ public class ErrorMessages_de extends ListResourceBundle {
          */
         {BasisLibrary.INVALID_NCNAME_ERR,
         "Ein Attribut, dessen Wert ein NCName sein muss, hatte den Wert \"{0}\""},
-        
+
         {BasisLibrary.UNALLOWED_EXTENSION_FUNCTION_ERR,
         "Verwendung der Erweiterungsfunktion \"{0}\" ist nicht zul\u00E4ssig, wenn das Feature f\u00FCr die sichere Verarbeitung auf \"true\" gesetzt ist."},
 

@@ -39,26 +39,26 @@ import java.util.*;
  */
 class SecuritySupport  {
 
-    
+
     ClassLoader getContextClassLoader() throws SecurityException{
-	return (ClassLoader)
-		AccessController.doPrivileged(new PrivilegedAction() {
-	    public Object run() {
+        return (ClassLoader)
+                AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
                 ClassLoader cl = null;
                 //try {
                 cl = Thread.currentThread().getContextClassLoader();
                 //} catch (SecurityException ex) { }
-                
+
                 if (cl == null)
                     cl = ClassLoader.getSystemClassLoader();
-                
+
                 return cl;
             }
         });
     }
 
     String getSystemProperty(final String propName) {
-	return (String)
+        return (String)
             AccessController.doPrivileged(new PrivilegedAction() {
                 public Object run() {
                     return System.getProperty(propName);
@@ -69,16 +69,16 @@ class SecuritySupport  {
     FileInputStream getFileInputStream(final File file)
         throws FileNotFoundException
     {
-	try {
+        try {
             return (FileInputStream)
                 AccessController.doPrivileged(new PrivilegedExceptionAction() {
                     public Object run() throws FileNotFoundException {
                         return new FileInputStream(file);
                     }
                 });
-	} catch (PrivilegedActionException e) {
-	    throw (FileNotFoundException)e.getException();
-	}
+        } catch (PrivilegedActionException e) {
+            throw (FileNotFoundException)e.getException();
+        }
     }
 
     InputStream getResourceAsStream(final ClassLoader cl,

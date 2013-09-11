@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -26,14 +26,14 @@ import com.sun.org.apache.xerces.internal.xs.XSSimpleTypeDefinition;
 import org.w3c.dom.DOMException;
 
 /**
- * AttrNSImpl inherits from AttrImpl and adds namespace support. 
+ * AttrNSImpl inherits from AttrImpl and adds namespace support.
  * <P>
  * The qualified name is the node name, and we store localName which is also
  * used in all queries. On the other hand we recompute the prefix when
  * necessary.
- * 
+ *
  * @xerces.internal
- * 
+ *
  * @author Arnaud  Le Hors, IBM
  * @author Andy Clark, IBM
  * @author Ralf Pfeiffer, IBM
@@ -48,7 +48,7 @@ public class AttrNSImpl
 
     /** Serialization version. */
     static final long serialVersionUID = -781906615369795414L;
-    
+
     static final String xmlnsURI = "http://www.w3.org/2000/xmlns/";
     static final String xmlURI = "http://www.w3.org/XML/1998/namespace";
 
@@ -58,7 +58,7 @@ public class AttrNSImpl
 
     /** DOM2: Namespace URI. */
     protected String namespaceURI;
-  
+
     /** DOM2: localName. */
     protected String localName;
 
@@ -66,12 +66,12 @@ public class AttrNSImpl
      * Default constructor
      */
     public AttrNSImpl(){}
-        
+
    /**
      * DOM2: Constructor for Namespace implementation.
      */
-    protected AttrNSImpl(CoreDocumentImpl ownerDocument, 
-                         String namespaceURI, 
+    protected AttrNSImpl(CoreDocumentImpl ownerDocument,
+                         String namespaceURI,
                          String qualifiedName) {
 
         super(ownerDocument, qualifiedName);
@@ -86,7 +86,7 @@ public class AttrNSImpl
         if (namespaceURI !=null) {
             this.namespaceURI = (namespaceURI.length() == 0)? null
                     : namespaceURI;
-            
+
         }
         int colon1 = qname.indexOf(':');
         int colon2 = qname.lastIndexOf(':');
@@ -96,7 +96,7 @@ public class AttrNSImpl
             localName = qname;
             if (ownerDocument.errorChecking) {
                 ownerDocument.checkQName(null, localName);
-                
+
                 if (qname.equals("xmlns") && (namespaceURI == null
                     || !namespaceURI.equals(NamespaceContext.XMLNS_URI))
                     || (namespaceURI!=null && namespaceURI.equals(NamespaceContext.XMLNS_URI)
@@ -116,21 +116,21 @@ public class AttrNSImpl
             ownerDocument.checkQName(prefix, localName);
             ownerDocument.checkDOMNSErr(prefix, namespaceURI);
         }
-    } 
+    }
 
     // when local name is known
-    public AttrNSImpl(CoreDocumentImpl ownerDocument, 
-                         String namespaceURI, 
+    public AttrNSImpl(CoreDocumentImpl ownerDocument,
+                         String namespaceURI,
                          String qualifiedName,
                          String localName) {
         super(ownerDocument, qualifiedName);
-        
+
         this.localName = localName;
         this.namespaceURI = namespaceURI;
     }
-    
+
     // for DeferredAttrImpl
-    protected AttrNSImpl(CoreDocumentImpl ownerDocument, 
+    protected AttrNSImpl(CoreDocumentImpl ownerDocument,
                          String value) {
         super(ownerDocument, value);
     }
@@ -143,20 +143,20 @@ public class AttrNSImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-		this.name = qualifiedName;
+                this.name = qualifiedName;
         setName(namespaceURI, qualifiedName);
     }
 
     /**
      * NON-DOM: resets this node and sets specified values for the node
-     * 
+     *
      * @param ownerDocument
      * @param namespaceURI
      * @param qualifiedName
      * @param localName
      */
-    public void setValues (CoreDocumentImpl ownerDocument, 
-                         String namespaceURI, 
+    public void setValues (CoreDocumentImpl ownerDocument,
+                         String namespaceURI,
                          String qualifiedName,
                          String localName){
 
@@ -175,7 +175,7 @@ public class AttrNSImpl
     // DOM2: Namespace methods
     //
 
-    /** 
+    /**
      * Introduced in DOM Level 2. <p>
      *
      * The namespace URI of this node, or null if it is unspecified.<p>
@@ -185,7 +185,7 @@ public class AttrNSImpl
      * merely the namespace URI given at creation time.<p>
      *
      * For nodes created with a DOM Level 1 method, such as createElement
-     * from the Document interface, this is null.     
+     * from the Document interface, this is null.
      * @since WD-DOM-Level-2-19990923
      */
     public String getNamespaceURI()
@@ -198,8 +198,8 @@ public class AttrNSImpl
         // seems to be some DOM spec interpretation grey-area.
         return namespaceURI;
     }
-    
-    /** 
+
+    /**
      * Introduced in DOM Level 2. <p>
      *
      * The namespace prefix of this node, or null if it is unspecified. <p>
@@ -215,16 +215,16 @@ public class AttrNSImpl
             synchronizeData();
         }
         int index = name.indexOf(':');
-        return index < 0 ? null : name.substring(0, index); 
+        return index < 0 ? null : name.substring(0, index);
     }
-    
+
     /**
      * Introduced in DOM Level 2. <p>
-     * 
+     *
      * Note that setting this attribute changes the nodeName attribute, which
      * holds the qualified name, as well as the tagName and name attributes of
      * the Element and Attr interfaces, when applicable.<p>
-     * 
+     *
      * @param prefix The namespace prefix of this node, or null(empty string) if it is unspecified.
      *
      * @exception INVALID_CHARACTER_ERR
@@ -253,7 +253,7 @@ public class AttrNSImpl
                 if (namespaceURI == null || prefix.indexOf(':') >=0) {
                     String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NAMESPACE_ERR", null);
                     throw new DOMException(DOMException.NAMESPACE_ERR, msg);
-               
+
                 }
                if (prefix.equals("xmlns")) {
                     if (!namespaceURI.equals(xmlnsURI)){
@@ -269,7 +269,7 @@ public class AttrNSImpl
                     String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NAMESPACE_ERR", null);
                     throw new DOMException(DOMException.NAMESPACE_ERR, msg);
                 }
-            } 
+            }
         }
 
         // update node name with new qualifiedName
@@ -280,8 +280,8 @@ public class AttrNSImpl
             name = localName;
         }
     }
-                                        
-    /** 
+
+    /**
      * Introduced in DOM Level 2. <p>
      *
      * Returns the local part of the qualified name of this node.
@@ -294,8 +294,8 @@ public class AttrNSImpl
         }
         return localName;
     }
-    
-    
+
+
     /**
      * @see org.w3c.dom.TypeInfo#getTypeName()
      */
@@ -313,26 +313,26 @@ public class AttrNSImpl
      * Introduced in DOM Level 3. <p>
      * Checks if a type is derived from another by restriction. See:
      * http://www.w3.org/TR/DOM-Level-3-Core/core.html#TypeInfo-isDerivedFrom
-     * 
-     * @param ancestorNS 
+     *
+     * @param ancestorNS
      *        The namspace of the ancestor type declaration
      * @param ancestorName
      *        The name of the ancestor type declaration
      * @param type
      *        The reference type definition
-     * 
+     *
      * @return boolean True if the type is derived by restriciton for the
      *         reference type
      */
-    public boolean isDerivedFrom(String typeNamespaceArg, 
-                                 String typeNameArg, 
+    public boolean isDerivedFrom(String typeNamespaceArg,
+                                 String typeNameArg,
                                  int derivationMethod) {
         if (type != null) {
             if (type instanceof XSSimpleTypeDecl) {
                 return ((XSSimpleTypeDecl) type).isDOMDerivedFrom(
                         typeNamespaceArg, typeNameArg, derivationMethod);
-            }    
-        } 
+            }
+        }
         return false;
     }
 
@@ -348,5 +348,5 @@ public class AttrNSImpl
         }
         return null;
     }
-    
+
 }

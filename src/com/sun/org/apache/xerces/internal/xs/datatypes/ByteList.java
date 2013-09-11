@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -24,11 +24,11 @@ import java.util.List;
 import com.sun.org.apache.xerces.internal.xs.XSException;
 
 /**
- * <p>The <code>ByteList</code> is an immutable ordered collection of 
+ * <p>The <code>ByteList</code> is an immutable ordered collection of
  * <code>byte</code>.</p>
- * 
+ *
  * @author Ankit Pasricha, IBM
- * 
+ *
  * @version $Id: ByteList.java,v 1.7 2010-11-01 04:40:31 joehw Exp $
  */
 public interface ByteList extends List {

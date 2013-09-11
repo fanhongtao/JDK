@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -28,8 +28,8 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
 
 /**
  * Validator for &lt;time&gt; datatype (W3C Schema Datatypes)
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Elena Litani
  * @author Gopal Sharma, SUN Microsystem Inc.

@@ -1,25 +1,25 @@
 /*
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
  */
 
 /*
@@ -52,56 +52,56 @@ import javax.xml.datatype.DatatypeConstants;
  */
 
 class DurationDayTimeImpl
-	extends DurationImpl {
+        extends DurationImpl {
 
     public DurationDayTimeImpl(
-	boolean isPositive,
-	BigInteger days,
-	BigInteger hours,
-	BigInteger minutes,
-	BigDecimal seconds) {
+        boolean isPositive,
+        BigInteger days,
+        BigInteger hours,
+        BigInteger minutes,
+        BigDecimal seconds) {
 
-	super(isPositive, null, null, days, hours, minutes, seconds);
-	convertToCanonicalDayTime();
+        super(isPositive, null, null, days, hours, minutes, seconds);
+        convertToCanonicalDayTime();
     }
 
     public DurationDayTimeImpl(
-	boolean isPositive,
-	int days,
-	int hours,
-	int minutes,
-	int seconds) {
+        boolean isPositive,
+        int days,
+        int hours,
+        int minutes,
+        int seconds) {
 
-	this(
-	    isPositive,
-	    wrap(days),
-	    wrap(hours),
-	    wrap(minutes),
-	    (seconds != DatatypeConstants.FIELD_UNDEFINED ? new BigDecimal(String.valueOf(seconds)) : null));
+        this(
+            isPositive,
+            wrap(days),
+            wrap(hours),
+            wrap(minutes),
+            (seconds != DatatypeConstants.FIELD_UNDEFINED ? new BigDecimal(String.valueOf(seconds)) : null));
     }
 
-	/**
-	 * <p>Construct a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> by parsing its <code>String</code> representation,
-	 * "<em>PnDTnHnMnS</em>", <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
-	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
-	 *
-	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
-	 * whose lexical representation contains only day, hour, minute, and second components.
-	 * This datatype resides in the namespace <code>http://www.w3.org/2003/11/xpath-datatypes</code>.</p>
-	 *
+        /**
+         * <p>Construct a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> by parsing its <code>String</code> representation,
+         * "<em>PnDTnHnMnS</em>", <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
+         *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
+         *
+         * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
+         * whose lexical representation contains only day, hour, minute, and second components.
+         * This datatype resides in the namespace <code>http://www.w3.org/2003/11/xpath-datatypes</code>.</p>
+         *
      * <p>All four values are set and availabe from the created {@link Duration}</p>
-	 *
+         *
      * <p>The XML Schema specification states that values can be of an arbitrary size.
      * Implementations may chose not to or be incapable of supporting arbitrarily large and/or small values.
      * An {@link UnsupportedOperationException} will be thrown with a message indicating implementation limits
      * if implementation capacities are exceeded.</p>
      *
-	 * @param lexicalRepresentation Lexical representation of a duration.
-	 *
-	 * @throws IllegalArgumentException If <code>lexicalRepresentation</code> is not a valid representation of a <code>Duration</code> expressed only in terms of days and time.
-	 * @throws UnsupportedOperationException If implementation cannot support requested values.
-	 * @throws NullPointerException If <code>lexicalRepresentation</code> is <code>null</code>.
-	 */
+         * @param lexicalRepresentation Lexical representation of a duration.
+         *
+         * @throws IllegalArgumentException If <code>lexicalRepresentation</code> is not a valid representation of a <code>Duration</code> expressed only in terms of days and time.
+         * @throws UnsupportedOperationException If implementation cannot support requested values.
+         * @throws NullPointerException If <code>lexicalRepresentation</code> is <code>null</code>.
+         */
     protected DurationDayTimeImpl(String lexicalRepresentation) {
         super(lexicalRepresentation);
 
@@ -114,15 +114,15 @@ class DurationDayTimeImpl
 
         convertToCanonicalDayTime();
     }
-	/**
-	 * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> using the specified milliseconds as defined in
-	 * <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
-	 *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
-	 *
-	 * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
-	 * whose lexical representation contains only day, hour, minute, and second components.
-	 * This datatype resides in the namespace <code>http://www.w3.org/2003/11/xpath-datatypes</code>.</p>
-	 *
+        /**
+         * <p>Create a <code>Duration</code> of type <code>xdt:dayTimeDuration</code> using the specified milliseconds as defined in
+         * <a href="http://www.w3.org/TR/xpath-datamodel#dayTimeDuration">
+         *   XQuery 1.0 and XPath 2.0 Data Model, xdt:dayTimeDuration</a>.</p>
+         *
+         * <p>The datatype <code>xdt:dayTimeDuration</code> is a subtype of <code>xs:duration</code>
+         * whose lexical representation contains only day, hour, minute, and second components.
+         * This datatype resides in the namespace <code>http://www.w3.org/2003/11/xpath-datatypes</code>.</p>
+         *
      * <p>All four values are set by computing their values from the specified milliseconds
      * and are availabe using the <code>get</code> methods of  the created {@link Duration}.
      * The values conform to and are defined by:</p>
@@ -133,15 +133,15 @@ class DurationDayTimeImpl
      *   </li>
      *   <li>{@link XMLGregorianCalendar}  Date/Time Datatype Field Mapping Between XML Schema 1.0 and Java Representation</li>
      * </ul>
-	 *
-	 * <p>The default start instance is defined by {@link GregorianCalendar}'s use of the start of the epoch: i.e.,
-	 * {@link java.util.Calendar#YEAR} = 1970,
-	 * {@link java.util.Calendar#MONTH} = {@link java.util.Calendar#JANUARY},
-	 * {@link java.util.Calendar#DATE} = 1, etc.
-	 * This is important as there are variations in the Gregorian Calendar,
-	 * e.g. leap years have different days in the month = {@link java.util.Calendar#FEBRUARY}
-	 * so the result of {@link Duration#getDays()} can be influenced.</p>
-	 *
+         *
+         * <p>The default start instance is defined by {@link GregorianCalendar}'s use of the start of the epoch: i.e.,
+         * {@link java.util.Calendar#YEAR} = 1970,
+         * {@link java.util.Calendar#MONTH} = {@link java.util.Calendar#JANUARY},
+         * {@link java.util.Calendar#DATE} = 1, etc.
+         * This is important as there are variations in the Gregorian Calendar,
+         * e.g. leap years have different days in the month = {@link java.util.Calendar#FEBRUARY}
+         * so the result of {@link Duration#getDays()} can be influenced.</p>
+         *
      * <p>Any remaining milliseconds after determining the day, hour, minute and second are discarded.</p>
      *
      * @param durationInMilliseconds Milliseconds of <code>Duration</code> to create.
@@ -166,10 +166,10 @@ class DurationDayTimeImpl
      */
     public float getValue() {
         float sec = (seconds==null)?0:seconds.floatValue();
-	return (((((getDays() * 24) +
-		    getHours()) * 60) +
-		    getMinutes())*60) +
-		    sec;
+        return (((((getDays() * 24) +
+                    getHours()) * 60) +
+                    getMinutes())*60) +
+                    sec;
     }
 
     private void convertToCanonicalDayTime() {

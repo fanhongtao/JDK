@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -50,7 +50,7 @@ public class XNumber extends XObject
 
     m_val = d;
   }
-  
+
   /**
    * Construct a XNodeSet object.
    *
@@ -68,7 +68,7 @@ public class XNumber extends XObject
   /**
    * Tell that this is a CLASS_NUMBER.
    *
-   * @return node type CLASS_NUMBER 
+   * @return node type CLASS_NUMBER
    */
   public int getType()
   {
@@ -79,7 +79,7 @@ public class XNumber extends XObject
    * Given a request type, return the equivalent string.
    * For diagnostic purposes.
    *
-   * @return type string "#NUMBER" 
+   * @return type string "#NUMBER"
    */
   public String getTypeString()
   {
@@ -95,7 +95,7 @@ public class XNumber extends XObject
   {
     return m_val;
   }
-  
+
   /**
    * Evaluate expression to a number.
    *
@@ -103,7 +103,7 @@ public class XNumber extends XObject
    *
    * @throws javax.xml.transform.TransformerException
    */
-  public double num(XPathContext xctxt) 
+  public double num(XPathContext xctxt)
     throws javax.xml.transform.TransformerException
   {
 
@@ -238,7 +238,7 @@ public class XNumber extends XObject
 //      len = s.length();
 //    }
 //
-//    // Account for exponent by adding zeros as needed 
+//    // Account for exponent by adding zeros as needed
 //    // and moving the decimal place
 //
 //    if (exp == 0)
@@ -337,7 +337,7 @@ public class XNumber extends XObject
     // Eliminate trailing 0's - bugzilla 14241
     while (s.charAt(e-1) == '0')
       e--;
-         
+
     if (exp > 0)
       return sign + s.substring(0, 1) + s.substring(2, 2 + exp) + "."
              + s.substring(2 + exp, e);
@@ -388,37 +388,37 @@ public class XNumber extends XObject
    *
    * @param obj2 Object to compare this to
    *
-   * @return true if the two objects are equal 
+   * @return true if the two objects are equal
    *
    * @throws javax.xml.transform.TransformerException
    */
   public boolean equals(XObject obj2)
   {
 
-    // In order to handle the 'all' semantics of 
-    // nodeset comparisons, we always call the 
+    // In order to handle the 'all' semantics of
+    // nodeset comparisons, we always call the
     // nodeset function.
     int t = obj2.getType();
     try
     {
-	    if (t == XObject.CLASS_NODESET)
-	      return obj2.equals(this);
-	    else if(t == XObject.CLASS_BOOLEAN)
-	      return obj2.bool() == bool();
-		else
-	       return m_val == obj2.num();
+            if (t == XObject.CLASS_NODESET)
+              return obj2.equals(this);
+            else if(t == XObject.CLASS_BOOLEAN)
+              return obj2.bool() == bool();
+                else
+               return m_val == obj2.num();
     }
     catch(javax.xml.transform.TransformerException te)
     {
       throw new com.sun.org.apache.xml.internal.utils.WrappedRuntimeException(te);
     }
   }
-  
+
   /**
-   * Tell if this expression returns a stable number that will not change during 
-   * iterations within the expression.  This is used to determine if a proximity 
+   * Tell if this expression returns a stable number that will not change during
+   * iterations within the expression.  This is used to determine if a proximity
    * position predicate can indicate that no more searching has to occur.
-   * 
+   *
    *
    * @return true if the expression represents a stable number.
    */
@@ -426,13 +426,13 @@ public class XNumber extends XObject
   {
     return true;
   }
-  
+
   /**
    * @see com.sun.org.apache.xpath.internal.XPathVisitable#callVisitors(ExpressionOwner, XPathVisitor)
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	visitor.visitNumberLiteral(owner, this);
+        visitor.visitNumberLiteral(owner, this);
   }
 
 

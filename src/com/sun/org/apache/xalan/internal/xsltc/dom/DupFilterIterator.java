@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -88,7 +88,9 @@ public final class DupFilterIterator extends DTMAxisIteratorBase {
         if (_isRestartable) {
             // KeyIndex iterators are always relative to the root node, so there
             // is never any point in re-reading the iterator (and we SHOULD NOT).
-            if (_source instanceof KeyIndex
+            boolean sourceIsKeyIndex = _source instanceof KeyIndex;
+
+            if (sourceIsKeyIndex
                     && _startNode == DTMDefaultBase.ROOTNODE) {
                 return this;
             }
@@ -100,7 +102,12 @@ public final class DupFilterIterator extends DTMAxisIteratorBase {
                 while ((node = _source.next()) != END) {
                     _nodes.add(node);
                 }
-                _nodes.sort();
+
+                // Nodes produced by KeyIndex are known to be in document order.
+                // Take advantage of it.
+                if (!sourceIsKeyIndex) {
+                    _nodes.sort();
+                }
                 _nodesSize = _nodes.cardinality();
                 _current = 0;
                 _lastNext = END;

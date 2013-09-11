@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -131,11 +131,13 @@ public final class XSLTC {
      */
     private boolean _isSecureProcessing = false;
 
+    private boolean _useServicesMechanism = true;
+
     /**
      * XSLTC compiler constructor
      */
-    public XSLTC() {
-        _parser = new Parser(this);
+    public XSLTC(boolean useServicesMechanism) {
+        _parser = new Parser(this, useServicesMechanism);
     }
 
     /**
@@ -150,6 +152,19 @@ public final class XSLTC {
      */
     public boolean isSecureProcessing() {
         return _isSecureProcessing;
+    }
+    /**
+     * Return the state of the services mechanism feature.
+     */
+    public boolean useServicesMechnism() {
+        return _useServicesMechanism;
+    }
+
+    /**
+     * Set the state of the services mechanism feature.
+     */
+    public void setServicesMechnism(boolean flag) {
+        _useServicesMechanism = flag;
     }
 
     /**
@@ -229,6 +244,12 @@ public final class XSLTC {
      */
     public void setTemplateInlining(boolean templateInlining) {
         _templateInlining = templateInlining;
+    }
+     /**
+     * Return the state of the template inlining feature.
+     */
+    public boolean getTemplateInlining() {
+        return _templateInlining;
     }
 
     /**

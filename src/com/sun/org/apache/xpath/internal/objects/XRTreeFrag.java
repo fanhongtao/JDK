@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -53,19 +53,19 @@ public class XRTreeFrag extends XObject implements Cloneable
   {
     super(null);
     exprSetParent(parent);
-    initDTM(root, xctxt);    
+    initDTM(root, xctxt);
   }
-  
+
   /**
    * Create an XRTreeFrag Object.
    *
    */
   public XRTreeFrag(int root, XPathContext xctxt)
   {
-    super(null); 
-   initDTM(root, xctxt); 
+    super(null);
+   initDTM(root, xctxt);
   }
-  
+
   private final void initDTM(int root, XPathContext xctxt){
     m_dtmRoot = root;
     final DTM dtm = xctxt.getDTM(root);
@@ -73,7 +73,7 @@ public class XRTreeFrag extends XObject implements Cloneable
       m_DTMXRTreeFrag = xctxt.getDTMXRTreeFrag(xctxt.getDTMIdentity(dtm));
     }
   }
-  
+
   /**
    * Return a java object that's closest to the representation
    * that should be handed to an extension.
@@ -87,7 +87,7 @@ public class XRTreeFrag extends XObject implements Cloneable
     else
       return super.object();
   }
-  
+
   /**
    * Create an XRTreeFrag Object.
    *
@@ -96,11 +96,11 @@ public class XRTreeFrag extends XObject implements Cloneable
   {
     super(expr);
   }
-    
+
   /**
    * Specify if it's OK for detach to release the iterator for reuse.
-   * 
-   * @param allowRelease true if it is OK for detach to release this iterator 
+   *
+   * @param allowRelease true if it is OK for detach to release this iterator
    * for pooling.
    */
   public void allowDetachToRelease(boolean allowRelease)
@@ -114,20 +114,20 @@ public class XRTreeFrag extends XObject implements Cloneable
    * in the INVALID state. After <code>detach</code> has been invoked,
    * calls to <code>nextNode</code> or <code>previousNode</code> will
    * raise a runtime exception.
-   * 
+   *
    * In general, detach should only be called once on the object.
    */
   public void detach(){
     if(m_allowRelease){
-    	m_DTMXRTreeFrag.destruct();
+        m_DTMXRTreeFrag.destruct();
       setObject(null);
     }
   }
-  
+
   /**
    * Tell what kind of class this is.
    *
-   * @return type CLASS_RTREEFRAG 
+   * @return type CLASS_RTREEFRAG
    */
   public int getType()
   {
@@ -169,22 +169,22 @@ public class XRTreeFrag extends XObject implements Cloneable
   {
     return true;
   }
-  
+
   private XMLString m_xmlStr = null;
-  
+
   /**
    * Cast result object to an XMLString.
    *
-   * @return The document fragment node data or the empty string. 
+   * @return The document fragment node data or the empty string.
    */
   public XMLString xstr()
   {
     if(null == m_xmlStr)
       m_xmlStr = m_DTMXRTreeFrag.getDTM().getStringValue(m_dtmRoot);
-    
+
     return m_xmlStr;
   }
-  
+
   /**
    * Cast result object to a string.
    *
@@ -200,7 +200,7 @@ public class XRTreeFrag extends XObject implements Cloneable
   /**
    * Cast result object to a string.
    *
-   * @return The document fragment node data or the empty string. 
+   * @return The document fragment node data or the empty string.
    */
   public String str()
   {
@@ -222,7 +222,7 @@ public class XRTreeFrag extends XObject implements Cloneable
   /**
    * Cast result object to a DTMIterator.
    * dml - modified to return an RTFIterator for
-   * benefit of EXSLT object-type function in 
+   * benefit of EXSLT object-type function in
    * {@link com.sun.org.apache.xalan.internal.lib.ExsltCommon}.
    * @return The document fragment as a DTMIterator
    */
@@ -261,9 +261,9 @@ public class XRTreeFrag extends XObject implements Cloneable
     {
       if (XObject.CLASS_NODESET == obj2.getType())
       {
-  
-        // In order to handle the 'all' semantics of 
-        // nodeset comparisons, we always call the 
+
+        // In order to handle the 'all' semantics of
+        // nodeset comparisons, we always call the
         // nodeset function.
         return obj2.equals(this);
       }
@@ -285,7 +285,7 @@ public class XRTreeFrag extends XObject implements Cloneable
       }
       else if (XObject.CLASS_RTREEFRAG == obj2.getType())
       {
-  
+
         // Probably not so good.  Think about this.
         return xstr().equals(obj2.xstr());
       }

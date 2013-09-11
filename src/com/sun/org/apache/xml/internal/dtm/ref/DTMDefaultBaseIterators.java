@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -47,7 +47,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
    * @param whiteSpaceFilter The white space filter for this DTM, which may
    *                         be null.
    * @param xstringfactory The factory to use for creating XMLStrings.
-   * @param doIndexing true if the caller considers it worth it to use 
+   * @param doIndexing true if the caller considers it worth it to use
    *                   indexing schemes.
    */
   public DTMDefaultBaseIterators(DTMManager mgr, Source source,
@@ -56,7 +56,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
                                  XMLStringFactory xstringfactory,
                                  boolean doIndexing)
   {
-    super(mgr, source, dtmIdentity, whiteSpaceFilter, 
+    super(mgr, source, dtmIdentity, whiteSpaceFilter,
           xstringfactory, doIndexing);
   }
 
@@ -69,7 +69,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
    * @param whiteSpaceFilter The white space filter for this DTM, which may
    *                         be null.
    * @param xstringfactory The factory to use for creating XMLStrings.
-   * @param doIndexing true if the caller considers it worth it to use 
+   * @param doIndexing true if the caller considers it worth it to use
    *                   indexing schemes.
    * @param blocksize The block size of the DTM.
    * @param usePrevsib true if we want to build the previous sibling node array.
@@ -84,7 +84,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
                                  boolean usePrevsib,
                                  boolean newNameTable)
   {
-    super(mgr, source, dtmIdentity, whiteSpaceFilter, 
+    super(mgr, source, dtmIdentity, whiteSpaceFilter,
           xstringfactory, doIndexing, blocksize, usePrevsib, newNameTable);
   }
 
@@ -116,7 +116,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
     //            iterator = new FilterIterator(getAxisIterator(axis),
     //                                          getElementFilter());
     //        }
-    //        else 
+    //        else
     {
       switch (axis)
       {
@@ -160,8 +160,8 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
         break;
       default :
         throw new DTMException(XMLMessages.createXMLMessage(
-            XMLErrorResources.ER_TYPED_ITERATOR_AXIS_NOT_IMPLEMENTED, 
-            new Object[]{Axis.getNames(axis)})); 
+            XMLErrorResources.ER_TYPED_ITERATOR_AXIS_NOT_IMPLEMENTED,
+            new Object[]{Axis.getNames(axis)}));
             //"Error: typed iterator for axis "
                                //+ Axis.names[axis] + "not implemented");
       }
@@ -227,8 +227,8 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       break;
     default :
       throw new DTMException(XMLMessages.createXMLMessage(
-        XMLErrorResources.ER_ITERATOR_AXIS_NOT_IMPLEMENTED, 
-        new Object[]{Axis.getNames(axis)})); 
+        XMLErrorResources.ER_ITERATOR_AXIS_NOT_IMPLEMENTED,
+        new Object[]{Axis.getNames(axis)}));
         //"Error: iterator for axis '" + Axis.names[axis]
                              //+ "' not implemented");
     }
@@ -281,8 +281,8 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
     {
       _currentNode = _markedNode;
     }
-        
-  }  // end of InternalAxisIteratorBase 
+
+  }  // end of InternalAxisIteratorBase
 
   /**
    * Iterator that returns all immediate children of a given node
@@ -578,9 +578,9 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       return END;
     }
   }  // end of NamespaceChildrenIterator
-  
+
   /**
-   * Iterator that returns the namespace nodes as defined by the XPath data model 
+   * Iterator that returns the namespace nodes as defined by the XPath data model
    * for a given node.
    */
   public class NamespaceIterator
@@ -636,9 +636,9 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       return returnNode(node);
     }
   }  // end of NamespaceIterator
-  
+
   /**
-   * Iterator that returns the namespace nodes as defined by the XPath data model 
+   * Iterator that returns the namespace nodes as defined by the XPath data model
    * for a given node, filtered by extended type ID.
    */
   public class TypedNamespaceIterator extends NamespaceIterator
@@ -666,7 +666,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
      */
     public int next()
     {
-    	int node;
+        int node;
 
       for (node = _currentNode;
            node != END;
@@ -683,9 +683,9 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       return (_currentNode =END);
     }
   }  // end of TypedNamespaceIterator
-  
+
   /**
-   * Iterator that returns the the root node as defined by the XPath data model 
+   * Iterator that returns the the root node as defined by the XPath data model
    * for a given node.
    */
   public class RootIterator
@@ -738,9 +738,9 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       return returnNode(_startNode);
     }
   }  // end of RootIterator
-  
+
   /**
-   * Iterator that returns the namespace nodes as defined by the XPath data model 
+   * Iterator that returns the namespace nodes as defined by the XPath data model
    * for a given node, filtered by extended type ID.
    */
   public class TypedRootIterator extends RootIterator
@@ -767,7 +767,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
      */
     public int next()
     {
-    	if(_startNode == _currentNode)
+        if(_startNode == _currentNode)
         return NULL;
 
       int nodeType = _nodeType;
@@ -1070,7 +1070,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
       final int node = _currentNode;
 
-      // singleton iterator, since there can only be one attribute of 
+      // singleton iterator, since there can only be one attribute of
       // a given type.
       _currentNode = NULL;
 
@@ -1124,7 +1124,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
         }
 
         int type = m_expandedNameTable.getType(_exptype(node));
-        if(ExpandedNameTable.ATTRIBUTE == type 
+        if(ExpandedNameTable.ATTRIBUTE == type
            || ExpandedNameTable.NAMESPACE == type )
         {
           _currentNode = node;
@@ -1133,7 +1133,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
         {
           // Be careful to handle the Document node properly
           _currentNode = _parent(node);
-          if(NULL!=_currentNode)	
+          if(NULL!=_currentNode)
             _currentNode = _firstch(_currentNode);
           else
             _currentNode = node;
@@ -1317,22 +1317,22 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
         _startNode = node;
         _stack[index = 0] = node;
-        
-       
 
-		parent=node;
-		while ((parent = _parent(parent)) != NULL)
-		{
-			if (++index == _stack.length)
-			{
-				final int[] stack = new int[index + 4];
-				System.arraycopy(_stack, 0, stack, 0, index);
-				_stack = stack;
-			}
-			_stack[index] = parent;
+
+
+                parent=node;
+                while ((parent = _parent(parent)) != NULL)
+                {
+                        if (++index == _stack.length)
+                        {
+                                final int[] stack = new int[index + 4];
+                                System.arraycopy(_stack, 0, stack, 0, index);
+                                _stack = stack;
+                        }
+                        _stack[index] = parent;
         }
         if(index>0)
-	        --index; // Pop actual root node (if not start) back off the stack
+                --index; // Pop actual root node (if not start) back off the stack
 
         _currentNode=_stack[index]; // Last parent before root node
 
@@ -1351,23 +1351,23 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
      */
     public int next()
     {
-    	// Bugzilla 8324: We were forgetting to skip Attrs and NS nodes.
-    	// Also recoded the loop controls for clarity and to flatten out
-    	// the tail-recursion.
-   		for(++_currentNode; 
-   			_sp>=0; 
-   			++_currentNode)
-   		{
-   			if(_currentNode < _stack[_sp])
-   			{
-   				if(_type(_currentNode) != ATTRIBUTE_NODE &&
-   					_type(_currentNode) != NAMESPACE_NODE)
-   					return returnNode(makeNodeHandle(_currentNode));
-   			}
-   			else
-   				--_sp;
-   		}
-   		return NULL;
+        // Bugzilla 8324: We were forgetting to skip Attrs and NS nodes.
+        // Also recoded the loop controls for clarity and to flatten out
+        // the tail-recursion.
+                for(++_currentNode;
+                        _sp>=0;
+                        ++_currentNode)
+                {
+                        if(_currentNode < _stack[_sp])
+                        {
+                                if(_type(_currentNode) != ATTRIBUTE_NODE &&
+                                        _type(_currentNode) != NAMESPACE_NODE)
+                                        return returnNode(makeNodeHandle(_currentNode));
+                        }
+                        else
+                                --_sp;
+                }
+                return NULL;
     }
 
     // redefine DTMAxisIteratorBase's reset
@@ -1476,7 +1476,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       }
 
       _currentNode = node;
-             
+
       return (node == NULL) ? NULL : returnNode(makeNodeHandle(node));
     }
   }  // end of TypedPrecedingIterator
@@ -1487,7 +1487,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
   public class FollowingIterator extends InternalAxisIteratorBase
   {
     DTMAxisTraverser m_traverser; // easier for now
-    
+
     public FollowingIterator()
     {
       m_traverser = getAxisTraverser(Axis.FOLLOWING);
@@ -1575,7 +1575,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
       _currentNode = m_traverser.next(_startNode, _currentNode);
 
-      } 
+      }
       while (node != DTM.NULL
              && (getExpandedTypeID(node) != _nodeType && getNodeType(node) != _nodeType));
 
@@ -1589,16 +1589,16 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
    */
   public class AncestorIterator extends InternalAxisIteratorBase
   {
-    com.sun.org.apache.xml.internal.utils.NodeVector m_ancestors = 
+    com.sun.org.apache.xml.internal.utils.NodeVector m_ancestors =
          new com.sun.org.apache.xml.internal.utils.NodeVector();
-         
+
     int m_ancestorsPos;
 
     int m_markedPos;
-    
+
     /** The real start node for this axes, since _startNode will be adjusted. */
     int m_realStartNode;
-    
+
     /**
      * Get start to END should 'close' the iterator,
      * i.e. subsequent call to next() should return END.
@@ -1713,12 +1713,12 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
     {
 
       int next = _currentNode;
-      
+
       int pos = --m_ancestorsPos;
 
       _currentNode = (pos >= 0) ? m_ancestors.elementAt(m_ancestorsPos)
                                 : DTM.NULL;
-      
+
       return returnNode(next);
     }
 
@@ -1898,11 +1898,11 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
       _currentNode = node;
       return returnNode(makeNodeHandle(node));  // make handle.
     }
-  
+
     /**
      * Reset.
      *
-     */ 
+     */
   public DTMAxisIterator reset()
   {
 
@@ -1916,7 +1916,7 @@ public abstract class DTMDefaultBaseIterators extends DTMDefaultBaseTraversers
 
     return this;
   }
-    
+
   }  // end of DescendantIterator
 
   /**

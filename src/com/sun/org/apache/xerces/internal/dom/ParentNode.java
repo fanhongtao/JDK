@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -62,7 +62,7 @@ import org.w3c.dom.UserDataHandler;
  *
  * <p><b>WARNING</b>: Some of the code here is partially duplicated in
  * AttrImpl, be careful to keep these two classes in sync!
- * 
+ *
  * @xerces.internal
  *
  * @author Arnaud  Le Hors, IBM
@@ -126,23 +126,23 @@ public abstract class ParentNode
      * editable copies of locked portions of the tree.
      */
     public Node cloneNode(boolean deep) {
-    	
+
         if (needsSyncChildren()) {
             synchronizeChildren();
         }
-    	ParentNode newnode = (ParentNode) super.cloneNode(deep);
+        ParentNode newnode = (ParentNode) super.cloneNode(deep);
 
         // set owner document
         newnode.ownerDocument = ownerDocument;
 
-    	// Need to break the association w/ original kids
-    	newnode.firstChild      = null;
+        // Need to break the association w/ original kids
+        newnode.firstChild      = null;
 
         // invalidate cache for children NodeList
         newnode.fNodeListCache = null;
 
         // Then, if deep, clone the kids too.
-    	if (deep) {
+        if (deep) {
             for (ChildNode child = firstChild;
                  child != null;
                  child = child.nextSibling) {
@@ -150,7 +150,7 @@ public abstract class ParentNode
             }
         }
 
-    	return newnode;
+        return newnode;
 
     } // cloneNode(boolean):Node
 
@@ -180,10 +180,10 @@ public abstract class ParentNode
             synchronizeChildren();
         }
        for (ChildNode child = firstChild;
-	     child != null; child = child.nextSibling) {
+             child != null; child = child.nextSibling) {
              child.setOwnerDocument(doc);
-	}
-        /* setting the owner document of self, after it's children makes the 
+        }
+        /* setting the owner document of self, after it's children makes the
            data of children available to the new document. */
         super.setOwnerDocument(doc);
         ownerDocument = doc;
@@ -228,7 +228,7 @@ public abstract class ParentNode
         if (needsSyncChildren()) {
             synchronizeChildren();
         }
-    	return firstChild;
+        return firstChild;
 
     }   // getFirstChild():Node
 
@@ -282,18 +282,18 @@ public abstract class ParentNode
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if this node is
      * read-only.
      */
-    public Node insertBefore(Node newChild, Node refChild) 
+    public Node insertBefore(Node newChild, Node refChild)
         throws DOMException {
         // Tail-call; optimizer should be able to do good things with.
         return internalInsertBefore(newChild, refChild, false);
     } // insertBefore(Node,Node):Node
-     
+
     /** NON-DOM INTERNAL: Within DOM actions,we sometimes need to be able
      * to control which mutation events are spawned. This version of the
      * insertBefore operation allows us to do so. It is not intended
      * for use by application programs.
      */
-    Node internalInsertBefore(Node newChild, Node refChild, boolean replace) 
+    Node internalInsertBefore(Node newChild, Node refChild, boolean replace)
         throws DOMException {
 
         boolean errorChecking = ownerDocument.errorChecking;
@@ -322,7 +322,7 @@ public abstract class ParentNode
 
                     if (!ownerDocument.isKidOK(this, kid)) {
                         throw new DOMException(
-                              DOMException.HIERARCHY_REQUEST_ERR, 
+                              DOMException.HIERARCHY_REQUEST_ERR,
                               DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "HIERARCHY_REQUEST_ERR", null));
                     }
                 }
@@ -349,15 +349,15 @@ public abstract class ParentNode
         if (errorChecking) {
             if (isReadOnly()) {
                 throw new DOMException(
-                              DOMException.NO_MODIFICATION_ALLOWED_ERR, 
+                              DOMException.NO_MODIFICATION_ALLOWED_ERR,
                               DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null));
             }
             if (newChild.getOwnerDocument() != ownerDocument && newChild != ownerDocument) {
-                throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, 
+                throw new DOMException(DOMException.WRONG_DOCUMENT_ERR,
                             DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "WRONG_DOCUMENT_ERR", null));
             }
             if (!ownerDocument.isKidOK(this, newChild)) {
-                throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, 
+                throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR,
                             DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "HIERARCHY_REQUEST_ERR", null));
             }
             // refChild must be a child of this node (or null)
@@ -376,7 +376,7 @@ public abstract class ParentNode
                     treeSafe = newChild != a;
                 }
                 if(!treeSafe) {
-                    throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, 
+                    throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR,
                                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "HIERARCHY_REQUEST_ERR", null));
                 }
             }
@@ -478,12 +478,12 @@ public abstract class ParentNode
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if this node is
      * read-only.
      */
-    public Node removeChild(Node oldChild) 
+    public Node removeChild(Node oldChild)
         throws DOMException {
         // Tail-call, should be optimizable
         return internalRemoveChild(oldChild, false);
     } // removeChild(Node) :Node
-     
+
     /** NON-DOM INTERNAL: Within DOM actions,we sometimes need to be able
      * to control which mutation events are spawned. This version of the
      * removeChild operation allows us to do so. It is not intended
@@ -496,11 +496,11 @@ public abstract class ParentNode
         if (ownerDocument.errorChecking) {
             if (isReadOnly()) {
                 throw new DOMException(
-                            DOMException.NO_MODIFICATION_ALLOWED_ERR, 
+                            DOMException.NO_MODIFICATION_ALLOWED_ERR,
                             DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null));
             }
             if (oldChild != null && oldChild.getParentNode() != this) {
-                throw new DOMException(DOMException.NOT_FOUND_ERR, 
+                throw new DOMException(DOMException.NOT_FOUND_ERR,
                             DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NOT_FOUND_ERR", null));
             }
         }
@@ -595,8 +595,8 @@ public abstract class ParentNode
     public Node replaceChild(Node newChild, Node oldChild)
         throws DOMException {
         // If Mutation Events are being generated, this operation might
-        // throw aggregate events twice when modifying an Attr -- once 
-        // on insertion and once on removal. DOM Level 2 does not specify 
+        // throw aggregate events twice when modifying an Attr -- once
+        // on insertion and once on removal. DOM Level 2 does not specify
         // this as either desirable or undesirable, but hints that
         // aggregations should be issued only once per user request.
 
@@ -823,7 +823,7 @@ public abstract class ParentNode
                 public int getLength() {
                     return nodeListGetLength();
                 } // getLength():int
-                
+
                 /**
                  * @see NodeList.item(int)
                  */
@@ -1026,7 +1026,7 @@ public abstract class ParentNode
     class UserDataRecord implements Serializable {
         /** Serialization version. */
         private static final long serialVersionUID = 3258126977134310455L;
-        
+
         Object fData;
         UserDataHandler fHandler;
         UserDataRecord(Object data, UserDataHandler handler) {

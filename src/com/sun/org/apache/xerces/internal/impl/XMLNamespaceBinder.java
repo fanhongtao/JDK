@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -92,7 +92,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDocumentSource;
  *  <li>http://apache.org/xml/properties/internal/symbol-table</li>
  *  <li>http://apache.org/xml/properties/internal/error-reporter</li>
  * </ul>
- * 
+ *
  * @xerces.internal
  *
  * @author Andy Clark, IBM
@@ -299,13 +299,13 @@ public class XMLNamespaceBinder
 
         // Xerces properties
         if (propertyId.startsWith(Constants.XERCES_PROPERTY_PREFIX)) {
-        	final int suffixLength = propertyId.length() - Constants.XERCES_PROPERTY_PREFIX.length();
-        	
-            if (suffixLength == Constants.SYMBOL_TABLE_PROPERTY.length() && 
+                final int suffixLength = propertyId.length() - Constants.XERCES_PROPERTY_PREFIX.length();
+
+            if (suffixLength == Constants.SYMBOL_TABLE_PROPERTY.length() &&
                 propertyId.endsWith(Constants.SYMBOL_TABLE_PROPERTY)) {
                 fSymbolTable = (SymbolTable)value;
             }
-            else if (suffixLength == Constants.ERROR_REPORTER_PROPERTY.length() && 
+            else if (suffixLength == Constants.ERROR_REPORTER_PROPERTY.length() &&
                 propertyId.endsWith(Constants.ERROR_REPORTER_PROPERTY)) {
                 fErrorReporter = (XMLErrorReporter)value;
             }
@@ -314,7 +314,7 @@ public class XMLNamespaceBinder
 
     } // setProperty(String,Object)
 
-    /** 
+    /**
      * Returns the default state for a feature, or null if this
      * component does not want to report a default value for this
      * feature.
@@ -332,10 +332,10 @@ public class XMLNamespaceBinder
         return null;
     } // getFeatureDefault(String):Boolean
 
-    /** 
+    /**
      * Returns the default state for a property, or null if this
      * component does not want to report a default value for this
-     * property. 
+     * property.
      *
      * @param propertyId The property identifier.
      *
@@ -385,7 +385,7 @@ public class XMLNamespaceBinder
      * <p>
      * <strong>Note:</strong> This method is not called for entity references
      * appearing as part of attribute values.
-     * 
+     *
      * @param name     The name of the general entity.
      * @param identifier The resource identifier.
      * @param encoding The auto-detected IANA encoding name of the entity
@@ -394,12 +394,12 @@ public class XMLNamespaceBinder
      *                 internal entities or a document entity that is
      *                 parsed from a java.io.Reader).
      * @param augs     Additional information that may include infoset augmentations
-     *                 
+     *
      * @exception XNIException Thrown by handler to signal an error.
      */
     public void startGeneralEntity(String name,
                                    XMLResourceIdentifier identifier,
-                                   String encoding, Augmentations augs) 
+                                   String encoding, Augmentations augs)
         throws XNIException {
         if (fDocumentHandler != null && !fOnlyPassPrefixMappingEvents) {
             fDocumentHandler.startGeneralEntity(name, identifier, encoding, augs);
@@ -452,15 +452,15 @@ public class XMLNamespaceBinder
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
-	public void startDocument(XMLLocator locator, String encoding,
+        public void startDocument(XMLLocator locator, String encoding,
                                 NamespaceContext namespaceContext, Augmentations augs)
-		                      throws XNIException {
-		fNamespaceContext = namespaceContext;
+                                      throws XNIException {
+                fNamespaceContext = namespaceContext;
 
-		if (fDocumentHandler != null && !fOnlyPassPrefixMappingEvents) {
-			fDocumentHandler.startDocument(locator, encoding, namespaceContext, augs);
-		}
-	} // startDocument(XMLLocator,String)
+                if (fDocumentHandler != null && !fOnlyPassPrefixMappingEvents) {
+                        fDocumentHandler.startDocument(locator, encoding, namespaceContext, augs);
+                }
+        } // startDocument(XMLLocator,String)
 
     /**
      * Notifies of the presence of an XMLDecl line in the document. If
@@ -684,10 +684,10 @@ public class XMLNamespaceBinder
      * <p>
      * <strong>Note:</strong> This method is not called for entity references
      * appearing as part of attribute values.
-     * 
+     *
      * @param name   The name of the entity.
      * @param augs   Additional information that may include infoset augmentations
-     *               
+     *
      * @exception XNIException
      *                   Thrown by handler to signal an error.
      */
@@ -715,7 +715,7 @@ public class XMLNamespaceBinder
                                        new Object[]{element.rawname},
                                        XMLErrorReporter.SEVERITY_FATAL_ERROR);
         }
-        
+
         // search for new namespace bindings
         int length = attributes.getLength();
         for (int i = 0; i < length; i++) {
@@ -736,7 +736,7 @@ public class XMLNamespaceBinder
                                                new Object[]{attributes.getQName(i)},
                                                XMLErrorReporter.SEVERITY_FATAL_ERROR);
                 }
-                
+
                 // 2. the namespace for "xmlns" can't be bound to any prefix
                 if (uri == NamespaceContext.XMLNS_URI) {
                     fErrorReporter.reportError(XMLMessageFormatter.XMLNS_DOMAIN,
@@ -744,7 +744,7 @@ public class XMLNamespaceBinder
                                                new Object[]{attributes.getQName(i)},
                                                XMLErrorReporter.SEVERITY_FATAL_ERROR);
                 }
-                
+
                 // 3. "xml" can't be bound to any other namespace than it's own
                 if (localpart == XMLSymbols.PREFIX_XML) {
                     if (uri != NamespaceContext.XML_URI) {
@@ -883,7 +883,7 @@ public class XMLNamespaceBinder
     // returns true iff the given prefix is bound to "" *and*
     // this is disallowed by the version of XML namespaces in use.
     protected boolean prefixBoundToNullURI(String uri, String localpart) {
-        return (uri == XMLSymbols.EMPTY_STRING && localpart != XMLSymbols.PREFIX_XMLNS); 
+        return (uri == XMLSymbols.EMPTY_STRING && localpart != XMLSymbols.PREFIX_XMLNS);
     } // prefixBoundToNullURI(String, String):  boolean
 
 } // class XMLNamespaceBinder

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -26,8 +26,8 @@ import com.sun.org.apache.xerces.internal.util.SymbolHash;
 
 /**
  * the factory to create/return built-in schema DVs and create user-defined DVs
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
@@ -44,7 +44,7 @@ public class SchemaDVFactoryImpl extends BaseSchemaDVFactory {
 
     // create all built-in types
     static void createBuiltInTypes() {
-    	createBuiltInTypes(fBuiltInTypes, XSSimpleTypeDecl.fAnySimpleType);
+        createBuiltInTypes(fBuiltInTypes, XSSimpleTypeDecl.fAnySimpleType);
 
         // TODO: move specific 1.0 DV implementation from base
     } //createBuiltInTypes()

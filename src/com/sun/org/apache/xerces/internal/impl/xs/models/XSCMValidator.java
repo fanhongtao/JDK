@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -30,7 +30,7 @@ import java.util.ArrayList;
 /**
  * Note: State of the content model is stored in the validator
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Sandy Gao, IBM
  * @author Elena Litani, IBM
@@ -86,7 +86,7 @@ public interface XSCMValidator {
      * Check which elements are valid to appear at this point. This method also
      * works if the state is in error, in which case it returns what should
      * have been seen.
-     * 
+     *
      * @param state  the current state
      * @return       a Vector whose entries are instances of
      *               either XSWildcardDecl or XSElementDecl.
@@ -107,5 +107,5 @@ public interface XSCMValidator {
      * the list.
      */
     public ArrayList checkMinMaxBounds();
-    
+
 } // XSCMValidator

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -857,7 +857,7 @@ public class StepPattern extends NodeTest implements SubContextList, ExpressionO
       }
       else
       {
-        buf.append("?" + Integer.toHexString(pat.m_whatToShow));
+        buf.append('?').append(Integer.toHexString(pat.m_whatToShow));
       }
 
       if (null != pat.m_predicates)

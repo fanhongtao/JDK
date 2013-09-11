@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -644,7 +644,7 @@ public class ErrorMessages_pt_BR extends ListResourceBundle {
          */
         {ErrorMsg.XSLTC_SOURCE_ERR,
         "XSLTCSource.build() chamado sem o systemId ser definido."},
-        
+
         { ErrorMsg.ER_RESULT_NULL,
             "O resultado n\u00E3o deve ser nulo"},
 
@@ -653,7 +653,7 @@ public class ErrorMessages_pt_BR extends ListResourceBundle {
          * of setParameter must be a valid Java Object.
          */
         {ErrorMsg.JAXP_INVALID_SET_PARAM_VALUE,
-        "O valor do par\u00E2metro {0} deve ser um Objeto Java v\u00E1lido"},            
+        "O valor do par\u00E2metro {0} deve ser um Objeto Java v\u00E1lido"},
 
 
         {ErrorMsg.COMPILE_STDIN_ERR,
@@ -805,7 +805,7 @@ public class ErrorMessages_pt_BR extends ListResourceBundle {
          */
         {ErrorMsg.ERROR_MSG,
         "ERROR:  ''{0}''"},
-        
+
         /*
          * Note to translators:  The substitution text is the name of a class.
          */
@@ -862,7 +862,7 @@ public class ErrorMessages_pt_BR extends ListResourceBundle {
          */
         {ErrorMsg.RUNTIME_ERROR_KEY,
         "Erros de translet:"},
-        
+
         /*
          * Note to translators:  An attribute whose value is constrained to
          * be a "QName" or a list of "QNames" had a value that was incorrect.
@@ -870,7 +870,7 @@ public class ErrorMessages_pt_BR extends ListResourceBundle {
          * substitution text contains the actual value of the attribute.
          */
         {ErrorMsg.INVALID_QNAME_ERR,
-        "Um atributo cujo valor deve ser um QName ou uma lista de QNames separada por espa\u00E7os em branco tinha o valor ''{0}''"}, 
+        "Um atributo cujo valor deve ser um QName ou uma lista de QNames separada por espa\u00E7os em branco tinha o valor ''{0}''"},
 
         /*
          * Note to translators:  An attribute whose value is required to
@@ -893,10 +893,10 @@ public class ErrorMessages_pt_BR extends ListResourceBundle {
          */
         {ErrorMsg.INVALID_METHOD_IN_OUTPUT,
         "O atributo method de um elemento <xsl:output> tinha o valor ''{0}''. O valor deve ser um dos seguintes: ''xml'', ''html'', ''text'', ou qname, mas n\u00E3o ncname"},
-        
+
         {ErrorMsg.JAXP_GET_FEATURE_NULL_NAME,
         "O nome do recurso n\u00E3o pode ser nulo em TransformerFactory.getFeature(Nome da string)."},
-        
+
         {ErrorMsg.JAXP_SET_FEATURE_NULL_NAME,
         "O nome do recurso n\u00E3o pode ser nulo em TransformerFactory.setFeature(Nome da string, valor booliano)."},
 

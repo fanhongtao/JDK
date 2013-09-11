@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -502,7 +502,7 @@ final class URI
 
       // if we get to this point, we need to resolve relative path
       // RFC 2396 5.2 #6
-      String path = new String();
+      String path = "";
       String basePath = p_base.getPath();
 
       // 6a - get all but the last segment of the base URI path

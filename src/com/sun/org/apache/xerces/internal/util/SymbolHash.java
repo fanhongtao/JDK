@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -26,7 +26,7 @@ package com.sun.org.apache.xerces.internal.util;
  * to Object mapping.
  * <p>
  * The hash code uses the same algorithm as SymbolTable class.
- * 
+ *
  * @author Elena Litani
  * @version $Id: SymbolHash.java,v 1.7 2010-11-01 04:40:14 joehw Exp $
  */
@@ -223,4 +223,3 @@ public class SymbolHash {
     } // entry
 
 } // class SymbolHash
-

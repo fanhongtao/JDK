@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -81,55 +81,55 @@ package com.sun.org.apache.xerces.internal.xni;
  */
 public class QName
 implements Cloneable {
-    
-        
+
+
     /**
      * The qname prefix. For example, the prefix for the qname "a:foo"
      * is "a".
      */
     public String prefix;
-    
+
     /**
      * The qname localpart. For example, the localpart for the qname "a:foo"
      * is "foo".
      */
     public String localpart;
-    
+
     /**
      * The qname rawname. For example, the rawname for the qname "a:foo"
      * is "a:foo".
      */
     public String rawname;
-    
+
     /**
      * The URI to which the qname prefix is bound. This binding must be
      * performed by a XML Namespaces aware processor.
      */
     public String uri;
-    
+
     //
     // Constructors
     //
-    
+
     /** Default constructor. */
     public QName() {
         clear();
     } // <init>()
-    
+
     /** Constructs a QName with the specified values. */
     public QName(String prefix, String localpart, String rawname, String uri) {
         setValues(prefix, localpart, rawname, uri);
     } // <init>(String,String,String,String)
-    
+
     /** Constructs a copy of the specified QName. */
     public QName(QName qname) {
         setValues(qname);
     } // <init>(QName)
-    
+
     //
     // Public methods
     //
-    
+
     /**
      * Convenience method to set the values of the qname components.
      *
@@ -141,7 +141,7 @@ implements Cloneable {
         rawname = qname.rawname;
         uri = qname.uri;
     } // setValues(QName)
-    
+
     /**
      * Convenience method to set the values of the qname components.
      *
@@ -157,7 +157,7 @@ implements Cloneable {
         this.rawname = rawname;
         this.uri = uri;
     } // setValues(String,String,String,String)
-    
+
     /** Clears the values of the qname components. */
     public void clear() {
         prefix = null;
@@ -182,7 +182,7 @@ implements Cloneable {
     /** Returns the hashcode for this object. */
     public int hashCode() {
         if (uri != null) {
-            return uri.hashCode() + 
+            return uri.hashCode() +
                 ((localpart != null) ? localpart.hashCode() : 0);
         }
         return (rawname != null) ? rawname.hashCode() : 0;

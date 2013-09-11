@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -291,10 +291,15 @@ public abstract class Preferences {
         }
 
         // 3. Use platform-specific system-wide default
-        String platformFactory =
-            System.getProperty("os.name").startsWith("Windows")
-            ? "java.util.prefs.WindowsPreferencesFactory"
-            : "java.util.prefs.FileSystemPreferencesFactory";
+        String osName = System.getProperty("os.name");
+        String platformFactory;
+        if (osName.startsWith("Windows")) {
+            platformFactory = "java.util.prefs.WindowsPreferencesFactory";
+        } else if (osName.contains("OS X")) {
+            platformFactory = "java.util.prefs.MacOSXPreferencesFactory";
+        } else {
+            platformFactory = "java.util.prefs.FileSystemPreferencesFactory";
+        }
         try {
             return (PreferencesFactory)
                 Class.forName(platformFactory, false, null).newInstance();

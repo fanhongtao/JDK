@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -42,7 +42,7 @@ import java.util.HashMap;
  * the conversion from the regular expression to the DFA that
  * it then uses in its validation algorithm.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Neil Graham, IBM
  * @version $Id: XSDFACM.java,v 1.9 2010/08/06 23:49:43 joehw Exp $
@@ -85,7 +85,7 @@ public class XSDFACM
      * id of the unique input symbol
      */
     private int fElemMapId[] = null;
-    
+
     /** The element map size. */
     private int fElemMapSize = 0;
 
@@ -166,7 +166,7 @@ public class XSDFACM
      * related tables such as fFinalStateFlags.
      */
     private int fTransTableSize = 0;
-    
+
     /**
      * Array of counters for all the for elements (or wildcards)
      * of the form a{n,m} where n > 1 and m <= unbounded. Used
@@ -209,7 +209,7 @@ public class XSDFACM
      */
 
    public XSDFACM(CMNode syntaxTree, int leafCount) {
-   
+
         // Store away our index and pools in members
         fLeafCount = leafCount;
 
@@ -246,7 +246,7 @@ public class XSDFACM
     //
     // XSCMValidator methods
     //
-    
+
     /**
      * check whether the given state is one of the final states
      *
@@ -638,7 +638,7 @@ public class XSDFACM
                     fElemMapCounterLowerBound[fElemMapSize] = -1;
                     fElemMapCounterUpperBound[fElemMapSize] = -1;
                 }
-                
+
                 fElemMapSize++;
             }
         }
@@ -1164,7 +1164,7 @@ public class XSDFACM
      * Check which elements are valid to appear at this point. This method also
      * works if the state is in error, in which case it returns what should
      * have been seen.
-     * 
+     *
      * @param state  the current state
      * @return       a Vector whose entries are instances of
      *               either XSWildcardDecl or XSElementDecl.

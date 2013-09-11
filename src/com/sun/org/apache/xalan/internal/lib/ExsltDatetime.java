@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -97,7 +97,7 @@ public class ExsltDatetime
         // In a few cases, the time zone may be +/-hh:30.
         int min = offset%(60*60*1000);
         char posneg = hrs < 0? '-': '+';
-        buff.append(posneg + formatDigits(hrs) + ':' + formatDigits(min));
+        buff.append(posneg).append(formatDigits(hrs)).append(':').append(formatDigits(min));
       }
       return buff.toString();
     }

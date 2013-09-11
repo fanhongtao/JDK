@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -37,7 +37,7 @@ public class XMLConfigurationException
 
     /** Serialization version. */
     static final long serialVersionUID = -5437427404547669188L;
-    
+
     //
     // Data
     //
@@ -52,7 +52,7 @@ public class XMLConfigurationException
     // Constructors
     //
 
-    /** 
+    /**
      * Constructs a configuration exception with the specified type
      * and feature/property identifier.
      *
@@ -65,7 +65,7 @@ public class XMLConfigurationException
         fIdentifier = identifier;
     } // <init>(short,String)
 
-    /** 
+    /**
      * Constructs a configuration exception with the specified type,
      * feature/property identifier, and error message
      *
@@ -84,8 +84,8 @@ public class XMLConfigurationException
     // Public methods
     //
 
-    /** 
-     * Returns the exception type. 
+    /**
+     * Returns the exception type.
      */
     public Status getType() {
         return fType;

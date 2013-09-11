@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -49,6 +49,7 @@ import org.xml.sax.ext.Locator2;
 /**
  * @author G. Todd Miller
  * @author Sunitha Reddy
+ * @author Huizhe Wang
  */
 public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
 
@@ -60,57 +61,46 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
     private Node _lastSibling = null;
     private Locator locator = null;
     private boolean needToSetDocumentInfo = true;
-    
+
     //Replace StringBuffer with StringBuilder now that we no long support jdk1.4
     private StringBuilder _textBuffer = new StringBuilder();
     private Node _nextSiblingCache = null;
     /**
      * JAXP document builder factory. Create a single instance and use
-     * synchronization because the Javadoc is not explicit about 
+     * synchronization because the Javadoc is not explicit about
      * thread safety.
      */
-    static final DocumentBuilderFactory _factory =
+    private DocumentBuilderFactory _factory =
             DocumentBuilderFactory.newInstance();
-    static final DocumentBuilder _internalBuilder;
-    static {
-        DocumentBuilder tmpBuilder = null;
-        try {
-            if (_factory instanceof com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl) {
-                tmpBuilder = _factory.newDocumentBuilder();
-            }
-        } catch(Exception e) {
-            // It's OK. Will create DocumentBuilder every time
-        }
-        _internalBuilder = tmpBuilder;
-    }
-    
-    public SAX2DOM() throws ParserConfigurationException {
-        _document = createDocument();
-	_root = _document;
+    private boolean _internal = true;
+
+    public SAX2DOM(boolean useServicesMachnism) throws ParserConfigurationException {
+        _document = createDocument(useServicesMachnism);
+        _root = _document;
     }
 
-    public SAX2DOM(Node root, Node nextSibling) throws ParserConfigurationException {
-	_root = root;
-	if (root instanceof Document) {
-	  _document = (Document)root;
-	}
-	else if (root != null) {
-	  _document = root.getOwnerDocument();
-	}
-	else {
-          _document = createDocument();
-	  _root = _document;
-	}
-	
-	_nextSibling = nextSibling;
+    public SAX2DOM(Node root, Node nextSibling, boolean useServicesMachnism) throws ParserConfigurationException {
+        _root = root;
+        if (root instanceof Document) {
+          _document = (Document)root;
+        }
+        else if (root != null) {
+          _document = root.getOwnerDocument();
+        }
+        else {
+          _document = createDocument(useServicesMachnism);
+          _root = _document;
+        }
+
+        _nextSibling = nextSibling;
     }
-    
-    public SAX2DOM(Node root) throws ParserConfigurationException {
-        this(root, null);
+
+    public SAX2DOM(Node root, boolean useServicesMachnism) throws ParserConfigurationException {
+        this(root, null, useServicesMachnism);
     }
 
     public Node getDOM() {
-	return _root;
+        return _root;
     }
 
     public void characters(char[] ch, int start, int length) {
@@ -118,8 +108,8 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
         if (length == 0) {
             return;
         }
-        
-	final Node last = (Node)_nodeStk.peek();
+
+        final Node last = (Node)_nodeStk.peek();
 
         // No text nodes can be children of root (DOM006 exception)
         if (last != _document) {
@@ -140,65 +130,65 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
         }
     }
     public void startDocument() {
-	_nodeStk.push(_root);
+        _nodeStk.push(_root);
     }
 
     public void endDocument() {
         _nodeStk.pop();
     }
-    
+
     private void setDocumentInfo() {
         //try to set document version
         if (locator == null) return;
         try{
             _document.setXmlVersion(((Locator2)locator).getXMLVersion());
         }catch(ClassCastException e){}
-        
+
     }
-    
+
     public void startElement(String namespace, String localName, String qName,
-	Attributes attrs)
+        Attributes attrs)
     {
         appendTextNode();
         if (needToSetDocumentInfo) {
             setDocumentInfo();
             needToSetDocumentInfo = false;
         }
-        
-	final Element tmp = (Element)_document.createElementNS(namespace, qName);
 
-	// Add namespace declarations first
-	if (_namespaceDecls != null) {
-	    final int nDecls = _namespaceDecls.size();
-	    for (int i = 0; i < nDecls; i++) {
-		final String prefix = (String) _namespaceDecls.elementAt(i++);
+        final Element tmp = (Element)_document.createElementNS(namespace, qName);
 
-		if (prefix == null || prefix.equals(EMPTYSTRING)) {
-		    tmp.setAttributeNS(XMLNS_URI, XMLNS_PREFIX,
-			(String) _namespaceDecls.elementAt(i));
-		}
-		else {
-		    tmp.setAttributeNS(XMLNS_URI, XMLNS_STRING + prefix,
-			(String) _namespaceDecls.elementAt(i));
-		}
-	    }
-	    _namespaceDecls.clear();
-	}
+        // Add namespace declarations first
+        if (_namespaceDecls != null) {
+            final int nDecls = _namespaceDecls.size();
+            for (int i = 0; i < nDecls; i++) {
+                final String prefix = (String) _namespaceDecls.elementAt(i++);
 
-	// Add attributes to element
-/*	final int nattrs = attrs.getLength();
-	for (int i = 0; i < nattrs; i++) {
-	    if (attrs.getLocalName(i) == null) {
-		tmp.setAttribute(attrs.getQName(i), attrs.getValue(i));
-	    }
-	    else {
-		tmp.setAttributeNS(attrs.getURI(i), attrs.getQName(i),
-		    attrs.getValue(i));
-	    }
-	} */
-        
-        
-	// Add attributes to element
+                if (prefix == null || prefix.equals(EMPTYSTRING)) {
+                    tmp.setAttributeNS(XMLNS_URI, XMLNS_PREFIX,
+                        (String) _namespaceDecls.elementAt(i));
+                }
+                else {
+                    tmp.setAttributeNS(XMLNS_URI, XMLNS_STRING + prefix,
+                        (String) _namespaceDecls.elementAt(i));
+                }
+            }
+            _namespaceDecls.clear();
+        }
+
+        // Add attributes to element
+/*      final int nattrs = attrs.getLength();
+        for (int i = 0; i < nattrs; i++) {
+            if (attrs.getLocalName(i) == null) {
+                tmp.setAttribute(attrs.getQName(i), attrs.getValue(i));
+            }
+            else {
+                tmp.setAttributeNS(attrs.getURI(i), attrs.getQName(i),
+                    attrs.getValue(i));
+            }
+        } */
+
+
+        // Add attributes to element
         final int nattrs = attrs.getLength();
         for (int i = 0; i < nattrs; i++) {
             // checking if Namespace processing is being done
@@ -216,39 +206,39 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
                 }
             }
         }
-        
 
-	// Append this new node onto current stack node
-	Node last = (Node)_nodeStk.peek();
-	
-	// If the SAX2DOM is created with a non-null next sibling node,
-	// insert the result nodes before the next sibling under the root.
-	if (last == _root && _nextSibling != null)
-	    last.insertBefore(tmp, _nextSibling);
-	else
-	    last.appendChild(tmp);
 
-	// Push this node onto stack
-	_nodeStk.push(tmp);
+        // Append this new node onto current stack node
+        Node last = (Node)_nodeStk.peek();
+
+        // If the SAX2DOM is created with a non-null next sibling node,
+        // insert the result nodes before the next sibling under the root.
+        if (last == _root && _nextSibling != null)
+            last.insertBefore(tmp, _nextSibling);
+        else
+            last.appendChild(tmp);
+
+        // Push this node onto stack
+        _nodeStk.push(tmp);
         _lastSibling = null;
     }
 
     public void endElement(String namespace, String localName, String qName) {
         appendTextNode();
-	_nodeStk.pop();
+        _nodeStk.pop();
         _lastSibling = null;
     }
 
     public void startPrefixMapping(String prefix, String uri) {
-	if (_namespaceDecls == null) {
-	    _namespaceDecls = new Vector(2);
-	}
-	_namespaceDecls.addElement(prefix);
-	_namespaceDecls.addElement(uri);
+        if (_namespaceDecls == null) {
+            _namespaceDecls = new Vector(2);
+        }
+        _namespaceDecls.addElement(prefix);
+        _namespaceDecls.addElement(uri);
     }
 
     public void endPrefixMapping(String prefix) {
-	// do nothing
+        // do nothing
     }
 
     /**
@@ -263,15 +253,15 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
      */
     public void processingInstruction(String target, String data) {
         appendTextNode();
-	final Node last = (Node)_nodeStk.peek();
-	ProcessingInstruction pi = _document.createProcessingInstruction(
-		target, data);
-	if (pi != null){
+        final Node last = (Node)_nodeStk.peek();
+        ProcessingInstruction pi = _document.createProcessingInstruction(
+                target, data);
+        if (pi != null){
           if (last == _root && _nextSibling != null)
               last.insertBefore(pi, _nextSibling);
           else
               last.appendChild(pi);
-          
+
           _lastSibling = pi;
         }
     }
@@ -297,14 +287,14 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
      */
     public void comment(char[] ch, int start, int length) {
         appendTextNode();
-	final Node last = (Node)_nodeStk.peek();
-	Comment comment = _document.createComment(new String(ch,start,length));
-	if (comment != null){
+        final Node last = (Node)_nodeStk.peek();
+        Comment comment = _document.createComment(new String(ch,start,length));
+        if (comment != null){
           if (last == _root && _nextSibling != null)
               last.insertBefore(comment, _nextSibling);
           else
               last.appendChild(comment);
-          
+
           _lastSibling = comment;
         }
     }
@@ -317,12 +307,24 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
     public void endEntity(String name) { }
     public void startDTD(String name, String publicId, String systemId)
         throws SAXException {}
-    
-    private static Document createDocument() throws ParserConfigurationException {
+
+    private Document createDocument(boolean useServicesMachnism) throws ParserConfigurationException {
+        if (_factory == null) {
+            if (useServicesMachnism)
+                _factory = DocumentBuilderFactory.newInstance();
+                if (!(_factory instanceof com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl)) {
+                    _internal = false;
+                }
+            else
+                _factory = DocumentBuilderFactory.newInstance(
+                  "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
+                  SAX2DOM.class.getClassLoader()
+                  );
+        }
         Document doc;
-        if (_internalBuilder != null) {
+        if (_internal) {
             //default implementation is thread safe
-            doc = _internalBuilder.newDocument();
+            doc = _factory.newDocumentBuilder().newDocument();
         } else {
             synchronized(SAX2DOM.class) {
                 doc = _factory.newDocumentBuilder().newDocument();
@@ -330,5 +332,5 @@ public class SAX2DOM implements ContentHandler, LexicalHandler, Constants {
         }
         return doc;
     }
-    
+
 }

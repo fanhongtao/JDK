@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -70,18 +70,18 @@ import com.sun.org.apache.xerces.internal.xni.QName;
 
  * @version $Id: DFAContentModel.java,v 1.4 2010/08/06 23:49:43 joehw Exp $
  * DFAContentModel is the derivative of ContentModel that does
- * all of the non-trivial element content validation. This class does 
- * the conversion from the regular expression to the DFA that 
+ * all of the non-trivial element content validation. This class does
+ * the conversion from the regular expression to the DFA that
  * it then uses in its validation algorithm.
  * <p>
  * <b>Note:</b> Upstream work insures that this class will never see
- * a content model with PCDATA in it. Any model with PCDATA is 'mixed' 
- * and is handled via the MixedContentModel class since mixed models 
- * are very constrained in form and easily handled via a special case. 
+ * a content model with PCDATA in it. Any model with PCDATA is 'mixed'
+ * and is handled via the MixedContentModel class since mixed models
+ * are very constrained in form and easily handled via a special case.
  * This also makes implementation of this class much easier.
- * 
+ *
  * @xerces.internal
- * 
+ *
  * @version $Id: DFAContentModel.java,v 1.4 2010/08/06 23:49:43 joehw Exp $
  */
 public class DFAContentModel
@@ -458,17 +458,17 @@ public class DFAContentModel
         //  for that matter.)
         //
 
-	/* MODIFIED (Jan, 2001)
-	 *
-	 * Use following rules.
-	 *   nullable(x+) := nullable(x), first(x+) := first(x),  last(x+) := last(x)
-	 *   nullable(x?) := true, first(x?) := first(x),  last(x?) := last(x)
-	 *
-	 * The same computation of follow as x* is applied to x+
-	 *
-	 * The modification drastically reduces computation time of
-	 * "(a, (b, a+, (c, (b, a+)+, a+, (d,  (c, (b, a+)+, a+)+, (b, a+)+, a+)+)+)+)+"
-	 */
+        /* MODIFIED (Jan, 2001)
+         *
+         * Use following rules.
+         *   nullable(x+) := nullable(x), first(x+) := first(x),  last(x+) := last(x)
+         *   nullable(x?) := true, first(x?) := first(x),  last(x?) := last(x)
+         *
+         * The same computation of follow as x* is applied to x+
+         *
+         * The modification drastically reduces computation time of
+         * "(a, (b, a+, (c, (b, a+)+, a+, (d,  (c, (b, a+)+, a+)+, (b, a+)+, a+)+)+)+)+"
+         */
 
         fQName.setValues(null, fEOCString, fEOCString, null);
         CMLeaf nodeEOC = new CMLeaf(fQName);
@@ -567,27 +567,27 @@ public class DFAContentModel
             fLeafNameTypeVector.setValues(fElemMap, fElemMapType, fElemMapSize);
         }
 
-	/***
-	* Optimization(Jan, 2001); We sort fLeafList according to
-	* elemIndex which is *uniquely* associated to each leaf.
-	* We are *assuming* that each element appears in at least one leaf.
-	**/
+        /***
+        * Optimization(Jan, 2001); We sort fLeafList according to
+        * elemIndex which is *uniquely* associated to each leaf.
+        * We are *assuming* that each element appears in at least one leaf.
+        **/
 
-	int[] fLeafSorter = new int[fLeafCount + fElemMapSize];
-	int fSortCount = 0;
+        int[] fLeafSorter = new int[fLeafCount + fElemMapSize];
+        int fSortCount = 0;
 
-	for (int elemIndex = 0; elemIndex < fElemMapSize; elemIndex++) {
-	    for (int leafIndex = 0; leafIndex < fLeafCount; leafIndex++) {
-		    final QName leaf = fLeafList[leafIndex].getElement();
-		    final QName element = fElemMap[elemIndex];
-		    if (leaf.rawname == element.rawname) {
-			    fLeafSorter[fSortCount++] = leafIndex;
-		    }
-	    }
-	    fLeafSorter[fSortCount++] = -1;
-	}
+        for (int elemIndex = 0; elemIndex < fElemMapSize; elemIndex++) {
+            for (int leafIndex = 0; leafIndex < fLeafCount; leafIndex++) {
+                    final QName leaf = fLeafList[leafIndex].getElement();
+                    final QName element = fElemMap[elemIndex];
+                    if (leaf.rawname == element.rawname) {
+                            fLeafSorter[fSortCount++] = leafIndex;
+                    }
+            }
+            fLeafSorter[fSortCount++] = -1;
+        }
 
-	/* Optimization(Jan, 2001) */
+        /* Optimization(Jan, 2001) */
 
         //
         //  Next lets create some arrays, some that that hold transient
@@ -633,13 +633,13 @@ public class DFAContentModel
         statesToDo[curState] = setT;
         curState++;
 
-	    /* Optimization(Jan, 2001); This is faster for
-	     * a large content model such as, "(t001+|t002+|.... |t500+)".
-	     */
+            /* Optimization(Jan, 2001); This is faster for
+             * a large content model such as, "(t001+|t002+|.... |t500+)".
+             */
 
         HashMap stateTable = new HashMap();
 
-	    /* Optimization(Jan, 2001) */
+            /* Optimization(Jan, 2001) */
 
         //
         //  Ok, almost done with the algorithm... We now enter the
@@ -663,9 +663,9 @@ public class DFAContentModel
 
             // Loop through each possible input symbol in the element map
             CMStateSet newSet = null;
-	    /* Optimization(Jan, 2001) */
+            /* Optimization(Jan, 2001) */
             int sorterIndex = 0;
-	    /* Optimization(Jan, 2001) */
+            /* Optimization(Jan, 2001) */
             for (int elemIndex = 0; elemIndex < fElemMapSize; elemIndex++)
             {
                 //
@@ -679,11 +679,11 @@ public class DFAContentModel
                 else
                     newSet.zeroBits();
 
-	    /* Optimization(Jan, 2001) */
+            /* Optimization(Jan, 2001) */
                 int leafIndex = fLeafSorter[sorterIndex++];
 
                 while (leafIndex != -1) {
-	        // If this leaf index (DFA position) is in the current set...
+                // If this leaf index (DFA position) is in the current set...
                     if (setT.getBit(leafIndex))
                     {
                         //
@@ -695,8 +695,8 @@ public class DFAContentModel
                             }
 
                    leafIndex = fLeafSorter[sorterIndex++];
-	}
-	    /* Optimization(Jan, 2001) */
+        }
+            /* Optimization(Jan, 2001) */
 
                 //
                 //  If this new set is not empty, then see if its in the list
@@ -709,10 +709,10 @@ public class DFAContentModel
                     //  state set is already in there.
                     //
 
-	    /* Optimization(Jan, 2001) */
-	    Integer stateObj = (Integer)stateTable.get(newSet);
-	    int stateIndex = (stateObj == null ? curState : stateObj.intValue());
-	    /* Optimization(Jan, 2001) */
+            /* Optimization(Jan, 2001) */
+            Integer stateObj = (Integer)stateTable.get(newSet);
+            int stateIndex = (stateObj == null ? curState : stateObj.intValue());
+            /* Optimization(Jan, 2001) */
 
                     // If we did not find it, then add it
                     if (stateIndex == curState)
@@ -725,9 +725,9 @@ public class DFAContentModel
                         statesToDo[curState] = newSet;
                         fTransTable[curState] = makeDefStateList();
 
-	    /* Optimization(Jan, 2001) */
+            /* Optimization(Jan, 2001) */
                         stateTable.put(newSet, new Integer(curState));
-	    /* Optimization(Jan, 2001) */
+            /* Optimization(Jan, 2001) */
 
                         // We now have a new state to do so bump the count
                         curState++;
@@ -863,7 +863,7 @@ public class DFAContentModel
         }
         /***/
          else if (nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ZERO_OR_MORE
-	    || nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ONE_OR_MORE)
+            || nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ONE_OR_MORE)
         {
             // Recurse first
             calcFollowList(((CMUniOp)nodeCur).getChild());
@@ -1005,8 +1005,8 @@ public class DFAContentModel
             curIndex = postTreeBuildInit(((CMBinOp)nodeCur).getRight(), curIndex);
         }
          else if (nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ZERO_OR_MORE
-	     || nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ONE_OR_MORE
-	     || nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ZERO_OR_ONE)
+             || nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ONE_OR_MORE
+             || nodeCur.type() == XMLContentSpec.CONTENTSPECNODE_ZERO_OR_ONE)
         {
             curIndex = postTreeBuildInit(((CMUniOp)nodeCur).getChild(), curIndex);
         }

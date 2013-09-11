@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -31,13 +31,13 @@ import org.w3c.dom.Node;
  * specifics of storing attributes. These are:
  * <ul>
  *  <li>managing ownership of attribute nodes
- *  <li>managing default attributes       
+ *  <li>managing default attributes
  *  <li>firing mutation events
  * </ul>
  * <p>
  * This class doesn't directly support mutation events, however, it notifies
  * the document when mutations are performed so that the document class do so.
- * 
+ *
  * @xerces.internal
  *
  * @version $Id: AttributeMap.java,v 1.7 2010-11-01 04:39:37 joehw Exp $
@@ -199,7 +199,7 @@ public class AttributeMap extends NamedNodeMapImpl {
                 nodes.add(i, arg);
             }
         }
-        //    	changed(true);
+        //      changed(true);
 
         // notify document
         ownerNode.ownerDocument().setAttrNode(argn, previous);
@@ -558,12 +558,12 @@ public class AttributeMap extends NamedNodeMapImpl {
                 AttrImpl d = (AttrImpl) defaults.nodes.get(n);
                 int i = findNamePoint(d.getNodeName(), 0);
                 if (i < 0) {
-            		i = -1 - i;
+                        i = -1 - i;
                     NodeImpl clone = (NodeImpl) d.cloneNode(true);
                     clone.ownerNode = ownerNode;
                     clone.isOwned(true);
                     clone.isSpecified(false);
-            		nodes.add(i, clone);
+                        nodes.add(i, clone);
                 }
             }
         }

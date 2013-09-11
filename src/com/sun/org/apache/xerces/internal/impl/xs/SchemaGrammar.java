@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -70,7 +70,7 @@ import org.xml.sax.SAXException;
  * useful to distinguish grammar objects from other kinds of object
  * when they exist in pools or caches.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Sandy Gao, IBM
  * @author Elena Litani, IBM
@@ -137,7 +137,7 @@ public class SchemaGrammar implements XSGrammar, XSNamespaceItem {
      *
      * @param targetNamespace
      * @param grammarDesc the XMLGrammarDescription corresponding to this objec
-     * 		at the least a systemId should always be known.
+     *          at the least a systemId should always be known.
      * @param symbolTable   needed for annotation support
      */
     public SchemaGrammar(String targetNamespace, XSDDescription grammarDesc,

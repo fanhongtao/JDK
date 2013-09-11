@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -56,7 +56,7 @@ import org.w3c.dom.TypeInfo;
 
 /**
  * @xerces.internal
- *  
+ *
  * @author Sandy Gao, IBM
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  *
@@ -93,7 +93,7 @@ public class XSSimpleTypeDecl implements XSSimpleType, TypeInfo {
     protected static final short DV_LIST          = DV_NOTATION + 5;
     protected static final short DV_UNION         = DV_NOTATION + 6;
     protected static final short DV_YEARMONTHDURATION = DV_NOTATION + 7;
-    protected static final short DV_DAYTIMEDURATION	= DV_NOTATION + 8;
+    protected static final short DV_DAYTIMEDURATION     = DV_NOTATION + 8;
     protected static final short DV_ANYATOMICTYPE = DV_NOTATION + 9;
 
     private static final TypeValidator[] gDVs = {
@@ -1235,136 +1235,136 @@ public class XSSimpleTypeDecl implements XSSimpleType, TypeInfo {
             }
 
             /*          // check 4.3.7.c2 error:
-			 // maxInclusive > fBase.maxInclusive
-			  // maxInclusive >= fBase.maxExclusive
-			   // maxInclusive < fBase.minInclusive
-			    // maxInclusive <= fBase.minExclusive
+                         // maxInclusive > fBase.maxInclusive
+                          // maxInclusive >= fBase.maxExclusive
+                           // maxInclusive < fBase.minInclusive
+                            // maxInclusive <= fBase.minExclusive
 
-			     if (((fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
-			     if (((fBase.fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
-			     result = fDVs[fValidationDV].compare(fMaxInclusive, fBase.fMaxInclusive);
-			     if ((fBase.fFixedFacet & FACET_MAXINCLUSIVE) != 0 && result != 0) {
-			     reportError( "FixedFacetValue", new Object[]{"maxInclusive", fMaxInclusive, fBase.fMaxInclusive, fTypeName});
-			     }
-			     if (result != -1 && result != 0) {
-			     reportError( "maxInclusive-valid-restriction.1", new Object[]{fMaxInclusive, fBase.fMaxInclusive, fTypeName});
-			     }
-			     }
-			     if (((fBase.fFacetsDefined & FACET_MAXEXCLUSIVE) != 0) &&
-			     fDVs[fValidationDV].compare(fMaxInclusive, fBase.fMaxExclusive) != -1){
-			     reportError( "maxInclusive-valid-restriction.1", new Object[]{fMaxInclusive, fBase.fMaxExclusive, fTypeName});
-			     }
+                             if (((fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
+                             if (((fBase.fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
+                             result = fDVs[fValidationDV].compare(fMaxInclusive, fBase.fMaxInclusive);
+                             if ((fBase.fFixedFacet & FACET_MAXINCLUSIVE) != 0 && result != 0) {
+                             reportError( "FixedFacetValue", new Object[]{"maxInclusive", fMaxInclusive, fBase.fMaxInclusive, fTypeName});
+                             }
+                             if (result != -1 && result != 0) {
+                             reportError( "maxInclusive-valid-restriction.1", new Object[]{fMaxInclusive, fBase.fMaxInclusive, fTypeName});
+                             }
+                             }
+                             if (((fBase.fFacetsDefined & FACET_MAXEXCLUSIVE) != 0) &&
+                             fDVs[fValidationDV].compare(fMaxInclusive, fBase.fMaxExclusive) != -1){
+                             reportError( "maxInclusive-valid-restriction.1", new Object[]{fMaxInclusive, fBase.fMaxExclusive, fTypeName});
+                             }
 
-			     if ((( fBase.fFacetsDefined & FACET_MININCLUSIVE) != 0)) {
-			     result = fDVs[fValidationDV].compare(fMaxInclusive, fBase.fMinInclusive);
-			     if (result != 1 && result != 0) {
-			     reportError( "maxInclusive-valid-restriction.1", new Object[]{fMaxInclusive, fBase.fMinInclusive, fTypeName});
-			     }
-			     }
+                             if ((( fBase.fFacetsDefined & FACET_MININCLUSIVE) != 0)) {
+                             result = fDVs[fValidationDV].compare(fMaxInclusive, fBase.fMinInclusive);
+                             if (result != 1 && result != 0) {
+                             reportError( "maxInclusive-valid-restriction.1", new Object[]{fMaxInclusive, fBase.fMinInclusive, fTypeName});
+                             }
+                             }
 
-			     if ((( fBase.fFacetsDefined & FACET_MINEXCLUSIVE) != 0) &&
-			     fDVs[fValidationDV].compare(fMaxInclusive, fBase.fMinExclusive ) != 1)
-			     reportError( "maxInclusive-valid-restriction.1", new Object[]{fMaxInclusive, fBase.fMinExclusive, fTypeName});
-			     }
+                             if ((( fBase.fFacetsDefined & FACET_MINEXCLUSIVE) != 0) &&
+                             fDVs[fValidationDV].compare(fMaxInclusive, fBase.fMinExclusive ) != 1)
+                             reportError( "maxInclusive-valid-restriction.1", new Object[]{fMaxInclusive, fBase.fMinExclusive, fTypeName});
+                             }
 
-			     // check 4.3.8.c3 error:
-			      // maxExclusive > fBase.maxExclusive
-			       // maxExclusive > fBase.maxInclusive
-			        // maxExclusive <= fBase.minInclusive
-			         // maxExclusive <= fBase.minExclusive
-			          if (((fFacetsDefined & FACET_MAXEXCLUSIVE) != 0)) {
-			          if ((( fBase.fFacetsDefined & FACET_MAXEXCLUSIVE) != 0)) {
-			          result= fDVs[fValidationDV].compare(fMaxExclusive, fBase.fMaxExclusive);
-			          if ((fBase.fFixedFacet & FACET_MAXEXCLUSIVE) != 0 &&  result != 0) {
-			          reportError( "FixedFacetValue", new Object[]{"maxExclusive", fMaxExclusive, fBase.fMaxExclusive, fTypeName});
-			          }
-			          if (result != -1 && result != 0) {
-			          reportError( "maxExclusive-valid-restriction.1", new Object[]{fMaxExclusive, fBase.fMaxExclusive, fTypeName});
-			          }
-			          }
+                             // check 4.3.8.c3 error:
+                              // maxExclusive > fBase.maxExclusive
+                               // maxExclusive > fBase.maxInclusive
+                                // maxExclusive <= fBase.minInclusive
+                                 // maxExclusive <= fBase.minExclusive
+                                  if (((fFacetsDefined & FACET_MAXEXCLUSIVE) != 0)) {
+                                  if ((( fBase.fFacetsDefined & FACET_MAXEXCLUSIVE) != 0)) {
+                                  result= fDVs[fValidationDV].compare(fMaxExclusive, fBase.fMaxExclusive);
+                                  if ((fBase.fFixedFacet & FACET_MAXEXCLUSIVE) != 0 &&  result != 0) {
+                                  reportError( "FixedFacetValue", new Object[]{"maxExclusive", fMaxExclusive, fBase.fMaxExclusive, fTypeName});
+                                  }
+                                  if (result != -1 && result != 0) {
+                                  reportError( "maxExclusive-valid-restriction.1", new Object[]{fMaxExclusive, fBase.fMaxExclusive, fTypeName});
+                                  }
+                                  }
 
-			          if ((( fBase.fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
-			          result= fDVs[fValidationDV].compare(fMaxExclusive, fBase.fMaxInclusive);
-			          if (result != -1 && result != 0) {
-			          reportError( "maxExclusive-valid-restriction.2", new Object[]{fMaxExclusive, fBase.fMaxInclusive, fTypeName});
-			          }
-			          }
+                                  if ((( fBase.fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
+                                  result= fDVs[fValidationDV].compare(fMaxExclusive, fBase.fMaxInclusive);
+                                  if (result != -1 && result != 0) {
+                                  reportError( "maxExclusive-valid-restriction.2", new Object[]{fMaxExclusive, fBase.fMaxInclusive, fTypeName});
+                                  }
+                                  }
 
-			          if ((( fBase.fFacetsDefined & FACET_MINEXCLUSIVE) != 0) &&
-			          fDVs[fValidationDV].compare(fMaxExclusive, fBase.fMinExclusive ) != 1)
-			          reportError( "maxExclusive-valid-restriction.3", new Object[]{fMaxExclusive, fBase.fMinExclusive, fTypeName});
+                                  if ((( fBase.fFacetsDefined & FACET_MINEXCLUSIVE) != 0) &&
+                                  fDVs[fValidationDV].compare(fMaxExclusive, fBase.fMinExclusive ) != 1)
+                                  reportError( "maxExclusive-valid-restriction.3", new Object[]{fMaxExclusive, fBase.fMinExclusive, fTypeName});
 
-			          if ((( fBase.fFacetsDefined & FACET_MININCLUSIVE) != 0) &&
-			          fDVs[fValidationDV].compare(fMaxExclusive, fBase.fMinInclusive) != 1)
-			          reportError( "maxExclusive-valid-restriction.4", new Object[]{fMaxExclusive, fBase.fMinInclusive, fTypeName});
-			          }
+                                  if ((( fBase.fFacetsDefined & FACET_MININCLUSIVE) != 0) &&
+                                  fDVs[fValidationDV].compare(fMaxExclusive, fBase.fMinInclusive) != 1)
+                                  reportError( "maxExclusive-valid-restriction.4", new Object[]{fMaxExclusive, fBase.fMinInclusive, fTypeName});
+                                  }
 
-			          // check 4.3.9.c3 error:
-			           // minExclusive < fBase.minExclusive
-			            // minExclusive > fBase.maxInclusive
-			             // minExclusive < fBase.minInclusive
-			              // minExclusive >= fBase.maxExclusive
-			               if (((fFacetsDefined & FACET_MINEXCLUSIVE) != 0)) {
-			               if ((( fBase.fFacetsDefined & FACET_MINEXCLUSIVE) != 0)) {
-			               result= fDVs[fValidationDV].compare(fMinExclusive, fBase.fMinExclusive);
-			               if ((fBase.fFixedFacet & FACET_MINEXCLUSIVE) != 0 && result != 0) {
-			               reportError( "FixedFacetValue", new Object[]{"minExclusive", fMinExclusive, fBase.fMinExclusive, fTypeName});
-			               }
-			               if (result != 1 && result != 0) {
-			               reportError( "minExclusive-valid-restriction.1", new Object[]{fMinExclusive, fBase.fMinExclusive, fTypeName});
-			               }
-			               }
+                                  // check 4.3.9.c3 error:
+                                   // minExclusive < fBase.minExclusive
+                                    // minExclusive > fBase.maxInclusive
+                                     // minExclusive < fBase.minInclusive
+                                      // minExclusive >= fBase.maxExclusive
+                                       if (((fFacetsDefined & FACET_MINEXCLUSIVE) != 0)) {
+                                       if ((( fBase.fFacetsDefined & FACET_MINEXCLUSIVE) != 0)) {
+                                       result= fDVs[fValidationDV].compare(fMinExclusive, fBase.fMinExclusive);
+                                       if ((fBase.fFixedFacet & FACET_MINEXCLUSIVE) != 0 && result != 0) {
+                                       reportError( "FixedFacetValue", new Object[]{"minExclusive", fMinExclusive, fBase.fMinExclusive, fTypeName});
+                                       }
+                                       if (result != 1 && result != 0) {
+                                       reportError( "minExclusive-valid-restriction.1", new Object[]{fMinExclusive, fBase.fMinExclusive, fTypeName});
+                                       }
+                                       }
 
-			               if ((( fBase.fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
-			               result=fDVs[fValidationDV].compare(fMinExclusive, fBase.fMaxInclusive);
+                                       if ((( fBase.fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
+                                       result=fDVs[fValidationDV].compare(fMinExclusive, fBase.fMaxInclusive);
 
-			               if (result != -1 && result != 0) {
-			               reportError( "minExclusive-valid-restriction.2", new Object[]{fMinExclusive, fBase.fMaxInclusive, fTypeName});
-			               }
-			               }
+                                       if (result != -1 && result != 0) {
+                                       reportError( "minExclusive-valid-restriction.2", new Object[]{fMinExclusive, fBase.fMaxInclusive, fTypeName});
+                                       }
+                                       }
 
-			               if ((( fBase.fFacetsDefined & FACET_MININCLUSIVE) != 0)) {
-			               result = fDVs[fValidationDV].compare(fMinExclusive, fBase.fMinInclusive);
+                                       if ((( fBase.fFacetsDefined & FACET_MININCLUSIVE) != 0)) {
+                                       result = fDVs[fValidationDV].compare(fMinExclusive, fBase.fMinInclusive);
 
-			               if (result != 1 && result != 0) {
-			               reportError( "minExclusive-valid-restriction.3", new Object[]{fMinExclusive, fBase.fMinInclusive, fTypeName});
-			               }
-			               }
+                                       if (result != 1 && result != 0) {
+                                       reportError( "minExclusive-valid-restriction.3", new Object[]{fMinExclusive, fBase.fMinInclusive, fTypeName});
+                                       }
+                                       }
 
-			               if ((( fBase.fFacetsDefined & FACET_MAXEXCLUSIVE) != 0) &&
-			               fDVs[fValidationDV].compare(fMinExclusive, fBase.fMaxExclusive) != -1)
-			               reportError( "minExclusive-valid-restriction.4", new Object[]{fMinExclusive, fBase.fMaxExclusive, fTypeName});
-			               }
+                                       if ((( fBase.fFacetsDefined & FACET_MAXEXCLUSIVE) != 0) &&
+                                       fDVs[fValidationDV].compare(fMinExclusive, fBase.fMaxExclusive) != -1)
+                                       reportError( "minExclusive-valid-restriction.4", new Object[]{fMinExclusive, fBase.fMaxExclusive, fTypeName});
+                                       }
 
-			               // check 4.3.10.c2 error:
-			                // minInclusive < fBase.minInclusive
-			                 // minInclusive > fBase.maxInclusive
-			                  // minInclusive <= fBase.minExclusive
-			                   // minInclusive >= fBase.maxExclusive
-			                    if (((fFacetsDefined & FACET_MININCLUSIVE) != 0)) {
-			                    if (((fBase.fFacetsDefined & FACET_MININCLUSIVE) != 0)) {
-			                    result = fDVs[fValidationDV].compare(fMinInclusive, fBase.fMinInclusive);
+                                       // check 4.3.10.c2 error:
+                                        // minInclusive < fBase.minInclusive
+                                         // minInclusive > fBase.maxInclusive
+                                          // minInclusive <= fBase.minExclusive
+                                           // minInclusive >= fBase.maxExclusive
+                                            if (((fFacetsDefined & FACET_MININCLUSIVE) != 0)) {
+                                            if (((fBase.fFacetsDefined & FACET_MININCLUSIVE) != 0)) {
+                                            result = fDVs[fValidationDV].compare(fMinInclusive, fBase.fMinInclusive);
 
-			                    if ((fBase.fFixedFacet & FACET_MININCLUSIVE) != 0 && result != 0) {
-			                    reportError( "FixedFacetValue", new Object[]{"minInclusive", fMinInclusive, fBase.fMinInclusive, fTypeName});
-			                    }
-			                    if (result != 1 && result != 0) {
-			                    reportError( "minInclusive-valid-restriction.1", new Object[]{fMinInclusive, fBase.fMinInclusive, fTypeName});
-			                    }
-			                    }
-			                    if ((( fBase.fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
-			                    result=fDVs[fValidationDV].compare(fMinInclusive, fBase.fMaxInclusive);
-			                    if (result != -1 && result != 0) {
-			                    reportError( "minInclusive-valid-restriction.2", new Object[]{fMinInclusive, fBase.fMaxInclusive, fTypeName});
-			                    }
-			                    }
-			                    if ((( fBase.fFacetsDefined & FACET_MINEXCLUSIVE) != 0) &&
-			                    fDVs[fValidationDV].compare(fMinInclusive, fBase.fMinExclusive ) != 1)
-			                    reportError( "minInclusive-valid-restriction.3", new Object[]{fMinInclusive, fBase.fMinExclusive, fTypeName});
-			                    if ((( fBase.fFacetsDefined & FACET_MAXEXCLUSIVE) != 0) &&
-			                    fDVs[fValidationDV].compare(fMinInclusive, fBase.fMaxExclusive) != -1)
-			                    reportError( "minInclusive-valid-restriction.4", new Object[]{fMinInclusive, fBase.fMaxExclusive, fTypeName});
-			                    }
+                                            if ((fBase.fFixedFacet & FACET_MININCLUSIVE) != 0 && result != 0) {
+                                            reportError( "FixedFacetValue", new Object[]{"minInclusive", fMinInclusive, fBase.fMinInclusive, fTypeName});
+                                            }
+                                            if (result != 1 && result != 0) {
+                                            reportError( "minInclusive-valid-restriction.1", new Object[]{fMinInclusive, fBase.fMinInclusive, fTypeName});
+                                            }
+                                            }
+                                            if ((( fBase.fFacetsDefined & FACET_MAXINCLUSIVE) != 0)) {
+                                            result=fDVs[fValidationDV].compare(fMinInclusive, fBase.fMaxInclusive);
+                                            if (result != -1 && result != 0) {
+                                            reportError( "minInclusive-valid-restriction.2", new Object[]{fMinInclusive, fBase.fMaxInclusive, fTypeName});
+                                            }
+                                            }
+                                            if ((( fBase.fFacetsDefined & FACET_MINEXCLUSIVE) != 0) &&
+                                            fDVs[fValidationDV].compare(fMinInclusive, fBase.fMinExclusive ) != 1)
+                                            reportError( "minInclusive-valid-restriction.3", new Object[]{fMinInclusive, fBase.fMinExclusive, fTypeName});
+                                            if ((( fBase.fFacetsDefined & FACET_MAXEXCLUSIVE) != 0) &&
+                                            fDVs[fValidationDV].compare(fMinInclusive, fBase.fMaxExclusive) != -1)
+                                            reportError( "minInclusive-valid-restriction.4", new Object[]{fMinInclusive, fBase.fMaxExclusive, fTypeName});
+                                            }
              */
             // check 4.3.11.c1 error: totalDigits > fBase.totalDigits
             if (((fFacetsDefined & FACET_TOTALDIGITS) != 0)) {
@@ -3396,4 +3396,3 @@ public class XSSimpleTypeDecl implements XSSimpleType, TypeInfo {
     }
 
 } // class XSSimpleTypeDecl
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -9,9 +9,9 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,12 +31,12 @@ import com.sun.org.apache.xerces.internal.xs.XSObjectList;
 
 /**
  * the base factory to create/return built-in schema DVs and create user-defined DVs
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Neeraj Bajaj, Sun Microsystems, inc.
  * @author Sandy Gao, IBM
- * @author Khaled Noaman, IBM 
+ * @author Khaled Noaman, IBM
  *
  * @version $Id: BaseSchemaDVFactory.java,v 1.2 2010-10-26 23:01:03 joehw Exp $
  */
@@ -96,7 +96,7 @@ public abstract class BaseSchemaDVFactory extends SchemaDVFactory {
         final String YEARMONTH         = "gYearMonth";
 
         final XSFacets facets = new XSFacets();
-        
+
         builtInTypes.put(ANYSIMPLETYPE, XSSimpleTypeDecl.fAnySimpleType);
 
         XSSimpleTypeDecl stringDV = new XSSimpleTypeDecl(baseAtomicType, STRING, XSSimpleTypeDecl.DV_STRING, XSSimpleType.ORDERED_FALSE, false, false, false , true, XSConstants.STRING_DT);
@@ -264,7 +264,7 @@ public abstract class BaseSchemaDVFactory extends SchemaDVFactory {
      */
     public XSSimpleType createTypeRestriction(String name, String targetNamespace,
                                               short finalSet, XSSimpleType base, XSObjectList annotations) {
-        
+
         if (fDeclPool != null) {
            XSSimpleTypeDecl st= fDeclPool.getSimpleTypeDecl();
            return st.setRestrictionValues((XSSimpleTypeDecl)base, name, targetNamespace, finalSet, annotations);

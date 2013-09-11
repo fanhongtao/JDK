@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 // CatalogResolver.java - A SAX EntityResolver/JAXP URI Resolver
@@ -23,6 +23,7 @@
 
 package com.sun.org.apache.xml.internal.resolver.tools;
 
+import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -61,6 +62,7 @@ import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
+ * @version 1.0
  */
 public class CatalogResolver implements EntityResolver, URIResolver {
   /** Make the parser Namespace aware? */
@@ -302,7 +304,8 @@ public class CatalogResolver implements EntityResolver, URIResolver {
   private void setEntityResolver(SAXSource source) throws TransformerException {
     XMLReader reader = source.getXMLReader();
     if (reader == null) {
-      SAXParserFactory spFactory = SAXParserFactory.newInstance();
+      SAXParserFactory spFactory = catalogManager.useServicesMechanism() ?
+                    SAXParserFactory.newInstance() : new SAXParserFactoryImpl();
       spFactory.setNamespaceAware(true);
       try {
         reader = spFactory.newSAXParser().getXMLReader();

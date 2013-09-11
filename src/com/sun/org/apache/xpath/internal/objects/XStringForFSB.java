@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -979,7 +979,7 @@ public class XStringForFSB extends XString
       return Double.NaN;
 
     try {
-      return new Double(valueString).doubleValue();
+      return Double.parseDouble(valueString);
     } catch (NumberFormatException nfe) {
       // This should catch double periods, empty strings.
       return Double.NaN;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -29,6 +29,7 @@ import com.sun.org.apache.xpath.internal.ExpressionOwner;
 import com.sun.org.apache.xpath.internal.VariableStack;
 import com.sun.org.apache.xpath.internal.XPathVisitor;
 import com.sun.org.apache.xpath.internal.compiler.Compiler;
+import com.sun.org.apache.xpath.internal.compiler.OpMap;
 
 /**
  * Location path iterator that uses Walkers.
@@ -58,7 +59,7 @@ public class WalkingIterator extends LocPathIterator implements ExpressionOwner
   {
     super(compiler, opPos, analysis, shouldLoadWalkers);
 
-    int firstStepPos = compiler.getFirstChildPos(opPos);
+    int firstStepPos = OpMap.getFirstChildPos(opPos);
 
     if (shouldLoadWalkers)
     {

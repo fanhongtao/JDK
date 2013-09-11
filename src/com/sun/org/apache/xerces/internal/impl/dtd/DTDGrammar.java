@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -93,7 +93,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDSource;
  * A DTD grammar. This class implements the XNI handler interfaces
  * for DTD information so that it can build the approprate validation
  * structures automatically from the callbacks.
- * 
+ *
  * @xerces.internal
  *
  * @author Eric Ye, IBM
@@ -1228,11 +1228,11 @@ public class DTDGrammar
         return getElementDeclIndex(elementDeclQName.rawname);
     } // getElementDeclIndex(QName):int
 
-		/** make separate function for getting contentSpecType of element.
+                /** make separate function for getting contentSpecType of element.
       * we can avoid setting of the element values.
-		*/
+                */
 
-		public short getContentSpecType(int elementIndex){
+                public short getContentSpecType(int elementIndex){
         if (elementIndex < 0 || elementIndex >= fElementDeclCount) {
             return -1 ;
         }
@@ -1242,12 +1242,12 @@ public class DTDGrammar
 
         if(fElementDeclType[chunk][index] == -1){
             return -1 ;
-			    }
+                            }
         else{
-				       return (short) (fElementDeclType[chunk][index] & LIST_MASK);
-			    }
+                                       return (short) (fElementDeclType[chunk][index] & LIST_MASK);
+                            }
 
-		}//getContentSpecType
+                }//getContentSpecType
 
     /**
      * getElementDecl

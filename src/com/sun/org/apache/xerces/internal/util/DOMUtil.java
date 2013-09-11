@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -324,7 +324,7 @@ public class DOMUtil {
             ((com.sun.org.apache.xerces.internal.impl.xs.opti.NodeImpl)node).setReadOnly(true, false);
         }
         else {
-        	hiddenNodes.put(node, "");
+                hiddenNodes.put(node, "");
         }
     } // setHidden(node):void
 

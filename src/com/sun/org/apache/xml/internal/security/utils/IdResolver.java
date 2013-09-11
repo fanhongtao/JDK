@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -248,6 +248,8 @@ public class IdResolver {
                     int index=s==null ? elementIndex : names.indexOf(n.getNamespaceURI());
                     index=(index<0) ? namesLength : index;
                     String name=n.getLocalName();
+                    if (name == null)
+                        name = n.getName();
                     if (name.length()>2)
                         continue;
                     String value=n.getNodeValue();

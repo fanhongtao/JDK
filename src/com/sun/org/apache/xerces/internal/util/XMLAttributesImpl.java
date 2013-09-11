@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -68,8 +68,8 @@ import com.sun.org.apache.xerces.internal.xni.XMLAttributes;
 import com.sun.org.apache.xerces.internal.xni.XMLString;
 /**
  * The XMLAttributesImpl class is an implementation of the XMLAttributes
- * interface which defines a collection of attributes for an element. 
- * In the parser, the document source would scan the entire start element 
+ * interface which defines a collection of attributes for an element.
+ * In the parser, the document source would scan the entire start element
  * and collect the attributes. The attributes are communicated to the
  * document handler in the startElement method.
  * <p>
@@ -79,7 +79,7 @@ import com.sun.org.apache.xerces.internal.xni.XMLString;
  *
  * @see com.sun.org.apache.xerces.internal.xni.XMLDocumentHandler#startElement
  *
- * @author Andy Clark, IBM 
+ * @author Andy Clark, IBM
  * @author Elena Litani, IBM
  * @author Michael Glavassevich, IBM
  *
@@ -91,16 +91,16 @@ implements XMLAttributes, XMLBufferListener {
     //
     // Constants
     //
-    
+
     /** Default table size. */
     protected static final int TABLE_SIZE = 101;
-    
-    /** 
+
+    /**
      * Threshold at which an instance is treated
      * as a large attribute list.
      */
     protected static final int SIZE_LIMIT = 20;
-    
+
     //
     // Data
     //
@@ -112,25 +112,25 @@ implements XMLAttributes, XMLBufferListener {
 
     // data
 
-    /** 
-     * Usage count for the attribute table view. 
+    /**
+     * Usage count for the attribute table view.
      * Incremented each time all attributes are removed
      * when the attribute table view is in use.
      */
     protected int fLargeCount = 1;
-    
+
     /** Attribute count. */
     protected int fLength;
 
     /** Attribute information. */
     protected Attribute[] fAttributes = new Attribute[4];
 
-    /** 
-     * Hashtable of attribute information. 
-     * Provides an alternate view of the attribute specification. 
+    /**
+     * Hashtable of attribute information.
+     * Provides an alternate view of the attribute specification.
      */
     protected Attribute[] fAttributeTableView;
-    
+
     /**
      * Tracks whether each chain in the hash table is stale
      * with respect to the current state of this object.
@@ -138,12 +138,12 @@ implements XMLAttributes, XMLBufferListener {
      * of times the attribute table view has been used.
      */
     protected int[] fAttributeTableViewChainState;
-    
+
     /**
      * Actual number of buckets in the table view.
      */
     protected int fTableViewBuckets;
-    
+
     /**
      * Indicates whether the table view contains consistent data.
      */
@@ -157,7 +157,7 @@ implements XMLAttributes, XMLBufferListener {
     public XMLAttributesImpl() {
         this(TABLE_SIZE);
     }
-    
+
     /**
      * @param tableSize initial size of table view
      */
@@ -172,7 +172,7 @@ implements XMLAttributes, XMLBufferListener {
     // Public methods
     //
 
-    /** 
+    /**
      * Sets whether namespace processing is being performed. This state
      * is needed to return the correct value from the getLocalName method.
      *
@@ -199,18 +199,18 @@ implements XMLAttributes, XMLBufferListener {
      * <strong>Note:</strong> If an attribute of the same name already
      * exists, the old values for the attribute are replaced by the new
      * values.
-     * 
+     *
      * @param name  The attribute name.
      * @param type  The attribute type. The type name is determined by
      *                  the type specified for this attribute in the DTD.
      *                  For example: "CDATA", "ID", "NMTOKEN", etc. However,
      *                  attributes of type enumeration will have the type
      *                  value specified as the pipe ('|') separated list of
-     *                  the enumeration values prefixed by an open 
+     *                  the enumeration values prefixed by an open
      *                  parenthesis and suffixed by a close parenthesis.
      *                  For example: "(true|false)".
      * @param value The attribute value.
-     * 
+     *
      * @return Returns the attribute index.
      *
      * @see #setNonNormalizedValue
@@ -223,10 +223,10 @@ implements XMLAttributes, XMLBufferListener {
 
         int index;
         if (fLength < SIZE_LIMIT) {
-            index = name.uri != null && !name.uri.equals("") 
+            index = name.uri != null && !name.uri.equals("")
                 ? getIndexFast(name.uri, name.localpart)
                 : getIndexFast(name.rawname);
-    
+
             if (index == -1) {
                 index = fLength;
                 if (fLength++ == fAttributes.length) {
@@ -239,14 +239,14 @@ implements XMLAttributes, XMLBufferListener {
                 }
             }
         }
-        else if (name.uri == null || 
-            name.uri.length() == 0 || 
+        else if (name.uri == null ||
+            name.uri.length() == 0 ||
             (index = getIndexFast(name.uri, name.localpart)) == -1) {
-            
+
             /**
              * If attributes were removed from the list after the table
              * becomes in use this isn't reflected in the table view. It's
-             * assumed that once a user starts removing attributes they're 
+             * assumed that once a user starts removing attributes they're
              * not likely to add more. We only make the view consistent if
              * the user of this class adds attributes, removes them, and
              * then adds more.
@@ -256,9 +256,9 @@ implements XMLAttributes, XMLBufferListener {
                 fIsTableViewConsistent = true;
             }
 
-            int bucket = getTableViewBucket(name.rawname); 
-        
-            // The chain is stale. 
+            int bucket = getTableViewBucket(name.rawname);
+
+            // The chain is stale.
             // This must be a unique attribute.
             if (fAttributeTableViewChainState[bucket] != fLargeCount) {
                 index = fLength;
@@ -270,13 +270,13 @@ implements XMLAttributes, XMLBufferListener {
                     }
                     fAttributes = attributes;
                 }
-            
+
                 // Update table view.
                 fAttributeTableViewChainState[bucket] = fLargeCount;
                 fAttributes[index].next = null;
                 fAttributeTableView[bucket] = fAttributes[index];
             }
-            // This chain is active. 
+            // This chain is active.
             // We need to check if any of the attributes has the same rawname.
             else {
                 // Search the table.
@@ -298,7 +298,7 @@ implements XMLAttributes, XMLBufferListener {
                         }
                         fAttributes = attributes;
                     }
-                 
+
                     // Update table view
                     fAttributes[index].next = fAttributeTableView[bucket];
                     fAttributeTableView[bucket] = fAttributes[index];
@@ -308,7 +308,7 @@ implements XMLAttributes, XMLBufferListener {
                     index = getIndexFast(name.rawname);
                 }
             }
-        }          
+        }
 
         // set values
         Attribute attribute = fAttributes[index];
@@ -322,12 +322,12 @@ implements XMLAttributes, XMLBufferListener {
         // clear augmentations
         if(attribute.augs != null)
             attribute.augs.removeAllItems();
-        
+
         return index;
 
     } // addAttribute(QName,String,XMLString)
 
-    /** 
+    /**
      * Removes all of the attributes. This method will also remove all
      * entities associated to the attributes.
      */
@@ -340,7 +340,7 @@ implements XMLAttributes, XMLBufferListener {
      * <p>
      * <strong>Note:</strong> This operation changes the indexes of all
      * attributes following the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      */
     public void removeAttributeAt(int attrIndex) {
@@ -358,7 +358,7 @@ implements XMLAttributes, XMLBufferListener {
 
     /**
      * Sets the name of the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param attrName  The new attribute name.
      */
@@ -369,7 +369,7 @@ implements XMLAttributes, XMLBufferListener {
     /**
      * Sets the fields in the given QName structure with the values
      * of the attribute name at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param attrName  The attribute name structure to fill in.
      */
@@ -379,14 +379,14 @@ implements XMLAttributes, XMLBufferListener {
 
     /**
      * Sets the type of the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param attrType  The attribute type. The type name is determined by
      *                  the type specified for this attribute in the DTD.
      *                  For example: "CDATA", "ID", "NMTOKEN", etc. However,
      *                  attributes of type enumeration will have the type
      *                  value specified as the pipe ('|') separated list of
-     *                  the enumeration values prefixed by an open 
+     *                  the enumeration values prefixed by an open
      *                  parenthesis and suffixed by a close parenthesis.
      *                  For example: "(true|false)".
      */
@@ -397,7 +397,7 @@ implements XMLAttributes, XMLBufferListener {
     /**
      * Sets the value of the attribute at the specified index. This
      * method will overwrite the non-normalized value of the attribute.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param attrValue The new attribute value.
      *
@@ -406,7 +406,7 @@ implements XMLAttributes, XMLBufferListener {
     public void setValue(int attrIndex, String attrValue) {
         setValue(attrIndex,attrValue,null);
     }
-    
+
     public void setValue(int attrIndex, String attrValue,XMLString value) {
         Attribute attribute = fAttributes[attrIndex];
         attribute.value = attrValue;
@@ -580,7 +580,7 @@ implements XMLAttributes, XMLBufferListener {
      * @param i The index of the attribute in the list (starting at 0).
      * @return The name of the indexed attribute, or null
      *         if the index is out of range.
-     * @see #getLength 
+     * @see #getLength
      */
     public String getName(int index) {
         if (index < 0 || index >= fLength) {
@@ -610,7 +610,7 @@ implements XMLAttributes, XMLBufferListener {
         }
         return -1;
     } // getIndex(String):int
-    
+
     /**
      * Look up the index of an attribute by Namespace name.
      *
@@ -687,7 +687,7 @@ implements XMLAttributes, XMLBufferListener {
         String rawname = fAttributes[index].name.rawname;
         return rawname != null ? rawname : "";
     } // getQName(int):String
-    
+
     public QName getQualifiedName(int index){
         if (index < 0 || index >= fLength) {
             return null;
@@ -718,7 +718,7 @@ implements XMLAttributes, XMLBufferListener {
     /**
      * Look up the index of an attribute by XML 1.0 qualified name.
      * <p>
-     * <strong>Note:</strong> 
+     * <strong>Note:</strong>
      * This method uses reference comparison, and thus should
      * only be used internally. We cannot use this method in any
      * code exposed to users as they may not pass in unique strings.
@@ -736,7 +736,7 @@ implements XMLAttributes, XMLBufferListener {
         }
         return -1;
     } // getIndexFast(String):int
-    
+
     /**
      * Adds an attribute. The attribute's non-normalized value of the
      * attribute will have the same value as the attribute value until
@@ -755,11 +755,11 @@ implements XMLAttributes, XMLBufferListener {
      * <strong>Caution:</strong> If this method is called it should
      * not be mixed with calls to <code>addAttribute</code> unless
      * it has been determined that all the attribute names are unique.
-     * 
+     *
      * @param name the attribute name
      * @param type the attribute type
      * @param value the attribute value
-     * 
+     *
      * @see #setNonNormalizedValue
      * @see #setSpecified
      * @see #checkDuplicatesNS
@@ -780,7 +780,7 @@ implements XMLAttributes, XMLBufferListener {
             }
             fAttributes = attributes;
         }
-        
+
         // set values
         Attribute attribute = fAttributes[index];
         attribute.name.setValues(name);
@@ -788,11 +788,11 @@ implements XMLAttributes, XMLBufferListener {
         attribute.value = value;
         attribute.nonNormalizedValue = value;
         attribute.specified = false;
-            
+
         // clear augmentations
         attribute.augs.removeAllItems();
     }
-    
+
     /**
      * Checks for duplicate expanded names (local part and namespace name
      * pairs) in the attribute specification. If a duplicate is found its
@@ -801,7 +801,7 @@ implements XMLAttributes, XMLBufferListener {
      * This should be called once all the in-scope namespaces for the element
      * enclosing these attributes is known, and after all the attributes
      * have gone through namespace binding.
-     * 
+     *
      * @return the name of a duplicate attribute found in the search,
      * otherwise null.
      */
@@ -814,14 +814,14 @@ implements XMLAttributes, XMLBufferListener {
                     Attribute att2 = fAttributes[j];
                     if (att1.name.localpart == att2.name.localpart &&
                         att1.name.uri == att2.name.uri) {
-                        return att2.name;       
+                        return att2.name;
                     }
                 }
             }
         }
         // If the list is large check duplicates using a hash table.
         else {
-            // We don't want this table view to be read if someone calls 
+            // We don't want this table view to be read if someone calls
             // addAttribute so we invalidate it up front.
             fIsTableViewConsistent = false;
 
@@ -833,15 +833,15 @@ implements XMLAttributes, XMLBufferListener {
             for (int i = fLength - 1; i >= 0; --i) {
                 attr = fAttributes[i];
                 bucket = getTableViewBucket(attr.name.localpart, attr.name.uri);
-                
-                // The chain is stale. 
+
+                // The chain is stale.
                 // This must be a unique attribute.
                 if (fAttributeTableViewChainState[bucket] != fLargeCount) {
                     fAttributeTableViewChainState[bucket] = fLargeCount;
                     attr.next = null;
                     fAttributeTableView[bucket] = attr;
-                } 
-                // This chain is active. 
+                }
+                // This chain is active.
                 // We need to check if any of the attributes has the same name.
                 else {
                     // Search the table.
@@ -853,7 +853,7 @@ implements XMLAttributes, XMLBufferListener {
                         }
                         found = found.next;
                     }
-                    
+
                     // Update table view
                     attr.next = fAttributeTableView[bucket];
                     fAttributeTableView[bucket] = attr;
@@ -862,11 +862,11 @@ implements XMLAttributes, XMLBufferListener {
         }
         return null;
     }
-    
+
     /**
      * Look up the index of an attribute by Namespace name.
      * <p>
-     * <strong>Note:</strong> 
+     * <strong>Note:</strong>
      * This method uses reference comparison, and thus should
      * only be used internally. We cannot use this method in any
      * code exposed to users as they may not pass in unique strings.
@@ -880,7 +880,7 @@ implements XMLAttributes, XMLBufferListener {
     public int getIndexFast(String uri, String localPart) {
         for (int i = 0; i < fLength; ++i) {
             Attribute attribute = fAttributes[i];
-            if (attribute.name.localpart == localPart && 
+            if (attribute.name.localpart == localPart &&
                 attribute.name.uri == uri) {
                 return i;
             }
@@ -890,7 +890,7 @@ implements XMLAttributes, XMLBufferListener {
 
     /**
      * Returns the value passed in or NMTOKEN if it's an enumerated type.
-     * 
+     *
      * @param type attribute type
      * @return the value passed in or NMTOKEN if it's an enumerated type.
      */
@@ -901,11 +901,11 @@ implements XMLAttributes, XMLBufferListener {
         }
         return type;
     }
-    
+
     /**
-     * Returns the position in the table view 
+     * Returns the position in the table view
      * where the given attribute name would be hashed.
-     * 
+     *
      * @param qname the attribute name
      * @return the position in the table view where the given attribute
      * would be hashed
@@ -913,11 +913,11 @@ implements XMLAttributes, XMLBufferListener {
     protected int getTableViewBucket(String qname) {
         return (qname.hashCode() & 0x7FFFFFFF) % fTableViewBuckets;
     }
-    
+
     /**
      * Returns the position in the table view
      * where the given attribute name would be hashed.
-     * 
+     *
      * @param localpart the local part of the attribute
      * @param uri the namespace name of the attribute
      * @return the position in the table view where the given attribute
@@ -928,11 +928,11 @@ implements XMLAttributes, XMLBufferListener {
             return (localpart.hashCode() & 0x7FFFFFFF) % fTableViewBuckets;
         }
         else {
-            return ((localpart.hashCode() + uri.hashCode()) 
+            return ((localpart.hashCode() + uri.hashCode())
                & 0x7FFFFFFF) % fTableViewBuckets;
         }
     }
-    
+
     /**
      * Purges all elements from the table view.
      */
@@ -942,12 +942,12 @@ implements XMLAttributes, XMLBufferListener {
             if (fAttributeTableViewChainState != null) {
                 for (int i = fTableViewBuckets - 1; i >= 0; --i) {
                     fAttributeTableViewChainState[i] = 0;
-                } 
+                }
             }
             fLargeCount = 1;
         }
     }
-    
+
     /**
      * Prepares the table view of the attributes list for use.
      */
@@ -960,7 +960,7 @@ implements XMLAttributes, XMLBufferListener {
             cleanTableView();
         }
     }
-    
+
     /**
      * Prepares the table view of the attributes list for use,
      * and populates it with the attributes which have been
@@ -978,7 +978,7 @@ implements XMLAttributes, XMLBufferListener {
                 fAttributeTableViewChainState[bucket] = fLargeCount;
                 attr.next = null;
                 fAttributeTableView[bucket] = attr;
-            } 
+            }
             else {
                 // Update table view
                 attr.next = fAttributeTableView[bucket];
@@ -1014,7 +1014,7 @@ implements XMLAttributes, XMLBufferListener {
             return null;
         }
         String uri = fAttributes[index].name.uri;
-        return uri;                        
+        return uri;
     } // getURI(int):String
 
     /**
@@ -1041,7 +1041,7 @@ implements XMLAttributes, XMLBufferListener {
      *
      * @param uri The Namespace URI, or null if the
      * @param localName The local name of the attribute.
-     * @return Augmentations     
+     * @return Augmentations
      */
     public Augmentations getAugmentations (String uri, String localName) {
         int index = getIndex(uri, localName);
@@ -1066,7 +1066,7 @@ implements XMLAttributes, XMLBufferListener {
 
     /**
      * Look up an augmentations by attributes index.
-     * 
+     *
      * @param attributeIndex The attribute index.
      * @return Augmentations
      */
@@ -1079,7 +1079,7 @@ implements XMLAttributes, XMLBufferListener {
 
     /**
      * Sets the augmentations of the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param augs      The augmentations.
      */
@@ -1089,31 +1089,31 @@ implements XMLAttributes, XMLBufferListener {
 
     /**
      * Sets the uri of the attribute at the specified index.
-     * 
+     *
      * @param attrIndex The attribute index.
      * @param uri       Namespace uri
      */
     public void setURI(int attrIndex, String uri) {
         fAttributes[attrIndex].name.uri = uri;
     } // getURI(int,QName)
-    
+
     // Implementation methods
     public void setSchemaId(int attrIndex, boolean schemaId) {
         fAttributes[attrIndex].schemaId = schemaId;
     }
-    
+
     public boolean getSchemaId(int index) {
         if (index < 0 || index >= fLength) {
             return false;
         }
         return fAttributes[index].schemaId;
     }
-    
+
     public boolean getSchemaId(String qname) {
         int index = getIndex(qname);
-        return index != -1 ? fAttributes[index].schemaId : false; 
+        return index != -1 ? fAttributes[index].schemaId : false;
     } // getType(String):String
-    
+
     public boolean getSchemaId(String uri, String localName) {
         if (!fNamespaces) {
             return false;
@@ -1121,7 +1121,7 @@ implements XMLAttributes, XMLBufferListener {
         int index = getIndex(uri, localName);
         return index != -1 ? fAttributes[index].schemaId : false;
     } // getType(String,String):String
-    
+
     //XMLBufferListener methods
     /**
      * This method will be invoked by XMLEntityReader before ScannedEntities buffer
@@ -1133,9 +1133,9 @@ implements XMLAttributes, XMLBufferListener {
                 getValue(i);
             }
         }
-    }  
+    }
     public void refresh(int pos) {
-	}
+        }
 
     //
     // Classes
@@ -1147,7 +1147,7 @@ implements XMLAttributes, XMLBufferListener {
      * @author Andy Clark, IBM
      */
     static class Attribute {
-        
+
         //
         // Data
         //
@@ -1165,28 +1165,28 @@ implements XMLAttributes, XMLBufferListener {
 
         /** This will point to the ScannedEntities buffer.*/
         public XMLString xmlValue;
-        
+
         /** Non-normalized value. */
         public String nonNormalizedValue;
 
         /** Specified. */
         public boolean specified;
-        
+
         /** Schema ID type. */
         public boolean schemaId;
-        
-        /** 
+
+        /**
          * Augmentations information for this attribute.
          * XMLAttributes has no knowledge if any augmentations
          * were attached to Augmentations.
          */
         public Augmentations augs = new AugmentationsImpl();
-        
+
         // Additional data for attribute table view
-        
+
         /** Pointer to the next attribute in the chain. **/
         public Attribute next;
-        
+
     } // class Attribute
 
 } // class XMLAttributesImpl

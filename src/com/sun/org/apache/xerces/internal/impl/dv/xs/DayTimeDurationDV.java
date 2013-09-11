@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -31,10 +31,10 @@ import com.sun.org.apache.xerces.internal.impl.dv.ValidationContext;
 /**
  * Used to validate the <dayTimeDuration> type
  *
- * @xerces.internal 
- * 
+ * @xerces.internal
+ *
  * @author Ankit Pasricha, IBM
- * 
+ *
  * @version $Id: DayTimeDurationDV.java,v 1.6 2010-11-01 04:39:46 joehw Exp $
  */
 class DayTimeDurationDV extends DurationDV {

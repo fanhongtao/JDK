@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -67,47 +67,60 @@ import org.xml.sax.SAXParseException;
  * @version $Id: XMLSchemaFactory.java,v 1.11 2010-11-01 04:40:08 joehw Exp $
  */
 public final class XMLSchemaFactory extends SchemaFactory {
-    
+
     // property identifiers
-    
+
     /** Feature identifier: schema full checking. */
     private static final String SCHEMA_FULL_CHECKING =
         Constants.XERCES_FEATURE_PREFIX + Constants.SCHEMA_FULL_CHECKING;
-    
+
     /** Property identifier: grammar pool. */
     private static final String XMLGRAMMAR_POOL =
         Constants.XERCES_PROPERTY_PREFIX + Constants.XMLGRAMMAR_POOL_PROPERTY;
-    
+
     /** Property identifier: SecurityManager. */
     private static final String SECURITY_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY;
-    
+
     //
     // Data
     //
-    
+
     /** The XMLSchemaLoader */
     private final XMLSchemaLoader fXMLSchemaLoader = new XMLSchemaLoader();
-    
+
     /** User-specified ErrorHandler; can be null. */
     private ErrorHandler fErrorHandler;
-    
+
     /** The LSResrouceResolver */
     private LSResourceResolver fLSResourceResolver;
-    
+
     /** The DOMEntityResolverWrapper */
     private final DOMEntityResolverWrapper fDOMEntityResolverWrapper;
-    
+
     /** The ErrorHandlerWrapper */
     private ErrorHandlerWrapper fErrorHandlerWrapper;
-    
+
     /** The SecurityManager. */
     private SecurityManager fSecurityManager;
-    
-    /** The container for the real grammar pool. */ 
+
+    /** The container for the real grammar pool. */
     private XMLGrammarPoolWrapper fXMLGrammarPoolWrapper;
-    
+
+    /**
+     * Indicates whether implementation parts should use
+     *   service loader (or similar).
+     * Note the default value (false) is the safe option..
+     */
+    private final boolean fUseServicesMechanism;
     public XMLSchemaFactory() {
+        this(true);
+    }
+    public static XMLSchemaFactory newXMLSchemaFactoryNoServiceLoader() {
+        return new XMLSchemaFactory(false);
+    }
+    private XMLSchemaFactory(boolean useServicesMechanism) {
+        fUseServicesMechanism = useServicesMechanism;
         fErrorHandlerWrapper = new ErrorHandlerWrapper(DraconianErrorHandler.getInstance());
         fDOMEntityResolverWrapper = new DOMEntityResolverWrapper();
         fXMLGrammarPoolWrapper = new XMLGrammarPoolWrapper();
@@ -120,7 +133,7 @@ public final class XMLSchemaFactory extends SchemaFactory {
         fSecurityManager = new SecurityManager();
         fXMLSchemaLoader.setProperty(SECURITY_MANAGER, fSecurityManager);
     }
-    
+
     /**
      * <p>Is specified schema supported by this <code>SchemaFactory</code>?</p>
      *
@@ -142,36 +155,36 @@ public final class XMLSchemaFactory extends SchemaFactory {
             throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(fXMLSchemaLoader.getLocale(),
                     "SchemaLanguageLengthZero", null));
         }
-        // only W3C XML Schema 1.0 is supported 
+        // only W3C XML Schema 1.0 is supported
         return schemaLanguage.equals(XMLConstants.W3C_XML_SCHEMA_NS_URI);
     }
-    
+
     public LSResourceResolver getResourceResolver() {
         return fLSResourceResolver;
     }
-    
+
     public void setResourceResolver(LSResourceResolver resourceResolver) {
         fLSResourceResolver = resourceResolver;
         fDOMEntityResolverWrapper.setEntityResolver(resourceResolver);
         fXMLSchemaLoader.setEntityResolver(fDOMEntityResolverWrapper);
     }
-    
+
     public ErrorHandler getErrorHandler() {
         return fErrorHandler;
     }
-    
+
     public void setErrorHandler(ErrorHandler errorHandler) {
         fErrorHandler = errorHandler;
         fErrorHandlerWrapper.setErrorHandler(errorHandler != null ? errorHandler : DraconianErrorHandler.getInstance());
         fXMLSchemaLoader.setErrorHandler(fErrorHandlerWrapper);
-    }  
-    
+    }
+
     public Schema newSchema( Source[] schemas ) throws SAXException {
-        
+
         // this will let the loader store parsed Grammars into the pool.
         XMLGrammarPoolImplExtension pool = new XMLGrammarPoolImplExtension();
         fXMLGrammarPoolWrapper.setGrammarPool(pool);
-        
+
         XMLInputSource[] xmlInputSources = new XMLInputSource[schemas.length];
         InputStream inputStream;
         Reader reader;
@@ -199,7 +212,7 @@ public final class XMLSchemaFactory extends SchemaFactory {
             else if (source instanceof DOMSource) {
                 DOMSource domSource = (DOMSource) source;
                 Node node = domSource.getNode();
-                String systemID = domSource.getSystemId();          
+                String systemID = domSource.getSystemId();
                 xmlInputSources[i] = new DOMInputSource(node, systemID);
             }
              else if (source instanceof StAXSource) {
@@ -218,28 +231,28 @@ public final class XMLSchemaFactory extends SchemaFactory {
             }
             else {
                 throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(fXMLSchemaLoader.getLocale(),
-                        "SchemaFactorySourceUnrecognized", 
+                        "SchemaFactorySourceUnrecognized",
                         new Object [] {source.getClass().getName()}));
             }
         }
-        
+
         try {
             fXMLSchemaLoader.loadGrammar(xmlInputSources);
-        } 
+        }
         catch (XNIException e) {
             // this should have been reported to users already.
             throw Util.toSAXException(e);
-        } 
+        }
         catch (IOException e) {
             // this hasn't been reported, so do so now.
             SAXParseException se = new SAXParseException(e.getMessage(),null,e);
             fErrorHandler.error(se);
             throw se; // and we must throw it.
         }
-        
+
         // Clear reference to grammar pool.
         fXMLGrammarPoolWrapper.setGrammarPool(null);
-        
+
         // Select Schema implementation based on grammar count.
         final int grammarCount = pool.getGrammarCount();
         AbstractXMLSchema schema = null;
@@ -256,15 +269,15 @@ public final class XMLSchemaFactory extends SchemaFactory {
         propagateFeatures(schema);
         return schema;
     }
-    
+
     public Schema newSchema() throws SAXException {
         // Use a Schema that uses the system id as the equality source.
         AbstractXMLSchema schema = new WeakReferenceXMLSchema();
         propagateFeatures(schema);
         return schema;
     }
-    
-    public boolean getFeature(String name) 
+
+    public boolean getFeature(String name)
         throws SAXNotRecognizedException, SAXNotSupportedException {
         if (name == null) {
             throw new NullPointerException(JAXPValidationMessageFormatter.formatMessage(fXMLSchemaLoader.getLocale(),
@@ -290,8 +303,8 @@ public final class XMLSchemaFactory extends SchemaFactory {
             }
         }
     }
-    
-    public Object getProperty(String name) 
+
+    public Object getProperty(String name)
         throws SAXNotRecognizedException, SAXNotSupportedException {
         if (name == null) {
             throw new NullPointerException(JAXPValidationMessageFormatter.formatMessage(fXMLSchemaLoader.getLocale(),
@@ -322,7 +335,7 @@ public final class XMLSchemaFactory extends SchemaFactory {
             }
         }
     }
-    
+
     public void setFeature(String name, boolean value)
         throws SAXNotRecognizedException, SAXNotSupportedException {
         if (name == null) {
@@ -332,12 +345,16 @@ public final class XMLSchemaFactory extends SchemaFactory {
         if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
             if (System.getSecurityManager() != null && (!value)) {
                 throw new SAXNotSupportedException(
-                        SAXMessageFormatter.formatMessage(null, 
+                        SAXMessageFormatter.formatMessage(null,
                         "jaxp-secureprocessing-feature", null));
             }
             fSecurityManager = value ? new SecurityManager() : null;
             fXMLSchemaLoader.setProperty(SECURITY_MANAGER, fSecurityManager);
             return;
+        } else if (name.equals(Constants.ORACLE_FEATURE_SERVICE_MECHANISM)) {
+            //in secure mode, let _useServicesMechanism be determined by the constructor
+            if (System.getSecurityManager() != null)
+                return;
         }
         try {
             fXMLSchemaLoader.setFeature(name, value);
@@ -356,7 +373,7 @@ public final class XMLSchemaFactory extends SchemaFactory {
             }
         }
     }
-    
+
     public void setProperty(String name, Object object)
         throws SAXNotRecognizedException, SAXNotSupportedException {
         if (name == null) {
@@ -393,19 +410,20 @@ public final class XMLSchemaFactory extends SchemaFactory {
 
     private void propagateFeatures(AbstractXMLSchema schema) {
         schema.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, fSecurityManager != null);
+        schema.setFeature(Constants.ORACLE_FEATURE_SERVICE_MECHANISM, fUseServicesMechanism);
         String[] features = fXMLSchemaLoader.getRecognizedFeatures();
         for (int i = 0; i < features.length; ++i) {
             boolean state = fXMLSchemaLoader.getFeature(features[i]);
             schema.setFeature(features[i], state);
         }
     }
-    
-    /** 
+
+    /**
      * Extension of XMLGrammarPoolImpl which exposes the number of
      * grammars stored in the grammar pool.
      */
     static class XMLGrammarPoolImplExtension extends XMLGrammarPoolImpl {
-        
+
         /** Constructs a grammar pool with a default number of buckets. */
         public XMLGrammarPoolImplExtension() {
             super();
@@ -415,25 +433,25 @@ public final class XMLSchemaFactory extends SchemaFactory {
         public XMLGrammarPoolImplExtension(int initialCapacity) {
             super(initialCapacity);
         }
-        
+
         /** Returns the number of grammars contained in this pool. */
         int getGrammarCount() {
             return fGrammarCount;
         }
-        
+
     } // XMLSchemaFactory.XMLGrammarPoolImplExtension
-    
+
     /**
      * A grammar pool which wraps another.
      */
     static class XMLGrammarPoolWrapper implements XMLGrammarPool {
 
         private XMLGrammarPool fGrammarPool;
-        
+
         /*
          * XMLGrammarPool methods
          */
-        
+
         public Grammar[] retrieveInitialGrammarSet(String grammarType) {
             return fGrammarPool.retrieveInitialGrammarSet(grammarType);
         }
@@ -457,19 +475,19 @@ public final class XMLSchemaFactory extends SchemaFactory {
         public void clear() {
             fGrammarPool.clear();
         }
-        
+
         /*
          * Other methods
          */
-        
+
         void setGrammarPool(XMLGrammarPool grammarPool) {
             fGrammarPool = grammarPool;
         }
-        
+
         XMLGrammarPool getGrammarPool() {
             return fGrammarPool;
         }
-        
+
     } // XMLSchemaFactory.XMLGrammarPoolWrapper
-    
+
 } // XMLSchemaFactory

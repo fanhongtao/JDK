@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -37,8 +37,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 /**
  * This is an implementation of the XSAnnotation schema component.
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  */
 public class XSAnnotationImpl implements XSAnnotation {
 

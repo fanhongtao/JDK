@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -100,8 +100,8 @@ import com.sun.org.apache.xerces.internal.parsers.XMLParser;
  *  <li>http://apache.org/xml/properties/internal/error-reporter</li>
  *  <li>http://apache.org/xml/properties/internal/entity-resolver</li>
  * </ul>
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Sandy Gao IBM
  * @author Elena Litani IBM
@@ -154,17 +154,17 @@ public class XMLSchemaValidator
     /** Feature identifier: standard uri conformant feature. */
     protected static final String STANDARD_URI_CONFORMANT_FEATURE =
         Constants.XERCES_FEATURE_PREFIX + Constants.STANDARD_URI_CONFORMANT_FEATURE;
-    
+
     /** Feature: generate synthetic annotations */
-    protected static final String GENERATE_SYNTHETIC_ANNOTATIONS = 
+    protected static final String GENERATE_SYNTHETIC_ANNOTATIONS =
         Constants.XERCES_FEATURE_PREFIX + Constants.GENERATE_SYNTHETIC_ANNOTATIONS_FEATURE;
-    
+
     /** Feature identifier: validate annotations. */
     protected static final String VALIDATE_ANNOTATIONS =
         Constants.XERCES_FEATURE_PREFIX + Constants.VALIDATE_ANNOTATIONS_FEATURE;
-    
+
     /** Feature identifier: honour all schemaLocations */
-    protected static final String HONOUR_ALL_SCHEMALOCATIONS = 
+    protected static final String HONOUR_ALL_SCHEMALOCATIONS =
         Constants.XERCES_FEATURE_PREFIX + Constants.HONOUR_ALL_SCHEMALOCATIONS_FEATURE;
 
     /** Feature identifier: use grammar pool only */
@@ -233,6 +233,8 @@ public class XMLSchemaValidator
     protected static final String SCHEMA_DV_FACTORY =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SCHEMA_DV_FACTORY_PROPERTY;
 
+    protected static final String USE_SERVICE_MECHANISM = Constants.ORACLE_FEATURE_SERVICE_MECHANISM;
+
     // recognized features and properties
 
     /** Recognized features. */
@@ -250,7 +252,8 @@ public class XMLSchemaValidator
             HONOUR_ALL_SCHEMALOCATIONS,
             USE_GRAMMAR_POOL_ONLY,
             NAMESPACE_GROWTH,
-            TOLERATE_DUPLICATES
+            TOLERATE_DUPLICATES,
+            USE_SERVICE_MECHANISM
     };
 
     /** Feature defaults. */
@@ -272,7 +275,8 @@ public class XMLSchemaValidator
         null,
         null,
         null,
-        null
+        null,
+        Boolean.TRUE
     };
 
     /** Recognized properties. */
@@ -347,7 +351,7 @@ public class XMLSchemaValidator
 
     // Did we see only whitespace in element content?
     protected boolean fSawOnlyWhitespaceInElementContent = false;
-    
+
     // properties
 
     /** Symbol table. */
@@ -497,7 +501,7 @@ public class XMLSchemaValidator
     protected XMLDocumentSource fDocumentSource;
 
     boolean reportWhitespace = false;
-            
+
     //
     // XMLComponent methods
     //
@@ -603,7 +607,7 @@ public class XMLSchemaValidator
         // Init reportWhitespace for this handler
         if (documentHandler instanceof XMLParser) {
             try {
-                reportWhitespace = 
+                reportWhitespace =
                     ((XMLParser) documentHandler).getFeature(REPORT_WHITESPACE);
             }
             catch (Exception e) {
@@ -787,7 +791,7 @@ public class XMLSchemaValidator
      */
     public void characters(XMLString text, Augmentations augs) throws XNIException {
         text = handleCharacters(text);
-        
+
         if (fSawOnlyWhitespaceInElementContent) {
             fSawOnlyWhitespaceInElementContent = false;
             if (!reportWhitespace) {
@@ -1036,7 +1040,7 @@ public class XMLSchemaValidator
      * @throws XNIException Thrown by application to signal an error.
      */
     public void comment(XMLString text, Augmentations augs) throws XNIException {
-        
+
         // call handlers
         if (fDocumentHandler != null) {
             fDocumentHandler.comment(text, augs);
@@ -1130,7 +1134,7 @@ public class XMLSchemaValidator
     /** used to build content models */
     // REVISIT: create decl pool, and pass it to each traversers
     private final CMBuilder fCMBuilder = new CMBuilder(nodeFactory);
-    
+
     // Schema grammar loader
     private final XMLSchemaLoader fSchemaLoader =
         new XMLSchemaLoader(
@@ -2104,7 +2108,7 @@ public class XMLSchemaValidator
                 fCurrCMState = fCMStateStack[fElementDepth];
                 fSawText = fSawTextStack[fElementDepth];
                 fSawCharacters = fStringContent[fElementDepth];
-            } 
+            }
             else {
                 fElementDepth--;
             }
@@ -3086,7 +3090,7 @@ public class XMLSchemaValidator
                         }
                     }
                 } else if (fCurrentType.getTypeCategory() == XSTypeDefinition.SIMPLE_TYPE) {
-                    if (actualValue != null && (!isComparable(fValidatedInfo, fCurrentElemDecl.fDefault) 
+                    if (actualValue != null && (!isComparable(fValidatedInfo, fCurrentElemDecl.fDefault)
                             || !actualValue.equals(fCurrentElemDecl.fDefault.actualValue))) {
                         // REVISIT: the spec didn't mention this case: fixed
                         //          value with simple type
@@ -3219,7 +3223,7 @@ public class XMLSchemaValidator
                     }
                 }
              }
-        }        
+        }
         return actualValue;
     } // elementLocallyValidComplexType
 
@@ -3231,12 +3235,12 @@ public class XMLSchemaValidator
                 arguments,
                 XMLErrorReporter.SEVERITY_ERROR);
     }
-    
+
     /** Returns true if the two ValidatedInfo objects can be compared in the same value space. **/
     private boolean isComparable(ValidatedInfo info1, ValidatedInfo info2) {
         final short primitiveType1 = convertToPrimitiveKind(info1.actualValueType);
         final short primitiveType2 = convertToPrimitiveKind(info2.actualValueType);
-        if (primitiveType1 != primitiveType2) {    
+        if (primitiveType1 != primitiveType2) {
             return (primitiveType1 == XSConstants.ANYSIMPLETYPE_DT && primitiveType2 == XSConstants.STRING_DT ||
                     primitiveType1 == XSConstants.STRING_DT && primitiveType2 == XSConstants.ANYSIMPLETYPE_DT);
         }
@@ -3262,7 +3266,7 @@ public class XMLSchemaValidator
         }
         return true;
     }
-    
+
     private short convertToPrimitiveKind(short valueType) {
         /** Primitive datatypes. */
         if (valueType <= XSConstants.NOTATION_DT) {
@@ -3279,7 +3283,7 @@ public class XMLSchemaValidator
         /** Other types. */
         return valueType;
     }
-    
+
     private String expectedStr(Vector expected) {
         StringBuffer ret = new StringBuffer("{");
         int size = expected.size();
@@ -3412,11 +3416,11 @@ public class XMLSchemaValidator
         public final Vector fValues = new Vector();
         public ShortVector fValueTypes = null;
         public Vector fItemValueTypes = null;
-        
+
         private boolean fUseValueTypeVector = false;
-        private int fValueTypesLength = 0; 
+        private int fValueTypesLength = 0;
         private short fValueType = 0;
-        
+
         private boolean fUseItemValueTypeVector = false;
         private int fItemValueTypesLength = 0;
         private ShortList fItemValueType = null;
@@ -3450,7 +3454,7 @@ public class XMLSchemaValidator
         public void clear() {
             fValuesCount = 0;
             fUseValueTypeVector = false;
-            fValueTypesLength = 0; 
+            fValueTypesLength = 0;
             fValueType = 0;
             fUseItemValueTypeVector = false;
             fItemValueTypesLength = 0;
@@ -3488,7 +3492,8 @@ public class XMLSchemaValidator
                 if (fIdentityConstraint.getCategory() == IdentityConstraint.IC_KEY) {
                     String code = "AbsentKeyValue";
                     String eName = fIdentityConstraint.getElementName();
-                    reportSchemaError(code, new Object[] { eName });
+                    String cName = fIdentityConstraint.getIdentityConstraintName();
+                    reportSchemaError(code, new Object[] { eName, cName });
                 }
                 return;
             }
@@ -3503,9 +3508,9 @@ public class XMLSchemaValidator
                 if (fIdentityConstraint.getCategory() == IdentityConstraint.IC_KEY) {
                     String code = "KeyNotEnoughValues";
                     UniqueOrKey key = (UniqueOrKey) fIdentityConstraint;
-                    String ename = fIdentityConstraint.getElementName();
-                    String kname = key.getIdentityConstraintName();
-                    reportSchemaError(code, new Object[] { ename, kname });
+                    String eName = fIdentityConstraint.getElementName();
+                    String cName = key.getIdentityConstraintName();
+                    reportSchemaError(code, new Object[] { eName, cName });
                 }
                 return;
             }
@@ -3558,12 +3563,15 @@ public class XMLSchemaValidator
             // do we even know this field?
             if (i == -1) {
                 String code = "UnknownField";
-                reportSchemaError(code, new Object[] { field.toString()});
+                String eName = fIdentityConstraint.getElementName();
+                String cName = fIdentityConstraint.getIdentityConstraintName();
+                reportSchemaError(code, new Object[] { field.toString(), eName, cName });
                 return;
             }
             if (Boolean.TRUE != mayMatch(field)) {
                 String code = "FieldMultipleMatch";
-                reportSchemaError(code, new Object[] { field.toString()});
+                String cName = fIdentityConstraint.getIdentityConstraintName();
+                reportSchemaError(code, new Object[] { field.toString(), cName });
             } else {
                 fValuesCount++;
             }
@@ -3620,8 +3628,8 @@ public class XMLSchemaValidator
          * key sequence.
          */
         public int contains(ValueStoreBase vsb) {
-            
-            final Vector values = vsb.fValues;         
+
+            final Vector values = vsb.fValues;
             final int size1 = values.size();
             if (fFieldCount <= 1) {
                 for (int i = 0; i < size1; ++i) {
@@ -3666,7 +3674,7 @@ public class XMLSchemaValidator
                 }
             }
             return -1;
-            
+
         } // contains(Vector):Object
 
         //
@@ -3698,7 +3706,7 @@ public class XMLSchemaValidator
             return fTempBuffer.toString();
 
         } // toString(Object[]):String
-        
+
         /** Returns a string of the specified values. */
         protected String toString(Vector values, int start, int length) {
 
@@ -3706,7 +3714,7 @@ public class XMLSchemaValidator
             if (length == 0) {
                 return "";
             }
-            
+
             // one value
             if (length == 1) {
                 return String.valueOf(values.elementAt(start));
@@ -3741,11 +3749,11 @@ public class XMLSchemaValidator
             }
             return s + '[' + fIdentityConstraint + ']';
         } // toString():String
-        
+
         //
         // Private methods
         //
-        
+
         private void addValueType(short type) {
             if (fUseValueTypeVector) {
                 fValueTypes.add(type);
@@ -3764,21 +3772,21 @@ public class XMLSchemaValidator
                 fValueTypes.add(type);
             }
         }
-        
+
         private short getValueTypeAt(int index) {
             if (fUseValueTypeVector) {
                 return fValueTypes.valueAt(index);
             }
             return fValueType;
         }
-        
+
         private boolean valueTypeContains(short value) {
             if (fUseValueTypeVector) {
                 return fValueTypes.contains(value);
             }
             return fValueType == value;
         }
-        
+
         private void addItemValueType(ShortList itemValueType) {
             if (fUseItemValueTypeVector) {
                 fItemValueTypes.add(itemValueType);
@@ -3798,19 +3806,19 @@ public class XMLSchemaValidator
                 fItemValueTypes.add(itemValueType);
             }
         }
-        
+
         private ShortList getItemValueTypeAt(int index) {
             if (fUseItemValueTypeVector) {
                 return (ShortList) fItemValueTypes.elementAt(index);
             }
             return fItemValueType;
         }
-        
+
         private boolean itemValueTypeContains(ShortList value) {
             if (fUseItemValueTypeVector) {
                 return fItemValueTypes.contains(value);
             }
-            return fItemValueType == value || 
+            return fItemValueType == value ||
                 (fItemValueType != null && fItemValueType.equals(value));
         }
 
@@ -3844,8 +3852,9 @@ public class XMLSchemaValidator
             if (contains()) {
                 String code = "DuplicateUnique";
                 String value = toString(fLocalValues);
-                String ename = fIdentityConstraint.getElementName();
-                reportSchemaError(code, new Object[] { value, ename });
+                String eName = fIdentityConstraint.getElementName();
+                String cName = fIdentityConstraint.getIdentityConstraintName();
+                reportSchemaError(code, new Object[] { value, eName, cName });
             }
         } // duplicateValue(Hashtable)
 
@@ -3880,8 +3889,9 @@ public class XMLSchemaValidator
             if (contains()) {
                 String code = "DuplicateKey";
                 String value = toString(fLocalValues);
-                String ename = fIdentityConstraint.getElementName();
-                reportSchemaError(code, new Object[] { value, ename });
+                String eName = fIdentityConstraint.getElementName();
+                String cName = fIdentityConstraint.getIdentityConstraintName();
+                reportSchemaError(code, new Object[] { value, eName, cName });
             }
         } // duplicateValue(Hashtable)
 
@@ -4222,7 +4232,7 @@ public class XMLSchemaValidator
      * A simple vector for <code>short</code>s.
      */
     protected static final class ShortVector {
-        
+
         //
         // Data
         //
@@ -4232,13 +4242,13 @@ public class XMLSchemaValidator
 
         /** Data. */
         private short[] fData;
-        
+
         //
         // Constructors
         //
-        
+
         public ShortVector() {}
-        
+
         public ShortVector(int initialCapacity) {
             fData = new short[initialCapacity];
         }
@@ -4267,7 +4277,7 @@ public class XMLSchemaValidator
         public void clear() {
             fLength = 0;
         }
-        
+
         /** Returns whether the short is contained in the vector. */
         public boolean contains(short value) {
             for (int i = 0; i < fLength; ++i) {
@@ -4294,5 +4304,5 @@ public class XMLSchemaValidator
             }
         }
     }
-    
+
 } // class SchemaValidator

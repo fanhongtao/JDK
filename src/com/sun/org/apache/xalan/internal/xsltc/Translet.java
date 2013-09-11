@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -51,4 +51,7 @@ public interface Translet {
     public String[] getUrisArray();
     public int[]    getTypesArray();
     public String[] getNamespaceArray();
+    public boolean useServicesMechnism();
+    public void setServicesMechnism(boolean flag);
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -106,13 +106,15 @@ final class AbsoluteLocationPath extends Expression {
             LocalVariableGen relPathIterator
                     = methodGen.addLocalVariable("abs_location_path_tmp",
                                        Util.getJCRefType(NODE_ITERATOR_SIG),
-                                       il.getEnd(), null);
-            il.append(new ASTORE(relPathIterator.getIndex()));
+                                       null, null);
+            relPathIterator.setStart(
+                    il.append(new ASTORE(relPathIterator.getIndex())));
 
             // Create new AbsoluteIterator
             il.append(new NEW(cpg.addClass(ABSOLUTE_ITERATOR)));
             il.append(DUP);
-            il.append(new ALOAD(relPathIterator.getIndex()));
+            relPathIterator.setEnd(
+                    il.append(new ALOAD(relPathIterator.getIndex())));
 
             // Initialize AbsoluteIterator with iterator from the stack
             il.append(new INVOKESPECIAL(initAI));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -31,7 +31,7 @@ import com.sun.org.apache.xerces.internal.impl.xs.XSParticleDecl;
 /**
  * This class constructs content models for a given grammar.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Elena Litani, IBM
  * @author Sandy Gao, IBM
@@ -178,7 +178,7 @@ public class CMBuilder {
             boolean twoChildren = false;
             for (int i = 0; i < group.fParticleCount; i++) {
                 // first convert each child to a CM tree
-                temp = buildSyntaxTree(group.fParticles[i], 
+                temp = buildSyntaxTree(group.fParticles[i],
                         optimize &&
                         minOccurs == 1 && maxOccurs == 1 &&
                         (group.fCompositor == XSModelGroupImpl.MODELGROUP_SEQUENCE ||
@@ -235,13 +235,13 @@ public class CMBuilder {
             //one or more
             nodeRet = fNodeFactory.getCMUniOpNode(XSParticleDecl.PARTICLE_ONE_OR_MORE, node);
         }
-        else if (optimize && node.type() == XSParticleDecl.PARTICLE_ELEMENT ||        
+        else if (optimize && node.type() == XSParticleDecl.PARTICLE_ELEMENT ||
                  node.type() == XSParticleDecl.PARTICLE_WILDCARD) {
             // Only for elements and wildcards, subsume e{n,m} and e{n,unbounded} to e*
-            // or e+ and, once the DFA reaches a final state, check if the actual number 
-            // of elements is between minOccurs and maxOccurs. This new algorithm runs 
+            // or e+ and, once the DFA reaches a final state, check if the actual number
+            // of elements is between minOccurs and maxOccurs. This new algorithm runs
             // in constant space.
-            
+
             // TODO: What is the impact of this optimization on the PSVI?
             nodeRet = fNodeFactory.getCMUniOpNode(
                     minOccurs == 0 ? XSParticleDecl.PARTICLE_ZERO_OR_MORE

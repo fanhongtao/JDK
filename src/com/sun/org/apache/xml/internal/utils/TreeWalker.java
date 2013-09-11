@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -153,9 +153,25 @@ public class TreeWalker
    */
   public void traverse(Node pos) throws org.xml.sax.SAXException
   {
-
         this.m_contentHandler.startDocument();
 
+        traverseFragment(pos);
+
+        this.m_contentHandler.endDocument();
+  }
+
+  /**
+   * Perform a pre-order traversal non-recursive style.
+   *
+   * In contrast to the traverse() method this method will not issue
+   * startDocument() and endDocument() events to the SAX listener.
+   *
+   * @param pos Node in the tree where to start traversal
+   *
+   * @throws TransformerException
+   */
+  public void traverseFragment(Node pos) throws org.xml.sax.SAXException
+  {
     Node top = pos;
 
     while (null != pos)
@@ -191,7 +207,6 @@ public class TreeWalker
 
       pos = nextNode;
     }
-    this.m_contentHandler.endDocument();
   }
 
   /**

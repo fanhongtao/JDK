@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -31,7 +31,9 @@ import com.sun.org.apache.xpath.internal.Expression;
 import com.sun.org.apache.xpath.internal.XPathContext;
 import com.sun.org.apache.xpath.internal.compiler.Compiler;
 import com.sun.org.apache.xpath.internal.compiler.OpCodes;
+import com.sun.org.apache.xpath.internal.compiler.OpMap;
 import com.sun.org.apache.xpath.internal.patterns.NodeTest;
+import org.w3c.dom.DOMException;
 
 /**
  * This class implements an optimized iterator for
@@ -57,7 +59,7 @@ public class DescendantIterator extends LocPathIterator
 
     super(compiler, opPos, analysis, false);
 
-    int firstStepPos = compiler.getFirstChildPos(opPos);
+    int firstStepPos = OpMap.getFirstChildPos(opPos);
     int stepType = compiler.getOp(firstStepPos);
 
     boolean orSelf = (OpCodes.FROM_DESCENDANTS_OR_SELF == stepType);

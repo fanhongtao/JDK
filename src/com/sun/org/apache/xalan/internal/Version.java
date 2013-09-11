@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -26,10 +26,10 @@ package com.sun.org.apache.xalan.internal;
  * Administrative class to keep track of the version number of
  * the Xalan release.
  * <P>This class implements the upcoming standard of having
- * org.apache.project-name.Version.getVersion() be a standard way 
- * to get version information.  This class will replace the older 
+ * org.apache.project-name.Version.getVersion() be a standard way
+ * to get version information.  This class will replace the older
  * com.sun.org.apache.xalan.internal.processor.Version class.</P>
- * <P>See also: com/sun/org/apache/xalan/internal/res/XSLTInfo.properties for 
+ * <P>See also: com/sun/org/apache/xalan/internal/res/XSLTInfo.properties for
  * information about the version of the XSLT spec we support.</P>
  * @xsl.usage general
  */
@@ -38,7 +38,7 @@ public class Version
 
   /**
    * Get the basic version string for the current Xalan release.
-   * Version String formatted like 
+   * Version String formatted like
    * <CODE>"<B>Xalan</B> <B>Java</B> v.r[.dd| <B>D</B>nn]"</CODE>.
    *
    * Futurework: have this read version info from jar manifest.
@@ -49,8 +49,8 @@ public class Version
   {
      return getProduct()+" "+getImplementationLanguage()+" "
            +getMajorVersionNum()+"."+getReleaseVersionNum()+"."
-           +( (getDevelopmentVersionNum() > 0) ? 
-               ("D"+getDevelopmentVersionNum()) : (""+getMaintenanceVersionNum()));  
+           +( (getDevelopmentVersionNum() > 0) ?
+               ("D"+getDevelopmentVersionNum()) : (""+getMaintenanceVersionNum()));
   }
 
   /**
@@ -62,7 +62,7 @@ public class Version
   {
     System.out.println(getVersion());
   }
-  
+
   /**
    * Name of product: Xalan.
    */
@@ -78,8 +78,8 @@ public class Version
   {
     return "Java";
   }
-  
-  
+
+
   /**
    * Major version number.
    * Version number. This changes only when there is a
@@ -94,8 +94,8 @@ public class Version
   public static int getMajorVersionNum()
   {
     return 2;
-    
-  }  
+
+  }
 
   /**
    * Release Number.
@@ -109,7 +109,7 @@ public class Version
   {
     return 7;
   }
-  
+
   /**
    * Maintenance Drop Number.
    * Optional identifier used to designate maintenance
@@ -142,14 +142,14 @@ public class Version
    *          the final releases.
    */
   public static int getDevelopmentVersionNum()
-  { 
-    try {   
+  {
+    try {
         if ((new String("")).length() == 0)
           return 0;
-        else  
+        else
           return Integer.parseInt("");
     } catch (NumberFormatException nfe) {
            return 0;
-    }    
-  }      
+    }
+  }
 }

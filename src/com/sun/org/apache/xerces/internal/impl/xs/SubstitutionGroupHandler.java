@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -31,7 +31,7 @@ import java.util.Vector;
 /**
  * To store and validate information about substitutionGroup
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Sandy Gao, IBM
  *
@@ -92,7 +92,7 @@ public class SubstitutionGroupHandler {
         // 1. D and C are the same element declaration.
         if (element == exemplar)
             return true;
-        
+
         // 2 All of the following must be true:
         // 2.1 The blocking constraint does not contain substitution.
         if ((blockingConstraint & XSConstants.DERIVATION_SUBSTITUTION) != 0)
@@ -224,12 +224,12 @@ public class SubstitutionGroupHandler {
         Object subGroup = fSubGroups.get(element);
         if (subGroup != null)
             return (XSElementDecl[])subGroup;
-        
+
         if ((element.fBlock & XSConstants.DERIVATION_SUBSTITUTION) != 0) {
             fSubGroups.put(element, EMPTY_GROUP);
             return EMPTY_GROUP;
         }
-        
+
         // Otherwise, get all potential sub group elements
         // (without considering "block" on this element
         OneSubGroup[] groupB = getSubGroupB(element, new OneSubGroup());
@@ -262,11 +262,11 @@ public class SubstitutionGroupHandler {
             fSubGroupsB.put(element, EMPTY_VECTOR);
             return EMPTY_VECTOR;
         }
-        
+
         // we've already calculated the element, just return.
         if (subGroup instanceof OneSubGroup[])
             return (OneSubGroup[])subGroup;
-        
+
         // we only have the *direct* substitutions
         Vector group = (Vector)subGroup, newGroup = new Vector();
         OneSubGroup[] group1;
@@ -302,7 +302,7 @@ public class SubstitutionGroupHandler {
         }
         // Store the potential sub group
         fSubGroupsB.put(element, ret);
-        
+
         return ret;
     }
 
@@ -325,7 +325,7 @@ public class SubstitutionGroupHandler {
         // No derivation relation, or blocked, return false
         if (typed != typeb || (dMethod & bMethod) != 0)
             return false;
-        
+
         // Remember the derivation methods and blocks, return true.
         methods.dMethod = dMethod;
         methods.bMethod = bMethod;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -87,9 +87,9 @@ final class AbsolutePathPattern extends LocationPathPattern {
                     // absolute path pattern temporary
                     methodGen.addLocalVariable2("apptmp",
                                                 Util.getJCRefType(NODE_SIG),
-                                                il.getEnd());
+                                                null);
                 il.append(DUP);
-                il.append(new ISTORE(local.getIndex()));
+                local.setStart(il.append(new ISTORE(local.getIndex())));
                 _left.translate(classGen, methodGen);
                 il.append(methodGen.loadDOM());
                 local.setEnd(il.append(new ILOAD(local.getIndex())));

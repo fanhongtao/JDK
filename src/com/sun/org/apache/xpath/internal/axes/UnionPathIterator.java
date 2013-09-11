@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -30,6 +30,7 @@ import com.sun.org.apache.xpath.internal.ExpressionOwner;
 import com.sun.org.apache.xpath.internal.XPathVisitor;
 import com.sun.org.apache.xpath.internal.compiler.Compiler;
 import com.sun.org.apache.xpath.internal.compiler.OpCodes;
+import com.sun.org.apache.xpath.internal.compiler.OpMap;
 
 /**
  * This class extends NodeSetDTM, which implements DTMIterator,
@@ -160,7 +161,7 @@ public class UnionPathIterator extends LocPathIterator
 
     super();
 
-    opPos = compiler.getFirstChildPos(opPos);
+    opPos = OpMap.getFirstChildPos(opPos);
 
     loadLocationPaths(compiler, opPos, 0);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -47,9 +47,9 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException;
  */
 public class ParserConfigurationSettings
     implements XMLComponentManager {
-    	
-	protected static final String PARSER_SETTINGS = 
-			Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;	
+
+        protected static final String PARSER_SETTINGS =
+                        Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
 
     //
     // Data
@@ -108,11 +108,20 @@ public class ParserConfigurationSettings
      * Allows a parser to add parser specific features to be recognized
      * and managed by the parser configuration.
      *
-     * @param featureIds An array of the additional feature identifiers 
+     * @param featureIds An array of the additional feature identifiers
      *                   to be recognized.
      */
     public void addRecognizedFeatures(String[] featureIds) {
-        fRecognizedFeatures.addAll(Arrays.asList(featureIds));
+
+        // add recognized features
+        int featureIdsCount = featureIds != null ? featureIds.length : 0;
+        for (int i = 0; i < featureIdsCount; i++) {
+            String featureId = featureIds[i];
+            if (!fRecognizedFeatures.contains(featureId)) {
+                fRecognizedFeatures.add(featureId);
+            }
+        }
+
     } // addRecognizedFeatures(String[])
 
     /**
@@ -144,7 +153,7 @@ public class ParserConfigurationSettings
      * Allows a parser to add parser specific properties to be recognized
      * and managed by the parser configuration.
      *
-     * @param propertyIds An array of the additional property identifiers 
+     * @param propertyIds An array of the additional property identifiers
      *                    to be recognized.
      */
     public void addRecognizedProperties(String[] propertyIds) {
@@ -153,9 +162,9 @@ public class ParserConfigurationSettings
 
     /**
      * setProperty
-     * 
-     * @param propertyId 
-     * @param value 
+     *
+     * @param propertyId
+     * @param value
      * @exception com.sun.org.apache.xerces.internal.xni.parser.XMLConfigurationException If the
      *            requested feature is not known.
      */
@@ -177,10 +186,10 @@ public class ParserConfigurationSettings
 
     /**
      * Returns the state of a feature.
-     * 
+     *
      * @param featureId The feature identifier.
-		 * @return true if the feature is supported
-     * 
+                 * @return true if the feature is supported
+     *
      * @throws XMLConfigurationException Thrown for configuration error.
      *                                   In general, components should
      *                                   only throw this exception if
@@ -220,10 +229,10 @@ public class ParserConfigurationSettings
 
     /**
      * Returns the value of a property.
-     * 
+     *
      * @param propertyId The property identifier.
-		 * @return the value of the property
-     * 
+                 * @return the value of the property
+     *
      * @throws XMLConfigurationException Thrown for configuration error.
      *                                   In general, components should
      *                                   only throw this exception if

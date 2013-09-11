@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -108,7 +108,7 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLDTDSource;
  *  <li>http://apache.org/xml/properties/internal/grammar-pool</li>
  *  <li>http://apache.org/xml/properties/internal/datatype-validator-factory</li>
  * </ul>
- * 
+ *
  * @xerces.internal
  *
  * @author Neil Graham, IBM
@@ -143,7 +143,7 @@ public class XMLDTDProcessor
     protected static final String WARN_ON_UNDECLARED_ELEMDEF =
         Constants.XERCES_FEATURE_PREFIX + Constants.WARN_ON_UNDECLARED_ELEMDEF_FEATURE;
 
-	protected static final String PARSER_SETTINGS =
+        protected static final String PARSER_SETTINGS =
         Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
 
     // property identifiers
@@ -877,7 +877,7 @@ public class XMLDTDProcessor
 
         if (fValidation) {
 
-                boolean	duplicateAttributeDef = false ;
+                boolean duplicateAttributeDef = false ;
 
                 //Get Grammar index to grammar array
                 DTDGrammar grammar = (fDTDGrammar != null? fDTDGrammar:fGrammarBucket.getActiveGrammar());

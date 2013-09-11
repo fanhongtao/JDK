@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -141,6 +141,11 @@ public abstract class SerializerBase
      * True if standalone was specified.
      */
     protected boolean m_standaloneWasSpecified = false;
+
+    /**
+     * Determine if the output is a standalone.
+     */
+    protected boolean m_isStandalone = false;
 
     /**
      * Flag to tell if indenting (pretty-printing) is on.
@@ -737,6 +742,16 @@ public abstract class SerializerBase
     public void setIndent(boolean doIndent)
     {
         m_doIndent = doIndent;
+    }
+
+    /**
+     * Sets the isStandalone property
+     * @param isStandalone true if the ORACLE_IS_STANDALONE is set to yes
+     * @see OutputPropertiesFactory ORACLE_IS_STANDALONE
+     */
+    public void setIsStandalone(boolean isStandalone)
+    {
+       m_isStandalone = isStandalone;
     }
 
     /**

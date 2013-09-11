@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -32,6 +32,7 @@ import com.sun.org.apache.xalan.internal.xsltc.DOM;
 import com.sun.org.apache.xalan.internal.xsltc.TransletException;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;
 import com.sun.org.apache.xml.internal.utils.StringComparable;
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 
 /**
  * Base class for sort records containing application specific sort keys
@@ -119,8 +120,7 @@ public abstract class NodeSortRecord {
 
         if (colFactClassname != null) {
             try {
-                Object candObj = ObjectFactory.findProviderClass(
-                    colFactClassname, ObjectFactory.findClassLoader(), true);
+                Object candObj = ObjectFactory.findProviderClass(colFactClassname, true);
                 _collatorFactory = (CollatorFactory)candObj;
             } catch (ClassNotFoundException e) {
                 throw new TransletException(e);

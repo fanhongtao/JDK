@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -251,25 +251,25 @@ public class DocumentBuilderImpl extends DocumentBuilder
                             domParser.setProperty(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
                         }
                     }
-        		} else if(JAXP_SCHEMA_SOURCE.equals(name)){
-               		if( isValidating() ) {
-						String value=(String)dbfAttrs.get(JAXP_SCHEMA_LANGUAGE);
-						if(value !=null && W3C_XML_SCHEMA.equals(value)){
-            				domParser.setProperty(name, val);
-						}else{
+                        } else if(JAXP_SCHEMA_SOURCE.equals(name)){
+                        if( isValidating() ) {
+                                                String value=(String)dbfAttrs.get(JAXP_SCHEMA_LANGUAGE);
+                                                if(value !=null && W3C_XML_SCHEMA.equals(value)){
+                                        domParser.setProperty(name, val);
+                                                }else{
                             throw new IllegalArgumentException(
                                 DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN,
                                 "jaxp-order-not-supported",
                                 new Object[] {JAXP_SCHEMA_LANGUAGE, JAXP_SCHEMA_SOURCE}));
-						}
-					}
-            	} else {
+                                                }
+                                        }
+                } else {
                     // Let Xerces code handle the property
                     domParser.setProperty(name, val);
-				}
-			}
-		}
-	}
+                                }
+                        }
+                }
+        }
 
     /**
      * Non-preferred: use the getDOMImplementation() method instead of this

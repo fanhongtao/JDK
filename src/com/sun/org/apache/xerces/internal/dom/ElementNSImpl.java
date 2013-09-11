@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -37,9 +37,9 @@ import org.w3c.dom.DOMException;
  * The qualified name is the node name, and we store localName which is also
  * used in all queries. On the other hand we recompute the prefix when
  * necessary.
- * 
+ *
  * @xerces.internal
- * 
+ *
  * @author Elena litani, IBM
  * @author Neeraj Bajaj, Sun Microsystems
  * @version $Id: ElementNSImpl.java,v 1.7 2010-11-01 04:39:39 joehw Exp $
@@ -84,15 +84,15 @@ public class ElementNSImpl
         setName(namespaceURI, qualifiedName);
     }
 
-	private void setName(String namespaceURI, String qname) {
+        private void setName(String namespaceURI, String qname) {
 
-		String prefix;
-		// DOM Level 3: namespace URI is never empty string.
-		this.namespaceURI = namespaceURI;
-		if (namespaceURI != null) {
+                String prefix;
+                // DOM Level 3: namespace URI is never empty string.
+                this.namespaceURI = namespaceURI;
+                if (namespaceURI != null) {
             //convert the empty string to 'null'
-			this.namespaceURI =	(namespaceURI.length() == 0) ? null : namespaceURI;
-		}
+                        this.namespaceURI =     (namespaceURI.length() == 0) ? null : namespaceURI;
+                }
 
         int colon1, colon2 ;
 
@@ -101,63 +101,63 @@ public class ElementNSImpl
         //2. or if the qualifiedName is null and the namespaceURI is different from null,
         // We dont need to check for namespaceURI != null, if qualified name is null throw DOMException.
         if(qname == null){
-				String msg =
-					DOMMessageFormatter.formatMessage(
-						DOMMessageFormatter.DOM_DOMAIN,
-						"NAMESPACE_ERR",
-						null);
-				throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+                                String msg =
+                                        DOMMessageFormatter.formatMessage(
+                                                DOMMessageFormatter.DOM_DOMAIN,
+                                                "NAMESPACE_ERR",
+                                                null);
+                                throw new DOMException(DOMException.NAMESPACE_ERR, msg);
         }
         else{
-		    colon1 = qname.indexOf(':');
-		    colon2 = qname.lastIndexOf(':');
+                    colon1 = qname.indexOf(':');
+                    colon2 = qname.lastIndexOf(':');
         }
 
-		ownerDocument.checkNamespaceWF(qname, colon1, colon2);
-		if (colon1 < 0) {
-			// there is no prefix
-			localName = qname;
-			if (ownerDocument.errorChecking) {
-			    ownerDocument.checkQName(null, localName);
-			    if (qname.equals("xmlns")
-			        && (namespaceURI == null
-			        || !namespaceURI.equals(NamespaceContext.XMLNS_URI))
-			        || (namespaceURI!=null && namespaceURI.equals(NamespaceContext.XMLNS_URI)
-			        && !qname.equals("xmlns"))) {
-			        String msg =
-			            DOMMessageFormatter.formatMessage(
-			                    DOMMessageFormatter.DOM_DOMAIN,
-			                    "NAMESPACE_ERR",
-			                    null);
-			        throw new DOMException(DOMException.NAMESPACE_ERR, msg);
-			    }
-			}
-		}//there is a prefix
-		else {
-		    prefix = qname.substring(0, colon1);
-		    localName = qname.substring(colon2 + 1);
-		    
-		    //NAMESPACE_ERR:
-		    //1. if the qualifiedName has a prefix and the namespaceURI is null,
-		    
-		    //2. or if the qualifiedName has a prefix that is "xml" and the namespaceURI
-		    //is different from " http://www.w3.org/XML/1998/namespace"
-		    
-		    if (ownerDocument.errorChecking) {
-		        if( namespaceURI == null || ( prefix.equals("xml") && !namespaceURI.equals(NamespaceContext.XML_URI) )){
-		            String msg =
-		                DOMMessageFormatter.formatMessage(
-		                        DOMMessageFormatter.DOM_DOMAIN,
-		                        "NAMESPACE_ERR",
-		                        null);
-		            throw new DOMException(DOMException.NAMESPACE_ERR, msg);
-		        }
-		        
-		        ownerDocument.checkQName(prefix, localName);
-		        ownerDocument.checkDOMNSErr(prefix, namespaceURI);
-		    }
-		}
-	}
+                ownerDocument.checkNamespaceWF(qname, colon1, colon2);
+                if (colon1 < 0) {
+                        // there is no prefix
+                        localName = qname;
+                        if (ownerDocument.errorChecking) {
+                            ownerDocument.checkQName(null, localName);
+                            if (qname.equals("xmlns")
+                                && (namespaceURI == null
+                                || !namespaceURI.equals(NamespaceContext.XMLNS_URI))
+                                || (namespaceURI!=null && namespaceURI.equals(NamespaceContext.XMLNS_URI)
+                                && !qname.equals("xmlns"))) {
+                                String msg =
+                                    DOMMessageFormatter.formatMessage(
+                                            DOMMessageFormatter.DOM_DOMAIN,
+                                            "NAMESPACE_ERR",
+                                            null);
+                                throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+                            }
+                        }
+                }//there is a prefix
+                else {
+                    prefix = qname.substring(0, colon1);
+                    localName = qname.substring(colon2 + 1);
+
+                    //NAMESPACE_ERR:
+                    //1. if the qualifiedName has a prefix and the namespaceURI is null,
+
+                    //2. or if the qualifiedName has a prefix that is "xml" and the namespaceURI
+                    //is different from " http://www.w3.org/XML/1998/namespace"
+
+                    if (ownerDocument.errorChecking) {
+                        if( namespaceURI == null || ( prefix.equals("xml") && !namespaceURI.equals(NamespaceContext.XML_URI) )){
+                            String msg =
+                                DOMMessageFormatter.formatMessage(
+                                        DOMMessageFormatter.DOM_DOMAIN,
+                                        "NAMESPACE_ERR",
+                                        null);
+                            throw new DOMException(DOMException.NAMESPACE_ERR, msg);
+                        }
+
+                        ownerDocument.checkQName(prefix, localName);
+                        ownerDocument.checkDOMNSErr(prefix, namespaceURI);
+                    }
+                }
+        }
 
     // when local name is known
     protected ElementNSImpl(CoreDocumentImpl ownerDocument,
@@ -185,7 +185,7 @@ public class ElementNSImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-		this.name = qualifiedName;
+                this.name = qualifiedName;
         setName(namespaceURI, qualifiedName);
         reconcileDefaultAttributes();
     }
@@ -364,13 +364,13 @@ public class ElementNSImpl
                     }
                     catch (com.sun.org.apache.xerces.internal.util.URI.MalformedURIException e) {
                         // This may be a relative URI.
-                        
+
                         // Start from the base URI of the parent, or if this node has no parent, the owner node.
                         NodeImpl parentOrOwner = (parentNode() != null) ? parentNode() : ownerNode;
-                        
+
                         // Make any parentURI into a URI object to use with the URI(URI, String) constructor.
                         String parentBaseURI = (parentOrOwner != null) ? parentOrOwner.getBaseURI() : null;
-                        
+
                         if (parentBaseURI != null) {
                             try {
                                 uri = new URI(new URI(parentBaseURI), uri).toString();
@@ -380,7 +380,7 @@ public class ElementNSImpl
                                 return null;
                             }
                             return uri;
-                        }                       
+                        }
                         // REVISIT: what should happen in this case?
                         return null;
                     }
@@ -451,18 +451,18 @@ public class ElementNSImpl
      * Introduced in DOM Level 2. <p>
      * Checks if a type is derived from another by restriction. See:
      * http://www.w3.org/TR/DOM-Level-3-Core/core.html#TypeInfo-isDerivedFrom
-     * 
-     * @param ancestorNS 
+     *
+     * @param ancestorNS
      *        The namspace of the ancestor type declaration
      * @param ancestorName
      *        The name of the ancestor type declaration
      * @param type
      *        The reference type definition
-     * 
+     *
      * @return boolean True if the type is derived by restriciton for the
      *         reference type
      */
-    public boolean isDerivedFrom(String typeNamespaceArg, String typeNameArg, 
+    public boolean isDerivedFrom(String typeNamespaceArg, String typeNameArg,
             int derivationMethod) {
         if(needsSyncData()) {
             synchronizeData();
@@ -477,7 +477,7 @@ public class ElementNSImpl
             }
         }
         return false;
-    }    
+    }
 
     /**
      * NON-DOM: setting type used by the DOM parser

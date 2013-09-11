@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -92,7 +92,7 @@ public class XMLErrorResources extends ListResourceBundle
   public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
 
 
-  /* 
+  /*
    * Message keys
    */
   public static final String ER_FUNCTION_NOT_SUPPORTED = "ER_FUNCTION_NOT_SUPPORTED";
@@ -148,14 +148,14 @@ public class XMLErrorResources extends ListResourceBundle
   public static final String ER_SYSTEMID_UNKNOWN = "ER_SYSTEMID_UNKNOWN";
   public static final String ER_LOCATION_UNKNOWN = "ER_LOCATION_UNKNOWN";
   public static final String ER_PREFIX_MUST_RESOLVE = "ER_PREFIX_MUST_RESOLVE";
-  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";  
+  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";
   public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT";
-  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";  
-  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";  
-  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";  
-  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";  
-  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";  
-  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";  
+  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";
+  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";
+  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";
+  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";
+  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";
+  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";
   public static final String ER_NAME_CANT_START_WITH_COLON = "ER_NAME_CANT_START_WITH_COLON";
 
   // Message keys used by the serializer
@@ -186,8 +186,8 @@ public class XMLErrorResources extends ListResourceBundle
 
   /** Error message ID that has a null message, but takes in a single object.    */
     {"ER0000" , "{0}" },
- 
-    { ER_FUNCTION_NOT_SUPPORTED, 
+
+    { ER_FUNCTION_NOT_SUPPORTED,
       "Function not supported!"},
 
     { ER_CANNOT_OVERWRITE_CAUSE,
@@ -204,7 +204,7 @@ public class XMLErrorResources extends ListResourceBundle
 
     { ER_COROUTINE_NOT_AVAIL,
       "Coroutine not available, id={0}"},
-    
+
     { ER_COROUTINE_CO_EXIT,
       "CoroutineManager received co_exit() request"},
 
@@ -240,7 +240,7 @@ public class XMLErrorResources extends ListResourceBundle
 
     { ER_NOT_SUPPORTED,
       "Not supported: {0}"},
-    
+
     { ER_NODE_NON_NULL,
       "Node must be non-null for getDTMHandleFromNode"},
 
@@ -264,7 +264,7 @@ public class XMLErrorResources extends ListResourceBundle
 
     { ER_SCHEME_REQUIRED,
        "Scheme is required!"},
-    
+
     { ER_NO_SCHEME_IN_URI,
        "No scheme found in URI: {0}"},
 
@@ -303,7 +303,7 @@ public class XMLErrorResources extends ListResourceBundle
 
     { ER_CANNOT_CHANGE_WHILE_PARSING,
       "Cannot change {0} {1} while parsing"},
-   
+
     { ER_SELF_CAUSATION_NOT_PERMITTED,
       "Self-causation not permitted"},
 
@@ -313,18 +313,18 @@ public class XMLErrorResources extends ListResourceBundle
     { ER_NO_PORT_IF_NO_HOST,
       "Port may not be specified if host is not specified"},
 
-    { ER_NO_QUERY_STRING_IN_PATH, 
+    { ER_NO_QUERY_STRING_IN_PATH,
       "Query string cannot be specified in path and query string"},
 
     { ER_NO_FRAGMENT_STRING_IN_PATH,
       "Fragment cannot be specified in both the path and fragment"},
 
-    { ER_CANNOT_INIT_URI_EMPTY_PARMS, 
+    { ER_CANNOT_INIT_URI_EMPTY_PARMS,
       "Cannot initialize URI with empty parameters"},
 
     { ER_METHOD_NOT_SUPPORTED,
       "Method not yet supported "},
-    
+
     { ER_INCRSAXSRCFILTER_NOT_RESTARTABLE,
       "IncrementalSAXSource_Filter not currently restartable"},
 
@@ -363,7 +363,7 @@ public class XMLErrorResources extends ListResourceBundle
 
     { ER_ARG_LOCALNAME_NULL,
        "Argument 'localName' is null"},
- 
+
     // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
     // The localname is the portion after the optional colon; the message indicates
     // that there is a problem with that part of the QNAME.
@@ -375,33 +375,33 @@ public class XMLErrorResources extends ListResourceBundle
     // that there is a problem with that part of the QNAME.
     { ER_ARG_PREFIX_INVALID,
        "Prefix in QNAME should be a valid NCName"},
-       
+
     { ER_NAME_CANT_START_WITH_COLON,
       "Name cannot start with a colon"},
-       
+
     { "BAD_CODE", "Parameter to createMessage was out of bounds"},
     { "FORMAT_FAILED", "Exception thrown during messageFormat call"},
     { "line", "Line #"},
     { "column","Column #"},
-    
+
     {ER_SERIALIZER_NOT_CONTENTHANDLER,
       "The serializer class ''{0}'' does not implement org.xml.sax.ContentHandler."},
-    
+
     {ER_RESOURCE_COULD_NOT_FIND,
       "The resource [ {0} ] could not be found.\n {1}" },
-    
+
     {ER_RESOURCE_COULD_NOT_LOAD,
       "The resource [ {0} ] could not load: {1} \n {2} \t {3}" },
-    
+
     {ER_BUFFER_SIZE_LESSTHAN_ZERO,
       "Buffer size <=0" },
-    
+
     {ER_INVALID_UTF16_SURROGATE,
       "Invalid UTF-16 surrogate detected: {0} ?" },
-    
+
     {ER_OIERROR,
       "IO error" },
-    
+
     {ER_ILLEGAL_ATTRIBUTE_POSITION,
       "Cannot add attribute {0} after child nodes or before an element is produced.  Attribute will be ignored."},
 
@@ -436,11 +436,11 @@ public class XMLErrorResources extends ListResourceBundle
 
     { ER_ILLEGAL_CHARACTER,
        "Attempt to output character of integral value {0} that is not represented in specified output encoding of {1}."},
-    
+
     {ER_COULD_NOT_LOAD_METHOD_PROPERTY,
       "Could not load the propery file ''{0}'' for output method ''{1}'' (check CLASSPATH)" }
-    
-  
+
+
   };
 
   /**
@@ -448,7 +448,7 @@ public class XMLErrorResources extends ListResourceBundle
    *
    * @return The association list.
    */
- 
+
     protected Object[][] getContents() {
         return contents;
     }
@@ -515,5 +515,5 @@ public class XMLErrorResources extends ListResourceBundle
 
     return suffix;
   }
-  
+
 }

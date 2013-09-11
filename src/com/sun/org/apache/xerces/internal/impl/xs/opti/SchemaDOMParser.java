@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -41,8 +41,8 @@ import com.sun.org.apache.xerces.internal.xni.parser.XMLParserConfiguration;
 import org.w3c.dom.Document;
 
 /**
- * @xerces.internal  
- * 
+ * @xerces.internal
+ *
  * @author Rahul Srivastava, Sun Microsystems Inc.
  * @author Sandy Gao, IBM
  *
@@ -482,7 +482,7 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
      * @param state
      */
     public void setFeature(String featureId, boolean state){
-    	config.setFeature(featureId, state);
+        config.setFeature(featureId, state);
     }
 
     /**
@@ -517,7 +517,7 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
      * @param er XMLEntityResolver
      */
     public void setEntityResolver(XMLEntityResolver er) {
-    	config.setEntityResolver(er);
+        config.setEntityResolver(er);
     }
 
     /**
@@ -534,14 +534,14 @@ public class SchemaDOMParser extends DefaultXMLDocumentHandler {
      * Reset SchemaParsingConfig
      */
     public void reset() {
-    	((SchemaParsingConfig)config).reset();
+        ((SchemaParsingConfig)config).reset();
     }
 
     /**
      * ResetNodePool on SchemaParsingConfig
      */
     public void resetNodePool() {
-    	((SchemaParsingConfig)config).resetNodePool();
+        ((SchemaParsingConfig)config).resetNodePool();
     }
 
     /**

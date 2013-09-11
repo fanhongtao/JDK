@@ -35,14 +35,14 @@ package javax.xml.transform;
  * This property names a concrete subclass of the
  * <code>TransformerFactory</code> abstract class. If the property is not
  * defined, a platform default is be used.</p>
- * 
+ *
  * @author <a href="mailto:Jeff.Suttor@Sun.com">Jeff Suttor</a>
  * @author <a href="mailto:Neeraj.Bajaj@sun.com">Neeraj Bajaj</a>
  *
  * @since 1.5
  */
 public abstract class TransformerFactory {
-    
+
     /**
      * Default constructor is protected on purpose.
      */
@@ -67,7 +67,7 @@ public abstract class TransformerFactory {
      * </code> format and contains the fully qualified name of the
      * implementation class with the key being the system property defined
      * above.
-     * 
+     *
      * The jaxp.properties file is read only once by the JAXP implementation
      * and it's values are then cached for future use.  If the file does not exist
      * when the first attempt is made to read from it, no further attempts are
@@ -124,22 +124,22 @@ public abstract class TransformerFactory {
      * <p>Setting the <code>jaxp.debug</code> system property will cause
      * this method to print a lot of debug messages
      * to <code>System.err</code> about what it is doing and where it is looking at.</p>
-     * 
+     *
      * <p> If you have problems try:</p>
      * <pre>
      * java -Djaxp.debug=1 YourProgram ....
      * </pre>
-     * 
-     * @param factoryClassName fully qualified factory class name that provides implementation of <code>javax.xml.transform.TransformerFactory</code>. 
      *
-     * @param classLoader <code>ClassLoader</code> used to load the factory class. If <code>null</code>  
+     * @param factoryClassName fully qualified factory class name that provides implementation of <code>javax.xml.transform.TransformerFactory</code>.
+     *
+     * @param classLoader <code>ClassLoader</code> used to load the factory class. If <code>null</code>
      *                     current <code>Thread</code>'s context classLoader is used to load the factory class.
      *
      * @return new TransformerFactory instance, never null.
      *
-     * @throws TransformerFactoryConfigurationError 
-     *                    if <code>factoryClassName</code> is <code>null</code>, or 
-     *                   the factory class cannot be loaded, instantiated. 
+     * @throws TransformerFactoryConfigurationError
+     *                    if <code>factoryClassName</code> is <code>null</code>, or
+     *                   the factory class cannot be loaded, instantiated.
      *
      * @see #newInstance()
      *
@@ -154,7 +154,7 @@ public abstract class TransformerFactory {
             throw new TransformerFactoryConfigurationError(
                 e.getException(),
                 e.getMessage());
-        }        
+        }
     }
     /**
      * <p>Process the <code>Source</code> into a <code>Transformer</code>
@@ -180,7 +180,7 @@ public abstract class TransformerFactory {
      * @throws TransformerConfigurationException Thrown if there are errors when
      *    parsing the <code>Source</code> or it is not possible to create a
      *   <code>Transformer</code> instance.
-     * 
+     *
      * @see <a href="http://www.w3.org/TR/xslt">
      *   XSL Transformations (XSLT) Version 1.0</a>
      */
@@ -237,11 +237,11 @@ public abstract class TransformerFactory {
      *
      * @return A <code>Source</code> <code>Object</code> suitable for passing
      *   to the <code>TransformerFactory</code>.
-     * 
+     *
      * @throws TransformerConfigurationException An <code>Exception</code>
      *   is thrown if an error occurings during parsing of the
      *   <code>source</code>.
-     * 
+     *
      * @see <a href="http://www.w3.org/TR/xml-stylesheet/">
      *   Associating Style Sheets with XML documents Version 1.0</a>
      */
@@ -271,60 +271,60 @@ public abstract class TransformerFactory {
 
     //======= CONFIGURATION METHODS =======
 
-	/**
-	 * <p>Set a feature for this <code>TransformerFactory</code> and <code>Transformer</code>s
-	 * or <code>Template</code>s created by this factory.</p>
-	 * 
-	 * <p>
-	 * Feature names are fully qualified {@link java.net.URI}s.
-	 * Implementations may define their own features.
-	 * An {@link TransformerConfigurationException} is thrown if this <code>TransformerFactory</code> or the
-	 * <code>Transformer</code>s or <code>Template</code>s it creates cannot support the feature.
-	 * It is possible for an <code>TransformerFactory</code> to expose a feature value but be unable to change its state.
-	 * </p>
-	 * 
-	 * <p>All implementations are required to support the {@link javax.xml.XMLConstants#FEATURE_SECURE_PROCESSING} feature.
-	 * When the feature is:</p>
-	 * <ul>
-	 *   <li>
-	 *     <code>true</code>: the implementation will limit XML processing to conform to implementation limits
-	 *     and behave in a secure fashion as defined by the implementation.
-	 *     Examples include resolving user defined style sheets and functions.
-	 *     If XML processing is limited for security reasons, it will be reported via a call to the registered
-	 *     {@link ErrorListener#fatalError(TransformerException exception)}.
-	 *     See {@link  #setErrorListener(ErrorListener listener)}.
-	 *   </li>
-	 *   <li>
-	 *     <code>false</code>: the implementation will processing XML according to the XML specifications without
-	 *     regard to possible implementation limits.
-	 *   </li>
-	 * </ul>
-	 * 
-	 * @param name Feature name.
-	 * @param value Is feature state <code>true</code> or <code>false</code>.
-	 *  
-	 * @throws TransformerConfigurationException if this <code>TransformerFactory</code>
-	 *   or the <code>Transformer</code>s or <code>Template</code>s it creates cannot support this feature.
+        /**
+         * <p>Set a feature for this <code>TransformerFactory</code> and <code>Transformer</code>s
+         * or <code>Template</code>s created by this factory.</p>
+         *
+         * <p>
+         * Feature names are fully qualified {@link java.net.URI}s.
+         * Implementations may define their own features.
+         * An {@link TransformerConfigurationException} is thrown if this <code>TransformerFactory</code> or the
+         * <code>Transformer</code>s or <code>Template</code>s it creates cannot support the feature.
+         * It is possible for an <code>TransformerFactory</code> to expose a feature value but be unable to change its state.
+         * </p>
+         *
+         * <p>All implementations are required to support the {@link javax.xml.XMLConstants#FEATURE_SECURE_PROCESSING} feature.
+         * When the feature is:</p>
+         * <ul>
+         *   <li>
+         *     <code>true</code>: the implementation will limit XML processing to conform to implementation limits
+         *     and behave in a secure fashion as defined by the implementation.
+         *     Examples include resolving user defined style sheets and functions.
+         *     If XML processing is limited for security reasons, it will be reported via a call to the registered
+         *     {@link ErrorListener#fatalError(TransformerException exception)}.
+         *     See {@link  #setErrorListener(ErrorListener listener)}.
+         *   </li>
+         *   <li>
+         *     <code>false</code>: the implementation will processing XML according to the XML specifications without
+         *     regard to possible implementation limits.
+         *   </li>
+         * </ul>
+         *
+         * @param name Feature name.
+         * @param value Is feature state <code>true</code> or <code>false</code>.
+         *
+         * @throws TransformerConfigurationException if this <code>TransformerFactory</code>
+         *   or the <code>Transformer</code>s or <code>Template</code>s it creates cannot support this feature.
      * @throws NullPointerException If the <code>name</code> parameter is null.
-	 */
-	public abstract void setFeature(String name, boolean value)
-		throws TransformerConfigurationException;
+         */
+        public abstract void setFeature(String name, boolean value)
+                throws TransformerConfigurationException;
 
     /**
      * Look up the value of a feature.
      *
-	 * <p>
-	 * Feature names are fully qualified {@link java.net.URI}s.
-	 * Implementations may define their own features.
-	 * <code>false</code> is returned if this <code>TransformerFactory</code> or the
-	 * <code>Transformer</code>s or <code>Template</code>s it creates cannot support the feature.
-	 * It is possible for an <code>TransformerFactory</code> to expose a feature value but be unable to change its state.
-	 * </p>
-	 * 
-	 * @param name Feature name.
-	 * 
+         * <p>
+         * Feature names are fully qualified {@link java.net.URI}s.
+         * Implementations may define their own features.
+         * <code>false</code> is returned if this <code>TransformerFactory</code> or the
+         * <code>Transformer</code>s or <code>Template</code>s it creates cannot support the feature.
+         * It is possible for an <code>TransformerFactory</code> to expose a feature value but be unable to change its state.
+         * </p>
+         *
+         * @param name Feature name.
+         *
      * @return The current state of the feature, <code>true</code> or <code>false</code>.
-     * 
+     *
      * @throws NullPointerException If the <code>name</code> parameter is null.
      */
     public abstract boolean getFeature(String name);
@@ -338,7 +338,7 @@ public abstract class TransformerFactory {
      *
      * @param name The name of the attribute.
      * @param value The value of the attribute.
-     * 
+     *
      * @throws IllegalArgumentException When implementation does not
      *   recognize the attribute.
      */
@@ -367,7 +367,7 @@ public abstract class TransformerFactory {
      * <code>ErrorListener</code> listener is <code>null</code>.
      *
      * @param listener The new error listener.
-     * 
+     *
      * @throws IllegalArgumentException When <code>listener</code> is
      *   <code>null</code>
      */
@@ -381,4 +381,3 @@ public abstract class TransformerFactory {
     public abstract ErrorListener getErrorListener();
 
 }
-

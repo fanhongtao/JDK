@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -33,99 +33,99 @@ import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
  */
 public abstract class AnyNodeCounter extends NodeCounter {
     public AnyNodeCounter(Translet translet,
-			  DOM document, DTMAxisIterator iterator) {
-	super(translet, document, iterator);
+                          DOM document, DTMAxisIterator iterator) {
+        super(translet, document, iterator);
     }
-	
+
     public AnyNodeCounter(Translet translet,
-			  DOM document, 
+                          DOM document,
                           DTMAxisIterator iterator,
                           boolean hasFrom) {
-	super(translet, document, iterator, hasFrom);
+        super(translet, document, iterator, hasFrom);
     }
-    
+
     public NodeCounter setStartNode(int node) {
-	_node = node;
-	_nodeType = _document.getExpandedTypeID(node);
-	return this;
+        _node = node;
+        _nodeType = _document.getExpandedTypeID(node);
+        return this;
     }
 
     public String getCounter() {
-	int result;
-	if (_value != Integer.MIN_VALUE) {
+        int result;
+        if (_value != Integer.MIN_VALUE) {
             //See Errata E24
             if (_value == 0) return "0";
             else if (Double.isNaN(_value)) return "NaN";
             else if (_value < 0 && Double.isInfinite(_value)) return "-Infinity";
             else if (Double.isInfinite(_value)) return "Infinity";
             else return formatNumbers((int)_value);
-	}
-	else {
-	    int next = _node; 
+        }
+        else {
+            int next = _node;
             final int root = _document.getDocument();
-	    result = 0;
-	    while (next >= root && !matchesFrom(next)) {
-		if (matchesCount(next)) {
-		    ++result;	
-		}
-		next--;
+            result = 0;
+            while (next >= root && !matchesFrom(next)) {
+                if (matchesCount(next)) {
+                    ++result;
+                }
+                next--;
 //%HZ%:  Is this the best way of finding the root?  Is it better to check
 //%HZ%:  parent(next)?
-		/*
-		if (next == root) {
-		    break;
+                /*
+                if (next == root) {
+                    break;
                 }
-		else {
-		    --next;		
+                else {
+                    --next;
                 }
                 */
-	    }
-	}
-	return formatNumbers(result);
+            }
+        }
+        return formatNumbers(result);
     }
 
     public static NodeCounter getDefaultNodeCounter(Translet translet,
-						    DOM document,
-						    DTMAxisIterator iterator) {
-	return new DefaultAnyNodeCounter(translet, document, iterator);
+                                                    DOM document,
+                                                    DTMAxisIterator iterator) {
+        return new DefaultAnyNodeCounter(translet, document, iterator);
     }
 
     static class DefaultAnyNodeCounter extends AnyNodeCounter {
-	public DefaultAnyNodeCounter(Translet translet,
-				     DOM document, DTMAxisIterator iterator) {
-	    super(translet, document, iterator);
-	}
+        public DefaultAnyNodeCounter(Translet translet,
+                                     DOM document, DTMAxisIterator iterator) {
+            super(translet, document, iterator);
+        }
 
-	public String getCounter() {
-	    int result;
-	    if (_value != Integer.MIN_VALUE) {
+        public String getCounter() {
+            int result;
+            if (_value != Integer.MIN_VALUE) {
                     //See Errata E24
                     if (_value == 0) return "0";
                     else if (Double.isNaN(_value)) return "NaN";
                     else if (_value < 0 && Double.isInfinite(_value)) return "-Infinity";
                     else if (Double.isInfinite(_value)) return "Infinity";
                     else result = (int) _value;
-	    }
-	    else {
-		int next = _node;
-		result = 0;
-		final int ntype = _document.getExpandedTypeID(_node);
+            }
+            else {
+                int next = _node;
+                result = 0;
+                final int ntype = _document.getExpandedTypeID(_node);
                 final int root = _document.getDocument();
-		while (next >= 0) {
-		    if (ntype == _document.getExpandedTypeID(next)) {
-			result++;
-		    }
+                while (next >= 0) {
+                    if (ntype == _document.getExpandedTypeID(next)) {
+                        result++;
+                    }
 //%HZ%:  Is this the best way of finding the root?  Is it better to check
 //%HZ%:  parent(next)?
-		    if (next == root) {
-		        break;
+                    if (next == root) {
+                        break;
                     }
-		    else {
-		        --next;
+                    else {
+                        --next;
                     }
-		}
-	    }
-	    return formatNumbers(result);
-	}
+                }
+            }
+            return formatNumbers(result);
+        }
     }
 }

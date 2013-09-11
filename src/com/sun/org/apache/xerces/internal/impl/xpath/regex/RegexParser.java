@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -27,7 +27,7 @@ import java.util.Vector;
 
 /**
  * A Regular Expression Parser.
- * 
+ *
  * @xerces.internal
  *
  * @version $Id: RegexParser.java,v 1.8 2010-11-01 04:39:54 joehw Exp $

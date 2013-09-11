@@ -43,19 +43,19 @@ import com.sun.xml.internal.stream.StaxEntityResolverWrapper;
  */
 
 public class PropertyManager {
-    
-    
+
+
     public static final String STAX_NOTATIONS = "javax.xml.stream.notations";
     public static final String STAX_ENTITIES = "javax.xml.stream.entities";
-    
+
     private static final String STRING_INTERNING = "http://xml.org/sax/features/string-interning";
-    
-            
+
+
     HashMap supportedProps = new HashMap();
-    
+
     public static final int CONTEXT_READER = 1;
     public static final int CONTEXT_WRITER = 2;
-    
+
     /** Creates a new instance of PropertyManager */
     public PropertyManager(int context) {
         switch(context){
@@ -69,21 +69,21 @@ public class PropertyManager {
             }
         }
     }
-    
+
     /**
      * Initialize this object with the properties taken from passed PropertyManager object.
      */
     public PropertyManager(PropertyManager propertyManager){
-        
+
         HashMap properties = propertyManager.getProperties();
         supportedProps.putAll(properties);
     }
-    
+
     private HashMap getProperties(){
         return supportedProps ;
     }
-    
-    
+
+
     /**
      * Important point:
      * 1. We are not exposing Xerces namespace property. Application should configure namespace through
@@ -102,14 +102,14 @@ public class PropertyManager {
         supportedProps.put(XMLInputFactory.RESOLVER, null);
         supportedProps.put(XMLInputFactory.ALLOCATOR, null);
         supportedProps.put(STAX_NOTATIONS,null );
-        
+
         //zephyr (implementation) specific properties which can be set by the application.
         //interning is always done
         supportedProps.put(Constants.SAX_FEATURE_PREFIX + Constants.STRING_INTERNING_FEATURE , new Boolean(true));
         //recognizing java encoding names by default
         supportedProps.put(Constants.XERCES_FEATURE_PREFIX + Constants.ALLOW_JAVA_ENCODINGS_FEATURE,  new Boolean(true)) ;
         //in stax mode, namespace declarations are not added as attributes
-        supportedProps.put(Constants.ADD_NAMESPACE_DECL_AS_ATTRIBUTE ,  Boolean.FALSE) ;        
+        supportedProps.put(Constants.ADD_NAMESPACE_DECL_AS_ATTRIBUTE ,  Boolean.FALSE) ;
         supportedProps.put(Constants.READER_IN_DEFINED_STATE, new Boolean(true));
         supportedProps.put(Constants.REUSE_INSTANCE, new Boolean(true));
         supportedProps.put(Constants.ZEPHYR_PROPERTY_PREFIX + Constants.STAX_REPORT_CDATA_EVENT , new Boolean(false));
@@ -118,14 +118,14 @@ public class PropertyManager {
         supportedProps.put(Constants.XERCES_FEATURE_PREFIX + Constants.WARN_ON_DUPLICATE_ENTITYDEF_FEATURE, new Boolean(false));
         supportedProps.put(Constants.XERCES_FEATURE_PREFIX + Constants.WARN_ON_UNDECLARED_ELEMDEF_FEATURE, new Boolean(false));
     }
-    
+
     private void initWriterProps(){
         supportedProps.put(XMLOutputFactory.IS_REPAIRING_NAMESPACES , Boolean.FALSE);
         //default value of escaping characters is 'true'
         supportedProps.put(Constants.ESCAPE_CHARACTERS , Boolean.TRUE);
         supportedProps.put(Constants.REUSE_INSTANCE, new Boolean(true));
     }
-    
+
     /**
      * public void reset(){
      * supportedProps.clear() ;
@@ -134,11 +134,11 @@ public class PropertyManager {
     public boolean containsProperty(String property){
         return supportedProps.containsKey(property) ;
     }
-    
+
     public Object getProperty(String property){
         return supportedProps.get(property);
     }
-    
+
     public void setProperty(String property, Object value){
         String equivalentProperty = null ;
         if(property == XMLInputFactory.IS_NAMESPACE_AWARE || property.equals(XMLInputFactory.IS_NAMESPACE_AWARE)){
@@ -163,9 +163,9 @@ public class PropertyManager {
             supportedProps.put(equivalentProperty, value ) ;
         }
     }
-    
+
     public String toString(){
         return supportedProps.toString();
     }
-    
+
 }//PropertyManager

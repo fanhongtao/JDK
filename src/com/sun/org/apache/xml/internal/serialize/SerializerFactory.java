@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -21,7 +21,7 @@
 
 package com.sun.org.apache.xml.internal.serialize;
 
-
+import com.sun.org.apache.xerces.internal.utils.ObjectFactory;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.io.UnsupportedEncodingException;
@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 /**
  *
  *
+ * @version $Revision: 1.6 $ $Date: 2010-11-01 04:40:36 $
  * @author <a href="mailto:Scott_Boag/CAM/Lotus@lotus.com">Scott Boag</a>
  * @author <a href="mailto:arkin@intalio.com">Assaf Arkin</a>
  */
@@ -69,8 +70,7 @@ public abstract class SerializerFactory
             while ( token.hasMoreTokens() ) {
                 className = token.nextToken();
                 try {
-                    factory = (SerializerFactory) ObjectFactory.newInstance( className,
-                        SerializerFactory.class.getClassLoader(), true);
+                    factory = (SerializerFactory) ObjectFactory.newInstance( className, true);
                     if ( _factories.containsKey( factory.getSupportedMethod() ) )
                         _factories.put( factory.getSupportedMethod(), factory );
                 } catch ( Exception except ) { }

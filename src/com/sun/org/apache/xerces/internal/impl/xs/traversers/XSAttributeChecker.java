@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -1200,7 +1200,7 @@ public class XSAttributeChecker {
 
                         // reset max values in case processing continues on error
                         attrValues[ATTIDX_MAXOCCURS] = fXIntPool.getXInt(maxOccurNodeLimit);
-						//new Integer(maxOccurNodeLimit);
+                                                //new Integer(maxOccurNodeLimit);
                         max = maxOccurNodeLimit;
                     }
                 }

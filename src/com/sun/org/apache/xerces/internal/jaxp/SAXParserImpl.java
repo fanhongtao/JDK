@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -59,10 +59,10 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * This is the implementation specific class for the
  * <code>javax.xml.parsers.SAXParser</code>.
- * 
+ *
  * @author Rajiv Mordani
  * @author Edwin Goei
- * 
+ *
  * @version $Id: SAXParserImpl.java,v 1.7 2010-11-01 04:40:06 joehw Exp $
  */
 public class SAXParserImpl extends javax.xml.parsers.SAXParser

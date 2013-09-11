@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -35,6 +35,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.MethodGenerator;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.TypeCheckError;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 
 /**
  * @author G. Todd Miller
@@ -132,8 +133,7 @@ final class FunctionAvailableCall extends FunctionCall {
           methodName = replaceDash(methodName);
 
         try {
-            final Class clazz = ObjectFactory.findProviderClass(
-                className, ObjectFactory.findClassLoader(), true);
+            final Class clazz = ObjectFactory.findProviderClass(className, true);
 
             if (clazz == null) {
                 return false;

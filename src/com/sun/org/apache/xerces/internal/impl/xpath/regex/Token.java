@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -25,7 +25,7 @@ import java.util.Hashtable;
 
 /**
  * This class represents a node in parse tree.
- * 
+ *
  * @xerces.internal
  *
  * @version $Id: Token.java,v 1.7 2010/07/27 05:02:34 joehw Exp $
@@ -691,7 +691,7 @@ class Token implements java.io.Serializable {
         /*FEFF..FEFF;*/ "Specials",
         /*FF00..FFEF;*/ "Halfwidth and Fullwidth Forms",
          //missing Specials add manually
-        /*10300..1032F;*/ "Old Italic",		// 84
+        /*10300..1032F;*/ "Old Italic",         // 84
         /*10330..1034F;*/ "Gothic",
         /*10400..1044F;*/ "Deseret",
         /*1D000..1D0FF;*/ "Byzantine Musical Symbols",

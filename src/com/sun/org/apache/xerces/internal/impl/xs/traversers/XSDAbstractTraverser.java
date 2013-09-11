@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -52,7 +52,7 @@ import org.w3c.dom.Element;
  * other <code>XSD???Traverser</code>s. It holds the common data and provide
  * a unified way to initialize these data.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Elena Litani, IBM
  * @author Rahul Srivastava, Sun Microsystems Inc.

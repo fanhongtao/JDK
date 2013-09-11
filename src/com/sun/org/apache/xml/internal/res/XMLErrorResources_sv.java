@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -92,7 +92,7 @@ public class XMLErrorResources_sv extends ListResourceBundle
   public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
 
 
-  /* 
+  /*
    * Message keys
    */
   public static final String ER_FUNCTION_NOT_SUPPORTED = "ER_FUNCTION_NOT_SUPPORTED";
@@ -148,14 +148,14 @@ public class XMLErrorResources_sv extends ListResourceBundle
   public static final String ER_SYSTEMID_UNKNOWN = "ER_SYSTEMID_UNKNOWN";
   public static final String ER_LOCATION_UNKNOWN = "ER_LOCATION_UNKNOWN";
   public static final String ER_PREFIX_MUST_RESOLVE = "ER_PREFIX_MUST_RESOLVE";
-  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";  
+  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";
   public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT";
-  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";  
-  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";  
-  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";  
-  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";  
-  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";  
-  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";  
+  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";
+  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";
+  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";
+  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";
+  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";
+  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";
   public static final String ER_NAME_CANT_START_WITH_COLON = "ER_NAME_CANT_START_WITH_COLON";
 
   // Message keys used by the serializer
@@ -186,8 +186,8 @@ public class XMLErrorResources_sv extends ListResourceBundle
 
   /** Error message ID that has a null message, but takes in a single object.    */
     {"ER0000" , "{0}" },
- 
-    { ER_FUNCTION_NOT_SUPPORTED, 
+
+    { ER_FUNCTION_NOT_SUPPORTED,
       "Funktionen st\u00F6ds inte!"},
 
     { ER_CANNOT_OVERWRITE_CAUSE,
@@ -204,7 +204,7 @@ public class XMLErrorResources_sv extends ListResourceBundle
 
     { ER_COROUTINE_NOT_AVAIL,
       "Sidorutin \u00E4r inte tillg\u00E4nglig, id={0}"},
-    
+
     { ER_COROUTINE_CO_EXIT,
       "CoroutineManager har tagit emot co_exit()-beg\u00E4ran"},
 
@@ -240,7 +240,7 @@ public class XMLErrorResources_sv extends ListResourceBundle
 
     { ER_NOT_SUPPORTED,
       "Underst\u00F6ds inte: {0}"},
-    
+
     { ER_NODE_NON_NULL,
       "Nod m\u00E5ste vara icke-null f\u00F6r getDTMHandleFromNode"},
 
@@ -264,7 +264,7 @@ public class XMLErrorResources_sv extends ListResourceBundle
 
     { ER_SCHEME_REQUIRED,
        "Schema kr\u00E4vs!"},
-    
+
     { ER_NO_SCHEME_IN_URI,
        "Schema saknas i URI: {0}"},
 
@@ -303,7 +303,7 @@ public class XMLErrorResources_sv extends ListResourceBundle
 
     { ER_CANNOT_CHANGE_WHILE_PARSING,
       "Kan inte \u00E4ndra {0} {1} medan tolkning sker"},
-   
+
     { ER_SELF_CAUSATION_NOT_PERMITTED,
       "Sj\u00E4lvorsakande inte till\u00E5ten"},
 
@@ -313,18 +313,18 @@ public class XMLErrorResources_sv extends ListResourceBundle
     { ER_NO_PORT_IF_NO_HOST,
       "Port f\u00E5r inte anges om v\u00E4rden inte \u00E4r angiven"},
 
-    { ER_NO_QUERY_STRING_IN_PATH, 
+    { ER_NO_QUERY_STRING_IN_PATH,
       "Fr\u00E5gestr\u00E4ng kan inte anges i b\u00E5de s\u00F6kv\u00E4gen och fr\u00E5gestr\u00E4ngen"},
 
     { ER_NO_FRAGMENT_STRING_IN_PATH,
       "Fragment kan inte anges i b\u00E5de s\u00F6kv\u00E4gen och fragmentet"},
 
-    { ER_CANNOT_INIT_URI_EMPTY_PARMS, 
+    { ER_CANNOT_INIT_URI_EMPTY_PARMS,
       "Kan inte initiera URI med tomma parametrar"},
 
     { ER_METHOD_NOT_SUPPORTED,
       "Metoden st\u00F6ds \u00E4nnu inte "},
-    
+
     { ER_INCRSAXSRCFILTER_NOT_RESTARTABLE,
       "IncrementalSAXSource_Filter kan f\u00F6r n\u00E4rvarande inte startas om"},
 
@@ -363,7 +363,7 @@ public class XMLErrorResources_sv extends ListResourceBundle
 
     { ER_ARG_LOCALNAME_NULL,
        "Argumentet 'localName' \u00E4r null"},
- 
+
     // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
     // The localname is the portion after the optional colon; the message indicates
     // that there is a problem with that part of the QNAME.
@@ -375,33 +375,33 @@ public class XMLErrorResources_sv extends ListResourceBundle
     // that there is a problem with that part of the QNAME.
     { ER_ARG_PREFIX_INVALID,
        "Prefix i QNAME b\u00F6r vara giltigt NCName"},
-       
+
     { ER_NAME_CANT_START_WITH_COLON,
       "Namnet kan inte b\u00F6rja med kolon"},
-       
+
     { "BAD_CODE", "Parameter f\u00F6r createMessage ligger utanf\u00F6r gr\u00E4nsv\u00E4rdet"},
     { "FORMAT_FAILED", "Undantag utl\u00F6st vid messageFormat-anrop"},
     { "line", "Rad #"},
     { "column","Kolumn #"},
-    
+
     {ER_SERIALIZER_NOT_CONTENTHANDLER,
       "Serializerklassen ''{0}'' implementerar inte org.xml.sax.ContentHandler."},
-    
+
     {ER_RESOURCE_COULD_NOT_FIND,
       "Resursen [ {0} ] kunde inte h\u00E4mtas.\n {1}" },
-    
+
     {ER_RESOURCE_COULD_NOT_LOAD,
       "Resursen [ {0} ] kunde inte laddas: {1} \n {2} \t {3}" },
-    
+
     {ER_BUFFER_SIZE_LESSTHAN_ZERO,
       "Buffertstorlek <=0" },
-    
+
     {ER_INVALID_UTF16_SURROGATE,
       "Ogiltigt UTF-16-surrogat uppt\u00E4ckt: {0} ?" },
-    
+
     {ER_OIERROR,
       "IO-fel" },
-    
+
     {ER_ILLEGAL_ATTRIBUTE_POSITION,
       "Kan inte l\u00E4gga till attributet {0} efter underordnade noder eller innan ett element har skapats. Attributet ignoreras."},
 
@@ -436,11 +436,11 @@ public class XMLErrorResources_sv extends ListResourceBundle
 
     { ER_ILLEGAL_CHARACTER,
        "F\u00F6rs\u00F6k att skriva utdatatecken med integralv\u00E4rdet {0} som inte \u00E4r representerat i angiven utdatakodning av {1}."},
-    
+
     {ER_COULD_NOT_LOAD_METHOD_PROPERTY,
       "Kunde inte ladda egenskapsfilen ''{0}'' f\u00F6r utdatametoden ''{1}'' (kontrollera CLASSPATH)" }
-    
-  
+
+
   };
 
   /**
@@ -448,7 +448,7 @@ public class XMLErrorResources_sv extends ListResourceBundle
    *
    * @return The association list.
    */
- 
+
     protected Object[][] getContents() {
         return _contents;
     }
@@ -515,5 +515,5 @@ public class XMLErrorResources_sv extends ListResourceBundle
 
     return suffix;
   }
-  
+
 }

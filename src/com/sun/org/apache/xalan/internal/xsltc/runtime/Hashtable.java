@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -294,7 +294,7 @@ public class Hashtable {
         for (i = 0; i <= max; i++) {
             String s1 = k.nextElement().toString();
             String s2 = e.nextElement().toString();
-            buf.append(s1 + "=" + s2);
+            buf.append(s1).append('=').append(s2);
             if (i < max) buf.append(", ");
         }
         buf.append("}");

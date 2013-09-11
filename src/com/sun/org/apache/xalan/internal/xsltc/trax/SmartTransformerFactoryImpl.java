@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -43,6 +43,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
+import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 import org.xml.sax.XMLFilter;
 
 /**
@@ -93,7 +94,7 @@ public class SmartTransformerFactoryImpl extends SAXTransformerFactory
         try {
             Class xalanFactClass = ObjectFactory.findProviderClass(
                 "com.sun.org.apache.xalan.internal.processor.TransformerFactoryImpl",
-                ObjectFactory.findClassLoader(), true);
+                true);
             _xalanFactory = (SAXTransformerFactory)
                 xalanFactClass.newInstance();
         }

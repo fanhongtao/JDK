@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -64,14 +64,14 @@ final class CallTemplate extends Instruction {
     private Template _calleeTemplate = null;
 
     public void display(int indent) {
-	indent(indent);
-	System.out.print("CallTemplate");
-	Util.println(" name " + _name);
-	displayContents(indent + IndentIncrement);
+        indent(indent);
+        System.out.print("CallTemplate");
+        Util.println(" name " + _name);
+        displayContents(indent + IndentIncrement);
     }
 
     public boolean hasWithParams() {
-	return elementCount() > 0;
+        return elementCount() > 0;
     }
 
     public void parseContents(Parser parser) {
@@ -86,72 +86,72 @@ final class CallTemplate extends Instruction {
         else {
             reportError(this, parser, ErrorMsg.REQUIRED_ATTR_ERR, "name");
         }
-	parseChildren(parser);
+        parseChildren(parser);
     }
 
     /**
      * Verify that a template with this name exists.
      */
     public Type typeCheck(SymbolTable stable) throws TypeCheckError {
-	final Template template = stable.lookupTemplate(_name);
-	if (template != null) {
-	    typeCheckContents(stable);
-	}
-	else {
-	    ErrorMsg err = new ErrorMsg(ErrorMsg.TEMPLATE_UNDEF_ERR,_name,this);
-	    throw new TypeCheckError(err);
-	}
-	return Type.Void;
+        final Template template = stable.lookupTemplate(_name);
+        if (template != null) {
+            typeCheckContents(stable);
+        }
+        else {
+            ErrorMsg err = new ErrorMsg(ErrorMsg.TEMPLATE_UNDEF_ERR,_name,this);
+            throw new TypeCheckError(err);
+        }
+        return Type.Void;
     }
 
     public void translate(ClassGenerator classGen, MethodGenerator methodGen) {
-	final Stylesheet stylesheet = classGen.getStylesheet();
-	final ConstantPoolGen cpg = classGen.getConstantPool();
-	final InstructionList il = methodGen.getInstructionList();
+        final Stylesheet stylesheet = classGen.getStylesheet();
+        final ConstantPoolGen cpg = classGen.getConstantPool();
+        final InstructionList il = methodGen.getInstructionList();
 
         // If there are Params in the stylesheet or WithParams in this call?
-	if (stylesheet.hasLocalParams() || hasContents()) {
-	    _calleeTemplate = getCalleeTemplate();
+        if (stylesheet.hasLocalParams() || hasContents()) {
+            _calleeTemplate = getCalleeTemplate();
 
-	    // Build the parameter list if the called template is simple named
-	    if (_calleeTemplate != null) {
-	    	buildParameterList();
-	    }
-	    // This is only needed when the called template is not
-	    // a simple named template.
-	    else {
-	        // Push parameter frame
-	        final int push = cpg.addMethodref(TRANSLET_CLASS,
-					          PUSH_PARAM_FRAME,
-					          PUSH_PARAM_FRAME_SIG);
-	        il.append(classGen.loadTranslet());
-	        il.append(new INVOKEVIRTUAL(push));
-	        translateContents(classGen, methodGen);
-	    }
-	}
+            // Build the parameter list if the called template is simple named
+            if (_calleeTemplate != null) {
+                buildParameterList();
+            }
+            // This is only needed when the called template is not
+            // a simple named template.
+            else {
+                // Push parameter frame
+                final int push = cpg.addMethodref(TRANSLET_CLASS,
+                                                  PUSH_PARAM_FRAME,
+                                                  PUSH_PARAM_FRAME_SIG);
+                il.append(classGen.loadTranslet());
+                il.append(new INVOKEVIRTUAL(push));
+                translateContents(classGen, methodGen);
+            }
+        }
 
         // Generate a valid Java method name
-	final String className = stylesheet.getClassName();
+        final String className = stylesheet.getClassName();
         String methodName = Util.escape(_name.toString());
 
         // Load standard arguments
-	il.append(classGen.loadTranslet());
-	il.append(methodGen.loadDOM());
-	il.append(methodGen.loadIterator());
-	il.append(methodGen.loadHandler());
-	il.append(methodGen.loadCurrentNode());
+        il.append(classGen.loadTranslet());
+        il.append(methodGen.loadDOM());
+        il.append(methodGen.loadIterator());
+        il.append(methodGen.loadHandler());
+        il.append(methodGen.loadCurrentNode());
 
         // Initialize prefix of method signature
-	StringBuffer methodSig = new StringBuffer("(" + DOM_INTF_SIG
+        StringBuffer methodSig = new StringBuffer("(" + DOM_INTF_SIG
             + NODE_ITERATOR_SIG + TRANSLET_OUTPUT_SIG + NODE_SIG);
 
         // If calling a simply named template, push actual arguments
-	if (_calleeTemplate != null) {
-	    Vector calleeParams = _calleeTemplate.getParameters();
-	    int numParams = _parameters.length;
+        if (_calleeTemplate != null) {
+            Vector calleeParams = _calleeTemplate.getParameters();
+            int numParams = _parameters.length;
 
-	    for (int i = 0; i < numParams; i++) {
-	        SyntaxTreeNode node = (SyntaxTreeNode)_parameters[i];
+            for (int i = 0; i < numParams; i++) {
+                SyntaxTreeNode node = (SyntaxTreeNode)_parameters[i];
                 methodSig.append(OBJECT_SIG);   // append Object to signature
 
                 // Push 'null' if Param to indicate no actual parameter specified
@@ -165,21 +165,21 @@ final class CallTemplate extends Instruction {
         }
 
         // Complete signature and generate invokevirtual call
-	methodSig.append(")V");
-	il.append(new INVOKEVIRTUAL(cpg.addMethodref(className,
-						     methodName,
-						     methodSig.toString())));
+        methodSig.append(")V");
+        il.append(new INVOKEVIRTUAL(cpg.addMethodref(className,
+                                                     methodName,
+                                                     methodSig.toString())));
 
-	// Do not need to call Translet.popParamFrame() if we are
-	// calling a simple named template.
-	if (_calleeTemplate == null && (stylesheet.hasLocalParams() || hasContents())) {
-	    // Pop parameter frame
-	    final int pop = cpg.addMethodref(TRANSLET_CLASS,
-					     POP_PARAM_FRAME,
-					     POP_PARAM_FRAME_SIG);
-	    il.append(classGen.loadTranslet());
-	    il.append(new INVOKEVIRTUAL(pop));
-	}
+        // Do not need to call Translet.popParamFrame() if we are
+        // calling a simple named template.
+        if (_calleeTemplate == null && (stylesheet.hasLocalParams() || hasContents())) {
+            // Pop parameter frame
+            final int pop = cpg.addMethodref(TRANSLET_CLASS,
+                                             POP_PARAM_FRAME,
+                                             POP_PARAM_FRAME_SIG);
+            il.append(classGen.loadTranslet());
+            il.append(new INVOKEVIRTUAL(pop));
+        }
     }
 
     /**
@@ -188,7 +188,7 @@ final class CallTemplate extends Instruction {
      * template is not a simple named template.
      */
     public Template getCalleeTemplate() {
-    	Template foundTemplate
+        Template foundTemplate
             = getXSLTC().getParser().getSymbolTable().lookupTemplate(_name);
 
         return foundTemplate.isSimpleNamedTemplate() ? foundTemplate : null;
@@ -201,43 +201,42 @@ final class CallTemplate extends Instruction {
      * the Param with a corresponding WithParam having the same name.
      */
     private void buildParameterList() {
-    	// Put the parameters from the called template into the array first.
-    	// This is to ensure the order of the parameters.
-    	Vector defaultParams = _calleeTemplate.getParameters();
-    	int numParams = defaultParams.size();
-    	_parameters = new Object[numParams];
-    	for (int i = 0; i < numParams; i++) {
-    	    _parameters[i] = defaultParams.elementAt(i);
-    	}
+        // Put the parameters from the called template into the array first.
+        // This is to ensure the order of the parameters.
+        Vector defaultParams = _calleeTemplate.getParameters();
+        int numParams = defaultParams.size();
+        _parameters = new Object[numParams];
+        for (int i = 0; i < numParams; i++) {
+            _parameters[i] = defaultParams.elementAt(i);
+        }
 
-    	// Replace a Param with a WithParam if they have the same name.
-    	int count = elementCount();
-    	for (int i = 0; i < count; i++) {
-    	    Object node = elementAt(i);
+        // Replace a Param with a WithParam if they have the same name.
+        int count = elementCount();
+        for (int i = 0; i < count; i++) {
+            Object node = elementAt(i);
 
             // Ignore if not WithParam
-    	    if (node instanceof WithParam) {
-    	    	WithParam withParam = (WithParam)node;
-    	    	QName name = withParam.getName();
+            if (node instanceof WithParam) {
+                WithParam withParam = (WithParam)node;
+                QName name = withParam.getName();
 
                 // Search for a Param with the same name
-    	    	for (int k = 0; k < numParams; k++) {
-    	    	    Object object = _parameters[k];
-    	    	    if (object instanceof Param
-    	    	        && ((Param)object).getName().equals(name)) {
-    	    	        withParam.setDoParameterOptimization(true);
-    	    	        _parameters[k] = withParam;
-    	    	        break;
-    	    	    }
-    	    	    else if (object instanceof WithParam
-    	    	        && ((WithParam)object).getName().equals(name)) {
-    	    	        withParam.setDoParameterOptimization(true);
-    	    	        _parameters[k] = withParam;
-    	    	        break;
-    	    	    }
-    	    	}
-    	    }
-    	}
+                for (int k = 0; k < numParams; k++) {
+                    Object object = _parameters[k];
+                    if (object instanceof Param
+                        && ((Param)object).getName().equals(name)) {
+                        withParam.setDoParameterOptimization(true);
+                        _parameters[k] = withParam;
+                        break;
+                    }
+                    else if (object instanceof WithParam
+                        && ((WithParam)object).getName().equals(name)) {
+                        withParam.setDoParameterOptimization(true);
+                        _parameters[k] = withParam;
+                        break;
+                    }
+                }
+            }
+        }
      }
 }
-

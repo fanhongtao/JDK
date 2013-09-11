@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -27,9 +27,9 @@ import java.util.Vector;
 
 /**
  * A class used to hold the internal schema grammar set for the current instance
- * 
- * @xerces.internal  
- * 
+ *
+ * @xerces.internal
+ *
  * @author Sandy Gao, IBM
  * @version $Id: XSGrammarBucket.java,v 1.7 2010-11-01 04:39:55 joehw Exp $
  */

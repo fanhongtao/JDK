@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -35,10 +35,10 @@ import org.w3c.dom.NamedNodeMap;
 
 /**
  * DeferredElementNSImpl is to ElementNSImpl, what DeferredElementImpl is to
- * ElementImpl. 
- * 
+ * ElementImpl.
+ *
  * @xerces.internal
- * 
+ *
  * @see DeferredElementImpl
  */
 public class DeferredElementNSImpl
@@ -113,7 +113,7 @@ public class DeferredElementNSImpl
             localName = name.substring(index + 1);
         }
 
-	    namespaceURI = ownerDocument.getNodeURI(fNodeIndex);
+            namespaceURI = ownerDocument.getNodeURI(fNodeIndex);
         type = (XSTypeDefinition)ownerDocument.getTypeInfo(fNodeIndex);
 
         // attributes

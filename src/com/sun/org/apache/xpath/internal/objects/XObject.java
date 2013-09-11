@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -739,23 +739,23 @@ public class XObject extends Expression implements Serializable, Cloneable
    */
   public void callVisitors(ExpressionOwner owner, XPathVisitor visitor)
   {
-  	assertion(false, "callVisitors should not be called for this object!!!");
+        assertion(false, "callVisitors should not be called for this object!!!");
   }
   /**
    * @see Expression#deepEquals(Expression)
    */
   public boolean deepEquals(Expression expr)
   {
-  	if(!isSameClass(expr))
-  		return false;
+        if(!isSameClass(expr))
+                return false;
 
-  	// If equals at the expression level calls deepEquals, I think we're
-  	// still safe from infinite recursion since this object overrides
-  	// equals.  I hope.
-  	if(!this.equals((XObject)expr))
-  		return false;
+        // If equals at the expression level calls deepEquals, I think we're
+        // still safe from infinite recursion since this object overrides
+        // equals.  I hope.
+        if(!this.equals((XObject)expr))
+                return false;
 
-  	return true;
+        return true;
   }
 
 }

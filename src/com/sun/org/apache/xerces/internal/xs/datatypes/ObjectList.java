@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -22,11 +22,11 @@ package com.sun.org.apache.xerces.internal.xs.datatypes;
 import java.util.List;
 
 /**
- * <p>The <code>ObjectList</code> is an immutable ordered collection of 
- * <code>Object</code>.</p> 
- * 
+ * <p>The <code>ObjectList</code> is an immutable ordered collection of
+ * <code>Object</code>.</p>
+ *
  * @author Ankit Pasricha, IBM
- * 
+ *
  * @version $Id: ObjectList.java,v 1.7 2010-11-01 04:40:31 joehw Exp $
  */
 public interface ObjectList extends List {

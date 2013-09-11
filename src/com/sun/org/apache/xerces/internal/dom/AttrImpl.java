@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -104,11 +104,11 @@ import org.w3c.dom.Text;
  *
  * @xerces.internal
  *
- * @see AttrNSImpl 
+ * @see AttrNSImpl
  *
  * @author Arnaud  Le Hors, IBM
  * @author Joe Kesselman, IBM
- * @author Andy Clark, IBM 
+ * @author Andy Clark, IBM
  * @version $Id: AttrImpl.java,v 1.5 2008/06/10 00:59:32 joehw Exp $
  * @since PR-DOM-Level-1-19980818.
  *
@@ -123,7 +123,7 @@ public class AttrImpl
 
     /** Serialization version. */
     static final long serialVersionUID = 7277707688218972102L;
-    
+
     /** DTD namespace. **/
     static final String DTD_URI = "http://www.w3.org/TR/REC-xml";
 
@@ -136,7 +136,7 @@ public class AttrImpl
 
     /** Attribute name. */
     protected String name;
-    
+
     /** Type information */
     // REVISIT: we are losing the type information in DOM during serialization
     transient Object type;
@@ -152,7 +152,7 @@ public class AttrImpl
      * method in the Document class.
      */
     protected AttrImpl(CoreDocumentImpl ownerDocument, String name) {
-    	super(ownerDocument);
+        super(ownerDocument);
         this.name = name;
         /** False for default attributes. */
         isSpecified(true);
@@ -208,7 +208,7 @@ public class AttrImpl
 
     /**
      * NON-DOM: set the type of this attribute to be ID type.
-     * 
+     *
      * @param id
      */
     public void setIdAttribute(boolean id){
@@ -228,7 +228,7 @@ public class AttrImpl
     //
     // Node methods
     //
-    
+
     public Node cloneNode(boolean deep) {
 
         if (needsSyncChildren()) {
@@ -237,13 +237,13 @@ public class AttrImpl
         AttrImpl clone = (AttrImpl) super.cloneNode(deep);
 
         // take care of case where there are kids
-    	if (!clone.hasStringValue()) {
+        if (!clone.hasStringValue()) {
 
             // Need to break the association w/ original kids
             clone.value = null;
 
-            // Cloning an Attribute always clones its children, 
-            // since they represent its value, no matter whether this 
+            // Cloning an Attribute always clones its children,
+            // since they represent its value, no matter whether this
             // is a deep clone or not
             for (Node child = (Node) value; child != null;
                  child = child.getNextSibling()) {
@@ -279,9 +279,9 @@ public class AttrImpl
      * true.... even if that value equals the default.
      */
     public void setNodeValue(String value) throws DOMException {
-    	setValue(value);
+        setValue(value);
     }
-    
+
     /**
      * @see org.w3c.dom.TypeInfo#getTypeName()
      */
@@ -298,7 +298,7 @@ public class AttrImpl
         }
         return null;
     }
-    
+
     /**
      * Method getSchemaTypeInfo.
      * @return TypeInfo
@@ -314,7 +314,7 @@ public class AttrImpl
      * @see #getValue()
      */
     public String getNodeValue() {
-    	return getValue();
+        return getValue();
     }
 
     //
@@ -330,7 +330,7 @@ public class AttrImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-    	return name;
+        return name;
 
     } // getName():String
 
@@ -342,12 +342,12 @@ public class AttrImpl
     public void setValue(String newvalue) {
 
         CoreDocumentImpl ownerDocument = ownerDocument();
-        
+
         if (ownerDocument.errorChecking && isReadOnly()) {
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NO_MODIFICATION_ALLOWED_ERR", null);
             throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, msg);
         }
-        
+
         Element ownerElement = getOwnerElement();
         String oldvalue = "";
         if (needsSyncData()) {
@@ -413,7 +413,7 @@ public class AttrImpl
         // capture/bubble listeners on the Attr.
         // Note that aggregate events are NOT dispatched here,
         // since we need to combine the remove and insert.
-    	isSpecified(true);
+        isSpecified(true);
         if (ownerDocument.getMutationEvents()) {
             // if there are any event handlers create a real node
             internalInsertBefore(ownerDocument.createTextNode(newvalue),
@@ -451,7 +451,7 @@ public class AttrImpl
         if (hasStringValue()) {
             return (String) value;
         }
-        
+
         ChildNode firstChild = ((ChildNode) value);
 
         String data = null;
@@ -461,13 +461,13 @@ public class AttrImpl
         else {
                 data =  firstChild.getNodeValue();
         }
-        
+
         ChildNode node = firstChild.nextSibling;
-        
+
         if (node == null || data == null)  return (data == null)?"":data;
-        
+
         StringBuffer value = new StringBuffer(data);
-    	while (node != null) {
+        while (node != null) {
             if (node.getNodeType()  == Node.ENTITY_REFERENCE_NODE){
                 data = ((EntityReferenceImpl)node).getEntityRefValue();
                 if (data == null) return "";
@@ -477,12 +477,12 @@ public class AttrImpl
                 value.append(node.getNodeValue());
             }
             node = node.nextSibling;
-    	}
-    	return value.toString();
+        }
+        return value.toString();
 
     } // getValue():String
-    
-    
+
+
     /**
      * The "specified" flag is true if and only if this attribute's
      * value was explicitly specified in the original document. Note that
@@ -499,7 +499,7 @@ public class AttrImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-    	return isSpecified();
+        return isSpecified();
 
     } // getSpecified():boolean
 
@@ -533,7 +533,7 @@ public class AttrImpl
         // our ownerDocument and we don't have an ownerElement
         return (Element) (isOwned() ? ownerNode : null);
     }
-    
+
     public void normalize() {
 
         // No need to normalize if already normalized or
@@ -583,14 +583,14 @@ public class AttrImpl
         if (needsSyncData()) {
             synchronizeData();
         }
-    	isSpecified(arg);
+        isSpecified(arg);
 
     } // setSpecified(boolean)
-    
-	/**
-	 * NON-DOM: used by the parser
-	 * @param type
-	 */
+
+        /**
+         * NON-DOM: used by the parser
+         * @param type
+         */
     public void setType (Object type){
         this.type = type;
     }
@@ -601,7 +601,7 @@ public class AttrImpl
 
     /** NON-DOM method for debugging convenience */
     public String toString() {
-    	return getName() + "=" + "\"" + getValue() + "\"";
+        return getName() + "=" + "\"" + getValue() + "\"";
     }
 
     /**
@@ -629,7 +629,7 @@ public class AttrImpl
      * differently.
      */
     public NodeList getChildNodes() {
-        // JKESS: KNOWN ISSUE HERE 
+        // JKESS: KNOWN ISSUE HERE
 
         if (needsSyncChildren()) {
             synchronizeChildren();
@@ -645,7 +645,7 @@ public class AttrImpl
             synchronizeChildren();
         }
         makeChildNode();
-    	return (Node) value;
+        return (Node) value;
 
     }   // getFirstChild():Node
 
@@ -700,18 +700,18 @@ public class AttrImpl
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if this node is
      * read-only.
      */
-    public Node insertBefore(Node newChild, Node refChild) 
+    public Node insertBefore(Node newChild, Node refChild)
         throws DOMException {
         // Tail-call; optimizer should be able to do good things with.
         return internalInsertBefore(newChild, refChild, false);
     } // insertBefore(Node,Node):Node
-     
+
     /** NON-DOM INTERNAL: Within DOM actions,we sometimes need to be able
      * to control which mutation events are spawned. This version of the
      * insertBefore operation allows us to do so. It is not intended
      * for use by application programs.
      */
-    Node internalInsertBefore(Node newChild, Node refChild, boolean replace) 
+    Node internalInsertBefore(Node newChild, Node refChild, boolean replace)
         throws DOMException {
 
         CoreDocumentImpl ownerDocument = ownerDocument();
@@ -879,17 +879,17 @@ public class AttrImpl
      * @throws DOMException(NO_MODIFICATION_ALLOWED_ERR) if this node is
      * read-only.
      */
-    public Node removeChild(Node oldChild) 
+    public Node removeChild(Node oldChild)
         throws DOMException {
         // Tail-call, should be optimizable
         if (hasStringValue()) {
             // we don't have any child per say so it can't be one of them!
             String msg = DOMMessageFormatter.formatMessage(DOMMessageFormatter.DOM_DOMAIN, "NOT_FOUND_ERR", null);
-            throw new DOMException(DOMException.NOT_FOUND_ERR, msg);            
+            throw new DOMException(DOMException.NOT_FOUND_ERR, msg);
         }
         return internalRemoveChild(oldChild, false);
     } // removeChild(Node) :Node
-     
+
     /** NON-DOM INTERNAL: Within DOM actions,we sometimes need to be able
      * to control which mutation events are spawned. This version of the
      * removeChild operation allows us to do so. It is not intended
@@ -988,8 +988,8 @@ public class AttrImpl
         makeChildNode();
 
         // If Mutation Events are being generated, this operation might
-        // throw aggregate events twice when modifying an Attr -- once 
-        // on insertion and once on removal. DOM Level 2 does not specify 
+        // throw aggregate events twice when modifying an Attr -- once
+        // on insertion and once on removal. DOM Level 2 does not specify
         // this as either desirable or undesirable, but hints that
         // aggregations should be issued only once per user request.
 
@@ -1053,7 +1053,7 @@ public class AttrImpl
         ChildNode node = (ChildNode) value;
         for (int i = 0; i < index && node != null; i++) {
             node = node.nextSibling;
-        } 
+        }
         return node;
 
     } // item(int):Node
@@ -1075,24 +1075,24 @@ public class AttrImpl
      * Introduced in DOM Level 3. <p>
      * Checks if a type is derived from another by restriction. See:
      * http://www.w3.org/TR/DOM-Level-3-Core/core.html#TypeInfo-isDerivedFrom
-     * 
-     * @param ancestorNS 
+     *
+     * @param ancestorNS
      *        The namspace of the ancestor type declaration
      * @param ancestorName
      *        The name of the ancestor type declaration
      * @param type
      *        The reference type definition
-     * 
+     *
      * @return boolean True if the type is derived by restriciton for the
      *         reference type
      */
-    public boolean isDerivedFrom(String typeNamespaceArg, 
-                                 String typeNameArg, 
+    public boolean isDerivedFrom(String typeNamespaceArg,
+                                 String typeNameArg,
                                  int derivationMethod) {
-                                 	
+
         return false;
     }
-        
+
 
     //
     // Public methods

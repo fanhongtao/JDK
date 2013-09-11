@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -31,7 +31,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.traversal.NodeIterator;
 
 /**
- * This class overrides the XNodeSet#object() method to provide the original 
+ * This class overrides the XNodeSet#object() method to provide the original
  * Node object, NodeList object, or NodeIterator.
  */
 public class XNodeSetForDOM extends XNodeSet
@@ -47,7 +47,7 @@ public class XNodeSetForDOM extends XNodeSet
     setObject(new NodeSetDTM(dtmMgr));
     ((NodeSetDTM) m_obj).addNode(dtmHandle);
   }
-  
+
   /**
    * Construct a XNodeSet object.
    *
@@ -55,11 +55,11 @@ public class XNodeSetForDOM extends XNodeSet
    */
   public XNodeSetForDOM(XNodeSet val)
   {
-  	super(val);
-  	if(val instanceof XNodeSetForDOM)
-    	m_origObj = ((XNodeSetForDOM)val).m_origObj;
+        super(val);
+        if(val instanceof XNodeSetForDOM)
+        m_origObj = ((XNodeSetForDOM)val).m_origObj;
   }
-  
+
   public XNodeSetForDOM(NodeList nodeList, XPathContext xctxt)
   {
     m_dtmMgr = xctxt.getDTMManager();
@@ -87,7 +87,7 @@ public class XNodeSetForDOM extends XNodeSet
     m_last=nsdtm.getLength();
     setObject(nsdtm);
   }
-  
+
   /**
    * Return the original DOM object that the user passed in.  For use primarily
    * by the extension mechanism.
@@ -98,7 +98,7 @@ public class XNodeSetForDOM extends XNodeSet
   {
     return m_origObj;
   }
-  
+
   /**
    * Cast result object to a nodelist. Always issues an error.
    *
@@ -108,10 +108,10 @@ public class XNodeSetForDOM extends XNodeSet
    */
   public NodeIterator nodeset() throws javax.xml.transform.TransformerException
   {
-    return (m_origObj instanceof NodeIterator) 
-                   ? (NodeIterator)m_origObj : super.nodeset();      
+    return (m_origObj instanceof NodeIterator)
+                   ? (NodeIterator)m_origObj : super.nodeset();
   }
-  
+
   /**
    * Cast result object to a nodelist. Always issues an error.
    *
@@ -121,8 +121,8 @@ public class XNodeSetForDOM extends XNodeSet
    */
   public NodeList nodelist() throws javax.xml.transform.TransformerException
   {
-    return (m_origObj instanceof NodeList) 
-                   ? (NodeList)m_origObj : super.nodelist();      
+    return (m_origObj instanceof NodeList)
+                   ? (NodeList)m_origObj : super.nodelist();
   }
 
 

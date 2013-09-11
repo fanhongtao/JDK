@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -58,11 +58,11 @@ public abstract class XMLParser {
     // properties
 
     /** Property identifier: entity resolver. */
-    protected static final String ENTITY_RESOLVER = 
+    protected static final String ENTITY_RESOLVER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.ENTITY_RESOLVER_PROPERTY;
 
     /** Property identifier: error handler. */
-    protected static final String ERROR_HANDLER = 
+    protected static final String ERROR_HANDLER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.ERROR_HANDLER_PROPERTY;
 
     /** Recognized properties. */
@@ -85,12 +85,12 @@ public abstract class XMLParser {
     /**
      * Query the state of a feature.
      */
-    public boolean getFeature(String featureId) 
+    public boolean getFeature(String featureId)
             throws SAXNotSupportedException, SAXNotRecognizedException {
         return fConfiguration.getFeature(featureId);
 
     }
-    
+
     /**
      * Default Constructor.
      */
@@ -116,13 +116,13 @@ public abstract class XMLParser {
      * @exception XNIException
      * @exception java.io.IOException
      */
-    public void parse(XMLInputSource inputSource) 
+    public void parse(XMLInputSource inputSource)
         throws XNIException, IOException {
 
         reset();
         fConfiguration.parse(inputSource);
 
-    } // parse(XMLInputSource) 
+    } // parse(XMLInputSource)
 
     //
     // Protected methods

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -45,7 +45,7 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
     private Hashtable features;
     private Schema grammar;
     private boolean isXIncludeAware;
-    
+
     /**
      * State of the secure processing feature, initially <code>false</code>
      */
@@ -56,22 +56,22 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
      * using the currently configured parameters.
      */
     public DocumentBuilder newDocumentBuilder()
-        throws ParserConfigurationException 
+        throws ParserConfigurationException
     {
         /** Check that if a Schema has been specified that neither of the schema properties have been set. */
         if (grammar != null && attributes != null) {
             if (attributes.containsKey(JAXPConstants.JAXP_SCHEMA_LANGUAGE)) {
                 throw new ParserConfigurationException(
-                        SAXMessageFormatter.formatMessage(null, 
+                        SAXMessageFormatter.formatMessage(null,
                         "schema-already-specified", new Object[] {JAXPConstants.JAXP_SCHEMA_LANGUAGE}));
             }
             else if (attributes.containsKey(JAXPConstants.JAXP_SCHEMA_SOURCE)) {
                 throw new ParserConfigurationException(
-                        SAXMessageFormatter.formatMessage(null, 
-                        "schema-already-specified", new Object[] {JAXPConstants.JAXP_SCHEMA_SOURCE}));                
+                        SAXMessageFormatter.formatMessage(null,
+                        "schema-already-specified", new Object[] {JAXPConstants.JAXP_SCHEMA_SOURCE}));
             }
         }
-        
+
         try {
             return new DocumentBuilderImpl(this, attributes, features, fSecureProcess);
         } catch (SAXException se) {
@@ -81,7 +81,7 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
     }
 
     /**
-     * Allows the user to set specific attributes on the underlying 
+     * Allows the user to set specific attributes on the underlying
      * implementation.
      * @param name    name of attribute
      * @param value   null means to remove attribute
@@ -97,7 +97,7 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
             // Unrecognized attributes do not cause an exception
             return;
         }
-        
+
         // This is ugly.  We have to collect the attributes and then
         // later create a DocumentBuilderImpl to verify the attributes.
 
@@ -118,7 +118,7 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
     }
 
     /**
-     * Allows the user to retrieve specific attributes on the underlying 
+     * Allows the user to retrieve specific attributes on the underlying
      * implementation.
      */
     public Object getAttribute(String name)
@@ -151,24 +151,24 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
             }
         }
     }
-    
+
     public Schema getSchema() {
         return grammar;
     }
-    
+
     public void setSchema(Schema grammar) {
         this.grammar = grammar;
     }
-    
+
     public boolean isXIncludeAware() {
         return this.isXIncludeAware;
     }
-    
+
     public void setXIncludeAware(boolean state) {
         this.isXIncludeAware = state;
     }
-    
-    public boolean getFeature(String name) 
+
+    public boolean getFeature(String name)
         throws ParserConfigurationException {
         if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
             return fSecureProcess;
@@ -188,14 +188,14 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
             throw new ParserConfigurationException(e.getMessage());
         }
     }
-    
-    public void setFeature(String name, boolean value) 
+
+    public void setFeature(String name, boolean value)
         throws ParserConfigurationException {
         // If this is the secure processing feature, save it then return.
         if (name.equals(XMLConstants.FEATURE_SECURE_PROCESSING)) {
             if (System.getSecurityManager() != null && (!value)) {
                 throw new ParserConfigurationException(
-                        SAXMessageFormatter.formatMessage(null, 
+                        SAXMessageFormatter.formatMessage(null,
                         "jaxp-secureprocessing-feature", null));
             }
             fSecureProcess = value;
@@ -208,11 +208,11 @@ public class DocumentBuilderFactoryImpl extends DocumentBuilderFactory {
         // Test the feature by possibly throwing SAX exceptions
         try {
             new DocumentBuilderImpl(this, attributes, features);
-        } 
+        }
         catch (SAXNotSupportedException e) {
             features.remove(name);
             throw new ParserConfigurationException(e.getMessage());
-        } 
+        }
         catch (SAXNotRecognizedException e) {
             features.remove(name);
             throw new ParserConfigurationException(e.getMessage());

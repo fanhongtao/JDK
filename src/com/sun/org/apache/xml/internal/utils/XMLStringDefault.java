@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -150,6 +150,22 @@ public class XMLStringDefault implements XMLString
     {
       dst[destIndex++] = m_str.charAt(i);
     }
+  }
+
+   /**
+   * Compares this string to the specified <code>String</code>.
+   * The result is <code>true</code> if and only if the argument is not
+   * <code>null</code> and is a <code>String</code> object that represents
+   * the same sequence of characters as this object.
+   *
+   * @param   obj2   the object to compare this <code>String</code> against.
+   * @return  <code>true</code> if the <code>String</code>s are equal;
+   *          <code>false</code> otherwise.
+   * @see     java.lang.String#compareTo(java.lang.String)
+   * @see     java.lang.String#equalsIgnoreCase(java.lang.String)
+   */
+  public boolean equals(String obj2) {
+      return m_str.equals(obj2);
   }
 
   /**

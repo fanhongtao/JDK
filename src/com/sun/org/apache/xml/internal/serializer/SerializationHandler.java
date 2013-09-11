@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -124,5 +124,11 @@ public interface SerializationHandler
      */
     public void setDTDEntityExpansion(boolean expand);
 
+    /**
+     * Specify if the output will be treated as a standalone  property
+     * @param isStandalone true if the http://www.oracle.com/xml/is-standalone is set to yes
+     * @see OutputPropertiesFactory ORACLE_IS_STANDALONE
+     */
+    public void setIsStandalone(boolean b);
 
 }

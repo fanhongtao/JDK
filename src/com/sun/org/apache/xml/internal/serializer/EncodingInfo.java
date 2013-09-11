@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -46,17 +46,17 @@ import java.io.UnsupportedEncodingException;
  * explicitly (<code>m_explFirst</code> to <code>m_explLast</code>).
  * If the unicode point is before that explicit range, that is it
  * is in the range <code>m_first <= value < m_explFirst</code>, then it will delegate to another EncodingInfo object for The root
- * of such a tree, m_before.  Likewise for values in the range 
+ * of such a tree, m_before.  Likewise for values in the range
  * <code>m_explLast < value <= m_last</code>, but delgating to <code>m_after</code>
  * <p>
  * Actually figuring out if a code point is in the encoding is expensive. So the
  * purpose of this tree is to cache such determinations, and not to build the
- * entire tree of information at the start, but only build up as much of the 
+ * entire tree of information at the start, but only build up as much of the
  * tree as is used during the transformation.
  * <p>
  * This Class is not a public API, and should only be used internally within
  * the serializer.
- * 
+ *
  * @xsl.usage internal
  */
 public final class EncodingInfo extends Object
@@ -79,7 +79,7 @@ public final class EncodingInfo extends Object
      * is in this encoding.
      */
     private InEncoding m_encoding;
-    
+
     /**
      * This is not a public API. It returns true if the
      * char in question is in the encoding.
@@ -89,15 +89,15 @@ public final class EncodingInfo extends Object
     public boolean isInEncoding(char ch) {
         if (m_encoding == null) {
             m_encoding = new EncodingImpl();
-            
+
             // One could put alternate logic in here to
             // instantiate another object that implements the
             // InEncoding interface. For example if the JRE is 1.4 or up
             // we could have an object that uses JRE 1.4 methods
         }
-        return m_encoding.isInEncoding(ch); 
+        return m_encoding.isInEncoding(ch);
     }
-    
+
     /**
      * This is not a public API. It returns true if the
      * character formed by the high/low pair is in the encoding.
@@ -108,13 +108,13 @@ public final class EncodingInfo extends Object
     public boolean isInEncoding(char high, char low) {
         if (m_encoding == null) {
             m_encoding = new EncodingImpl();
-            
+
             // One could put alternate logic in here to
             // instantiate another object that implements the
             // InEncoding interface. For example if the JRE is 1.4 or up
             // we could have an object that uses JRE 1.4 methods
         }
-        return m_encoding.isInEncoding(high, low); 
+        return m_encoding.isInEncoding(high, low);
     }
 
     /**
@@ -132,16 +132,16 @@ public final class EncodingInfo extends Object
         this.name = name;
         this.javaName = javaName;
     }
-    
-    
-    
+
+
+
     /**
      * A simple interface to isolate the implementation.
      * We could also use some new JRE 1.4 methods in another implementation
      * provided we use reflection with them.
      * <p>
      * This interface is not a public API,
-     * and should only be used internally within the serializer. 
+     * and should only be used internally within the serializer.
      * @xsl.usage internal
      */
     private interface InEncoding {
@@ -157,10 +157,10 @@ public final class EncodingInfo extends Object
     }
 
     /**
-     * This class implements the 
+     * This class implements the
      */
     private class EncodingImpl implements InEncoding {
-        
+
 
 
         public boolean isInEncoding(char ch1) {
@@ -169,7 +169,7 @@ public final class EncodingInfo extends Object
             if (codePoint < m_explFirst) {
                 // The unicode value is before the range
                 // that we explictly manage, so we delegate the answer.
-                
+
                 // If we don't have an m_before object to delegate to, make one.
                 if (m_before == null)
                     m_before =
@@ -182,7 +182,7 @@ public final class EncodingInfo extends Object
             } else if (m_explLast < codePoint) {
                 // The unicode value is after the range
                 // that we explictly manage, so we delegate the answer.
-                
+
                 // If we don't have an m_after object to delegate to, make one.
                 if (m_after == null)
                     m_after =
@@ -195,13 +195,13 @@ public final class EncodingInfo extends Object
             } else {
                 // The unicode value is in the range we explitly handle
                 final int idx = codePoint - m_explFirst;
-                
+
                 // If we already know the answer, just return it.
                 if (m_alreadyKnown[idx])
                     ret = m_isInEncoding[idx];
                 else {
                     // We don't know the answer, so find out,
-                    // which may be expensive, then cache the answer 
+                    // which may be expensive, then cache the answer
                     ret = inEncoding(ch1, m_encoding);
                     m_alreadyKnown[idx] = true;
                     m_isInEncoding[idx] = ret;
@@ -216,7 +216,7 @@ public final class EncodingInfo extends Object
             if (codePoint < m_explFirst) {
                 // The unicode value is before the range
                 // that we explictly manage, so we delegate the answer.
-                
+
                 // If we don't have an m_before object to delegate to, make one.
                 if (m_before == null)
                     m_before =
@@ -229,7 +229,7 @@ public final class EncodingInfo extends Object
             } else if (m_explLast < codePoint) {
                 // The unicode value is after the range
                 // that we explictly manage, so we delegate the answer.
-                
+
                 // If we don't have an m_after object to delegate to, make one.
                 if (m_after == null)
                     m_after =
@@ -242,13 +242,13 @@ public final class EncodingInfo extends Object
             } else {
                 // The unicode value is in the range we explitly handle
                 final int idx = codePoint - m_explFirst;
-                
+
                 // If we already know the answer, just return it.
                 if (m_alreadyKnown[idx])
                     ret = m_isInEncoding[idx];
                 else {
                     // We don't know the answer, so find out,
-                    // which may be expensive, then cache the answer 
+                    // which may be expensive, then cache the answer
                     ret = inEncoding(high, low, m_encoding);
                     m_alreadyKnown[idx] = true;
                     m_isInEncoding[idx] = ret;
@@ -268,7 +268,7 @@ public final class EncodingInfo extends Object
          * range
          */
         final private int m_first;
-        
+
         /**
          * m_explFirst through m_explLast is the range of unicode
          * value that this object handles explicitly and does not
@@ -292,10 +292,10 @@ public final class EncodingInfo extends Object
          * to which this object may delegate.
          */
         private InEncoding m_after;
-        
+
         /**
          * The number of unicode values explicitly handled
-         * by a single EncodingInfo object. This value is 
+         * by a single EncodingInfo object. This value is
          * tuneable, but is set to 128 because that covers the
          * entire low range of ASCII type chars within a single
          * object.
@@ -312,7 +312,7 @@ public final class EncodingInfo extends Object
          * value is in the encoding.
          */
         final private boolean m_isInEncoding[] = new boolean[RANGE];
-        
+
         private EncodingImpl() {
             // This object will answer whether any unicode value
             // is in the encoding, it handles values 0 through Integer.MAX_VALUE
@@ -323,17 +323,17 @@ public final class EncodingInfo extends Object
             // Set the range of unicode values that this object manages
             // either explicitly or implicitly.
             m_first = first;
-            m_last = last;  
-                      
-            // Set the range of unicode values that this object 
+            m_last = last;
+
+            // Set the range of unicode values that this object
             // explicitly manages. Align the explicitly managed values
-            // to RANGE so multiple EncodingImpl objects dont manage the same 
+            // to RANGE so multiple EncodingImpl objects dont manage the same
             // values.
             m_explFirst = codePoint / RANGE * RANGE;
             m_explLast = m_explFirst + (RANGE-1);
-            
+
             m_encoding = encoding;
-            
+
             if (javaName != null)
             {
                 // Some optimization.
@@ -347,7 +347,7 @@ public final class EncodingInfo extends Object
                         || "Unicode".equals(javaName)
                         || "UNICODE".equals(javaName)
                         || javaName.startsWith("ISO8859")) {
-                        
+
                         // Not only does this EncodingImpl object explicitly
                         // handle chracters in the low range, it is
                         // also one that we know something about, without
@@ -370,7 +370,7 @@ public final class EncodingInfo extends Object
                 }
 
                 /* A little bit more than optimization.
-                 * 
+                 *
                  * We will say that any character is in the encoding if
                  * we don't have an encoding.
                  * This is meaningful when the serializer is being used
@@ -399,38 +399,38 @@ public final class EncodingInfo extends Object
      * @param ch the char in question, that is not a high char of
      * a high/low surrogate pair.
      * @param encoding the Java name of the enocding.
-     * 
+     *
      * @xsl.usage internal
-     * 
+     *
      */
     private static boolean inEncoding(char ch, String encoding) {
         boolean isInEncoding;
         try {
             char cArray[] = new char[1];
             cArray[0] = ch;
-            // Construct a String from the char 
+            // Construct a String from the char
             String s = new String(cArray);
-            // Encode the String into a sequence of bytes 
-            // using the given, named charset. 
+            // Encode the String into a sequence of bytes
+            // using the given, named charset.
             byte[] bArray = s.getBytes(encoding);
             isInEncoding = inEncoding(ch, bArray);
 
         } catch (Exception e) {
             isInEncoding = false;
-            
+
             // If for some reason the encoding is null, e.g.
             // for a temporary result tree, we should just
             // say that every character is in the encoding.
             if (encoding == null)
-            	isInEncoding = true;
+                isInEncoding = true;
         }
         return isInEncoding;
     }
-    
+
     /**
      * This is heart of the code that determines if a given high/low
      * surrogate pair forms a character that is in the given encoding.
-     * This method is probably expensive, and the answer should be cached. 
+     * This method is probably expensive, and the answer should be cached.
      * <p>
      * This method is not a public API,
      * and should only be used internally within the serializer.
@@ -438,29 +438,29 @@ public final class EncodingInfo extends Object
      * a high/low surrogate pair.
      * @param low the low char of a high/low surrogate pair.
      * @param encoding the Java name of the encoding.
-     * 
+     *
      * @xsl.usage internal
-     * 
-     */ 
+     *
+     */
     private static boolean inEncoding(char high, char low, String encoding) {
         boolean isInEncoding;
         try {
             char cArray[] = new char[2];
             cArray[0] = high;
             cArray[1] = low;
-            // Construct a String from the char 
+            // Construct a String from the char
             String s = new String(cArray);
-            // Encode the String into a sequence of bytes 
-            // using the given, named charset. 
+            // Encode the String into a sequence of bytes
+            // using the given, named charset.
             byte[] bArray = s.getBytes(encoding);
             isInEncoding = inEncoding(high,bArray);
         } catch (Exception e) {
             isInEncoding = false;
         }
-        
+
         return isInEncoding;
-    } 
-    
+    }
+
     /**
      * This method is the core of determining if character
      * is in the encoding. The method is not foolproof, because
@@ -477,7 +477,7 @@ public final class EncodingInfo extends Object
         // If the string written out as data is not in the encoding,
         // the output is not specified according to the documentation
         // on the String.getBytes(encoding) method,
-        // but we do our best here.        
+        // but we do our best here.
         if (data==null || data.length == 0) {
             isInEncoding = false;
         }
@@ -488,11 +488,11 @@ public final class EncodingInfo extends Object
                 isInEncoding = false;
             /*
              * else if (isJapanese) {
-             *   // isJapanese is really 
-             *   //   (    "EUC-JP".equals(javaName) 
+             *   // isJapanese is really
+             *   //   (    "EUC-JP".equals(javaName)
              *   //    ||  "EUC_JP".equals(javaName)
              *  //     ||  "SJIS".equals(javaName)   )
-             * 
+             *
              *   // Work around some bugs in JRE for Japanese
              *   if(data[0] == 0x21)
              *     isInEncoding = false;
@@ -501,11 +501,11 @@ public final class EncodingInfo extends Object
              *   else
              *     isInEncoding = true;
              * }
-             */ 
-                
+             */
+
             else {
                 // We don't know for sure, but it looks like it is in the encoding
-                isInEncoding = true; 
+                isInEncoding = true;
             }
         }
         return isInEncoding;

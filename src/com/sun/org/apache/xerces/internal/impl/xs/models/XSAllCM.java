@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 /**
  * XSAllCM implements XSCMValidator and handles &lt;all&gt;.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Pavani Mukthipudi, Sun Microsystems Inc.
  * @version $Id: XSAllCM.java,v 1.10 2010-11-01 04:39:58 joehw Exp $
@@ -125,7 +125,7 @@ public class XSAllCM implements XSCMValidator {
 
         // seen child
         currentState[0] = STATE_CHILD;
-        
+
         Object matchingDecl = null;
 
         for (int i = 0; i < fNumElements; i++) {
@@ -201,7 +201,7 @@ public class XSAllCM implements XSCMValidator {
      * Check which elements are valid to appear at this point. This method also
      * works if the state is in error, in which case it returns what should
      * have been seen.
-     * 
+     *
      * @param state  the current state
      * @return       a Vector whose entries are instances of
      *               either XSWildcardDecl or XSElementDecl.
@@ -222,4 +222,3 @@ public class XSAllCM implements XSCMValidator {
     }
 
 } // class XSAllCM
-

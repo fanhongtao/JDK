@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -644,7 +644,7 @@ public class ErrorMessages_sv extends ListResourceBundle {
          */
         {ErrorMsg.XSLTC_SOURCE_ERR,
         "XSLTCSource.build() anropades utan angivet systemId."},
-        
+
         { ErrorMsg.ER_RESULT_NULL,
             "Result borde inte vara null"},
 
@@ -653,7 +653,7 @@ public class ErrorMessages_sv extends ListResourceBundle {
          * of setParameter must be a valid Java Object.
          */
         {ErrorMsg.JAXP_INVALID_SET_PARAM_VALUE,
-        "Parameterv\u00E4rdet f\u00F6r {0} m\u00E5ste vara giltigt Java-objekt"},            
+        "Parameterv\u00E4rdet f\u00F6r {0} m\u00E5ste vara giltigt Java-objekt"},
 
 
         {ErrorMsg.COMPILE_STDIN_ERR,
@@ -805,7 +805,7 @@ public class ErrorMessages_sv extends ListResourceBundle {
          */
         {ErrorMsg.ERROR_MSG,
         "ERROR:  ''{0}''"},
-        
+
         /*
          * Note to translators:  The substitution text is the name of a class.
          */
@@ -862,7 +862,7 @@ public class ErrorMessages_sv extends ListResourceBundle {
          */
         {ErrorMsg.RUNTIME_ERROR_KEY,
         "Transletfel:"},
-        
+
         /*
          * Note to translators:  An attribute whose value is constrained to
          * be a "QName" or a list of "QNames" had a value that was incorrect.
@@ -870,7 +870,7 @@ public class ErrorMessages_sv extends ListResourceBundle {
          * substitution text contains the actual value of the attribute.
          */
         {ErrorMsg.INVALID_QNAME_ERR,
-        "Ett attribut vars v\u00E4rde m\u00E5ste vara ett QName eller en blankteckenseparerad lista med QNames hade v\u00E4rdet ''{0}''"}, 
+        "Ett attribut vars v\u00E4rde m\u00E5ste vara ett QName eller en blankteckenseparerad lista med QNames hade v\u00E4rdet ''{0}''"},
 
         /*
          * Note to translators:  An attribute whose value is required to
@@ -893,10 +893,10 @@ public class ErrorMessages_sv extends ListResourceBundle {
          */
         {ErrorMsg.INVALID_METHOD_IN_OUTPUT,
         "Metodattributet f\u00F6r ett <xsl:output>-element hade v\u00E4rdet ''{0}''. Endast n\u00E5got av f\u00F6ljande v\u00E4rden kan anv\u00E4ndas: ''xml'', ''html'', ''text'' eller qname-but-not-ncname i XML"},
-        
+
         {ErrorMsg.JAXP_GET_FEATURE_NULL_NAME,
         "Funktionsnamnet kan inte vara null i TransformerFactory.getFeature(namn p\u00E5 str\u00E4ng)."},
-        
+
         {ErrorMsg.JAXP_SET_FEATURE_NULL_NAME,
         "Funktionsnamnet kan inte vara null i TransformerFactory.setFeature(namn p\u00E5 str\u00E4ng, booleskt v\u00E4rde)."},
 

@@ -37,7 +37,7 @@ package javax.xml.parsers;
 
 public class FactoryConfigurationError extends Error {
     private static final long serialVersionUID = -827108682472263355L;
-    
+
     /**
      *<code>Exception</code> that represents the error.
      */
@@ -59,7 +59,7 @@ public class FactoryConfigurationError extends Error {
      *
      * @param msg The error message for the exception.
      */
-    
+
     public FactoryConfigurationError(String msg) {
         super(msg);
         this.exception = null;
@@ -73,7 +73,7 @@ public class FactoryConfigurationError extends Error {
      * @param e The exception to be encapsulated in a
      * FactoryConfigurationError.
      */
-    
+
     public FactoryConfigurationError(Exception e) {
         super(e.toString());
         this.exception = e;
@@ -87,7 +87,7 @@ public class FactoryConfigurationError extends Error {
      * FactoryConfigurationError
      * @param msg The detail message.
      */
-    
+
     public FactoryConfigurationError(Exception e, String msg) {
         super(msg);
         this.exception = e;
@@ -97,30 +97,30 @@ public class FactoryConfigurationError extends Error {
     /**
      * Return the message (if any) for this error . If there is no
      * message for the exception and there is an encapsulated
-     * exception then the message of that exception, if it exists will be 
+     * exception then the message of that exception, if it exists will be
      * returned. Else the name of the encapsulated exception will be
      * returned.
      *
      * @return The error message.
      */
-    
+
     public String getMessage () {
         String message = super.getMessage ();
-  
+
         if (message == null && exception != null) {
             return exception.getMessage();
         }
 
         return message;
     }
-  
+
     /**
      * Return the actual exception (if any) that caused this exception to
      * be raised.
      *
      * @return The encapsulated exception, or null if there is none.
      */
-    
+
     public Exception getException () {
         return exception;
     }

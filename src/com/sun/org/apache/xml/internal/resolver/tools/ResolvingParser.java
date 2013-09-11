@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 // ResolvingParser.java - An interface for reading catalog files
@@ -42,6 +42,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.SAXParser;
 
+import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 import com.sun.org.apache.xml.internal.resolver.Catalog;
 import com.sun.org.apache.xml.internal.resolver.CatalogManager;
 import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
@@ -62,6 +63,7 @@ import com.sun.org.apache.xml.internal.resolver.helpers.FileURL;
  * @author Norman Walsh
  * <a href="mailto:Norman.Walsh@Sun.COM">Norman.Walsh@Sun.COM</a>
  *
+ * @version 1.0
  */
 public class ResolvingParser
   implements Parser, DTDHandler, DocumentHandler, EntityResolver {
@@ -121,8 +123,8 @@ public class ResolvingParser
   /** Initialize the parser. */
   private void initParser() {
     catalogResolver = new CatalogResolver(catalogManager);
-
-    SAXParserFactory spf = SAXParserFactory.newInstance();
+    SAXParserFactory spf = catalogManager.useServicesMechanism() ?
+                    SAXParserFactory.newInstance() : new SAXParserFactoryImpl();
     spf.setNamespaceAware(namespaceAware);
     spf.setValidating(validating);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -23,6 +23,7 @@
 
 package com.sun.org.apache.xalan.internal.xsltc.compiler.util;
 
+import com.sun.org.apache.bcel.internal.classfile.Method;
 import com.sun.org.apache.bcel.internal.generic.ALOAD;
 import com.sun.org.apache.bcel.internal.generic.ClassGen;
 import com.sun.org.apache.bcel.internal.generic.Instruction;
@@ -133,5 +134,11 @@ public class ClassGenerator extends ClassGen {
      */
     public boolean isExternal() {
         return false;
+    }
+    public void addMethod(MethodGenerator methodGen) {
+        Method[] methodsToAdd = methodGen.getGeneratedMethods(this);
+        for (int i = 0; i < methodsToAdd.length; i++) {
+            addMethod(methodsToAdd[i]);
+}
     }
 }

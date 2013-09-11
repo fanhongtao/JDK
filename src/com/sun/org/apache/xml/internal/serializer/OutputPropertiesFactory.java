@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -174,6 +174,26 @@ public final class OutputPropertiesFactory
      */
     public static final int S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL_LEN =
         S_BUILTIN_OLD_EXTENSIONS_UNIVERSAL.length();
+
+    /**
+     * This non-standard, Oracle-impl only property key is used as if OutputKeys.STANDALONE is specified but
+     * without writing it out in the declaration; It can be used to reverse the change by Xalan patch 1495.
+     * Since Xalan patch 1495 can cause incompatible behavior, this property is add for application to neutralize
+     * the effect of Xalan patch 1495
+     */
+        /**
+         * <p>Is Standalone</p>
+         *
+         * <ul>
+         *   <li>
+         *     <code>yes</code> to indicate the output is intended to be used as standalone
+         *   </li>
+         *   <li>
+         *     <code>no</code> has no effect.
+         *   </li>
+         * </ul>
+         */
+    public static final String ORACLE_IS_STANDALONE = "http://www.oracle.com/xml/is-standalone";
 
     //************************************************************
     //*  PRIVATE CONSTANTS

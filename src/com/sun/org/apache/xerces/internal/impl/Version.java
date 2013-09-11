@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -72,7 +72,7 @@ public class Version {
     // Data
     //
 
-    /** Version string. 
+    /** Version string.
      * @deprecated  getVersion() should be used instead.  */
     public static String fVersion = "Xerces-J 2.7.1";
 

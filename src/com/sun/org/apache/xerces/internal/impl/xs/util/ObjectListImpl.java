@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -28,7 +28,7 @@ import com.sun.org.apache.xerces.internal.xs.datatypes.ObjectList;
 
 /**
  * Contains a list of Objects.
- * 
+ *
  * @xerces.internal
  *
  * @version $Id: ObjectListImpl.java,v 1.2 2010-10-26 23:01:04 joehw Exp $

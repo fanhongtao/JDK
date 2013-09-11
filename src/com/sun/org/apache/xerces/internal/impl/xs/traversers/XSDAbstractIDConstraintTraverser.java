@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -34,7 +34,7 @@ import org.w3c.dom.Element;
  * traversers (the XSDUniqueTraverser, XSDKeyTraverser and
  * XSDKeyrefTraverser) rely upon.
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @version $Id: XSDAbstractIDConstraintTraverser.java,v 1.7 2010-11-01 04:40:02 joehw Exp $
  */
@@ -192,4 +192,3 @@ class XSDAbstractIDConstraintTraverser extends XSDAbstractTraverser {
         return ic.getFieldCount() > 0;
     } // traverseIdentityConstraint(IdentityConstraint,Element, XSDocumentInfo)
 } // XSDAbstractIDConstraintTraverser
-

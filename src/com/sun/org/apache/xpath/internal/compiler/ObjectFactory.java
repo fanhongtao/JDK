@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -324,13 +324,13 @@ class ObjectFactory {
                         fXalanProperties.load(fis);
                         fis.close();
                     }
-	            } catch (Exception x) {
-	                fXalanProperties = null;
-	                fLastModified = -1;
+                    } catch (Exception x) {
+                        fXalanProperties = null;
+                        fLastModified = -1;
                         // assert(x instanceof FileNotFoundException
-	                //        || x instanceof SecurityException)
-	                // In both cases, ignore and continue w/ next location
-	            }
+                        //        || x instanceof SecurityException)
+                        // In both cases, ignore and continue w/ next location
+                    }
             }
             if(fXalanProperties != null) {
                 factoryClassName = fXalanProperties.getProperty(factoryId);

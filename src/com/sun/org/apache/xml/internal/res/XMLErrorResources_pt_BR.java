@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -93,7 +93,7 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
   public static final int MAX_MESSAGES = MAX_CODE + MAX_WARNING + 1;
 
 
-  /* 
+  /*
    * Message keys
    */
   public static final String ER_FUNCTION_NOT_SUPPORTED = "ER_FUNCTION_NOT_SUPPORTED";
@@ -149,14 +149,14 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
   public static final String ER_SYSTEMID_UNKNOWN = "ER_SYSTEMID_UNKNOWN";
   public static final String ER_LOCATION_UNKNOWN = "ER_LOCATION_UNKNOWN";
   public static final String ER_PREFIX_MUST_RESOLVE = "ER_PREFIX_MUST_RESOLVE";
-  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";  
+  public static final String ER_CREATEDOCUMENT_NOT_SUPPORTED = "ER_CREATEDOCUMENT_NOT_SUPPORTED";
   public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT";
-  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";  
-  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";  
-  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";  
-  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";  
-  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";  
-  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";  
+  public static final String ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT = "ER_CHILD_HAS_NO_OWNER_DOCUMENT_ELEMENT";
+  public static final String ER_CANT_OUTPUT_TEXT_BEFORE_DOC = "ER_CANT_OUTPUT_TEXT_BEFORE_DOC";
+  public static final String ER_CANT_HAVE_MORE_THAN_ONE_ROOT = "ER_CANT_HAVE_MORE_THAN_ONE_ROOT";
+  public static final String ER_ARG_LOCALNAME_NULL = "ER_ARG_LOCALNAME_NULL";
+  public static final String ER_ARG_LOCALNAME_INVALID = "ER_ARG_LOCALNAME_INVALID";
+  public static final String ER_ARG_PREFIX_INVALID = "ER_ARG_PREFIX_INVALID";
   public static final String ER_NAME_CANT_START_WITH_COLON = "ER_NAME_CANT_START_WITH_COLON";
 
   // Message keys used by the serializer
@@ -187,8 +187,8 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
 
   /** Error message ID that has a null message, but takes in a single object.    */
     {"ER0000" , "{0}" },
- 
-    { ER_FUNCTION_NOT_SUPPORTED, 
+
+    { ER_FUNCTION_NOT_SUPPORTED,
       "Fun\u00E7\u00E3o n\u00E3o suportada!"},
 
     { ER_CANNOT_OVERWRITE_CAUSE,
@@ -205,7 +205,7 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
 
     { ER_COROUTINE_NOT_AVAIL,
       "Co-rotina n\u00E3o dispon\u00EDvel, id={0}"},
-    
+
     { ER_COROUTINE_CO_EXIT,
       "CoroutineManager recebeu a solicita\u00E7\u00E3o co_exit()"},
 
@@ -241,7 +241,7 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
 
     { ER_NOT_SUPPORTED,
       "N\u00E3o suportado: {0}"},
-    
+
     { ER_NODE_NON_NULL,
       "O n\u00F3 deve ser n\u00E3o-nulo para getDTMHandleFromNode"},
 
@@ -265,7 +265,7 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
 
     { ER_SCHEME_REQUIRED,
        "\u00C9 necess\u00E1rio um esquema!"},
-    
+
     { ER_NO_SCHEME_IN_URI,
        "Nenhum esquema encontrado no URI: {0}"},
 
@@ -304,7 +304,7 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
 
     { ER_CANNOT_CHANGE_WHILE_PARSING,
       "N\u00E3o \u00E9 poss\u00EDvel alterar {0} {1} durante o parse"},
-   
+
     { ER_SELF_CAUSATION_NOT_PERMITTED,
       "Autoaverigua\u00E7\u00E3o n\u00E3o permitida"},
 
@@ -314,18 +314,18 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
     { ER_NO_PORT_IF_NO_HOST,
       "A porta n\u00E3o pode ser especificada se o host n\u00E3o tiver sido especificado"},
 
-    { ER_NO_QUERY_STRING_IN_PATH, 
+    { ER_NO_QUERY_STRING_IN_PATH,
       "A string de consulta n\u00E3o pode ser especificada no caminho nem na string de consulta"},
 
     { ER_NO_FRAGMENT_STRING_IN_PATH,
       "O fragmento n\u00E3o pode ser especificado no caminho nem no fragmento"},
 
-    { ER_CANNOT_INIT_URI_EMPTY_PARMS, 
+    { ER_CANNOT_INIT_URI_EMPTY_PARMS,
       "N\u00E3o \u00E9 poss\u00EDvel inicializar o URI com par\u00E2metros vazios"},
 
     { ER_METHOD_NOT_SUPPORTED,
       "M\u00E9todo ainda n\u00E3o suportado "},
-    
+
     { ER_INCRSAXSRCFILTER_NOT_RESTARTABLE,
       "IncrementalSAXSource_Filter atualmente n\u00E3o reinicializ\u00E1vel"},
 
@@ -364,7 +364,7 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
 
     { ER_ARG_LOCALNAME_NULL,
        "O argumento 'localName' \u00E9 nulo"},
- 
+
     // Note to translators:  A QNAME has the syntactic form [NCName:]NCName
     // The localname is the portion after the optional colon; the message indicates
     // that there is a problem with that part of the QNAME.
@@ -376,33 +376,33 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
     // that there is a problem with that part of the QNAME.
     { ER_ARG_PREFIX_INVALID,
        "O prefixo em QNAME deve ser um NCName v\u00E1lido"},
-       
+
     { ER_NAME_CANT_START_WITH_COLON,
       "O nome n\u00E3o pode come\u00E7ar com dois pontos"},
-       
+
     { "BAD_CODE", "O par\u00E2metro para createMessage estava fora dos limites"},
     { "FORMAT_FAILED", "Exce\u00E7\u00E3o gerada durante a chamada messageFormat"},
     { "line", "N\u00B0 da Linha"},
     { "column","N\u00B0 da Coluna"},
-    
+
     {ER_SERIALIZER_NOT_CONTENTHANDLER,
       "A classe ''{0}'' do serializador n\u00E3o implementa org.xml.sax.ContentHandler."},
-    
+
     {ER_RESOURCE_COULD_NOT_FIND,
       "N\u00E3o foi poss\u00EDvel encontrar o recurso [ {0} ].\n {1}" },
-    
+
     {ER_RESOURCE_COULD_NOT_LOAD,
       "O recurso [ {0} ] n\u00E3o foi carregado: {1} \n {2} \t {3}" },
-    
+
     {ER_BUFFER_SIZE_LESSTHAN_ZERO,
       "Tamanho do buffer <=0" },
-    
+
     {ER_INVALID_UTF16_SURROGATE,
       "Foi detectado um substituto de UTF-16 inv\u00E1lido: {0} ?" },
-    
+
     {ER_OIERROR,
       "Erro de E/S" },
-    
+
     {ER_ILLEGAL_ATTRIBUTE_POSITION,
       "N\u00E3o \u00E9 poss\u00EDvel adicionar o atributo {0} depois dos n\u00F3s filhos ou antes que um elemento seja produzido. O atributo ser\u00E1 ignorado."},
 
@@ -437,28 +437,28 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
 
     { ER_ILLEGAL_CHARACTER,
        "Tentativa de exibir um caractere de valor integral {0} que n\u00E3o est\u00E1 representado na codifica\u00E7\u00E3o de sa\u00EDda especificada de {1}."},
-    
+
     {ER_COULD_NOT_LOAD_METHOD_PROPERTY,
       "N\u00E3o foi poss\u00EDvel carregar o arquivo de propriedade ''{0}'' para o m\u00E9todo de sa\u00EDda ''{1}'' (verificar CLASSPATH)" }
-    
-  
+
+
   };
   private static final Object[][] msgCopy = new Object[contents.length][2];
     // return a copy of contents; in theory we want a deep clone
     // of contents, but since it only contains (immutable) Strings,
     // this shallow copy is sufficient
   static {
-	for (int i = 0; i < contents.length; i++) {
+        for (int i = 0; i < contents.length; i++) {
             msgCopy[i][0] = contents[i][0];
             msgCopy[i][1] = contents[i][1];
-	}
+        }
   }
   /**
    * Get the association list.
    *
    * @return The association list.
    */
- 
+
     protected Object[][] getContents() {
         return msgCopy;
     }
@@ -525,5 +525,5 @@ public class XMLErrorResources_pt_BR extends ListResourceBundle
 
     return suffix;
   }
-  
+
 }

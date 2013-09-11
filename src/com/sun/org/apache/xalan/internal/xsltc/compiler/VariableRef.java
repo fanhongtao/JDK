@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -70,12 +70,10 @@ final class VariableRef extends VariableRefBase {
                 }
                 else {
                     il.append(_variable.loadInstruction());
-                    _variable.removeReference(this);
                 }
             }
             else {
                 il.append(_variable.loadInstruction());
-                _variable.removeReference(this);
             }
         }
         else {

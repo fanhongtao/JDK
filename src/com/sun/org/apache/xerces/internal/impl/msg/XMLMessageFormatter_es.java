@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -28,9 +28,9 @@ import java.util.PropertyResourceBundle;
 import com.sun.org.apache.xerces.internal.util.MessageFormatter;
 
 /**
- * XMLMessageFormatter provides error messages for the XML 1.0 Recommendation and for 
+ * XMLMessageFormatter provides error messages for the XML 1.0 Recommendation and for
  * the Namespaces Recommendation
- * 
+ *
  * @xerces.internal
  *
  * @author Eric Ye, IBM
@@ -47,7 +47,7 @@ public class XMLMessageFormatter_es implements MessageFormatter {
     // private objects to cache the locale and resource bundle
     private Locale fLocale = null;
     private ResourceBundle fResourceBundle = null;
-    
+
     //
     // MessageFormatter methods
     //
@@ -55,21 +55,21 @@ public class XMLMessageFormatter_es implements MessageFormatter {
     /**
      * Formats a message with the specified arguments using the given
      * locale information.
-     * 
+     *
      * @param locale    The locale of the message.
      * @param key       The message key.
      * @param arguments The message replacement text arguments. The order
      *                  of the arguments must match that of the placeholders
      *                  in the actual message.
-     * 
+     *
      * @return Returns the formatted message.
      *
      * @throws MissingResourceException Thrown if the message with the
      *                                  specified key cannot be found.
      */
-    public String formatMessage(Locale locale, String key, Object[] arguments) 
+    public String formatMessage(Locale locale, String key, Object[] arguments)
         throws MissingResourceException {
-        
+
         if (fResourceBundle == null || locale != fLocale) {
             if (locale != null) {
                 fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages", locale);
@@ -79,7 +79,7 @@ public class XMLMessageFormatter_es implements MessageFormatter {
             if (fResourceBundle == null)
                 fResourceBundle = PropertyResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.msg.XMLMessages");
         }
-        
+
         // format message
         String msg;
         try {
@@ -87,12 +87,12 @@ public class XMLMessageFormatter_es implements MessageFormatter {
             if (arguments != null) {
                 try {
                     msg = java.text.MessageFormat.format(msg, arguments);
-                } 
+                }
                 catch (Exception e) {
                     msg = fResourceBundle.getString("FormatFailed");
                     msg += " " + fResourceBundle.getString(key);
                 }
-            } 
+            }
         }
 
         // error

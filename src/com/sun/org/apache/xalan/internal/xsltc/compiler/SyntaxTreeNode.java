@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -512,9 +512,12 @@ public abstract class SyntaxTreeNode implements Constants {
                                      MethodGenerator methodGen) {
         // Call translate() on all child nodes
         final int n = elementCount();
+
         for (int i = 0; i < n; i++) {
+            methodGen.markChunkStart();
             final SyntaxTreeNode item = (SyntaxTreeNode)_contents.elementAt(i);
             item.translate(classGen, methodGen);
+            methodGen.markChunkEnd();
         }
 
         // After translation, unmap any registers for any variables/parameters

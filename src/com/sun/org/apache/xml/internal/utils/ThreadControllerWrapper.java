@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -28,23 +28,23 @@ package com.sun.org.apache.xml.internal.utils;
  */
 public class ThreadControllerWrapper
 {
-  
+
   /** The ThreadController pool   */
   private static ThreadController m_tpool = new ThreadController();
-  
+
   public static Thread runThread(Runnable runnable, int priority)
   {
     return m_tpool.run(runnable, priority);
   }
-  
+
   public static void waitThread(Thread worker, Runnable task)
     throws InterruptedException
   {
     m_tpool.waitThread(worker, task);
   }
-  
+
   /**
-   * Thread controller utility class for incremental SAX source. Must 
+   * Thread controller utility class for incremental SAX source. Must
    * be overriden with a derived class to support thread pooling.
    *
    * All thread-related stuff is in this class.
@@ -57,11 +57,11 @@ public class ThreadControllerWrapper
      */
     final class SafeThread extends Thread {
          private volatile boolean ran = false;
-         
+
          public SafeThread(Runnable target) {
              super(target);
          }
-         
+
          public final void run() {
              if (Thread.currentThread() != this) {
                  throw new IllegalStateException("The run() method in a"
@@ -74,8 +74,8 @@ public class ThreadControllerWrapper
                 else {
                  throw new IllegalStateException("The run() method in a"
                      + " SafeThread cannot be called more than once.");
-                 }                 
-             }             
+                 }
+             }
              super.run();
          }
     }
@@ -122,5 +122,5 @@ public class ThreadControllerWrapper
       worker.join();
     }
   }
- 
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -36,8 +36,8 @@ import com.sun.org.apache.xerces.internal.xs.XSSimpleTypeDefinition;
 /**
  * The XML representation for an attribute declaration
  * schema component is an <attribute> element information item
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Elena Litani, IBM
  * @author Sandy Gao, IBM

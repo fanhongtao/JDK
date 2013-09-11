@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -33,8 +33,8 @@ import com.sun.org.apache.xerces.internal.xs.XSWildcard;
 /**
  * The XML representation for an attribute group declaration
  * schema component is a global <attributeGroup> element information item
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Sandy Gao, IBM
  * @author Rahul Srivastava, Sun Microsystems Inc.
@@ -191,7 +191,7 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
 
                 if (baseAttrUse.getRequired() && !attrUse.getRequired()) {
                     errorArgs = new Object[]{typeName, attrDecl.fName,
-                    	                     attrUse.fUse == SchemaSymbols.USE_OPTIONAL ? SchemaSymbols.ATTVAL_OPTIONAL : SchemaSymbols.ATTVAL_PROHIBITED,
+                                             attrUse.fUse == SchemaSymbols.USE_OPTIONAL ? SchemaSymbols.ATTVAL_OPTIONAL : SchemaSymbols.ATTVAL_PROHIBITED,
                                              "derivation-ok-restriction.2.1.1"};
                     return errorArgs;
                 }
@@ -209,9 +209,9 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
                 if (! XSConstraints.checkSimpleDerivationOk(attrDecl.fType,
                                                             baseAttrDecl.fType,
                                                             baseAttrDecl.fType.getFinal()) ) {
-					errorArgs = new Object[]{typeName, attrDecl.fName, attrDecl.fType.getName(),
-						                     baseAttrDecl.fType.getName(), "derivation-ok-restriction.2.1.2"};
-					return errorArgs;
+                                        errorArgs = new Object[]{typeName, attrDecl.fName, attrDecl.fType.getName(),
+                                                                     baseAttrDecl.fType.getName(), "derivation-ok-restriction.2.1.2"};
+                                        return errorArgs;
                 }
 
 
@@ -226,9 +226,9 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
                 if (baseConsType == XSConstants.VC_FIXED) {
 
                     if (thisConstType != XSConstants.VC_FIXED) {
-						errorArgs = new Object[]{typeName, attrDecl.fName,
-												 "derivation-ok-restriction.2.1.3.a"};
-						return errorArgs;
+                                                errorArgs = new Object[]{typeName, attrDecl.fName,
+                                                                                                 "derivation-ok-restriction.2.1.3.a"};
+                                                return errorArgs;
                     } else {
                         // check the values are the same.
                         ValidatedInfo baseFixedValue=(baseAttrUse.fDefault!=null ?
@@ -236,9 +236,9 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
                         ValidatedInfo thisFixedValue=(attrUse.fDefault!=null ?
                                                       attrUse.fDefault: attrDecl.fDefault);
                         if (!baseFixedValue.actualValue.equals(thisFixedValue.actualValue)) {
-							errorArgs = new Object[]{typeName, attrDecl.fName, thisFixedValue.stringValue(),
-													 baseFixedValue.stringValue(), "derivation-ok-restriction.2.1.3.b"};
-							return errorArgs;
+                                                        errorArgs = new Object[]{typeName, attrDecl.fName, thisFixedValue.stringValue(),
+                                                                                                         baseFixedValue.stringValue(), "derivation-ok-restriction.2.1.3.b"};
+                                                        return errorArgs;
                         }
 
                     }
@@ -251,15 +251,15 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
                 // derivation-ok-restriction.  Constraint 2.2
                 //
                 if (baseGroup.fAttributeWC == null) {
-					errorArgs = new Object[]{typeName, attrDecl.fName,
-											 "derivation-ok-restriction.2.2.a"};
-					return errorArgs;
+                                        errorArgs = new Object[]{typeName, attrDecl.fName,
+                                                                                         "derivation-ok-restriction.2.2.a"};
+                                        return errorArgs;
                 }
                 else if (!baseGroup.fAttributeWC.allowNamespace(attrDecl.fTargetNamespace)) {
-					errorArgs = new Object[]{typeName, attrDecl.fName,
+                                        errorArgs = new Object[]{typeName, attrDecl.fName,
                                              attrDecl.fTargetNamespace==null?"":attrDecl.fTargetNamespace,
-											 "derivation-ok-restriction.2.2.b"};
-					return errorArgs;
+                                                                                         "derivation-ok-restriction.2.2.b"};
+                                        return errorArgs;
                 }
             }
         }
@@ -278,9 +278,9 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
                 baseAttrDecl = baseAttrUse.fAttrDecl;
                 // Look for a match in this group
                 if (getAttributeUse(baseAttrDecl.fTargetNamespace,baseAttrDecl.fName) == null) {
-					errorArgs = new Object[]{typeName, baseAttrUse.fAttrDecl.fName,
-											 "derivation-ok-restriction.3"};
-					return errorArgs;
+                                        errorArgs = new Object[]{typeName, baseAttrUse.fAttrDecl.fName,
+                                                                                         "derivation-ok-restriction.3"};
+                                        return errorArgs;
                 }
             }
         }
@@ -292,19 +292,19 @@ public class XSAttributeGroupDecl implements XSAttributeGroupDefinition {
         //
         if (fAttributeWC != null) {
             if (baseGroup.fAttributeWC == null) {
-				errorArgs = new Object[]{typeName, "derivation-ok-restriction.4.1"};
-				return errorArgs;
+                                errorArgs = new Object[]{typeName, "derivation-ok-restriction.4.1"};
+                                return errorArgs;
             }
             if (! fAttributeWC.isSubsetOf(baseGroup.fAttributeWC)) {
-				errorArgs = new Object[]{typeName, "derivation-ok-restriction.4.2"};
-				return errorArgs;
+                                errorArgs = new Object[]{typeName, "derivation-ok-restriction.4.2"};
+                                return errorArgs;
             }
             if (fAttributeWC.weakerProcessContents(baseGroup.fAttributeWC)) {
-				errorArgs = new Object[]{typeName,
-										 fAttributeWC.getProcessContentsAsString(),
-										 baseGroup.fAttributeWC.getProcessContentsAsString(),
-										 "derivation-ok-restriction.4.3"};
-				return errorArgs;
+                                errorArgs = new Object[]{typeName,
+                                                                                 fAttributeWC.getProcessContentsAsString(),
+                                                                                 baseGroup.fAttributeWC.getProcessContentsAsString(),
+                                                                                 "derivation-ok-restriction.4.3"};
+                                return errorArgs;
             }
         }
 

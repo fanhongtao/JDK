@@ -29,9 +29,9 @@
 package javax.xml.stream;
 
 /**
- * This interface is used to resolve resources during an XML parse.  If an application wishes to 
+ * This interface is used to resolve resources during an XML parse.  If an application wishes to
  * perform custom entity resolution it must register an instance of this interface with
- * the XMLInputFactory using the setXMLResolver method.  
+ * the XMLInputFactory using the setXMLResolver method.
  *
  * @version 1.0
  * @author Copyright (c) 2009 by Oracle Corporation. All Rights Reserved.
@@ -58,4 +58,3 @@ public interface XMLResolver {
                               String namespace)
     throws XMLStreamException;
 }
-

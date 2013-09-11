@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -25,8 +25,8 @@ package com.sun.org.apache.xerces.internal.xni;
  * can be constructed with an error message or used to wrap another
  * exception object.
  * <p>
- * <strong>Note:</strong> By extending the Java 
- * <code>RuntimeException</code>, XNI handlers and components are 
+ * <strong>Note:</strong> By extending the Java
+ * <code>RuntimeException</code>, XNI handlers and components are
  * not required to catch XNI exceptions but may explicitly catch
  * them, if so desired.
  *
@@ -34,12 +34,12 @@ package com.sun.org.apache.xerces.internal.xni;
  *
  * @version $Id: XNIException.java,v 1.6 2010-11-01 04:40:19 joehw Exp $
  */
-public class XNIException 
+public class XNIException
     extends RuntimeException {
 
     /** Serialization version. */
     static final long serialVersionUID = 9019819772686063775L;
-    
+
     //
     // Data
     //
@@ -52,7 +52,7 @@ public class XNIException
     //
 
     /**
-     * Constructs an XNI exception with a message. 
+     * Constructs an XNI exception with a message.
      *
      * @param message The exception message.
      */
@@ -61,7 +61,7 @@ public class XNIException
     } // <init>(String)
 
     /**
-     * Constructs an XNI exception with a wrapped exception. 
+     * Constructs an XNI exception with a wrapped exception.
      *
      * @param exception The wrapped exception.
      */
@@ -71,7 +71,7 @@ public class XNIException
     } // <init>(Exception)
 
     /**
-     * Constructs an XNI exception with a message and wrapped exception. 
+     * Constructs an XNI exception with a message and wrapped exception.
      *
      * @param message The exception message.
      * @param exception The wrapped exception.

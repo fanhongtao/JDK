@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -38,12 +38,12 @@ import java.util.Properties;
  * <p>
  * This code is designed to implement the JAXP 1.1 spec pluggability
  * feature and is designed to run on JDK version 1.1 and
- * later, and to compile on JDK 1.2 and onward.  
+ * later, and to compile on JDK 1.2 and onward.
  * The code also runs both as part of an unbundled jar file and
  * when bundled as part of the JDK.
  * <p>
  * This class was moved from the <code>javax.xml.parsers.ObjectFactory</code>
- * class and modified to be used as a general utility for creating objects 
+ * class and modified to be used as a general utility for creating objects
  * dynamically.
  *
  * @xsl.usage internal
@@ -126,7 +126,7 @@ class ObjectFactory {
      *
      * @exception ObjectFactory.ConfigurationError
      */
-    static Object createObject(String factoryId, 
+    static Object createObject(String factoryId,
                                       String propertiesFilename,
                                       String fallbackClassName)
         throws ConfigurationError
@@ -173,7 +173,7 @@ class ObjectFactory {
      *
      * @exception ObjectFactory.ConfigurationError
      */
-    static Class lookUpFactoryClass(String factoryId) 
+    static Class lookUpFactoryClass(String factoryId)
         throws ConfigurationError
     {
         return lookUpFactoryClass(factoryId, null, null);
@@ -322,13 +322,13 @@ class ObjectFactory {
                         fis = ss.getFileInputStream(propertiesFile);
                         fXalanProperties.load(fis);
                     }
-	        } catch (Exception x) {
-	            fXalanProperties = null;
-	            fLastModified = -1;
+                } catch (Exception x) {
+                    fXalanProperties = null;
+                    fLastModified = -1;
                     // assert(x instanceof FileNotFoundException
-	            //        || x instanceof SecurityException)
-	            // In both cases, ignore and continue w/ next location
-	        }
+                    //        || x instanceof SecurityException)
+                    // In both cases, ignore and continue w/ next location
+                }
                 finally {
                     // try to close the input stream if one was opened.
                     if (fis != null) {
@@ -338,7 +338,7 @@ class ObjectFactory {
                         // Ignore the exception.
                         catch (IOException exc) {}
                     }
-                }	            
+                }
             }
             if(fXalanProperties != null) {
                 factoryClassName = fXalanProperties.getProperty(factoryId);
@@ -364,7 +364,7 @@ class ObjectFactory {
                     // Ignore the exception.
                     catch (IOException exc) {}
                 }
-            }               
+            }
         }
         if (factoryClassName != null) {
             if (DEBUG) debugPrintln("found in " + propertiesFilename + ", value="
@@ -393,7 +393,7 @@ class ObjectFactory {
      */
     static ClassLoader findClassLoader()
         throws ConfigurationError
-    { 
+    {
         SecuritySupport ss = SecuritySupport.getInstance();
 
         // Figure out which ClassLoader to use for loading the provider
@@ -449,7 +449,7 @@ class ObjectFactory {
 
     /**
      * Create an instance of a class using the specified ClassLoader
-     */ 
+     */
     static Object newInstance(String className, ClassLoader cl,
                                       boolean doFallback)
         throws ConfigurationError
@@ -473,11 +473,11 @@ class ObjectFactory {
 
     /**
      * Find a Class using the specified ClassLoader
-     */ 
+     */
     static Class findProviderClass(String className, ClassLoader cl,
                                            boolean doFallback)
         throws ClassNotFoundException, ConfigurationError
-    {   
+    {
         //throw security exception if the calling thread is not allowed to access the
         //class. Restrict the access to the package classes as specified in java.security policy.
         SecurityManager security = System.getSecurityManager();
@@ -487,11 +487,11 @@ class ObjectFactory {
                     String packageName = className;
                     if (lastDot != -1) packageName = className.substring(0, lastDot);
                     security.checkPackageAccess(packageName);
-                 }   
+                 }
         }catch(SecurityException e){
             throw e;
         }
-        
+
         Class providerClass;
         if (cl == null) {
             // XXX Use the bootstrap ClassLoader.  There is no way to
@@ -583,7 +583,7 @@ class ObjectFactory {
         } catch (java.io.UnsupportedEncodingException e) {
             rd = new BufferedReader(new InputStreamReader(is));
         }
-        
+
         String factoryClassName = null;
         try {
             // XXX Does not handle all possible input as specified by the
@@ -600,7 +600,7 @@ class ObjectFactory {
             }
             // Ignore the exception.
             catch (IOException exc) {}
-        }          
+        }
 
         if (factoryClassName != null &&
             ! "".equals(factoryClassName)) {
@@ -625,7 +625,7 @@ class ObjectFactory {
     /**
      * A configuration error.
      */
-    static class ConfigurationError 
+    static class ConfigurationError
         extends Error {
                 static final long serialVersionUID = 8859254254255146542L;
         //

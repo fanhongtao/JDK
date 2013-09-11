@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -427,7 +427,7 @@ public class AxesWalker extends PredicatedNodeTest
       return -1;
     }
 
-    walker.setPredicateCount(walker.getPredicateCount() - 1);
+    walker.setPredicateCount(m_predicateIndex);
     walker.setNextWalker(null);
     walker.setPrevWalker(null);
 

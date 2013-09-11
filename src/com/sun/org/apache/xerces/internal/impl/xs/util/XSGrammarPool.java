@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -33,9 +33,9 @@ import com.sun.org.apache.xerces.internal.xs.XSModel;
 /**
  * Add a method that return an <code>XSModel</code> that represents components in
  * the schema grammars in this pool implementation.
- * 
- * @xerces.internal  
- * 
+ *
+ * @xerces.internal
+ *
  * @version $Id: XSGrammarPool.java,v 1.7 2010-11-01 04:40:06 joehw Exp $
  */
 public class XSGrammarPool extends XMLGrammarPoolImpl {
@@ -47,7 +47,7 @@ public class XSGrammarPool extends XMLGrammarPoolImpl {
      * @return  an <code>XSModel</code> representing this schema grammar
      */
     public XSModel toXSModel() {
-    	return toXSModel(Constants.SCHEMA_VERSION_1_0);
+        return toXSModel(Constants.SCHEMA_VERSION_1_0);
     }
 
     public XSModel toXSModel(short schemaVersion) {

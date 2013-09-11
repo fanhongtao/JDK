@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -27,17 +27,17 @@ import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarPool;
 /**
  * <p>Implementation of Schema for W3C XML Schemas
  * which contains no schema components.</p>
- * 
+ *
  * @author Michael Glavassevich, IBM
  * @version $Id: EmptyXMLSchema.java,v 1.6 2010-11-01 04:40:08 joehw Exp $
  */
 final class EmptyXMLSchema extends AbstractXMLSchema implements XMLGrammarPool {
-        
+
     /** Zero length grammar array. */
     private static final Grammar [] ZERO_LENGTH_GRAMMAR_ARRAY = new Grammar [0];
-    
+
     public EmptyXMLSchema() {}
-    
+
     /*
      * XMLGrammarPool methods
      */
@@ -57,7 +57,7 @@ final class EmptyXMLSchema extends AbstractXMLSchema implements XMLGrammarPool {
     public void unlockPool() {}
 
     public void clear() {}
-    
+
     /*
      * XSGrammarPoolContainer methods
      */

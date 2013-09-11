@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -447,8 +447,18 @@ public class SynthComboBoxUI extends BasicComboBoxUI implements
     private class SynthComboBoxRenderer extends JLabel implements ListCellRenderer, UIResource {
         public SynthComboBoxRenderer() {
             super();
-            setName("ComboBox.renderer");
             setText(" ");
+        }
+
+        @Override
+        public String getName() {
+            // SynthComboBoxRenderer should have installed Name while constructor is working.
+            // The setName invocation in the SynthComboBoxRenderer() constructor doesn't work
+            // because of the opaque property is installed in the constructor based on the
+            // component name (see GTKStyle.isOpaque())
+            String name = super.getName();
+
+            return name == null ? "ComboBox.renderer" : name;
         }
 
         @Override

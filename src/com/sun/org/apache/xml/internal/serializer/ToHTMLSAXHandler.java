@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -56,7 +56,7 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
     /**
      * Keeps track of whether output escaping is currently enabled
      */
-    protected boolean m_escapeSetting = false;
+    protected boolean m_escapeSetting = true;
 
     /**
      * Returns null.
@@ -742,6 +742,6 @@ public final class ToHTMLSAXHandler extends ToSAXHandler
      */
     private void resetToHTMLSAXHandler()
     {
-        this.m_escapeSetting = false;
+        this.m_escapeSetting = true;
     }
 }

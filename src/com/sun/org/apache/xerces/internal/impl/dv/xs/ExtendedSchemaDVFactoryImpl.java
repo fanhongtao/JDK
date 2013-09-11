@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -27,8 +27,8 @@ import com.sun.org.apache.xerces.internal.util.SymbolHash;
 /**
  * A special factory to create/return built-in schema DVs and create user-defined DVs
  * that includes anyAtomicType, yearMonthDuration and dayTimeDuration
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Khaled Noaman, IBM
  *
@@ -40,7 +40,7 @@ public class ExtendedSchemaDVFactoryImpl extends BaseSchemaDVFactory {
     static {
         createBuiltInTypes();
     }
-    
+
     // create all built-in types
     static void createBuiltInTypes() {
         final String ANYATOMICTYPE     = "anyAtomicType";
@@ -48,7 +48,7 @@ public class ExtendedSchemaDVFactoryImpl extends BaseSchemaDVFactory {
         final String YEARMONTHDURATION = "yearMonthDuration";
         final String DAYTIMEDURATION   = "dayTimeDuration";
 
-    	createBuiltInTypes(fBuiltInTypes, XSSimpleTypeDecl.fAnyAtomicType);
+        createBuiltInTypes(fBuiltInTypes, XSSimpleTypeDecl.fAnyAtomicType);
 
         // add anyAtomicType
         fBuiltInTypes.put(ANYATOMICTYPE, XSSimpleTypeDecl.fAnyAtomicType);

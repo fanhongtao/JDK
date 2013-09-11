@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -25,8 +25,8 @@ import java.util.Locale;
 /**
  * ValidationContext has all the information required for the
  * validation of: id, idref, entity, notation, qname
- * 
- * @xerces.internal 
+ *
+ * @xerces.internal
  *
  * @author Sandy Gao, IBM
  * @version $Id: ValidationContext.java,v 1.6 2010/07/23 02:09:29 joehw Exp $

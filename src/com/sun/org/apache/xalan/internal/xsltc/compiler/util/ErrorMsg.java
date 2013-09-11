@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -121,7 +121,7 @@ public final class ErrorMsg {
     public static final String SAX2DOM_ADAPTER_ERR = "SAX2DOM_ADAPTER_ERR";
     public static final String XSLTC_SOURCE_ERR = "XSLTC_SOURCE_ERR";
     public static final String ER_RESULT_NULL = "ER_RESULT_NULL";
-    public static final String JAXP_INVALID_SET_PARAM_VALUE = "JAXP_INVALID_SET_PARAM_VALUE";        
+    public static final String JAXP_INVALID_SET_PARAM_VALUE = "JAXP_INVALID_SET_PARAM_VALUE";
     public static final String JAXP_SET_FEATURE_NULL_NAME = "JAXP_SET_FEATURE_NULL_NAME";
     public static final String JAXP_GET_FEATURE_NULL_NAME = "JAXP_GET_FEATURE_NULL_NAME";
     public static final String JAXP_UNSUPPORTED_FEATURE = "JAXP_UNSUPPORTED_FEATURE";
@@ -156,11 +156,19 @@ public final class ErrorMsg {
     public static final String INVALID_QNAME_ERR = "INVALID_QNAME_ERR";
     public static final String INVALID_NCNAME_ERR = "INVALID_NCNAME_ERR";
     public static final String INVALID_METHOD_IN_OUTPUT = "INVALID_METHOD_IN_OUTPUT";
-                                                     
+
+    public static final String OUTLINE_ERR_TRY_CATCH = "OUTLINE_ERR_TRY_CATCH";
+    public static final String OUTLINE_ERR_UNBALANCED_MARKERS =
+                                            "OUTLINE_ERR_UNBALANCED_MARKERS";
+    public static final String OUTLINE_ERR_DELETED_TARGET =
+                                            "OUTLINE_ERR_DELETED_TARGET";
+    public static final String OUTLINE_ERR_METHOD_TOO_BIG =
+                                            "OUTLINE_ERR_METHOD_TOO_BIG";
+
     // All error messages are localized and are stored in resource bundles.
     // This array and the following 4 strings are read from that bundle.
     private static ResourceBundle _bundle;
-    
+
     public final static String ERROR_MESSAGES_KEY   = "ERROR_MESSAGES_KEY";
     public final static String COMPILER_ERROR_KEY   = "COMPILER_ERROR_KEY";
     public final static String COMPILER_WARNING_KEY = "COMPILER_WARNING_KEY";
@@ -173,135 +181,134 @@ public final class ErrorMsg {
     }
 
     public ErrorMsg(String code) {
-	_code = code;
-	_line = 0;
+        _code = code;
+        _line = 0;
     }
-	
+
     public ErrorMsg(Throwable e) {
-   	_code = null;
-	_message = e.getMessage();
-	_line = 0;
+        _code = null;
+        _message = e.getMessage();
+        _line = 0;
     }
 
     public ErrorMsg(String message, int line) {
-	_code = null;
-	_message = message;
-	_line = line;
+        _code = null;
+        _message = message;
+        _line = line;
     }
 
     public ErrorMsg(String code, int line, Object param) {
-	_code = code;
-	_line = line;
-	_params = new Object[] { param };
+        _code = code;
+        _line = line;
+        _params = new Object[] { param };
     }
 
     public ErrorMsg(String code, Object param) {
-	this(code);
-	_params = new Object[1];
-	_params[0] = param;
+        this(code);
+        _params = new Object[1];
+        _params[0] = param;
     }
 
     public ErrorMsg(String code, Object param1, Object param2) {
-	this(code);
-	_params = new Object[2];
-	_params[0] = param1;
-	_params[1] = param2;
+        this(code);
+        _params = new Object[2];
+        _params[0] = param1;
+        _params[1] = param2;
     }
 
     public ErrorMsg(String code, SyntaxTreeNode node) {
-	_code = code;
-	_url  = getFileName(node);
-	_line = node.getLineNumber();
+        _code = code;
+        _url  = getFileName(node);
+        _line = node.getLineNumber();
     }
 
     public ErrorMsg(String code, Object param1, SyntaxTreeNode node) {
-	_code = code;
-	_url  = getFileName(node);
-	_line = node.getLineNumber();
-	_params = new Object[1];
-	_params[0] = param1;
+        _code = code;
+        _url  = getFileName(node);
+        _line = node.getLineNumber();
+        _params = new Object[1];
+        _params[0] = param1;
     }
 
     public ErrorMsg(String code, Object param1, Object param2,
-		    SyntaxTreeNode node) {
-	_code = code;
-	_url  = getFileName(node);
-	_line = node.getLineNumber();
-	_params = new Object[2];
-	_params[0] = param1;
-	_params[1] = param2;
+                    SyntaxTreeNode node) {
+        _code = code;
+        _url  = getFileName(node);
+        _line = node.getLineNumber();
+        _params = new Object[2];
+        _params[0] = param1;
+        _params[1] = param2;
     }
 
     private String getFileName(SyntaxTreeNode node) {
-	Stylesheet stylesheet = node.getStylesheet();
-	if (stylesheet != null)
-	    return stylesheet.getSystemId();
-	else
-	    return null;
+        Stylesheet stylesheet = node.getStylesheet();
+        if (stylesheet != null)
+            return stylesheet.getSystemId();
+        else
+            return null;
     }
 
     private String formatLine() {
-	StringBuffer result = new StringBuffer();
-	if (_url != null) {
-	    result.append(_url);
-	    result.append(": ");
-	}
-	if (_line > 0) {
-	    result.append("line ");
-	    result.append(Integer.toString(_line));
-	    result.append(": ");
-	}
-	return result.toString();
+        StringBuffer result = new StringBuffer();
+        if (_url != null) {
+            result.append(_url);
+            result.append(": ");
+        }
+        if (_line > 0) {
+            result.append("line ");
+            result.append(Integer.toString(_line));
+            result.append(": ");
+        }
+        return result.toString();
     }
-	
+
     /**
      * This version of toString() uses the _params instance variable
      * to format the message. If the <code>_code</code> is negative
      * the use _message as the error string.
      */
     public String toString() {
-	String suffix = (_params == null) ? 
-	    (null != _code ? new String(getErrorMessage()) : _message)
-	    : MessageFormat.format(getErrorMessage(), _params);
-	return formatLine() + suffix;
+        String suffix = (_params == null) ?
+            (null != _code ? getErrorMessage() : _message)
+            : MessageFormat.format(getErrorMessage(), _params);
+        return formatLine() + suffix;
     }
-	
+
     public String toString(Object obj) {
-	Object params[] = new Object[1];
-	params[0] = obj.toString();
-	String suffix = MessageFormat.format(getErrorMessage(), params);
-	return formatLine() + suffix;
+        Object params[] = new Object[1];
+        params[0] = obj.toString();
+        String suffix = MessageFormat.format(getErrorMessage(), params);
+        return formatLine() + suffix;
     }
-	
+
     public String toString(Object obj0, Object obj1) {
-	Object params[] = new Object[2];
-	params[0] = obj0.toString();
-	params[1] = obj1.toString();
-	String suffix = MessageFormat.format(getErrorMessage(), params);
-	return formatLine() + suffix;
+        Object params[] = new Object[2];
+        params[0] = obj0.toString();
+        params[1] = obj1.toString();
+        String suffix = MessageFormat.format(getErrorMessage(), params);
+        return formatLine() + suffix;
     }
 
     /**
      * Return an ErrorMessages string corresponding to the _code
      * This function is temporary until the three special-cased keys
      * below are moved into ErrorMessages
-     * 
+     *
      * @return ErrorMessages string
-     */    
+     */
     private String getErrorMessage() {
       return _bundle.getString(_code);
     }
-    
+
     // If the _isWarningError flag is true, the error is treated as
     // a warning by the compiler, but should be reported as an error
-    // to the ErrorListener. This is a workaround for the TCK failure 
+    // to the ErrorListener. This is a workaround for the TCK failure
     // ErrorListener.errorTests.error001.
     public void setWarningError(boolean flag) {
-    	_isWarningError = flag;
+        _isWarningError = flag;
 }
 
     public boolean isWarningError() {
         return _isWarningError;
     }
 }
-

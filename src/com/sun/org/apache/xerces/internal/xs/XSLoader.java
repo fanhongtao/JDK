@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -24,7 +24,7 @@ import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.ls.LSInput;
 
 /**
- * An interface that provides a method to load XML Schema documents. This 
+ * An interface that provides a method to load XML Schema documents. This
  * interface uses the DOM Level 3 Core and Load and Save interfaces.
  */
 public interface XSLoader {

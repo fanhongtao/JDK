@@ -25,6 +25,7 @@
 
 package com.sun.org.apache.xerces.internal.jaxp.validation;
 
+import com.sun.org.apache.xerces.internal.impl.Constants;
 import java.io.IOException;
 
 import javax.xml.transform.Result;
@@ -32,6 +33,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.sax.SAXTransformerFactory;
@@ -47,27 +49,30 @@ import org.xml.sax.SAXException;
  * @author <a href="mailto:Sunitha.Reddy@Sun.com">Sunitha Reddy</a>
  */
 public final class StAXValidatorHelper implements ValidatorHelper {
-    
+    private static final String DEFAULT_TRANSFORMER_IMPL = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
+
     /** Component manager. **/
     private XMLSchemaValidatorComponentManager fComponentManager;
-    
+
     private Transformer identityTransformer1 = null;
     private TransformerHandler identityTransformer2 = null;
     private ValidatorHandlerImpl handler = null;
-    
+
     /** Creates a new instance of StaxValidatorHelper */
     public StAXValidatorHelper(XMLSchemaValidatorComponentManager componentManager) {
         fComponentManager = componentManager;
     }
-    
-    public void validate(Source source, Result result) 
+
+    public void validate(Source source, Result result)
         throws SAXException, IOException {
-        
+
         if (result == null || result instanceof StAXResult) {
-         
+
             if( identityTransformer1==null ) {
                 try {
-                    SAXTransformerFactory tf = (SAXTransformerFactory)SAXTransformerFactory.newInstance();
+                    SAXTransformerFactory tf = fComponentManager.getFeature(Constants.ORACLE_FEATURE_SERVICE_MECHANISM) ?
+                                    (SAXTransformerFactory)SAXTransformerFactory.newInstance()
+                                    : (SAXTransformerFactory) TransformerFactory.newInstance(DEFAULT_TRANSFORMER_IMPL, StAXValidatorHelper.class.getClassLoader());
                     identityTransformer1 = tf.newTransformer();
                     identityTransformer2 = tf.newTransformerHandler();
                 } catch (TransformerConfigurationException e) {
@@ -94,7 +99,7 @@ public final class StAXValidatorHelper implements ValidatorHelper {
             return;
         }
         throw new IllegalArgumentException(JAXPValidationMessageFormatter.formatMessage(fComponentManager.getLocale(),
-                "SourceResultMismatch", 
+                "SourceResultMismatch",
                 new Object [] {source.getClass().getName(), result.getClass().getName()}));
     }
 }

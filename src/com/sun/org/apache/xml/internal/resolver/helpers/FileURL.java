@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 // FileURL.java - Construct a file: scheme URL
@@ -77,10 +77,10 @@ public abstract class FileURL {
     /*if (pathname.startsWith("/")) {
       return new URL("file://" + pathname);
     }
-     
+
     String userdir = System.getProperty("user.dir");
     userdir.replace('\\', '/');
-     
+
     if (userdir.endsWith("/")) {
       return new URL("file:///" + userdir + pathname);
     } else {

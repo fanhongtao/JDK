@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -108,10 +108,10 @@ final class TestSeq {
                 (LocationPathPattern) _patterns.elementAt(i);
 
             if (i == 0) {
-                result.append("Testseq for kernel " + _kernelType)
+                result.append("Testseq for kernel ").append(_kernelType)
                       .append('\n');
             }
-            result.append("   pattern " + i + ": ")
+            result.append("   pattern ").append(i).append(": ")
                   .append(pattern.toString())
                   .append('\n');
         }

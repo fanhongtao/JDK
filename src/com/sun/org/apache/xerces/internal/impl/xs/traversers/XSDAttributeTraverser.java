@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -55,7 +55,7 @@ import org.w3c.dom.Element;
  *   Content: (annotation?, (simpleType?))
  * </attribute>
  *
- * @xerces.internal 
+ * @xerces.internal
  *
  * @author Sandy Gao, IBM
  * @author Neeraj Bajaj, Sun Microsystems, inc.
@@ -331,7 +331,7 @@ class XSDAttributeTraverser extends XSDAbstractTraverser {
             else {
                 reportSchemaError("src-resolve", new Object[]{typeAtt.rawname, "simpleType definition"}, attrDecl);
                 if (type == null) {
-                	attribute.fUnresolvedTypeName = typeAtt;
+                        attribute.fUnresolvedTypeName = typeAtt;
                 }
             }
         }
