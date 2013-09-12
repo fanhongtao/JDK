@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -195,7 +195,7 @@ public final class ServerRequestInfoImpl
 
     // ServerRequestInfo validity table (see ptc/00-08-06 table 21-2).
     // Note: These must be in the same order as specified in contants.
-    protected static final boolean validCall[][] = {
+    private static final boolean validCall[][] = {
         // LEGEND:
         // r_rsc = receive_request_service_contexts
         // r_req = receive_request

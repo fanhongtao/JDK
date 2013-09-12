@@ -41,7 +41,7 @@ public final class RMIConnectionImpl_Stub
 	try {
 	    $method_addNotificationListener_0 = javax.management.remote.rmi.RMIConnection.class.getMethod("addNotificationListener", new java.lang.Class[] {javax.management.ObjectName.class, javax.management.ObjectName.class, java.rmi.MarshalledObject.class, java.rmi.MarshalledObject.class, javax.security.auth.Subject.class});
 	    $method_addNotificationListeners_1 = javax.management.remote.rmi.RMIConnection.class.getMethod("addNotificationListeners", new java.lang.Class[] {javax.management.ObjectName[].class, java.rmi.MarshalledObject[].class, javax.security.auth.Subject[].class});
-	    $method_close_2 = java.io.Closeable.class.getMethod("close", new java.lang.Class[] {});
+	    $method_close_2 = java.lang.AutoCloseable.class.getMethod("close", new java.lang.Class[] {});
 	    $method_createMBean_3 = javax.management.remote.rmi.RMIConnection.class.getMethod("createMBean", new java.lang.Class[] {java.lang.String.class, javax.management.ObjectName.class, java.rmi.MarshalledObject.class, java.lang.String[].class, javax.security.auth.Subject.class});
 	    $method_createMBean_4 = javax.management.remote.rmi.RMIConnection.class.getMethod("createMBean", new java.lang.Class[] {java.lang.String.class, javax.management.ObjectName.class, javax.management.ObjectName.class, java.rmi.MarshalledObject.class, java.lang.String[].class, javax.security.auth.Subject.class});
 	    $method_createMBean_5 = javax.management.remote.rmi.RMIConnection.class.getMethod("createMBean", new java.lang.Class[] {java.lang.String.class, javax.management.ObjectName.class, javax.management.ObjectName.class, javax.security.auth.Subject.class});

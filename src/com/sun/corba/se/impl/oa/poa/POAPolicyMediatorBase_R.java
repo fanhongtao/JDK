@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -93,7 +93,7 @@ public abstract class POAPolicyMediatorBase_R extends POAPolicyMediatorBase {
 
         activeObjectMap.putServant( servant, entry ) ;
 
-        if (Util.instance != null) {
+        if (Util.isInstanceDefined()) {
             POAManagerImpl pm = (POAManagerImpl)poa.the_POAManager() ;
             POAFactory factory = pm.getFactory() ;
             factory.registerPOAForServant(poa, servant);
@@ -129,7 +129,7 @@ public abstract class POAPolicyMediatorBase_R extends POAPolicyMediatorBase {
 
         activeObjectMap.remove(key);
 
-        if (Util.instance != null) {
+        if (Util.isInstanceDefined()) {
             POAManagerImpl pm = (POAManagerImpl)poa.the_POAManager() ;
             POAFactory factory = pm.getFactory() ;
             factory.unregisterPOAForServant(poa, s);

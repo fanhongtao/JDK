@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -52,7 +52,7 @@ public abstract class LocalClientRequestDispatcherBase implements LocalClientReq
 
     // If isNextIsLocalValid.get() == Boolean.TRUE,
     // the next call to isLocal should be valid
-    protected static ThreadLocal isNextCallValid = new ThreadLocal() {
+    private static final ThreadLocal isNextCallValid = new ThreadLocal() {
             protected synchronized Object initialValue() {
                 return Boolean.TRUE;
             }

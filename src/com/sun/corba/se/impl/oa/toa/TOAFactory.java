@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2003, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -78,8 +78,8 @@ public class TOAFactory implements ObjectAdapterFactory
 
     public void shutdown( boolean waitForCompletion )
     {
-        if (Util.instance != null) {
-            Util.instance.unregisterTargetsForORB(orb);
+        if (Util.isInstanceDefined()) {
+            Util.getInstance().unregisterTargetsForORB(orb);
         }
     }
 
