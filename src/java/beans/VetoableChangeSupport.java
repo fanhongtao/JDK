@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -520,6 +520,16 @@ public class VetoableChangeSupport implements Serializable {
         @Override
         protected VetoableChangeListener newProxy(String name, VetoableChangeListener listener) {
             return new VetoableChangeListenerProxy(name, listener);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public final VetoableChangeListener extract(VetoableChangeListener listener) {
+            while (listener instanceof VetoableChangeListenerProxy) {
+                listener = ((VetoableChangeListenerProxy) listener).getListener();
+            }
+            return listener;
         }
     }
 }

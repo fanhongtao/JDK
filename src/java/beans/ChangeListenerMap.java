@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -237,11 +237,5 @@ abstract class ChangeListenerMap<L extends EventListener> {
      *
      * @return a real listener
      */
-    public final L extract(L listener) {
-        while (listener instanceof EventListenerProxy) {
-            EventListenerProxy<L> proxy = (EventListenerProxy<L>) listener;
-            listener = proxy.getListener();
-        }
-        return listener;
-    }
+    public abstract L extract(L listener);
 }

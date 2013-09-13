@@ -361,17 +361,20 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
         int scrBottomY = scrBounds.y + scrHeight;
 
         // Ensure that popup menu fits the screen
-        if (popupRightX > (long)scrRightX) {
+        if (popupRightX > (long) scrRightX) {
             popupLocation.x = scrRightX - popupSize.width;
-            if( popupLocation.x < scrBounds.x ) {
-                popupLocation.x = scrBounds.x ;
-            }
         }
-        if (popupBottomY > (long)scrBottomY) {
+
+        if (popupBottomY > (long) scrBottomY) {
             popupLocation.y = scrBottomY - popupSize.height;
-            if( popupLocation.y < scrBounds.y ) {
-                popupLocation.y = scrBounds.y;
-            }
+        }
+
+        if (popupLocation.x < scrBounds.x) {
+            popupLocation.x = scrBounds.x;
+        }
+
+        if (popupLocation.y < scrBounds.y) {
+            popupLocation.y = scrBounds.y;
         }
 
         return popupLocation;
@@ -822,7 +825,7 @@ public class JPopupMenu extends JComponent implements Accessible,MenuElement {
             popupFactory.setPopupType(PopupFactory.LIGHT_WEIGHT_POPUP);
         }
         else {
-            popupFactory.setPopupType(PopupFactory.MEDIUM_WEIGHT_POPUP);
+            popupFactory.setPopupType(PopupFactory.HEAVY_WEIGHT_POPUP);
         }
 
         // adjust the location of the popup

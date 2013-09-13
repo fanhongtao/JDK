@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -1489,6 +1489,8 @@ public class Collections {
                 }
                 public int hashCode()    {return e.hashCode();}
                 public boolean equals(Object o) {
+                    if (this == o)
+                        return true;
                     if (!(o instanceof Map.Entry))
                         return false;
                     Map.Entry t = (Map.Entry)o;
@@ -1709,6 +1711,8 @@ public class Collections {
         }
 
         public boolean equals(Object o) {
+            if (this == o)
+                return true;
             synchronized (mutex) {return c.equals(o);}
         }
         public int hashCode() {
@@ -1863,6 +1867,8 @@ public class Collections {
         }
 
         public boolean equals(Object o) {
+            if (this == o)
+                return true;
             synchronized (mutex) {return list.equals(o);}
         }
         public int hashCode() {
@@ -2073,6 +2079,8 @@ public class Collections {
         }
 
         public boolean equals(Object o) {
+            if (this == o)
+                return true;
             synchronized (mutex) {return m.equals(o);}
         }
         public int hashCode() {

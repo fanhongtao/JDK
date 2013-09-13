@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -400,6 +400,8 @@ public class Manifest implements Cloneable {
         public byte peek() throws IOException {
             if (pos == count)
                 fill();
+            if (pos == count)
+                return -1; // nothing left in buffer
             return buf[pos];
         }
 

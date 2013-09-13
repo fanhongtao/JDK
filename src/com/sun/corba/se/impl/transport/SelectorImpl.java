@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -69,8 +69,8 @@ public class SelectorImpl
     private HashMap listenerThreads;
     private Map readerThreads;
     private boolean selectorStarted;
-    private boolean closed;
-    private ORBUtilSystemException wrapper ;
+    private volatile boolean closed;
+    private ORBUtilSystemException wrapper;
 
 
     public SelectorImpl(ORB orb)

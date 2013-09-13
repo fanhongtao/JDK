@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -67,6 +67,9 @@ import com.sun.corba.se.impl.protocol.giopmsgheaders.ReplyMessage;
 public class PINoOpHandlerImpl implements PIHandler
 {
     public PINoOpHandlerImpl( ) {
+    }
+
+    public void close() {
     }
 
     public void initialize() {

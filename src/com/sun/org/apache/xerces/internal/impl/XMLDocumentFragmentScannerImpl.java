@@ -286,12 +286,13 @@ public class XMLDocumentFragmentScannerImpl
 
     //STAX related properties
     //defaultValues.
+    protected boolean fSupportDTD = true;
     protected boolean fReplaceEntityReferences = true;
     protected boolean fSupportExternalEntities = false;
     protected boolean fReportCdataEvent = false ;
     protected boolean fIsCoalesce = false ;
     protected String fDeclaredEncoding =  null;
-    /** Disallow doctype declaration. */
+    /** Xerces Feature: Disallow doctype declaration. */
     protected boolean fDisallowDoctype = false;
 
     // drivers
@@ -1803,6 +1804,7 @@ public class XMLDocumentFragmentScannerImpl
         String name = fEntityScanner.scanName();
         if (name == null) {
             reportFatalError("NameRequiredInReference", null);
+            return;
         }
         if (!fEntityScanner.skipChar(';')) {
             reportFatalError("SemicolonRequiredInReference", new Object []{name});
@@ -1846,7 +1848,7 @@ public class XMLDocumentFragmentScannerImpl
         // start general entity
         if (!fEntityStore.isDeclaredEntity(name)) {
             //SUPPORT_DTD=false && ReplaceEntityReferences should throw exception
-            if (fDisallowDoctype && fReplaceEntityReferences) {
+            if (!fSupportDTD && fReplaceEntityReferences) {
                 reportFatalError("EntityNotDeclared", new Object[]{name});
                 return;
             }

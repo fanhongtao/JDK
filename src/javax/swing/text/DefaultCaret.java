@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -1499,9 +1499,14 @@ public class DefaultCaret extends Rectangle implements Caret, FocusListener, Mou
 
         if (caretWidth > -1) {
             return caretWidth;
+        } else {
+            Object property = UIManager.get("Caret.width");
+            if (property instanceof Integer) {
+                return ((Integer) property).intValue();
+            } else {
+                return 1;
+            }
         }
-
-        return 1;
     }
 
     // --- serialization ---------------------------------------------
