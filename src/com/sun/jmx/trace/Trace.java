@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
@@ -12,6 +12,8 @@ import java.util.Properties;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.IOException;
+import sun.misc.JavaAWTAccess;
+import sun.misc.SharedSecrets;
 
 /**
  * Sends trace to a pluggable destination.
@@ -21,9 +23,7 @@ import java.io.IOException;
 @Deprecated
 public final class Trace implements TraceTags {
 
-    private static TraceDestination out = initDestination();
-    // private static TraceDestination out =
-    // TraceImplementation.newDestination(2);
+    private static TraceDestination out;
 
     // private constructor defined to "hide" the default public constructor
     private Trace() {
@@ -65,7 +65,13 @@ public final class Trace implements TraceTags {
      * Set the trace destination.
      **/
     public static synchronized void setDestination(TraceDestination output) {
-        out = output;
+        JavaAWTAccess javaAWTAccess = SharedSecrets.getJavaAWTAccess();
+        if (javaAWTAccess == null) {
+            out = output; // Store the output object in the static field
+        } else {
+                          //  Store the output object in the appContext
+           javaAWTAccess.put(TraceDestination.class, output);
+        }
     }
 
     /**
@@ -169,7 +175,22 @@ public final class Trace implements TraceTags {
      * Return the trace destination.
      **/
     private static synchronized TraceDestination out() {
-        return out;
+        JavaAWTAccess javaAWTAccess = SharedSecrets.getJavaAWTAccess();
+        if (javaAWTAccess == null) {
+            if (out == null) {
+                // First time: create the output object and store in the static field
+                out = initDestination();
+            }
+            return out; // Get the output object from the static field
+        }
+        // Get the output object from the appContext
+        TraceDestination output = (TraceDestination)javaAWTAccess.get(TraceDestination.class);
+        if (output == null) {
+            // First time: create the output object and store in the appContext
+            output = initDestination();
+            javaAWTAccess.put(TraceDestination.class, output);
+        }
+        return output;
     }
 
 }

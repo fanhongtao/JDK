@@ -12,6 +12,10 @@ package com.sun.jmx.snmp;
 import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
 
+// sun imports
+import sun.misc.JavaAWTAccess;
+import sun.misc.SharedSecrets;
+
 /**
  * Represents an SNMP Object Identifier (OID).
  *
@@ -497,19 +501,20 @@ public class SnmpOid extends SnmpValue {
             return handleLong(s, index);
         } catch(NumberFormatException e) {}
 
+        SnmpOidTable table = getSnmpOidTable();
         // if we are here, it means we have something to resolve..
         //
-        if (meta == null)
+        if (table == null)
           throw new SnmpStatusException(SnmpStatusException.noSuchName);
 
         // Ok assume there is a variable name to resolve ...
         //
         if (index <= 0) {
-            SnmpOidRecord rec = meta.resolveVarName(s);
+            SnmpOidRecord rec = table.resolveVarName(s);
             return rec.getOid();
 
         } else {
-            SnmpOidRecord rec = meta.resolveVarName(s.substring(0, index));
+            SnmpOidRecord rec = table.resolveVarName(s.substring(0, index));
             return (rec.getOid()+ s.substring(index));
 
         }
@@ -528,7 +533,12 @@ public class SnmpOid extends SnmpValue {
      * @return The MIB table.
      */
     public static SnmpOidTable getSnmpOidTable() {
-        return meta;
+        JavaAWTAccess awtAccess = SharedSecrets.getJavaAWTAccess();
+        if (awtAccess == null) {
+            return meta;
+        } else {
+            return (SnmpOidTable) awtAccess.get(SnmpOidTable.class);
+        }
     }
 
     /**
@@ -538,7 +548,16 @@ public class SnmpOid extends SnmpValue {
      * @param db The MIB table to use.
      */
     public static void setSnmpOidTable(SnmpOidTable db) {
-        meta = db;
+        JavaAWTAccess awtAccess = SharedSecrets.getJavaAWTAccess();
+        if (awtAccess == null) {
+            meta = db;
+        } else {
+            if (db == null) {
+                awtAccess.remove(SnmpOidTable.class);
+            } else {
+                awtAccess.put(SnmpOidTable.class, db);
+            }
+        }
     }
 
     /**
@@ -566,7 +585,6 @@ public class SnmpOid extends SnmpValue {
         }
         return result ;
     }
-
 
     /**
      * Checks if there is enough space in the components
@@ -628,7 +646,7 @@ public class SnmpOid extends SnmpValue {
      * Reference to a mib table. If no mib table is available,
      * the class will not be able to resolve names contained in the Object Identifier.
      */
-     private static SnmpOidTable meta= null;
+    private static SnmpOidTable meta= null;
 
     /**
      * Ensure serialization compatibility with version 4.1 FCS

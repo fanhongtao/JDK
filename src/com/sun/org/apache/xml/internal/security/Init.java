@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -154,7 +154,7 @@ public final class Init {
                 }
             }
                         for (Node el=config.getFirstChild();el!=null;el=el.getNextSibling()) {
-                if (!(el instanceof Element)) {
+                if (el.getNodeType() != Node.ELEMENT_NODE) {
                         continue;
                 }
                 String tag=el.getLocalName();
