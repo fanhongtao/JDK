@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2005, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -102,9 +102,9 @@ JLI_TraceLauncher(const char* fmt, ...)
 void
 JLI_SetTraceLauncher()
 {
-   if (getenv("_JAVA_LAUNCHER_DEBUG") != 0) {
+   if (getenv(JLDEBUG_ENV_ENTRY) != 0) {
         _launcher_debug = JNI_TRUE;
-        JLI_TraceLauncher("----_JAVA_LAUNCHER_DEBUG----\n");
+        JLI_TraceLauncher("----%s----\n", JLDEBUG_ENV_ENTRY);
    }
 }
 

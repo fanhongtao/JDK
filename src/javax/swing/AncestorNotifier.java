@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -44,7 +44,7 @@ import java.io.Serializable;
 
 class AncestorNotifier implements ComponentListener, PropertyChangeListener, Serializable
 {
-    Component firstInvisibleAncestor;
+    transient Component firstInvisibleAncestor;
     EventListenerList listenerList = new EventListenerList();
     JComponent root;
 
