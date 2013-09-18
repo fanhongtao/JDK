@@ -342,7 +342,9 @@ public class SnmpPeer implements Serializable {
      */
     @Override
     public String toString() {
-        return "Peer/Port : " + getDevName() + "/" + getDestPort() ;
+        // For security and performance reasons we don't call getHostName here
+        // Use getDevName() explicitly when necessary.
+        return "Peer/Port : " + getDestAddr().getHostAddress() + "/" + getDestPort() ;
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -165,7 +165,7 @@ public class FuncSystemProperty extends FunctionOneArg
    * should already be fully qualified as path/filename
    * @param target The target property bag the file will be placed into.
    */
-  public void loadPropertyFile(String file, Properties target)
+  private void loadPropertyFile(String file, Properties target)
   {
     try
     {

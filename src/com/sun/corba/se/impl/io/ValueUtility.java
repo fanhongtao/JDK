@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2002, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1999, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -92,6 +92,14 @@ public class ValueUtility {
         null,       // tk_native       31
         null,       // tk_abstract_interface 32
     };
+
+    static {
+        sun.corba.SharedSecrets.setJavaCorbaAccess(new sun.corba.JavaCorbaAccess() {
+            public ValueHandlerImpl newValueHandlerImpl() {
+                return ValueHandlerImpl.getInstance();
+            }
+        });
+    }
 
     public static String getSignature(ValueMember member)
         throws ClassNotFoundException {
