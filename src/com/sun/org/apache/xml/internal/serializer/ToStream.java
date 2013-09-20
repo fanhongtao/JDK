@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -22,6 +22,7 @@
  */
 package com.sun.org.apache.xml.internal.serializer;
 
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -140,7 +141,7 @@ abstract public class ToStream extends SerializerBase
      * extension attribute xalan:line-separator.
      */
     protected char[] m_lineSep =
-        System.getProperty("line.separator").toCharArray();
+        SecuritySupport.getSystemProperty("line.separator").toCharArray();
 
     /**
      * True if the the system line separator is to be used.

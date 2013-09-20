@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -20,6 +20,7 @@
 
 package com.sun.org.apache.xerces.internal.impl.xpath.regex;
 
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -95,10 +96,10 @@ class RegexParser {
     public void setLocale(Locale locale) {
         try {
             if (locale != null) {
-                this.resources = ResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message", locale);
+                this.resources = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message", locale);
             }
             else {
-                this.resources = ResourceBundle.getBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message");
+                this.resources = SecuritySupport.getResourceBundle("com.sun.org.apache.xerces.internal.impl.xpath.regex.message");
             }
         }
         catch (MissingResourceException mre) {

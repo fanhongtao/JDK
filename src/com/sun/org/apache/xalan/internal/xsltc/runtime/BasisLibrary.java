@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -23,6 +23,7 @@
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime;
 
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.FieldPosition;
@@ -1583,7 +1584,7 @@ public final class BasisLibrary {
 
     static {
         String resource = "com.sun.org.apache.xalan.internal.xsltc.runtime.ErrorMessages";
-        m_bundle = ResourceBundle.getBundle(resource);
+        m_bundle = SecuritySupport.getResourceBundle(resource);
     }
 
     /**

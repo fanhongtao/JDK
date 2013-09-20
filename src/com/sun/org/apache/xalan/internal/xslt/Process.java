@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -57,6 +57,7 @@ import com.sun.org.apache.xalan.internal.res.XSLMessages;
 import com.sun.org.apache.xalan.internal.res.XSLTErrorResources;
 import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
 import com.sun.org.apache.xalan.internal.utils.ConfigurationError;
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 
 //J2SE does not support Xalan interpretive
 /*
@@ -180,7 +181,7 @@ public class Process
     java.io.PrintWriter diagnosticsWriter = new PrintWriter(System.err, true);
     java.io.PrintWriter dumpWriter = diagnosticsWriter;
     ResourceBundle resbundle =
-      (XSLMessages.loadResourceBundle(
+      (SecuritySupport.getResourceBundle(
         com.sun.org.apache.xml.internal.utils.res.XResourceBundle.ERROR_RESOURCES));
     String flavor = "s2s";
 

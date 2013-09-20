@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -997,7 +997,12 @@ public class ErrorMessages extends ListResourceBundle {
          "kilobytes.  This is usually caused by templates in a stylesheet " +
          "that are very large.  Try restructuring your stylesheet to use " +
          "smaller templates."
-        }
+        },
+
+         {ErrorMsg.DESERIALIZE_TRANSLET_ERR, "When Java security is enabled, " +
+                        "support for deserializing TemplatesImpl is disabled." +
+                        "This can be overridden by setting the jdk.xml.enableTemplatesImplDeserialization" +
+                        " system property to true."}
 
     };
 

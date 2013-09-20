@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -27,6 +27,7 @@ import com.sun.org.apache.xml.internal.res.XMLMessages;
 import com.sun.org.apache.xml.internal.utils.PrefixResolver;
 import com.sun.org.apache.xml.internal.utils.XMLStringFactory;
 import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 
 /**
  * A DTMManager instance can be used to create DTM and
@@ -383,7 +384,7 @@ public abstract class DTMManager
   {
     try
     {
-      debug = System.getProperty("dtm.debug") != null;
+      debug = SecuritySupport.getSystemProperty("dtm.debug") != null;
     }
     catch (SecurityException ex){}
   }

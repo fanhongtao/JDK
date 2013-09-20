@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.org.apache.bcel.internal.util;
@@ -82,6 +82,7 @@ import com.sun.org.apache.bcel.internal.Constants;
  * method in the Method's frame will jump to the appropiate method in
  * the Code frame.
  *
+ * @version $Id: Class2HTML.java,v 1.3 2007-07-19 04:34:52 ofung Exp $
  * @author <A HREF="mailto:markus.dahm@berlin.de">M. Dahm</A>
 */
 public class Class2HTML implements Constants
@@ -137,7 +138,7 @@ public class Class2HTML implements Constants
     ClassParser parser=null;
     JavaClass   java_class=null;
     String      zip_file = null;
-    char        sep = System.getProperty("file.separator").toCharArray()[0];
+    char        sep = SecuritySupport.getSystemProperty("file.separator").toCharArray()[0];
     String      dir = "." + sep; // Where to store HTML files
 
     try {

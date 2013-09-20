@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -23,6 +23,7 @@
 
 package com.sun.org.apache.xalan.internal.xsltc.runtime.output;
 
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
@@ -36,7 +37,7 @@ class WriterOutputBuffer implements OutputBuffer {
 
     static {
         // Set a larger buffer size for Solaris
-        final String osName = System.getProperty("os.name");
+        final String osName = SecuritySupport.getSystemProperty("os.name");
         if (osName.equalsIgnoreCase("solaris")) {
             BUFFER_SIZE = 32 * KB;
         }

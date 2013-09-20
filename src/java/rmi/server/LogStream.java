@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2004, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -120,6 +120,13 @@ public class LogStream extends PrintStream {
      */
     @Deprecated
     public static synchronized void setDefaultStream(PrintStream newDefault) {
+        SecurityManager sm = System.getSecurityManager();
+
+        if (sm != null) {
+            sm.checkPermission(
+                new java.util.logging.LoggingPermission("control", null));
+        }
+
         defaultStream = newDefault;
     }
 

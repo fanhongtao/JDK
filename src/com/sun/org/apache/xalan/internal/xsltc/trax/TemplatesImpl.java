@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -43,6 +43,7 @@ import com.sun.org.apache.xalan.internal.xsltc.compiler.util.ErrorMsg;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;
 import com.sun.org.apache.xalan.internal.xsltc.runtime.Hashtable;
 import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 
 /**
  * @author Morten Jorgensen
@@ -52,6 +53,8 @@ import com.sun.org.apache.xalan.internal.utils.ObjectFactory;
  */
 public final class TemplatesImpl implements Templates, Serializable {
     static final long serialVersionUID = 673094361519270707L;
+    public final static String DESERIALIZE_TRANSLET = "jdk.xml.enableTemplatesImplDeserialization";
+
     /**
      * Name of the superclass of all translets. This is needed to
      * determine which, among all classes comprising a translet,
@@ -186,6 +189,15 @@ public final class TemplatesImpl implements Templates, Serializable {
     private void  readObject(ObjectInputStream is)
       throws IOException, ClassNotFoundException
     {
+        SecurityManager security = System.getSecurityManager();
+        if (security != null){
+            String temp = SecuritySupport.getSystemProperty(DESERIALIZE_TRANSLET);
+            if (temp == null || !(temp.length()==0 || temp.equalsIgnoreCase("true"))) {
+                ErrorMsg err = new ErrorMsg(ErrorMsg.DESERIALIZE_TRANSLET_ERR);
+                throw new UnsupportedOperationException(err.toString());
+            }
+        }
+
         is.defaultReadObject();
         if (is.readBoolean()) {
             _uriResolver = (URIResolver) is.readObject();
