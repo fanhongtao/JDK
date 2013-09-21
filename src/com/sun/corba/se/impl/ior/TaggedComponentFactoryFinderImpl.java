@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -61,7 +61,8 @@ public class TaggedComponentFactoryFinderImpl extends
     public TaggedComponent create( org.omg.CORBA.ORB orb,
         org.omg.IOP.TaggedComponent comp )
     {
-        EncapsOutputStream os = new EncapsOutputStream( (ORB)orb ) ;
+        EncapsOutputStream os =
+            sun.corba.OutputStreamFactory.newEncapsOutputStream((ORB)orb);
         org.omg.IOP.TaggedComponentHelper.write( os, comp ) ;
         InputStream is = (InputStream)(os.create_input_stream() ) ;
         // Skip the component ID: we just wrote it out above

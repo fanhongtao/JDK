@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2003, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -132,8 +132,9 @@ public class IIOPProfileTemplateImpl extends TaggedProfileTemplateBase
         // Note that this cannot be accomplished with a codec!
 
         // Use the byte order of the given stream
-        OutputStream encapsulatedOS = new EncapsOutputStream( (ORB)os.orb(),
-            ((CDROutputStream)os).isLittleEndian() ) ;
+        OutputStream encapsulatedOS =
+            sun.corba.OutputStreamFactory.newEncapsOutputStream(
+                (ORB)os.orb(), ((CDROutputStream)os).isLittleEndian() ) ;
 
         okeyTemplate.write( id, encapsulatedOS ) ;
         EncapsulationUtility.writeOutputStream( encapsulatedOS, os ) ;

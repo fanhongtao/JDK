@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -134,7 +134,7 @@ public class SharedCDRContactInfoImpl
             messageMediator;
         // NOTE: GROW.
         OutputObject outputObject =
-            new CDROutputObject(orb, messageMediator,
+            sun.corba.OutputStreamFactory.newCDROutputObject(orb, messageMediator,
                                 corbaMessageMediator.getRequestHeader(),
                                 corbaMessageMediator.getStreamFormatVersion(),
                                 BufferManagerFactory.GROW);

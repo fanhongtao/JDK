@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2004, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -81,7 +81,6 @@ import com.sun.corba.se.impl.logging.ActivationSystemException ;
 
 import com.sun.corba.se.impl.oa.poa.BadServerIdHandler;
 import com.sun.corba.se.impl.orbutil.ORBConstants;
-import com.sun.corba.se.impl.orbutil.ORBClassLoader;
 import com.sun.corba.se.impl.orbutil.ORBUtility;
 import com.sun.corba.se.impl.util.Utility;
 

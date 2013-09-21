@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -26,6 +26,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -145,11 +146,13 @@ public class TransformBase64Decode extends TransformSpi {
       }
 
          try {
-            //Exceptional case there is current not text case testing this(Before it was a
-                    //a common case).
+            // Exceptional case there is current not text case testing this
+            // (before it was a a common case).
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING,
+                           Boolean.TRUE);
             Document doc =
-               DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-                  input.getOctetStream());
+                dbf.newDocumentBuilder().parse(input.getOctetStream());
 
             Element rootNode = doc.getDocumentElement();
             StringBuffer sb = new StringBuffer();
@@ -157,13 +160,13 @@ public class TransformBase64Decode extends TransformSpi {
             byte[] decodedBytes = Base64.decode(sb.toString());
 
             return new XMLSignatureInput(decodedBytes);
-                  } catch (ParserConfigurationException e) {
-                          throw new TransformationException("c14n.Canonicalizer.Exception",e);
-                  } catch (SAXException e) {
-                          throw new TransformationException("SAX exception", e);
-                  }
+         } catch (ParserConfigurationException e) {
+            throw new TransformationException("c14n.Canonicalizer.Exception",e);
+         } catch (SAXException e) {
+            throw new TransformationException("SAX exception", e);
+         }
         } catch (Base64DecodingException e) {
-        throw new TransformationException("Base64Decoding", e);
+            throw new TransformationException("Base64Decoding", e);
         }
    }
 

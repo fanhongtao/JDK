@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -41,7 +41,9 @@ public abstract class ResourceResolverSpi {
                     ResourceResolverSpi.class.getName());
 
    /** Field _properties */
-   protected java.util.Map _properties = null;
+   protected java.util.Map<String,String> _properties = null;
+
+   protected boolean secureValidation;
 
    /**
     * This is the workhorse method used to resolve resources.
@@ -63,7 +65,7 @@ public abstract class ResourceResolverSpi {
     */
    public void engineSetProperty(String key, String value) {
           if (_properties==null) {
-                  _properties=new HashMap();
+                  _properties=new HashMap<String,String>();
           }
       this._properties.put(key, value);
    }
@@ -78,17 +80,17 @@ public abstract class ResourceResolverSpi {
           if (_properties==null) {
                         return null;
           }
-      return (String) this._properties.get(key);
+      return this._properties.get(key);
    }
 
    /**
     *
     * @param properties
     */
-   public void engineAddProperies(Map properties) {
+   public void engineAddProperies(Map<String,String> properties) {
           if (properties!=null) {
                   if (_properties==null) {
-                          _properties=new HashMap();
+                          _properties=new HashMap<String,String>();
                   }
                   this._properties.putAll(properties);
           }

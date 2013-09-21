@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -26,8 +26,10 @@ import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
 
 import com.sun.org.apache.xml.internal.security.utils.XMLUtils;
 import org.w3c.dom.Document;
@@ -66,6 +68,7 @@ public abstract class CanonicalizerSpi {
       java.io.ByteArrayInputStream bais = new ByteArrayInputStream(inputBytes);
       InputSource in = new InputSource(bais);
       DocumentBuilderFactory dfactory = DocumentBuilderFactory.newInstance();
+      dfactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
 
       // needs to validate for ID attribute nomalization
       dfactory.setNamespaceAware(true);
@@ -151,7 +154,7 @@ public abstract class CanonicalizerSpi {
     * @return the c14n bytes
     * @throws CanonicalizationException
     */
-   public abstract byte[] engineCanonicalizeXPathNodeSet(Set xpathNodeSet)
+   public abstract byte[] engineCanonicalizeXPathNodeSet(Set<Node> xpathNodeSet)
       throws CanonicalizationException;
 
    /**
@@ -162,7 +165,7 @@ public abstract class CanonicalizerSpi {
     * @return the c14n bytes
     * @throws CanonicalizationException
     */
-   public abstract byte[] engineCanonicalizeXPathNodeSet(Set xpathNodeSet, String inclusiveNamespaces)
+   public abstract byte[] engineCanonicalizeXPathNodeSet(Set<Node> xpathNodeSet, String inclusiveNamespaces)
       throws CanonicalizationException;
 
    /**

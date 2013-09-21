@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -149,7 +149,7 @@ public class ORBSingleton extends ORB
     }
 
     public OutputStream create_output_stream() {
-        return new EncapsOutputStream(this);
+        return sun.corba.OutputStreamFactory.newEncapsOutputStream(this);
     }
 
     public TypeCode create_struct_tc(String id,

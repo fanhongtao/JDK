@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2012, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -89,6 +89,8 @@ import com.sun.corba.se.impl.corba.CORBAObjectImpl ;
 import com.sun.corba.se.impl.logging.ORBUtilSystemException ;
 import com.sun.corba.se.impl.logging.OMGSystemException ;
 import com.sun.corba.se.impl.ior.iiop.JavaSerializationComponent;
+
+import sun.corba.SharedSecrets;
 
 /**
  *  Handy class full of static functions that don't belong in util.Utility for pure ORB reasons.
@@ -262,8 +264,8 @@ public final class ORBUtility {
     {
         try {
             String name = classNameOf(strm.read_string());
-            SystemException ex
-                = (SystemException)ORBClassLoader.loadClass(name).newInstance();
+            SystemException ex = (SystemException)SharedSecrets.
+                getJavaCorbaAccess().loadClass(name).newInstance();
             ex.minor = strm.read_long();
             ex.completed = CompletionStatus.from_int(strm.read_long());
             return ex;

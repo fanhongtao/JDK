@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, 2008, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2007-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -68,9 +68,8 @@ public class ObjectContainer extends SignatureElementProxy {
     */
    public void setId(String Id) {
 
-      if ((Id != null)) {
-         this._constructionElement.setAttributeNS(null, Constants._ATT_ID, Id);
-         IdResolver.registerElementById(this._constructionElement, Id);
+      if (Id != null) {
+          setLocalIdAttribute(Constants._ATT_ID, Id);
       }
    }
 

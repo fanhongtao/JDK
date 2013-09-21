@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2004, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -66,7 +66,7 @@ import org.omg.CORBA.CompletionStatus;
  *
  * @author Ram Jeyaraman
  */
-public class IDLJavaSerializationOutputStream extends CDROutputStreamBase {
+final class IDLJavaSerializationOutputStream extends CDROutputStreamBase {
 
     private ORB orb;
     private byte encodingVersion;

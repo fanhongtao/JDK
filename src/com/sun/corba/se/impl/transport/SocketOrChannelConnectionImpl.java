@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -1588,8 +1588,8 @@ public class SocketOrChannelConnectionImpl
     {
         // REVISIT: See comments in CDROutputObject constructor.
         CDROutputObject outputObject =
-            new CDROutputObject((ORB)orb, null, giopVersion, this, msg,
-                                ORBConstants.STREAM_FORMAT_VERSION_1);
+            sun.corba.OutputStreamFactory.newCDROutputObject((ORB)orb, null, giopVersion,
+                                this, msg, ORBConstants.STREAM_FORMAT_VERSION_1);
         msg.write(outputObject);
 
         outputObject.writeTo(this);
