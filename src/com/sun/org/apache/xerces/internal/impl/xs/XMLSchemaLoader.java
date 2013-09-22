@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -53,6 +53,8 @@ import com.sun.org.apache.xerces.internal.util.ParserConfigurationSettings;
 import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
 import com.sun.org.apache.xerces.internal.util.XMLSymbols;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
+import com.sun.org.apache.xerces.internal.utils.XMLSecurityPropertyManager;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.grammars.Grammar;
 import com.sun.org.apache.xerces.internal.xni.grammars.XMLGrammarDescription;
@@ -71,6 +73,7 @@ import com.sun.org.apache.xerces.internal.xs.XSLoader;
 import com.sun.org.apache.xerces.internal.xs.XSModel;
 import java.util.HashMap;
 import java.util.Map;
+import javax.xml.XMLConstants;
 import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMError;
 import org.w3c.dom.DOMErrorHandler;
@@ -216,6 +219,16 @@ XSLoader, DOMConfiguration {
     protected static final String ENTITY_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.ENTITY_MANAGER_PROPERTY;
 
+    /** Property identifier: Security property manager. */
+    private static final String XML_SECURITY_PROPERTY_MANAGER =
+            Constants.XML_SECURITY_PROPERTY_MANAGER;
+
+    /** Property identifier: access to external dtd */
+    public static final String ACCESS_EXTERNAL_DTD = XMLConstants.ACCESS_EXTERNAL_DTD;
+
+    /** Property identifier: access to external schema */
+    public static final String ACCESS_EXTERNAL_SCHEMA = XMLConstants.ACCESS_EXTERNAL_SCHEMA;
+
     // recognized properties
     private static final String [] RECOGNIZED_PROPERTIES = {
         ENTITY_MANAGER,
@@ -229,7 +242,8 @@ XSLoader, DOMConfiguration {
         JAXP_SCHEMA_SOURCE,
         SECURITY_MANAGER,
         LOCALE,
-        SCHEMA_DV_FACTORY
+        SCHEMA_DV_FACTORY,
+        XML_SECURITY_PROPERTY_MANAGER
     };
 
     // Data
@@ -260,6 +274,7 @@ XSLoader, DOMConfiguration {
     private final CMNodeFactory fNodeFactory = new CMNodeFactory(); //component mgr will be set later
     private CMBuilder fCMBuilder;
     private XSDDescription fXSDDescription = new XSDDescription();
+    private String faccessExternalSchema = Constants.EXTERNAL_ACCESS_DEFAULT;
 
     private Map fJAXPCache;
     private Locale fLocale = Locale.getDefault();
@@ -454,6 +469,10 @@ XSLoader, DOMConfiguration {
                 fErrorReporter.putMessageFormatter(XSMessageFormatter.SCHEMA_DOMAIN, new XSMessageFormatter());
             }
         }
+        else if (propertyId.equals(XML_SECURITY_PROPERTY_MANAGER)) {
+            XMLSecurityPropertyManager spm = (XMLSecurityPropertyManager)state;
+            faccessExternalSchema = spm.getValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_SCHEMA);
+        }
     } // setProperty(String, Object)
 
     /**
@@ -584,6 +603,15 @@ XSLoader, DOMConfiguration {
         // unless application alters JAXPSource in the mean time.
         if(!fJAXPProcessed) {
             processJAXPSchemaSource(locationPairs);
+        }
+
+        if (desc.isExternal()) {
+            String accessError = SecuritySupport.checkAccess(desc.getExpandedSystemId(), faccessExternalSchema, Constants.ACCESS_EXTERNAL_ALL);
+            if (accessError != null) {
+                throw new XNIException(fErrorReporter.reportError(XSMessageFormatter.SCHEMA_DOMAIN,
+                        "schema_reference.access",
+                        new Object[] { SecuritySupport.sanitizePath(desc.getExpandedSystemId()), accessError }, XMLErrorReporter.SEVERITY_ERROR));
+            }
         }
         SchemaGrammar grammar = fSchemaHandler.parseSchema(source, desc, locationPairs);
 
@@ -1038,6 +1066,9 @@ XSLoader, DOMConfiguration {
         // get generate-synthetic-annotations feature
         fSchemaHandler.setGenerateSyntheticAnnotations(componentManager.getFeature(GENERATE_SYNTHETIC_ANNOTATIONS, false));
         fSchemaHandler.reset(componentManager);
+
+        XMLSecurityPropertyManager spm = (XMLSecurityPropertyManager)componentManager.getProperty(XML_SECURITY_PROPERTY_MANAGER);
+        faccessExternalSchema = spm.getValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_SCHEMA);
     }
 
     private void initGrammarBucket(){

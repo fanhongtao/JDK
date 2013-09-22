@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.org.apache.bcel.internal.classfile;
@@ -207,6 +207,12 @@ public class DescendingVisitor implements Visitor {
     LocalVariable[] vars = table.getLocalVariableTable();
     for(int i=0; i < vars.length; i++)
       vars[i].accept(this);
+    stack.pop();
+  }
+
+  public void visitLocalVariableTypeTable(LocalVariableTypeTable obj) {
+    stack.push(obj);
+    obj.accept(visitor);
     stack.pop();
   }
 

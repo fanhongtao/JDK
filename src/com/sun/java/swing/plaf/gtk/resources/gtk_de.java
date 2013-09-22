@@ -11,7 +11,7 @@ public final class gtk_de extends ListResourceBundle {
             { "FileChooser.deleteFileButton.textAndMnemonic", "Datei &l\u00F6schen" },
             { "FileChooser.filesLabel.textAndMnemonic", "&Dateien" },
             { "FileChooser.filterLabel.textAndMnemonic", "Filter:" },
-            { "FileChooser.foldersLabel.textAndMnemonic", "&Ordner" },
+            { "FileChooser.foldersLabel.textAndMnemonic", "Or&dner" },
             { "FileChooser.newFolderButton.textAndMnemonic", "&Neuer Ordner" },
             { "FileChooser.newFolderDialog.textAndMnemonic", "Ordnername:" },
             { "FileChooser.newFolderNoDirectoryError.textAndMnemonic", "Fehler beim Erstellen von Verzeichnis \"{0}\": Datei oder Verzeichnis nicht vorhanden" },

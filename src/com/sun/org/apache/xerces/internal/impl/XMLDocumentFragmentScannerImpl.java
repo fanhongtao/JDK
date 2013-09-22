@@ -52,7 +52,11 @@ import com.sun.org.apache.xerces.internal.impl.Constants;
 import com.sun.org.apache.xerces.internal.impl.XMLEntityHandler;
 import com.sun.org.apache.xerces.internal.util.SecurityManager;
 import com.sun.org.apache.xerces.internal.util.NamespaceSupport;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
+import com.sun.org.apache.xerces.internal.utils.XMLSecurityPropertyManager;
 import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
+import com.sun.xml.internal.stream.Entity;
+import javax.xml.XMLConstants;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.events.XMLEvent;
 
@@ -159,6 +163,19 @@ public class XMLDocumentFragmentScannerImpl
     protected static final String ENTITY_RESOLVER =
             Constants.XERCES_PROPERTY_PREFIX + Constants.ENTITY_RESOLVER_PROPERTY;
 
+    /** Feature identifier: standard uri conformant */
+    protected static final String STANDARD_URI_CONFORMANT =
+            Constants.XERCES_FEATURE_PREFIX +Constants.STANDARD_URI_CONFORMANT_FEATURE;
+
+    /** Property identifier: Security property manager. */
+    private static final String XML_SECURITY_PROPERTY_MANAGER =
+            Constants.XML_SECURITY_PROPERTY_MANAGER;
+
+    /** access external dtd: file protocol
+     *  For DOM/SAX, the secure feature is set to true by default
+     */
+    final static String EXTERNAL_ACCESS_DEFAULT = Constants.EXTERNAL_ACCESS_DEFAULT;
+
     // recognized features and properties
 
     /** Recognized features. */
@@ -184,6 +201,7 @@ public class XMLDocumentFragmentScannerImpl
         SYMBOL_TABLE,
                 ERROR_REPORTER,
                 ENTITY_MANAGER,
+                XML_SECURITY_PROPERTY_MANAGER
     };
 
     /** Property defaults. */
@@ -191,11 +209,15 @@ public class XMLDocumentFragmentScannerImpl
                 null,
                 null,
                 null,
+                EXTERNAL_ACCESS_DEFAULT
     };
 
-    protected static final char [] cdata = {'[','C','D','A','T','A','['};
-    protected static final char [] xmlDecl = {'<','?','x','m','l'};
-    protected static final char [] endTag = {'<','/'};
+    private static final char [] cdata = {'[','C','D','A','T','A','['};
+    private static final char [] endTag = {'<','/'};
+
+    //this variable is also used by XMLDocumentScannerImpl in the same package
+    static final char [] xmlDecl = {'<','?','x','m','l'};
+
     // debugging
 
     /** Debug scanner state. */
@@ -294,6 +316,17 @@ public class XMLDocumentFragmentScannerImpl
     protected String fDeclaredEncoding =  null;
     /** Xerces Feature: Disallow doctype declaration. */
     protected boolean fDisallowDoctype = false;
+    /**
+     * comma-delimited list of protocols that are allowed for the purpose
+     * of accessing external dtd or entity references
+     */
+    protected String fAccessExternalDTD = EXTERNAL_ACCESS_DEFAULT;
+
+    /**
+     * standard uri conformant (strict uri).
+     * http://apache.org/xml/features/standard-uri-conformant
+     */
+    protected boolean fStrictURI;
 
     // drivers
 
@@ -410,17 +443,6 @@ public class XMLDocumentFragmentScannerImpl
      *
      * @return True if there is more to scan, false otherwise.
      */
-   /* public boolean scanDocument(boolean complete)
-    throws IOException, XNIException {
-
-        // keep dispatching "events"
-        fEntityManager.setEntityHandler(this);
-
-        return true;
-
-    } // scanDocument(boolean):boolean
-    */
-
     public boolean scanDocument(boolean complete)
     throws IOException, XNIException {
 
@@ -576,6 +598,9 @@ public class XMLDocumentFragmentScannerImpl
         //xxx: external entities are supported in Xerces
         // it would be good to define feature for this case
         fSupportExternalEntities = true;
+        fSupportExternalEntities = true;
+        fSupportExternalEntities = true;
+        fSupportExternalEntities = true;
         fReplaceEntityReferences = true;
         fIsCoalesce = false;
 
@@ -586,6 +611,12 @@ public class XMLDocumentFragmentScannerImpl
 
         dtdGrammarUtil = null;
 
+        // JAXP 1.5 features and properties
+        XMLSecurityPropertyManager spm = (XMLSecurityPropertyManager)
+                componentManager.getProperty(XML_SECURITY_PROPERTY_MANAGER, null);
+        fAccessExternalDTD = spm.getValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_DTD);
+
+        fStrictURI = componentManager.getFeature(STANDARD_URI_CONFORMANT, false);
 
         //fEntityManager.test();
     } // reset(XMLComponentManager)
@@ -636,6 +667,10 @@ public class XMLDocumentFragmentScannerImpl
 
         dtdGrammarUtil = null;
 
+         // JAXP 1.5 features and properties
+        XMLSecurityPropertyManager spm = (XMLSecurityPropertyManager)
+                propertyManager.getProperty(XML_SECURITY_PROPERTY_MANAGER);
+        fAccessExternalDTD = spm.getValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_DTD);
     } // reset(XMLComponentManager)
 
     /**
@@ -732,6 +767,13 @@ public class XMLDocumentFragmentScannerImpl
             return;
         }
 
+        //JAXP 1.5 properties
+        if (propertyId.equals(XML_SECURITY_PROPERTY_MANAGER))
+        {
+            XMLSecurityPropertyManager spm = (XMLSecurityPropertyManager)value;
+            fAccessExternalDTD = spm.getValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_DTD);
+        }
+
     } // setProperty(String,Object)
 
     /**
@@ -806,6 +848,7 @@ public class XMLDocumentFragmentScannerImpl
      *                 where the entity encoding is not auto-detected (e.g.
      *                 internal entities or a document entity that is
      *                 parsed from a java.io.Reader).
+     * @param augs     Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
@@ -833,7 +876,7 @@ public class XMLDocumentFragmentScannerImpl
         // call handler
         if (fDocumentHandler != null && !fScanningAttribute) {
             if (!name.equals("[xml]")) {
-                fDocumentHandler.startGeneralEntity(name, identifier, encoding, null);
+                fDocumentHandler.startGeneralEntity(name, identifier, encoding, augs);
             }
         }
 
@@ -845,6 +888,7 @@ public class XMLDocumentFragmentScannerImpl
      * are just specified by their name.
      *
      * @param name The name of the entity.
+     * @param augs Additional information that may include infoset augmentations
      *
      * @throws XNIException Thrown by handler to signal an error.
      */
@@ -869,7 +913,7 @@ public class XMLDocumentFragmentScannerImpl
         // call handler
         if (fDocumentHandler != null && !fScanningAttribute) {
             if (!name.equals("[xml]")) {
-                fDocumentHandler.endGeneralEntity(name, null);
+                fDocumentHandler.endGeneralEntity(name, augs);
             }
         }
 
@@ -1841,7 +1885,8 @@ public class XMLDocumentFragmentScannerImpl
         //1. if the entity is external and support to external entities is not required
         // 2. or entities should not be replaced
         //3. or if it is built in entity reference.
-        if((fEntityStore.isExternalEntity(name) && !fSupportExternalEntities) || (!fEntityStore.isExternalEntity(name) && !fReplaceEntityReferences) || foundBuiltInRefs){
+        boolean isEE = fEntityStore.isExternalEntity(name);
+        if((isEE && !fSupportExternalEntities) || (!isEE && !fReplaceEntityReferences) || foundBuiltInRefs){
             fScannerState = SCANNER_STATE_REFERENCE;
             return ;
         }
@@ -1990,6 +2035,12 @@ public class XMLDocumentFragmentScannerImpl
         return "null";
 
     } // getDriverName():String
+
+    String checkAccess(String systemId, String allowedProtocols) throws IOException {
+        String baseSystemId = fEntityScanner.getBaseSystemId();
+        String expandedSystemId = fEntityManager.expandSystemId(systemId, baseSystemId,fStrictURI);
+        return SecuritySupport.checkAccess(expandedSystemId, allowedProtocols, Constants.ACCESS_EXTERNAL_ALL);
+    }
 
     //
     // Classes

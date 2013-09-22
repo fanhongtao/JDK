@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -89,6 +89,15 @@ class CalendarBuilder {
             index = DAY_OF_WEEK;
         }
         return field[index] > UNSET;
+    }
+
+    CalendarBuilder clear(int index) {
+        if (index == ISO_DAY_OF_WEEK) {
+            index = DAY_OF_WEEK;
+        }
+        field[index] = UNSET;
+        field[MAX_FIELD + index] = 0;
+        return this;
     }
 
     Calendar establish(Calendar cal) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1996, 2012, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -658,7 +658,7 @@ public abstract class Signature extends SignatureSpi {
         throws SignatureException {
         if (state == VERIFY) {
             if ((signature == null) || (offset < 0) || (length < 0) ||
-                (offset + length > signature.length)) {
+                (length > signature.length - offset)) {
                 throw new IllegalArgumentException("Bad arguments");
             }
 

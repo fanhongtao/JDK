@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -22,17 +22,17 @@
  */
 package com.sun.org.apache.xml.internal.utils;
 
-import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
+import com.sun.org.apache.xalan.internal.XalanConstants;
 import com.sun.org.apache.xalan.internal.utils.FactoryImpl;
+import com.sun.org.apache.xalan.internal.utils.SecuritySupport;
 import java.util.HashMap;
-
+import javax.xml.XMLConstants;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
-
+import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
-import org.xml.sax.SAXException;
 
 /**
  * Creates XMLReader objects and caches them for re-use.
@@ -63,6 +63,11 @@ public class XMLReaderManager {
     private HashMap m_inUse;
 
     private boolean m_useServicesMechanism = true;
+     /**
+     * protocols allowed for external DTD references in source file and/or stylesheet.
+     */
+    private String _accessExternalDTD = XalanConstants.EXTERNAL_ACCESS_DEFAULT;
+
     /**
      * Hidden constructor
      */
@@ -151,6 +156,14 @@ public class XMLReaderManager {
             }
         }
 
+        try {
+            //reader is cached, but this property might have been reset
+            reader.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, _accessExternalDTD);
+        } catch (SAXException se) {
+            System.err.println("Warning:  " + reader.getClass().getName() + ": "
+                        + se.getMessage());
+        }
+
         return reader;
     }
 
@@ -181,4 +194,22 @@ public class XMLReaderManager {
         m_useServicesMechanism = flag;
     }
 
+    /**
+     * Get property value
+     */
+    public String getProperty(String name) {
+        if (name.equals(XMLConstants.ACCESS_EXTERNAL_DTD)) {
+            return _accessExternalDTD;
+        }
+        return null;
+    }
+
+    /**
+     * Set property.
+     */
+    public void setProperty(String name, String value) {
+        if (name.equals(XMLConstants.ACCESS_EXTERNAL_DTD)) {
+            _accessExternalDTD = (String)value;
+        }
+    }
 }

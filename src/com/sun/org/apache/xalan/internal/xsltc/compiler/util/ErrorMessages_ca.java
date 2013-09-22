@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -442,6 +442,12 @@ public class ErrorMessages_ca extends ListResourceBundle {
          */
         {ErrorMsg.MISSING_XSLT_TARGET_ERR,
         "No s''ha trobat la destinaci\u00f3 ''{0}'' del full d''estils."},
+
+        /*
+         * Note to translators:  access to the stylesheet target is denied
+         */
+        {ErrorMsg.ACCESSING_XSLT_TARGET_ERR,
+        "Could not read stylesheet target ''{0}'', because ''{1}'' access is not allowed."},
 
         /*
          * Note to translators:  This message represents an internal error in

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -98,6 +98,12 @@ public class TemplatesHandlerImpl
         XSLTC xsltc = new XSLTC(tfactory.useServicesMechnism());
         if (tfactory.getFeature(XMLConstants.FEATURE_SECURE_PROCESSING))
             xsltc.setSecureProcessing(true);
+
+        xsltc.setProperty(XMLConstants.ACCESS_EXTERNAL_STYLESHEET,
+                (String)tfactory.getAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET));
+        xsltc.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD,
+                (String)tfactory.getAttribute(XMLConstants.ACCESS_EXTERNAL_DTD));
+
 
         if ("true".equals(tfactory.getAttribute(TransformerFactoryImpl.ENABLE_INLINING)))
             xsltc.setTemplateInlining(true);

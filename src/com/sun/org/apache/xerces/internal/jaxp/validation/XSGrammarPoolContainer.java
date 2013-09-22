@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -54,5 +54,22 @@ public interface XSGrammarPoolContainer {
      * should use the default value.
      */
     public Boolean getFeature(String featureId);
+
+    /*
+     * Set a feature on the schema
+     */
+    public void setFeature(String featureId, boolean state);
+
+    /**
+     * Returns the initial value of a property for validators created
+     * using this grammar pool container or null if the validators
+     * should use the default value.
+     */
+    public Object getProperty(String propertyId);
+
+    /*
+     * Set a property on the schema
+     */
+    public void setProperty(String propertyId, Object state);
 
 }

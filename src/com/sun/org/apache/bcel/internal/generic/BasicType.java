@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.org.apache.bcel.internal.generic;
@@ -97,8 +97,14 @@ public final class BasicType extends Type {
 
   /** @return true if both type objects refer to the same type
    */
+  @Override
   public boolean equals(Object type) {
     return (type instanceof BasicType)?
       ((BasicType)type).type == this.type : false;
+  }
+
+  @Override
+  public int hashCode() {
+      return type;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2010, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -425,6 +425,15 @@ public class JDesktopPane extends JLayeredPane implements Accessible
             componentOrderChanged = false;
             updateFramesCache();
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void remove(Component comp) {
+        super.remove(comp);
+        updateFramesCache();
     }
 
     /**

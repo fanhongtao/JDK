@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -43,7 +43,7 @@ import com.sun.org.apache.xerces.internal.util.SAXMessageFormatter;
  * @author Rajiv Mordani
  * @author Edwin Goei
  *
- * @version $Id: SAXParserFactoryImpl.java,v 1.7 2009/07/28 23:48:32 joehw Exp $
+ * @version $Id: SAXParserFactoryImpl.java,v 1.9 2010-11-01 04:40:06 joehw Exp $
  */
 public class SAXParserFactoryImpl extends SAXParserFactory {
 
@@ -124,6 +124,7 @@ public class SAXParserFactoryImpl extends SAXParserFactory {
                         "jaxp-secureprocessing-feature", null));
             }
             fSecureProcess = value;
+            putInFeatures(name, value);
             return;
         }
 

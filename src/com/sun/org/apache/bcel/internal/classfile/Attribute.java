@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.org.apache.bcel.internal.classfile;
@@ -205,6 +205,9 @@ public abstract class Attribute implements Cloneable, Node, Serializable {
 
     case Constants.ATTR_LOCAL_VARIABLE_TABLE:
       return new LocalVariableTable(name_index, length, file, constant_pool);
+
+    case Constants.ATTR_LOCAL_VARIABLE_TYPE_TABLE:
+      return new LocalVariableTypeTable(name_index, length, file, constant_pool);
 
     case Constants.ATTR_INNER_CLASSES:
       return new InnerClasses(name_index, length, file, constant_pool);

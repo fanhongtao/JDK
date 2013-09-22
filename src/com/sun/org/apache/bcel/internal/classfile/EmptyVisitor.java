@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.org.apache.bcel.internal.classfile;
@@ -98,6 +98,7 @@ public class EmptyVisitor implements Visitor {
   public void visitLineNumberTable(LineNumberTable obj) {}
   public void visitLocalVariable(LocalVariable obj) {}
   public void visitLocalVariableTable(LocalVariableTable obj) {}
+  public void visitLocalVariableTypeTable(LocalVariableTypeTable obj) {}
   public void visitMethod(Method obj) {}
   public void visitSignature(Signature obj) {}
   public void visitSourceFile(SourceFile obj) {}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  *
  *
@@ -419,7 +419,7 @@ public class BasicTableUI extends TableUI
                     }
                 }
                 else {
-                    if (!(table.getParent().getParent() instanceof
+                    if (!(SwingUtilities.getUnwrappedParent(table).getParent() instanceof
                             JScrollPane)) {
                         return;
                     }
@@ -1431,7 +1431,7 @@ public class BasicTableUI extends TableUI
         }
 
         // install the scrollpane border
-        Container parent = table.getParent();  // should be viewport
+        Container parent = SwingUtilities.getUnwrappedParent(table);  // should be viewport
         if (parent != null) {
             parent = parent.getParent();  // should be the scrollpane
             if (parent != null && parent instanceof JScrollPane) {

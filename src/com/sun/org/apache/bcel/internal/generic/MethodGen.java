@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 package com.sun.org.apache.bcel.internal.generic;
@@ -258,6 +258,23 @@ public class MethodGen extends FieldGenOrMethodGen {
               addLocalVariable(l.getName(), Type.getType(l.getSignature()),
                                l.getIndex(), start, end);
             }
+          } else if (a instanceof LocalVariableTypeTable) {
+             LocalVariable[] lv = ((LocalVariableTypeTable) a).getLocalVariableTypeTable();
+             removeLocalVariables();
+             for (int k = 0; k < lv.length; k++) {
+                 LocalVariable l = lv[k];
+                 InstructionHandle start = il.findHandle(l.getStartPC());
+                 InstructionHandle end = il.findHandle(l.getStartPC() + l.getLength());
+                 // Repair malformed handles
+                 if (null == start) {
+                     start = il.getStart();
+                 }
+                 if (null == end) {
+                     end = il.getEnd();
+                 }
+                 addLocalVariable(l.getName(), Type.getType(l.getSignature()), l
+                         .getIndex(), start, end);
+              }
           } else
             addCodeAttribute(a);
         }

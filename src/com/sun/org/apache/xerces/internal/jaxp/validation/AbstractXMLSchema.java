@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -41,8 +41,15 @@ abstract class AbstractXMLSchema extends Schema implements
      */
     private final HashMap fFeatures;
 
+    /**
+     * Map containing the initial values of properties for
+     * validators created using this grammar pool container.
+     */
+    private final HashMap fProperties;
+
     public AbstractXMLSchema() {
         fFeatures = new HashMap();
+        fProperties = new HashMap();
     }
 
     /*
@@ -77,11 +84,26 @@ abstract class AbstractXMLSchema extends Schema implements
     }
 
     /*
-     * Other methods
+     * Set a feature on the schema
      */
-
-    final void setFeature(String featureId, boolean state) {
+    public final void setFeature(String featureId, boolean state) {
         fFeatures.put(featureId, state ? Boolean.TRUE : Boolean.FALSE);
+    }
+
+    /**
+     * Returns the initial value of a property for validators created
+     * using this grammar pool container or null if the validators
+     * should use the default value.
+     */
+    public final Object getProperty(String propertyId) {
+        return fProperties.get(propertyId);
+    }
+
+    /*
+     * Set a property on the schema
+     */
+    public final void setProperty(String propertyId, Object state) {
+        fProperties.put(propertyId, state);
     }
 
 } // AbstractXMLSchema

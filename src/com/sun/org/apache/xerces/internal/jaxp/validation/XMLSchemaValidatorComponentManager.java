@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -42,6 +42,7 @@ import com.sun.org.apache.xerces.internal.util.PropertyState;
 import com.sun.org.apache.xerces.internal.util.SecurityManager;
 import com.sun.org.apache.xerces.internal.util.Status;
 import com.sun.org.apache.xerces.internal.util.SymbolTable;
+import com.sun.org.apache.xerces.internal.utils.XMLSecurityPropertyManager;
 import com.sun.org.apache.xerces.internal.xni.NamespaceContext;
 import com.sun.org.apache.xerces.internal.xni.XNIException;
 import com.sun.org.apache.xerces.internal.xni.parser.XMLComponent;
@@ -106,6 +107,10 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
     /** Property identifier: security manager. */
     private static final String SECURITY_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY;
+
+    /** Property identifier: security property manager. */
+    private static final String XML_SECURITY_PROPERTY_MANAGER =
+            Constants.XML_SECURITY_PROPERTY_MANAGER;
 
     /** Property identifier: symbol table. */
     private static final String SYMBOL_TABLE =
@@ -178,6 +183,9 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
     /** Stores the initial security manager. */
     private final SecurityManager fInitSecurityManager;
 
+    /** Stores the initial security property manager. */
+    private final XMLSecurityPropertyManager fSecurityPropertyMgr;
+
     //
     // User Objects
     //
@@ -243,6 +251,10 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
         }
         fComponents.put(SECURITY_MANAGER, fInitSecurityManager);
 
+        //pass on properties set on SchemaFactory
+        fSecurityPropertyMgr = (XMLSecurityPropertyManager)
+                grammarContainer.getProperty(Constants.XML_SECURITY_PROPERTY_MANAGER);
+        setProperty(XML_SECURITY_PROPERTY_MANAGER, fSecurityPropertyMgr);
     }
 
     /**
@@ -300,6 +312,15 @@ final class XMLSchemaValidatorComponentManager extends ParserConfigurationSettin
                 throw new XMLConfigurationException(Status.NOT_ALLOWED, XMLConstants.FEATURE_SECURE_PROCESSING);
             }
             setProperty(SECURITY_MANAGER, value ? new SecurityManager() : null);
+
+            if (value && Constants.IS_JDK8_OR_ABOVE) {
+                fSecurityPropertyMgr.setValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_DTD,
+                        XMLSecurityPropertyManager.State.FSP, Constants.EXTERNAL_ACCESS_DEFAULT_FSP);
+                fSecurityPropertyMgr.setValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_SCHEMA,
+                        XMLSecurityPropertyManager.State.FSP, Constants.EXTERNAL_ACCESS_DEFAULT_FSP);
+                setProperty(XML_SECURITY_PROPERTY_MANAGER, fSecurityPropertyMgr);
+            }
+
             return;
         }
         fConfigUpdated = true;

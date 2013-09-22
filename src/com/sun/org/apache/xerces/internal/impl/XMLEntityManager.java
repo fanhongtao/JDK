@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2006, 2013 Oracle and/or its affiliates. All rights reserved.
  */
 
 /*
@@ -20,51 +20,38 @@
 
 package com.sun.org.apache.xerces.internal.impl ;
 
+import com.sun.org.apache.xerces.internal.impl.Constants;
+import com.sun.org.apache.xerces.internal.impl.io.ASCIIReader;
+import com.sun.org.apache.xerces.internal.impl.io.UCSReader;
+import com.sun.org.apache.xerces.internal.impl.io.UTF8Reader;
+import com.sun.org.apache.xerces.internal.impl.msg.XMLMessageFormatter;
+import com.sun.org.apache.xerces.internal.impl.XMLEntityHandler;
+import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
+import com.sun.org.apache.xerces.internal.util.*;
+import com.sun.org.apache.xerces.internal.util.SecurityManager;
+import com.sun.org.apache.xerces.internal.util.URI;
+import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
+import com.sun.org.apache.xerces.internal.utils.XMLSecurityPropertyManager;
+import com.sun.org.apache.xerces.internal.xni.Augmentations;
+import com.sun.org.apache.xerces.internal.xni.XMLResourceIdentifier;
+import com.sun.org.apache.xerces.internal.xni.XNIException;
+import com.sun.org.apache.xerces.internal.xni.parser.*;
+import com.sun.xml.internal.stream.Entity;
 import com.sun.xml.internal.stream.StaxEntityResolverWrapper;
 import com.sun.xml.internal.stream.StaxXMLInputSource;
 import com.sun.xml.internal.stream.XMLEntityStorage;
 import java.io.*;
-import java.io.BufferedReader;
-import java.util.*;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URISyntaxException;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
-
-
-import com.sun.org.apache.xerces.internal.impl.io.*;
-import com.sun.org.apache.xerces.internal.impl.msg.XMLMessageFormatter;
-import com.sun.org.apache.xerces.internal.util.*;
-import com.sun.org.apache.xerces.internal.xni.XMLResourceIdentifier;
-import com.sun.org.apache.xerces.internal.xni.XNIException;
-import com.sun.org.apache.xerces.internal.xni.parser.*;
-import com.sun.org.apache.xerces.internal.impl.Constants;
-import com.sun.org.apache.xerces.internal.utils.SecuritySupport;
-import com.sun.xml.internal.stream.Entity;
-import com.sun.org.apache.xerces.internal.xni.Augmentations;
-
-import com.sun.org.apache.xerces.internal.impl.io.UTF8Reader;
-import com.sun.org.apache.xerces.internal.impl.io.ASCIIReader;
-import com.sun.org.apache.xerces.internal.impl.io.UCSReader;
-import com.sun.org.apache.xerces.internal.impl.XMLEntityHandler;
-import com.sun.org.apache.xerces.internal.util.HTTPInputSource;
-import com.sun.org.apache.xerces.internal.xinclude.XIncludeHandler;
-
-import com.sun.org.apache.xerces.internal.impl.validation.ValidationManager;
-import com.sun.org.apache.xerces.internal.util.SecurityManager;
-import com.sun.org.apache.xerces.internal.util.URI;
+import javax.xml.XMLConstants;
 
 
 /**
@@ -140,6 +127,10 @@ public class XMLEntityManager implements XMLComponent, XMLEntityResolver {
     protected static final String WARN_ON_DUPLICATE_ENTITYDEF =
             Constants.XERCES_FEATURE_PREFIX +Constants.WARN_ON_DUPLICATE_ENTITYDEF_FEATURE;
 
+    /** Feature identifier: load external DTD. */
+    protected static final String LOAD_EXTERNAL_DTD =
+            Constants.XERCES_FEATURE_PREFIX + Constants.LOAD_EXTERNAL_DTD_FEATURE;
+
     // property identifiers
 
     /** Property identifier: symbol table. */
@@ -173,8 +164,17 @@ public class XMLEntityManager implements XMLComponent, XMLEntityResolver {
     protected static final String SECURITY_MANAGER =
         Constants.XERCES_PROPERTY_PREFIX + Constants.SECURITY_MANAGER_PROPERTY;
 
-protected static final String PARSER_SETTINGS =
+    protected static final String PARSER_SETTINGS =
         Constants.XERCES_FEATURE_PREFIX + Constants.PARSER_SETTINGS;
+
+    /** Property identifier: Security property manager. */
+    private static final String XML_SECURITY_PROPERTY_MANAGER =
+            Constants.XML_SECURITY_PROPERTY_MANAGER;
+
+    /** access external dtd: file protocol */
+    static final String EXTERNAL_ACCESS_DEFAULT = Constants.EXTERNAL_ACCESS_DEFAULT;
+
+
     // recognized features and properties
 
     /** Recognized features. */
@@ -205,7 +205,7 @@ protected static final String PARSER_SETTINGS =
                 VALIDATION_MANAGER,
                 BUFFER_SIZE,
                 SECURITY_MANAGER,
-
+                XML_SECURITY_PROPERTY_MANAGER
     };
 
     /** Property defaults. */
@@ -215,6 +215,7 @@ protected static final String PARSER_SETTINGS =
                 null,
                 null,
                 new Integer(DEFAULT_BUFFER_SIZE),
+                null,
                 null
     };
 
@@ -274,6 +275,8 @@ protected static final String PARSER_SETTINGS =
      */
     protected boolean fAllowJavaEncodings = true ;
 
+    /** Load external DTD. */
+    protected boolean fLoadExternalDTD = true;
 
     // properties
 
@@ -302,7 +305,8 @@ protected static final String PARSER_SETTINGS =
     /** Property Manager. This is used from Stax */
     protected PropertyManager fPropertyManager ;
 
-
+    /** used to restrict external access */
+    protected String fAccessExternalDTD = EXTERNAL_ACCESS_DEFAULT;
     // settings
 
     /**
@@ -365,6 +369,9 @@ protected static final String PARSER_SETTINGS =
 
     /** Current entity. */
     protected Entity.ScannedEntity fCurrentEntity = null;
+
+    /** identify if the InputSource is created by a resolver */
+    boolean fISCreatedByResolver = false;
 
     // shared context
 
@@ -965,18 +972,25 @@ protected static final String PARSER_SETTINGS =
             System.out.println("BEFORE Calling resolveEntity") ;
         }
 
+        fISCreatedByResolver = false;
         //either of Stax or Xerces would be null
         if(fStaxEntityResolver != null){
             staxInputSource = fStaxEntityResolver.resolveEntity(ri);
+            if(staxInputSource != null) {
+                fISCreatedByResolver = true;
+            }
         }
 
         if(fEntityResolver != null){
             xmlInputSource = fEntityResolver.resolveEntity(ri);
+            if(xmlInputSource != null) {
+                fISCreatedByResolver = true;
+            }
         }
 
         if(xmlInputSource != null){
             //wrap this XMLInputSource to StaxInputSource
-            staxInputSource = new StaxXMLInputSource(xmlInputSource);
+            staxInputSource = new StaxXMLInputSource(xmlInputSource, fISCreatedByResolver);
         }
 
         // do default resolution
@@ -1108,7 +1122,13 @@ protected static final String PARSER_SETTINGS =
 
         // should we skip external entities?
         boolean external = entity.isExternal();
+        Entity.ExternalEntity externalEntity = null;
+        String extLitSysId = null, extBaseSysId = null, expandedSystemId = null;
         if (external) {
+            externalEntity = (Entity.ExternalEntity)entity;
+            extLitSysId = (externalEntity.entityLocation != null ? externalEntity.entityLocation.getLiteralSystemId() : null);
+            extBaseSysId = (externalEntity.entityLocation != null ? externalEntity.entityLocation.getBaseSystemId() : null);
+            expandedSystemId = expandSystemId(extLitSysId, extBaseSysId);
             boolean unparsed = entity.isUnparsed();
             boolean parameter = entityName.startsWith("%");
             boolean general = !parameter;
@@ -1118,13 +1138,6 @@ protected static final String PARSER_SETTINGS =
                 if (fEntityHandler != null) {
                     fResourceIdentifier.clear();
                     final String encoding = null;
-                    Entity.ExternalEntity externalEntity = (Entity.ExternalEntity)entity;
-                    //REVISIT:  since we're storing expandedSystemId in the
-                    // externalEntity, how could this have got here if it wasn't already
-                    // expanded??? - neilg
-                    String extLitSysId = (externalEntity.entityLocation != null ? externalEntity.entityLocation.getLiteralSystemId() : null);
-                    String extBaseSysId = (externalEntity.entityLocation != null ? externalEntity.entityLocation.getBaseSystemId() : null);
-                    String expandedSystemId = expandSystemId(extLitSysId, extBaseSysId);
                     fResourceIdentifier.setValues(
                             (externalEntity.entityLocation != null ? externalEntity.entityLocation.getPublicId() : null),
                             extLitSysId, extBaseSysId, expandedSystemId);
@@ -1162,11 +1175,6 @@ protected static final String PARSER_SETTINGS =
                             fResourceIdentifier.clear();
                             final String encoding = null;
                             if (external) {
-                                Entity.ExternalEntity externalEntity = (Entity.ExternalEntity)entity;
-                                // REVISIT:  for the same reason above...
-                                String extLitSysId = (externalEntity.entityLocation != null ? externalEntity.entityLocation.getLiteralSystemId() : null);
-                                String extBaseSysId = (externalEntity.entityLocation != null ? externalEntity.entityLocation.getBaseSystemId() : null);
-                                String expandedSystemId = expandSystemId(extLitSysId, extBaseSysId);
                                 fResourceIdentifier.setValues(
                                         (externalEntity.entityLocation != null ? externalEntity.entityLocation.getPublicId() : null),
                                         extLitSysId, extBaseSysId, expandedSystemId);
@@ -1188,7 +1196,6 @@ protected static final String PARSER_SETTINGS =
         XMLInputSource xmlInputSource = null ;
 
         if (external) {
-            Entity.ExternalEntity externalEntity = (Entity.ExternalEntity)entity;
             staxInputSource = resolveEntityAsPerStax(externalEntity.entityLocation);
             /** xxx:  Waiting from the EG
              * //simply return if there was entity resolver registered and application
@@ -1196,6 +1203,18 @@ protected static final String PARSER_SETTINGS =
              * if(staxInputSource.hasXMLStreamOrXMLEventReader()) return ;
              */
             xmlInputSource = staxInputSource.getXMLInputSource() ;
+            if (!fISCreatedByResolver) {
+                //let the not-LoadExternalDTD or not-SupportDTD process to handle the situation
+                if (fLoadExternalDTD) {
+                    String accessError = SecuritySupport.checkAccess(expandedSystemId, fAccessExternalDTD, Constants.ACCESS_EXTERNAL_ALL);
+                    if (accessError != null) {
+                        fErrorReporter.reportError(this.getEntityScanner(),XMLMessageFormatter.XML_DOMAIN,
+                                "AccessExternalEntity",
+                                new Object[] { SecuritySupport.sanitizePath(expandedSystemId), accessError },
+                                XMLErrorReporter.SEVERITY_FATAL_ERROR);
+                    }
+                }
+            }
         }
         // wrap internal entity
         else {
@@ -1400,6 +1419,13 @@ protected static final String PARSER_SETTINGS =
             fStaxEntityResolver = null;
         }
 
+        // Zephyr feature ignore-external-dtd is the opposite of Xerces' load-external-dtd
+        fLoadExternalDTD = !((Boolean)propertyManager.getProperty(Constants.ZEPHYR_PROPERTY_PREFIX + Constants.IGNORE_EXTERNAL_DTD)).booleanValue();
+
+        // JAXP 1.5 feature
+        XMLSecurityPropertyManager spm = (XMLSecurityPropertyManager) propertyManager.getProperty(XML_SECURITY_PROPERTY_MANAGER);
+        fAccessExternalDTD = spm.getValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_DTD);
+
         // initialize state
         //fStandalone = false;
         fEntities.clear();
@@ -1409,8 +1435,6 @@ protected static final String PARSER_SETTINGS =
         fExternalGeneralEntities = true;
         fExternalParameterEntities = true;
         fAllowJavaEncodings = true ;
-
-        //test();
     }
 
     /**
@@ -1453,6 +1477,7 @@ protected static final String PARSER_SETTINGS =
         fAllowJavaEncodings = componentManager.getFeature(ALLOW_JAVA_ENCODINGS, false);
         fWarnDuplicateEntityDef = componentManager.getFeature(WARN_ON_DUPLICATE_ENTITYDEF, false);
         fStrictURI = componentManager.getFeature(STANDARD_URI_CONFORMANT, false);
+        fLoadExternalDTD = componentManager.getFeature(LOAD_EXTERNAL_DTD, true);
 
         // xerces properties
         fSymbolTable = (SymbolTable)componentManager.getProperty(SYMBOL_TABLE);
@@ -1461,6 +1486,13 @@ protected static final String PARSER_SETTINGS =
         fStaxEntityResolver = (StaxEntityResolverWrapper)componentManager.getProperty(STAX_ENTITY_RESOLVER, null);
         fValidationManager = (ValidationManager)componentManager.getProperty(VALIDATION_MANAGER, null);
         fSecurityManager = (SecurityManager)componentManager.getProperty(SECURITY_MANAGER, null);
+
+        // JAXP 1.5 feature
+        XMLSecurityPropertyManager spm = (XMLSecurityPropertyManager) componentManager.getProperty(XML_SECURITY_PROPERTY_MANAGER, null);
+        if (spm == null) {
+            spm = new XMLSecurityPropertyManager();
+        }
+        fAccessExternalDTD = spm.getValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_DTD);
 
         //reset general state
         reset();
@@ -1554,6 +1586,11 @@ protected static final String PARSER_SETTINGS =
                 featureId.endsWith(Constants.ALLOW_JAVA_ENCODINGS_FEATURE)) {
                 fAllowJavaEncodings = state;
             }
+            if (suffixLength == Constants.LOAD_EXTERNAL_DTD_FEATURE.length() &&
+                featureId.endsWith(Constants.LOAD_EXTERNAL_DTD_FEATURE)) {
+                fLoadExternalDTD = state;
+                return;
+            }
         }
 
     } // setFeature(String,boolean)
@@ -1610,7 +1647,14 @@ protected static final String PARSER_SETTINGS =
             }
         }
 
+        //JAXP 1.5 properties
+        if (propertyId.equals(XML_SECURITY_PROPERTY_MANAGER))
+        {
+            XMLSecurityPropertyManager spm = (XMLSecurityPropertyManager)value;
+            fAccessExternalDTD = spm.getValue(XMLSecurityPropertyManager.Property.ACCESS_EXTERNAL_DTD);
+        }
     }
+
     /**
      * Returns a list of property identifiers that are recognized by
      * this component. This method may return null if no properties

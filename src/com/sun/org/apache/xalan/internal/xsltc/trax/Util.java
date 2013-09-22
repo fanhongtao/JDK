@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 /*
@@ -135,6 +135,14 @@ public final class Util {
                         ("http://xml.org/sax/features/namespaces",true);
                     reader.setFeature
                         ("http://xml.org/sax/features/namespace-prefixes",false);
+
+                    try {
+                        reader.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD,
+                                   xsltc.getProperty(XMLConstants.ACCESS_EXTERNAL_DTD));
+                    } catch (SAXNotRecognizedException e) {
+                        System.err.println("Warning:  " + reader.getClass().getName() + ": "
+                                + e.getMessage());
+                    }
 
                     xsltc.setXMLReader(reader);
                 }catch (SAXNotRecognizedException snre ) {
